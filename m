@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bufferc-nobh_write_begin-call-__block_write_begin-if-we-have-page.patch added to -mm tree
-Date: Mon, 25 Oct 2010 16:11:41 -0700
-Message-ID: <201010252311.o9PNBfof021859@imap1.linux-foundation.org>
+Subject: + oprofile-fix-hang-while-offline-the-cpu.patch added to -mm tree
+Date: Mon, 25 Oct 2010 16:33:52 -0700
+Message-ID: <201010252333.o9PNXqhJ022710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758024Ab0JYXLw (ORCPT
+	by vger.kernel.org with ESMTP id S1751305Ab0JYXe2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 19:11:52 -0400
+	Mon, 25 Oct 2010 19:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: santosh.shilimkar@ti.com, r.sricharan@ti.com, robert.richter@amd.com, s-jan@ti.com
 
 
 The patch titled
-     fs/buffer.c: nobh_write_begin(): call __block_write_begin() if we have page
+     oprofile: fix hang while offline the cpu
 has been added to the -mm tree.  Its filename is
-     fs-bufferc-nobh_write_begin-call-__block_write_begin-if-we-have-page.patch
+     oprofile-fix-hang-while-offline-the-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/buffer.c: nobh_write_begin(): call __block_write_begin() if we have page
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: oprofile: fix hang while offline the cpu
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-If we have the appropriate page already, call __block_write_begin()
-directly instead of releasing and regrabbing it inside of
-block_write_begin().
+The kernel is built with CONFIG_OPROFILE and CPU_HOTPLUG enabled. 
+oprofile is initialised using system timer in absence of hardware counters
+supports.  Oprofile isn't started from userland.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+In this setup while doing a CPU offline the kernel hangs in an infinite
+loop in lock_hrtimer_base().
+
+This happens because as part of oprofile_cpu_notify(, it tries to stop an
+hrtimer which was never started.  These per-cpu hrtimers are started when
+the oprfile is started.
+
+	echo 1	> /dev/oprofile/enable
+
+Fix this issue by adding a state variable so that these hrtimer start/stop
+is only attempted when oprofile is started
+
+Reported-by: Jan Sebastien <s-jan@ti.com>
+Signed-off-by: sricharan <r.sricharan@ti.com>
+Tested-by: sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Robert Richter <robert.richter@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/oprofile/timer_int.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/buffer.c~fs-bufferc-nobh_write_begin-call-__block_write_begin-if-we-have-page fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-nobh_write_begin-call-__block_write_begin-if-we-have-page
-+++ a/fs/buffer.c
-@@ -2471,11 +2471,13 @@ int nobh_write_begin(struct address_spac
- 	*fsdata = NULL;
+diff -puN drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu drivers/oprofile/timer_int.c
+--- a/drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu
++++ a/drivers/oprofile/timer_int.c
+@@ -21,6 +21,7 @@
+ #include "oprof.h"
  
- 	if (page_has_buffers(page)) {
--		unlock_page(page);
--		page_cache_release(page);
--		*pagep = NULL;
--		return block_write_begin(mapping, pos, len, flags, pagep,
--					 get_block);
-+		ret = __block_write_begin(page, pos, len, get_block);
-+		if (unlikely(ret)) {
-+			unlock_page(page);
-+			page_cache_release(page);
-+			*pagep = NULL;
-+		}
-+		return ret;
- 	}
+ static DEFINE_PER_CPU(struct hrtimer, oprofile_hrtimer);
++static int oprofile_hrtimer_started;
  
- 	if (PageMappedToDisk(page))
+ static enum hrtimer_restart oprofile_hrtimer_notify(struct hrtimer *hrtimer)
+ {
+@@ -33,6 +34,9 @@ static void __oprofile_hrtimer_start(voi
+ {
+ 	struct hrtimer *hrtimer = &__get_cpu_var(oprofile_hrtimer);
+ 
++	if (!oprofile_hrtimer_started)
++		return;
++
+ 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	hrtimer->function = oprofile_hrtimer_notify;
+ 
+@@ -42,6 +46,7 @@ static void __oprofile_hrtimer_start(voi
+ 
+ static int oprofile_hrtimer_start(void)
+ {
++	oprofile_hrtimer_started = 1;
+ 	on_each_cpu(__oprofile_hrtimer_start, NULL, 1);
+ 	return 0;
+ }
+@@ -50,6 +55,9 @@ static void __oprofile_hrtimer_stop(int 
+ {
+ 	struct hrtimer *hrtimer = &per_cpu(oprofile_hrtimer, cpu);
+ 
++	if (!oprofile_hrtimer_started)
++		return;
++
+ 	hrtimer_cancel(hrtimer);
+ }
+ 
+@@ -59,6 +67,7 @@ static void oprofile_hrtimer_stop(void)
+ 
+ 	for_each_online_cpu(cpu)
+ 		__oprofile_hrtimer_stop(cpu);
++	oprofile_hrtimer_started = 0;
+ }
+ 
+ static int __cpuinit oprofile_cpu_notify(struct notifier_block *self,
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
-origin.patch
 linux-next.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-mm-remove-temporary-variable-on-generic_file_direct_write.patch
-mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
-mm-wrap-get_locked_pte-using-__cond_lock.patch
-mm-add-lock-release-annotation-on-do_wp_page.patch
-mm-wrap-follow_pte-using-__cond_lock.patch
-rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
-rmap-wrap-page_check_address-using-__cond_lock.patch
-rmap-make-anon_vma_free-static.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
-vmalloc-annotate-lock-context-change-on-s_start-stop.patch
-mm-declare-some-external-symbols.patch
-vmstat-include-compactionh-when-config_compaction.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-mm-fix-sparse-warnings-on-gfp_zone_table-bad.patch
-fs-bufferc-nobh_write_begin-call-__block_write_begin-if-we-have-page.patch
-fs-bufferc-remove-duplicated-assignment-on-b_private.patch
-lkdtm-prefix-enum-constants.patch
-init-mark-__user-address-space-on-string-literals.patch
-kernel-userc-add-lock-release-annotation-on-free_user.patch
-printk-fixup-declaration-of-kmsg_reasons.patch
-printk-add-lock-context-annotation.patch
-printk-change-type-of-boot_delay-to-int.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-lib-parser-cleanup-match_number.patch
-ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-ptrace-change-signature-of-sys_ptrace-and-friends.patch
-ptrace-cleanup-ptrace_request.patch
-ptrace-change-signature-of-arch_ptrace.patch
-ptrace-cleanup-arch_ptrace-on-x86.patch
-ptrace-cleanup-arch_ptrace-on-arm.patch
-ptrace-cleanup-arch_ptrace-on-avr32.patch
-ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
-ptrace-cleanup-arch_ptrace-on-cris.patch
-ptrace-cleanup-arch_ptrace-on-frv.patch
-ptrace-cleanup-arch_ptrace-on-h8300.patch
-ptrace-cleanup-arch_ptrace-on-m32r.patch
-ptrace-cleanup-arch_ptrace-on-m68k.patch
-ptrace-cleanup-arch_ptrace-on-m68knommu.patch
-ptrace-cleanup-arch_ptrace-on-microblaze.patch
-ptrace-cleanup-arch_ptrace-on-mips.patch
-ptrace-cleanup-arch_ptrace-on-mn10300.patch
-ptrace-cleanup-arch_ptrace-on-parisc.patch
-ptrace-cleanup-arch_ptrace-on-powerpc.patch
-ptrace-cleanup-arch_ptrace-on-score.patch
-ptrace-cleanup-arch_ptrace-on-sh.patch
-ptrace-cleanup-arch_ptrace-on-sparc.patch
-ptrace-cleanup-arch_ptrace-on-tile.patch
-ptrace-cleanup-arch_ptrace-on-um.patch
-ptrace-cleanup-arch_ptrace-on-xtensa.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+oprofile-fix-hang-while-offline-the-cpu.patch
 
