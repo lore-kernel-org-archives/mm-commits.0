@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-drbd-drbd_mainc-fix-error-path.patch added to -mm tree
-Date: Mon, 25 Oct 2010 15:50:12 -0700
-Message-ID: <201010252250.o9PMoC5Q020891@imap1.linux-foundation.org>
+Subject: + atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch added to -mm tree
+Date: Mon, 25 Oct 2010 15:54:32 -0700
+Message-ID: <201010252254.o9PMsW6a021074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751210Ab0JYWu2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752049Ab0JYWyk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 18:50:28 -0400
+	Mon, 25 Oct 2010 18:54:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nikai@nikai.net, axboe@kernel.dk, drbd-dev@lists.linbit.com, philipp.reisner@linbit.com
+Cc: claudio@evidence.eu.com, arkadiusz.bubala@gmail.com, greg@kroah.com, nicolas.ferre@atmel.com
 
 
 The patch titled
-     drivers/block/drbd/drbd_main.c: fix error path
+     atmel_serial: fix RTS high after initialization in RS485 mode
 has been added to the -mm tree.  Its filename is
-     drivers-block-drbd-drbd_mainc-fix-error-path.patch
+     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/drbd/drbd_main.c: fix error path
-From: Nicolas Kaiser <nikai@nikai.net>
+Subject: atmel_serial: fix RTS high after initialization in RS485 mode
+From: Claudio Scordino <claudio@evidence.eu.com>
 
-Failure to create drbd_ee_mempool appears not to get checked.  Looks like
-a copy-and-paste problem to me.
+When working in RS485 mode, the atmel_serial driver keeps RTS high after
+the initialization of the serial port.  It goes low only after the first
+character has been sent.
 
-Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Claudio Scordino <claudio@evidence.eu.com>
+Signed-off-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
+Tested-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/atmel_serial.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/block/drbd/drbd_main.c~drivers-block-drbd-drbd_mainc-fix-error-path drivers/block/drbd/drbd_main.c
---- a/drivers/block/drbd/drbd_main.c~drivers-block-drbd-drbd_mainc-fix-error-path
-+++ a/drivers/block/drbd/drbd_main.c
-@@ -2982,7 +2982,7 @@ static int drbd_create_mempools(void)
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode
++++ a/drivers/serial/atmel_serial.c
+@@ -1732,6 +1732,15 @@ static int __devinit atmel_serial_probe(
+ 	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, port);
  
- 	drbd_ee_mempool = mempool_create(number,
- 		mempool_alloc_slab, mempool_free_slab, drbd_ee_cache);
--	if (drbd_request_mempool == NULL)
-+	if (drbd_ee_mempool == NULL)
- 		goto Enomem;
++	if (port->rs485.flags & SER_RS485_ENABLED) {
++		unsigned int control = 0;
++		unsigned int mode = 0;
++		control |= ATMEL_US_RTSEN;
++		mode |= ATMEL_US_USMODE_NORMAL;
++		UART_PUT_MR(&port->uart, mode);
++		UART_PUT_CR(&port->uart, control);
++	}
++
+ 	return 0;
  
- 	/* drbd's page pool */
+ err_add_port:
 _
 
-Patches currently in -mm which might be from nikai@nikai.net are
+Patches currently in -mm which might be from claudio@evidence.eu.com are
 
-origin.patch
-linux-next.patch
-drivers-media-video-gspca-cpia1c-fix-error-check.patch
-drivers-block-drbd-drbd_mainc-fix-error-path.patch
-drivers-crypto-dubious-error-check.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
 
