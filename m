@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-s-on_stack-onstack.patch added to -mm tree
-Date: Mon, 25 Oct 2010 12:57:27 -0700
-Message-ID: <201010251957.o9PJvRJf013235@imap1.linux-foundation.org>
+Subject: + n_hdlc-fix-read-and-write-locking.patch added to -mm tree
+Date: Mon, 25 Oct 2010 13:05:14 -0700
+Message-ID: <201010252005.o9PK5Et1013619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757688Ab0JYT5i (ORCPT
+	by vger.kernel.org with ESMTP id S1757782Ab0JYUGB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 15:57:38 -0400
+	Mon, 25 Oct 2010 16:06:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, tj@kernel.org
+Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     workqueues: s/ON_STACK/ONSTACK/
+     n_hdlc: fix read and write locking
 has been added to the -mm tree.  Its filename is
-     workqueues-s-on_stack-onstack.patch
+     n_hdlc-fix-read-and-write-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,183 +34,184 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: s/ON_STACK/ONSTACK/
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: n_hdlc: fix read and write locking
+From: Paul Fulghum <paulkf@microgate.com>
 
-Silly though it is, completions and wait_queue_heads use foo_ONSTACK
-(COMPLETION_INITIALIZER_ONSTACK, DECLARE_COMPLETION_ONSTACK,
-__WAIT_QUEUE_HEAD_INIT_ONSTACK and DECLARE_WAIT_QUEUE_HEAD_ONSTACK) so I
-guess workqueues should do the same thing.
+Fix locking in read and write code of n_hdlc line discipline.
 
-s/INIT_WORK_ON_STACK/INIT_WORK_ONSTACK/
-s/INIT_DELAYED_WORK_ON_STACK/INIT_DELAYED_WORK_ONSTACK/
+2.6.36 replaced lock_kernel() with tty_lock().  The tty mutex is not
+dropped automatically when the thread sleeps like the BKL.  This results
+in a blocked read or write holding the tty mutex and stalling operations
+by other devices that use the tty mutex.
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Tejun Heo <tj@kernel.org>
+A review of n_hdlc read and write code shows:
+1. neither BKL or tty mutex are required for correct operation
+2. read can block while read data is available if data is posted
+   between availability check and call to interruptible_sleep_on()
+3. write does not set process state to TASK_INTERRUPTIBLE
+   on each pass through the processing loop which can cause
+   unneeded scheduling of the thread
+
+The unnecessary tty mutex references have been removed.
+
+Read changed to use same code as n_tty read
+for completing reads and blocking.
+
+Write corrected to set process state to TASK_INTERRUPTIBLE on each pass
+through processing loop.
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ./arch/x86/kernel/hpet.c          |    2 +-
- ./arch/x86/kernel/smpboot.c       |    2 +-
- ./drivers/md/dm-snap-persistent.c |    2 +-
- ./include/linux/workqueue.h       |    6 +++---
- ./kernel/workqueue.c              |    2 +-
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/char/n_hdlc.c |   88 ++++++++++++++++++++--------------------
+ 1 file changed, 44 insertions(+), 44 deletions(-)
 
-diff -puN ./arch/x86/kernel/hpet.c~workqueues-s-on_stack-onstack ./arch/x86/kernel/hpet.c
---- a/./arch/x86/kernel/hpet.c~workqueues-s-on_stack-onstack
-+++ a/./arch/x86/kernel/hpet.c
-@@ -713,7 +713,7 @@ static int hpet_cpuhp_notify(struct noti
+diff -puN drivers/char/n_hdlc.c~n_hdlc-fix-read-and-write-locking drivers/char/n_hdlc.c
+--- a/drivers/char/n_hdlc.c~n_hdlc-fix-read-and-write-locking
++++ a/drivers/char/n_hdlc.c
+@@ -581,8 +581,9 @@ static ssize_t n_hdlc_tty_read(struct tt
+ 			   __u8 __user *buf, size_t nr)
+ {
+ 	struct n_hdlc *n_hdlc = tty2n_hdlc(tty);
+-	int ret;
++	int ret = 0;
+ 	struct n_hdlc_buf *rbuf;
++	DECLARE_WAITQUEUE(wait, current);
  
- 	switch (action & 0xf) {
- 	case CPU_ONLINE:
--		INIT_DELAYED_WORK_ON_STACK(&work.work, hpet_work);
-+		INIT_DELAYED_WORK_ONSTACK(&work.work, hpet_work);
- 		init_completion(&work.complete);
- 		/* FIXME: add schedule_work_on() */
- 		schedule_delayed_work_on(cpu, &work.work, 0);
-diff -puN ./arch/x86/kernel/smpboot.c~workqueues-s-on_stack-onstack ./arch/x86/kernel/smpboot.c
---- a/./arch/x86/kernel/smpboot.c~workqueues-s-on_stack-onstack
-+++ a/./arch/x86/kernel/smpboot.c
-@@ -747,7 +747,7 @@ static int __cpuinit do_boot_cpu(int api
- 		.done	= COMPLETION_INITIALIZER_ONSTACK(c_idle.done),
- 	};
+ 	if (debuglevel >= DEBUG_LEVEL_INFO)	
+ 		printk("%s(%d)n_hdlc_tty_read() called\n",__FILE__,__LINE__);
+@@ -598,57 +599,55 @@ static ssize_t n_hdlc_tty_read(struct tt
+ 		return -EFAULT;
+ 	}
  
--	INIT_WORK_ON_STACK(&c_idle.work, do_fork_idle);
-+	INIT_WORK_ONSTACK(&c_idle.work, do_fork_idle);
+-	tty_lock();
++	add_wait_queue(&tty->read_wait, &wait);
  
- 	alternatives_smp_switch(1);
+ 	for (;;) {
+ 		if (test_bit(TTY_OTHER_CLOSED, &tty->flags)) {
+-			tty_unlock();
+-			return -EIO;
++			ret = -EIO;
++			break;
+ 		}
++		if (tty_hung_up_p(file))
++			break;
  
-diff -puN ./kernel/workqueue.c~workqueues-s-on_stack-onstack ./kernel/workqueue.c
---- a/./kernel/workqueue.c~workqueues-s-on_stack-onstack
-+++ a/./kernel/workqueue.c
-@@ -2064,7 +2064,7 @@ static void insert_wq_barrier(struct cpu
- 	 * checks and call back into the fixup functions where we
- 	 * might deadlock.
- 	 */
--	INIT_WORK_ON_STACK(&barr->work, wq_barrier_func);
-+	INIT_WORK_ONSTACK(&barr->work, wq_barrier_func);
- 	__set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(&barr->work));
- 	init_completion(&barr->done);
+-		n_hdlc = tty2n_hdlc (tty);
+-		if (!n_hdlc || n_hdlc->magic != HDLC_MAGIC ||
+-			 tty != n_hdlc->tty) {
+-			tty_unlock();
+-			return 0;
+-		}
++		set_current_state(TASK_INTERRUPTIBLE);
  
-diff -puN ./drivers/md/dm-snap-persistent.c~workqueues-s-on_stack-onstack ./drivers/md/dm-snap-persistent.c
---- a/./drivers/md/dm-snap-persistent.c~workqueues-s-on_stack-onstack
-+++ a/./drivers/md/dm-snap-persistent.c
-@@ -254,7 +254,7 @@ static int chunk_io(struct pstore *ps, v
- 	 * Issue the synchronous I/O from a different thread
- 	 * to avoid generic_make_request recursion.
- 	 */
--	INIT_WORK_ON_STACK(&req.work, do_metadata);
-+	INIT_WORK_ONSTACK(&req.work, do_metadata);
- 	queue_work(ps->metadata_wq, &req.work);
- 	flush_workqueue(ps->metadata_wq);
- 
-diff -puN ./include/linux/workqueue.h~workqueues-s-on_stack-onstack ./include/linux/workqueue.h
---- a/./include/linux/workqueue.h~workqueues-s-on_stack-onstack
-+++ a/./include/linux/workqueue.h
-@@ -198,7 +198,7 @@ static inline unsigned int work_static(s
- 		__INIT_WORK((_work), (_func), 0);		\
- 	} while (0)
- 
--#define INIT_WORK_ON_STACK(_work, _func)			\
-+#define INIT_WORK_ONSTACK(_work, _func)				\
- 	do {							\
- 		__INIT_WORK((_work), (_func), 1);		\
- 	} while (0)
-@@ -209,9 +209,9 @@ static inline unsigned int work_static(s
- 		init_timer(&(_work)->timer);			\
- 	} while (0)
- 
--#define INIT_DELAYED_WORK_ON_STACK(_work, _func)		\
-+#define INIT_DELAYED_WORK_ONSTACK(_work, _func)			\
- 	do {							\
--		INIT_WORK_ON_STACK(&(_work)->work, (_func));	\
-+		INIT_WORK_ONSTACK(&(_work)->work, (_func));	\
- 		init_timer_on_stack(&(_work)->timer);		\
- 	} while (0)
- 
+ 		rbuf = n_hdlc_buf_get(&n_hdlc->rx_buf_list);
+-		if (rbuf)
++		if (rbuf) {
++			if (rbuf->count > nr) {
++				/* too large for caller's buffer */
++				ret = -EOVERFLOW;
++			} else {
++				if (copy_to_user(buf, rbuf->buf, rbuf->count))
++					ret = -EFAULT;
++				else
++					ret = rbuf->count;
++			}
++
++			if (n_hdlc->rx_free_buf_list.count >
++			    DEFAULT_RX_BUF_COUNT)
++				kfree(rbuf);
++			else
++				n_hdlc_buf_put(&n_hdlc->rx_free_buf_list, rbuf);
+ 			break;
++		}
+ 			
+ 		/* no data */
+ 		if (file->f_flags & O_NONBLOCK) {
+-			tty_unlock();
+-			return -EAGAIN;
++			ret = -EAGAIN;
++			break;
+ 		}
+-			
+-		interruptible_sleep_on (&tty->read_wait);
++
++		schedule();
++
+ 		if (signal_pending(current)) {
+-			tty_unlock();
+-			return -EINTR;
++			ret = -EINTR;
++			break;
+ 		}
+ 	}
+-		
+-	if (rbuf->count > nr)
+-		/* frame too large for caller's buffer (discard frame) */
+-		ret = -EOVERFLOW;
+-	else {
+-		/* Copy the data to the caller's buffer */
+-		if (copy_to_user(buf, rbuf->buf, rbuf->count))
+-			ret = -EFAULT;
+-		else
+-			ret = rbuf->count;
+-	}
+-	
+-	/* return HDLC buffer to free list unless the free list */
+-	/* count has exceeded the default value, in which case the */
+-	/* buffer is freed back to the OS to conserve memory */
+-	if (n_hdlc->rx_free_buf_list.count > DEFAULT_RX_BUF_COUNT)
+-		kfree(rbuf);
+-	else	
+-		n_hdlc_buf_put(&n_hdlc->rx_free_buf_list,rbuf);
+-	tty_unlock();
++
++	remove_wait_queue(&tty->read_wait, &wait);
++	set_current_state(TASK_RUNNING);
++
+ 	return ret;
+ 	
+ }	/* end of n_hdlc_tty_read() */
+@@ -691,14 +690,15 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		count = maxframe;
+ 	}
+ 	
+-	tty_lock();
+-
+ 	add_wait_queue(&tty->write_wait, &wait);
+-	set_current_state(TASK_INTERRUPTIBLE);
++
++	for (;;) {
++		set_current_state(TASK_INTERRUPTIBLE);
+ 	
+-	/* Allocate transmit buffer */
+-	/* sleep until transmit buffer available */		
+-	while (!(tbuf = n_hdlc_buf_get(&n_hdlc->tx_free_buf_list))) {
++		tbuf = n_hdlc_buf_get(&n_hdlc->tx_free_buf_list);
++		if (tbuf)
++			break;
++
+ 		if (file->f_flags & O_NONBLOCK) {
+ 			error = -EAGAIN;
+ 			break;
+@@ -731,7 +731,7 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		n_hdlc_buf_put(&n_hdlc->tx_buf_list,tbuf);
+ 		n_hdlc_send_frames(n_hdlc,tty);
+ 	}
+-	tty_unlock();
++
+ 	return error;
+ 	
+ }	/* end of n_hdlc_tty_write() */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-origin.patch
-typesh-move-misplaced-comment.patch
-kfifo-disable-__kfifo_must_check_helper.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-fix.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-proc-swaps-support-polling-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-drivers-char-hpetc-fix-information-leak-to-userland-fix.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-workqueues-s-on_stack-onstack.patch
-isl29020-ambient-light-sensor-fix.patch
-drivers-misc-apds9802alsc-add-runtime-pm-support-fix.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-drivers-rtc-rtc-jz4740c-add-alarm-function-checkpatch-fixes.patch
-gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
-gpio-add-topcliff-pch-gpio-driver-fix.patch
-drivers-gpio-langwell_gpioc-remove-semicolons-after-function-definitions.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+n_hdlc-fix-read-and-write-locking.patch
+synclink_gt-fix-per-device-locking.patch
+drivers-char-synclink_gtc-fix-information-leak-to-userland.patch
+drivers-char-synclink_gtc-add-extended-sync-feature.patch
 
