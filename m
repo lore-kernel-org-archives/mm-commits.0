@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch added to -mm tree
-Date: Mon, 25 Oct 2010 15:54:34 -0700
-Message-ID: <201010252254.o9PMsYcD021077@imap1.linux-foundation.org>
+Subject: + video-omap-suspected-typo-in-assignment.patch added to -mm tree
+Date: Mon, 25 Oct 2010 16:03:38 -0700
+Message-ID: <201010252303.o9PN3c03021485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753065Ab0JYWyn (ORCPT
+	by vger.kernel.org with ESMTP id S1751375Ab0JYXDt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 18:54:43 -0400
+	Mon, 25 Oct 2010 19:03:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arkadiusz.bubala@gmail.com, claudio@evidence.eu.com, greg@kroah.com, nicolas.ferre@atmel.com
+Cc: nikai@nikai.net, tomi.valkeinen@nokia.com, tony@atomide.com
 
 
 The patch titled
-     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
+     drivers/video/omap/blizzard.c: suspected typo in assignment
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+     video-omap-suspected-typo-in-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/video/omap/blizzard.c: suspected typo in assignment
+From: Nicolas Kaiser <nikai@nikai.net>
 
-simplify code
+Untested, but looks like an obvious typo to me.
 
-Cc: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
-Cc: Claudio Scordino <claudio@evidence.eu.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/omap/blizzard.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
-+++ a/drivers/serial/atmel_serial.c
-@@ -1733,12 +1733,8 @@ static int __devinit atmel_serial_probe(
- 	platform_set_drvdata(pdev, port);
- 
- 	if (port->rs485.flags & SER_RS485_ENABLED) {
--		unsigned int control = 0;
--		unsigned int mode = 0;
--		control |= ATMEL_US_RTSEN;
--		mode |= ATMEL_US_USMODE_NORMAL;
--		UART_PUT_MR(&port->uart, mode);
--		UART_PUT_CR(&port->uart, control);
-+		UART_PUT_MR(&port->uart, ATMEL_US_USMODE_NORMAL);
-+		UART_PUT_CR(&port->uart, ATMEL_US_RTSEN);
- 	}
- 
- 	return 0;
+diff -puN drivers/video/omap/blizzard.c~video-omap-suspected-typo-in-assignment drivers/video/omap/blizzard.c
+--- a/drivers/video/omap/blizzard.c~video-omap-suspected-typo-in-assignment
++++ a/drivers/video/omap/blizzard.c
+@@ -1590,7 +1590,7 @@ static int blizzard_init(struct omapfb_d
+ 	blizzard.auto_update_window.width = fbdev->panel->x_res;
+ 	blizzard.auto_update_window.height = fbdev->panel->y_res;
+ 	blizzard.auto_update_window.out_x = 0;
+-	blizzard.auto_update_window.out_x = 0;
++	blizzard.auto_update_window.out_y = 0;
+ 	blizzard.auto_update_window.out_width = fbdev->panel->x_res;
+ 	blizzard.auto_update_window.out_height = fbdev->panel->y_res;
+ 	blizzard.auto_update_window.format = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nikai@nikai.net are
 
 origin.patch
-typesh-move-misplaced-comment.patch
-kfifo-disable-__kfifo_must_check_helper.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-fix.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-proc-swaps-support-polling-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-drivers-char-hpetc-fix-information-leak-to-userland-fix.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-workqueues-s-on_stack-onstack.patch
-isl29020-ambient-light-sensor-fix.patch
-drivers-misc-apds9802alsc-add-runtime-pm-support-fix.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-drivers-rtc-rtc-jz4740c-add-alarm-function-checkpatch-fixes.patch
-gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
-gpio-add-topcliff-pch-gpio-driver-fix.patch
-drivers-gpio-langwell_gpioc-remove-semicolons-after-function-definitions.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+drivers-media-video-gspca-cpia1c-fix-error-check.patch
+drivers-block-drbd-drbd_mainc-fix-error-path.patch
+drivers-crypto-dubious-error-check.patch
+video-omap-suspected-typo-in-assignment.patch
 
