@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2.patch added to -mm tree
-Date: Wed, 27 Oct 2010 13:34:25 -0700
-Message-ID: <201010272106.o9RL6FCt018140@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-apic-io_apicc-fix-warning.patch added to -mm tree
+Date: Wed, 27 Oct 2010 13:36:03 -0700
+Message-ID: <201010272107.o9RL7rse018212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932194Ab0J0VHD (ORCPT
+	by vger.kernel.org with ESMTP id S932270Ab0J0VIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Oct 2010 17:07:03 -0400
+	Wed, 27 Oct 2010 17:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2
+     arch/x86/kernel/apic/io_apic.c: fix warning
 has been added to the -mm tree.  Its filename is
-     proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2.patch
+     arch-x86-kernel-apic-io_apicc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2
+Subject: arch/x86/kernel/apic/io_apic.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/stat.c: In function 'show_stat':
-fs/proc/stat.c:34: warning: unused variable 'per_irq_sum'
+arch/x86/kernel/apic/io_apic.c: In function 'ack_apic_level':
+arch/x86/kernel/apic/io_apic.c:2433: warning: unused variable 'desc'
 
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/apic/io_apic.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2 fs/proc/stat.c
---- a/fs/proc/stat.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix-2
-+++ a/fs/proc/stat.c
-@@ -31,7 +31,6 @@ static int show_stat(struct seq_file *p,
- 	u64 sum_softirq = 0;
- 	unsigned int per_softirq_sums[NR_SOFTIRQS] = {0};
- 	struct timespec boottime;
--	unsigned int per_irq_sum;
+diff -puN arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-fix-warning arch/x86/kernel/apic/io_apic.c
+--- a/arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-fix-warning
++++ a/arch/x86/kernel/apic/io_apic.c
+@@ -2430,13 +2430,12 @@ static void ack_apic_level(struct irq_da
+ {
+ 	struct irq_cfg *cfg = data->chip_data;
+ 	int i, do_unmask_irq = 0, irq = data->irq;
+-	struct irq_desc *desc = irq_to_desc(irq);
+ 	unsigned long v;
  
- 	user = nice = system = idle = iowait =
- 		irq = softirq = steal = cputime64_zero;
+ 	irq_complete_move(cfg);
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	/* If we are moving the irq we need to mask it */
+-	if (unlikely(desc->status & IRQ_MOVE_PENDING)) {
++	if (unlikely(irq_to_desc(irq)->status & IRQ_MOVE_PENDING)) {
+ 		do_unmask_irq = 1;
+ 		mask_ioapic(cfg);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,4 +92,5 @@ fuse-use-release_pages.patch
 kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
 ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
 select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
 
