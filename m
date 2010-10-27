@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ratelimit-add-comment-warning-people-off-printk_ratelimit.patch added to -mm tree
-Date: Tue, 26 Oct 2010 12:07:24 -0700
-Message-ID: <201010261907.o9QJ7Ole009956@imap1.linux-foundation.org>
+Subject: + mmx86-fix-kmap_atomic_push-vs-ioremap_32c.patch added to -mm tree
+Date: Wed, 27 Oct 2010 10:20:15 -0700
+Message-ID: <201010271720.o9RHKg3f005011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753766Ab0JZTIL (ORCPT
+	by vger.kernel.org with ESMTP id S1752675Ab0J0RVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Oct 2010 15:08:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o9QJ7OJu020160
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 26 Oct 2010 12:07:24 -0700
+	Wed, 27 Oct 2010 13:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: a.p.zijlstra@chello.nl, chris@chris-wilson.co.uk
 
 
 The patch titled
-     ratelimit: add comment warning people off printk_ratelimit()
+     mm,x86: fix kmap_atomic_push vs ioremap_32.c
 has been added to the -mm tree.  Its filename is
-     ratelimit-add-comment-warning-people-off-printk_ratelimit.patch
+     mmx86-fix-kmap_atomic_push-vs-ioremap_32c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ratelimit: add comment warning people off printk_ratelimit()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm,x86: fix kmap_atomic_push vs ioremap_32.c
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-printk_ratelimit() was a bad idea - we don't want subsytem A causing
-ratelimiting of subsystem B's messages.
+It appears i386 uses kmap_atomic infrastructure regardless of
+CONFIG_HIGHMEM which results in a compile error when highmem is disabled.
 
+Cure this by providing the needed few bits for both CONFIG_HIGHMEM and
+CONFIG_X86_32.
 
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reported-by: Chris Wilson <chris@chris-wilson.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/highmem.h |   46 ++++++++++++++++++++------------------
+ mm/highmem.c            |    6 ++++
+ 2 files changed, 30 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/kernel.h~ratelimit-add-comment-warning-people-off-printk_ratelimit include/linux/kernel.h
---- a/include/linux/kernel.h~ratelimit-add-comment-warning-people-off-printk_ratelimit
-+++ a/include/linux/kernel.h
-@@ -277,6 +277,11 @@ asmlinkage int vprintk(const char *fmt, 
- asmlinkage int printk(const char * fmt, ...)
- 	__attribute__ ((format (printf, 1, 2))) __cold;
+diff -puN include/linux/highmem.h~mmx86-fix-kmap_atomic_push-vs-ioremap_32c include/linux/highmem.h
+--- a/include/linux/highmem.h~mmx86-fix-kmap_atomic_push-vs-ioremap_32c
++++ a/include/linux/highmem.h
+@@ -37,27 +37,6 @@ extern unsigned long totalhigh_pages;
  
-+/*
-+ * Please don't use printk_ratelimit(), because it shares ratelimiting state
-+ * with all other unrelated printk_ratelimit() callsites.  Instead use
-+ * printk_ratelimited() or plain old __ratelimit().
-+ */
- extern int __printk_ratelimit(const char *func);
- #define printk_ratelimit() __printk_ratelimit(__func__)
- extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
+ void kmap_flush_unused(void);
+ 
+-DECLARE_PER_CPU(int, __kmap_atomic_idx);
+-
+-static inline int kmap_atomic_idx_push(void)
+-{
+-	int idx = __get_cpu_var(__kmap_atomic_idx)++;
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	WARN_ON_ONCE(in_irq() && !irqs_disabled());
+-	BUG_ON(idx > KM_TYPE_NR);
+-#endif
+-	return idx;
+-}
+-
+-static inline int kmap_atomic_idx_pop(void)
+-{
+-	int idx = --__get_cpu_var(__kmap_atomic_idx);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	BUG_ON(idx < 0);
+-#endif
+-	return idx;
+-}
+-
+ #else /* CONFIG_HIGHMEM */
+ 
+ static inline unsigned int nr_free_highpages(void) { return 0; }
+@@ -95,6 +74,31 @@ static inline void __kunmap_atomic(void 
+ 
+ #endif /* CONFIG_HIGHMEM */
+ 
++#if defined(CONFIG_HIGHMEM) || defined(CONFIG_X86_32)
++
++DECLARE_PER_CPU(int, __kmap_atomic_idx);
++
++static inline int kmap_atomic_idx_push(void)
++{
++	int idx = __get_cpu_var(__kmap_atomic_idx)++;
++#ifdef CONFIG_DEBUG_HIGHMEM
++	WARN_ON_ONCE(in_irq() && !irqs_disabled());
++	BUG_ON(idx > KM_TYPE_NR);
++#endif
++	return idx;
++}
++
++static inline int kmap_atomic_idx_pop(void)
++{
++	int idx = --__get_cpu_var(__kmap_atomic_idx);
++#ifdef CONFIG_DEBUG_HIGHMEM
++	BUG_ON(idx < 0);
++#endif
++	return idx;
++}
++
++#endif
++
+ /*
+  * Make both: kmap_atomic(page, idx) and kmap_atomic(page) work.
+  */
+diff -puN mm/highmem.c~mmx86-fix-kmap_atomic_push-vs-ioremap_32c mm/highmem.c
+--- a/mm/highmem.c~mmx86-fix-kmap_atomic_push-vs-ioremap_32c
++++ a/mm/highmem.c
+@@ -29,6 +29,11 @@
+ #include <linux/kgdb.h>
+ #include <asm/tlbflush.h>
+ 
++
++#if defined(CONFIG_HIGHMEM) || defined(CONFIG_X86_32)
++DEFINE_PER_CPU(int, __kmap_atomic_idx);
++#endif
++
+ /*
+  * Virtual_count is not a pure "count".
+  *  0 means that it is not mapped, and has not been mapped
+@@ -43,7 +48,6 @@ unsigned long totalhigh_pages __read_mos
+ EXPORT_SYMBOL(totalhigh_pages);
+ 
+ 
+-DEFINE_PER_CPU(int, __kmap_atomic_idx);
+ EXPORT_PER_CPU_SYMBOL(__kmap_atomic_idx);
+ 
+ unsigned int nr_free_highpages (void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-typesh-move-misplaced-comment.patch
-kfifo-disable-__kfifo_must_check_helper.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code.patch
+writeback-remove-the-internal-5%-low-bound-on-dirty_ratio.patch
+mm-strictly-nested-kmap_atomic.patch
 mm-stack-based-kmap_atomic.patch
+mm-remove-pte_map_nested.patch
+perf-x86-fix-up-kmap_atomic-type.patch
+mm-highmem-documentation.patch
+mm-filemap_fault-unique-path-for-locking-page.patch
 mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-vmstat-include-compactionh-when-config_compaction.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-proc-swaps-support-polling.patch
-drivers-char-hpetc-fix-information-leak-to-userland.patch
-kernelh-add-minmax3-macros.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
+x86-access_error-api-cleanup.patch
+um-migrate-from-__do_irq-to-generic_handle_irq.patch
 workqueues-s-on_stack-onstack.patch
-isl29020-ambient-light-sensor.patch
-drivers-misc-apds9802alsc-add-runtime-pm-support.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-drivers-rtc-rtc-jz4740c-add-alarm-function-checkpatch-fixes.patch
-gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
-gpio-add-topcliff-pch-gpio-driver-fix.patch
-drivers-gpio-langwell_gpioc-remove-semicolons-after-function-definitions.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-ratelimit-add-comment-warning-people-off-printk_ratelimit.patch
+kernel-remove-pf_flusher.patch
+mmx86-fix-kmap_atomic_push-vs-ioremap_32c.patch
+mm-fix-race-in-kunmap_atomic.patch
+linux-next.patch
 
