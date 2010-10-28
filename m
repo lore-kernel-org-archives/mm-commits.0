@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + um-fix-ptrace-build-error.patch added to -mm tree
-Date: Thu, 28 Oct 2010 12:51:40 -0700
-Message-ID: <201010281951.o9SJpepj017731@imap1.linux-foundation.org>
+Subject: + drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch added to -mm tree
+Date: Thu, 28 Oct 2010 13:11:31 -0700
+Message-ID: <201010282011.o9SKBV9s018722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496Ab0J1Txw (ORCPT
+	by vger.kernel.org with ESMTP id S934377Ab0J1UMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Oct 2010 15:53:52 -0400
+	Thu, 28 Oct 2010 16:12:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, jdike@addtoit.com, namhyung@gmail.com
+Cc: geert@linux-m68k.org
 
 
 The patch titled
-     um: fix ptrace build error
+     drivers/macintosh/adb-iop.c: flags should be unsigned long
 has been added to the -mm tree.  Its filename is
-     um-fix-ptrace-build-error.patch
+     drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,68 +29,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: um: fix ptrace build error
-From: Richard Weinberger <richard@nod.at>
+Subject: drivers/macintosh/adb-iop.c: flags should be unsigned long
+=46rom: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Both 0a3d763 ("ptrace: cleanup arch_ptrace() on um") and 9b05a69 ("ptrace:
-change signature of arch_ptrace()") broke the um build.  This patch fixes
-the issues.
+drivers/macintosh/adb-iop.c: In function =A1adb_iop_complete=A2:
+drivers/macintosh/adb-iop.c:85: warning: comparison of distinct pointer=
+ types lacks a cast
+drivers/macintosh/adb-iop.c:92: warning: comparison of distinct pointer=
+ types lacks a cast
+drivers/macintosh/adb-iop.c: In function =A1adb_iop_listen=A2:
+drivers/macintosh/adb-iop.c:111: warning: comparison of distinct pointe=
+r types lacks a cast
+drivers/macintosh/adb-iop.c:151: warning: comparison of distinct pointe=
+r types lacks a cast
 
-0a3d763 introduced the undeclared variable "datavp".  The patch seems
-completely untested.  :-(
-
-9b05a69 changed arch_ptrace()'s signature but did not update
-um/include/asm/ptrace-generic.h.
-
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/ptrace-generic.h |    4 ++--
- arch/um/kernel/ptrace.c              |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/macintosh/adb-iop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/include/asm/ptrace-generic.h~um-fix-ptrace-build-error arch/um/include/asm/ptrace-generic.h
---- a/arch/um/include/asm/ptrace-generic.h~um-fix-ptrace-build-error
-+++ a/arch/um/include/asm/ptrace-generic.h
-@@ -38,8 +38,8 @@ struct pt_regs {
- 
- struct task_struct;
- 
--extern long subarch_ptrace(struct task_struct *child, long request, long addr,
--			   long data);
-+extern long subarch_ptrace(struct task_struct *child, long request,
-+	unsigned long addr, unsigned long data);
- extern unsigned long getreg(struct task_struct *child, int regno);
- extern int putreg(struct task_struct *child, int regno, unsigned long value);
- extern int get_fpregs(struct user_i387_struct __user *buf,
-diff -puN arch/um/kernel/ptrace.c~um-fix-ptrace-build-error arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~um-fix-ptrace-build-error
-+++ a/arch/um/kernel/ptrace.c
-@@ -122,7 +122,7 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 
- 	case PTRACE_SET_THREAD_AREA:
--		ret = ptrace_set_thread_area(child, addr, datavp);
-+		ret = ptrace_set_thread_area(child, addr, vp);
- 		break;
- 
- 	case PTRACE_FAULTINFO: {
+diff -puN drivers/macintosh/adb-iop.c~drivers-macintosh-adb-iopc-flags-=
+should-be-unsigned-long drivers/macintosh/adb-iop.c
+--- a/drivers/macintosh/adb-iop.c~drivers-macintosh-adb-iopc-flags-shou=
+ld-be-unsigned-long
++++ a/drivers/macintosh/adb-iop.c
+@@ -80,7 +80,7 @@ static void adb_iop_end_req(struct adb_r
+ static void adb_iop_complete(struct iop_msg *msg)
+ {
+ 	struct adb_request *req;
+-	uint flags;
++	unsigned long flags;
+=20
+ 	local_irq_save(flags);
+=20
+@@ -103,7 +103,7 @@ static void adb_iop_listen(struct iop_ms
+ {
+ 	struct adb_iopmsg *amsg =3D (struct adb_iopmsg *) msg->message;
+ 	struct adb_request *req;
+-	uint flags;
++	unsigned long flags;
+ #ifdef DEBUG_ADB_IOP
+ 	int i;
+ #endif
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-um-fix-ptrace-build-error.patch
+drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
