@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fsh-needs-typesh.patch added to -mm tree
-Date: Thu, 28 Oct 2010 12:52:26 -0700
-Message-ID: <201010281952.o9SJqQoZ017764@imap1.linux-foundation.org>
+Subject: + um-fix-ptrace-build-error.patch added to -mm tree
+Date: Thu, 28 Oct 2010 12:51:40 -0700
+Message-ID: <201010281951.o9SJpepj017731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755091Ab0J1TxL (ORCPT
+	by vger.kernel.org with ESMTP id S1751496Ab0J1Txw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Oct 2010 15:53:11 -0400
+	Thu, 28 Oct 2010 15:53:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, tytso@mit.edu
+Cc: richard@nod.at, jdike@addtoit.com, namhyung@gmail.com
 
 
 The patch titled
-     include/linux/fs.h needs types.h
+     um: fix ptrace build error
 has been added to the -mm tree.  Its filename is
-     include-linux-fsh-needs-typesh.patch
+     um-fix-ptrace-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/fs.h needs types.h
-From: David Howells <dhowells@redhat.com>
+Subject: um: fix ptrace build error
+From: Richard Weinberger <richard@nod.at>
 
-linux/fs.h needs to #include linux/types.h otherwise the following errors
-can be encountered:
+Both 0a3d763 ("ptrace: cleanup arch_ptrace() on um") and 9b05a69 ("ptrace:
+change signature of arch_ptrace()") broke the um build.  This patch fixes
+the issues.
 
-In file included from fs/char_dev.c:8:
-include/linux/fs.h:36: error: expected specifier-qualifier-list before 'uint64_t'
-In file included from include/linux/tty.h:9,
-                 from drivers/char/tty_mutex.c:4:
-include/linux/fs.h:36: error: expected specifier-qualifier-list before 'uint64_t'
-In file included from mm/shmem.c:23:
-include/linux/fs.h:36: error: expected specifier-qualifier-list before 'uint64_t'
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+0a3d763 introduced the undeclared variable "datavp".  The patch seems
+completely untested.  :-(
+
+9b05a69 changed arch_ptrace()'s signature but did not update
+um/include/asm/ptrace-generic.h.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/include/asm/ptrace-generic.h |    4 ++--
+ arch/um/kernel/ptrace.c              |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-needs-typesh include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-needs-typesh
-+++ a/include/linux/fs.h
-@@ -6,6 +6,7 @@
-  * structures etc.
-  */
+diff -puN arch/um/include/asm/ptrace-generic.h~um-fix-ptrace-build-error arch/um/include/asm/ptrace-generic.h
+--- a/arch/um/include/asm/ptrace-generic.h~um-fix-ptrace-build-error
++++ a/arch/um/include/asm/ptrace-generic.h
+@@ -38,8 +38,8 @@ struct pt_regs {
  
-+#include <linux/types.h>
- #include <linux/limits.h>
- #include <linux/ioctl.h>
- #include <linux/blk_types.h>
+ struct task_struct;
+ 
+-extern long subarch_ptrace(struct task_struct *child, long request, long addr,
+-			   long data);
++extern long subarch_ptrace(struct task_struct *child, long request,
++	unsigned long addr, unsigned long data);
+ extern unsigned long getreg(struct task_struct *child, int regno);
+ extern int putreg(struct task_struct *child, int regno, unsigned long value);
+ extern int get_fpregs(struct user_i387_struct __user *buf,
+diff -puN arch/um/kernel/ptrace.c~um-fix-ptrace-build-error arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~um-fix-ptrace-build-error
++++ a/arch/um/kernel/ptrace.c
+@@ -122,7 +122,7 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 
+ 	case PTRACE_SET_THREAD_AREA:
+-		ret = ptrace_set_thread_area(child, addr, datavp);
++		ret = ptrace_set_thread_area(child, addr, vp);
+ 		break;
+ 
+ 	case PTRACE_FAULTINFO: {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-include-linux-fsh-needs-typesh.patch
+um-fix-ptrace-build-error.patch
 linux-next.patch
-frv-duplicate-output_buffer-of-e03.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
