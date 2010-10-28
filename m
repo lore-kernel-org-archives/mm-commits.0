@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch added to -mm tree
-Date: Thu, 28 Oct 2010 14:28:57 -0700
-Message-ID: <201010282128.o9SLSvq9022084@imap1.linux-foundation.org>
+Subject: + drivers-char-amiserialc-remove-unused-variable-icount.patch added to -mm tree
+Date: Thu, 28 Oct 2010 15:19:06 -0700
+Message-ID: <201010282219.o9SMJ6vU024532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753217Ab0J1V3F (ORCPT
+	by vger.kernel.org with ESMTP id S1751725Ab0J1WTw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Oct 2010 17:29:05 -0400
+	Thu, 28 Oct 2010 18:19:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cce.hp.com
+Cc: geert@linux-m68k.org, greg@kroah.com
 
 
 The patch titled
-     hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
+     drivers/char/amiserial.c: remove unused variable icount
 has been added to the -mm tree.  Its filename is
-     hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch
+     drivers-char-amiserialc-remove-unused-variable-icount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: drivers/char/amiserial.c: remove unused variable icount
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-It is defined correctly in pci_ids.h with the value 0x323b
+drivers/char/amiserial.c: In function `rs_ioctl':
+drivers/char/amiserial.c:1302: warning: unused variable `icount'
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+commit 0587102cf9f427c185bfdeb2cef41e13ee0264b1 ("tty: icount changeover
+for other main devices") removed the users, but not the actual variable.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    1 -
+ drivers/char/amiserial.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf
-+++ a/drivers/scsi/hpsa.c
-@@ -91,7 +91,6 @@ static const struct pci_device_id hpsa_p
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
--#define PCI_DEVICE_ID_HP_CISSF 0x333f
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x333F},
- 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,             PCI_ANY_ID, PCI_ANY_ID,
- 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
+diff -puN drivers/char/amiserial.c~drivers-char-amiserialc-remove-unused-variable-icount drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~drivers-char-amiserialc-remove-unused-variable-icount
++++ a/drivers/char/amiserial.c
+@@ -1299,7 +1299,6 @@ static int rs_ioctl(struct tty_struct *t
+ {
+ 	struct async_struct * info = tty->driver_data;
+ 	struct async_icount cprev, cnow;	/* kernel counter temps */
+-	struct serial_icounter_struct icount;
+ 	void __user *argp = (void __user *)arg;
+ 	unsigned long flags;
+ 
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
-hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch
+drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
+linux-next.patch
+drivers-char-amiserialc-remove-unused-variable-icount.patch
 
