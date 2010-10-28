@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch added to -mm tree
-Date: Thu, 28 Oct 2010 13:11:31 -0700
-Message-ID: <201010282011.o9SKBV9s018722@imap1.linux-foundation.org>
+Subject: + hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch added to -mm tree
+Date: Thu, 28 Oct 2010 14:28:57 -0700
+Message-ID: <201010282128.o9SLSvq9022084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934377Ab0J1UMD (ORCPT
+	by vger.kernel.org with ESMTP id S1753217Ab0J1V3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Oct 2010 16:12:03 -0400
+	Thu, 28 Oct 2010 17:29:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org
+Cc: scameron@beardog.cce.hp.com
 
 
 The patch titled
-     drivers/macintosh/adb-iop.c: flags should be unsigned long
+     hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
 has been added to the -mm tree.  Its filename is
-     drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
+     hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,70 +26,42 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/macintosh/adb-iop.c: flags should be unsigned long
-=46rom: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 
-drivers/macintosh/adb-iop.c: In function =A1adb_iop_complete=A2:
-drivers/macintosh/adb-iop.c:85: warning: comparison of distinct pointer=
- types lacks a cast
-drivers/macintosh/adb-iop.c:92: warning: comparison of distinct pointer=
- types lacks a cast
-drivers/macintosh/adb-iop.c: In function =A1adb_iop_listen=A2:
-drivers/macintosh/adb-iop.c:111: warning: comparison of distinct pointe=
-r types lacks a cast
-drivers/macintosh/adb-iop.c:151: warning: comparison of distinct pointe=
-r types lacks a cast
+It is defined correctly in pci_ids.h with the value 0x323b
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/adb-iop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/hpsa.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/macintosh/adb-iop.c~drivers-macintosh-adb-iopc-flags-=
-should-be-unsigned-long drivers/macintosh/adb-iop.c
---- a/drivers/macintosh/adb-iop.c~drivers-macintosh-adb-iopc-flags-shou=
-ld-be-unsigned-long
-+++ a/drivers/macintosh/adb-iop.c
-@@ -80,7 +80,7 @@ static void adb_iop_end_req(struct adb_r
- static void adb_iop_complete(struct iop_msg *msg)
- {
- 	struct adb_request *req;
--	uint flags;
-+	unsigned long flags;
-=20
- 	local_irq_save(flags);
-=20
-@@ -103,7 +103,7 @@ static void adb_iop_listen(struct iop_ms
- {
- 	struct adb_iopmsg *amsg =3D (struct adb_iopmsg *) msg->message;
- 	struct adb_request *req;
--	uint flags;
-+	unsigned long flags;
- #ifdef DEBUG_ADB_IOP
- 	int i;
- #endif
+diff -puN drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf
++++ a/drivers/scsi/hpsa.c
+@@ -91,7 +91,6 @@ static const struct pci_device_id hpsa_p
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
+-#define PCI_DEVICE_ID_HP_CISSF 0x333f
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x333F},
+ 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,             PCI_ANY_ID, PCI_ANY_ID,
+ 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
 origin.patch
-drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
-linux-next.patch
+cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
+hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
