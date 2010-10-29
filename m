@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch added to -mm tree
-Date: Fri, 29 Oct 2010 16:08:25 -0700
-Message-ID: <201010292308.o9TN8Po6022203@imap1.linux-foundation.org>
+Subject: [withdrawn] drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch removed from -mm tree
+Date: Fri, 29 Oct 2010 16:10:20 -0700
+Message-ID: <201010292310.o9TNAKKq022235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab0J2XJF (ORCPT
+	by vger.kernel.org with ESMTP id S1750801Ab0J2XKq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Oct 2010 19:09:05 -0400
+	Fri, 29 Oct 2010 19:10:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, error27@gmail.com, jic23@cam.ac.uk, samu.p.onkalo@nokia.com
+To: akpm@linux-foundation.org, error27@gmail.com, jic23@cam.ac.uk, samu.p.onkalo@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -91,7 +81,7 @@ arch-x86-kernel-entry_32s-i386-too.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
 mm-vmap-area-cache.patch
 arch-x86-kernel-apic-io_apicc-fix-warning.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
