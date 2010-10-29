@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-apds9802alsc-fix-signedness-bug.patch added to -mm tree
-Date: Fri, 29 Oct 2010 15:30:30 -0700
-Message-ID: <201010292230.o9TMUU0N020715@imap1.linux-foundation.org>
+Subject: + memcg-null-dereference-on-allocation-failure.patch added to -mm tree
+Date: Fri, 29 Oct 2010 15:41:33 -0700
+Message-ID: <201010292241.o9TMfXEG021209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933070Ab0J2WbC (ORCPT
+	by vger.kernel.org with ESMTP id S1758223Ab0J2Wlm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Oct 2010 18:31:02 -0400
+	Fri, 29 Oct 2010 18:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segooon@gmail.com, alan@linux.intel.com, anantha.narayanan@intel.com, hong.liu@intel.com
+Cc: error27@gmail.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     drivers/misc/apds9802als.c: fix signedness bug
+     memcg: null dereference on allocation failure
 has been added to the -mm tree.  Its filename is
-     drivers-misc-apds9802alsc-fix-signedness-bug.patch
+     memcg-null-dereference-on-allocation-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/apds9802als.c: fix signedness bug
-From: Vasiliy Kulikov <segooon@gmail.com>
+Subject: memcg: null dereference on allocation failure
+From: Dan Carpenter <error27@gmail.com>
 
-i2c_smbus_read_byte_data() may return negative error code.  This is not
-seen to als_sensing_range_store() as the result is stored in unsigned int.
- Made it signed.
+The original code had a null dereference if alloc_percpu() failed.  This
+was introduced in 711d3d2c9bc3 "memcg: cpu hotplug aware percpu count
+updates"
 
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-Cc: Hong Liu <hong.liu@intel.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Anantha Narayanan <anantha.narayanan@intel.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/apds9802als.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/misc/apds9802als.c~drivers-misc-apds9802alsc-fix-signedness-bug drivers/misc/apds9802als.c
---- a/drivers/misc/apds9802als.c~drivers-misc-apds9802alsc-fix-signedness-bug
-+++ a/drivers/misc/apds9802als.c
-@@ -123,7 +123,7 @@ static ssize_t als_sensing_range_store(s
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct als_data *data = i2c_get_clientdata(client);
--	unsigned int ret_val;
-+	int ret_val;
- 	unsigned long val;
+diff -puN mm/memcontrol.c~memcg-null-dereference-on-allocation-failure mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-null-dereference-on-allocation-failure
++++ a/mm/memcontrol.c
+@@ -4208,15 +4208,17 @@ static struct mem_cgroup *mem_cgroup_all
  
- 	if (strict_strtoul(buf, 10, &val))
+ 	memset(mem, 0, size);
+ 	mem->stat = alloc_percpu(struct mem_cgroup_stat_cpu);
+-	if (!mem->stat) {
+-		if (size < PAGE_SIZE)
+-			kfree(mem);
+-		else
+-			vfree(mem);
+-		mem = NULL;
+-	}
++	if (!mem->stat)
++		goto out_free;
+ 	spin_lock_init(&mem->pcp_counter_lock);
+ 	return mem;
++
++out_free:
++	if (size < PAGE_SIZE)
++		kfree(mem);
++	else
++		vfree(mem);
++	return NULL;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
+rapidio-use-resource_size.patch
 linux-next.patch
-drivers-misc-isl29020c-fix-signedness-bug.patch
-drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-apds9802alsc-fix-signedness-bug.patch
-memstick-core-fix-device_register-error-handling.patch
+memcg-null-dereference-on-allocation-failure.patch
 
