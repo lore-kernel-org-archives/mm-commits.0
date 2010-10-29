@@ -1,106 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch removed from -mm tree
-Date: Fri, 29 Oct 2010 16:10:20 -0700
-Message-ID: <201010292310.o9TNAKKq022235@imap1.linux-foundation.org>
+Subject: [alternative-merged] oprofile-fix-hang-while-offline-the-cpu.patch removed from -mm tree
+Date: Fri, 29 Oct 2010 16:12:10 -0700
+Message-ID: <201010292312.o9TNCAHH022341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab0J2XKq (ORCPT
+	by vger.kernel.org with ESMTP id S1750801Ab0J2XMR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Oct 2010 19:10:46 -0400
+	Fri, 29 Oct 2010 19:12:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, error27@gmail.com, jic23@cam.ac.uk, samu.p.onkalo@nokia.com, mm-commits@vger.kernel.org
+To: santosh.shilimkar@ti.com, r.sricharan@ti.com, robert.richter@amd.com, s-jan@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix
+     oprofile: fix hang while offline the cpu
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix.patch
+     oprofile-fix-hang-while-offline-the-cpu.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oprofile: fix hang while offline the cpu
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Fix the |= 
+The kernel is built with CONFIG_OPROFILE and CPU_HOTPLUG enabled. 
+oprofile is initialised using system timer in absence of hardware counters
+supports.  Oprofile isn't started from userland.
 
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
+In this setup while doing a CPU offline the kernel hangs in an infinite
+loop in lock_hrtimer_base().
+
+This happens because as part of oprofile_cpu_notify(, it tries to stop an
+hrtimer which was never started.  These per-cpu hrtimers are started when
+the oprfile is started.
+
+	echo 1	> /dev/oprofile/enable
+
+Fix this issue by adding a state variable so that these hrtimer start/stop
+is only attempted when oprofile is started
+
+Reported-by: Jan Sebastien <s-jan@ti.com>
+Signed-off-by: sricharan <r.sricharan@ti.com>
+Tested-by: sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Robert Richter <robert.richter@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/bh1770glc.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/oprofile/timer_int.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/misc/bh1770glc.c~drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix drivers/misc/bh1770glc.c
---- a/drivers/misc/bh1770glc.c~drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store-fix
-+++ a/drivers/misc/bh1770glc.c
-@@ -656,16 +656,22 @@ static ssize_t bh1770_power_state_store(
+diff -puN drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu drivers/oprofile/timer_int.c
+--- a/drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu
++++ a/drivers/oprofile/timer_int.c
+@@ -21,6 +21,7 @@
+ #include "oprof.h"
  
- 	mutex_lock(&chip->mutex);
- 	if (value) {
-+		int lux_rate;
-+		int lux_interrupt_control;
+ static DEFINE_PER_CPU(struct hrtimer, oprofile_hrtimer);
++static int oprofile_hrtimer_started;
+ 
+ static enum hrtimer_restart oprofile_hrtimer_notify(struct hrtimer *hrtimer)
+ {
+@@ -33,6 +34,9 @@ static void __oprofile_hrtimer_start(voi
+ {
+ 	struct hrtimer *hrtimer = &__get_cpu_var(oprofile_hrtimer);
+ 
++	if (!oprofile_hrtimer_started)
++		return;
 +
- 		pm_runtime_get_sync(dev);
+ 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	hrtimer->function = oprofile_hrtimer_notify;
  
--		ret = bh1770_lux_rate(chip, chip->lux_rate_index);
--		if (ret < 0) {
-+		lux_rate = bh1770_lux_rate(chip, chip->lux_rate_index);
-+		if (lux_rate < 0) {
-+			ret = lux_rate;
- 			pm_runtime_put(dev);
- 			goto leave;
- 		}
+@@ -42,6 +46,7 @@ static void __oprofile_hrtimer_start(voi
  
--		ret = bh1770_lux_interrupt_control(chip, BH1770_ENABLE);
--		if (ret < 0) {
-+		lux_interrupt_control =
-+			bh1770_lux_interrupt_control(chip, BH1770_ENABLE);
-+		if (lux_interrupt_control < 0) {
-+			ret = lux_interrupt_control;
- 			pm_runtime_put(dev);
- 			goto leave;
- 		}
+ static int oprofile_hrtimer_start(void)
+ {
++	oprofile_hrtimer_started = 1;
+ 	on_each_cpu(__oprofile_hrtimer_start, NULL, 1);
+ 	return 0;
+ }
+@@ -50,6 +55,9 @@ static void __oprofile_hrtimer_stop(int 
+ {
+ 	struct hrtimer *hrtimer = &per_cpu(oprofile_hrtimer, cpu);
+ 
++	if (!oprofile_hrtimer_started)
++		return;
++
+ 	hrtimer_cancel(hrtimer);
+ }
+ 
+@@ -59,6 +67,7 @@ static void oprofile_hrtimer_stop(void)
+ 
+ 	for_each_online_cpu(cpu)
+ 		__oprofile_hrtimer_stop(cpu);
++	oprofile_hrtimer_started = 0;
+ }
+ 
+ static int __cpuinit oprofile_cpu_notify(struct notifier_block *self,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
 origin.patch
-hpet-factor-timer-allocate-from-open.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
