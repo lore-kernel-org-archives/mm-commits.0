@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-check-memcg-dirty-limits-in-page-writeback.patch added to -mm tree
-Date: Fri, 29 Oct 2010 13:19:59 -0700
-Message-ID: <201010292019.o9TKJxiK014992@imap1.linux-foundation.org>
+Subject: + memcg-cpu-hotplug-lockdep-warning-fix.patch added to -mm tree
+Date: Fri, 29 Oct 2010 13:19:55 -0700
+Message-ID: <201010292019.o9TKJtwr014980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761919Ab0J2UUf (ORCPT
+	by vger.kernel.org with ESMTP id S1761854Ab0J2U0D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Oct 2010 16:20:35 -0400
+	Fri, 29 Oct 2010 16:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: balbir@linux.vnet.ibm.com, arighi@develer.com, fengguang.wu@intel.com, gthelen@google.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: check memcg dirty limits in page writeback
+     memcg: CPU hotplug lockdep warning fix
 has been added to the -mm tree.  Its filename is
-     memcg-check-memcg-dirty-limits-in-page-writeback.patch
+     memcg-cpu-hotplug-lockdep-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,222 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: check memcg dirty limits in page writeback
-From: Greg Thelen <gthelen@google.com>
+Subject: memcg: CPU hotplug lockdep warning fix
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-If the current process is in a non-root memcg, then balance_dirty_pages()
-will consider the memcg dirty limits as well as the system-wide limits. 
-This allows different cgroups to have distinct dirty limits which trigger
-direct and background writeback at different levels.
+Recent move to get_online_cpus() ends up calling get_online_cpus() from
+mem_cgroup_read_stat().  However mem_cgroup_read_stat() is called under
+rcu lock.  get_online_cpus() can sleep.  The dirty limit patches expose
+this BUG more readily due to their usage of mem_cgroup_page_stat()
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
+This patch address this issue as identified by lockdep and moves the
+hotplug protection to a higher layer.  This might increase the time
+required to hotplug, but not by much.
+
+Warning messages
+
+BUG: sleeping function called from invalid context at kernel/cpu.c:62
+in_atomic(): 0, irqs_disabled(): 0, pid: 6325, name: pagetest
+2 locks held by pagetest/6325:
+do_page_fault+0x27d/0x4a0
+mem_cgroup_page_stat+0x0/0x23f
+Pid: 6325, comm: pagetest Not tainted 2.6.36-rc5-mm1+ #201
+Call Trace:
+[<ffffffff81041224>] __might_sleep+0x12d/0x131
+[<ffffffff8104f4af>] get_online_cpus+0x1c/0x51
+[<ffffffff8110eedb>] mem_cgroup_read_stat+0x27/0xa3
+[<ffffffff811125d2>] mem_cgroup_page_stat+0x131/0x23f
+[<ffffffff811124a1>] ? mem_cgroup_page_stat+0x0/0x23f
+[<ffffffff810d57c3>] global_dirty_limits+0x42/0xf8
+[<ffffffff810d58b3>] throttle_vm_writeout+0x3a/0xb4
+[<ffffffff810dc2f8>] shrink_zone+0x3e6/0x3f8
+[<ffffffff81074a35>] ? ktime_get_ts+0xb2/0xbf
+[<ffffffff810dd1aa>] do_try_to_free_pages+0x106/0x478
+[<ffffffff810dd601>] try_to_free_mem_cgroup_pages+0xe5/0x14c
+[<ffffffff8110f947>] mem_cgroup_hierarchical_reclaim+0x314/0x3a2
+[<ffffffff81111b31>] __mem_cgroup_try_charge+0x29b/0x593
+[<ffffffff8111194a>] ? __mem_cgroup_try_charge+0xb4/0x593
+[<ffffffff81071258>] ? local_clock+0x40/0x59
+[<ffffffff81009015>] ? sched_clock+0x9/0xd
+[<ffffffff810710d5>] ? sched_clock_local+0x1c/0x82
+[<ffffffff8111398a>] mem_cgroup_charge_common+0x4b/0x76
+[<ffffffff81141469>] ? bio_add_page+0x36/0x38
+[<ffffffff81113ba9>] mem_cgroup_cache_charge+0x1f4/0x214
+[<ffffffff810cd195>] add_to_page_cache_locked+0x4a/0x148
+....
+
 Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Righi <arighi@develer.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |  109 ++++++++++++++++++++++++++++++------------
- 1 file changed, 78 insertions(+), 31 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~memcg-check-memcg-dirty-limits-in-page-writeback mm/page-writeback.c
---- a/mm/page-writeback.c~memcg-check-memcg-dirty-limits-in-page-writeback
-+++ a/mm/page-writeback.c
-@@ -131,6 +131,18 @@ EXPORT_SYMBOL(laptop_mode);
- static struct prop_descriptor vm_completions;
- static struct prop_descriptor vm_dirties;
+diff -puN mm/memcontrol.c~memcg-cpu-hotplug-lockdep-warning-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cpu-hotplug-lockdep-warning-fix
++++ a/mm/memcontrol.c
+@@ -579,7 +579,6 @@ static s64 mem_cgroup_read_stat(struct m
+ 	int cpu;
+ 	s64 val = 0;
  
-+static unsigned long dirty_writeback_pages(void)
-+{
-+	s64 ret;
-+
-+	ret = mem_cgroup_page_stat(MEMCG_NR_DIRTY_WRITEBACK_PAGES);
-+	if (ret < 0)
-+		ret = global_page_state(NR_UNSTABLE_NFS) +
-+			global_page_state(NR_WRITEBACK);
-+
-+	return ret;
-+}
-+
- /*
-  * couple the period to the dirty_ratio:
-  *
-@@ -398,45 +410,67 @@ unsigned long determine_dirtyable_memory
+-	get_online_cpus();
+ 	for_each_online_cpu(cpu)
+ 		val += per_cpu(mem->stat->count[idx], cpu);
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -587,7 +586,6 @@ static s64 mem_cgroup_read_stat(struct m
+ 	val += mem->nocpu_base.count[idx];
+ 	spin_unlock(&mem->pcp_counter_lock);
+ #endif
+-	put_online_cpus();
+ 	return val;
  }
  
- /*
-+ * The dirty limits will be lifted by 1/4 for PF_LESS_THROTTLE (ie. nfsd) and
-+ * runtime tasks.
-+ */
-+static inline void adjust_dirty_info(struct dirty_info *info)
-+{
-+	struct task_struct *tsk;
-+
-+	if (info->background_thresh >= info->dirty_thresh)
-+		info->background_thresh = info->dirty_thresh / 2;
-+	tsk = current;
-+	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
-+		info->background_thresh += info->background_thresh / 4;
-+		info->dirty_thresh += info->dirty_thresh / 4;
-+	}
-+}
-+
-+/*
-  * global_dirty_info - return background-writeback and dirty-throttling
-  * thresholds as well as dirty usage metrics.
-  *
-  * Calculate the dirty thresholds based on sysctl parameters
-  * - vm.dirty_background_ratio  or  vm.dirty_background_bytes
-  * - vm.dirty_ratio             or  vm.dirty_bytes
-- * The dirty limits will be lifted by 1/4 for PF_LESS_THROTTLE (ie. nfsd) and
-- * runtime tasks.
-  */
- void global_dirty_info(struct dirty_info *info)
- {
--	unsigned long background;
--	unsigned long dirty;
- 	unsigned long available_memory = determine_dirtyable_memory();
--	struct task_struct *tsk;
+@@ -1345,6 +1343,7 @@ s64 mem_cgroup_page_stat(enum mem_cgroup
+ 	struct mem_cgroup *iter;
+ 	s64 value;
  
- 	if (vm_dirty_bytes)
--		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
-+		info->dirty_thresh = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
- 	else
--		dirty = (vm_dirty_ratio * available_memory) / 100;
-+		info->dirty_thresh = (vm_dirty_ratio * available_memory) / 100;
++	get_online_cpus();
+ 	rcu_read_lock();
+ 	mem = mem_cgroup_from_task(current);
+ 	if (__mem_cgroup_has_dirty_limit(mem)) {
+@@ -1366,6 +1365,7 @@ s64 mem_cgroup_page_stat(enum mem_cgroup
+ 	} else
+ 		value = -EINVAL;
+ 	rcu_read_unlock();
++	put_online_cpus();
  
- 	if (dirty_background_bytes)
--		background = DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
-+		info->background_thresh =
-+			DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
- 	else
--		background = (dirty_background_ratio * available_memory) / 100;
-+		info->background_thresh =
-+			(dirty_background_ratio * available_memory) / 100;
- 
- 	info->nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
- 				global_page_state(NR_UNSTABLE_NFS);
- 	info->nr_writeback = global_page_state(NR_WRITEBACK);
- 
--	if (background >= dirty)
--		background = dirty / 2;
--	tsk = current;
--	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
--		background += background / 4;
--		dirty += dirty / 4;
--	}
--	info->background_thresh = background;
--	info->dirty_thresh = dirty;
-+	adjust_dirty_info(info);
-+}
-+
-+/*
-+ * Calculate the background-writeback and dirty-throttling thresholds and dirty
-+ * usage metrics from the current task's memcg dirty limit parameters.  Returns
-+ * false if no memcg limits exist.
-+ */
-+static bool memcg_dirty_info(struct dirty_info *info)
-+{
-+	unsigned long available_memory = determine_dirtyable_memory();
-+
-+	if (!mem_cgroup_dirty_info(available_memory, info))
-+		return false;
-+
-+	adjust_dirty_info(info);
-+	return true;
+ 	return value;
  }
- 
- /*
-@@ -480,7 +514,8 @@ unsigned long bdi_dirty_limit(struct bac
- static void balance_dirty_pages(struct address_space *mapping,
- 				unsigned long write_chunk)
- {
--	struct dirty_info dirty_info;
-+	struct dirty_info sys_info;
-+	struct dirty_info memcg_info;
- 	long bdi_nr_reclaimable;
- 	long bdi_nr_writeback;
- 	unsigned long bdi_thresh;
-@@ -497,19 +532,27 @@ static void balance_dirty_pages(struct a
- 			.range_cyclic	= 1,
- 		};
- 
--		global_dirty_info(&dirty_info);
-+		global_dirty_info(&sys_info);
-+
-+		if (!memcg_dirty_info(&memcg_info))
-+			memcg_info = sys_info;
- 
- 		/*
- 		 * Throttle it only when the background writeback cannot
- 		 * catch-up. This avoids (excessively) small writeouts
- 		 * when the bdi limits are ramping up.
- 		 */
--		if (dirty_info.nr_reclaimable + dirty_info.nr_writeback <=
--				(dirty_info.background_thresh +
--				 dirty_info.dirty_thresh) / 2)
-+		if ((sys_info.nr_reclaimable + sys_info.nr_writeback <=
-+				(sys_info.background_thresh +
-+				 sys_info.dirty_thresh) / 2) &&
-+		    (memcg_info.nr_reclaimable + memcg_info.nr_writeback <=
-+				(memcg_info.background_thresh +
-+				 memcg_info.dirty_thresh) / 2))
- 			break;
- 
--		bdi_thresh = bdi_dirty_limit(bdi, dirty_info.dirty_thresh);
-+		bdi_thresh = bdi_dirty_limit(bdi,
-+				min(sys_info.dirty_thresh,
-+				    memcg_info.dirty_thresh));
- 		bdi_thresh = task_dirty_limit(current, bdi_thresh);
- 
- 		/*
-@@ -538,9 +581,12 @@ static void balance_dirty_pages(struct a
- 		 */
- 		dirty_exceeded =
- 			(bdi_nr_reclaimable + bdi_nr_writeback > bdi_thresh)
--			|| (dirty_info.nr_reclaimable +
--			    dirty_info.nr_writeback >
--			    dirty_info.dirty_thresh);
-+			|| (sys_info.nr_reclaimable +
-+			    sys_info.nr_writeback >
-+			    sys_info.dirty_thresh)
-+			|| (memcg_info.nr_reclaimable +
-+			    memcg_info.nr_writeback >
-+			    memcg_info.dirty_thresh);
- 
- 		if (!dirty_exceeded)
- 			break;
-@@ -593,8 +639,10 @@ static void balance_dirty_pages(struct a
- 	 * background_thresh, to keep the amount of dirty memory low.
- 	 */
- 	if ((laptop_mode && pages_written) ||
--	    (!laptop_mode && (dirty_info.nr_reclaimable >
--			      dirty_info.background_thresh)))
-+	    (!laptop_mode && ((sys_info.nr_reclaimable >
-+			       sys_info.background_thresh) ||
-+			      (memcg_info.nr_reclaimable >
-+			       memcg_info.background_thresh))))
- 		bdi_start_background_writeback(bdi);
- }
- 
-@@ -666,8 +714,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 		dirty_info.dirty_thresh +=
- 			dirty_info.dirty_thresh / 10;      /* wheeee... */
- 
--                if (global_page_state(NR_UNSTABLE_NFS) +
--		    global_page_state(NR_WRITEBACK) <= dirty_info.dirty_thresh)
-+		if (dirty_writeback_pages() <= dirty_info.dirty_thresh)
- 			break;
-                 congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
+mm-smaps-export-mlock-information.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
