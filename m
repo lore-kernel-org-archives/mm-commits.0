@@ -1,110 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] oprofile-fix-hang-while-offline-the-cpu.patch removed from -mm tree
-Date: Fri, 29 Oct 2010 16:12:10 -0700
-Message-ID: <201010292312.o9TNCAHH022341@imap1.linux-foundation.org>
+Subject: + fuse-clear-attribute-cache-for-openo_trunc.patch added to -mm tree
+Date: Fri, 29 Oct 2010 17:02:46 -0700
+Message-ID: <201010300003.o9U03WtM024482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab0J2XMR (ORCPT
+	by vger.kernel.org with ESMTP id S1751345Ab0J3ADq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Oct 2010 19:12:17 -0400
+	Fri, 29 Oct 2010 20:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: santosh.shilimkar@ti.com, r.sricharan@ti.com, robert.richter@amd.com, s-jan@ti.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ksumrall@android.com, anfei.zhou@gmail.com, avati@gluster.com, miklos@szeredi.hu
 
 
 The patch titled
-     oprofile: fix hang while offline the cpu
-has been removed from the -mm tree.  Its filename was
-     oprofile-fix-hang-while-offline-the-cpu.patch
+     fuse: clear attribute cache for open(O_TRUNC)
+has been added to the -mm tree.  Its filename is
+     fuse-clear-attribute-cache-for-openo_trunc.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oprofile: fix hang while offline the cpu
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: fuse: clear attribute cache for open(O_TRUNC)
+From: Ken Sumrall <ksumrall@android.com>
 
-The kernel is built with CONFIG_OPROFILE and CPU_HOTPLUG enabled. 
-oprofile is initialised using system timer in absence of hardware counters
-supports.  Oprofile isn't started from userland.
+The attribute cache for a file was not being cleared when a file is opened
+with O_TRUNC.
 
-In this setup while doing a CPU offline the kernel hangs in an infinite
-loop in lock_hrtimer_base().
-
-This happens because as part of oprofile_cpu_notify(, it tries to stop an
-hrtimer which was never started.  These per-cpu hrtimers are started when
-the oprfile is started.
-
-	echo 1	> /dev/oprofile/enable
-
-Fix this issue by adding a state variable so that these hrtimer start/stop
-is only attempted when oprofile is started
-
-Reported-by: Jan Sebastien <s-jan@ti.com>
-Signed-off-by: sricharan <r.sricharan@ti.com>
-Tested-by: sricharan <r.sricharan@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Robert Richter <robert.richter@amd.com>
+Signed-off-by: Ken Sumrall <ksumrall@android.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Anfei <anfei.zhou@gmail.com>
+Cc: "Anand V. Avati" <avati@gluster.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/timer_int.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/fuse/file.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu drivers/oprofile/timer_int.c
---- a/drivers/oprofile/timer_int.c~oprofile-fix-hang-while-offline-the-cpu
-+++ a/drivers/oprofile/timer_int.c
-@@ -21,6 +21,7 @@
- #include "oprof.h"
- 
- static DEFINE_PER_CPU(struct hrtimer, oprofile_hrtimer);
-+static int oprofile_hrtimer_started;
- 
- static enum hrtimer_restart oprofile_hrtimer_notify(struct hrtimer *hrtimer)
+diff -puN fs/fuse/file.c~fuse-clear-attribute-cache-for-openo_trunc fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-clear-attribute-cache-for-openo_trunc
++++ a/fs/fuse/file.c
+@@ -134,6 +134,7 @@ EXPORT_SYMBOL_GPL(fuse_do_open);
+ void fuse_finish_open(struct inode *inode, struct file *file)
  {
-@@ -33,6 +34,9 @@ static void __oprofile_hrtimer_start(voi
- {
- 	struct hrtimer *hrtimer = &__get_cpu_var(oprofile_hrtimer);
+ 	struct fuse_file *ff = file->private_data;
++	struct fuse_conn *fc = get_fuse_conn(inode);
  
-+	if (!oprofile_hrtimer_started)
-+		return;
-+
- 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	hrtimer->function = oprofile_hrtimer_notify;
- 
-@@ -42,6 +46,7 @@ static void __oprofile_hrtimer_start(voi
- 
- static int oprofile_hrtimer_start(void)
- {
-+	oprofile_hrtimer_started = 1;
- 	on_each_cpu(__oprofile_hrtimer_start, NULL, 1);
- 	return 0;
- }
-@@ -50,6 +55,9 @@ static void __oprofile_hrtimer_stop(int 
- {
- 	struct hrtimer *hrtimer = &per_cpu(oprofile_hrtimer, cpu);
- 
-+	if (!oprofile_hrtimer_started)
-+		return;
-+
- 	hrtimer_cancel(hrtimer);
+ 	if (ff->open_flags & FOPEN_DIRECT_IO)
+ 		file->f_op = &fuse_direct_io_file_operations;
+@@ -141,6 +142,8 @@ void fuse_finish_open(struct inode *inod
+ 		invalidate_inode_pages2(inode->i_mapping);
+ 	if (ff->open_flags & FOPEN_NONSEEKABLE)
+ 		nonseekable_open(inode, file);
++	if (fc->atomic_o_trunc && (file->f_flags & O_TRUNC))
++		fuse_invalidate_attr(inode);
  }
  
-@@ -59,6 +67,7 @@ static void oprofile_hrtimer_stop(void)
- 
- 	for_each_online_cpu(cpu)
- 		__oprofile_hrtimer_stop(cpu);
-+	oprofile_hrtimer_started = 0;
- }
- 
- static int __cpuinit oprofile_cpu_notify(struct notifier_block *self,
+ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
 _
 
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
+Patches currently in -mm which might be from ksumrall@android.com are
 
-origin.patch
-linux-next.patch
+fuse-clear-attribute-cache-for-openo_trunc.patch
 
