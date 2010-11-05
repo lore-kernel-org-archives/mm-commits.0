@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-resourceh-needs-typesh.patch added to -mm tree
-Date: Fri, 05 Nov 2010 12:18:13 -0700
-Message-ID: <201011051918.oA5JIEm2027950@imap1.linux-foundation.org>
+Subject: + cpufreq-fix-ondemand-governor-powersave_bias-execution-time-misuse.patch added to -mm tree
+Date: Fri, 05 Nov 2010 12:23:49 -0700
+Message-ID: <201011051923.oA5JNnY1028187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283Ab0KETSY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 15:18:24 -0400
+	by vger.kernel.org with ESMTP id S1753202Ab0KETYX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 15:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org
+Cc: youquan.song@linux.intel.com, youquan.song@intel.com
 
 
 The patch titled
-     include/linux/resource.h needs types.h
+     cpufreq: fix ondemand governor powersave_bias execution time misuse
 has been added to the -mm tree.  Its filename is
-     include-linux-resourceh-needs-typesh.patch
+     cpufreq-fix-ondemand-governor-powersave_bias-execution-time-misuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/resource.h needs types.h
-From: Jean Delvare <khali@linux-fr.org>
+Subject: cpufreq: fix ondemand governor powersave_bias execution time misuse
+From: Youquan Song <youquan.song@linux.intel.com>
 
-Fix the following warning:
-usr/include/linux/resource.h:49: found __[us]{8,16,32,64} type without #include <linux/types.h>
+Ondemand governor use powersave_bias tunable to do aggressive power save
+by decrease CPU average frequency.  The average frequency achieve by
+adjust low and high frequency's execution time proportion during one
+sample time interval.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Current kernel, only the high frequency executes in time proportion, but
+the low frequency wrongly execute in one whole sample time interval when
+powersave_bias is set.
+
+The patch fix it by set low frequency execution time to it deserved.
+
+Signed-off-by: Youquan Song <youquan.song@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/resource.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/cpufreq/cpufreq_ondemand.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/resource.h~include-linux-resourceh-needs-typesh include/linux/resource.h
---- a/include/linux/resource.h~include-linux-resourceh-needs-typesh
-+++ a/include/linux/resource.h
-@@ -2,6 +2,7 @@
- #define _LINUX_RESOURCE_H
- 
- #include <linux/time.h>
-+#include <linux/types.h>
- 
- /*
-  * Resource control/accounting header file for linux
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-fix-ondemand-governor-powersave_bias-execution-time-misuse drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-fix-ondemand-governor-powersave_bias-execution-time-misuse
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -666,6 +666,8 @@ static void do_dbs_timer(struct work_str
+ 	} else {
+ 		__cpufreq_driver_target(dbs_info->cur_policy,
+ 			dbs_info->freq_lo, CPUFREQ_RELATION_H);
++		if (dbs_info->sample_type == DBS_SUB_SAMPLE)
++			delay = dbs_info->freq_lo_jiffies;
+ 	}
+ 	queue_delayed_work_on(cpu, kondemand_wq, &dbs_info->work, delay);
+ 	mutex_unlock(&dbs_info->timer_mutex);
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from youquan.song@linux.intel.com are
 
-include-linux-resourceh-needs-typesh.patch
-linux-next.patch
-leds-driver-for-national-semiconductor-lp5521-chip.patch
-leds-driver-for-national-semiconductors-lp5523-chip.patch
-leds-update-lp552x-support-kconfig-and-makefile.patch
-documentation-led-drivers-lp5521-and-lp5523.patch
+cpufreq-fix-ondemand-governor-powersave_bias-execution-time-misuse.patch
 
