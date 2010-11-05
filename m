@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 05 Nov 2010 12:43:06 -0700
-Message-ID: <201011051943.oA5Jh6JH028992@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-make-rolestats-the-default.patch added to -mm tree
+Date: Fri, 05 Nov 2010 13:29:39 -0700
+Message-ID: <201011052029.oA5KTdCn030916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750845Ab0KETng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 15:43:36 -0400
+	by vger.kernel.org with ESMTP id S1752454Ab0KEUaJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 16:30:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com
+Cc: joe@perches.com
 
 
 The patch titled
-     atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes
+     scripts/get_maintainer.pl: make --rolestats the default
 has been added to the -mm tree.  Its filename is
-     atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+     scripts-get_maintainerpl-make-rolestats-the-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts/get_maintainer.pl: make --rolestats the default
+From: Joe Perches <joe@perches.com>
 
-ERROR: code indent should use tabs where possible
-#64: FILE: include/linux/atomic.h:26:
-+ ^Ido {$
+This script now requires a user to add --norolestats to the command line
+so it's harder to feed the output of this script to programs that send
+mass emails.
 
-WARNING: please, no space before tabs
-#64: FILE: include/linux/atomic.h:26:
-+ ^Ido {$
+Update --help to correct command line defaults.
 
-WARNING: please, no spaces at the start of a line
-#64: FILE: include/linux/atomic.h:26:
-+ ^Ido {$
+Change version to 0.26.
 
-total: 1 errors, 2 warnings, 37 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/atomic-add-atomic_inc_not_zero_hint.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/atomic.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/atomic.h~atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes include/linux/atomic.h
---- a/include/linux/atomic.h~atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes
-+++ a/include/linux/atomic.h
-@@ -23,7 +23,7 @@ static inline int atomic_inc_not_zero_hi
- 	if (!hint)
- 		return atomic_inc_not_zero(v);
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default
++++ a/scripts/get_maintainer.pl
+@@ -13,7 +13,7 @@
+ use strict;
  
-- 	do {
-+	do {
- 		val = atomic_cmpxchg(v, c, c + 1);
- 		if (val == c)
- 			return 1;
+ my $P = $0;
+-my $V = '0.26-beta6';
++my $V = '0.26';
+ 
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
+@@ -40,7 +40,7 @@ my $email_use_mailmap = 1;
+ my $output_multiline = 1;
+ my $output_separator = ", ";
+ my $output_roles = 0;
+-my $output_rolestats = 0;
++my $output_rolestats = 1;
+ my $scm = 0;
+ my $web = 0;
+ my $subsystem = 0;
+@@ -720,7 +720,8 @@ Other options:
+   --help => show this help information
+ 
+ Default options:
+-  [--email --git --m --n --l --multiline --pattern-depth=0 --remove-duplicates]
++  [--email --nogit --git-fallback --m --n --l --multiline -pattern-depth=0
++   --remove-duplicates --rolestats]
+ 
+ Notes:
+   Using "-f directory" may give unexpected results:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-hpet-factor-timer-allocate-from-open.patch
-atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+origin.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-sync_inode_metadata-fix-comment.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+scripts-get_maintainerpl-make-rolestats-the-default.patch
+maintainers-intel-gfx-is-a-subscribers-only-mailing-list.patch
 
