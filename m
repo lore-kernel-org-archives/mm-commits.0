@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-make-rolestats-the-default.patch added to -mm tree
-Date: Fri, 05 Nov 2010 13:29:39 -0700
-Message-ID: <201011052029.oA5KTdCn030916@imap1.linux-foundation.org>
+Subject: + mm-mempolicyc-add-rcu-read-lock-to-protect-pid-structure.patch added to -mm tree
+Date: Fri, 05 Nov 2010 13:50:51 -0700
+Message-ID: <201011052050.oA5KopfC031749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752454Ab0KEUaJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 16:30:09 -0400
+	by vger.kernel.org with ESMTP id S1752375Ab0KEUvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 16:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: zengzm.kernel@gmail.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, paulmck@us.ibm.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: make --rolestats the default
+     mm/mempolicy.c: add rcu read lock to protect pid structure
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-make-rolestats-the-default.patch
+     mm-mempolicyc-add-rcu-read-lock-to-protect-pid-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: make --rolestats the default
-From: Joe Perches <joe@perches.com>
+Subject: mm/mempolicy.c: add rcu read lock to protect pid structure
+From: Zeng Zhaoming <zengzm.kernel@gmail.com>
 
-This script now requires a user to add --norolestats to the command line
-so it's harder to feed the output of this script to programs that send
-mass emails.
+find_task_by_vpid() should be protected by rcu_read_lock(), to prevent
+free_pid() reclaiming pid.
 
-Update --help to correct command line defaults.
-
-Change version to 0.26.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Zeng Zhaoming <zengzm.kernel@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default
-+++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+diff -puN mm/mempolicy.c~mm-mempolicyc-add-rcu-read-lock-to-protect-pid-structure mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-add-rcu-read-lock-to-protect-pid-structure
++++ a/mm/mempolicy.c
+@@ -1307,15 +1307,18 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 		goto out;
  
- my $P = $0;
--my $V = '0.26-beta6';
-+my $V = '0.26';
+ 	/* Find the mm_struct */
++	rcu_read_lock();
+ 	read_lock(&tasklist_lock);
+ 	task = pid ? find_task_by_vpid(pid) : current;
+ 	if (!task) {
+ 		read_unlock(&tasklist_lock);
++		rcu_read_unlock();
+ 		err = -ESRCH;
+ 		goto out;
+ 	}
+ 	mm = get_task_mm(task);
+ 	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
  
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -40,7 +40,7 @@ my $email_use_mailmap = 1;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $output_roles = 0;
--my $output_rolestats = 0;
-+my $output_rolestats = 1;
- my $scm = 0;
- my $web = 0;
- my $subsystem = 0;
-@@ -720,7 +720,8 @@ Other options:
-   --help => show this help information
- 
- Default options:
--  [--email --git --m --n --l --multiline --pattern-depth=0 --remove-duplicates]
-+  [--email --nogit --git-fallback --m --n --l --multiline -pattern-depth=0
-+   --remove-duplicates --rolestats]
- 
- Notes:
-   Using "-f directory" may give unexpected results:
+ 	err = -EINVAL;
+ 	if (!mm)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from zengzm.kernel@gmail.com are
 
-origin.patch
-linux-next.patch
-scripts-get_maintainerpl-make-rolestats-the-default.patch
-maintainers-intel-gfx-is-a-subscribers-only-mailing-list.patch
+mm-mempolicyc-add-rcu-read-lock-to-protect-pid-structure.patch
 
