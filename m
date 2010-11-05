@@ -1,112 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-btrfs-use-memdup_user.patch removed from -mm tree
-Date: Fri, 05 Nov 2010 11:29:09 -0700
-Message-ID: <201011051830.oA5IUpG6025677@imap1.linux-foundation.org>
+Subject: [merged] audit-use-rcu-for-task-lookup-protection.patch removed from -mm tree
+Date: Fri, 05 Nov 2010 11:29:05 -0700
+Message-ID: <201011051830.oA5IUldr025671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754696Ab0KESbE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 14:31:04 -0400
+	by vger.kernel.org with ESMTP id S1754710Ab0KESbG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 14:31:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, chris.mason@oracle.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, eparis@redhat.com, oleg@redhat.com, peterz@infradead.org, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/btrfs: use memdup_user
+     audit: use rcu for task lookup protection
 has been removed from the -mm tree.  Its filename was
-     fs-btrfs-use-memdup_user.patch
+     audit-use-rcu-for-task-lookup-protection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/btrfs: use memdup_user
-From: Julia Lawall <julia@diku.dk>
+Subject: audit: use rcu for task lookup protection
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Use memdup_user when user data is immediately copied into the
-allocated region.
+Protect the task lookups in audit_receive_msg() with rcu_read_lock()
+instead of tasklist_lock and use lock/unlock_sighand to protect against
+the exit race.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression from,to,size,flag;
-position p;
-identifier l1,l2;
-@@
-
--  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
-+  to = memdup_user(from,size);
-   if (
--      to==NULL
-+      IS_ERR(to)
-                 || ...) {
-   <+... when != goto l1;
--  -ENOMEM
-+  PTR_ERR(to)
-   ...+>
-   }
--  if (copy_from_user(to, from, size) != 0) {
--    <+... when != goto l2;
--    -EFAULT
--    ...+>
--  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/ioctl.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ kernel/audit.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user fs/btrfs/ioctl.c
---- a/fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user
-+++ a/fs/btrfs/ioctl.c
-@@ -1073,14 +1073,10 @@ static noinline int btrfs_ioctl_tree_sea
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+diff -puN kernel/audit.c~audit-use-rcu-for-task-lookup-protection kernel/audit.c
+--- a/kernel/audit.c~audit-use-rcu-for-task-lookup-protection
++++ a/kernel/audit.c
+@@ -873,17 +873,16 @@ static int audit_receive_msg(struct sk_b
+ 	case AUDIT_TTY_GET: {
+ 		struct audit_tty_status s;
+ 		struct task_struct *tsk;
++		unsigned long flags;
  
--	args = kmalloc(sizeof(*args), GFP_KERNEL);
--	if (!args)
--		return -ENOMEM;
-+	args = memdup_user(argp, sizeof(*args));
-+	if (IS_ERR(args))
-+		return PTR_ERR(args);
+-		read_lock(&tasklist_lock);
++		rcu_read_lock();
+ 		tsk = find_task_by_vpid(pid);
+-		if (!tsk)
+-			err = -ESRCH;
+-		else {
+-			spin_lock_irq(&tsk->sighand->siglock);
++		if (tsk && lock_task_sighand(tsk, &flags)) {
+ 			s.enabled = tsk->signal->audit_tty != 0;
+-			spin_unlock_irq(&tsk->sighand->siglock);
+-		}
+-		read_unlock(&tasklist_lock);
++			unlock_task_sighand(tsk, &flags);
++		} else
++			err = -ESRCH;
++		rcu_read_unlock();
  
--	if (copy_from_user(args, argp, sizeof(*args))) {
--		kfree(args);
--		return -EFAULT;
--	}
- 	inode = fdentry(file)->d_inode;
- 	ret = search_ioctl(inode, args);
- 	if (ret == 0 && copy_to_user(argp, args, sizeof(*args)))
-@@ -1188,14 +1184,10 @@ static noinline int btrfs_ioctl_ino_look
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+ 		if (!err)
+ 			audit_send_reply(NETLINK_CB(skb).pid, seq,
+@@ -893,22 +892,21 @@ static int audit_receive_msg(struct sk_b
+ 	case AUDIT_TTY_SET: {
+ 		struct audit_tty_status *s;
+ 		struct task_struct *tsk;
++		unsigned long flags;
  
--	args = kmalloc(sizeof(*args), GFP_KERNEL);
--	if (!args)
--		return -ENOMEM;
-+	args = memdup_user(argp, sizeof(*args));
-+	if (IS_ERR(args))
-+		return PTR_ERR(args);
- 
--	if (copy_from_user(args, argp, sizeof(*args))) {
--		kfree(args);
--		return -EFAULT;
--	}
- 	inode = fdentry(file)->d_inode;
- 
- 	if (args->treeid == 0)
+ 		if (nlh->nlmsg_len < sizeof(struct audit_tty_status))
+ 			return -EINVAL;
+ 		s = data;
+ 		if (s->enabled != 0 && s->enabled != 1)
+ 			return -EINVAL;
+-		read_lock(&tasklist_lock);
++		rcu_read_lock();
+ 		tsk = find_task_by_vpid(pid);
+-		if (!tsk)
+-			err = -ESRCH;
+-		else {
+-			spin_lock_irq(&tsk->sighand->siglock);
++		if (tsk && lock_task_sighand(tsk, &flags)) {
+ 			tsk->signal->audit_tty = s->enabled != 0;
+-			spin_unlock_irq(&tsk->sighand->siglock);
+-		}
+-		read_unlock(&tasklist_lock);
++			unlock_task_sighand(tsk, &flags);
++		} else
++			err = -ESRCH;
++		rcu_read_unlock();
+ 		break;
+ 	}
+ 	default:
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-fs-btrfs-inodec-eliminate-memory-leak.patch
+hpet-factor-timer-allocate-from-open.patch
+linux-next.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
