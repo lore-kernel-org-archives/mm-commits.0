@@ -1,72 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] audit-do-not-send-uninitialized-data-for-audit_tty_get.patch removed from -mm tree
-Date: Fri, 05 Nov 2010 11:29:03 -0700
-Message-ID: <201011051830.oA5IUjlO025668@imap1.linux-foundation.org>
+Subject: [merged] fs-btrfs-use-memdup_user.patch removed from -mm tree
+Date: Fri, 05 Nov 2010 11:29:09 -0700
+Message-ID: <201011051830.oA5IUpG6025677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754705Ab0KESbE (ORCPT
+	by vger.kernel.org with ESMTP id S1754696Ab0KESbE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Nov 2010 14:31:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, eparis@redhat.com, peterz@infradead.org, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: julia@diku.dk, chris.mason@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: do not send uninitialized data for AUDIT_TTY_GET
+     fs/btrfs: use memdup_user
 has been removed from the -mm tree.  Its filename was
-     audit-do-not-send-uninitialized-data-for-audit_tty_get.patch
+     fs-btrfs-use-memdup_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: do not send uninitialized data for AUDIT_TTY_GET
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: fs/btrfs: use memdup_user
+From: Julia Lawall <julia@diku.dk>
 
-audit_receive_msg() sends uninitialized data for AUDIT_TTY_GET when the
-task was not found.
+Use memdup_user when user data is immediately copied into the
+allocated region.
 
-Send reply only when task was found.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+// <smpl>
+@@
+expression from,to,size,flag;
+position p;
+identifier l1,l2;
+@@
+
+-  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
++  to = memdup_user(from,size);
+   if (
+-      to==NULL
++      IS_ERR(to)
+                 || ...) {
+   <+... when != goto l1;
+-  -ENOMEM
++  PTR_ERR(to)
+   ...+>
+   }
+-  if (copy_from_user(to, from, size) != 0) {
+-    <+... when != goto l2;
+-    -EFAULT
+-    ...+>
+-  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/btrfs/ioctl.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN kernel/audit.c~audit-do-not-send-uninitialized-data-for-audit_tty_get kernel/audit.c
---- a/kernel/audit.c~audit-do-not-send-uninitialized-data-for-audit_tty_get
-+++ a/kernel/audit.c
-@@ -884,8 +884,10 @@ static int audit_receive_msg(struct sk_b
- 			spin_unlock_irq(&tsk->sighand->siglock);
- 		}
- 		read_unlock(&tasklist_lock);
--		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_TTY_GET, 0, 0,
--				 &s, sizeof(s));
-+
-+		if (!err)
-+			audit_send_reply(NETLINK_CB(skb).pid, seq,
-+					 AUDIT_TTY_GET, 0, 0, &s, sizeof(s));
- 		break;
- 	}
- 	case AUDIT_TTY_SET: {
+diff -puN fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user fs/btrfs/ioctl.c
+--- a/fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user
++++ a/fs/btrfs/ioctl.c
+@@ -1073,14 +1073,10 @@ static noinline int btrfs_ioctl_tree_sea
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	args = kmalloc(sizeof(*args), GFP_KERNEL);
+-	if (!args)
+-		return -ENOMEM;
++	args = memdup_user(argp, sizeof(*args));
++	if (IS_ERR(args))
++		return PTR_ERR(args);
+ 
+-	if (copy_from_user(args, argp, sizeof(*args))) {
+-		kfree(args);
+-		return -EFAULT;
+-	}
+ 	inode = fdentry(file)->d_inode;
+ 	ret = search_ioctl(inode, args);
+ 	if (ret == 0 && copy_to_user(argp, args, sizeof(*args)))
+@@ -1188,14 +1184,10 @@ static noinline int btrfs_ioctl_ino_look
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	args = kmalloc(sizeof(*args), GFP_KERNEL);
+-	if (!args)
+-		return -ENOMEM;
++	args = memdup_user(argp, sizeof(*args));
++	if (IS_ERR(args))
++		return PTR_ERR(args);
+ 
+-	if (copy_from_user(args, argp, sizeof(*args))) {
+-		kfree(args);
+-		return -EFAULT;
+-	}
+ 	inode = fdentry(file)->d_inode;
+ 
+ 	if (args->treeid == 0)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
-hpet-factor-timer-allocate-from-open.patch
-linux-next.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
 
