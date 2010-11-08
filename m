@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch added to -mm tree
-Date: Mon, 08 Nov 2010 13:05:52 -0800
-Message-ID: <201011082105.oA8L5qOX009533@imap1.linux-foundation.org>
+Subject: + drivers-char-nozomic-fix-unused-variable-compiler-warning.patch added to -mm tree
+Date: Mon, 08 Nov 2010 13:59:24 -0800
+Message-ID: <201011082159.oA8LxOpi011914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754307Ab0KHVF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 16:05:59 -0500
+	by vger.kernel.org with ESMTP id S1755690Ab0KHV71 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 16:59:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tdent48227@gmail.com, axboe@kernel.dk
+Cc: arun@bhanu.net, greg@kroah.com
 
 
 The patch titled
-     drivers/block/Makefile: replace the use of <module>-objs with <module>-y
+     drivers/char/nozomi.c: fix unused variable compiler warning
 has been added to the -mm tree.  Its filename is
-     drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch
+     drivers-char-nozomic-fix-unused-variable-compiler-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/Makefile: replace the use of <module>-objs with <module>-y
-From: Tracey Dent <tdent48227@gmail.com>
+Subject: drivers/char/nozomi.c: fix unused variable compiler warning
+From: Arun Bhanu <arun@bhanu.net>
 
-Signed-off-by: Tracey Dent <tdent48227@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+drivers/char/nozomi.c: In function `ntty_ioctl':
+drivers/char/nozomi.c:1831:8: warning: unused variable `argp'
+
+Signed-off-by: Arun Bhanu <arun@bhanu.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/nozomi.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/Makefile~drivers-block-makefile-replace-the-use-of-module-objs-with-module-y drivers/block/Makefile
---- a/drivers/block/Makefile~drivers-block-makefile-replace-the-use-of-module-objs-with-module-y
-+++ a/drivers/block/Makefile
-@@ -39,4 +39,4 @@ obj-$(CONFIG_XEN_BLKDEV_FRONTEND)	+= xen
- obj-$(CONFIG_BLK_DEV_DRBD)     += drbd/
- obj-$(CONFIG_BLK_DEV_RBD)     += rbd.o
+diff -puN drivers/char/nozomi.c~drivers-char-nozomic-fix-unused-variable-compiler-warning drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~drivers-char-nozomic-fix-unused-variable-compiler-warning
++++ a/drivers/char/nozomi.c
+@@ -1828,7 +1828,6 @@ static int ntty_ioctl(struct tty_struct 
+ 		      unsigned int cmd, unsigned long arg)
+ {
+ 	struct port *port = tty->driver_data;
+-	void __user *argp = (void __user *)arg;
+ 	int rval = -ENOIOCTLCMD;
  
--swim_mod-objs	:= swim.o swim_asm.o
-+swim_mod-y	:= swim.o swim_asm.o
+ 	DBG1("******** IOCTL, cmd: %d", cmd);
 _
 
-Patches currently in -mm which might be from tdent48227@gmail.com are
+Patches currently in -mm which might be from arun@bhanu.net are
 
-drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch
-drivers-block-aoe-makefile-replace-the-use-of-module-objs-with-module-y.patch
+drivers-char-nozomic-fix-unused-variable-compiler-warning.patch
 
