@@ -1,57 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-relayc-relay_alloc_page_array-use-vzalloc.patch removed from -mm tree
-Date: Mon, 08 Nov 2010 12:01:32 -0800
-Message-ID: <201011082003.oA8K3eWD005379@imap1.linux-foundation.org>
+Subject: + drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch added to -mm tree
+Date: Mon, 08 Nov 2010 13:05:52 -0800
+Message-ID: <201011082105.oA8L5qOX009533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753964Ab0KHUEL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 15:04:11 -0500
+	by vger.kernel.org with ESMTP id S1754307Ab0KHVF7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 16:05:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jj@chaosbits.net, karim@opersys.com, lethal@linux-sh.org, mathieu.desnoyers@polymtl.ca, zanussi@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tdent48227@gmail.com, axboe@kernel.dk
 
 
 The patch titled
-     kernel/relay.c: relay_alloc_page_array() use vzalloc()
-has been removed from the -mm tree.  Its filename was
-     kernel-relayc-relay_alloc_page_array-use-vzalloc.patch
+     drivers/block/Makefile: replace the use of <module>-objs with <module>-y
+has been added to the -mm tree.  Its filename is
+     drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/relay.c: relay_alloc_page_array() use vzalloc()
-From: Jesper Juhl <jj@chaosbits.net>
+Subject: drivers/block/Makefile: replace the use of <module>-objs with <module>-y
+From: Tracey Dent <tdent48227@gmail.com>
 
-We can optimize kernel/relay.c::relay_alloc_page_array() slightly by using
-vzalloc. The patch makes these changes:
-
- - use vzalloc instead of vmalloc+memset.
- - remove redundant local variable 'array'.
- - declare local 'pa_size' as const.
-
-Cuts down nicely on both source and object-code size.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
-Cc: Karim Yaghmour <karim@opersys.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/block/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/relay.c~kernel-relayc-relay_alloc_page_array-use-vzalloc kernel/relay.c
---- a/kernel/relay.c~kernel-relayc-relay_alloc_page_array-use-vzalloc
-+++ a/kernel/relay.c
-@@ -70,17 +70,10 @@ static const struct vm_operations_struct
-  */
- static struct page **relay_alloc_page_array(unsigned int n_pages)
- {
--	struct page **array;
--	size_t pa_size = n_pages * sizeof(struct page *);
+diff -puN drivers/block/Makefile~drivers-block-makefile-replace-the-use-of-module-objs-with-module-y drivers/block/Makefile
+--- a/drivers/block/Makefile~drivers-block-makefile-replace-the-use-of-module-objs-with-module-y
++++ a/drivers/block/Makefile
+@@ -39,4 +39,4 @@ obj-$(CONFIG_XEN_BLKDEV_FRONTEND)	+= xen
+ obj-$(CONFIG_BLK_DEV_DRBD)     += drbd/
+ obj-$(CONFIG_BLK_DEV_RBD)     += rbd.o
+ 
+-swim_mod-objs	:= swim.o swim_asm.o
++swim_mod-y	:= swim.o swim_asm.o
+_
+
+Patches currently in -mm which might be from tdent48227@gmail.com are
+
+drivers-block-makefile-replace-the-use-of-module-objs-with-module-y.patch
+drivers-block-aoe-makefile-replace-the-use-of-module-objs-with-module-y.patch
+
