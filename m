@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info.patch added to -mm tree
-Date: Tue, 09 Nov 2010 11:21:51 -0800
-Message-ID: <201011091921.oA9JLpIH002247@imap1.linux-foundation.org>
+Subject: + memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat.patch added to -mm tree
+Date: Tue, 09 Nov 2010 11:21:49 -0800
+Message-ID: <201011091921.oA9JLnJ6002244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753493Ab0KITWa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 14:22:30 -0500
+	by vger.kernel.org with ESMTP id S1753661Ab0KITWc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 14:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang
 
 
 The patch titled
-     memcg: pass mem_cgroup to mem_cgroup_dirty_info()
+     memcg: add mem_cgroup parameter to mem_cgroup_page_stat()
 has been added to the -mm tree.  Its filename is
-     memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info.patch
+     memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: pass mem_cgroup to mem_cgroup_dirty_info()
+Subject: memcg: add mem_cgroup parameter to mem_cgroup_page_stat()
 From: Greg Thelen <gthelen@google.com>
 
-Pass mem_cgroup parameter through memcg_dirty_info() into
-mem_cgroup_dirty_info().  This allows for querying dirty memory
-information from a particular cgroup, rather than just the current task's
-cgroup.
+This new parameter can be used to query dirty memory usage from a given
+memcg rather than the current task's memcg.
 
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -54,86 +52,132 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- mm/memcontrol.c            |    5 +++--
- mm/page-writeback.c        |    9 ++++++---
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |    6 +++--
+ mm/memcontrol.c            |   37 +++++++++++++++++++----------------
+ mm/page-writeback.c        |    2 -
+ 3 files changed, 26 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info
+diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
 +++ a/include/linux/memcontrol.h
-@@ -156,6 +156,7 @@ static inline void mem_cgroup_dec_page_s
- 
+@@ -157,7 +157,8 @@ static inline void mem_cgroup_dec_page_s
  bool mem_cgroup_has_dirty_limit(void);
  bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+			   struct mem_cgroup *memcg,
  			   struct dirty_info *info);
- long mem_cgroup_page_stat(struct mem_cgroup *mem,
- 			  enum mem_cgroup_nr_pages_item item);
-@@ -347,6 +348,7 @@ static inline bool mem_cgroup_has_dirty_
+-long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item);
++long mem_cgroup_page_stat(struct mem_cgroup *mem,
++			  enum mem_cgroup_nr_pages_item item);
+ 
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+ 						gfp_t gfp_mask);
+@@ -351,7 +352,8 @@ static inline bool mem_cgroup_dirty_info
+ 	return false;
  }
  
- static inline bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+					 struct mem_cgroup *memcg,
- 					 struct dirty_info *info)
+-static inline long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
++static inline long mem_cgroup_page_stat(struct mem_cgroup *mem,
++					enum mem_cgroup_nr_pages_item item)
  {
- 	return false;
-diff -puN mm/memcontrol.c~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info
+ 	return -ENOSYS;
+ }
+diff -puN mm/memcontrol.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
 +++ a/mm/memcontrol.c
-@@ -1239,11 +1239,11 @@ static void __mem_cgroup_dirty_param(str
-  * "memcg" will not be freed while holding rcu_read_lock().
-  */
- bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+			   struct mem_cgroup *memcg,
- 			   struct dirty_info *info)
- {
- 	struct vm_dirty_param dirty_param;
+@@ -1245,22 +1245,20 @@ bool mem_cgroup_dirty_info(unsigned long
  	unsigned long available_mem;
--	struct mem_cgroup *memcg;
+ 	struct mem_cgroup *memcg;
  	long value;
- 	bool valid = false;
++	bool valid = false;
  
-@@ -1251,7 +1251,8 @@ bool mem_cgroup_dirty_info(unsigned long
+ 	if (mem_cgroup_disabled())
  		return false;
  
  	rcu_read_lock();
--	memcg = mem_cgroup_from_task(current);
-+	if (!memcg)
-+		memcg = mem_cgroup_from_task(current);
- 	if (!__mem_cgroup_has_dirty_limit(memcg))
- 		goto done;
+ 	memcg = mem_cgroup_from_task(current);
+-	if (!__mem_cgroup_has_dirty_limit(memcg)) {
+-		rcu_read_unlock();
+-		return false;
+-	}
++	if (!__mem_cgroup_has_dirty_limit(memcg))
++		goto done;
  	__mem_cgroup_dirty_param(&dirty_param, memcg);
-diff -puN mm/page-writeback.c~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info mm/page-writeback.c
---- a/mm/page-writeback.c~memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info
-+++ a/mm/page-writeback.c
-@@ -461,12 +461,15 @@ void global_dirty_info(struct dirty_info
-  * Calculate the background-writeback and dirty-throttling thresholds and dirty
-  * usage metrics from the current task's memcg dirty limit parameters.  Returns
-  * false if no memcg limits exist.
-+ *
-+ * @memcg may be NULL if the current task's memcg should be used.
-+ * @info is the location where the dirty information is written.
+-	rcu_read_unlock();
+ 
+-	value = mem_cgroup_page_stat(MEMCG_NR_DIRTYABLE_PAGES);
++	value = mem_cgroup_page_stat(memcg, MEMCG_NR_DIRTYABLE_PAGES);
+ 	if (value < 0)
+-		return false;
++		goto done;
+ 
+ 	available_mem = min((unsigned long)value, sys_available_mem);
+ 
+@@ -1280,17 +1278,21 @@ bool mem_cgroup_dirty_info(unsigned long
+ 			(dirty_param.dirty_background_ratio *
+ 			       available_mem) / 100;
+ 
+-	value = mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
++	value = mem_cgroup_page_stat(memcg, MEMCG_NR_RECLAIM_PAGES);
+ 	if (value < 0)
+-		return false;
++		goto done;
+ 	info->nr_reclaimable = value;
+ 
+-	value = mem_cgroup_page_stat(MEMCG_NR_WRITEBACK);
++	value = mem_cgroup_page_stat(memcg, MEMCG_NR_WRITEBACK);
+ 	if (value < 0)
+-		return false;
++		goto done;
+ 	info->nr_writeback = value;
+ 
+-	return true;
++	valid = true;
++
++done:
++	rcu_read_unlock();
++	return valid;
+ }
+ 
+ static inline bool mem_cgroup_can_swap(struct mem_cgroup *memcg)
+@@ -1361,20 +1363,23 @@ memcg_hierarchical_free_pages(struct mem
+ 
+ /*
+  * mem_cgroup_page_stat() - get memory cgroup file cache statistics
+- * @item:      memory statistic item exported to the kernel
++ * @mem:	optional memory cgroup to query.  If NULL, use current task's
++ *		cgroup.
++ * @item:	memory statistic item exported to the kernel
+  *
+  * Return the accounted statistic value or negative value if current task is
+  * root cgroup.
   */
--static bool memcg_dirty_info(struct dirty_info *info)
-+static bool memcg_dirty_info(struct mem_cgroup *memcg, struct dirty_info *info)
+-long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
++long mem_cgroup_page_stat(struct mem_cgroup *mem,
++			  enum mem_cgroup_nr_pages_item item)
  {
- 	unsigned long available_memory = determine_dirtyable_memory();
+ 	struct mem_cgroup *iter;
+-	struct mem_cgroup *mem;
+ 	long value;
  
--	if (!mem_cgroup_dirty_info(available_memory, info))
-+	if (!mem_cgroup_dirty_info(available_memory, memcg, info))
- 		return false;
- 
- 	adjust_dirty_info(info);
-@@ -534,7 +537,7 @@ static void balance_dirty_pages(struct a
- 
- 		global_dirty_info(&sys_info);
- 
--		if (!memcg_dirty_info(&memcg_info))
-+		if (!memcg_dirty_info(NULL, &memcg_info))
- 			memcg_info = sys_info;
- 
+ 	get_online_cpus();
+ 	rcu_read_lock();
+-	mem = mem_cgroup_from_task(current);
++	if (!mem)
++		mem = mem_cgroup_from_task(current);
+ 	if (__mem_cgroup_has_dirty_limit(mem)) {
  		/*
+ 		 * If we're looking for dirtyable pages we need to evaluate
+diff -puN mm/page-writeback.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat mm/page-writeback.c
+--- a/mm/page-writeback.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
++++ a/mm/page-writeback.c
+@@ -135,7 +135,7 @@ static unsigned long dirty_writeback_pag
+ {
+ 	unsigned long ret;
+ 
+-	ret = mem_cgroup_page_stat(MEMCG_NR_DIRTY_WRITEBACK_PAGES);
++	ret = mem_cgroup_page_stat(NULL, MEMCG_NR_DIRTY_WRITEBACK_PAGES);
+ 	if ((long)ret < 0)
+ 		ret = global_page_state(NR_UNSTABLE_NFS) +
+ 			global_page_state(NR_WRITEBACK);
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
