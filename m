@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + irq-use-per_cpu-kstat_irqs.patch added to -mm tree
-Date: Mon, 08 Nov 2010 16:32:43 -0800
-Message-ID: <201011090032.oA90WhrI018783@imap1.linux-foundation.org>
+Subject: + nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update.patch added to -mm tree
+Date: Mon, 08 Nov 2010 16:36:07 -0800
+Message-ID: <201011090036.oA90a7ed018932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388Ab0KIAeT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:34:19 -0500
+	by vger.kernel.org with ESMTP id S1752388Ab0KIAgO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:36:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, andi@firstfloor.org, cl@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org
+Cc: matti.j.aaltonen@nokia.com
 
 
 The patch titled
-     irq: use per_cpu kstat_irqs
+     nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update
 has been added to the -mm tree.  Its filename is
-     irq-use-per_cpu-kstat_irqs.patch
+     nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,223 +33,255 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irq: use per_cpu kstat_irqs
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
 
-Use modern per_cpu API to increment {soft|hard}irq counters, and use
-per_cpu allocation for (struct irq_desc)->kstats_irq instead of an array.
+updates from review, documentation fix.
 
-This gives better SMP/NUMA locality and saves few instructions per irq.
-
-With small nr_cpuids values (8 for example), kstats_irq was a small array
-(less than L1_CACHE_BYTES), potentially source of false sharing.
-
-In the !CONFIG_SPARSE_IRQ case, remove the huge, NUMA/cache unfriendly
-kstat_irqs_all[NR_IRQS][NR_CPUS] array.
-
-Note : we still populate kstats_irq for all possible irqs in
-early_irq_init().  We probably could use on-demand allocations.  (Code
-included in alloc_descs()).  Problem is not all IRQS are used with a prior
-alloc_descs() call.
-
-kstat_irqs_this_cpu() is not used anymore, remove it.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irqdesc.h     |    2 -
- include/linux/kernel_stat.h |   19 +++++++---------
- kernel/irq/irqdesc.c        |   40 +++++++++++++++++++++++++---------
- 3 files changed, 40 insertions(+), 21 deletions(-)
+ Documentation/nfc/nfc-pn544.txt |  101 ++++++++++++++++--------------
+ drivers/nfc/pn544.c             |   18 ++---
+ include/linux/nfc/pn544.h       |    2 
+ 3 files changed, 63 insertions(+), 58 deletions(-)
 
-diff -puN include/linux/irqdesc.h~irq-use-per_cpu-kstat_irqs include/linux/irqdesc.h
---- a/include/linux/irqdesc.h~irq-use-per_cpu-kstat_irqs
-+++ a/include/linux/irqdesc.h
-@@ -57,7 +57,7 @@ struct irq_desc {
- #endif
+diff -puN Documentation/nfc/nfc-pn544.txt~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update Documentation/nfc/nfc-pn544.txt
+--- a/Documentation/nfc/nfc-pn544.txt~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update
++++ a/Documentation/nfc/nfc-pn544.txt
+@@ -1,68 +1,77 @@
+-Kernel driver for PN544
+-========================
+-
+-* NXP Semiconductor PN544 Near Field Communication (NFC) chip
++Kernel driver for the NXP Semiconductors PN544 Near Field
++Communication chip
  
- 	struct timer_rand_state *timer_rand_state;
--	unsigned int		*kstat_irqs;
-+	unsigned int __percpu	*kstat_irqs;
- 	irq_flow_handler_t	handle_irq;
- 	struct irqaction	*action;	/* IRQ action list */
- 	unsigned int		status;		/* IRQ status */
-diff -puN include/linux/kernel_stat.h~irq-use-per_cpu-kstat_irqs include/linux/kernel_stat.h
---- a/include/linux/kernel_stat.h~irq-use-per_cpu-kstat_irqs
-+++ a/include/linux/kernel_stat.h
-@@ -46,16 +46,14 @@ DECLARE_PER_CPU(struct kernel_stat, ksta
- extern unsigned long long nr_context_switches(void);
+ Author: Jari Vanhala
+ Contact: Matti Aaltonen (matti.j.aaltonen at nokia.com)
  
- #ifndef CONFIG_GENERIC_HARDIRQS
--#define kstat_irqs_this_cpu(irq) \
--	(kstat_this_cpu.irqs[irq])
+-Description
+------------
++General
++-------
  
- struct irq_desc;
+ The PN544 is an integrated transmission module for contactless
+ communication. The driver goes under drives/nfc/ and is compiled as a
+ module named "pn544". It registers a misc device and creates a device
+ file named "/dev/pn544".
  
- static inline void kstat_incr_irqs_this_cpu(unsigned int irq,
- 					    struct irq_desc *desc)
- {
--	kstat_this_cpu.irqs[irq]++;
--	kstat_this_cpu.irqs_sum++;
-+	__this_cpu_inc(kstat.irqs[irq]);
-+	__this_cpu_inc(kstat.irqs_sum);
- }
- 
- static inline unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
-@@ -65,17 +63,18 @@ static inline unsigned int kstat_irqs_cp
- #else
- #include <linux/irq.h>
- extern unsigned int kstat_irqs_cpu(unsigned int irq, int cpu);
--#define kstat_irqs_this_cpu(DESC) \
--	((DESC)->kstat_irqs[smp_processor_id()])
--#define kstat_incr_irqs_this_cpu(irqno, DESC) do {\
--	((DESC)->kstat_irqs[smp_processor_id()]++);\
--	kstat_this_cpu.irqs_sum++; } while (0)
+-The driver, is quite simple and it mainly passes data between the
+-hardware and the user space.  There are two operating modes: The HCI
+-(normal) mode and the firmware update mode. It can write and read in
+-both modes.  The hardware sends an interrupt when data is available
+-for reading.  Data is read when the read function is called by some
+-user space application. Poll() checks the IRQ state. Configuration and
+-self testing are done from the user space using read and write.
++Host Interfaces: I2C, SPI and HSU, this driver supports currently only I2C.
 +
-+#define kstat_incr_irqs_this_cpu(irqno, DESC)		\
-+do {							\
-+	__this_cpu_inc(*(DESC)->kstat_irqs);		\
-+	__this_cpu_inc(kstat.irqs_sum);			\
-+} while (0)
- 
- #endif
- 
- static inline void kstat_incr_softirqs_this_cpu(unsigned int irq)
- {
--	kstat_this_cpu.softirqs[irq]++;
-+	__this_cpu_inc(kstat.softirqs[irq]);
- }
- 
- static inline unsigned int kstat_softirqs_cpu(unsigned int irq, int cpu)
-diff -puN kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs kernel/irq/irqdesc.c
---- a/kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs
-+++ a/kernel/irq/irqdesc.c
-@@ -72,6 +72,8 @@ static inline int desc_node(struct irq_d
- 
- static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node)
- {
-+	int cpu;
++The Interface
++-------------
 +
- 	desc->irq_data.irq = irq;
- 	desc->irq_data.chip = &no_irq_chip;
- 	desc->irq_data.chip_data = NULL;
-@@ -83,7 +85,8 @@ static void desc_set_defaults(unsigned i
- 	desc->irq_count = 0;
- 	desc->irqs_unhandled = 0;
- 	desc->name = NULL;
--	memset(desc->kstat_irqs, 0, nr_cpu_ids * sizeof(*(desc->kstat_irqs)));
-+	for_each_possible_cpu(cpu)
-+		*per_cpu_ptr(desc->kstat_irqs, cpu) = 0;
- 	desc_smp_init(desc, node);
++The driver offers a sysfs interface for a hardware test and an IOCTL
++interface for selecting between two operating modes. There are read,
++write and poll functions for transferring messages. The two operating
++modes are the normal (HCI) mode and the firmware update mode.
++
++PN544 is controlled by sending messages from the userspace to the
++chip. The main function of the driver is just to pass those messages
++without caring about the message content.
++
+ 
+-The chip is powered up when the device is opened and otherwise
+-it's turned off. Only one instance can use the device at a time.
++Protocols
++---------
+ 
+-Host Interfaces: consisting of I2C, SPI and HSU as physical
+-interfaces, this driver support I2C.
++In the normal (HCI) mode and in the firmware update mode read and
++write functions behave a bit differently because the message formats
++or the protocols are different.
+ 
+-The chip is controlled from the user spase by sending SWP/HCI (Single
+-Wire Protocol) messages according to the ETSI/SCP standard, see
++In the normal (HCI) mode the protocol used is derived from the ETSI
++HCI specification. The firmware is updated using a specific protocol,
++which is different from HCI.
++
++HCI messages consist of an eight bit header and the message body. The
++header contains the message length. Maximum size for an HCI message is
++33. In HCI mode sent messages are tested for a correct
++checksum. Firmware update messages have the length in the second (MSB)
++and third (LSB) bytes of the message. The maximum FW message length is
++1024 bytes.
++
++For the ETSI HCI specification see
+ http://www.etsi.org/WebSite/Technologies/ProtocolSpecification.aspx
+ 
+-The driver handles two kinds of messages: the normal HCI messages and
+-the firmware update messages. HCI messages consist of and eight bit
+-header and the message body. The header contains the message length.
+-Maximum size for an HCI message is 33. In HCI mode sent packets are
+-tested for a correct CRC.
+-
+-Firmware update messages, which can be read and written in the
+-firmware upload mode have the length in the second (MSB) and third
+-(LSB) bytes of the message.  The maximum FW message size is 1024
+-bytes.
+-
+-The interfaces for pn544 users:
+-
+-There is a sysfs interface for testing that the hardware is
+-operational. Reading from the sysfs file activates the test.  The test
+-returns one on success and zero on failure.
++The Hardware Test
++-----------------
++
++The idea of the test is that it can performed by reading from the
++corresponding sysfs file. The test is implemented in the board file
++and it should test that PN544 can be put into the firmware update
++mode. If the test is not implemented the sysfs file does not get
++created.
+ 
+ Example:
+ > cat /sys/module/pn544/drivers/i2c\:pn544/3-002b/nfc_test
+ 1
+ 
+-For mode setting there is an IOCTL interface, which consists of
+-two messages:
+-
+-PN544_GET_FW_MODE returns 1 if the device is in firmware
+-update mode and zero in the normal (HCI) mode.
++Normal Operation
++----------------
+ 
+-PN544_SET_FW_MODE is for setting the mode.  The message parameter
+-value defines the mode: one corresponds firmware update and zero the
+-HCI mode.
++PN544 is powered up when the device file is opened, otherwise it's
++turned off. Only one instance can use the device at a time.
+ 
++Userspace applications control PN544 with HCI messages. The hardware
++sends an interrupt when data is available for reading. Data is
++physically read when the read function is called by a userspace
++application. Poll() checks the read interrupt state. Configuration and
++self testing are also done from the userspace using read and write.
+ 
+ Example platform data:
+ 
+@@ -86,9 +95,9 @@ static int rx71_pn544_nfc_test(void)
+ 	/*
+ 	 * Put the device into the FW update mode
+ 	 * and then back to the normal mode.
+-	 * Return one on success and zero on
+-         * failure.
+-         */
++	 * Check the behavior and return one on success,
++	 * zero on failure.
++	 */
  }
  
-@@ -133,8 +136,7 @@ static struct irq_desc *alloc_desc(int i
- 	if (!desc)
- 		return NULL;
- 	/* allocate based on nr_cpu_ids */
--	desc->kstat_irqs = kzalloc_node(nr_cpu_ids * sizeof(*desc->kstat_irqs),
--					 gfp, node);
-+	desc->kstat_irqs = alloc_percpu(unsigned int);
- 	if (!desc->kstat_irqs)
- 		goto err_desc;
- 
-@@ -149,7 +151,7 @@ static struct irq_desc *alloc_desc(int i
- 	return desc;
- 
- err_kstat:
--	kfree(desc->kstat_irqs);
-+	free_percpu(desc->kstat_irqs);
- err_desc:
- 	kfree(desc);
- 	return NULL;
-@@ -166,7 +168,7 @@ static void free_desc(unsigned int irq)
- 	mutex_unlock(&sparse_irq_lock);
- 
- 	free_masks(desc);
--	kfree(desc->kstat_irqs);
-+	free_percpu(desc->kstat_irqs);
- 	kfree(desc);
- }
- 
-@@ -234,7 +236,6 @@ struct irq_desc irq_desc[NR_IRQS] __cach
+ static void rx71_pn544_nfc_disable(void)
+diff -puN drivers/nfc/pn544.c~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update drivers/nfc/pn544.c
+--- a/drivers/nfc/pn544.c~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update
++++ a/drivers/nfc/pn544.c
+@@ -110,7 +110,7 @@ static int pn544_enable(struct pn544_inf
+ 		dev_dbg(&client->dev, "now in HCI-mode\n");
  	}
+ 
+-	msleep(PN544_BOOT_TIME);
++	usleep_range(10000, 15000);
+ 
+ 	return 0;
+ }
+@@ -174,14 +174,13 @@ static int pn544_i2c_write(struct i2c_cl
+ 	if (check_crc(buf, len))
+ 		return -EINVAL;
+ 
+-
+-	msleep(PN544_I2C_IO_TIME);
++	usleep_range(3000, 6000);
+ 
+ 	r = i2c_master_send(client, buf, len);
+ 	dev_dbg(&client->dev, "send: %d\n", r);
+ 
+ 	if (r == -EREMOTEIO) { /* Retry, chip was in standby */
+-		msleep(PN544_WAKEUP_GUARD);
++		usleep_range(6000, 10000);
+ 		r = i2c_master_send(client, buf, len);
+ 		dev_dbg(&client->dev, "send2: %d\n", r);
+ 	}
+@@ -223,7 +222,7 @@ static int pn544_i2c_read(struct i2c_cli
+ 	if (r != len)
+ 		return -EREMOTEIO;
+ 
+-	msleep(PN544_I2C_IO_TIME);
++	usleep_range(3000, 6000);
+ 
+ 	return r + 1;
+ }
+@@ -242,7 +241,7 @@ static int pn544_fw_write(struct i2c_cli
+ 	dev_dbg(&client->dev, "fw send: %d\n", r);
+ 
+ 	if (r == -EREMOTEIO) { /* Retry, chip was in standby */
+-		msleep(PN544_WAKEUP_GUARD);
++		usleep_range(6000, 10000);
+ 		r = i2c_master_send(client, buf, len);
+ 		dev_dbg(&client->dev, "fw send2: %d\n", r);
+ 	}
+@@ -329,7 +328,7 @@ static ssize_t pn544_read(struct file *f
+ 	size_t len;
+ 	int r = 0;
+ 
+-	dev_dbg(&client->dev, "%s: info: %p, count: %d\n", __func__,
++	dev_dbg(&client->dev, "%s: info: %p, count: %zu\n", __func__,
+ 		info, count);
+ 
+ 	mutex_lock(&info->mutex);
+@@ -439,7 +438,7 @@ static ssize_t pn544_write(struct file *
+ 	ssize_t	len;
+ 	int r;
+ 
+-	dev_dbg(&client->dev, "%s: info: %p, count %d\n", __func__,
++	dev_dbg(&client->dev, "%s: info: %p, count %zu\n", __func__,
+ 		info, count);
+ 
+ 	mutex_lock(&info->mutex);
+@@ -633,7 +632,7 @@ static const struct file_operations pn54
+ 	.poll		= pn544_poll,
+ 	.open		= pn544_open,
+ 	.release	= pn544_close,
+-	.unlocked_ioctl		= pn544_ioctl,
++	.unlocked_ioctl	= pn544_ioctl,
  };
  
--static unsigned int kstat_irqs_all[NR_IRQS][NR_CPUS];
- int __init early_irq_init(void)
- {
- 	int count, i, node = first_online_node;
-@@ -250,7 +251,8 @@ int __init early_irq_init(void)
- 	for (i = 0; i < count; i++) {
- 		desc[i].irq_data.irq = i;
- 		desc[i].irq_data.chip = &no_irq_chip;
--		desc[i].kstat_irqs = kstat_irqs_all[i];
-+		/* TODO : do this allocation on-demand ... */
-+		desc[i].kstat_irqs = alloc_percpu(unsigned int);
- 		alloc_masks(desc + i, GFP_KERNEL, node);
- 		desc_smp_init(desc + i, node);
- 		lockdep_set_class(&desc[i].lock, &irq_desc_lock_class);
-@@ -275,6 +277,22 @@ static void free_desc(unsigned int irq)
+ #ifdef CONFIG_PM
+@@ -881,7 +880,6 @@ static int __init pn544_init(void)
  
- static inline int alloc_descs(unsigned int start, unsigned int cnt, int node)
+ static void __exit pn544_exit(void)
  {
-+#if defined(CONFIG_KSTAT_IRQS_ONDEMAND)
-+	struct irq_desc *desc;
-+	unsigned int i;
-+	
-+	for (i = 0; i < cnt; i++) {
-+		desc = irq_to_desc(start + i);
-+		if (desc && !desc->kstat_irqs) {
-+			unsigned int __percpu *stats = alloc_percpu(unsigned int);
-+
-+			if (!stats)
-+				return -1;
-+			if (cmpxchg(&desc->kstat_irqs, NULL, stats) != NULL)
-+				free_percpu(stats);
-+		}
-+	}
-+#endif
- 	return start;
+-	flush_scheduled_work();
+ 	i2c_del_driver(&pn544_driver);
+ 	pr_info(DRIVER_DESC ", Exiting.\n");
  }
- #endif /* !CONFIG_SPARSE_IRQ */
-@@ -391,7 +409,9 @@ void dynamic_irq_cleanup(unsigned int ir
- unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
- {
- 	struct irq_desc *desc = irq_to_desc(irq);
--	return desc ? desc->kstat_irqs[cpu] : 0;
-+
-+	return desc && desc->kstat_irqs ?
-+			*per_cpu_ptr(desc->kstat_irqs, cpu) : 0;
- }
- 
- #ifdef CONFIG_GENERIC_HARDIRQS
-@@ -401,10 +421,10 @@ unsigned int kstat_irqs(unsigned int irq
- 	int cpu;
- 	int sum = 0;
- 
--	if (!desc)
-+	if (!desc || !desc->kstat_irqs)
- 		return 0;
- 	for_each_possible_cpu(cpu)
--		sum += desc->kstat_irqs[cpu];
-+		sum += *per_cpu_ptr(desc->kstat_irqs, cpu);
- 	return sum;
- }
- #endif /* CONFIG_GENERIC_HARDIRQS */
+diff -puN include/linux/nfc/pn544.h~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update include/linux/nfc/pn544.h
+--- a/include/linux/nfc/pn544.h~nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update
++++ a/include/linux/nfc/pn544.h
+@@ -46,8 +46,6 @@
+ #define PN544_PVDDVEN_TIME	0
+ #define PN544_VBATVEN_TIME	0
+ #define PN544_GPIO4VEN_TIME	0
+-#define PN544_BOOT_TIME		10 /* 3 */
+-#define PN544_I2C_IO_TIME	3 /* 100 */
+ #define PN544_WAKEUP_ACK	5
+ #define PN544_WAKEUP_GUARD	(PN544_WAKEUP_ACK + 1)
+ #define PN544_INACTIVITY_TIME	1000
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from matti.j.aaltonen@nokia.com are
 
-origin.patch
-atomic-add-atomic_inc_not_zero_hint.patch
-atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
-irq-use-per_cpu-kstat_irqs.patch
-net-avoid-limits-overflow.patch
-percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations.patch
+nfc-driver-for-nxp-semiconductors-pn544-nfc-chip.patch
+nfc-driver-for-nxp-semiconductors-pn544-nfc-chip-update.patch
 
