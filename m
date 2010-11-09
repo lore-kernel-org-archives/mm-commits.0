@@ -1,63 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch removed from -mm tree
-Date: Tue, 09 Nov 2010 10:52:55 -0800
-Message-ID: <201011091855.oA9ItAIp000911@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 09 Nov 2010 10:53:14 -0800
+Message-ID: <201011091855.oA9ItTQH000941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753075Ab0KISzz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 13:55:55 -0500
+	by vger.kernel.org with ESMTP id S1753075Ab0KISz6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 13:55:58 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oA9ItTPY009880
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 9 Nov 2010 10:55:29 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gcc-3.3.5 (at least) is failing to optimise away the divide when `y' is a
-constant 64-bit power-of-two value - it emits a call to __divdi3().
-
-It turns out that defining `y' as const prevents this.
-
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/mach-msm/include/mach/debug-macro.S |    4 ----
+ drivers/usb/host/Kconfig                     |    5 -----
+ 2 files changed, 9 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile
-+++ a/include/linux/kernel.h
-@@ -58,9 +58,11 @@ extern const char linux_proc_banner[];
+diff -puN arch/arm/mach-msm/include/mach/debug-macro.S~linux-next-git-rejects arch/arm/mach-msm/include/mach/debug-macro.S
+--- a/arch/arm/mach-msm/include/mach/debug-macro.S~linux-next-git-rejects
++++ a/arch/arm/mach-msm/include/mach/debug-macro.S
+@@ -37,13 +37,9 @@
+ 	beq	1001b
+ 	.endm
+ #else
+-<<<<<<< HEAD
+ 	.macro  addruart, rp, rv
+ 	mov	\rv, #0xff000000
+ 	orr	\rv, \rv, #0x00f00000
+-=======
+-	.macro	addruart, rp, rv
+->>>>>>> FETCH_HEAD
+ 	.endm
  
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
-+
-+/* The `const' in roundup() prevents gcc-3.3 from calling __divdi3 */
- #define roundup(x, y) (					\
- {							\
--	typeof(y) __y = y;				\
-+	const typeof(y) __y = y;			\
- 	(((x) + (__y - 1)) / __y) * __y;		\
- }							\
- )
+ 	.macro	senduart,rd,rx
+diff -puN drivers/usb/host/Kconfig~linux-next-git-rejects drivers/usb/host/Kconfig
+--- a/drivers/usb/host/Kconfig~linux-next-git-rejects
++++ a/drivers/usb/host/Kconfig
+@@ -93,14 +93,9 @@ config USB_EHCI_TT_NEWSCHED
+ 
+ config USB_EHCI_BIG_ENDIAN_MMIO
+ 	bool
+-<<<<<<< HEAD
+ 	depends on USB_EHCI_HCD && (PPC_CELLEB || PPC_PS3 || 440EPX || \
+ 				    ARCH_IXP4XX || XPS_USB_HCD_XILINX || \
+ 				    PPC_MPC512x || CPU_CAVIUM_OCTEON)
+-=======
+-	depends on USB_EHCI_HCD && (PPC_CELLEB || PPC_PS3 || 440EPX || ARCH_IXP4XX || \
+-				    XPS_USB_HCD_XILINX || PPC_MPC512x || CPU_CAVIUM_OCTEON)
+->>>>>>> FETCH_HEAD
+ 	default y
+ 
+ config USB_EHCI_BIG_ENDIAN_DESC
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +80,6 @@ origin.patch
 hpet-factor-timer-allocate-from-open.patch
 atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 arch-x86-kernel-entry_32s-i386-too.patch
