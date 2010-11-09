@@ -1,92 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch added to -mm tree
-Date: Mon, 08 Nov 2010 17:24:01 -0800
-Message-ID: <201011090126.oA91QAh2020902@imap1.linux-foundation.org>
+Subject: [alternative-merged] include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch removed from -mm tree
+Date: Tue, 09 Nov 2010 10:52:55 -0800
+Message-ID: <201011091855.oA9ItAIp000911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180Ab0KIB0s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 20:26:48 -0500
+	by vger.kernel.org with ESMTP id S1753075Ab0KISzz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 13:55:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+To: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: correct memcg_hierarchical_free_pages() return type
-has been added to the -mm tree.  Its filename is
-     memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch
+     include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+has been removed from the -mm tree.  Its filename was
+     include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: correct memcg_hierarchical_free_pages() return type
-From: Greg Thelen <gthelen@google.com>
+Subject: include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+From: Andrew Morton <akpm@linux-foundation.org>
 
-memcg_hierarchical_free_pages() returns a page count and thus should
-return unsigned long to be consistent with the rest of mm code.
+gcc-3.3.5 (at least) is failing to optimise away the divide when `y' is a
+constant 64-bit power-of-two value - it emits a call to __divdi3().
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Andrea Righi <arighi@develer.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+It turns out that defining `y' as const prevents this.
+
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type
-+++ a/mm/memcontrol.c
-@@ -1316,7 +1316,7 @@ static s64 mem_cgroup_local_page_stat(st
-  * use_hierarchy is set, then this involves parent mem cgroups to find the
-  * cgroup with the smallest free space.
-  */
--static unsigned long long
-+static unsigned long
- memcg_hierarchical_free_pages(struct mem_cgroup *mem)
- {
- 	unsigned long free, min_free;
+diff -puN include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile include/linux/kernel.h
+--- a/include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile
++++ a/include/linux/kernel.h
+@@ -58,9 +58,11 @@ extern const char linux_proc_banner[];
+ 
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
++
++/* The `const' in roundup() prevents gcc-3.3 from calling __divdi3 */
+ #define roundup(x, y) (					\
+ {							\
+-	typeof(y) __y = y;				\
++	const typeof(y) __y = y;			\
+ 	(((x) + (__y - 1)) / __y) * __y;		\
+ }							\
+ )
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
+origin.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+sync_inode_metadata-fix-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-writeback-create-dirty_info-structure.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-dirty-limits-to-mem_cgroup-use-native-word-to-represent-dirtyable-pages.patch
-memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch
-memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages.patch
-memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch
-memcg-cpu-hotplug-lockdep-warning-fix.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-break-out-event-counters-from-other-stats.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-use-native-word-page-statistics-counters.patch
-memcg-use-native-word-page-statistics-counters-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
