@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 08 Nov 2010 16:33:11 -0800
-Message-ID: <201011090033.oA90XBCb018865@imap1.linux-foundation.org>
+Subject: + irq-use-per_cpu-kstat_irqs.patch added to -mm tree
+Date: Mon, 08 Nov 2010 16:32:43 -0800
+Message-ID: <201011090032.oA90WhrI018783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388Ab0KIAdU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:33:20 -0500
+	by vger.kernel.org with ESMTP id S1752388Ab0KIAeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com, tglx@linutronix.de
+Cc: eric.dumazet@gmail.com, andi@firstfloor.org, cl@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     irq-use-per_cpu-kstat_irqs-checkpatch-fixes
+     irq: use per_cpu kstat_irqs
 has been added to the -mm tree.  Its filename is
-     irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+     irq-use-per_cpu-kstat_irqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,223 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irq-use-per_cpu-kstat_irqs-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: irq: use per_cpu kstat_irqs
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-ERROR: trailing whitespace
-#169: FILE: kernel/irq/irqdesc.c:283:
-+^I$
+Use modern per_cpu API to increment {soft|hard}irq counters, and use
+per_cpu allocation for (struct irq_desc)->kstats_irq instead of an array.
 
-WARNING: line over 80 characters
-#173: FILE: kernel/irq/irqdesc.c:287:
-+			unsigned int __percpu *stats = alloc_percpu(unsigned int);
+This gives better SMP/NUMA locality and saves few instructions per irq.
 
-total: 1 errors, 1 warnings, 152 lines checked
+With small nr_cpuids values (8 for example), kstats_irq was a small array
+(less than L1_CACHE_BYTES), potentially source of false sharing.
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
+In the !CONFIG_SPARSE_IRQ case, remove the huge, NUMA/cache unfriendly
+kstat_irqs_all[NR_IRQS][NR_CPUS] array.
 
-./patches/irq-use-per_cpu-kstat_irqs.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Note : we still populate kstats_irq for all possible irqs in
+early_irq_init().  We probably could use on-demand allocations.  (Code
+included in alloc_descs()).  Problem is not all IRQS are used with a prior
+alloc_descs() call.
 
-Please run checkpatch prior to sending patches
+kstat_irqs_this_cpu() is not used anymore, remove it.
 
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/irqdesc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/irqdesc.h     |    2 -
+ include/linux/kernel_stat.h |   19 +++++++---------
+ kernel/irq/irqdesc.c        |   40 +++++++++++++++++++++++++---------
+ 3 files changed, 40 insertions(+), 21 deletions(-)
 
-diff -puN kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs-checkpatch-fixes kernel/irq/irqdesc.c
---- a/kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs-checkpatch-fixes
-+++ a/kernel/irq/irqdesc.c
-@@ -280,7 +280,7 @@ static inline int alloc_descs(unsigned i
- #if defined(CONFIG_KSTAT_IRQS_ONDEMAND)
- 	struct irq_desc *desc;
- 	unsigned int i;
--	
+diff -puN include/linux/irqdesc.h~irq-use-per_cpu-kstat_irqs include/linux/irqdesc.h
+--- a/include/linux/irqdesc.h~irq-use-per_cpu-kstat_irqs
++++ a/include/linux/irqdesc.h
+@@ -57,7 +57,7 @@ struct irq_desc {
+ #endif
+ 
+ 	struct timer_rand_state *timer_rand_state;
+-	unsigned int		*kstat_irqs;
++	unsigned int __percpu	*kstat_irqs;
+ 	irq_flow_handler_t	handle_irq;
+ 	struct irqaction	*action;	/* IRQ action list */
+ 	unsigned int		status;		/* IRQ status */
+diff -puN include/linux/kernel_stat.h~irq-use-per_cpu-kstat_irqs include/linux/kernel_stat.h
+--- a/include/linux/kernel_stat.h~irq-use-per_cpu-kstat_irqs
++++ a/include/linux/kernel_stat.h
+@@ -46,16 +46,14 @@ DECLARE_PER_CPU(struct kernel_stat, ksta
+ extern unsigned long long nr_context_switches(void);
+ 
+ #ifndef CONFIG_GENERIC_HARDIRQS
+-#define kstat_irqs_this_cpu(irq) \
+-	(kstat_this_cpu.irqs[irq])
+ 
+ struct irq_desc;
+ 
+ static inline void kstat_incr_irqs_this_cpu(unsigned int irq,
+ 					    struct irq_desc *desc)
+ {
+-	kstat_this_cpu.irqs[irq]++;
+-	kstat_this_cpu.irqs_sum++;
++	__this_cpu_inc(kstat.irqs[irq]);
++	__this_cpu_inc(kstat.irqs_sum);
+ }
+ 
+ static inline unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
+@@ -65,17 +63,18 @@ static inline unsigned int kstat_irqs_cp
+ #else
+ #include <linux/irq.h>
+ extern unsigned int kstat_irqs_cpu(unsigned int irq, int cpu);
+-#define kstat_irqs_this_cpu(DESC) \
+-	((DESC)->kstat_irqs[smp_processor_id()])
+-#define kstat_incr_irqs_this_cpu(irqno, DESC) do {\
+-	((DESC)->kstat_irqs[smp_processor_id()]++);\
+-	kstat_this_cpu.irqs_sum++; } while (0)
 +
- 	for (i = 0; i < cnt; i++) {
- 		desc = irq_to_desc(start + i);
- 		if (desc && !desc->kstat_irqs) {
++#define kstat_incr_irqs_this_cpu(irqno, DESC)		\
++do {							\
++	__this_cpu_inc(*(DESC)->kstat_irqs);		\
++	__this_cpu_inc(kstat.irqs_sum);			\
++} while (0)
+ 
+ #endif
+ 
+ static inline void kstat_incr_softirqs_this_cpu(unsigned int irq)
+ {
+-	kstat_this_cpu.softirqs[irq]++;
++	__this_cpu_inc(kstat.softirqs[irq]);
+ }
+ 
+ static inline unsigned int kstat_softirqs_cpu(unsigned int irq, int cpu)
+diff -puN kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs kernel/irq/irqdesc.c
+--- a/kernel/irq/irqdesc.c~irq-use-per_cpu-kstat_irqs
++++ a/kernel/irq/irqdesc.c
+@@ -72,6 +72,8 @@ static inline int desc_node(struct irq_d
+ 
+ static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node)
+ {
++	int cpu;
++
+ 	desc->irq_data.irq = irq;
+ 	desc->irq_data.chip = &no_irq_chip;
+ 	desc->irq_data.chip_data = NULL;
+@@ -83,7 +85,8 @@ static void desc_set_defaults(unsigned i
+ 	desc->irq_count = 0;
+ 	desc->irqs_unhandled = 0;
+ 	desc->name = NULL;
+-	memset(desc->kstat_irqs, 0, nr_cpu_ids * sizeof(*(desc->kstat_irqs)));
++	for_each_possible_cpu(cpu)
++		*per_cpu_ptr(desc->kstat_irqs, cpu) = 0;
+ 	desc_smp_init(desc, node);
+ }
+ 
+@@ -133,8 +136,7 @@ static struct irq_desc *alloc_desc(int i
+ 	if (!desc)
+ 		return NULL;
+ 	/* allocate based on nr_cpu_ids */
+-	desc->kstat_irqs = kzalloc_node(nr_cpu_ids * sizeof(*desc->kstat_irqs),
+-					 gfp, node);
++	desc->kstat_irqs = alloc_percpu(unsigned int);
+ 	if (!desc->kstat_irqs)
+ 		goto err_desc;
+ 
+@@ -149,7 +151,7 @@ static struct irq_desc *alloc_desc(int i
+ 	return desc;
+ 
+ err_kstat:
+-	kfree(desc->kstat_irqs);
++	free_percpu(desc->kstat_irqs);
+ err_desc:
+ 	kfree(desc);
+ 	return NULL;
+@@ -166,7 +168,7 @@ static void free_desc(unsigned int irq)
+ 	mutex_unlock(&sparse_irq_lock);
+ 
+ 	free_masks(desc);
+-	kfree(desc->kstat_irqs);
++	free_percpu(desc->kstat_irqs);
+ 	kfree(desc);
+ }
+ 
+@@ -234,7 +236,6 @@ struct irq_desc irq_desc[NR_IRQS] __cach
+ 	}
+ };
+ 
+-static unsigned int kstat_irqs_all[NR_IRQS][NR_CPUS];
+ int __init early_irq_init(void)
+ {
+ 	int count, i, node = first_online_node;
+@@ -250,7 +251,8 @@ int __init early_irq_init(void)
+ 	for (i = 0; i < count; i++) {
+ 		desc[i].irq_data.irq = i;
+ 		desc[i].irq_data.chip = &no_irq_chip;
+-		desc[i].kstat_irqs = kstat_irqs_all[i];
++		/* TODO : do this allocation on-demand ... */
++		desc[i].kstat_irqs = alloc_percpu(unsigned int);
+ 		alloc_masks(desc + i, GFP_KERNEL, node);
+ 		desc_smp_init(desc + i, node);
+ 		lockdep_set_class(&desc[i].lock, &irq_desc_lock_class);
+@@ -275,6 +277,22 @@ static void free_desc(unsigned int irq)
+ 
+ static inline int alloc_descs(unsigned int start, unsigned int cnt, int node)
+ {
++#if defined(CONFIG_KSTAT_IRQS_ONDEMAND)
++	struct irq_desc *desc;
++	unsigned int i;
++	
++	for (i = 0; i < cnt; i++) {
++		desc = irq_to_desc(start + i);
++		if (desc && !desc->kstat_irqs) {
++			unsigned int __percpu *stats = alloc_percpu(unsigned int);
++
++			if (!stats)
++				return -1;
++			if (cmpxchg(&desc->kstat_irqs, NULL, stats) != NULL)
++				free_percpu(stats);
++		}
++	}
++#endif
+ 	return start;
+ }
+ #endif /* !CONFIG_SPARSE_IRQ */
+@@ -391,7 +409,9 @@ void dynamic_irq_cleanup(unsigned int ir
+ unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
+ {
+ 	struct irq_desc *desc = irq_to_desc(irq);
+-	return desc ? desc->kstat_irqs[cpu] : 0;
++
++	return desc && desc->kstat_irqs ?
++			*per_cpu_ptr(desc->kstat_irqs, cpu) : 0;
+ }
+ 
+ #ifdef CONFIG_GENERIC_HARDIRQS
+@@ -401,10 +421,10 @@ unsigned int kstat_irqs(unsigned int irq
+ 	int cpu;
+ 	int sum = 0;
+ 
+-	if (!desc)
++	if (!desc || !desc->kstat_irqs)
+ 		return 0;
+ 	for_each_possible_cpu(cpu)
+-		sum += desc->kstat_irqs[cpu];
++		sum += *per_cpu_ptr(desc->kstat_irqs, cpu);
+ 	return sum;
+ }
+ #endif /* CONFIG_GENERIC_HARDIRQS */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
-hpet-factor-timer-allocate-from-open.patch
+origin.patch
+atomic-add-atomic_inc_not_zero_hint.patch
 atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
-include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-sync_inode_metadata-fix-comment.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+irq-use-per_cpu-kstat_irqs.patch
+net-avoid-limits-overflow.patch
+percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations.patch
 
