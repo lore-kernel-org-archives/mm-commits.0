@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vfs-revalidate-page-mapping-in-do_generic_file_read.patch added to -mm tree
-Date: Mon, 08 Nov 2010 16:05:41 -0800
-Message-ID: <201011090005.oA905fEx017751@imap1.linux-foundation.org>
+Subject: + include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch added to -mm tree
+Date: Mon, 08 Nov 2010 16:13:52 -0800
+Message-ID: <201011090013.oA90DqcO018071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014Ab0KIAHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:07:05 -0500
+	by vger.kernel.org with ESMTP id S1753014Ab0KIAOh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:14:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, arunabal@in.ibm.com, hannes@cmpxchg.org, hch@lst.de, minchan.kim@gmail.com, riel@redhat.com, sbest@us.ibm.com, stable@kernel.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, randy.dunlap@oracle.com
 
 
 The patch titled
-     mm/vfs: revalidate page->mapping in do_generic_file_read()
+     include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
 has been added to the -mm tree.  Its filename is
-     mm-vfs-revalidate-page-mapping-in-do_generic_file_read.patch
+     include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,132 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vfs: revalidate page->mapping in do_generic_file_read()
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+From: Andrew Morton <akpm@linux-foundation.org>
 
-70 hours into some stress tests of a 2.6.32-based enterprise kernel, we
-ran into a NULL dereference in here:
+gcc-3.3.5 (at least) is failing to optimise away the divide when `y' is a
+constant 64-bit power-of-two value - it emits a call to __divdi3().
 
-	int block_is_partially_uptodate(struct page *page, read_descriptor_t *desc,
-	                                        unsigned long from)
-	{
----->		struct inode *inode = page->mapping->host;
+It turns out that defining `y' as const prevents this.
 
-It looks like page->mapping was the culprit.  (xmon trace is below). 
-After closer examination, I realized that do_generic_file_read() does a
-find_get_page(), and eventually locks the page before calling
-block_is_partially_uptodate().  However, it doesn't revalidate the
-page->mapping after the page is locked.  So, there's a small window
-between the find_get_page() and ->is_partially_uptodate() where the page
-could get truncated and page->mapping cleared.
-
-We _have_ a reference, so it can't get reclaimed, but it certainly
-can be truncated.
-
-I think the correct thing is to check page->mapping after the
-trylock_page(), and jump out if it got truncated.  This patch has been
-running in the test environment for a month or so now, and we have not
-seen this bug pop up again.
-
-xmon info:
-======================================
-1f:mon> e
-cpu 0x1f: Vector: 300 (Data Access) at [c0000002ae36f770]
-    pc: c0000000001e7a6c: .block_is_partially_uptodate+0xc/0x100
-    lr: c000000000142944: .generic_file_aio_read+0x1e4/0x770
-    sp: c0000002ae36f9f0
-   msr: 8000000000009032
-   dar: 0
- dsisr: 40000000
-  current = 0xc000000378f99e30
-  paca    = 0xc000000000f66300
-    pid   = 21946, comm = bash
-1f:mon> r
-R00 = 0025c0500000006d   R16 = 0000000000000000
-R01 = c0000002ae36f9f0   R17 = c000000362cd3af0
-R02 = c000000000e8cd80   R18 = ffffffffffffffff
-R03 = c0000000031d0f88   R19 = 0000000000000001
-R04 = c0000002ae36fa68   R20 = c0000003bb97b8a0
-R05 = 0000000000000000   R21 = c0000002ae36fa68
-R06 = 0000000000000000   R22 = 0000000000000000
-R07 = 0000000000000001   R23 = c0000002ae36fbb0
-R08 = 0000000000000002   R24 = 0000000000000000
-R09 = 0000000000000000   R25 = c000000362cd3a80
-R10 = 0000000000000000   R26 = 0000000000000002
-R11 = c0000000001e7b60   R27 = 0000000000000000
-R12 = 0000000042000484   R28 = 0000000000000001
-R13 = c000000000f66300   R29 = c0000003bb97b9b8
-R14 = 0000000000000001   R30 = c000000000e28a08
-R15 = 000000000000ffff   R31 = c0000000031d0f88
-pc  = c0000000001e7a6c .block_is_partially_uptodate+0xc/0x100
-lr  = c000000000142944 .generic_file_aio_read+0x1e4/0x770
-msr = 8000000000009032   cr  = 22000488
-ctr = c0000000001e7a60   xer = 0000000020000000   trap =  300
-dar = 0000000000000000   dsisr = 40000000
-1f:mon> t 
-[link register   ] c000000000142944 .generic_file_aio_read+0x1e4/0x770
-[c0000002ae36f9f0] c000000000142a14 .generic_file_aio_read+0x2b4/0x770
-(unreliable)
-[c0000002ae36fb40] c0000000001b03e4 .do_sync_read+0xd4/0x160
-[c0000002ae36fce0] c0000000001b153c .vfs_read+0xec/0x1f0
-[c0000002ae36fd80] c0000000001b1768 .SyS_read+0x58/0xb0
-[c0000002ae36fe30] c00000000000852c syscall_exit+0x0/0x40
---- Exception: c00 (System Call) at 00000080a840bc54
-SP (fffca15df30) is in userspace
-1f:mon> di c0000000001e7a6c
-c0000000001e7a6c  e9290000      ld      r9,0(r9)
-c0000000001e7a70  418200c0      beq     c0000000001e7b30        #
-.block_is_partially_uptodate+0xd0/0x100
-c0000000001e7a74  e9440008      ld      r10,8(r4)
-c0000000001e7a78  78a80020      clrldi  r8,r5,32
-c0000000001e7a7c  3c000001      lis     r0,1
-c0000000001e7a80  812900a8      lwz     r9,168(r9)
-c0000000001e7a84  39600001      li      r11,1
-c0000000001e7a88  7c080050      subf    r0,r8,r0
-c0000000001e7a8c  7f805040      cmplw   cr7,r0,r10
-c0000000001e7a90  7d6b4830      slw     r11,r11,r9
-c0000000001e7a94  796b0020      clrldi  r11,r11,32
-c0000000001e7a98  419d00a8      bgt     cr7,c0000000001e7b40    #
-.block_is_partially_uptodate+0xe0/0x100
-c0000000001e7a9c  7fa55840      cmpld   cr7,r5,r11
-c0000000001e7aa0  7d004214      add     r8,r0,r8
-c0000000001e7aa4  79080020      clrldi  r8,r8,32
-c0000000001e7aa8  419c0078      blt     cr7,c0000000001e7b20    #
-.block_is_partially_uptodate+0xc0/0x100
-======================================
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: <arunabal@in.ibm.com>
-Cc: <sbest@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: <stable@kernel.org>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/kernel.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-vfs-revalidate-page-mapping-in-do_generic_file_read mm/filemap.c
---- a/mm/filemap.c~mm-vfs-revalidate-page-mapping-in-do_generic_file_read
-+++ a/mm/filemap.c
-@@ -1040,6 +1040,9 @@ find_page:
- 				goto page_not_up_to_date;
- 			if (!trylock_page(page))
- 				goto page_not_up_to_date;
-+			/* Did it get truncated before we got the lock? */
-+			if (!page->mapping)
-+				goto page_not_up_to_date_locked;
- 			if (!mapping->a_ops->is_partially_uptodate(page,
- 								desc, offset))
- 				goto page_not_up_to_date_locked;
+diff -puN include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile include/linux/kernel.h
+--- a/include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile
++++ a/include/linux/kernel.h
+@@ -58,9 +58,11 @@ extern const char linux_proc_banner[];
+ 
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
++
++/* The `const' in roundup() prevents gcc-3.3 from calling __divdi3 */
+ #define roundup(x, y) (					\
+ {							\
+-	typeof(y) __y = y;				\
++	const typeof(y) __y = y;			\
+ 	(((x) + (__y - 1)) / __y) * __y;		\
+ }							\
+ )
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vfs-revalidate-page-mapping-in-do_generic_file_read.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+sync_inode_metadata-fix-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
