@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat.patch added to -mm tree
-Date: Tue, 09 Nov 2010 11:21:49 -0800
-Message-ID: <201011091921.oA9JLnJ6002244@imap1.linux-foundation.org>
+Subject: + memcg-make-throttle_vm_writeout-memcg-aware.patch added to -mm tree
+Date: Tue, 09 Nov 2010 11:21:53 -0800
+Message-ID: <201011091921.oA9JLseI002250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661Ab0KITWc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 14:22:32 -0500
+	by vger.kernel.org with ESMTP id S1753661Ab0KITWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 14:22:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang
 
 
 The patch titled
-     memcg: add mem_cgroup parameter to mem_cgroup_page_stat()
+     memcg: make throttle_vm_writeout() memcg aware
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat.patch
+     memcg-make-throttle_vm_writeout-memcg-aware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup parameter to mem_cgroup_page_stat()
+Subject: memcg: make throttle_vm_writeout() memcg aware
 From: Greg Thelen <gthelen@google.com>
 
-This new parameter can be used to query dirty memory usage from a given
-memcg rather than the current task's memcg.
+If called with a mem_cgroup, then throttle_vm_writeout() should query the
+given cgroup for its dirty memory usage limits.
+
+dirty_writeback_pages() is no longer used, so delete it.
 
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -52,132 +54,94 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++--
- mm/memcontrol.c            |   37 +++++++++++++++++++----------------
- mm/page-writeback.c        |    2 -
- 3 files changed, 26 insertions(+), 19 deletions(-)
+ include/linux/writeback.h |    2 +-
+ mm/page-writeback.c       |   31 ++++++++++++++++---------------
+ mm/vmscan.c               |    2 +-
+ 3 files changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
-+++ a/include/linux/memcontrol.h
-@@ -157,7 +157,8 @@ static inline void mem_cgroup_dec_page_s
- bool mem_cgroup_has_dirty_limit(void);
- bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
- 			   struct dirty_info *info);
--long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item);
-+long mem_cgroup_page_stat(struct mem_cgroup *mem,
-+			  enum mem_cgroup_nr_pages_item item);
+diff -puN include/linux/writeback.h~memcg-make-throttle_vm_writeout-memcg-aware include/linux/writeback.h
+--- a/include/linux/writeback.h~memcg-make-throttle_vm_writeout-memcg-aware
++++ a/include/linux/writeback.h
+@@ -99,7 +99,7 @@ void laptop_mode_timer_fn(unsigned long 
+ #else
+ static inline void laptop_sync_completion(void) { }
+ #endif
+-void throttle_vm_writeout(gfp_t gfp_mask);
++void throttle_vm_writeout(gfp_t gfp_mask, struct mem_cgroup *mem_cgroup);
  
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
- 						gfp_t gfp_mask);
-@@ -351,7 +352,8 @@ static inline bool mem_cgroup_dirty_info
- 	return false;
+ /* These are exported to sysctl. */
+ extern int dirty_background_ratio;
+diff -puN mm/page-writeback.c~memcg-make-throttle_vm_writeout-memcg-aware mm/page-writeback.c
+--- a/mm/page-writeback.c~memcg-make-throttle_vm_writeout-memcg-aware
++++ a/mm/page-writeback.c
+@@ -131,18 +131,6 @@ EXPORT_SYMBOL(laptop_mode);
+ static struct prop_descriptor vm_completions;
+ static struct prop_descriptor vm_dirties;
+ 
+-static unsigned long dirty_writeback_pages(void)
+-{
+-	unsigned long ret;
+-
+-	ret = mem_cgroup_page_stat(NULL, MEMCG_NR_DIRTY_WRITEBACK_PAGES);
+-	if ((long)ret < 0)
+-		ret = global_page_state(NR_UNSTABLE_NFS) +
+-			global_page_state(NR_WRITEBACK);
+-
+-	return ret;
+-}
+-
+ /*
+  * couple the period to the dirty_ratio:
+  *
+@@ -703,12 +691,25 @@ void balance_dirty_pages_ratelimited_nr(
  }
+ EXPORT_SYMBOL(balance_dirty_pages_ratelimited_nr);
  
--static inline long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
-+static inline long mem_cgroup_page_stat(struct mem_cgroup *mem,
-+					enum mem_cgroup_nr_pages_item item)
+-void throttle_vm_writeout(gfp_t gfp_mask)
++/*
++ * Throttle the current task if it is near dirty memory usage limits.
++ * If @mem_cgroup is NULL or the root_cgroup, then use global dirty memory
++ * information; otherwise use the per-memcg dirty limits.
++ */
++void throttle_vm_writeout(gfp_t gfp_mask, struct mem_cgroup *mem_cgroup)
  {
- 	return -ENOSYS;
+ 	struct dirty_info dirty_info;
++	unsigned long nr_writeback;
+ 
+         for ( ; ; ) {
+-		global_dirty_info(&dirty_info);
++		if (!mem_cgroup || !memcg_dirty_info(mem_cgroup, &dirty_info)) {
++			global_dirty_info(&dirty_info);
++			nr_writeback = global_page_state(NR_UNSTABLE_NFS) +
++				global_page_state(NR_WRITEBACK);
++		} else {
++			nr_writeback = mem_cgroup_page_stat(
++				mem_cgroup, MEMCG_NR_DIRTY_WRITEBACK_PAGES);
++		}
+ 
+                 /*
+                  * Boost the allowable dirty threshold a bit for page
+@@ -717,7 +718,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 		dirty_info.dirty_thresh +=
+ 			dirty_info.dirty_thresh / 10;      /* wheeee... */
+ 
+-		if (dirty_writeback_pages() <= dirty_info.dirty_thresh)
++		if (nr_writeback <= dirty_info.dirty_thresh)
+ 			break;
+                 congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+diff -puN mm/vmscan.c~memcg-make-throttle_vm_writeout-memcg-aware mm/vmscan.c
+--- a/mm/vmscan.c~memcg-make-throttle_vm_writeout-memcg-aware
++++ a/mm/vmscan.c
+@@ -1844,7 +1844,7 @@ static void shrink_zone(int priority, st
+ 	if (inactive_anon_is_low(zone, sc))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
+ 
+-	throttle_vm_writeout(sc->gfp_mask);
++	throttle_vm_writeout(sc->gfp_mask, sc->mem_cgroup);
  }
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
-+++ a/mm/memcontrol.c
-@@ -1245,22 +1245,20 @@ bool mem_cgroup_dirty_info(unsigned long
- 	unsigned long available_mem;
- 	struct mem_cgroup *memcg;
- 	long value;
-+	bool valid = false;
- 
- 	if (mem_cgroup_disabled())
- 		return false;
- 
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(current);
--	if (!__mem_cgroup_has_dirty_limit(memcg)) {
--		rcu_read_unlock();
--		return false;
--	}
-+	if (!__mem_cgroup_has_dirty_limit(memcg))
-+		goto done;
- 	__mem_cgroup_dirty_param(&dirty_param, memcg);
--	rcu_read_unlock();
- 
--	value = mem_cgroup_page_stat(MEMCG_NR_DIRTYABLE_PAGES);
-+	value = mem_cgroup_page_stat(memcg, MEMCG_NR_DIRTYABLE_PAGES);
- 	if (value < 0)
--		return false;
-+		goto done;
- 
- 	available_mem = min((unsigned long)value, sys_available_mem);
- 
-@@ -1280,17 +1278,21 @@ bool mem_cgroup_dirty_info(unsigned long
- 			(dirty_param.dirty_background_ratio *
- 			       available_mem) / 100;
- 
--	value = mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
-+	value = mem_cgroup_page_stat(memcg, MEMCG_NR_RECLAIM_PAGES);
- 	if (value < 0)
--		return false;
-+		goto done;
- 	info->nr_reclaimable = value;
- 
--	value = mem_cgroup_page_stat(MEMCG_NR_WRITEBACK);
-+	value = mem_cgroup_page_stat(memcg, MEMCG_NR_WRITEBACK);
- 	if (value < 0)
--		return false;
-+		goto done;
- 	info->nr_writeback = value;
- 
--	return true;
-+	valid = true;
-+
-+done:
-+	rcu_read_unlock();
-+	return valid;
- }
- 
- static inline bool mem_cgroup_can_swap(struct mem_cgroup *memcg)
-@@ -1361,20 +1363,23 @@ memcg_hierarchical_free_pages(struct mem
  
  /*
-  * mem_cgroup_page_stat() - get memory cgroup file cache statistics
-- * @item:      memory statistic item exported to the kernel
-+ * @mem:	optional memory cgroup to query.  If NULL, use current task's
-+ *		cgroup.
-+ * @item:	memory statistic item exported to the kernel
-  *
-  * Return the accounted statistic value or negative value if current task is
-  * root cgroup.
-  */
--long mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
-+long mem_cgroup_page_stat(struct mem_cgroup *mem,
-+			  enum mem_cgroup_nr_pages_item item)
- {
- 	struct mem_cgroup *iter;
--	struct mem_cgroup *mem;
- 	long value;
- 
- 	get_online_cpus();
- 	rcu_read_lock();
--	mem = mem_cgroup_from_task(current);
-+	if (!mem)
-+		mem = mem_cgroup_from_task(current);
- 	if (__mem_cgroup_has_dirty_limit(mem)) {
- 		/*
- 		 * If we're looking for dirtyable pages we need to evaluate
-diff -puN mm/page-writeback.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat mm/page-writeback.c
---- a/mm/page-writeback.c~memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat
-+++ a/mm/page-writeback.c
-@@ -135,7 +135,7 @@ static unsigned long dirty_writeback_pag
- {
- 	unsigned long ret;
- 
--	ret = mem_cgroup_page_stat(MEMCG_NR_DIRTY_WRITEBACK_PAGES);
-+	ret = mem_cgroup_page_stat(NULL, MEMCG_NR_DIRTY_WRITEBACK_PAGES);
- 	if ((long)ret < 0)
- 		ret = global_page_state(NR_UNSTABLE_NFS) +
- 			global_page_state(NR_WRITEBACK);
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
