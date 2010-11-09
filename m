@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages.patch added to -mm tree
-Date: Mon, 08 Nov 2010 17:23:59 -0800
-Message-ID: <201011090126.oA91Q8Mb020899@imap1.linux-foundation.org>
+Subject: + memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch added to -mm tree
+Date: Mon, 08 Nov 2010 17:24:01 -0800
+Message-ID: <201011090126.oA91QAh2020902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180Ab0KIB0h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 20:26:37 -0500
+	by vger.kernel.org with ESMTP id S1754180Ab0KIB0s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 20:26:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang
 
 
 The patch titled
-     memcg: avoid overflow in memcg_hierarchical_free_pages()
+     memcg: correct memcg_hierarchical_free_pages() return type
 has been added to the -mm tree.  Its filename is
-     memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages.patch
+     memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid overflow in memcg_hierarchical_free_pages()
+Subject: memcg: correct memcg_hierarchical_free_pages() return type
 From: Greg Thelen <gthelen@google.com>
 
-Use page counts rather than byte counts to avoid overflowing
-unsigned long local variables.
+memcg_hierarchical_free_pages() returns a page count and thus should
+return unsigned long to be consistent with the rest of mm code.
 
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -51,35 +51,21 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages
+diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type
 +++ a/mm/memcontrol.c
-@@ -1321,17 +1321,17 @@ memcg_hierarchical_free_pages(struct mem
+@@ -1316,7 +1316,7 @@ static s64 mem_cgroup_local_page_stat(st
+  * use_hierarchy is set, then this involves parent mem cgroups to find the
+  * cgroup with the smallest free space.
+  */
+-static unsigned long long
++static unsigned long
+ memcg_hierarchical_free_pages(struct mem_cgroup *mem)
  {
  	unsigned long free, min_free;
- 
--	min_free = global_page_state(NR_FREE_PAGES) << PAGE_SHIFT;
-+	min_free = global_page_state(NR_FREE_PAGES);
- 
- 	while (mem) {
--		free = res_counter_read_u64(&mem->res, RES_LIMIT) -
--			res_counter_read_u64(&mem->res, RES_USAGE);
-+		free = (res_counter_read_u64(&mem->res, RES_LIMIT) -
-+			res_counter_read_u64(&mem->res, RES_USAGE)) >>
-+			PAGE_SHIFT;
- 		min_free = min(min_free, free);
- 		mem = parent_mem_cgroup(mem);
- 	}
- 
--	/* Translate free memory in pages */
--	return min_free >> PAGE_SHIFT;
-+	return min_free;
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
