@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch added to -mm tree
-Date: Mon, 08 Nov 2010 16:13:52 -0800
-Message-ID: <201011090013.oA90DqcO018071@imap1.linux-foundation.org>
+Subject: + memcg-add-dirty-limits-to-mem_cgroup-div-fix.patch added to -mm tree
+Date: Mon, 08 Nov 2010 16:17:29 -0800
+Message-ID: <201011090017.oA90HTY1018200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014Ab0KIAOh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:14:37 -0500
+	by vger.kernel.org with ESMTP id S1754321Ab0KIAST (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:18:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, randy.dunlap@oracle.com
+Cc: minchan.kim@gmail.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
+     memcg-add-dirty-limits-to-mem_cgroup-div-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
+     memcg-add-dirty-limits-to-mem_cgroup-div-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kernel.h:roundup(): work around a gcc-3.3 miscompile
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-add-dirty-limits-to-mem_cgroup-div-fix
+From: Minchan Kim <minchan.kim@gmail.com>
 
-gcc-3.3.5 (at least) is failing to optimise away the divide when `y' is a
-constant 64-bit power-of-two value - it emits a call to __divdi3().
+mm/built-in.o: In function `mem_cgroup_dirty_info':
+mm/memcontrol.c:1251: undefined reference to `__divdi3'
+mm/memcontrol.c:1259: undefined reference to `__divdi3'
 
-It turns out that defining `y' as const prevents this.
+We should have used do_div.
+Below patch solve the problem?
 
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Reported-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Andrea Righi <arighi@develer.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile
-+++ a/include/linux/kernel.h
-@@ -58,9 +58,11 @@ extern const char linux_proc_banner[];
+diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-div-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-div-fix
++++ a/mm/memcontrol.c
+@@ -1243,18 +1243,19 @@ bool mem_cgroup_dirty_info(unsigned long
+ 	if (dirty_param.dirty_bytes)
+ 		info->dirty_thresh =
+ 			DIV_ROUND_UP(dirty_param.dirty_bytes, PAGE_SIZE);
+-	else
+-		info->dirty_thresh =
+-			(dirty_param.dirty_ratio * available_mem) / 100;
++	else {
++		info->dirty_thresh = dirty_param.dirty_ratio * available_mem;
++		do_div(info->dirty_thresh, 100);
++       }
  
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
-+
-+/* The `const' in roundup() prevents gcc-3.3 from calling __divdi3 */
- #define roundup(x, y) (					\
- {							\
--	typeof(y) __y = y;				\
-+	const typeof(y) __y = y;			\
- 	(((x) + (__y - 1)) / __y) * __y;		\
- }							\
- )
+ 	if (dirty_param.dirty_background_bytes)
+ 		info->background_thresh =
+ 			DIV_ROUND_UP(dirty_param.dirty_background_bytes,
+ 				     PAGE_SIZE);
+-	else
+-		info->background_thresh =
+-			(dirty_param.dirty_background_ratio *
+-			       available_mem) / 100;
++	else {
++		info->background_thresh = dirty_param.dirty_background_ratio * available_mem;
++		do_div(info->background_thresh, 100);
++	}
+ 
+ 	value = mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
+ 	if (value < 0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-hpet-factor-timer-allocate-from-open.patch
-atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
-include-linux-kernelh-roundup-work-around-a-gcc-33-miscompile.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+mm-vfs-revalidate-page-mapping-in-do_generic_file_read.patch
 mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-sync_inode_metadata-fix-comment.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+writeback-create-dirty_info-structure.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-dirty-limits-to-mem_cgroup-use-native-word-to-represent-dirtyable-pages.patch
+memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch
+memcg-add-dirty-limits-to-mem_cgroup-div-fix.patch
+memcg-cpu-hotplug-lockdep-warning-fix.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-use-native-word-page-statistics-counters.patch
+memcg-use-native-word-page-statistics-counters-fix.patch
 
