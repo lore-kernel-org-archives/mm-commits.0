@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-mem_cgroup_page_stat.patch added to -mm tree
-Date: Tue, 09 Nov 2010 11:21:55 -0800
-Message-ID: <201011091921.oA9JLtuD002253@imap1.linux-foundation.org>
+Subject: + writeback-trace-wakeup-event-for-background-writeback.patch added to -mm tree
+Date: Tue, 09 Nov 2010 14:47:43 -0800
+Message-ID: <201011092247.oA9MlhWO011849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661Ab0KITWp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 14:22:45 -0500
+	by vger.kernel.org with ESMTP id S1755242Ab0KIWsa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 17:48:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hannes@cmpxchg.org, hch@infradead.org, jack@suse.cz, jengelh@medozas.de
 
 
 The patch titled
-     memcg: simplify mem_cgroup_page_stat()
+     writeback: trace wakeup event for background writeback
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-mem_cgroup_page_stat.patch
+     writeback-trace-wakeup-event-for-background-writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: simplify mem_cgroup_page_stat()
-From: Greg Thelen <gthelen@google.com>
+Subject: writeback: trace wakeup event for background writeback
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-The cgroup given to mem_cgroup_page_stat() is no allowed to be NULL or the
-root cgroup.  So there is no need to complicate the code handling those
-cases.
+This tracks when balance_dirty_pages() tries to wakeup the flusher thread
+for background writeback (if it was not started already).
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Andrea Righi <arighi@develer.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   48 +++++++++++++++++++++-------------------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
+ fs/fs-writeback.c                |    1 +
+ include/trace/events/writeback.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-simplify-mem_cgroup_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-mem_cgroup_page_stat
-+++ a/mm/memcontrol.c
-@@ -1364,12 +1364,10 @@ memcg_hierarchical_free_pages(struct mem
+diff -puN fs/fs-writeback.c~writeback-trace-wakeup-event-for-background-writeback fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-trace-wakeup-event-for-background-writeback
++++ a/fs/fs-writeback.c
+@@ -169,6 +169,7 @@ void bdi_start_background_writeback(stru
+ 	 * We just wake up the flusher thread. It will perform background
+ 	 * writeback as soon as there is no other work to do.
+ 	 */
++	trace_writeback_wake_background(bdi);
+ 	spin_lock_bh(&bdi->wb_lock);
+ 	bdi_wakeup_flusher(bdi);
+ 	spin_unlock_bh(&bdi->wb_lock);
+diff -puN include/trace/events/writeback.h~writeback-trace-wakeup-event-for-background-writeback include/trace/events/writeback.h
+--- a/include/trace/events/writeback.h~writeback-trace-wakeup-event-for-background-writeback
++++ a/include/trace/events/writeback.h
+@@ -81,6 +81,7 @@ DEFINE_EVENT(writeback_class, name, \
+ 	TP_ARGS(bdi))
  
- /*
-  * mem_cgroup_page_stat() - get memory cgroup file cache statistics
-- * @mem:	optional memory cgroup to query.  If NULL, use current task's
-- *		cgroup.
-+ * @mem:	memory cgroup to query
-  * @item:	memory statistic item exported to the kernel
-  *
-- * Return the accounted statistic value or negative value if current task is
-- * root cgroup.
-+ * Return the accounted statistic value.
-  */
- long mem_cgroup_page_stat(struct mem_cgroup *mem,
- 			  enum mem_cgroup_nr_pages_item item)
-@@ -1377,29 +1375,27 @@ long mem_cgroup_page_stat(struct mem_cgr
- 	struct mem_cgroup *iter;
- 	long value;
- 
-+	VM_BUG_ON(!mem);
-+	VM_BUG_ON(mem_cgroup_is_root(mem));
-+
- 	get_online_cpus();
--	rcu_read_lock();
--	if (!mem)
--		mem = mem_cgroup_from_task(current);
--	if (__mem_cgroup_has_dirty_limit(mem)) {
--		/*
--		 * If we're looking for dirtyable pages we need to evaluate
--		 * free pages depending on the limit and usage of the parents
--		 * first of all.
--		 */
--		if (item == MEMCG_NR_DIRTYABLE_PAGES)
--			value = memcg_hierarchical_free_pages(mem);
--		else
--			value = 0;
--		/*
--		 * Recursively evaluate page statistics against all cgroup
--		 * under hierarchy tree
--		 */
--		for_each_mem_cgroup_tree(iter, mem)
--			value += mem_cgroup_local_page_stat(iter, item);
--	} else
--		value = -EINVAL;
--	rcu_read_unlock();
-+
-+	/*
-+	 * If we're looking for dirtyable pages we need to evaluate
-+	 * free pages depending on the limit and usage of the parents
-+	 * first of all.
-+	 */
-+	if (item == MEMCG_NR_DIRTYABLE_PAGES)
-+		value = memcg_hierarchical_free_pages(mem);
-+	else
-+		value = 0;
-+	/*
-+	 * Recursively evaluate page statistics against all cgroup
-+	 * under hierarchy tree
-+	 */
-+	for_each_mem_cgroup_tree(iter, mem)
-+		value += mem_cgroup_local_page_stat(iter, item);
-+
- 	put_online_cpus();
- 
- 	return value;
+ DEFINE_WRITEBACK_EVENT(writeback_nowork);
++DEFINE_WRITEBACK_EVENT(writeback_wake_background);
+ DEFINE_WRITEBACK_EVENT(writeback_wake_thread);
+ DEFINE_WRITEBACK_EVENT(writeback_wake_forker_thread);
+ DEFINE_WRITEBACK_EVENT(writeback_bdi_register);
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
+origin.patch
+mm-smaps-export-mlock-information.patch
+writeback-integrated-background-writeback-work.patch
+writeback-trace-wakeup-event-for-background-writeback.patch
+writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
+writeback-avoid-livelocking-wb_sync_all-writeback.patch
+writeback-check-skipped-pages-on-wb_sync_all.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
@@ -154,4 +112,5 @@ memcg-make-throttle_vm_writeout-memcg-aware.patch
 memcg-simplify-mem_cgroup_page_stat.patch
 memcg-simplify-mem_cgroup_dirty_info.patch
 memcg-make-mem_cgroup_page_stat-return-value-unsigned.patch
+memcg-use-zalloc-rather-than-mallocmemset.patch
 
