@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-livelocking-wb_sync_all-writeback.patch added to -mm tree
-Date: Tue, 09 Nov 2010 14:47:47 -0800
-Message-ID: <201011092247.oA9MlmWC011858@imap1.linux-foundation.org>
+Subject: + memcg-make-throttle_vm_writeout-memcg-aware-fix.patch added to -mm tree
+Date: Tue, 09 Nov 2010 15:00:22 -0800
+Message-ID: <201011092332.oA9NWVL4013812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753279Ab0KIW5k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 17:57:40 -0500
+	by vger.kernel.org with ESMTP id S1752166Ab0KIXet (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2010 18:34:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hch@lst.de, jengelh@medozas.de
+Cc: akpm@linux-foundation.org, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     writeback: avoid livelocking WB_SYNC_ALL writeback
+     memcg-make-throttle_vm_writeout-memcg-aware-fix
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-livelocking-wb_sync_all-writeback.patch
+     memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,112 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: avoid livelocking WB_SYNC_ALL writeback
-From: Jan Kara <jack@suse.cz>
+Subject: memcg-make-throttle_vm_writeout-memcg-aware-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When wb_writeback() is called in WB_SYNC_ALL mode, work->nr_to_write is
-usually set to LONG_MAX.  The logic in wb_writeback() then calls
-__writeback_inodes_sb() with nr_to_write == MAX_WRITEBACK_PAGES and thus
-we easily end up with negative nr_to_write after the function returns. 
-wb_writeback() then decides we need another round of writeback but this is
-wrong in some cases!  For example when a single large file is continuously
-dirtied, we would never finish syncing it because each pass would be able
-to write MAX_WRITEBACK_PAGES and inode dirty timestamp never gets updated
-(as inode is never completely clean).
+In file included from include/linux/memcontrol.h:22,
+                 from include/linux/swap.h:8,
+                 from include/linux/suspend.h:4,
+                 from arch/x86/kernel/asm-offsets_64.c:13,
+                 from arch/x86/kernel/asm-offsets.c:4:
+include/linux/writeback.h:102: warning: 'struct mem_cgroup' declared inside parameter list
+include/linux/writeback.h:102: warning: its scope is only this definition or declaration, which is probably not what you want
+In file included from include/linux/memcontrol.h:22,
+                 from include/linux/swap.h:8,
+                 from mm/page-writeback.c:19:
+include/linux/writeback.h:102: warning: 'struct mem_cgroup' declared inside parameter list
+include/linux/writeback.h:102: warning: its scope is only this definition or declaration, which is probably not what you want
+mm/page-writeback.c:700: error: conflicting types for 'throttle_vm_writeout'
+include/linux/writeback.h:102: error: previous declaration of 'throttle_vm_writeout' was here
 
-Fix the issue by setting nr_to_write to LONG_MAX in WB_SYNC_ALL mode.  We
-do not need nr_to_write in WB_SYNC_ALL mode anyway since livelock
-avoidance is done differently for it.
-
-After this patch, program from http://lkml.org/lkml/2010/10/24/154 is no
-longer able to stall sync forever.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andrea Righi <arighi@develer.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de> 
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ include/linux/writeback.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback
-+++ a/fs/fs-writeback.c
-@@ -630,6 +630,7 @@ static long wb_writeback(struct bdi_writ
- 	};
- 	unsigned long oldest_jif;
- 	long wrote = 0;
-+	long write_chunk;
- 	struct inode *inode;
+diff -puN include/linux/writeback.h~memcg-make-throttle_vm_writeout-memcg-aware-fix include/linux/writeback.h
+--- a/include/linux/writeback.h~memcg-make-throttle_vm_writeout-memcg-aware-fix
++++ a/include/linux/writeback.h
+@@ -8,6 +8,7 @@
+ #include <linux/fs.h>
  
- 	if (wbc.for_kupdate) {
-@@ -642,6 +643,24 @@ static long wb_writeback(struct bdi_writ
- 		wbc.range_end = LLONG_MAX;
- 	}
+ struct backing_dev_info;
++struct mem_cgroup;
  
-+	/*
-+	 * WB_SYNC_ALL mode does livelock avoidance by syncing dirty
-+	 * inodes/pages in one big loop. Setting wbc.nr_to_write=LONG_MAX
-+	 * here avoids calling into writeback_inodes_wb() more than once.
-+	 *
-+	 * The intended call sequence for WB_SYNC_ALL writeback is:
-+	 *
-+	 *      wb_writeback()
-+	 *          writeback_inodes_wb()       <== called only once
-+	 *              write_cache_pages()     <== called once for each inode
-+	 *                   (quickly) tag currently dirty pages
-+	 *                   (maybe slowly) sync all tagged pages
-+	 */
-+	if (wbc.sync_mode == WB_SYNC_NONE)
-+		write_chunk = MAX_WRITEBACK_PAGES;
-+	else
-+		write_chunk = LONG_MAX;
-+
- 	wbc.wb_start = jiffies; /* livelock avoidance */
- 	for (;;) {
- 		/*
-@@ -667,7 +686,7 @@ static long wb_writeback(struct bdi_writ
- 			break;
+ extern spinlock_t inode_lock;
  
- 		wbc.more_io = 0;
--		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
-+		wbc.nr_to_write = write_chunk;
- 		wbc.pages_skipped = 0;
- 
- 		trace_wbc_writeback_start(&wbc, wb->bdi);
-@@ -677,8 +696,8 @@ static long wb_writeback(struct bdi_writ
- 			writeback_inodes_wb(wb, &wbc);
- 		trace_wbc_writeback_written(&wbc, wb->bdi);
- 
--		work->nr_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
--		wrote += MAX_WRITEBACK_PAGES - wbc.nr_to_write;
-+		work->nr_pages -= write_chunk - wbc.nr_to_write;
-+		wrote += write_chunk - wbc.nr_to_write;
- 
- 		/*
- 		 * If we consumed everything, see if we have more
-@@ -693,7 +712,7 @@ static long wb_writeback(struct bdi_writ
- 		/*
- 		 * Did we write something? Try for more
- 		 */
--		if (wbc.nr_to_write < MAX_WRITEBACK_PAGES)
-+		if (wbc.nr_to_write < write_chunk)
- 			continue;
- 		/*
- 		 * Nothing written. Wait for some inode to
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-writeback-integrated-background-writeback-work.patch
-writeback-trace-wakeup-event-for-background-writeback.patch
-writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
-writeback-avoid-livelocking-wb_sync_all-writeback.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+sync_inode_metadata-fix-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
