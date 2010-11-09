@@ -1,106 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] memcg-add-dirty-limits-to-mem_cgroup-div-fix.patch removed from -mm tree
-Date: Mon, 08 Nov 2010 16:43:55 -0800
-Message-ID: <201011090043.oA90ht2p019251@imap1.linux-foundation.org>
+Subject: + latencytop-fix-per-task-accumulator.patch added to -mm tree
+Date: Mon, 08 Nov 2010 17:20:44 -0800
+Message-ID: <201011090122.oA91MraC020749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751905Ab0KIAo4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 19:44:56 -0500
+	by vger.kernel.org with ESMTP id S1754556Ab0KIBXH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Nov 2010 20:23:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fuj
+To: mm-commits@vger.kernel.org
+Cc: kenchen@google.com, arjan@infradead.org, stable@kernel.org
 
 
 The patch titled
-     memcg-add-dirty-limits-to-mem_cgroup-div-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-add-dirty-limits-to-mem_cgroup-div-fix.patch
+     latencytop: fix per task accumulator
+has been added to the -mm tree.  Its filename is
+     latencytop-fix-per-task-accumulator.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-dirty-limits-to-mem_cgroup-div-fix
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: latencytop: fix per task accumulator
+From: Ken Chen <kenchen@google.com>
 
-mm/built-in.o: In function `mem_cgroup_dirty_info':
-mm/memcontrol.c:1251: undefined reference to `__divdi3'
-mm/memcontrol.c:1259: undefined reference to `__divdi3'
+Per task latencytop accumulator prematurely terminates due to erroneous
+placement of latency_record_count.  It should be incremented whenever a
+new record is allocated instead of increment on every latencytop event.
 
-We should have used do_div.
-Below patch solve the problem?
+Also fix search iterator to only search known record events instead of
+blindly searching all pre-allocated space.
 
-Reported-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Andrea Righi <arighi@develer.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ kernel/latencytop.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-div-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-div-fix
-+++ a/mm/memcontrol.c
-@@ -1243,18 +1243,20 @@ bool mem_cgroup_dirty_info(unsigned long
- 	if (dirty_param.dirty_bytes)
- 		info->dirty_thresh =
- 			DIV_ROUND_UP(dirty_param.dirty_bytes, PAGE_SIZE);
--	else
--		info->dirty_thresh =
--			(dirty_param.dirty_ratio * available_mem) / 100;
-+	else {
-+		info->dirty_thresh = dirty_param.dirty_ratio * available_mem;
-+		do_div(info->dirty_thresh, 100);
-+	}
+diff -puN kernel/latencytop.c~latencytop-fix-per-task-accumulator kernel/latencytop.c
+--- a/kernel/latencytop.c~latencytop-fix-per-task-accumulator
++++ a/kernel/latencytop.c
+@@ -194,14 +194,7 @@ __account_scheduler_latency(struct task_
  
- 	if (dirty_param.dirty_background_bytes)
- 		info->background_thresh =
- 			DIV_ROUND_UP(dirty_param.dirty_background_bytes,
- 				     PAGE_SIZE);
--	else
--		info->background_thresh =
--			(dirty_param.dirty_background_ratio *
--			       available_mem) / 100;
-+	else {
-+		info->background_thresh = dirty_param.dirty_background_ratio *
-+						available_mem;
-+		do_div(info->background_thresh, 100);
-+	}
+ 	account_global_scheduler_latency(tsk, &lat);
  
- 	value = mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
- 	if (value < 0)
+-	/*
+-	 * short term hack; if we're > 32 we stop; future we recycle:
+-	 */
+-	tsk->latency_record_count++;
+-	if (tsk->latency_record_count >= LT_SAVECOUNT)
+-		goto out_unlock;
+-
+-	for (i = 0; i < LT_SAVECOUNT; i++) {
++	for (i = 0; i < tsk->latency_record_count; i++) {
+ 		struct latency_record *mylat;
+ 		int same = 1;
+ 
+@@ -227,8 +220,14 @@ __account_scheduler_latency(struct task_
+ 		}
+ 	}
+ 
++	/*
++	 * short term hack; if we're > 32 we stop; future we recycle:
++	 */
++	if (tsk->latency_record_count >= LT_SAVECOUNT)
++		goto out_unlock;
++
+ 	/* Allocated a new one: */
+-	i = tsk->latency_record_count;
++	i = tsk->latency_record_count++;
+ 	memcpy(&tsk->latency_record[i], &lat, sizeof(struct latency_record));
+ 
+ out_unlock:
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
-linux-next.patch
-mm-vfs-revalidate-page-mapping-in-do_generic_file_read.patch
-mm-vmap-area-cache.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-writeback-create-dirty_info-structure.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-dirty-limits-to-mem_cgroup-use-native-word-to-represent-dirtyable-pages.patch
-memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch
-memcg-cpu-hotplug-lockdep-warning-fix.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-break-out-event-counters-from-other-stats.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-use-native-word-page-statistics-counters.patch
-memcg-use-native-word-page-statistics-counters-fix.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+latencytop-fix-per-task-accumulator.patch
 
