@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-livelocking-wb_sync_all-writeback-update.patch added to -mm tree
-Date: Wed, 10 Nov 2010 13:55:08 -0800
-Message-ID: <201011102155.oAALt8mh008046@imap1.linux-foundation.org>
+Subject: + writeback-check-skipped-pages-on-wb_sync_all-update.patch added to -mm tree
+Date: Wed, 10 Nov 2010 13:56:16 -0800
+Message-ID: <201011102156.oAALuG4N008104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54068 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756725Ab0KJVza (ORCPT
+	by vger.kernel.org with ESMTP id S1755976Ab0KJV4i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Nov 2010 16:55:30 -0500
+	Wed, 10 Nov 2010 16:56:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hannes@cmpxchg
 
 
 The patch titled
-     writeback-avoid-livelocking-wb_sync_all-writeback-update
+     writeback-check-skipped-pages-on-wb_sync_all-update
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
+     writeback-check-skipped-pages-on-wb_sync_all-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-avoid-livelocking-wb_sync_all-writeback-update
+Subject: writeback-check-skipped-pages-on-wb_sync_all-update
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Christoph Hellwig <hch@lst.de> 
@@ -47,21 +47,24 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback-update fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback-update
+diff -puN fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update
 +++ a/fs/fs-writeback.c
-@@ -651,7 +651,7 @@ static long wb_writeback(struct bdi_writ
- 	 * The intended call sequence for WB_SYNC_ALL writeback is:
- 	 *
- 	 *      wb_writeback()
--	 *          writeback_inodes_wb()       <== called only once
-+	 *          __writeback_inodes_sb()     <== called only once
- 	 *              write_cache_pages()     <== called once for each inode
- 	 *                   (quickly) tag currently dirty pages
- 	 *                   (maybe slowly) sync all tagged pages
+@@ -527,6 +527,11 @@ static int writeback_sb_inodes(struct su
+ 			 * buffers.  Skip this inode for now.
+ 			 */
+ 			redirty_tail(inode);
++			/*
++			 * There's no logic to retry skipped pages for sync(),
++			 * filesystems are assumed not to skip dirty pages on
++			 * temporal lock contentions or non fatal errors.
++			 */
+ 			WARN_ON_ONCE(wbc->sync_mode == WB_SYNC_ALL);
+ 		}
+ 		spin_unlock(&inode_lock);
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -75,6 +78,7 @@ writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patc
 writeback-avoid-livelocking-wb_sync_all-writeback.patch
 writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
 writeback-check-skipped-pages-on-wb_sync_all.patch
+writeback-check-skipped-pages-on-wb_sync_all-update.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
