@@ -1,82 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + misc-isl29020-signedness-bug-in-als_sensing_range_store.patch added to -mm tree
-Date: Wed, 10 Nov 2010 07:20:36 -0800
-Message-ID: <201011101522.oAAFMwlN021672@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch removed from -mm tree
+Date: Wed, 10 Nov 2010 12:13:12 -0800
+Message-ID: <201011102015.oAAKFZ3C003525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756649Ab0KJPX3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756216Ab0KJUPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Nov 2010 10:23:29 -0500
+	Wed, 10 Nov 2010 15:15:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, alan@linux.intel.com
+To: akpm@linux-foundation.org, alan@linux.intel.com, arjan@linux.intel.com, hong.liu@intel.com, kalhan.trisal@intel.com, segooon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc/isl29020: signedness bug in als_sensing_range_store()
-has been added to the -mm tree.  Its filename is
-     misc-isl29020-signedness-bug-in-als_sensing_range_store.patch
+     drivers/misc/isl29020.c: don't ignore the i2c_smbus_read_byte_data() return value
+has been removed from the -mm tree.  Its filename was
+     drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc/isl29020: signedness bug in als_sensing_range_store()
-From: Dan Carpenter <error27@gmail.com>
+Subject: drivers/misc/isl29020.c: don't ignore the i2c_smbus_read_byte_data() return value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-"ret_val" is supposed to be signed here or the error handling breaks.
-Also we should check the return value from i2c_smbus_read_byte_data().
+If i2c_smbus_read_byte_data() fails, this driver will write a mangled
+errno value into the hardware.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Liu Hong <hong.liu@intel.com>
+Cc: Kalhan Trisal <kalhan.trisal@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/misc/isl29020.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/isl29020.c~misc-isl29020-signedness-bug-in-als_sensing_range_store drivers/misc/isl29020.c
---- a/drivers/misc/isl29020.c~misc-isl29020-signedness-bug-in-als_sensing_range_store
+diff -puN drivers/misc/isl29020.c~drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value drivers/misc/isl29020.c
+--- a/drivers/misc/isl29020.c~drivers-misc-isl29020c-dont-ignore-the-i2c_smbus_read_byte_data-return-value
 +++ a/drivers/misc/isl29020.c
-@@ -87,7 +87,7 @@ static ssize_t als_sensing_range_store(s
- 		struct device_attribute *attr, const  char *buf, size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
--	unsigned int ret_val;
-+	int ret_val;
- 	unsigned long val;
- 
- 	if (strict_strtoul(buf, 10, &val))
-@@ -106,6 +106,8 @@ static ssize_t als_sensing_range_store(s
+@@ -106,8 +106,10 @@ static ssize_t als_sensing_range_store(s
  		val = 4;
  
  	ret_val = i2c_smbus_read_byte_data(client, 0x00);
 +	if (ret_val < 0)
 +		return ret_val;
  
- 	ret_val &= 0xFC; /*reset the bit before setting them */
+-	ret_val &= 0xFC; /*reset the bit before setting them */
++	ret_val &= 0xFC; /* reset the bit before setting them */
  	ret_val |= val - 1;
+ 	ret_val = i2c_smbus_write_byte_data(client, 0x00, ret_val);
+ 
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rapidio-use-resource_size.patch
-misc-isl29020-signedness-bug-in-als_sensing_range_store.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
 linux-next.patch
-memcg-null-dereference-on-allocation-failure.patch
+next-remove-localversion.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+sync_inode_metadata-fix-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
