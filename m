@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch added to -mm tree
-Date: Wed, 10 Nov 2010 13:53:45 -0800
-Message-ID: <201011102153.oAALrjS3008013@imap1.linux-foundation.org>
+Subject: + writeback-avoid-livelocking-wb_sync_all-writeback-update.patch added to -mm tree
+Date: Wed, 10 Nov 2010 13:55:08 -0800
+Message-ID: <201011102155.oAALt8mh008046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756882Ab0KJVy3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756725Ab0KJVza (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Nov 2010 16:54:29 -0500
+	Wed, 10 Nov 2010 16:55:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hannes@cmpxchg
 
 
 The patch titled
-     writeback-stop-background-kupdate-works-from-livelocking-other-works-update
+     writeback-avoid-livelocking-wb_sync_all-writeback-update
 has been added to the -mm tree.  Its filename is
-     writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
+     writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-stop-background-kupdate-works-from-livelocking-other-works-update
+Subject: writeback-avoid-livelocking-wb_sync_all-writeback-update
 From: Wu Fengguang <fengguang.wu@intel.com>
 
 Signed-off-by: Jan Kara <jack@suse.cz>
@@ -47,26 +47,21 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/fs-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-stop-background-kupdate-works-from-livelocking-other-works-update fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-stop-background-kupdate-works-from-livelocking-other-works-update
+diff -puN fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback-update fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-avoid-livelocking-wb_sync_all-writeback-update
 +++ a/fs/fs-writeback.c
-@@ -651,9 +651,10 @@ static long wb_writeback(struct bdi_writ
- 			break;
- 
- 		/*
--		 * Background writeout and kupdate-style writeback are
--		 * easily livelockable. Stop them if there is other work
--		 * to do so that e.g. sync can proceed.
-+		 * Background writeout and kupdate-style writeback may
-+		 * run forever. Stop them if there is other work to do
-+		 * so that e.g. sync can proceed. They'll be restarted
-+		 * after the other works are all done.
- 		 */
- 		if ((work->for_background || work->for_kupdate) &&
- 		    !list_empty(&wb->bdi->work_list))
+@@ -651,7 +651,7 @@ static long wb_writeback(struct bdi_writ
+ 	 * The intended call sequence for WB_SYNC_ALL writeback is:
+ 	 *
+ 	 *      wb_writeback()
+-	 *          writeback_inodes_wb()       <== called only once
++	 *          __writeback_inodes_sb()     <== called only once
+ 	 *              write_cache_pages()     <== called once for each inode
+ 	 *                   (quickly) tag currently dirty pages
+ 	 *                   (maybe slowly) sync all tagged pages
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -78,6 +73,7 @@ writeback-trace-wakeup-event-for-background-writeback.patch
 writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
 writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
 writeback-avoid-livelocking-wb_sync_all-writeback.patch
+writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
 writeback-check-skipped-pages-on-wb_sync_all.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
