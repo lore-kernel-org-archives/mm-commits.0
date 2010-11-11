@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + restrict-unprivileged-access-to-kernel-syslog-fix.patch added to -mm tree
-Date: Wed, 10 Nov 2010 16:13:55 -0800
-Message-ID: <201011110013.oAB0DtZ1014293@imap1.linux-foundation.org>
+Subject: + lib-add-generic-exponentially-weighted-moving-average-ewma-function.patch added to -mm tree
+Date: Wed, 10 Nov 2010 20:02:36 -0800
+Message-ID: <201011110405.oAB452F0023793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932110Ab0KKAOW (ORCPT
+	by vger.kernel.org with ESMTP id S932256Ab0KKEF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Nov 2010 19:14:22 -0500
+	Wed, 10 Nov 2010 23:05:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drosenberg@vsecurity.com, eugeneteo@kernel.org, kees.cook@canonical.com, mingo@elte.hu, torvalds@linux-foundation.org
+Cc: br1@einfach.org, a.p.zijlstra@chello.nl, kosaki.motohiro@jp.fujitsu.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     restrict-unprivileged-access-to-kernel-syslog-checkpatch-fixes-fix
+     lib: add generic exponentially weighted moving average (EWMA) function
 has been added to the -mm tree.  Its filename is
-     restrict-unprivileged-access-to-kernel-syslog-fix.patch
+     lib-add-generic-exponentially-weighted-moving-average-ewma-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,145 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: restrict-unprivileged-access-to-kernel-syslog-checkpatch-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: add generic exponentially weighted moving average (EWMA) function
+From: Bruno Randolf <br1@einfach.org>
 
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kees Cook <kees.cook@canonical.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+This adds generic functions for calculating Exponentially Weighted Moving
+Averages (EWMA).  This implementation makes use of a structure which keeps
+the EWMA parameters and a scaled up internal representation to reduce
+rounding errors.
+
+The original idea for this implementation came from the rt2x00 driver
+(rt2x00link.c).  I would like to use it in several places in the mac80211
+and ath5k code and I hope it can be useful in many other places in the
+kernel code.
+
+Signed-off-by: Bruno Randolf <br1@einfach.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/average.h |   32 ++++++++++++++++++++
+ lib/Makefile            |    2 -
+ lib/average.c           |   58 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 91 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/kernel.txt~restrict-unprivileged-access-to-kernel-syslog-fix Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~restrict-unprivileged-access-to-kernel-syslog-fix
-+++ a/Documentation/sysctl/kernel.txt
-@@ -216,11 +216,14 @@ to decide what to do with it.
- 
- dmesg_restrict:
- 
--This toggle indicates whether unprivileged users are prevented
--from using dmesg(8) to view messages from the kernel's log
--buffer.  By default, it is set to (0), resulting in no
--restrictions.  When set to (1), users must have CAP_SYS_ADMIN
--to use dmesg(8).
-+This toggle indicates whether unprivileged users are prevented from using
-+dmesg(8) to view messages from the kernel's log buffer.  When
-+dmesg_restrict is set to (0) there are no restrictions.  When
-+dmesg_restrict is set set to (1), users must have CAP_SYS_ADMIN to use
-+dmesg(8).
+diff -puN /dev/null include/linux/average.h
+--- /dev/null
++++ a/include/linux/average.h
+@@ -0,0 +1,32 @@
++#ifndef _LINUX_AVERAGE_H
++#define _LINUX_AVERAGE_H
 +
-+The kernel config option CONFIG_SECURITY_DMESG_RESTRICT sets the default
-+value of dmesg_restrict.
++#include <linux/kernel.h>
++
++/* Exponentially weighted moving average (EWMA) */
++
++/* For more documentation see lib/average.c */
++
++struct ewma {
++	unsigned long internal;
++	unsigned long factor;
++	unsigned long weight;
++};
++
++extern struct ewma *ewma_init(struct ewma *avg, unsigned long factor,
++			      unsigned long weight);
++
++extern struct ewma *ewma_add(struct ewma *avg, unsigned long val);
++
++/**
++ * ewma_get() - Get average value
++ * @avg: Average structure
++ *
++ * Returns the average value held in @avg.
++ */
++static inline unsigned long ewma_get(const struct ewma *avg)
++{
++	return DIV_ROUND_CLOSEST(avg->internal, avg->factor);
++}
++
++#endif /* _LINUX_AVERAGE_H */
+diff -puN lib/Makefile~lib-add-generic-exponentially-weighted-moving-average-ewma-function lib/Makefile
+--- a/lib/Makefile~lib-add-generic-exponentially-weighted-moving-average-ewma-function
++++ a/lib/Makefile
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
  
- ==============================================================
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o
++	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o average.o
  
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/average.c
+--- /dev/null
++++ a/lib/average.c
+@@ -0,0 +1,58 @@
++/*
++ * lib/average.c
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/average.h>
++
++/**
++ * DOC: Exponentially Weighted Moving Average (EWMA)
++ *
++ * These are generic functions for calculating Exponentially Weighted Moving
++ * Averages (EWMA). We keep a structure with the EWMA parameters and a scaled
++ * up internal representation of the average value to prevent rounding errors.
++ * The factor for scaling up and the exponential weight (or decay rate) have to
++ * be specified thru the init fuction. The structure should not be accessed
++ * directly but only thru the helper functions.
++ */
++
++/**
++ * ewma_init() - Initialize EWMA parameters
++ * @avg: Average structure
++ * @factor: Factor to use for the scaled up internal value. The maximum value
++ *	of averages can be ULONG_MAX/(factor*weight).
++ * @weight: Exponential weight, or decay rate. This defines how fast the
++ *	influence of older values decreases. Has to be bigger than 1.
++ *
++ * Initialize the EWMA parameters for a given struct ewma @avg.
++ */
++struct ewma *ewma_init(struct ewma *avg, unsigned long factor,
++		       unsigned long weight)
++{
++	WARN_ON(weight <= 1 || factor == 0);
++	avg->internal = 0;
++	avg->weight = weight;
++	avg->factor = factor;
++	return avg;
++}
++EXPORT_SYMBOL(ewma_init);
++
++/**
++ * ewma_add() - Exponentially weighted moving average (EWMA)
++ * @avg: Average structure
++ * @val: Current value
++ *
++ * Add a sample to the average.
++ */
++struct ewma *ewma_add(struct ewma *avg, unsigned long val)
++{
++	avg->internal = avg->internal  ?
++		(((avg->internal * (avg->weight - 1)) +
++			(val * avg->factor)) / avg->weight) :
++		(val * avg->factor);
++	return avg;
++}
++EXPORT_SYMBOL(ewma_add);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from br1@einfach.org are
 
-origin.patch
-hpet-factor-timer-allocate-from-open.patch
-atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
-restrict-unprivileged-access-to-kernel-syslog-fix.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-sync_inode_metadata-fix-comment.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+lib-add-generic-exponentially-weighted-moving-average-ewma-function.patch
 
