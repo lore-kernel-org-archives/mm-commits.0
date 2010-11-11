@@ -1,103 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-kernel-doc-escape-special-characters-for-xml-struct-output.patch removed from -mm tree
-Date: Thu, 11 Nov 2010 11:10:56 -0800
-Message-ID: <201011111913.oABJDREG029785@imap1.linux-foundation.org>
+Subject: + lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch added to -mm tree
+Date: Thu, 11 Nov 2010 11:20:34 -0800
+Message-ID: <201011111920.oABJKYp0030140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754601Ab0KKTNn (ORCPT
+	by vger.kernel.org with ESMTP id S1753956Ab0KKTVt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Nov 2010 14:13:43 -0500
+	Thu, 11 Nov 2010 14:21:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dmitry.torokhov@gmail.com, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, br1@einfach.org, kosaki.motohiro@jp.fujitsu.com, linville@tuxdriver.com, randy.dunlap@oracle.com, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     scripts/kernel-doc: escape special characters for xml struct output
-has been removed from the -mm tree.  Its filename was
-     scripts-kernel-doc-escape-special-characters-for-xml-struct-output.patch
+     lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
+has been added to the -mm tree.  Its filename is
+     lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/kernel-doc: escape special characters for xml struct output
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-scripts/kernel-doc was leaving unescaped '<', '>', and '&' in generated
-xml output for structs.  This causes xml parser errors.  Convert these
-characters to "&lt;", "&gt;", and "&amp;" as needed to prevent errors.
+include bug.h, per Stefan.
 
-Most of the conversion was already done; complete it just before
-output.
-
-Documentation/DocBook/device-drivers.xml:41883: parser error : StartTag: invalid element name
-#define INPUT_KEYMAP_BY_INDEX	(1 << 0)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Bruno Randolf <br1@einfach.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ lib/average.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-escape-special-characters-for-xml-struct-output scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-escape-special-characters-for-xml-struct-output
-+++ a/scripts/kernel-doc
-@@ -5,7 +5,7 @@ use strict;
- ## Copyright (c) 1998 Michael Zucchi, All Rights Reserved        ##
- ## Copyright (C) 2000, 1  Tim Waugh <twaugh@redhat.com>          ##
- ## Copyright (C) 2001  Simon Huggins                             ##
--## Copyright (C) 2005-2009  Randy Dunlap                         ##
-+## Copyright (C) 2005-2010  Randy Dunlap                         ##
- ## 								 ##
- ## #define enhancements by Armin Kuster <akuster@mvista.com>	 ##
- ## Copyright (c) 2000 MontaVista Software, Inc.			 ##
-@@ -453,7 +453,7 @@ sub output_highlight {
-     if ($output_mode eq "html" || $output_mode eq "xml") {
- 	$contents = local_unescape($contents);
- 	# convert data read & converted thru xml_escape() into &xyz; format:
--	$contents =~ s/\\\\\\/&/g;
-+	$contents =~ s/\\\\\\/\&/g;
-     }
- #   print STDERR "contents b4:$contents\n";
-     eval $dohighlight;
-@@ -770,7 +770,11 @@ sub output_struct_xml(%) {
-     print $args{'type'} . " " . $args{'struct'} . " {\n";
-     foreach $parameter (@{$args{'parameterlist'}}) {
- 	if ($parameter =~ /^#/) {
--	    print "$parameter\n";
-+	    my $prm = $parameter;
-+	    # convert data read & converted thru xml_escape() into &xyz; format:
-+	    # This allows us to have #define macros interspersed in a struct.
-+	    $prm =~ s/\\\\\\/\&/g;
-+	    print "$prm\n";
- 	    next;
- 	}
+diff -puN lib/average.c~lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix lib/average.c
+--- a/lib/average.c~lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
++++ a/lib/average.c
+@@ -7,6 +7,7 @@
  
-@@ -1701,6 +1705,8 @@ sub push_parameter($$$) {
- 	}
- 	}
+ #include <linux/module.h>
+ #include <linux/average.h>
++#include <linux/bug.h>
  
-+	$param = xml_escape($param);
-+
- 	# strip spaces from $param so that it is one continous string
- 	# on @parameterlist;
- 	# this fixes a problem where check_sections() cannot find
+ /**
+  * DOC: Exponentially Weighted Moving Average (EWMA)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
 linux-next.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-ibm_rtl-fix-printk-format-warning.patch
+next-remove-localversion.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+restrict-unprivileged-access-to-kernel-syslog-fix.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-add-generic-exponentially-weighted-moving-average-ewma-function.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+sync_inode_metadata-fix-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
