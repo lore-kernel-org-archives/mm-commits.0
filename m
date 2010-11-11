@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + backlight-macbookair3132-mbp-nvidia-bl-support.patch added to -mm tree
-Date: Wed, 10 Nov 2010 21:51:38 -0800
-Message-ID: <201011110554.oAB5s51v027883@imap1.linux-foundation.org>
+Date: Wed, 10 Nov 2010 21:54:10 -0800
+Message-ID: <201011110556.oAB5ubnG027949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755101Ab0KKFyT (ORCPT
+	by vger.kernel.org with ESMTP id S1757519Ab0KKF4l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Nov 2010 00:54:19 -0500
+	Thu, 11 Nov 2010 00:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -55,28 +55,27 @@ diff -puN drivers/video/backlight/mbp_nvidia_bl.c~backlight-macbookair3132-mbp-n
  		},
  		.driver_data	= (void *)&nvidia_chipset_data,
  	},
-+       {
-+               .callback       = mbp_dmi_match,
-+               .ident          = "MacBookAir 3,1",
-+               .matches        = {
-+                       DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+                       DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,1"),
-+               },
-+               .driver_data    = (void *)&nvidia_chipset_data,
-+       },
-+       {
-+               .callback       = mbp_dmi_match,
-+               .ident          = "MacBookAir 3,2",
-+               .matches        = {
-+                       DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+                       DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,2"),
-+               },
-+               .driver_data    = (void *)&nvidia_chipset_data,
-+       },
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookAir 3,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,1"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookAir 3,2",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,2"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
  	{ }
  };
  
-diff -puN /dev/null /dev/null
 _
 
 Patches currently in -mm which might be from gimli@dark-green.com are
