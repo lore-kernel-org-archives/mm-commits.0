@@ -1,86 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-macbookair3132-mbp-nvidia-bl-support.patch added to -mm tree
-Date: Wed, 10 Nov 2010 21:54:10 -0800
-Message-ID: <201011110556.oAB5ubnG027949@imap1.linux-foundation.org>
+Subject: [merged] scripts-kernel-doc-escape-special-characters-for-xml-struct-output.patch removed from -mm tree
+Date: Thu, 11 Nov 2010 11:10:56 -0800
+Message-ID: <201011111913.oABJDREG029785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757519Ab0KKF4l (ORCPT
+	by vger.kernel.org with ESMTP id S1754601Ab0KKTNn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Nov 2010 00:56:41 -0500
+	Thu, 11 Nov 2010 14:13:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gimli@dark-green.com, rpurdie@linux.intel.com
+To: randy.dunlap@oracle.com, dmitry.torokhov@gmail.com, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: MacBookAir3,1(3,2) mbp-nvidia-bl support
-has been added to the -mm tree.  Its filename is
-     backlight-macbookair3132-mbp-nvidia-bl-support.patch
+     scripts/kernel-doc: escape special characters for xml struct output
+has been removed from the -mm tree.  Its filename was
+     scripts-kernel-doc-escape-special-characters-for-xml-struct-output.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: MacBookAir3,1(3,2) mbp-nvidia-bl support
-From: Edgar (gimli) Hucek <gimli@dark-green.com>
+Subject: scripts/kernel-doc: escape special characters for xml struct output
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add support for the MacBookAir3,1 and MacBookAir3,2 to the mbp-nvidia-bl
-driver.
+scripts/kernel-doc was leaving unescaped '<', '>', and '&' in generated
+xml output for structs.  This causes xml parser errors.  Convert these
+characters to "&lt;", "&gt;", and "&amp;" as needed to prevent errors.
 
-Signed-off-by: Edgar (gimli) Hucek <gimli@dark-green.com>
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Most of the conversion was already done; complete it just before
+output.
+
+Documentation/DocBook/device-drivers.xml:41883: parser error : StartTag: invalid element name
+#define INPUT_KEYMAP_BY_INDEX	(1 << 0)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/mbp_nvidia_bl.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ scripts/kernel-doc |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/mbp_nvidia_bl.c~backlight-macbookair3132-mbp-nvidia-bl-support drivers/video/backlight/mbp_nvidia_bl.c
---- a/drivers/video/backlight/mbp_nvidia_bl.c~backlight-macbookair3132-mbp-nvidia-bl-support
-+++ a/drivers/video/backlight/mbp_nvidia_bl.c
-@@ -335,6 +335,24 @@ static const struct dmi_system_id __init
- 		},
- 		.driver_data	= (void *)&nvidia_chipset_data,
- 	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookAir 3,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookAir 3,2",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,2"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
- 	{ }
- };
+diff -puN scripts/kernel-doc~scripts-kernel-doc-escape-special-characters-for-xml-struct-output scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-escape-special-characters-for-xml-struct-output
++++ a/scripts/kernel-doc
+@@ -5,7 +5,7 @@ use strict;
+ ## Copyright (c) 1998 Michael Zucchi, All Rights Reserved        ##
+ ## Copyright (C) 2000, 1  Tim Waugh <twaugh@redhat.com>          ##
+ ## Copyright (C) 2001  Simon Huggins                             ##
+-## Copyright (C) 2005-2009  Randy Dunlap                         ##
++## Copyright (C) 2005-2010  Randy Dunlap                         ##
+ ## 								 ##
+ ## #define enhancements by Armin Kuster <akuster@mvista.com>	 ##
+ ## Copyright (c) 2000 MontaVista Software, Inc.			 ##
+@@ -453,7 +453,7 @@ sub output_highlight {
+     if ($output_mode eq "html" || $output_mode eq "xml") {
+ 	$contents = local_unescape($contents);
+ 	# convert data read & converted thru xml_escape() into &xyz; format:
+-	$contents =~ s/\\\\\\/&/g;
++	$contents =~ s/\\\\\\/\&/g;
+     }
+ #   print STDERR "contents b4:$contents\n";
+     eval $dohighlight;
+@@ -770,7 +770,11 @@ sub output_struct_xml(%) {
+     print $args{'type'} . " " . $args{'struct'} . " {\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+ 	if ($parameter =~ /^#/) {
+-	    print "$parameter\n";
++	    my $prm = $parameter;
++	    # convert data read & converted thru xml_escape() into &xyz; format:
++	    # This allows us to have #define macros interspersed in a struct.
++	    $prm =~ s/\\\\\\/\&/g;
++	    print "$prm\n";
+ 	    next;
+ 	}
  
+@@ -1701,6 +1705,8 @@ sub push_parameter($$$) {
+ 	}
+ 	}
+ 
++	$param = xml_escape($param);
++
+ 	# strip spaces from $param so that it is one continous string
+ 	# on @parameterlist;
+ 	# this fixes a problem where check_sections() cannot find
 _
 
-Patches currently in -mm which might be from gimli@dark-green.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-backlight-macbookair3132-mbp-nvidia-bl-support.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+ibm_rtl-fix-printk-format-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-add-generic-exponentially-weighted-moving-average-ewma-function.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
