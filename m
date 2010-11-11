@@ -1,77 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] restrict-unprivileged-access-to-kernel-syslog-fix.patch removed from -mm tree
-Date: Thu, 11 Nov 2010 13:51:03 -0800
-Message-ID: <201011112151.oABLp3YZ004612@imap1.linux-foundation.org>
+Subject: [to-be-updated] fuse-clear-attribute-cache-for-openo_trunc.patch removed from -mm tree
+Date: Thu, 11 Nov 2010 14:06:40 -0800
+Message-ID: <201011112206.oABM6eu9005363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755619Ab0KKVvz (ORCPT
+	by vger.kernel.org with ESMTP id S1754480Ab0KKWHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Nov 2010 16:51:55 -0500
+	Thu, 11 Nov 2010 17:07:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drosenberg@vsecurity.com, eugeneteo@kernel.org, kees.cook@canonical.com, mingo@elte.hu, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: ksumrall@android.com, anfei.zhou@gmail.com, avati@gluster.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     restrict-unprivileged-access-to-kernel-syslog-checkpatch-fixes-fix
+     fuse: clear attribute cache for open(O_TRUNC)
 has been removed from the -mm tree.  Its filename was
-     restrict-unprivileged-access-to-kernel-syslog-fix.patch
+     fuse-clear-attribute-cache-for-openo_trunc.patch
 
-This patch was dropped because it was folded into restrict-unprivileged-access-to-kernel-syslog.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: restrict-unprivileged-access-to-kernel-syslog-checkpatch-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fuse: clear attribute cache for open(O_TRUNC)
+From: Ken Sumrall <ksumrall@android.com>
 
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kees Cook <kees.cook@canonical.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+The attribute cache for a file was not being cleared when a file is opened
+with O_TRUNC.
+
+Signed-off-by: Ken Sumrall <ksumrall@android.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Anfei <anfei.zhou@gmail.com>
+Cc: "Anand V. Avati" <avati@gluster.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/fuse/file.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/sysctl/kernel.txt~restrict-unprivileged-access-to-kernel-syslog-fix Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~restrict-unprivileged-access-to-kernel-syslog-fix
-+++ a/Documentation/sysctl/kernel.txt
-@@ -216,11 +216,14 @@ to decide what to do with it.
+diff -puN fs/fuse/file.c~fuse-clear-attribute-cache-for-openo_trunc fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-clear-attribute-cache-for-openo_trunc
++++ a/fs/fuse/file.c
+@@ -134,6 +134,7 @@ EXPORT_SYMBOL_GPL(fuse_do_open);
+ void fuse_finish_open(struct inode *inode, struct file *file)
+ {
+ 	struct fuse_file *ff = file->private_data;
++	struct fuse_conn *fc = get_fuse_conn(inode);
  
- dmesg_restrict:
+ 	if (ff->open_flags & FOPEN_DIRECT_IO)
+ 		file->f_op = &fuse_direct_io_file_operations;
+@@ -141,6 +142,8 @@ void fuse_finish_open(struct inode *inod
+ 		invalidate_inode_pages2(inode->i_mapping);
+ 	if (ff->open_flags & FOPEN_NONSEEKABLE)
+ 		nonseekable_open(inode, file);
++	if (fc->atomic_o_trunc && (file->f_flags & O_TRUNC))
++		fuse_invalidate_attr(inode);
+ }
  
--This toggle indicates whether unprivileged users are prevented
--from using dmesg(8) to view messages from the kernel's log
--buffer.  By default, it is set to (0), resulting in no
--restrictions.  When set to (1), users must have CAP_SYS_ADMIN
--to use dmesg(8).
-+This toggle indicates whether unprivileged users are prevented from using
-+dmesg(8) to view messages from the kernel's log buffer.  When
-+dmesg_restrict is set to (0) there are no restrictions.  When
-+dmesg_restrict is set set to (1), users must have CAP_SYS_ADMIN to use
-+dmesg(8).
-+
-+The kernel config option CONFIG_SECURITY_DMESG_RESTRICT sets the default
-+value of dmesg_restrict.
- 
- ==============================================================
- 
+ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ksumrall@android.com are
 
-origin.patch
-hpet-factor-timer-allocate-from-open.patch
-atomic-add-atomic_inc_not_zero_hint.patch
-drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
-restrict-unprivileged-access-to-kernel-syslog.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
-arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
 
