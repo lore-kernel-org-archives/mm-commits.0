@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jfs-dont-overwrite-dentry-name-in-d_revalidate.patch added to -mm tree
-Date: Thu, 11 Nov 2010 12:08:38 -0800
-Message-ID: <201011112008.oABK8c4s032582@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch added to -mm tree
+Date: Thu, 11 Nov 2010 12:14:07 -0800
+Message-ID: <201011112046.oABKkIen001723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755942Ab0KKUJa (ORCPT
+	by vger.kernel.org with ESMTP id S1754642Ab0KKUqc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Nov 2010 15:09:30 -0500
+	Thu, 11 Nov 2010 15:46:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@kernel.dk, shaggy@austin.ibm.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu
 
 
 The patch titled
-     jfs: don't overwrite dentry name in d_revalidate
+     arch/x86/kernel/entry_32.S: work around gas-2.16.1 glitch
 has been added to the -mm tree.  Its filename is
-     jfs-dont-overwrite-dentry-name-in-d_revalidate.patch
+     arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jfs: don't overwrite dentry name in d_revalidate
-From: Nick Piggin <npiggin@kernel.dk>
+Subject: arch/x86/kernel/entry_32.S: work around gas-2.16.1 glitch
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Instead use fatfs's method for dealing with negative dentries to
-preserve case, rather than overwrite dentry name in d_revalidate, which
-is a bit ugly and also gets in the way of doing lock-free path walking.
+With i386, gas-2.16.1:
 
-Signed-off-by: Nick Piggin <npiggin@kernel.dk>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+arch/x86/kernel/entry_32.S: Assembler messages:
+arch/x86/kernel/entry_32.S:398: Error: too many positional arguments
+
+Parenthesising TI_sysenter_return makes it go away.
+
+It changes the cpp output from
+
+ pushl_cfi (60 -8192 +8+4*4)(%esp)
+
+to
+
+ pushl_cfi ((60)-8192 +8+4*4)(%esp)
+
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/namei.c |   43 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 35 insertions(+), 8 deletions(-)
+ arch/x86/kernel/entry_32.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/namei.c~jfs-dont-overwrite-dentry-name-in-d_revalidate fs/jfs/namei.c
---- a/fs/jfs/namei.c~jfs-dont-overwrite-dentry-name-in-d_revalidate
-+++ a/fs/jfs/namei.c
-@@ -18,6 +18,7 @@
-  */
- 
- #include <linux/fs.h>
-+#include <linux/namei.h>
- #include <linux/ctype.h>
- #include <linux/quotaops.h>
- #include <linux/exportfs.h>
-@@ -1597,21 +1598,47 @@ static int jfs_ci_compare(struct dentry 
- 			goto out;
- 	}
- 	result = 0;
-+out:
-+	return result;
-+}
- 
-+static int jfs_ci_revalidate(struct dentry *dentry, struct nameidata *nd)
-+{
- 	/*
--	 * We want creates to preserve case.  A negative dentry, a, that
--	 * has a different case than b may cause a new entry to be created
--	 * with the wrong case.  Since we can't tell if a comes from a negative
--	 * dentry, we blindly replace it with b.  This should be harmless if
--	 * a is not a negative dentry.
-+	 * This is not negative dentry. Always valid.
-+	 *
-+	 * Note, rename() to existing directory entry will have ->d_inode,
-+	 * and will use existing name which isn't specified name by user.
-+	 *
-+	 * We may be able to drop this positive dentry here. But dropping
-+	 * positive dentry isn't good idea. So it's unsupported like
-+	 * rename("filename", "FILENAME") for now.
+diff -puN arch/x86/kernel/entry_32.S~arch-x86-kernel-entry_32s-work-around-gas-2161-glitch arch/x86/kernel/entry_32.S
+--- a/arch/x86/kernel/entry_32.S~arch-x86-kernel-entry_32s-work-around-gas-2161-glitch
++++ a/arch/x86/kernel/entry_32.S
+@@ -395,7 +395,7 @@ sysenter_past_esp:
+ 	 * A tiny bit of offset fixup is necessary - 4*4 means the 4 words
+ 	 * pushed above; +8 corresponds to copy_thread's esp0 setting.
  	 */
--	memcpy((unsigned char *)a->name, b->name, a->len);
--out:
--	return result;
-+	if (dentry->d_inode)
-+		return 1;
-+
-+	/*
-+	 * This may be nfsd (or something), anyway, we can't see the
-+	 * intent of this. So, since this can be for creation, drop it.
-+	 */
-+	if (!nd)
-+		return 0;
-+
-+	/*
-+	 * Drop the negative dentry, in order to make sure to use the
-+	 * case sensitive name which is specified by user if this is
-+	 * for creation.
-+	 */
-+	if (!(nd->flags & (LOOKUP_CONTINUE | LOOKUP_PARENT))) {
-+		if (nd->flags & (LOOKUP_CREATE | LOOKUP_RENAME_TARGET))
-+			return 0;
-+	}
-+	return 1;
- }
+-	pushl_cfi (TI_sysenter_return-THREAD_SIZE_asm+8+4*4)(%esp)
++	pushl_cfi ((TI_sysenter_return)-THREAD_SIZE_asm+8+4*4)(%esp)
+ 	CFI_REL_OFFSET eip, 0
  
- const struct dentry_operations jfs_ci_dentry_operations =
- {
- 	.d_hash = jfs_ci_hash,
- 	.d_compare = jfs_ci_compare,
-+	.d_revalidate = jfs_ci_revalidate,
- };
+ 	pushl_cfi %eax
 _
 
-Patches currently in -mm which might be from npiggin@kernel.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-atomic-add-atomic_inc_not_zero_hint.patch
-linux-next.patch
-radix-tree-fix-rcu-bug.patch
-cifs-dont-overwrite-dentry-name-in-d_revalidate.patch
-jfs-dont-overwrite-dentry-name-in-d_revalidate.patch
+origin.patch
+hpet-factor-timer-allocate-from-open.patch
+atomic-add-atomic_inc_not_zero_hint-checkpatch-fixes.patch
+drivers-misc-bh1770glcc-error-handling-in-bh1770_power_state_store.patch
+restrict-unprivileged-access-to-kernel-syslog-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
 
