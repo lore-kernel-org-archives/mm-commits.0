@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-lp5521c-change-some-macros-to-functions.patch added to -mm tree
-Date: Fri, 12 Nov 2010 11:44:52 -0800
-Message-ID: <201011121944.oACJiqRg028055@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-lp5523c-perform-sw-reset-before-detection.patch added to -mm tree
+Date: Fri, 12 Nov 2010 11:45:02 -0800
+Message-ID: <201011121945.oACJj2BC028071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756777Ab0KLTpj (ORCPT
+	by vger.kernel.org with ESMTP id S1756859Ab0KLTpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Nov 2010 14:45:39 -0500
+	Fri, 12 Nov 2010 14:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: samu.p.onkalo@nokia.com, rpurdie@rpsys.net
 
 
 The patch titled
-     drivers/leds/leds-lp5521.c: change some macros to functions
+     drivers/leds/leds-lp5523.c: perform SW reset before detection
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-lp5521c-change-some-macros-to-functions.patch
+     drivers-leds-leds-lp5523c-perform-sw-reset-before-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5521.c: change some macros to functions
+Subject: drivers/leds/leds-lp5523.c: perform SW reset before detection
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Some small macros changed to inline functions to have proper type
-checking.
+Chip detection may fail if the chip is in some odd state for example after
+system restart.  Chip doesn't have HW reset line.
 
 Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/leds/leds-lp5523.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-change-some-macros-to-functions drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-change-some-macros-to-functions
-+++ a/drivers/leds/leds-lp5521.c
-@@ -125,11 +125,22 @@ struct lp5521_chip {
- 	u8			num_leds;
- };
+diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-perform-sw-reset-before-detection drivers/leds/leds-lp5523.c
+--- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-perform-sw-reset-before-detection
++++ a/drivers/leds/leds-lp5523.c
+@@ -203,13 +203,6 @@ static int lp5523_configure(struct i2c_c
+ 		{ 0x9c, 0x50, 0x9c, 0xd0, 0x9d, 0x80, 0xd8, 0x00, 0},
+ 	};
  
--#define cdev_to_led(c)		container_of(c, struct lp5521_led, cdev)
--#define engine_to_lp5521(eng)	container_of((eng), struct lp5521_chip, \
--						engines[(eng)->id - 1])
--#define led_to_lp5521(led)	container_of((led), struct lp5521_chip, \
--						leds[(led)->id])
-+static inline struct lp5521_led *cdev_to_led(struct led_classdev *cdev)
-+{
-+	return container_of(cdev, struct lp5521_led, cdev);
-+}
-+
-+static inline struct lp5521_chip *engine_to_lp5521(struct lp5521_engine *engine)
-+{
-+	return container_of(engine, struct lp5521_chip,
-+			    engines[engine->id - 1]);
-+}
-+
-+static inline struct lp5521_chip *led_to_lp5521(struct lp5521_led *led)
-+{
-+	return container_of(led, struct lp5521_chip,
-+			    leds[led->id]);
-+}
+-	lp5523_write(client, LP5523_REG_RESET, 0xff);
+-
+-	usleep_range(10000, 20000); /*
+-				     * Exact value is not available. 10 - 20ms
+-				     * appears to be enough for reset.
+-				     */
+-
+ 	ret |= lp5523_write(client, LP5523_REG_ENABLE, LP5523_ENABLE);
+ 	/* Chip startup time is 500 us, 1 - 2 ms gives some margin */
+ 	usleep_range(1000, 2000);
+@@ -941,6 +934,11 @@ static int lp5523_probe(struct i2c_clien
+ 		usleep_range(1000, 2000); /* 500us abs min. */
+ 	}
  
- static void lp5521_led_brightness_work(struct work_struct *work);
- 
++	lp5523_write(client, LP5523_REG_RESET, 0xff);
++	usleep_range(10000, 20000); /*
++				     * Exact value is not available. 10 - 20ms
++				     * appears to be enough for reset.
++				     */
+ 	ret = lp5523_detect(client);
+ 	if (ret)
+ 		goto fail2;
 _
 
 Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
