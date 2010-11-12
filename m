@@ -1,63 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-amiserialc-remove-unused-variable-icount.patch removed from -mm tree
-Date: Fri, 12 Nov 2010 10:32:17 -0800
-Message-ID: <201011121834.oACIYuRL024910@imap1.linux-foundation.org>
+Subject: + include-linux-fsh-fix-userspace-build.patch added to -mm tree
+Date: Fri, 12 Nov 2010 11:00:19 -0800
+Message-ID: <201011121900.oACJ0JVC026052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756789Ab0KLSfl (ORCPT
+	by vger.kernel.org with ESMTP id S932236Ab0KLTAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Nov 2010 13:35:41 -0500
+	Fri, 12 Nov 2010 14:00:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: loic.minier@linaro.org, arnd.bergmann@linaro.org, dmonakhov@openvz.org, lczerner@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     drivers/char/amiserial.c: remove unused variable icount
-has been removed from the -mm tree.  Its filename was
-     drivers-char-amiserialc-remove-unused-variable-icount.patch
+     include/linux/fs.h: fix userspace build
+has been added to the -mm tree.  Its filename is
+     include-linux-fsh-fix-userspace-build.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/char/amiserial.c: remove unused variable icount
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: include/linux/fs.h: fix userspace build
+=46rom: Lo=EFc Minier <loic.minier@linaro.org>
 
-drivers/char/amiserial.c: In function `rs_ioctl':
-drivers/char/amiserial.c:1302: warning: unused variable `icount'
+dpkg uses fiemap but didn't particularly need to include stdint.h so fa=
+r.=20
+Since 367a51a33902 ("fs: Add FITRIM ioctl"), build of linux/fs.h failed=
+ in
+dpkg with:
 
-commit 0587102cf9f427c185bfdeb2cef41e13ee0264b1 ("tty: icount changeover
-for other main devices") removed the users, but not the actual variable.
+In file included from ../../src/filesdb.c:27:0:
+/usr/include/linux/fs.h:37:2: error: expected specifier-qualifier-list =
+before 'uint64_t'
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg KH <greg@kroah.com>
+Use exportable type __u64 to avoid the dependency on stdint.h.
+
+b31d42a5af18 ("Fix compile brekage with !CONFIG_BLOCK") fixed only the
+kernel build by including linux/types.h, but this also fixed "make
+headers_check", so don't revert it.
+
+Signed-off-by: Lo=EFc Minier <loic.minier@linaro.org>
+Tested-by: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/fs.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/amiserial.c~drivers-char-amiserialc-remove-unused-variable-icount drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~drivers-char-amiserialc-remove-unused-variable-icount
-+++ a/drivers/char/amiserial.c
-@@ -1299,7 +1299,6 @@ static int rs_ioctl(struct tty_struct *t
- {
- 	struct async_struct * info = tty->driver_data;
- 	struct async_icount cprev, cnow;	/* kernel counter temps */
--	struct serial_icounter_struct icount;
- 	void __user *argp = (void __user *)arg;
- 	unsigned long flags;
- 
+diff -puN include/linux/fs.h~include-linux-fsh-fix-userspace-build incl=
+ude/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-fix-userspace-build
++++ a/include/linux/fs.h
+@@ -34,9 +34,9 @@
+ #define SEEK_MAX	SEEK_END
+=20
+ struct fstrim_range {
+-	uint64_t start;
+-	uint64_t len;
+-	uint64_t minlen;
++	__u64 start;
++	__u64 len;
++	__u64 minlen;
+ };
+=20
+ /* And dynamically-tunable limits and defaults: */
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from loic.minier@linaro.org are
 
-origin.patch
-drivers-macintosh-adb-iopc-flags-should-be-unsigned-long.patch
-kernel-range-fix-clean_sort_range-for-the-case-of-full-array.patch
-linux-next.patch
+include-linux-fsh-fix-userspace-build.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
