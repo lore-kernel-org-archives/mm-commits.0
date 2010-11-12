@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-mark-config_highmem-as-broken.patch added to -mm tree
-Date: Fri, 12 Nov 2010 11:51:19 -0800
-Message-ID: <201011121951.oACJpJxu028350@imap1.linux-foundation.org>
+Subject: + fs-select-fix-information-leak-to-userspace.patch added to -mm tree
+Date: Fri, 12 Nov 2010 12:09:12 -0800
+Message-ID: <201011122009.oACK9Cmw029170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932197Ab0KLTvy (ORCPT
+	by vger.kernel.org with ESMTP id S932539Ab0KLUJn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Nov 2010 14:51:54 -0500
+	Fri, 12 Nov 2010 15:09:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, jdike@addtoit.com
+Cc: segooon@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     um: mark CONFIG_HIGHMEM as broken
+     fs/select.c: fix information leak to userspace
 has been added to the -mm tree.  Its filename is
-     um-mark-config_highmem-as-broken.patch
+     fs-select-fix-information-leak-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: mark CONFIG_HIGHMEM as broken
-From: Richard Weinberger <richard@nod.at>
+Subject: fs/select.c: fix information leak to userspace
+From: Vasiliy Kulikov <segooon@gmail.com>
 
-Currently CONFIG_HIGHMEM is broken on User Mode Linux.  I'm not sure if it
-worked ever.
+On some architectures __kernel_suseconds_t is int.  On these archs struct
+timeval has padding bytes at the end.  This struct is copied to userspace
+with these padding bytes uninitialized.  This leads to leaking of contents
+of kernel stack memory.
 
-It doesn't compile and this breaks randomconfig testing.
+This bug was added with v2.6.27-rc5-286-gb773ad4.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.um |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/select.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/Kconfig.um~um-mark-config_highmem-as-broken arch/um/Kconfig.um
---- a/arch/um/Kconfig.um~um-mark-config_highmem-as-broken
-+++ a/arch/um/Kconfig.um
-@@ -131,7 +131,7 @@ config NR_CPUS
+diff -puN fs/select.c~fs-select-fix-information-leak-to-userspace fs/select.c
+--- a/fs/select.c~fs-select-fix-information-leak-to-userspace
++++ a/fs/select.c
+@@ -306,6 +306,7 @@ static int poll_select_copy_remaining(st
+ 		rts.tv_sec = rts.tv_nsec = 0;
  
- config HIGHMEM
- 	bool "Highmem support (EXPERIMENTAL)"
--	depends on !64BIT && EXPERIMENTAL
-+	depends on !64BIT && BROKEN
- 	default n
- 	help
- 	  This was used to allow UML to run with big amounts of memory.
+ 	if (timeval) {
++		memset(&rtv, 0, sizeof(rtv));
+ 		rtv.tv_sec = rts.tv_sec;
+ 		rtv.tv_usec = rts.tv_nsec / NSEC_PER_USEC;
+ 
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from segooon@gmail.com are
 
-um-fix-ptrace-build-error.patch
-um-mark-config_highmem-as-broken.patch
+origin.patch
+drivers-misc-apds9802alsc-fix-signedness-bug.patch
+linux-next.patch
+fs-select-fix-information-leak-to-userspace.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+memstick-core-fix-device_register-error-handling.patch
 
