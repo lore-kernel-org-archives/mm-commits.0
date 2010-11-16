@@ -1,59 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch removed from -mm tree
-Date: Tue, 16 Nov 2010 11:30:51 -0800
-Message-ID: <201011161934.oAGJY3Gb003167@imap1.linux-foundation.org>
+Subject: [merged] latencytop-fix-per-task-accumulator.patch removed from -mm tree
+Date: Tue, 16 Nov 2010 11:30:21 -0800
+Message-ID: <201011161933.oAGJXXUN003116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756320Ab0KPTeG (ORCPT
+	by vger.kernel.org with ESMTP id S1756320Ab0KPTeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:34:06 -0500
+	Tue, 16 Nov 2010 14:34:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, arjan@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/s6e63m0.c: set permissions on gamma_table file to 0444
+     latencytop: fix per task accumulator
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+     latencytop-fix-per-task-accumulator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/s6e63m0.c: set permissions on gamma_table file to 0444
-From: Axel Lin <axel.lin@gmail.com>
+Subject: latencytop: fix per task accumulator
+From: Ken Chen <kenchen@google.com>
 
-gamma_table is not writable, so set permissions to 0444.
+Per task latencytop accumulator prematurely terminates due to erroneous
+placement of latency_record_count.  It should be incremented whenever a
+new record is allocated instead of increment on every latencytop event.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Also fix search iterator to only search known record events instead of
+blindly searching all pre-allocated space.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Reviewed-by: Arjan van de Ven <arjan@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/latencytop.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444 drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -729,7 +729,7 @@ static ssize_t s6e63m0_sysfs_show_gamma_
+diff -puN kernel/latencytop.c~latencytop-fix-per-task-accumulator kernel/latencytop.c
+--- a/kernel/latencytop.c~latencytop-fix-per-task-accumulator
++++ a/kernel/latencytop.c
+@@ -194,14 +194,7 @@ __account_scheduler_latency(struct task_
  
- 	return strlen(buf);
- }
--static DEVICE_ATTR(gamma_table, 0644,
-+static DEVICE_ATTR(gamma_table, 0444,
- 		s6e63m0_sysfs_show_gamma_table, NULL);
+ 	account_global_scheduler_latency(tsk, &lat);
  
- static int __init s6e63m0_probe(struct spi_device *spi)
+-	/*
+-	 * short term hack; if we're > 32 we stop; future we recycle:
+-	 */
+-	tsk->latency_record_count++;
+-	if (tsk->latency_record_count >= LT_SAVECOUNT)
+-		goto out_unlock;
+-
+-	for (i = 0; i < LT_SAVECOUNT; i++) {
++	for (i = 0; i < tsk->latency_record_count; i++) {
+ 		struct latency_record *mylat;
+ 		int same = 1;
+ 
+@@ -227,8 +220,14 @@ __account_scheduler_latency(struct task_
+ 		}
+ 	}
+ 
++	/*
++	 * short term hack; if we're > 32 we stop; future we recycle:
++	 */
++	if (tsk->latency_record_count >= LT_SAVECOUNT)
++		goto out_unlock;
++
+ 	/* Allocated a new one: */
+-	i = tsk->latency_record_count;
++	i = tsk->latency_record_count++;
+ 	memcpy(&tsk->latency_record[i], &lat, sizeof(struct latency_record));
+ 
+ out_unlock:
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
-linux-next.patch
-drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
-drivers-rtc-rtc-omapc-fix-a-memory-leak.patch
 
