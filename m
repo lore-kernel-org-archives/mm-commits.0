@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch added to -mm tree
-Date: Tue, 16 Nov 2010 14:44:53 -0800
-Message-ID: <201011162244.oAGMirDr012308@imap1.linux-foundation.org>
+Subject: + vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch added to -mm tree
+Date: Tue, 16 Nov 2010 14:50:57 -0800
+Message-ID: <201011162250.oAGMov4i012611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754840Ab0KPWp4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756056Ab0KPWvw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 17:45:56 -0500
+	Tue, 16 Nov 2010 17:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low-update
+     vmscan: factor out kswapd sleeping logic from kswapd()
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+     vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low-update
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: vmscan: factor out kswapd sleeping logic from kswapd()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-mm: vmscan: Comment on why kswapd reduces the per-cpu vmstat threshold
+Currently, kswapd() has deep nesting and is slightly hard to read.  Clean
+this up.
 
-While kswapd is awake, the per-cpu vmstat threshold is reduced to
-reduce per-cpu drift to acceptable levels. Add a comment explaining
-why.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/vmscan.c |   92 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 46 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update mm/vmscan.c
---- a/mm/vmscan.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update
+diff -puN mm/vmscan.c~vmscan-factor-out-kswapd-sleeping-logic-from-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-factor-out-kswapd-sleeping-logic-from-kswapd
 +++ a/mm/vmscan.c
-@@ -2441,6 +2441,19 @@ static int kswapd(void *p)
- 				 */
- 				if (!sleeping_prematurely(pgdat, order, remaining)) {
- 					trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+@@ -2364,6 +2364,50 @@ out:
+ 	return sc.nr_reclaimed;
+ }
+ 
++static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
++{
++	long remaining = 0;
++	DEFINE_WAIT(wait);
 +
-+					/*
-+					 * vmstat counters are not perfectly
-+					 * accurate and the estimated value
-+					 * for counters such as NR_FREE_PAGES
-+					 * can deviate from the true value by
-+					 * nr_online_cpus * threshold. To
-+					 * avoid the zone watermarks being
-+					 * breached while under pressure, we
-+					 * reduce the per-cpu vmstat threshold
-+					 * while kswapd is awake and restore
-+					 * them before going back to sleep.
-+					 */
- 					set_pgdat_percpu_threshold(pgdat,
- 						calculate_normal_threshold);
- 					schedule();
-_
-
-Patches currently in -mm which might be from mel@csn.ul.ie are
-
-linux-next.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-
++	if (freezing(current) || kthread_should_stop())
++		return;
++
++	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
++
++	/* Try to sleep for a short interval */
++	if (!sleeping_prematurely(pgdat, order, remaining)) {
++		remaining = schedule_timeout(HZ/10);
++		finish_wait(&pgdat->kswapd_wait, &wait);
++		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
++	}
++
++	/*
++	 * After a short sleep, check if it was a premature sleep. If not, then
++	 * go fully to sleep until explicitly woken up.
++	 */
++	if (!sleeping_prematurely(pgdat, order, remaining)) {
++		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
++
++		/*
++		 * vmstat counters are not perfectly accurate and the estimated
++		 * value for counters such as NR_FREE_PAGES can deviate from the
++		 * true value by nr_online_cpus * threshold. To avoid the zone
++		 * watermarks being breached while under pressure, we reduce the
++		 * per-cpu vmstat threshold while kswapd is awake and restore
++		 * them before going back to sleep.
++		 */
++		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
++		schedule();
++		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
++	} else {
++		if (remaining)
++			count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
++		else
++			count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
++	}
++	finish_wait(&pgdat->kswapd_wait, &wait);
++}
++
+ /*
+  * The background pageout daemon, started as a kernel thread
+  * from the init process.
+@@ -2382,7 +2426,7 @@ static int kswapd(void *p)
+ 	unsigned long order;
+ 	pg_data_t *pgdat = (pg_data_t*)p;
+ 	struct task_struct *tsk = current;
+-	DEFINE_WAIT(wait);
++
+ 	struct reclaim_state reclaim_state = {
+ 		.reclaimed_slab = 0,
+ 	};
+@@ -2414,7 +2458,6 @@ static int kswapd(void *p)
+ 		unsigned long new_order;
+ 		int ret;
+ 
+-		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 		new_order = pgdat->kswapd_max_order;
+ 		pgdat->kswapd_max_order = 0;
+ 		if (order < new_order) {
+@@ -2424,52 +2467,9 @@ static int kswapd(void *p)
+ 			 */
+ 			order = new_order;
+ 		} else {
+-			if (!freezing(current) && !kthread_should_stop()) {
+-				long remaining = 0;
+-
+-				/* Try to sleep for a short interval */
+-				if (!sleeping_prematurely(pgdat, order, remaining)) {
+-					remaining = schedule_timeout(HZ/10);
+-					finish_wait(&pgdat->kswapd_wait, &wait);
+-					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+-				}
+-
+-				/*
+-				 * After a short sleep, check if it was a
+-				 * premature sleep. If not, then go fully
+-				 * to sleep until explicitly woken up
+-				 */
+-				if (!sleeping_prematurely(pgdat, order, remaining)) {
+-					trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+-
+-					/*
+-					 * vmstat counters are not perfectly
+-					 * accurate and the estimated value
+-					 * for counters such as NR_FREE_PAGES
+-					 * can deviate from the true value by
+-					 * nr_online_cpus * threshold. To
+-					 * avoid the zone watermarks being
+-					 * breached while under pressure, we
+-					 * reduce the per-cpu vmstat threshold
+-					 * while kswapd is awake and restore
+-					 * them before going back to sleep.
+-					 */
+-					set_pgdat_percpu_threshold(pgdat,
+-						calculate_normal_threshold);
+-					schedule();
+-					set_pgdat_percpu_threshold(pgdat,
+-						calculate_pressure_threshold);
+-				} else {
+-					if (remaining)
+-						count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
+-					else
+-						count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
+-				}
+-			}
