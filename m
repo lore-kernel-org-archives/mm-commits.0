@@ -1,85 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] latencytop-fix-per-task-accumulator.patch removed from -mm tree
-Date: Tue, 16 Nov 2010 11:30:21 -0800
-Message-ID: <201011161933.oAGJXXUN003116@imap1.linux-foundation.org>
+Subject: [merged] gpio-led-properly-initialize-return-value.patch removed from -mm tree
+Date: Tue, 16 Nov 2010 11:30:49 -0800
+Message-ID: <201011161934.oAGJY13m003164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756320Ab0KPTeA (ORCPT
+	by vger.kernel.org with ESMTP id S1757422Ab0KPTeM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:34:00 -0500
+	Tue, 16 Nov 2010 14:34:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, arjan@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: dave@gnu.org, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     latencytop: fix per task accumulator
+     drivers/leds/leds-gpio.c: properly initialize return value
 has been removed from the -mm tree.  Its filename was
-     latencytop-fix-per-task-accumulator.patch
+     gpio-led-properly-initialize-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: latencytop: fix per task accumulator
-From: Ken Chen <kenchen@google.com>
+Subject: drivers/leds/leds-gpio.c: properly initialize return value
+From: Davidlohr Bueso <dave@gnu.org>
 
-Per task latencytop accumulator prematurely terminates due to erroneous
-placement of latency_record_count.  It should be incremented whenever a
-new record is allocated instead of increment on every latencytop event.
+In the event that none of the configs are set (CONFIG_LEDS_GPIO_PLATFORM,
+CONFIG_LEDS_GPIO_OF, CONFIG_LEDS_GPIO_PLATFORM), we will return a bogus
+value when initializing the module.
 
-Also fix search iterator to only search known record events instead of
-blindly searching all pre-allocated space.
-
-Signed-off-by: Ken Chen <kenchen@google.com>
-Reviewed-by: Arjan van de Ven <arjan@infradead.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Acked-by: Richard Purdie <rpurdie@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/latencytop.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/leds/leds-gpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/latencytop.c~latencytop-fix-per-task-accumulator kernel/latencytop.c
---- a/kernel/latencytop.c~latencytop-fix-per-task-accumulator
-+++ a/kernel/latencytop.c
-@@ -194,14 +194,7 @@ __account_scheduler_latency(struct task_
+diff -puN drivers/leds/leds-gpio.c~gpio-led-properly-initialize-return-value drivers/leds/leds-gpio.c
+--- a/drivers/leds/leds-gpio.c~gpio-led-properly-initialize-return-value
++++ a/drivers/leds/leds-gpio.c
+@@ -316,7 +316,7 @@ static struct of_platform_driver of_gpio
  
- 	account_global_scheduler_latency(tsk, &lat);
+ static int __init gpio_led_init(void)
+ {
+-	int ret;
++	int ret = 0;
  
--	/*
--	 * short term hack; if we're > 32 we stop; future we recycle:
--	 */
--	tsk->latency_record_count++;
--	if (tsk->latency_record_count >= LT_SAVECOUNT)
--		goto out_unlock;
--
--	for (i = 0; i < LT_SAVECOUNT; i++) {
-+	for (i = 0; i < tsk->latency_record_count; i++) {
- 		struct latency_record *mylat;
- 		int same = 1;
- 
-@@ -227,8 +220,14 @@ __account_scheduler_latency(struct task_
- 		}
- 	}
- 
-+	/*
-+	 * short term hack; if we're > 32 we stop; future we recycle:
-+	 */
-+	if (tsk->latency_record_count >= LT_SAVECOUNT)
-+		goto out_unlock;
-+
- 	/* Allocated a new one: */
--	i = tsk->latency_record_count;
-+	i = tsk->latency_record_count++;
- 	memcpy(&tsk->latency_record[i], &lat, sizeof(struct latency_record));
- 
- out_unlock:
+ #ifdef CONFIG_LEDS_GPIO_PLATFORM	
+ 	ret = platform_driver_register(&gpio_led_driver);
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from dave@gnu.org are
 
 
