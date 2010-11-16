@@ -1,63 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value.patch removed from -mm tree
-Date: Tue, 16 Nov 2010 11:31:07 -0800
-Message-ID: <201011161934.oAGJYJ68003193@imap1.linux-foundation.org>
+Subject: [merged] ioprio-grab-rcu_read_lock-in-sys_ioprio_setget.patch removed from -mm tree
+Date: Tue, 16 Nov 2010 11:31:12 -0800
+Message-ID: <201011161934.oAGJYO31003199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756408Ab0KPTe4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756322Ab0KPTf1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:34:56 -0500
+	Tue, 16 Nov 2010 14:35:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.hennerich@analog.com, rpurdie@linux.intel.com, sfr@canb.auug.org.au, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: gthelen@google.com, axboe@kernel.dk, oleg@redhat.com, paulmck@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/adp8860_bl.c: check strict_strtoul() return value
+     ioprio: grab rcu_read_lock in sys_ioprio_{set,get}()
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value.patch
+     ioprio-grab-rcu_read_lock-in-sys_ioprio_setget.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/adp8860_bl.c: check strict_strtoul() return value
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: ioprio: grab rcu_read_lock in sys_ioprio_{set,get}()
+From: Greg Thelen <gthelen@google.com>
 
-Handle return value, strict_strtoul is declared with attribute
-warn_unused_result.
+Using:
+- CONFIG_LOCKUP_DETECTOR=y
+- CONFIG_PREEMPT=y
+- CONFIG_LOCKDEP=y
+- CONFIG_PROVE_LOCKING=y
+- CONFIG_PROVE_RCU=y
+found a missing rcu lock during boot on a 512 MiB x86_64 ubuntu vm:
+  ===================================================
+  [ INFO: suspicious rcu_dereference_check() usage. ]
+  ---------------------------------------------------
+  kernel/pid.c:419 invoked rcu_dereference_check() without protection!
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+  other info that might help us debug this:
+
+  rcu_scheduler_active = 1, debug_locks = 0
+  1 lock held by ureadahead/1355:
+   #0:  (tasklist_lock){.+.+..}, at: [<ffffffff8115bc09>] sys_ioprio_set+0x7f/0x29e
+
+  stack backtrace:
+  Pid: 1355, comm: ureadahead Not tainted 2.6.37-dbg-DEV #1
+  Call Trace:
+   [<ffffffff8109c10c>] lockdep_rcu_dereference+0xaa/0xb3
+   [<ffffffff81088cbf>] find_task_by_pid_ns+0x44/0x5d
+   [<ffffffff81088cfa>] find_task_by_vpid+0x22/0x24
+   [<ffffffff8115bc3e>] sys_ioprio_set+0xb4/0x29e
+   [<ffffffff8147cf21>] ? trace_hardirqs_off_thunk+0x3a/0x3c
+   [<ffffffff8105c409>] sysenter_dispatch+0x7/0x2c
+   [<ffffffff8147cee2>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+
+The fix is to:
+a) grab rcu lock in sys_ioprio_{set,get}() and
+b) avoid grabbing tasklist_lock.
+Discussion in: http://marc.info/?l=linux-kernel&m=128951324702889
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8860_bl.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ioprio.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value drivers/video/backlight/adp8860_bl.c
---- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value
-+++ a/drivers/video/backlight/adp8860_bl.c
-@@ -502,8 +502,10 @@ static ssize_t adp8860_bl_l1_daylight_ma
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
- 	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	int ret = strict_strtoul(buf, 10, &data->cached_daylight_max);
-+	if (ret)
-+		return ret;
+diff -puN fs/ioprio.c~ioprio-grab-rcu_read_lock-in-sys_ioprio_setget fs/ioprio.c
+--- a/fs/ioprio.c~ioprio-grab-rcu_read_lock-in-sys_ioprio_setget
++++ a/fs/ioprio.c
+@@ -103,12 +103,7 @@ SYSCALL_DEFINE3(ioprio_set, int, which, 
+ 	}
  
--	strict_strtoul(buf, 10, &data->cached_daylight_max);
- 	return adp8860_store(dev, buf, count, ADP8860_BLMX1);
+ 	ret = -ESRCH;
+-	/*
+-	 * We want IOPRIO_WHO_PGRP/IOPRIO_WHO_USER to be "atomic",
+-	 * so we can't use rcu_read_lock(). See re-copy of ->ioprio
+-	 * in copy_process().
+-	 */
+-	read_lock(&tasklist_lock);
++	rcu_read_lock();
+ 	switch (which) {
+ 		case IOPRIO_WHO_PROCESS:
+ 			if (!who)
+@@ -153,7 +148,7 @@ free_uid:
+ 			ret = -EINVAL;
+ 	}
+ 
+-	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
+ 	return ret;
  }
- static DEVICE_ATTR(l1_daylight_max, 0664, adp8860_bl_l1_daylight_max_show,
+ 
+@@ -197,7 +192,7 @@ SYSCALL_DEFINE2(ioprio_get, int, which, 
+ 	int ret = -ESRCH;
+ 	int tmpio;
+ 
+-	read_lock(&tasklist_lock);
++	rcu_read_lock();
+ 	switch (which) {
+ 		case IOPRIO_WHO_PROCESS:
+ 			if (!who)
+@@ -250,6 +245,6 @@ SYSCALL_DEFINE2(ioprio_get, int, which, 
+ 			ret = -EINVAL;
+ 	}
+ 
+-	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 linux-next.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+writeback-create-dirty_info-structure.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-dirty-limits-to-mem_cgroup-use-native-word-to-represent-dirtyable-pages.patch
+memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch
+memcg-add-dirty-limits-to-mem_cgroup-avoid-overflow-in-memcg_hierarchical_free_pages.patch
+memcg-add-dirty-limits-to-mem_cgroup-correct-memcg_hierarchical_free_pages-return-type.patch
+memcg-add-dirty-limits-to-mem_cgroup-avoid-free-overflow-in-memcg_hierarchical_free_pages.patch
+memcg-cpu-hotplug-lockdep-warning-fix.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-use-native-word-page-statistics-counters.patch
+memcg-use-native-word-page-statistics-counters-fix.patch
+memcg-add-mem_cgroup-parameter-to-mem_cgroup_page_stat.patch
+memcg-pass-mem_cgroup-to-mem_cgroup_dirty_info.patch
+memcg-make-throttle_vm_writeout-memcg-aware.patch
+memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
+memcg-simplify-mem_cgroup_page_stat.patch
+memcg-simplify-mem_cgroup_dirty_info.patch
+memcg-make-mem_cgroup_page_stat-return-value-unsigned.patch
 
