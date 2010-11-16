@@ -1,74 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-macbookair3132-mbp-nvidia-bl-support.patch removed from -mm tree
-Date: Tue, 16 Nov 2010 11:31:09 -0800
-Message-ID: <201011161934.oAGJYLVf003196@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value.patch removed from -mm tree
+Date: Tue, 16 Nov 2010 11:31:07 -0800
+Message-ID: <201011161934.oAGJYJ68003193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756408Ab0KPTe6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756408Ab0KPTe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 14:34:58 -0500
+	Tue, 16 Nov 2010 14:34:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gimli@dark-green.com, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
+To: michael.hennerich@analog.com, rpurdie@linux.intel.com, sfr@canb.auug.org.au, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: MacBookAir3,1(3,2) mbp-nvidia-bl support
+     drivers/video/backlight/adp8860_bl.c: check strict_strtoul() return value
 has been removed from the -mm tree.  Its filename was
-     backlight-macbookair3132-mbp-nvidia-bl-support.patch
+     drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: MacBookAir3,1(3,2) mbp-nvidia-bl support
-From: Edgar (gimli) Hucek <gimli@dark-green.com>
+Subject: drivers/video/backlight/adp8860_bl.c: check strict_strtoul() return value
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-Add support for the MacBookAir3,1 and MacBookAir3,2 to the mbp-nvidia-bl
-driver.
+Handle return value, strict_strtoul is declared with attribute
+warn_unused_result.
 
-Signed-off-by: Edgar (gimli) Hucek <gimli@dark-green.com>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/mbp_nvidia_bl.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/video/backlight/adp8860_bl.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/mbp_nvidia_bl.c~backlight-macbookair3132-mbp-nvidia-bl-support drivers/video/backlight/mbp_nvidia_bl.c
---- a/drivers/video/backlight/mbp_nvidia_bl.c~backlight-macbookair3132-mbp-nvidia-bl-support
-+++ a/drivers/video/backlight/mbp_nvidia_bl.c
-@@ -335,6 +335,24 @@ static const struct dmi_system_id __init
- 		},
- 		.driver_data	= (void *)&nvidia_chipset_data,
- 	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookAir 3,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookAir 3,2",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3,2"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
- 	{ }
- };
+diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-check-strict_strtoul-return-value
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -502,8 +502,10 @@ static ssize_t adp8860_bl_l1_daylight_ma
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	struct adp8860_bl *data = dev_get_drvdata(dev);
++	int ret = strict_strtoul(buf, 10, &data->cached_daylight_max);
++	if (ret)
++		return ret;
  
+-	strict_strtoul(buf, 10, &data->cached_daylight_max);
+ 	return adp8860_store(dev, buf, count, ADP8860_BLMX1);
+ }
+ static DEVICE_ATTR(l1_daylight_max, 0664, adp8860_bl_l1_daylight_max_show,
 _
 
-Patches currently in -mm which might be from gimli@dark-green.com are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
 linux-next.patch
 
