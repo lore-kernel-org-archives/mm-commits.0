@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch added to -mm tree
-Date: Wed, 17 Nov 2010 15:03:26 -0800
-Message-ID: <201011172303.oAHN3Qwa010625@imap1.linux-foundation.org>
+Subject: + writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch added to -mm tree
+Date: Wed, 17 Nov 2010 15:03:12 -0800
+Message-ID: <201011172303.oAHN3CCQ010597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935678Ab0KQXEv (ORCPT
+	by vger.kernel.org with ESMTP id S935674Ab0KQXEm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 18:04:51 -0500
+	Wed, 17 Nov 2010 18:04:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason
 
 
 The patch titled
-     writeback: scale down max throttle bandwidth on concurrent dirtiers
+     writeback: prevent duplicate balance_dirty_pages_ratelimited() calls
 has been added to the -mm tree.  Its filename is
-     writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+     writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: scale down max throttle bandwidth on concurrent dirtiers
+Subject: writeback: prevent duplicate balance_dirty_pages_ratelimited() calls
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-This will noticeably reduce the fluctuaions of pause time when there are
-100+ concurrent dirtiers.
-
-The more parallel dirtiers (1 dirtier => 4 dirtiers), the smaller
-bandwidth each dirtier will share (bdi_bandwidth => bdi_bandwidth/4), the
-less gap to the dirty limit ((C-A) => (C-B)), the less stable the pause
-time will be (given the same fluctuation of bdi_dirty).
-
-For example, if A drifts to A', its pause time may drift from 5ms to 6ms,
-while B to B' may drift from 50ms to 90ms.  It's much larger fluctuations
-in relative ratio as well as absolute time.
-
-Fig.1 before patch, gap (C-B) is too low to get smooth pause time
-
-throttle_bandwidth_A = bdi_bandwidth .........o
-                                              | o <= A'
-                                              |   o
-                                              |     o
-                                              |       o
-                                              |         o
-throttle_bandwidth_B = bdi_bandwidth / 4 .....|...........o
-                                              |           | o <= B'
- ---------------------------------------------+-----------+---o
-                                              A           B   C
-
-The solution is to lower the slope of the throttle line accordingly, which
-makes B stabilize at some point more far away from C.
-
-Fig.2 after patch
-
-throttle_bandwidth_A = bdi_bandwidth .........o
-                                              | o <= A'
-                                              |   o
-                                              |     o
-    lowered max throttle bandwidth for B ===> *       o
-                                              |   *     o
-throttle_bandwidth_B = bdi_bandwidth / 4 .............*   o
-                                              |       |   * o
- ---------------------------------------------+-------+-------o
-                                              A       B       C
-
-Note that C is actually different points for 1-dirty and 4-dirtiers cases,
-but for easy graphing, we move them together.
+When dd in 512bytes, balance_dirty_pages_ratelimited() used to be called 8
+times for the same page, even if the page is only dirtied once.  Fix it
+with a (slightly racy) PageDirty() test.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -99,55 +59,38 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/filemap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers
-+++ a/mm/page-writeback.c
-@@ -537,6 +537,7 @@ static void balance_dirty_pages(struct a
- 	unsigned long background_thresh;
- 	unsigned long dirty_thresh;
- 	unsigned long bdi_thresh;
-+	unsigned long task_thresh;
- 	unsigned long bw;
- 	unsigned long pause = 0;
- 	bool dirty_exceeded = false;
-@@ -566,7 +567,7 @@ static void balance_dirty_pages(struct a
- 			break;
+diff -puN mm/filemap.c~writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls mm/filemap.c
+--- a/mm/filemap.c~writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls
++++ a/mm/filemap.c
+@@ -2255,6 +2255,7 @@ static ssize_t generic_perform_write(str
+ 	long status = 0;
+ 	ssize_t written = 0;
+ 	unsigned int flags = 0;
++	unsigned int dirty;
  
- 		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
--		bdi_thresh = task_dirty_limit(current, bdi_thresh);
-+		task_thresh = task_dirty_limit(current, bdi_thresh);
+ 	/*
+ 	 * Copies from kernel address space cannot fail (NFSD is a big user).
+@@ -2303,6 +2304,7 @@ again:
+ 		pagefault_enable();
+ 		flush_dcache_page(page);
  
- 		/*
- 		 * In order to avoid the stacked BDI deadlock we need
-@@ -605,14 +606,23 @@ static void balance_dirty_pages(struct a
- 			break;
- 		bdi_prev_dirty = bdi_dirty;
++		dirty = PageDirty(page);
+ 		mark_page_accessed(page);
+ 		status = a_ops->write_end(file, mapping, pos, bytes, copied,
+ 						page, fsdata);
+@@ -2329,7 +2331,8 @@ again:
+ 		pos += copied;
+ 		written += copied;
  
--		if (bdi_dirty >= bdi_thresh) {
-+		if (bdi_dirty >= task_thresh) {
- 			pause = HZ/10;
- 			goto pause;
- 		}
+-		balance_dirty_pages_ratelimited(mapping);
++		if (!dirty)
++			balance_dirty_pages_ratelimited(mapping);
  
-+		/*
-+		 * When bdi_dirty grows closer to bdi_thresh, it indicates more
-+		 * concurrent dirtiers. Proportionally lower the max throttle
-+		 * bandwidth. This will resist bdi_dirty from approaching to
-+		 * close to task_thresh, and help reduce fluctuations of pause
-+		 * time when there are lots of dirtiers.
-+		 */
- 		bw = bdi->write_bandwidth;
--
- 		bw = bw * (bdi_thresh - bdi_dirty);
-+		bw = bw / (bdi_thresh / BDI_SOFT_DIRTY_LIMIT + 1);
-+
-+		bw = bw * (task_thresh - bdi_dirty);
- 		bw = bw / (bdi_thresh / TASK_SOFT_DIRTY_LIMIT + 1);
+ 	} while (iov_iter_count(i));
  
- 		pause = HZ * (pages_dirtied << PAGE_CACHE_SHIFT) / (bw + 1);
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
