@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-power-changed-makefile-to-use-proper-ccflag-flag.patch added to -mm tree
-Date: Tue, 16 Nov 2010 16:17:44 -0800
-Message-ID: <201011170017.oAH0Hila016403@imap1.linux-foundation.org>
+Subject: + acerhdf-add-support-for-aspire-1410-bios-v13314.patch added to -mm tree
+Date: Tue, 16 Nov 2010 16:21:12 -0800
+Message-ID: <201011170021.oAH0LCd3016604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756087Ab0KQASf (ORCPT
+	by vger.kernel.org with ESMTP id S1756972Ab0KQAV5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 19:18:35 -0500
+	Tue, 16 Nov 2010 19:21:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tdent48227@gmail.com, lenb@kernel.org, mmarek@suse.cz, pavel@ucw.cz, rjw@sisk.pl
+Cc: claycarpenter@gmail.com, mjg@redhat.com, peter@piie.net
 
 
 The patch titled
-     kernel/power/Makefile: use proper ccflag flag
+     acerhdf: add support for Aspire 1410 BIOS v1.3314
 has been added to the -mm tree.  Its filename is
-     kernel-power-changed-makefile-to-use-proper-ccflag-flag.patch
+     acerhdf-add-support-for-aspire-1410-bios-v13314.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/power/Makefile: use proper ccflag flag
-From: Tracey Dent <tdent48227@gmail.com>
+Subject: acerhdf: add support for Aspire 1410 BIOS v1.3314
+From: Clay Carpenter <claycarpenter@gmail.com>
 
-Use the ccflags-$ flag instead of EXTRA_CFLAGS because EXTRA_CFLAGS is
-deprecated and should now be switched.  According to
-(documentation/kbuild/makefiles.txt).
+Add support for Aspire 1410 BIOS v1.3314.  Fixes the following error:
 
-Signed-off-by: Tracey Dent <tdent48227@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Michal Marek <mmarek@suse.cz>
+acerhdf: unknown (unsupported) BIOS version Acer/Aspire 1410/v1.3314,
+please report, aborting!
+
+Signed-off-by: Clay Carpenter <claycarpenter@gmail.com>
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Makefile |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/platform/x86/acerhdf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/power/Makefile~kernel-power-changed-makefile-to-use-proper-ccflag-flag kernel/power/Makefile
---- a/kernel/power/Makefile~kernel-power-changed-makefile-to-use-proper-ccflag-flag
-+++ a/kernel/power/Makefile
-@@ -1,7 +1,4 @@
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-add-support-for-aspire-1410-bios-v13314 drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-add-support-for-aspire-1410-bios-v13314
++++ a/drivers/platform/x86/acerhdf.c
+@@ -163,6 +163,7 @@ static const struct bios_settings_t bios
+ 	{"Acer", "Aspire 1410", "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
+ 	{"Acer", "Aspire 1410", "v1.3308", 0x55, 0x58, {0x9e, 0x00} },
+ 	{"Acer", "Aspire 1410", "v1.3310", 0x55, 0x58, {0x9e, 0x00} },
++	{"Acer", "Aspire 1410", "v1.3314", 0x55, 0x58, {0x9e, 0x00} },
+ 	/* Acer 1810xx */
+ 	{"Acer", "Aspire 1810TZ", "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
+ 	{"Acer", "Aspire 1810T",  "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
+_
+
+Patches currently in -mm which might be from claycarpenter@gmail.com are
+
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+
