@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-show-bdi-write-bandwidth-in-debugfs.patch added to -mm tree
-Date: Wed, 17 Nov 2010 15:03:18 -0800
-Message-ID: <201011172303.oAHN3Ius010613@imap1.linux-foundation.org>
+Subject: + writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch added to -mm tree
+Date: Wed, 17 Nov 2010 15:03:20 -0800
+Message-ID: <201011172303.oAHN3K0H010616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935669Ab0KQXEg (ORCPT
+	by vger.kernel.org with ESMTP id S935678Ab0KQXEn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 18:04:36 -0500
+	Wed, 17 Nov 2010 18:04:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason
 
 
 The patch titled
-     writeback: show bdi write bandwidth in debugfs
+     writeback: quit throttling when bdi dirty pages dropped low
 has been added to the -mm tree.  Its filename is
-     writeback-show-bdi-write-bandwidth-in-debugfs.patch
+     writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: show bdi write bandwidth in debugfs
+Subject: writeback: quit throttling when bdi dirty pages dropped low
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Add a "BdiWriteBandwidth" entry (and indent others) in /debug/bdi/*/stats.
+Tests show that bdi_thresh may take minutes to ramp up on a typical
+desktop.  The time should be improvable but cannot be eliminated totally. 
+So when (background_thresh + dirty_thresh)/2 is reached and
+balance_dirty_pages() starts to throttle the task, it will suddenly find
+the (still low and ramping up) bdi_thresh is exceeded _excessively_.  Here
+we definitely don't want to stall the task for one minute (when it's
+writing to USB stick).  So introduce an alternative way to break out of
+the loop when the bdi dirty/write pages has dropped by a reasonable
+amount.
 
-btw increase digital field width to 10, for keeping the possibly huge
-BdiWritten number aligned at least for desktop systems.
+When dirty_background_ratio is set close to dirty_ratio, bdi_thresh may
+also be constantly exceeded due to the task_dirty_limit() gap.  This is
+addressed by another patch to lower the background threshold when
+necessary.
 
-This will break user space tools if they are dumb enough to depend on the
-number of white spaces.
+It will take at least 100ms before trying to break out.
+
+Note that this opens the chance that during normal operation, a huge
+number of slow dirtiers writing to a really slow device might manage to
+outrun bdi_thresh.  But the risk is pretty low.  It takes at least one
+100ms sleep loop to break out, and the global limit is still enforced.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -63,47 +77,46 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/page-writeback.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN mm/backing-dev.c~writeback-show-bdi-write-bandwidth-in-debugfs mm/backing-dev.c
---- a/mm/backing-dev.c~writeback-show-bdi-write-bandwidth-in-debugfs
-+++ a/mm/backing-dev.c
-@@ -87,21 +87,23 @@ static int bdi_debug_stats_show(struct s
+diff -puN mm/page-writeback.c~writeback-quit-throttling-when-bdi-dirty-pages-dropped-low mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-quit-throttling-when-bdi-dirty-pages-dropped-low
++++ a/mm/page-writeback.c
+@@ -526,6 +526,7 @@ static void balance_dirty_pages(struct a
+ {
+ 	long nr_reclaimable;
+ 	long nr_dirty, bdi_dirty;  /* = file_dirty + writeback + unstable_nfs */
++	long bdi_prev_dirty = 0;
+ 	unsigned long background_thresh;
+ 	unsigned long dirty_thresh;
+ 	unsigned long bdi_thresh;
+@@ -578,6 +579,25 @@ static void balance_dirty_pages(struct a
+ 				    bdi_stat(bdi, BDI_WRITEBACK);
+ 		}
  
- #define K(x) ((x) << (PAGE_SHIFT - 10))
- 	seq_printf(m,
--		   "BdiWriteback:     %8lu kB\n"
--		   "BdiReclaimable:   %8lu kB\n"
--		   "BdiDirtyThresh:   %8lu kB\n"
--		   "DirtyThresh:      %8lu kB\n"
--		   "BackgroundThresh: %8lu kB\n"
--		   "BdiWritten:       %8lu kB\n"
--		   "b_dirty:          %8lu\n"
--		   "b_io:             %8lu\n"
--		   "b_more_io:        %8lu\n"
--		   "bdi_list:         %8u\n"
--		   "state:            %8lx\n",
-+		   "BdiWriteback:       %10lu kB\n"
-+		   "BdiReclaimable:     %10lu kB\n"
-+		   "BdiDirtyThresh:     %10lu kB\n"
-+		   "DirtyThresh:        %10lu kB\n"
-+		   "BackgroundThresh:   %10lu kB\n"
-+		   "BdiWritten:         %10lu kB\n"
-+		   "BdiWriteBandwidth:  %10lu kBps\n"
-+		   "b_dirty:            %10lu\n"
-+		   "b_io:               %10lu\n"
-+		   "b_more_io:          %10lu\n"
-+		   "bdi_list:           %10u\n"
-+		   "state:              %10lx\n",
- 		   (unsigned long) K(bdi_stat(bdi, BDI_WRITEBACK)),
- 		   (unsigned long) K(bdi_stat(bdi, BDI_RECLAIMABLE)),
- 		   K(bdi_thresh), K(dirty_thresh), K(background_thresh),
- 		   (unsigned long) K(bdi_stat(bdi, BDI_WRITTEN)),
-+		   (unsigned long) bdi->write_bandwidth >> 10,
- 		   nr_dirty, nr_io, nr_more_io,
- 		   !list_empty(&bdi->bdi_list), bdi->state);
- #undef K
++		/*
++		 * bdi_thresh takes time to ramp up from the initial 0,
++		 * especially for slow devices.
++		 *
++		 * It's possible that at the moment dirty throttling starts,
++		 * 	bdi_dirty = nr_dirty
++		 * 		  = (background_thresh + dirty_thresh) / 2
++		 * 		  >> bdi_thresh
++		 * Then the task could be blocked for a dozen second to flush
++		 * all the exceeded (bdi_dirty - bdi_thresh) pages. So offer a
++		 * complementary way to break out of the loop when 250ms worth
++		 * of dirty pages have been cleaned during our pause time.
++		 */
++		if (nr_dirty < dirty_thresh &&
++		    bdi_prev_dirty - bdi_dirty >
++		    bdi->write_bandwidth >> (PAGE_CACHE_SHIFT + 2))
++			break;
++		bdi_prev_dirty = bdi_dirty;
++
+ 		if (bdi_dirty >= bdi_thresh) {
+ 			pause = HZ/10;
+ 			goto pause;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
