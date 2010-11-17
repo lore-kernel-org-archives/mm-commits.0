@@ -1,70 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-add-support-for-aspire-1410-bios-v13314.patch added to -mm tree
-Date: Tue, 16 Nov 2010 16:21:12 -0800
-Message-ID: <201011170021.oAH0LCd3016604@imap1.linux-foundation.org>
+Subject: [merged] kernel-sysctlc-fix-build-failure-with-config_printk.patch removed from -mm tree
+Date: Wed, 17 Nov 2010 11:43:33 -0800
+Message-ID: <201011171946.oAHJktW9001836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756972Ab0KQAV5 (ORCPT
+	by vger.kernel.org with ESMTP id S932364Ab0KQTrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Nov 2010 19:21:57 -0500
+	Wed, 17 Nov 2010 14:47:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: claycarpenter@gmail.com, mjg@redhat.com, peter@piie.net
+To: joe@perches.com, eparis@redhat.com, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acerhdf: add support for Aspire 1410 BIOS v1.3314
-has been added to the -mm tree.  Its filename is
-     acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+     kernel/sysctl.c: fix build failure with !CONFIG_PRINTK
+has been removed from the -mm tree.  Its filename was
+     kernel-sysctlc-fix-build-failure-with-config_printk.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: add support for Aspire 1410 BIOS v1.3314
-From: Clay Carpenter <claycarpenter@gmail.com>
+Subject: kernel/sysctl.c: fix build failure with !CONFIG_PRINTK
+From: Joe Perches <joe@perches.com>
 
-Add support for Aspire 1410 BIOS v1.3314.  Fixes the following error:
-
-acerhdf: unknown (unsupported) BIOS version Acer/Aspire 1410/v1.3314,
-please report, aborting!
-
-Signed-off-by: Clay Carpenter <claycarpenter@gmail.com>
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-add-support-for-aspire-1410-bios-v13314 drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-add-support-for-aspire-1410-bios-v13314
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -163,6 +163,7 @@ static const struct bios_settings_t bios
- 	{"Acer", "Aspire 1410", "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v1.3308", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v1.3310", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v1.3314", 0x55, 0x58, {0x9e, 0x00} },
- 	/* Acer 1810xx */
- 	{"Acer", "Aspire 1810TZ", "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810T",  "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
+diff -puN kernel/sysctl.c~kernel-sysctlc-fix-build-failure-with-config_printk kernel/sysctl.c
+--- a/kernel/sysctl.c~kernel-sysctlc-fix-build-failure-with-config_printk
++++ a/kernel/sysctl.c
+@@ -702,7 +702,6 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &ten_thousand,
+ 	},
+-#endif
+ 	{
+ 		.procname	= "dmesg_restrict",
+ 		.data		= &dmesg_restrict,
+@@ -712,6 +711,7 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++#endif
+ 	{
+ 		.procname	= "ngroups_max",
+ 		.data		= &ngroups_max,
 _
 
-Patches currently in -mm which might be from claycarpenter@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+origin.patch
+linux-next.patch
+mm-convert-sprintf_symbol-to-%ps.patch
+scripts-get_maintainerpl-make-rolestats-the-default.patch
+scripts-get_maintainerpl-use-git-fallback-more-often.patch
+maintainers-intel-gfx-is-a-subscribers-only-mailing-list.patch
+scripts-checkpatchpl-add-check-for-multiple-terminating-semicolons-and-casts-of-vmalloc.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
 
