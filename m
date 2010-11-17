@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch added to -mm tree
-Date: Wed, 17 Nov 2010 15:03:22 -0800
-Message-ID: <201011172303.oAHN3M88010619@imap1.linux-foundation.org>
+Subject: + writeback-make-nr_to_write-a-per-file-limit.patch added to -mm tree
+Date: Wed, 17 Nov 2010 15:03:30 -0800
+Message-ID: <201011172303.oAHN3UHs010632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935678Ab0KQXEs (ORCPT
+	by vger.kernel.org with ESMTP id S935681Ab0KQXEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 18:04:48 -0500
+	Wed, 17 Nov 2010 18:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason
 
 
 The patch titled
-     writeback: reduce per-bdi dirty threshold ramp up time
+     writeback: make nr_to_write a per-file limit
 has been added to the -mm tree.  Its filename is
-     writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+     writeback-make-nr_to_write-a-per-file-limit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: reduce per-bdi dirty threshold ramp up time
+Subject: writeback: make nr_to_write a per-file limit
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Reduce the dampening for the control system, yielding faster convergence.
-
-Currently it converges at a snail's pace for slow devices (in order of
-minutes).  For really fast storage, the convergence speed should be fine.
-
-It makes sense to make it reasonably fast for typical desktops.
-
-After patch, it converges in ~10 seconds for 60MB/s writes and 4GB mem. 
-So expect ~1s for a fast 600MB/s storage under 4GB mem, or ~4s under 16GB
-mem, which seems reasonable.
-
-$ while true; do grep BdiDirtyThresh /debug/bdi/8:0/stats; sleep 1; done
-BdiDirtyThresh:            0 kB
-BdiDirtyThresh:       118748 kB
-BdiDirtyThresh:       214280 kB
-BdiDirtyThresh:       303868 kB
-BdiDirtyThresh:       376528 kB
-BdiDirtyThresh:       411180 kB
-BdiDirtyThresh:       448636 kB
-BdiDirtyThresh:       472260 kB
-BdiDirtyThresh:       490924 kB
-BdiDirtyThresh:       499596 kB
-BdiDirtyThresh:       507068 kB
-...
-DirtyThresh:          530392 kB
+This ensures full 4MB (or larger) writeback size for large dirty files.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -81,21 +57,58 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c         |   11 +++++++++++
+ include/linux/writeback.h |    1 +
+ 2 files changed, 12 insertions(+)
 
-diff -puN mm/page-writeback.c~writeback-reduce-per-bdi-dirty-threshold-ramp-up-time mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-reduce-per-bdi-dirty-threshold-ramp-up-time
-+++ a/mm/page-writeback.c
-@@ -125,7 +125,7 @@ static int calc_period_shift(void)
- 	else
- 		dirty_total = (vm_dirty_ratio * determine_dirtyable_memory()) /
- 				100;
--	return 2 + ilog2(dirty_total - 1);
-+	return ilog2(dirty_total - 1) - 1;
- }
+diff -puN fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit
++++ a/fs/fs-writeback.c
+@@ -330,6 +330,8 @@ static int
+ writeback_single_inode(struct inode *inode, struct writeback_control *wbc)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
++	long per_file_limit = wbc->per_file_limit;
++	long nr_to_write;
+ 	unsigned dirty;
+ 	int ret;
  
- /*
+@@ -365,8 +367,16 @@ writeback_single_inode(struct inode *ino
+ 	inode->i_state &= ~I_DIRTY_PAGES;
+ 	spin_unlock(&inode_lock);
+ 
++	if (per_file_limit) {
++		nr_to_write = wbc->nr_to_write;
++		wbc->nr_to_write = per_file_limit;
++	}
++
+ 	ret = do_writepages(mapping, wbc);
+ 
++	if (per_file_limit)
++		wbc->nr_to_write += nr_to_write - per_file_limit;
++
+ 	/*
+ 	 * Make sure to wait on the data before writing out the metadata.
+ 	 * This is important for filesystems that modify metadata on data
+@@ -698,6 +708,7 @@ static long wb_writeback(struct bdi_writ
+ 
+ 		wbc.more_io = 0;
+ 		wbc.nr_to_write = write_chunk;
++		wbc.per_file_limit = write_chunk;
+ 		wbc.pages_skipped = 0;
+ 
+ 		trace_wbc_writeback_start(&wbc, wb->bdi);
+diff -puN include/linux/writeback.h~writeback-make-nr_to_write-a-per-file-limit include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-make-nr_to_write-a-per-file-limit
++++ a/include/linux/writeback.h
+@@ -43,6 +43,7 @@ struct writeback_control {
+ 					   extra jobs and livelock */
+ 	long nr_to_write;		/* Write this many pages, and decrement
+ 					   this for each page written */
++	long per_file_limit;		/* Write this many pages for one file */
+ 	long pages_skipped;		/* Pages which were not written */
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
