@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-mpagec-consolidate-code-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Nov 2010 12:50:13 -0800
-Message-ID: <201011172050.oAHKoDKK004451@imap1.linux-foundation.org>
+Subject: + writeback-account-per-bdi-accumulated-written-pages.patch added to -mm tree
+Date: Wed, 17 Nov 2010 15:03:14 -0800
+Message-ID: <201011172303.oAHN3Euu010602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932364Ab0KQUuP (ORCPT
+	by vger.kernel.org with ESMTP id S1759019Ab0KQXE1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 15:50:15 -0500
+	Wed, 17 Nov 2010 18:04:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haishan.bai@gmail.com, shan.hai@windriver.com
+Cc: jack@suse.cz, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mrubin@google.com, richard@rsk.demon.co.uk, riel@redhat.com, shaohua.li@intel.com, tytso@mit.edu
 
 
 The patch titled
-     fs-mpagec-consolidate-code-checkpatch-fixes
+     writeback: account per-bdi accumulated written pages
 has been added to the -mm tree.  Its filename is
-     fs-mpagec-consolidate-code-checkpatch-fixes.patch
+     writeback-account-per-bdi-accumulated-written-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-mpagec-consolidate-code-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: writeback: account per-bdi accumulated written pages
+From: Jan Kara <jack@suse.cz>
 
-ERROR: space required before the open brace '{'
-#65: FILE: fs/mpage.c:63:
-+			if (!uptodate){
+Introduce the BDI_WRITTEN counter.  It will be used for estimating the
+bdi's write bandwidth.
 
-total: 1 errors, 0 warnings, 68 lines checked
-
-./patches/fs-mpagec-consolidate-code.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hai Shan <haishan.bai@gmail.com>
-Cc: Hai Shan <shan.hai@windriver.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/backing-dev.h |    1 +
+ mm/backing-dev.c            |    6 ++++--
+ mm/page-writeback.c         |    1 +
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/mpage.c~fs-mpagec-consolidate-code-checkpatch-fixes fs/mpage.c
---- a/fs/mpage.c~fs-mpagec-consolidate-code-checkpatch-fixes
-+++ a/fs/mpage.c
-@@ -60,7 +60,7 @@ static void mpage_end_io(struct bio *bio
+diff -puN include/linux/backing-dev.h~writeback-account-per-bdi-accumulated-written-pages include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~writeback-account-per-bdi-accumulated-written-pages
++++ a/include/linux/backing-dev.h
+@@ -40,6 +40,7 @@ typedef int (congested_fn)(void *, int);
+ enum bdi_stat_item {
+ 	BDI_RECLAIMABLE,
+ 	BDI_WRITEBACK,
++	BDI_WRITTEN,
+ 	NR_BDI_STAT_ITEMS
+ };
+ 
+diff -puN mm/backing-dev.c~writeback-account-per-bdi-accumulated-written-pages mm/backing-dev.c
+--- a/mm/backing-dev.c~writeback-account-per-bdi-accumulated-written-pages
++++ a/mm/backing-dev.c
+@@ -92,6 +92,7 @@ static int bdi_debug_stats_show(struct s
+ 		   "BdiDirtyThresh:   %8lu kB\n"
+ 		   "DirtyThresh:      %8lu kB\n"
+ 		   "BackgroundThresh: %8lu kB\n"
++		   "BdiWritten:       %8lu kB\n"
+ 		   "b_dirty:          %8lu\n"
+ 		   "b_io:             %8lu\n"
+ 		   "b_more_io:        %8lu\n"
+@@ -99,8 +100,9 @@ static int bdi_debug_stats_show(struct s
+ 		   "state:            %8lx\n",
+ 		   (unsigned long) K(bdi_stat(bdi, BDI_WRITEBACK)),
+ 		   (unsigned long) K(bdi_stat(bdi, BDI_RECLAIMABLE)),
+-		   K(bdi_thresh), K(dirty_thresh),
+-		   K(background_thresh), nr_dirty, nr_io, nr_more_io,
++		   K(bdi_thresh), K(dirty_thresh), K(background_thresh),
++		   (unsigned long) K(bdi_stat(bdi, BDI_WRITTEN)),
++		   nr_dirty, nr_io, nr_more_io,
+ 		   !list_empty(&bdi->bdi_list), bdi->state);
+ #undef K
+ 
+diff -puN mm/page-writeback.c~writeback-account-per-bdi-accumulated-written-pages mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-account-per-bdi-accumulated-written-pages
++++ a/mm/page-writeback.c
+@@ -1292,6 +1292,7 @@ int test_clear_page_writeback(struct pag
+ 						PAGECACHE_TAG_WRITEBACK);
+ 			if (bdi_cap_account_writeback(bdi)) {
+ 				__dec_bdi_stat(bdi, BDI_WRITEBACK);
++				__inc_bdi_stat(bdi, BDI_WRITTEN);
+ 				__bdi_writeout_inc(bdi);
  			}
- 			unlock_page(page);
- 		} else { /* bio_data_dir(bio) == WRITE */
--			if (!uptodate){
-+			if (!uptodate) {
- 				SetPageError(page);
- 				if (page->mapping)
- 					set_bit(AS_EIO, &page->mapping->flags);
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-hpet-factor-timer-allocate-from-open.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-integrated-background-writeback-work.patch
+writeback-trace-wakeup-event-for-background-writeback.patch
+writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
+writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
+writeback-avoid-livelocking-wb_sync_all-writeback.patch
+writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
+writeback-check-skipped-pages-on-wb_sync_all.patch
+writeback-check-skipped-pages-on-wb_sync_all-update.patch
 writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
 
