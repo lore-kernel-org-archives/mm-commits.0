@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-mpagec-consolidate-code.patch added to -mm tree
-Date: Wed, 17 Nov 2010 12:49:52 -0800
-Message-ID: <201011172049.oAHKnq7d004442@imap1.linux-foundation.org>
+Subject: + fs-mpagec-consolidate-code-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 17 Nov 2010 12:50:13 -0800
+Message-ID: <201011172050.oAHKoDKK004451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756204Ab0KQUty (ORCPT
+	by vger.kernel.org with ESMTP id S932364Ab0KQUuP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 15:49:54 -0500
+	Wed, 17 Nov 2010 15:50:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haishan.bai@gmail.com, shan.hai@windriver.com
+Cc: akpm@linux-foundation.org, haishan.bai@gmail.com, shan.hai@windriver.com
 
 
 The patch titled
-     fs/mpage.c: consolidate code
+     fs-mpagec-consolidate-code-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fs-mpagec-consolidate-code.patch
+     fs-mpagec-consolidate-code-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/mpage.c: consolidate code
-From: Hai Shan <haishan.bai@gmail.com>
+Subject: fs-mpagec-consolidate-code-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Merge mpage_end_io_read() and mpage_end_io_write() into mpage_end_io() to
-eliminate code duplication.
+ERROR: space required before the open brace '{'
+#65: FILE: fs/mpage.c:63:
++			if (!uptodate){
 
-Signed-off-by: Hai Shan <shan.hai@windriver.com>
+total: 1 errors, 0 warnings, 68 lines checked
+
+./patches/fs-mpagec-consolidate-code.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Hai Shan <haishan.bai@gmail.com>
+Cc: Hai Shan <shan.hai@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   49 +++++++++++++++++--------------------------------
- 1 file changed, 17 insertions(+), 32 deletions(-)
+ fs/mpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/mpage.c~fs-mpagec-consolidate-code fs/mpage.c
---- a/fs/mpage.c~fs-mpagec-consolidate-code
+diff -puN fs/mpage.c~fs-mpagec-consolidate-code-checkpatch-fixes fs/mpage.c
+--- a/fs/mpage.c~fs-mpagec-consolidate-code-checkpatch-fixes
 +++ a/fs/mpage.c
-@@ -41,7 +41,7 @@
-  * status of that page is hard.  See end_buffer_async_read() for the details.
-  * There is no point in duplicating all that complexity.
-  */
--static void mpage_end_io_read(struct bio *bio, int err)
-+static void mpage_end_io(struct bio *bio, int err)
- {
- 	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
- 	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
-@@ -51,44 +51,29 @@ static void mpage_end_io_read(struct bio
- 
- 		if (--bvec >= bio->bi_io_vec)
- 			prefetchw(&bvec->bv_page->flags);
--
--		if (uptodate) {
--			SetPageUptodate(page);
--		} else {
--			ClearPageUptodate(page);
--			SetPageError(page);
--		}
--		unlock_page(page);
--	} while (bvec >= bio->bi_io_vec);
--	bio_put(bio);
--}
--
--static void mpage_end_io_write(struct bio *bio, int err)
--{
--	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
--	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
--
--	do {
--		struct page *page = bvec->bv_page;
--
--		if (--bvec >= bio->bi_io_vec)
--			prefetchw(&bvec->bv_page->flags);
--
--		if (!uptodate){
--			SetPageError(page);
--			if (page->mapping)
--				set_bit(AS_EIO, &page->mapping->flags);
-+		if (bio_data_dir(bio) == READ) {
-+			if (uptodate) {
-+				SetPageUptodate(page);
-+			} else {
-+				ClearPageUptodate(page);
-+				SetPageError(page);
-+			}
-+			unlock_page(page);
-+		} else { /* bio_data_dir(bio) == WRITE */
-+			if (!uptodate){
-+				SetPageError(page);
-+				if (page->mapping)
-+					set_bit(AS_EIO, &page->mapping->flags);
-+			}
-+			end_page_writeback(page);
- 		}
--		end_page_writeback(page);
- 	} while (bvec >= bio->bi_io_vec);
- 	bio_put(bio);
- }
- 
- static struct bio *mpage_bio_submit(int rw, struct bio *bio)
- {
--	bio->bi_end_io = mpage_end_io_read;
--	if (rw == WRITE)
--		bio->bi_end_io = mpage_end_io_write;
-+	bio->bi_end_io = mpage_end_io;
- 	submit_bio(rw, bio);
- 	return NULL;
- }
+@@ -60,7 +60,7 @@ static void mpage_end_io(struct bio *bio
+ 			}
+ 			unlock_page(page);
+ 		} else { /* bio_data_dir(bio) == WRITE */
+-			if (!uptodate){
++			if (!uptodate) {
+ 				SetPageError(page);
+ 				if (page->mapping)
+ 					set_bit(AS_EIO, &page->mapping->flags);
 _
 
-Patches currently in -mm which might be from haishan.bai@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-mpagec-consolidate-code.patch
+hpet-factor-timer-allocate-from-open.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
