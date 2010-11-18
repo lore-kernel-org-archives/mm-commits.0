@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-make-nr_to_write-a-per-file-limit-fix.patch added to -mm tree
-Date: Wed, 17 Nov 2010 15:51:11 -0800
-Message-ID: <201011180023.oAI0NXFl014362@imap1.linux-foundation.org>
+Subject: + aesni-nfg.patch added to -mm tree
+Date: Wed, 17 Nov 2010 16:56:52 -0800
+Message-ID: <201011180129.oAI1TCcs016952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750731Ab0KRAZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750952Ab0KRB3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Nov 2010 19:25:16 -0500
+	Wed, 17 Nov 2010 20:29:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, jack@suse.cz, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mrubin@google.com, richard@rsk.demon.co.uk, riel@redhat.com, shaohua.li@intel.com, tytso@mit.edu
+Cc: akpm@linux-foundation.org, herbert@gondor.hengli.com.au
 
 
 The patch titled
-     writeback-make-nr_to_write-a-per-file-limit-fix
+     aesni nfg
 has been added to the -mm tree.  Its filename is
-     writeback-make-nr_to_write-a-per-file-limit-fix.patch
+     aesni-nfg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-make-nr_to_write-a-per-file-limit-fix
+Subject: aesni nfg
 From: Andrew Morton <akpm@linux-foundation.org>
 
-older gcc's are dumb:
+maek allmodconfig work.
 
-fs/fs-writeback.c: In function 'writeback_single_inode':
-fs/fs-writeback.c:334: warning: 'nr_to_write' may be used uninitialized in this function
-
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Shaohua <shaohua.li@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit-fix
-+++ a/fs/fs-writeback.c
-@@ -331,7 +331,7 @@ writeback_single_inode(struct inode *ino
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	long per_file_limit = wbc->per_file_limit;
--	long nr_to_write;
-+	long uninitialized_var(nr_to_write);
- 	unsigned dirty;
- 	int ret;
- 
+diff -puN crypto/Kconfig~aesni-nfg crypto/Kconfig
+--- a/crypto/Kconfig~aesni-nfg
++++ a/crypto/Kconfig
+@@ -540,6 +540,7 @@ config CRYPTO_AES_X86_64
+ config CRYPTO_AES_NI_INTEL
+ 	tristate "AES cipher algorithms (AES-NI)"
+ 	depends on (X86 || UML_X86) && 64BIT
++	depends on BROKEN
+ 	select CRYPTO_AES_X86_64
+ 	select CRYPTO_CRYPTD
+ 	select CRYPTO_ALGAPI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +65,7 @@ hpet-factor-timer-allocate-from-open.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
+aesni-nfg.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-vmap-area-cache.patch
 arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
@@ -104,7 +88,6 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
 fs-select-fix-information-leak-to-userspace-fix.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-make-throttle_vm_writeout-memcg-aware-fix.patch
 fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
 exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
 pps-add-async-pps-event-handler-fix.patch
