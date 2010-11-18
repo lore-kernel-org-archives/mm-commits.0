@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-disable-winch-irq-before-freeing-handler-data.patch added to -mm tree
-Date: Thu, 18 Nov 2010 12:46:10 -0800
-Message-ID: <201011182046.oAIKkAN7004147@imap1.linux-foundation.org>
+Subject: + arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch added to -mm tree
+Date: Thu, 18 Nov 2010 12:46:49 -0800
+Message-ID: <201011182046.oAIKkn45004244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758877Ab0KRUrL (ORCPT
+	by vger.kernel.org with ESMTP id S1758877Ab0KRUrZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Nov 2010 15:47:11 -0500
+	Thu, 18 Nov 2010 15:47:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.newton@gmail.com, jdike@addtoit.com, stable@kernel.org, xiyou.wangcong@gmail.com
+Cc: will.newton@gmail.com, jdike@addtoit.com, richard.weinberger@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: disable winch irq before freeing handler data
+     arch/um/drivers/line.c: safely iterate over list of winch handlers
 has been added to the -mm tree.  Its filename is
-     uml-disable-winch-irq-before-freeing-handler-data.patch
+     arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: disable winch irq before freeing handler data
+Subject: arch/um/drivers/line.c: safely iterate over list of winch handlers
 From: Will Newton <will.newton@gmail.com>
 
-Disable the winch irq early to make sure we don't take an interrupt part
-way through the freeing of the handler data, resulting in a crash on
-shutdown:
-
-winch_interrupt : read failed, errno = 9
-fd 13 is losing SIGWINCH support
-------------[ cut here ]------------
-WARNING: at lib/list_debug.c:48 list_del+0xc6/0x100()
-list_del corruption, next is LIST_POISON1 (00100100)
-082578c8:  [<081fd77f>] dump_stack+0x22/0x24
-082578e0:  [<0807a18a>] warn_slowpath_common+0x5a/0x80
-08257908:  [<0807a23e>] warn_slowpath_fmt+0x2e/0x30
-08257920:  [<08172196>] list_del+0xc6/0x100
-08257940:  [<08060244>] free_winch+0x14/0x80
-08257958:  [<080606fb>] winch_interrupt+0xdb/0xe0
-08257978:  [<080a65b5>] handle_IRQ_event+0x35/0xe0
-08257998:  [<080a8717>] handle_edge_irq+0xb7/0x170
-082579bc:  [<08059bc4>] do_IRQ+0x34/0x50
-082579d4:  [<08059e1b>] sigio_handler+0x5b/0x80
-082579ec:  [<0806a374>] sig_handler_common+0x44/0xb0
-08257a68:  [<0806a538>] sig_handler+0x38/0x50
-08257a78:  [<0806a77c>] handle_signal+0x5c/0xa0
-08257a9c:  [<0806be28>] hard_handler+0x18/0x20
-08257aac:  [<00c14400>] 0xc14400
+unregister_winch() should use list_for_each_safe(), as it can delete from
+the list.
 
 Signed-off-by: Will Newton <will.newton@gmail.com>
+Cc: richard -rw- weinberger <richard.weinberger@gmail.com>
 Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/um/drivers/line.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data
+diff -puN arch/um/drivers/line.c~arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers
 +++ a/arch/um/drivers/line.c
-@@ -727,6 +727,9 @@ struct winch {
+@@ -821,12 +821,12 @@ void register_winch_irq(int fd, int tty_
  
- static void free_winch(struct winch *winch, int free_irq_ok)
+ static void unregister_winch(struct tty_struct *tty)
  {
-+	if (free_irq_ok)
-+		free_irq(WINCH_IRQ, winch);
-+
- 	list_del(&winch->list);
+-	struct list_head *ele;
++	struct list_head *ele, *next;
+ 	struct winch *winch;
  
- 	if (winch->pid != -1)
-@@ -735,8 +738,6 @@ static void free_winch(struct winch *win
- 		os_close_file(winch->fd);
- 	if (winch->stack != 0)
- 		free_stack(winch->stack, 0);
--	if (free_irq_ok)
--		free_irq(WINCH_IRQ, winch);
- 	kfree(winch);
- }
+ 	spin_lock(&winch_handler_lock);
  
+-	list_for_each(ele, &winch_handlers) {
++	list_for_each_safe(ele, next, &winch_handlers) {
+ 		winch = list_entry(ele, struct winch, list);
+ 		if (winch->tty == tty) {
+ 			free_winch(winch, 1);
 _
 
 Patches currently in -mm which might be from will.newton@gmail.com are
