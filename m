@@ -1,90 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - xpc-fails-to-discover-partitions-with-all-nasids-above-128.patch removed from -mm tree
-Date: Thu, 18 Nov 2010 12:41:14 -0800
-Message-ID: <201011182041.oAIKfFiu003909@imap1.linux-foundation.org>
+Subject: + uml-disable-winch-irq-before-freeing-handler-data.patch added to -mm tree
+Date: Thu, 18 Nov 2010 12:46:10 -0800
+Message-ID: <201011182046.oAIKkAN7004147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757513Ab0KRUlr (ORCPT
+	by vger.kernel.org with ESMTP id S1758877Ab0KRUrL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Nov 2010 15:41:47 -0500
+	Thu, 18 Nov 2010 15:47:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: will.newton@gmail.com, jdike@addtoit.com, stable@kernel.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     sgi-xpc: XPC fails to discover partitions with all nasids above 128
-has been removed from the -mm tree.  Its filename was
-     xpc-fails-to-discover-partitions-with-all-nasids-above-128.patch
+     uml: disable winch irq before freeing handler data
+has been added to the -mm tree.  Its filename is
+     uml-disable-winch-irq-before-freeing-handler-data.patch
 
-This patch was dropped because you already sent that
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xpc: XPC fails to discover partitions with all nasids above 128
-From: Robin Holt <holt@sgi.com>
+Subject: uml: disable winch irq before freeing handler data
+From: Will Newton <will.newton@gmail.com>
 
-UV hardware defines 256 memory protection regions versus the baseline 64
-with increasing size for the SN2 ia64.  This was overlooked when XPC was
-modified to accomodate both UV and SN2.
+Disable the winch irq early to make sure we don't take an interrupt part
+way through the freeing of the handler data, resulting in a crash on
+shutdown:
 
-Without this patch, a user could reconfigure their existing system and
-suddenly disable cross-partition communications with no indication of what
-has gone wrong.  It also prevents larger configurations from using
-cross-partition communication.
+winch_interrupt : read failed, errno = 9
+fd 13 is losing SIGWINCH support
+------------[ cut here ]------------
+WARNING: at lib/list_debug.c:48 list_del+0xc6/0x100()
+list_del corruption, next is LIST_POISON1 (00100100)
+082578c8:  [<081fd77f>] dump_stack+0x22/0x24
+082578e0:  [<0807a18a>] warn_slowpath_common+0x5a/0x80
+08257908:  [<0807a23e>] warn_slowpath_fmt+0x2e/0x30
+08257920:  [<08172196>] list_del+0xc6/0x100
+08257940:  [<08060244>] free_winch+0x14/0x80
+08257958:  [<080606fb>] winch_interrupt+0xdb/0xe0
+08257978:  [<080a65b5>] handle_IRQ_event+0x35/0xe0
+08257998:  [<080a8717>] handle_edge_irq+0xb7/0x170
+082579bc:  [<08059bc4>] do_IRQ+0x34/0x50
+082579d4:  [<08059e1b>] sigio_handler+0x5b/0x80
+082579ec:  [<0806a374>] sig_handler_common+0x44/0xb0
+08257a68:  [<0806a538>] sig_handler+0x38/0x50
+08257a78:  [<0806a77c>] handle_signal+0x5c/0xa0
+08257a9c:  [<0806be28>] hard_handler+0x18/0x20
+08257aac:  [<00c14400>] 0xc14400
 
-Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Will Newton <will.newton@gmail.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_partition.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ arch/um/drivers/line.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_partition.c~xpc-fails-to-discover-partitions-with-all-nasids-above-128 drivers/misc/sgi-xp/xpc_partition.c
---- a/drivers/misc/sgi-xp/xpc_partition.c~xpc-fails-to-discover-partitions-with-all-nasids-above-128
-+++ a/drivers/misc/sgi-xp/xpc_partition.c
-@@ -439,18 +439,23 @@ xpc_discovery(void)
- 	 * nodes that can comprise an access protection grouping. The access
- 	 * protection is in regards to memory, IOI and IPI.
- 	 */
--	max_regions = 64;
- 	region_size = xp_region_size;
+diff -puN arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data
++++ a/arch/um/drivers/line.c
+@@ -727,6 +727,9 @@ struct winch {
  
--	switch (region_size) {
--	case 128:
--		max_regions *= 2;
--	case 64:
--		max_regions *= 2;
--	case 32:
--		max_regions *= 2;
--		region_size = 16;
--		DBUG_ON(!is_shub2());
-+	if (is_uv())
-+		max_regions = 256;
-+	else {
-+		max_regions = 64;
+ static void free_winch(struct winch *winch, int free_irq_ok)
+ {
++	if (free_irq_ok)
++		free_irq(WINCH_IRQ, winch);
 +
-+		switch (region_size) {
-+		case 128:
-+			max_regions *= 2;
-+		case 64:
-+			max_regions *= 2;
-+		case 32:
-+			max_regions *= 2;
-+			region_size = 16;
-+			DBUG_ON(!is_shub2());
-+		}
- 	}
+ 	list_del(&winch->list);
  
- 	for (region = 0; region < max_regions; region++) {
+ 	if (winch->pid != -1)
+@@ -735,8 +738,6 @@ static void free_winch(struct winch *win
+ 		os_close_file(winch->fd);
+ 	if (winch->stack != 0)
+ 		free_stack(winch->stack, 0);
+-	if (free_irq_ok)
+-		free_irq(WINCH_IRQ, winch);
+ 	kfree(winch);
+ }
+ 
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from will.newton@gmail.com are
 
-sgi-xpc-xpc-fails-to-discover-partitions-with-all-nasids-above-128.patch
-epoll-convert-max_user_watches-to-long.patch
+uml-disable-winch-irq-before-freeing-handler-data.patch
+arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
 
