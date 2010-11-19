@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch added to -mm tree
-Date: Fri, 19 Nov 2010 12:58:04 -0800
-Message-ID: <201011192058.oAJKw4EA001790@imap1.linux-foundation.org>
+Subject: + checkpatchpl-fix-cast-detection.patch added to -mm tree
+Date: Fri, 19 Nov 2010 13:13:43 -0800
+Message-ID: <201011192113.oAJLDhjB002491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755696Ab0KSU6f (ORCPT
+	by vger.kernel.org with ESMTP id S1751544Ab0KSVOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Nov 2010 15:58:35 -0500
+	Fri, 19 Nov 2010 16:14:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, alan@linux.intel.com
+Cc: florian@mickler.org, apw@shadowen.org, audun.hoem@gmail.com
 
 
 The patch titled
-     drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
+     checkpatch.pl: fix CAST detection
 has been added to the -mm tree.  Its filename is
-     drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch
+     checkpatchpl-fix-cast-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
-From: Axel Lin <axel.lin@gmail.com>
+Subject: checkpatch.pl: fix CAST detection
+From: Florian Mickler <florian@mickler.org>
 
-struct als_data *data is not used in this driver at all.
+We should only claim that something is a cast if we did not encouter a
+token before, that did set av_pending.
 
-Also add a missing ">" character for MODULE_AUTHOR.
+This fixes the operator * in the line below to be detected as binary (vs
+unary).
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
+kmalloc(sizeof(struct alphatrack_ocmd) * true_size, GFP_KERNEL);
+
+Reported-by: Audun Hoem <audun.hoem@gmail.com>
+Signed-off-by: Florian Mickler <florian@mickler.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/isl29020.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove drivers/misc/isl29020.c
---- a/drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove
-+++ a/drivers/misc/isl29020.c
-@@ -183,9 +183,7 @@ static int  isl29020_probe(struct i2c_cl
+diff -puN scripts/checkpatch.pl~checkpatchpl-fix-cast-detection scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-fix-cast-detection
++++ a/scripts/checkpatch.pl
+@@ -859,7 +859,7 @@ sub annotate_values {
+ 				$av_preprocessor = 0;
+ 			}
  
- static int isl29020_remove(struct i2c_client *client)
- {
--	struct als_data *data = i2c_get_clientdata(client);
- 	sysfs_remove_group(&client->dev.kobj, &m_als_gr);
--	kfree(data);
- 	return 0;
- }
- 
-@@ -245,6 +243,6 @@ static void  __exit sensor_isl29020_exit
- module_init(sensor_isl29020_init);
- module_exit(sensor_isl29020_exit);
- 
--MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com");
-+MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com>");
- MODULE_DESCRIPTION("Intersil isl29020 ALS Driver");
- MODULE_LICENSE("GPL v2");
+-		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/) {
++		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/ && $av_pending eq '_') {
+ 			print "CAST($1)\n" if ($dbg_values > 1);
+ 			push(@av_paren_type, $type);
+ 			$type = 'C';
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from florian@mickler.org are
 
-linux-next.patch
-drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch
-drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
-drivers-rtc-rtc-omapc-fix-a-memory-leak.patch
+checkpatchpl-fix-cast-detection.patch
 
