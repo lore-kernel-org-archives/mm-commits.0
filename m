@@ -1,139 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch added to -mm tree
-Date: Thu, 18 Nov 2010 17:27:40 -0800
-Message-ID: <201011190127.oAJ1Re9W017308@imap1.linux-foundation.org>
+Subject: [merged] arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch removed from -mm tree
+Date: Fri, 19 Nov 2010 11:34:45 -0800
+Message-ID: <201011191938.oAJJcN5j030697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750982Ab0KSB3v (ORCPT
+	by vger.kernel.org with ESMTP id S1751197Ab0KSTie (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Nov 2010 20:29:51 -0500
+	Fri, 19 Nov 2010 14:38:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, akataria@vmware.com, cl@linux-foundation.org, penberg@cs.helsinki.fi, petr@vmware.com, tj@kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c: fix build_all_zonelist() where percpu_alloc() is wrongly called under stop_machine_run()
-has been added to the -mm tree.  Its filename is
-     mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch
+     arch/x86/kernel/entry_32.S: work around gas-2.16.1 glitch
+has been removed from the -mm tree.  Its filename was
+     arch-x86-kernel-entry_32s-work-around-gas-2161-glitch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: fix build_all_zonelist() where percpu_alloc() is wrongly called under stop_machine_run()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: arch/x86/kernel/entry_32.S: work around gas-2.16.1 glitch
+From: Andrew Morton <akpm@linux-foundation.org>
 
-During memory hotplug, build_allzonelists() may be called under
-stop_machine_run().  In this function, setup_zone_pageset() is called. 
-But it's bug because it will do page allocation under stop_machine_run().
+With i386, gas-2.16.1:
 
-Here is a report from Alok Kataria.
+arch/x86/kernel/entry_32.S: Assembler messages:
+arch/x86/kernel/entry_32.S:398: Error: too many positional arguments
 
-[  142.339267] BUG: sleeping function called from invalid context at kernel/mutex.c:94
-[  142.339276] in_atomic(): 0, irqs_disabled(): 1, pid: 4, name: migration/0
-[  142.339283] Pid: 4, comm: migration/0 Not tainted 2.6.35.6-45.fc14.x86_64 #1
-[  142.339288] Call Trace:
-[  142.339305]  [<ffffffff8103d12b>] __might_sleep+0xeb/0xf0
-[  142.339316]  [<ffffffff81468245>] mutex_lock+0x24/0x50
-[  142.339326]  [<ffffffff8110eaa6>] pcpu_alloc+0x6d/0x7ee
-[  142.339336]  [<ffffffff81048888>] ? load_balance+0xbe/0x60e
-[  142.339343]  [<ffffffff8103a1b3>] ? rt_se_boosted+0x21/0x2f
-[  142.339349]  [<ffffffff8103e1cf>] ? dequeue_rt_stack+0x18b/0x1ed
-[  142.339356]  [<ffffffff8110f237>] __alloc_percpu+0x10/0x12
-[  142.339362]  [<ffffffff81465e22>] setup_zone_pageset+0x38/0xbe
-[  142.339373]  [<ffffffff810d6d81>] ? build_zonelists_node.clone.58+0x79/0x8c
-[  142.339384]  [<ffffffff81452539>] __build_all_zonelists+0x419/0x46c
-[  142.339395]  [<ffffffff8108ef01>] ? cpu_stopper_thread+0xb2/0x198
-[  142.339401]  [<ffffffff8108f075>] stop_machine_cpu_stop+0x8e/0xc5
-[  142.339407]  [<ffffffff8108efe7>] ? stop_machine_cpu_stop+0x0/0xc5
-[  142.339414]  [<ffffffff8108ef57>] cpu_stopper_thread+0x108/0x198
-[  142.339420]  [<ffffffff81467a37>] ? schedule+0x5b2/0x5cc
-[  142.339426]  [<ffffffff8108ee4f>] ? cpu_stopper_thread+0x0/0x198
-[  142.339434]  [<ffffffff81065f29>] kthread+0x7f/0x87
-[  142.339443]  [<ffffffff8100aae4>] kernel_thread_helper+0x4/0x10
-[  142.339449]  [<ffffffff81065eaa>] ? kthread+0x0/0x87
-[  142.339455]  [<ffffffff8100aae0>] ? kernel_thread_helper+0x0/0x10
-[  142.340099] Built 5 zonelists in Node order, mobility grouping on.  Total pages: 289456
-[  142.340108] Policy zone: Normal
+Parenthesising TI_sysenter_return makes it go away.
 
-This patch tries to fix the issue by moving setup_zone_pageset() out from
-stop_machine_run(). It's obviously not necessary to be called under
-stop_machine_run().
+It changes the cpp output from
 
-Reported-by: Alok Kataria <akataria@vmware.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Petr Vandrovec <petr@vmware.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+ pushl_cfi (60 -8192 +8+4*4)(%esp)
+
+to
+
+ pushl_cfi ((60)-8192 +8+4*4)(%esp)
+
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ arch/x86/kernel/entry_32.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run
-+++ a/mm/page_alloc.c
-@@ -3008,14 +3008,6 @@ static __init_refok int __build_all_zone
- 		build_zonelist_cache(pgdat);
- 	}
+diff -puN arch/x86/kernel/entry_32.S~arch-x86-kernel-entry_32s-work-around-gas-2161-glitch arch/x86/kernel/entry_32.S
+--- a/arch/x86/kernel/entry_32.S~arch-x86-kernel-entry_32s-work-around-gas-2161-glitch
++++ a/arch/x86/kernel/entry_32.S
+@@ -395,7 +395,7 @@ sysenter_past_esp:
+ 	 * A tiny bit of offset fixup is necessary - 4*4 means the 4 words
+ 	 * pushed above; +8 corresponds to copy_thread's esp0 setting.
+ 	 */
+-	pushl_cfi (TI_sysenter_return-THREAD_SIZE_asm+8+4*4)(%esp)
++	pushl_cfi ((TI_sysenter_return)-THREAD_SIZE_asm+8+4*4)(%esp)
+ 	CFI_REL_OFFSET eip, 0
  
--#ifdef CONFIG_MEMORY_HOTPLUG
--	/* Setup real pagesets for the new zone */
--	if (data) {
--		struct zone *zone = data;
--		setup_zone_pageset(zone);
--	}
--#endif
--
- 	/*
- 	 * Initialize the boot_pagesets that are going to be used
- 	 * for bootstrapping processors. The real pagesets for
-@@ -3064,7 +3056,13 @@ void build_all_zonelists(void *data)
- 	} else {
- 		/* we have to stop all cpus to guarantee there is no user
- 		   of zonelist */
--		stop_machine(__build_all_zonelists, data, NULL);
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+		if (data) {
-+			struct zone *zone = (struct zone *)data;
-+			setup_zone_pageset(zone);
-+		}
-+#endif
-+		stop_machine(__build_all_zonelists, NULL, NULL);
- 		/* cpuset refresh routine should be here */
- 	}
- 	vm_total_pages = nr_free_pagecache_pages();
+ 	pushl_cfi %eax
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-avoid-deadlock-between-move-charge-and-try_charge.patch
-cgroups-make-swap-accounting-default-behavior-configurable.patch
-cgroups-make-swap-accounting-default-behavior-configurable-update.patch
-mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch
+hpet-factor-timer-allocate-from-open.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+aesni-nfg.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run-cleanup.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
