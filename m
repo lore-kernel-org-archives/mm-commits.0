@@ -1,95 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch removed from -mm tree
-Date: Fri, 19 Nov 2010 11:34:48 -0800
-Message-ID: <201011191938.oAJJcPi1030700@imap1.linux-foundation.org>
+Subject: + mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch added to -mm tree
+Date: Fri, 19 Nov 2010 11:43:46 -0800
+Message-ID: <201011191943.oAJJhkSi030939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751197Ab0KSTjD (ORCPT
+	by vger.kernel.org with ESMTP id S1756488Ab0KSToa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Nov 2010 14:39:03 -0500
+	Fri, 19 Nov 2010 14:44:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, br1@einfach.org, kosaki.motohiro@jp.fujitsu.com, linville@tuxdriver.com, randy.dunlap@oracle.com, stefanr@s5r6.in-berlin.de, mm-comm
+To: mm-commits@vger.kernel.org
+Cc: dsterba@suse.cz, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, mpm@selenic.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com
 
 
 The patch titled
-     lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
-has been removed from the -mm tree.  Its filename was
-     lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix.patch
+     mm: remove call to find_vma in pagewalk for non-hugetlbfs
+has been added to the -mm tree.  Its filename is
+     mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: remove call to find_vma in pagewalk for non-hugetlbfs
+From: David Sterba <dsterba@suse.cz>
 
-include bug.h, per Stefan.
+Commit d33b9f45 ("mm: hugetlb: fix hugepage memory leak in
+walk_page_range()") introduces a check if a vma is a hugetlbfs one and
+later in 5dc37642 ("mm hugetlb: add hugepage support to pagemap") it is
+moved under #ifdef CONFIG_HUGETLB_PAGE but a needless find_vma call is
+left behind and its result is not used anywhere else in the function.
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Bruno Randolf <br1@einfach.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+The side-effect of caching vma for @addr inside walk->mm is neither
+utilized in walk_page_range() nor in called functions.
+
+Signed-off-by: David Sterba <dsterba@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/average.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/pagewalk.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/average.c~lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix lib/average.c
---- a/lib/average.c~lib-add-generic-exponentially-weighted-moving-average-ewma-function-fix
-+++ a/lib/average.c
-@@ -7,6 +7,7 @@
+diff -puN mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs
++++ a/mm/pagewalk.c
+@@ -139,7 +139,6 @@ int walk_page_range(unsigned long addr, 
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	int err = 0;
+-	struct vm_area_struct *vma;
  
- #include <linux/module.h>
- #include <linux/average.h>
-+#include <linux/bug.h>
+ 	if (addr >= end)
+ 		return err;
+@@ -149,15 +148,17 @@ int walk_page_range(unsigned long addr, 
  
- /**
-  * DOC: Exponentially Weighted Moving Average (EWMA)
+ 	pgd = pgd_offset(walk->mm, addr);
+ 	do {
++		struct vm_area_struct *uninitialized_var(vma);
++
+ 		next = pgd_addr_end(addr, end);
+ 
++#ifdef CONFIG_HUGETLB_PAGE
+ 		/*
+ 		 * handle hugetlb vma individually because pagetable walk for
+ 		 * the hugetlb page is dependent on the architecture and
+ 		 * we can't handled it in the same manner as non-huge pages.
+ 		 */
+ 		vma = find_vma(walk->mm, addr);
+-#ifdef CONFIG_HUGETLB_PAGE
+ 		if (vma && is_vm_hugetlb_page(vma)) {
+ 			if (vma->vm_end < next)
+ 				next = vma->vm_end;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dsterba@suse.cz are
 
-hpet-factor-timer-allocate-from-open.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-aesni-nfg.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run-cleanup.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch
 
