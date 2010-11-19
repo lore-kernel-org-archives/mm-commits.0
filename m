@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + set_rtc_mmss-show-warning-message-only-once.patch added to -mm tree
-Date: Fri, 19 Nov 2010 12:38:02 -0800
-Message-ID: <201011192038.oAJKc22g000928@imap1.linux-foundation.org>
+Subject: + drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch added to -mm tree
+Date: Fri, 19 Nov 2010 12:58:04 -0800
+Message-ID: <201011192058.oAJKw4EA001790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754057Ab0KSUjK (ORCPT
+	by vger.kernel.org with ESMTP id S1755696Ab0KSU6f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Nov 2010 15:39:10 -0500
+	Fri, 19 Nov 2010 15:58:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, dhowells@redhat.com, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mattst88@gmail.com, mingo@elte.hu, ralf@linux-mips.org, rth@twiddle.net, tglx@linutronix.de
+Cc: axel.lin@gmail.com, alan@linux.intel.com
 
 
 The patch titled
-     set_rtc_mmss: show warning message only once
+     drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
 has been added to the -mm tree.  Its filename is
-     set_rtc_mmss-show-warning-message-only-once.patch
+     drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: set_rtc_mmss: show warning message only once
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
+From: Axel Lin <axel.lin@gmail.com>
 
-Occasionally the system gets into a state where the CMOS clock has gotten
-slightly ahead of current time and the periodic update of RTC fails.  The
-message is a nuisance and repeats spamming the log.
+struct als_data *data is not used in this driver at all.
 
-  See: http://www.ntp.org/ntpfaq/NTP-s-trbl-spec.htm#Q-LINUX-SET-RTC-MMSS
+Also add a missing ">" character for MODULE_AUTHOR.
 
-Rather than just removing the message, make it show only once and reduce
-severity since it indicates a normal and non urgent condition.
-
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/time.c              |    2 +-
- arch/cris/kernel/time.c               |    2 +-
- arch/mips/dec/time.c                  |    2 +-
- arch/mips/include/asm/mc146818-time.h |    2 +-
- arch/mn10300/kernel/rtc.c             |    2 +-
- arch/sh/boards/mach-sh03/rtc.c        |    2 +-
- arch/x86/kernel/rtc.c                 |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/misc/isl29020.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/alpha/kernel/time.c~set_rtc_mmss-show-warning-message-only-once arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/alpha/kernel/time.c
-@@ -506,7 +506,7 @@ set_rtc_mmss(unsigned long nowtime)
- 		CMOS_WRITE(real_seconds,RTC_SECONDS);
- 		CMOS_WRITE(real_minutes,RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
-  		retval = -1;
-diff -puN arch/cris/kernel/time.c~set_rtc_mmss-show-warning-message-only-once arch/cris/kernel/time.c
---- a/arch/cris/kernel/time.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/cris/kernel/time.c
-@@ -86,7 +86,7 @@ int set_rtc_mmss(unsigned long nowtime)
- 		CMOS_WRITE(real_seconds,RTC_SECONDS);
- 		CMOS_WRITE(real_minutes,RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
-diff -puN arch/mips/dec/time.c~set_rtc_mmss-show-warning-message-only-once arch/mips/dec/time.c
---- a/arch/mips/dec/time.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/mips/dec/time.c
-@@ -104,7 +104,7 @@ int rtc_mips_set_mmss(unsigned long nowt
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
-diff -puN arch/mips/include/asm/mc146818-time.h~set_rtc_mmss-show-warning-message-only-once arch/mips/include/asm/mc146818-time.h
---- a/arch/mips/include/asm/mc146818-time.h~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/mips/include/asm/mc146818-time.h
-@@ -66,7 +66,7 @@ static inline int mc146818_set_rtc_mmss(
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
-diff -puN arch/mn10300/kernel/rtc.c~set_rtc_mmss-show-warning-message-only-once arch/mn10300/kernel/rtc.c
---- a/arch/mn10300/kernel/rtc.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/mn10300/kernel/rtc.c
-@@ -89,7 +89,7 @@ static int set_rtc_mmss(unsigned long no
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
-diff -puN arch/sh/boards/mach-sh03/rtc.c~set_rtc_mmss-show-warning-message-only-once arch/sh/boards/mach-sh03/rtc.c
---- a/arch/sh/boards/mach-sh03/rtc.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/sh/boards/mach-sh03/rtc.c
-@@ -108,7 +108,7 @@ static int set_rtc_mmss(unsigned long no
- 		__raw_writeb(real_minutes % 10, RTC_MIN1);
- 		__raw_writeb(real_minutes / 10, RTC_MIN10);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
-diff -puN arch/x86/kernel/rtc.c~set_rtc_mmss-show-warning-message-only-once arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~set_rtc_mmss-show-warning-message-only-once
-+++ a/arch/x86/kernel/rtc.c
-@@ -76,7 +76,7 @@ int mach_set_rtc_mmss(unsigned long nowt
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
- 	} else {
--		printk(KERN_WARNING
-+		printk_once(KERN_NOTICE
- 		       "set_rtc_mmss: can't update from %d to %d\n",
- 		       cmos_minutes, real_minutes);
- 		retval = -1;
+diff -puN drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove drivers/misc/isl29020.c
+--- a/drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove
++++ a/drivers/misc/isl29020.c
+@@ -183,9 +183,7 @@ static int  isl29020_probe(struct i2c_cl
+ 
+ static int isl29020_remove(struct i2c_client *client)
+ {
+-	struct als_data *data = i2c_get_clientdata(client);
+ 	sysfs_remove_group(&client->dev.kobj, &m_als_gr);
+-	kfree(data);
+ 	return 0;
+ }
+ 
+@@ -245,6 +243,6 @@ static void  __exit sensor_isl29020_exit
+ module_init(sensor_isl29020_init);
+ module_exit(sensor_isl29020_exit);
+ 
+-MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com");
++MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com>");
+ MODULE_DESCRIPTION("Intersil isl29020 ALS Driver");
+ MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from shemminger@vyatta.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-set_rtc_mmss-show-warning-message-only-once.patch
+drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch
+drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+drivers-rtc-rtc-omapc-fix-a-memory-leak.patch
 
