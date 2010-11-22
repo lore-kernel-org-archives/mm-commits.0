@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2423-counter-driver-and-documentation-fix.patch added to -mm tree
-Date: Mon, 22 Nov 2010 11:56:46 -0800
-Message-ID: <201011221956.oAMJulh3006380@imap1.linux-foundation.org>
+Subject: + decompressors-include-linux-slabh-in-linux-decompress-mmh.patch added to -mm tree
+Date: Mon, 22 Nov 2010 12:01:25 -0800
+Message-ID: <201011222001.oAMK1Pna006644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757379Ab0KVT6d (ORCPT
+	by vger.kernel.org with ESMTP id S1757446Ab0KVUB7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Nov 2010 14:58:33 -0500
+	Mon, 22 Nov 2010 15:01:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, johnpol@2ka.mipt.ru, lamikr@pilppa.org
+Cc: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     w1: fix ds2423 build, needs to select CRC16
+     Decompressors: include <linux/slab.h> in <linux/decompress/mm.h>
 has been added to the -mm tree.  Its filename is
-     w1-ds2423-counter-driver-and-documentation-fix.patch
+     decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: fix ds2423 build, needs to select CRC16
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Decompressors: include <linux/slab.h> in <linux/decompress/mm.h>
+From: Lasse Collin <lasse.collin@tukaani.org>
 
-Fix w1_ds2423 build:  needs to select CRC16.
+Currently users of mm.h need to include <linux/slab.h> to use the macros
+malloc() and free() provided by mm.h.  This fixes it.
 
-w1_ds2423.c:(.text+0x9971d): undefined reference to `crc16'
-w1_ds2423.c:(.text+0x9973a): undefined reference to `crc16'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mika Laitio <lamikr@pilppa.org>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/decompress/mm.h |    1 +
+ lib/decompress_bunzip2.c      |    1 -
+ lib/decompress_inflate.c      |    1 -
+ lib/decompress_unlzma.c       |    1 -
+ lib/decompress_unlzo.c        |    1 -
+ 5 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/w1/slaves/Kconfig~w1-ds2423-counter-driver-and-documentation-fix drivers/w1/slaves/Kconfig
---- a/drivers/w1/slaves/Kconfig~w1-ds2423-counter-driver-and-documentation-fix
-+++ a/drivers/w1/slaves/Kconfig
-@@ -18,6 +18,7 @@ config W1_SLAVE_SMEM
+diff -puN include/linux/decompress/mm.h~decompressors-include-linux-slabh-in-linux-decompress-mmh include/linux/decompress/mm.h
+--- a/include/linux/decompress/mm.h~decompressors-include-linux-slabh-in-linux-decompress-mmh
++++ a/include/linux/decompress/mm.h
+@@ -70,6 +70,7 @@ static void free(void *where)
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/string.h>
++#include <linux/slab.h>
+ #include <linux/vmalloc.h>
  
- config W1_SLAVE_DS2423
- 	tristate "Counter 1-wire device (DS2423)"
-+	select CRC16
- 	help
- 	  If you enable this you can read the counter values available
- 	  in the DS2423 chipset from the w1_slave file under the
+ /* Use defines rather than static inline in order to avoid spurious
+diff -puN lib/decompress_bunzip2.c~decompressors-include-linux-slabh-in-linux-decompress-mmh lib/decompress_bunzip2.c
+--- a/lib/decompress_bunzip2.c~decompressors-include-linux-slabh-in-linux-decompress-mmh
++++ a/lib/decompress_bunzip2.c
+@@ -49,7 +49,6 @@
+ #define PREBOOT
+ #else
+ #include <linux/decompress/bunzip2.h>
+-#include <linux/slab.h>
+ #endif /* STATIC */
+ 
+ #include <linux/decompress/mm.h>
+diff -puN lib/decompress_inflate.c~decompressors-include-linux-slabh-in-linux-decompress-mmh lib/decompress_inflate.c
+--- a/lib/decompress_inflate.c~decompressors-include-linux-slabh-in-linux-decompress-mmh
++++ a/lib/decompress_inflate.c
+@@ -19,7 +19,6 @@
+ #include "zlib_inflate/inflate.h"
+ 
+ #include "zlib_inflate/infutil.h"
+-#include <linux/slab.h>
+ 
+ #endif /* STATIC */
+ 
+diff -puN lib/decompress_unlzma.c~decompressors-include-linux-slabh-in-linux-decompress-mmh lib/decompress_unlzma.c
+--- a/lib/decompress_unlzma.c~decompressors-include-linux-slabh-in-linux-decompress-mmh
++++ a/lib/decompress_unlzma.c
+@@ -33,7 +33,6 @@
+ #define PREBOOT
+ #else
+ #include <linux/decompress/unlzma.h>
+-#include <linux/slab.h>
+ #endif /* STATIC */
+ 
+ #include <linux/decompress/mm.h>
+diff -puN lib/decompress_unlzo.c~decompressors-include-linux-slabh-in-linux-decompress-mmh lib/decompress_unlzo.c
+--- a/lib/decompress_unlzo.c~decompressors-include-linux-slabh-in-linux-decompress-mmh
++++ a/lib/decompress_unlzo.c
+@@ -33,7 +33,6 @@
+ #ifdef STATIC
+ #include "lzo/lzo1x_decompress.c"
+ #else
+-#include <linux/slab.h>
+ #include <linux/decompress/unlzo.h>
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lasse.collin@tukaani.org are
 
-linux-next.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
-ibm_rtl-fix-printk-format-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-w1-ds2423-counter-driver-and-documentation-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+decompressors-add-missing-init-ie-__init.patch
+decompressors-get-rid-of-set_error_fn-macro.patch
+decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
+decompressors-remove-unused-function-from-lib-decompress_unlzmac.patch
 
