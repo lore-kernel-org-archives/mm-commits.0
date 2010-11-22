@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-use-unsigned-long-inside-proc-statm.patch added to -mm tree
-Date: Mon, 22 Nov 2010 14:48:33 -0800
-Message-ID: <201011222248.oAMMmXiA013653@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-lp5521c-fix-potential-buffer-overflow.patch added to -mm tree
+Date: Mon, 22 Nov 2010 14:55:19 -0800
+Message-ID: <201011222255.oAMMtJOX013906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757760Ab0KVWtH (ORCPT
+	by vger.kernel.org with ESMTP id S932304Ab0KVW4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Nov 2010 17:49:07 -0500
+	Mon, 22 Nov 2010 17:56:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, xiyou.wangcong@gmail.com
+Cc: segoon@openwall.com, rpurdie@rpsys.net
 
 
 The patch titled
-     proc: use unsigned long inside /proc/*/statm
+     drivers/leds/leds-lp5521.c: fix potential buffer overflow
 has been added to the -mm tree.  Its filename is
-     proc-use-unsigned-long-inside-proc-statm.patch
+     drivers-leds-leds-lp5521c-fix-potential-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: use unsigned long inside /proc/*/statm
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: drivers/leds/leds-lp5521.c: fix potential buffer overflow
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-/proc/*/statm code needlessly truncates data from unsigned long to int.
-One needs only 8+ TB of RAM to make truncation visible.
+The code doesn't check first sscanf() return value.  If first sscanf()
+failed then c contains some garbage.  It might lead to reading
+uninitialised stack data in the second sscanf() call.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c      |    6 +++---
- fs/proc/internal.h   |    3 ++-
- fs/proc/task_mmu.c   |    5 +++--
- fs/proc/task_nommu.c |    7 ++++---
- 4 files changed, 12 insertions(+), 9 deletions(-)
+ drivers/leds/leds-lp5521.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/array.c~proc-use-unsigned-long-inside-proc-statm fs/proc/array.c
---- a/fs/proc/array.c~proc-use-unsigned-long-inside-proc-statm
-+++ a/fs/proc/array.c
-@@ -535,15 +535,15 @@ int proc_tgid_stat(struct seq_file *m, s
- int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
- 			struct pid *pid, struct task_struct *task)
- {
--	int size = 0, resident = 0, shared = 0, text = 0, lib = 0, data = 0;
-+	unsigned long size = 0, resident = 0, shared = 0, text = 0, data = 0;
- 	struct mm_struct *mm = get_task_mm(task);
- 
- 	if (mm) {
- 		size = task_statm(mm, &shared, &text, &data, &resident);
- 		mmput(mm);
- 	}
--	seq_printf(m, "%d %d %d %d %d %d %d\n",
--			size, resident, shared, text, lib, data, 0);
-+	seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
-+			size, resident, shared, text, data);
- 
- 	return 0;
- }
-diff -puN fs/proc/internal.h~proc-use-unsigned-long-inside-proc-statm fs/proc/internal.h
---- a/fs/proc/internal.h~proc-use-unsigned-long-inside-proc-statm
-+++ a/fs/proc/internal.h
-@@ -96,7 +96,8 @@ extern spinlock_t proc_subdir_lock;
- struct dentry *proc_pid_lookup(struct inode *dir, struct dentry * dentry, struct nameidata *);
- int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir);
- unsigned long task_vsize(struct mm_struct *);
--int task_statm(struct mm_struct *, int *, int *, int *, int *);
-+unsigned long task_statm(struct mm_struct *,
-+	unsigned long *, unsigned long *, unsigned long *, unsigned long *);
- void task_mem(struct seq_file *, struct mm_struct *);
- 
- static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
-diff -puN fs/proc/task_mmu.c~proc-use-unsigned-long-inside-proc-statm fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-use-unsigned-long-inside-proc-statm
-+++ a/fs/proc/task_mmu.c
-@@ -66,8 +66,9 @@ unsigned long task_vsize(struct mm_struc
- 	return PAGE_SIZE * mm->total_vm;
- }
- 
--int task_statm(struct mm_struct *mm, int *shared, int *text,
--	       int *data, int *resident)
-+unsigned long task_statm(struct mm_struct *mm,
-+			 unsigned long *shared, unsigned long *text,
-+			 unsigned long *data, unsigned long *resident)
- {
- 	*shared = get_mm_counter(mm, MM_FILEPAGES);
- 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
-diff -puN fs/proc/task_nommu.c~proc-use-unsigned-long-inside-proc-statm fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-use-unsigned-long-inside-proc-statm
-+++ a/fs/proc/task_nommu.c
-@@ -92,13 +92,14 @@ unsigned long task_vsize(struct mm_struc
- 	return vsize;
- }
- 
--int task_statm(struct mm_struct *mm, int *shared, int *text,
--	       int *data, int *resident)
-+unsigned long task_statm(struct mm_struct *mm,
-+			 unsigned long *shared, unsigned long *text,
-+			 unsigned long *data, unsigned long *resident)
- {
- 	struct vm_area_struct *vma;
- 	struct vm_region *region;
- 	struct rb_node *p;
--	int size = kobjsize(mm);
-+	unsigned long size = kobjsize(mm);
- 
- 	down_read(&mm->mmap_sem);
- 	for (p = rb_first(&mm->mm_rb); p; p = rb_next(p)) {
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-potential-buffer-overflow drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-potential-buffer-overflow
++++ a/drivers/leds/leds-lp5521.c
+@@ -373,6 +373,8 @@ static int lp5521_do_store_load(struct l
+ 	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
+ 		/* separate sscanfs because length is working only for %s */
+ 		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
++		if (ret != 2)
++			goto fail;
+ 		ret = sscanf(c, "%2x", &cmd);
+ 		if (ret != 1)
+ 			goto fail;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-proc-use-unsigned-long-inside-proc-statm.patch
+linux-next.patch
+drivers-leds-leds-lp5521c-fix-potential-buffer-overflow.patch
 
