@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-add-trace-events-for-memory-compaction-activity.patch added to -mm tree
-Date: Mon, 22 Nov 2010 12:06:23 -0800
-Message-ID: <201011222006.oAMK6NID006889@imap1.linux-foundation.org>
+Subject: + mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch added to -mm tree
+Date: Mon, 22 Nov 2010 12:06:33 -0800
+Message-ID: <201011222006.oAMK6Xej006901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757379Ab0KVUHW (ORCPT
+	by vger.kernel.org with ESMTP id S1757460Ab0KVUHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 22 Nov 2010 15:07:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, ko
 
 
 The patch titled
-     mm: compaction: add trace events for memory compaction activity
+     mm: migration: cleanup migrate_pages API by matching types for offlining and sync
 has been added to the -mm tree.  Its filename is
-     mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+     mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: add trace events for memory compaction activity
+Subject: mm: migration: cleanup migrate_pages API by matching types for offlining and sync
 From: Mel Gorman <mel@csn.ul.ie>
 
-In preparation for a patches promoting the use of memory compaction over
-lumpy reclaim, this patch adds trace points for memory compaction
-activity.  Using them, we can monitor the scanning activity of the
-migration and free page scanners as well as the number and success rates
-of pages passed to page migration.
+With the introduction of the boolean sync parameter, the API looks a
+little inconsistent as offlining is still an int.  Convert offlining to a
+bool for the sake of being tidy.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -52,168 +50,128 @@ Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   74 ++++++++++++++++++++++++++++
- mm/compaction.c                   |   14 ++++-
- 2 files changed, 87 insertions(+), 1 deletion(-)
+ include/linux/migrate.h |    8 ++++----
+ mm/compaction.c         |    2 +-
+ mm/memory_hotplug.c     |    2 +-
+ mm/mempolicy.c          |    6 ++++--
+ mm/migrate.c            |    8 ++++----
+ 5 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN /dev/null include/trace/events/compaction.h
---- /dev/null
-+++ a/include/trace/events/compaction.h
-@@ -0,0 +1,74 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM compaction
-+
-+#if !defined(_TRACE_COMPACTION_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_COMPACTION_H
-+
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
-+#include "gfpflags.h"
-+
-+DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
-+
-+	TP_PROTO(unsigned long nr_scanned,
-+		unsigned long nr_taken),
-+
-+	TP_ARGS(nr_scanned, nr_taken),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, nr_scanned)
-+		__field(unsigned long, nr_taken)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nr_scanned = nr_scanned;
-+		__entry->nr_taken = nr_taken;
-+	),
-+
-+	TP_printk("nr_scanned=%lu nr_taken=%lu",
-+		__entry->nr_scanned,
-+		__entry->nr_taken)
-+);
-+
-+DEFINE_EVENT(mm_compaction_isolate_template, mm_compaction_isolate_migratepages,
-+
-+	TP_PROTO(unsigned long nr_scanned,
-+		unsigned long nr_taken),
-+
-+	TP_ARGS(nr_scanned, nr_taken)
-+);
-+
-+DEFINE_EVENT(mm_compaction_isolate_template, mm_compaction_isolate_freepages,
-+	TP_PROTO(unsigned long nr_scanned,
-+		unsigned long nr_taken),
-+
-+	TP_ARGS(nr_scanned, nr_taken)
-+);
-+
-+TRACE_EVENT(mm_compaction_migratepages,
-+
-+	TP_PROTO(unsigned long nr_migrated,
-+		unsigned long nr_failed),
-+
-+	TP_ARGS(nr_migrated, nr_failed),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, nr_migrated)
-+		__field(unsigned long, nr_failed)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nr_migrated = nr_migrated;
-+		__entry->nr_failed = nr_failed;
-+	),
-+
-+	TP_printk("nr_migrated=%lu nr_failed=%lu",
-+		__entry->nr_migrated,
-+		__entry->nr_failed)
-+);
-+
-+
-+#endif /* _TRACE_COMPACTION_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
-diff -puN mm/compaction.c~mm-compaction-add-trace-events-for-memory-compaction-activity mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-trace-events-for-memory-compaction-activity
+diff -puN include/linux/migrate.h~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync
++++ a/include/linux/migrate.h
+@@ -13,10 +13,10 @@ extern void putback_lru_pages(struct lis
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+-			unsigned long private, int offlining,
++			unsigned long private, bool offlining,
+ 			bool sync);
+ extern int migrate_huge_pages(struct list_head *l, new_page_t x,
+-			unsigned long private, int offlining,
++			unsigned long private, bool offlining,
+ 			bool sync);
+ 
+ extern int fail_migrate_page(struct address_space *,
+@@ -35,10 +35,10 @@ extern int migrate_huge_page_move_mappin
+ 
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+-		unsigned long private, int offlining,
++		unsigned long private, bool offlining,
+ 		bool sync) { return -ENOSYS; }
+ static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
+-		unsigned long private, int offlining,
++		unsigned long private, bool offlining,
+ 		bool sync) { return -ENOSYS; }
+ 
+ static inline int migrate_prep(void) { return -ENOSYS; }
+diff -puN mm/compaction.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync mm/compaction.c
+--- a/mm/compaction.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync
 +++ a/mm/compaction.c
-@@ -16,6 +16,9 @@
- #include <linux/sysfs.h>
- #include "internal.h"
+@@ -457,7 +457,7 @@ static int compact_zone(struct zone *zon
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/compaction.h>
-+
- /*
-  * compact_control is used to track pages being migrated and the free pages
-  * they are being migrated to during memory compaction. The free_pfn starts
-@@ -60,7 +63,7 @@ static unsigned long isolate_freepages_b
- 				struct list_head *freelist)
- {
- 	unsigned long zone_end_pfn, end_pfn;
--	int total_isolated = 0;
-+	int nr_scanned = 0, total_isolated = 0;
- 	struct page *cursor;
- 
- 	/* Get the last PFN we should scan for free pages at */
-@@ -81,6 +84,7 @@ static unsigned long isolate_freepages_b
- 
- 		if (!pfn_valid_within(blockpfn))
- 			continue;
-+		nr_scanned++;
- 
- 		if (!PageBuddy(page))
- 			continue;
-@@ -100,6 +104,7 @@ static unsigned long isolate_freepages_b
+ 		nr_migrate = cc->nr_migratepages;
+ 		migrate_pages(&cc->migratepages, compaction_alloc,
+-				(unsigned long)cc, 0,
++				(unsigned long)cc, false,
+ 				cc->sync);
+ 		update_nr_listpages(cc);
+ 		nr_remaining = cc->nr_migratepages;
+diff -puN mm/memory_hotplug.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync
++++ a/mm/memory_hotplug.c
+@@ -715,7 +715,7 @@ do_migrate_range(unsigned long start_pfn
  		}
+ 		/* this function returns # of failed pages */
+ 		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
+-								1, true);
++								true, true);
+ 		if (ret)
+ 			putback_lru_pages(&source);
  	}
+diff -puN mm/mempolicy.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync
++++ a/mm/mempolicy.c
+@@ -935,7 +935,8 @@ static int migrate_to_node(struct mm_str
+ 		return PTR_ERR(vma);
  
-+	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
- 	return total_isolated;
- }
+ 	if (!list_empty(&pagelist)) {
+-		err = migrate_pages(&pagelist, new_node_page, dest, 0, true);
++		err = migrate_pages(&pagelist, new_node_page, dest,
++								false, true);
+ 		if (err)
+ 			putback_lru_pages(&pagelist);
+ 	}
+@@ -1155,7 +1156,8 @@ static long do_mbind(unsigned long start
  
-@@ -234,6 +239,7 @@ static unsigned long isolate_migratepage
- 					struct compact_control *cc)
+ 		if (!list_empty(&pagelist)) {
+ 			nr_failed = migrate_pages(&pagelist, new_vma_page,
+-						(unsigned long)vma, 0, true);
++						(unsigned long)vma,
++						false, true);
+ 			if (nr_failed)
+ 				putback_lru_pages(&pagelist);
+ 		}
+diff -puN mm/migrate.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync mm/migrate.c
+--- a/mm/migrate.c~mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync
++++ a/mm/migrate.c
+@@ -612,7 +612,7 @@ static int move_to_new_page(struct page 
+  * to the newly allocated page in newpage.
+  */
+ static int unmap_and_move(new_page_t get_new_page, unsigned long private,
+-			struct page *page, int force, int offlining, bool sync)
++			struct page *page, int force, bool offlining, bool sync)
  {
- 	unsigned long low_pfn, end_pfn;
-+	unsigned long nr_scanned = 0, nr_isolated = 0;
- 	struct list_head *migratelist = &cc->migratepages;
- 
- 	/* Do not scan outside zone boundaries */
-@@ -266,6 +272,7 @@ static unsigned long isolate_migratepage
- 		struct page *page;
- 		if (!pfn_valid_within(low_pfn))
- 			continue;
-+		nr_scanned++;
- 
- 		/* Get the page and skip if free */
- 		page = pfn_to_page(low_pfn);
-@@ -281,6 +288,7 @@ static unsigned long isolate_migratepage
- 		list_add(&page->lru, migratelist);
- 		mem_cgroup_del_lru(page);
- 		cc->nr_migratepages++;
-+		nr_isolated++;
- 
- 		/* Avoid isolating too much */
- 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
-@@ -292,6 +300,8 @@ static unsigned long isolate_migratepage
- 	spin_unlock_irq(&zone->lru_lock);
- 	cc->migrate_pfn = low_pfn;
- 
-+	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
-+
- 	return cc->nr_migratepages;
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -808,7 +808,7 @@ move_newpage:
+  */
+ static int unmap_and_move_huge_page(new_page_t get_new_page,
+ 				unsigned long private, struct page *hpage,
+-				int force, int offlining, bool sync)
++				int force, bool offlining, bool sync)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -890,7 +890,7 @@ out:
+  * Return: Number of pages not migrated or error code.
+  */
+ int migrate_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, int offlining,
++		new_page_t get_new_page, unsigned long private, bool offlining,
+ 		bool sync)
+ {
+ 	int retry = 1;
+@@ -941,7 +941,7 @@ out:
  }
  
-@@ -402,6 +412,8 @@ static int compact_zone(struct zone *zon
- 		count_vm_events(COMPACTPAGES, nr_migrate - nr_remaining);
- 		if (nr_remaining)
- 			count_vm_events(COMPACTPAGEFAILED, nr_remaining);
-+		trace_mm_compaction_migratepages(nr_migrate - nr_remaining,
-+						nr_remaining);
- 
- 		/* Release LRU pages not migrated */
- 		if (!list_empty(&cc->migratepages)) {
+ int migrate_huge_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, int offlining,
++		new_page_t get_new_page, unsigned long private, bool offlining,
+ 		bool sync)
+ {
+ 	int retry = 1;
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
