@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch added to -mm tree
-Date: Mon, 22 Nov 2010 12:06:26 -0800
-Message-ID: <201011222006.oAMK6Qe8006892@imap1.linux-foundation.org>
+Subject: + mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch added to -mm tree
+Date: Mon, 22 Nov 2010 12:06:31 -0800
+Message-ID: <201011222006.oAMK6VET006898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757462Ab0KVUHW (ORCPT
+	by vger.kernel.org with ESMTP id S1757454Ab0KVUHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 22 Nov 2010 15:07:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, ko
 
 
 The patch titled
-     mm: vmscan: convert lumpy_mode into a bitmask
+     mm: migration: allow migration to operate asynchronously and avoid synchronous compaction in the faster path
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+     mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: convert lumpy_mode into a bitmask
+Subject: mm: migration: allow migration to operate asynchronously and avoid synchronous compaction in the faster path
 From: Mel Gorman <mel@csn.ul.ie>
 
-Currently lumpy_mode is an enum and determines if lumpy reclaim is off,
-syncronous or asyncronous.  In preparation for using compaction instead of
-lumpy reclaim, this patch converts the flags into a bitmap.
+Migration synchronously waits for writeback if the initial passes fails. 
+Callers of memory compaction do not necessarily want this behaviour if the
+caller is latency sensitive or expects that synchronous migration is not
+going to have a significantly better success rate.
+
+This patch adds a sync parameter to migrate_pages() allowing the caller to
+indicate if wait_on_page_writeback() is allowed within migration or not. 
+For reclaim/compaction, try_to_compact_pages() is first called
+asynchronously, direct reclaim runs and then try_to_compact_pages() is
+called synchronously as there is a greater expectation that it'll succeed.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -50,161 +57,367 @@ Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    6 ++--
- mm/vmscan.c                   |   46 +++++++++++++++++++-------------
- 2 files changed, 31 insertions(+), 21 deletions(-)
+ include/linux/compaction.h |   10 ++++++----
+ include/linux/migrate.h    |   12 ++++++++----
+ mm/compaction.c            |   14 ++++++++++----
+ mm/memory-failure.c        |    3 ++-
+ mm/memory_hotplug.c        |    3 ++-
+ mm/mempolicy.c             |    4 ++--
+ mm/migrate.c               |   22 +++++++++++++---------
+ mm/page_alloc.c            |   21 +++++++++++++++------
+ mm/vmscan.c                |    3 ++-
+ 9 files changed, 60 insertions(+), 32 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-vmscan-convert-lumpy_mode-into-a-bitmask include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-vmscan-convert-lumpy_mode-into-a-bitmask
-+++ a/include/trace/events/vmscan.h
-@@ -25,13 +25,13 @@
+diff -puN include/linux/compaction.h~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/include/linux/compaction.h
+@@ -21,10 +21,11 @@ extern int sysctl_extfrag_handler(struct
  
- #define trace_reclaim_flags(page, sync) ( \
- 	(page_is_file_cache(page) ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
--	(sync == LUMPY_MODE_SYNC ? RECLAIM_WB_SYNC : RECLAIM_WB_ASYNC)   \
-+	(sync & LUMPY_MODE_SYNC ? RECLAIM_WB_SYNC : RECLAIM_WB_ASYNC)   \
- 	)
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+ extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *mask);
++			int order, gfp_t gfp_mask, nodemask_t *mask,
++			bool sync);
+ extern unsigned long compaction_suitable(struct zone *zone, int order);
+ extern unsigned long compact_zone_order(struct zone *zone, int order,
+-						gfp_t gfp_mask);
++						gfp_t gfp_mask, bool sync);
  
- #define trace_shrink_flags(file, sync) ( \
--	(sync == LUMPY_MODE_SYNC ? RECLAIM_WB_MIXED : \
-+	(sync & LUMPY_MODE_SYNC ? RECLAIM_WB_MIXED : \
- 			(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON)) |  \
--	(sync == LUMPY_MODE_SYNC ? RECLAIM_WB_SYNC : RECLAIM_WB_ASYNC) \
-+	(sync & LUMPY_MODE_SYNC ? RECLAIM_WB_SYNC : RECLAIM_WB_ASYNC) \
- 	)
+ /* Do not skip compaction more than 64 times */
+ #define COMPACT_MAX_DEFER_SHIFT 6
+@@ -57,7 +58,8 @@ static inline bool compaction_deferred(s
  
- TRACE_EVENT(mm_vmscan_kswapd_sleep,
-diff -puN mm/vmscan.c~mm-vmscan-convert-lumpy_mode-into-a-bitmask mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-convert-lumpy_mode-into-a-bitmask
+ #else
+ static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *nodemask)
++			int order, gfp_t gfp_mask, nodemask_t *nodemask,
++			bool sync)
+ {
+ 	return COMPACT_CONTINUE;
+ }
+@@ -68,7 +70,7 @@ static inline unsigned long compaction_s
+ }
+ 
+ extern unsigned long compact_zone_order(struct zone *zone, int order,
+-						gfp_t gfp_mask)
++						gfp_t gfp_mask, bool sync)
+ {
+ 	return 0;
+ }
+diff -puN include/linux/migrate.h~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/include/linux/migrate.h
+@@ -13,9 +13,11 @@ extern void putback_lru_pages(struct lis
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+-			unsigned long private, int offlining);
++			unsigned long private, int offlining,
++			bool sync);
+ extern int migrate_huge_pages(struct list_head *l, new_page_t x,
+-			unsigned long private, int offlining);
++			unsigned long private, int offlining,
++			bool sync);
+ 
+ extern int fail_migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+@@ -33,9 +35,11 @@ extern int migrate_huge_page_move_mappin
+ 
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+-		unsigned long private, int offlining) { return -ENOSYS; }
++		unsigned long private, int offlining,
++		bool sync) { return -ENOSYS; }
+ static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
+-		unsigned long private, int offlining) { return -ENOSYS; }
++		unsigned long private, int offlining,
++		bool sync) { return -ENOSYS; }
+ 
+ static inline int migrate_prep(void) { return -ENOSYS; }
+ static inline int migrate_prep_local(void) { return -ENOSYS; }
+diff -puN mm/compaction.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/compaction.c
+--- a/mm/compaction.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/compaction.c
+@@ -33,6 +33,7 @@ struct compact_control {
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+ 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
++	bool sync;			/* Synchronous migration */
+ 
+ 	/* Account for isolated anon and file pages */
+ 	unsigned long nr_anon;
+@@ -456,7 +457,8 @@ static int compact_zone(struct zone *zon
+ 
+ 		nr_migrate = cc->nr_migratepages;
+ 		migrate_pages(&cc->migratepages, compaction_alloc,
+-						(unsigned long)cc, 0);
++				(unsigned long)cc, 0,
++				cc->sync);
+ 		update_nr_listpages(cc);
+ 		nr_remaining = cc->nr_migratepages;
+ 
+@@ -483,7 +485,8 @@ static int compact_zone(struct zone *zon
+ }
+ 
+ unsigned long compact_zone_order(struct zone *zone,
+-						int order, gfp_t gfp_mask)
++						int order, gfp_t gfp_mask,
++						bool sync)
+ {
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+@@ -491,6 +494,7 @@ unsigned long compact_zone_order(struct 
+ 		.order = order,
+ 		.migratetype = allocflags_to_migratetype(gfp_mask),
+ 		.zone = zone,
++		.sync = sync,
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+@@ -506,11 +510,13 @@ int sysctl_extfrag_threshold = 500;
+  * @order: The order of the current allocation
+  * @gfp_mask: The GFP mask of the current allocation
+  * @nodemask: The allowed nodes to allocate from
++ * @sync: Whether migration is synchronous or not
+  *
+  * This is the main entry point for direct page compaction.
+  */
+ unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *nodemask)
++			int order, gfp_t gfp_mask, nodemask_t *nodemask,
++			bool sync)
+ {
+ 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+ 	int may_enter_fs = gfp_mask & __GFP_FS;
+@@ -534,7 +540,7 @@ unsigned long try_to_compact_pages(struc
+ 								nodemask) {
+ 		int status;
+ 
+-		status = compact_zone_order(zone, order, gfp_mask);
++		status = compact_zone_order(zone, order, gfp_mask, sync);
+ 		rc = max(status, rc);
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+diff -puN mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/memory-failure.c
+@@ -1413,7 +1413,8 @@ int soft_offline_page(struct page *page,
+ 		LIST_HEAD(pagelist);
+ 
+ 		list_add(&page->lru, &pagelist);
+-		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0);
++		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
++								0, true);
+ 		if (ret) {
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 				pfn, ret, page->flags);
+diff -puN mm/memory_hotplug.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/memory_hotplug.c
+@@ -714,7 +714,8 @@ do_migrate_range(unsigned long start_pfn
+ 			goto out;
+ 		}
+ 		/* this function returns # of failed pages */
+-		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
++		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
++								1, true);
+ 		if (ret)
+ 			putback_lru_pages(&source);
+ 	}
+diff -puN mm/mempolicy.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/mempolicy.c
+@@ -935,7 +935,7 @@ static int migrate_to_node(struct mm_str
+ 		return PTR_ERR(vma);
+ 
+ 	if (!list_empty(&pagelist)) {
+-		err = migrate_pages(&pagelist, new_node_page, dest, 0);
++		err = migrate_pages(&pagelist, new_node_page, dest, 0, true);
+ 		if (err)
+ 			putback_lru_pages(&pagelist);
+ 	}
+@@ -1155,7 +1155,7 @@ static long do_mbind(unsigned long start
+ 
+ 		if (!list_empty(&pagelist)) {
+ 			nr_failed = migrate_pages(&pagelist, new_vma_page,
+-						(unsigned long)vma, 0);
++						(unsigned long)vma, 0, true);
+ 			if (nr_failed)
+ 				putback_lru_pages(&pagelist);
+ 		}
+diff -puN mm/migrate.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/migrate.c
+--- a/mm/migrate.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/migrate.c
+@@ -612,7 +612,7 @@ static int move_to_new_page(struct page 
+  * to the newly allocated page in newpage.
+  */
+ static int unmap_and_move(new_page_t get_new_page, unsigned long private,
+-			struct page *page, int force, int offlining)
++			struct page *page, int force, int offlining, bool sync)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -663,7 +663,7 @@ static int unmap_and_move(new_page_t get
+ 	BUG_ON(charge);
+ 
+ 	if (PageWriteback(page)) {
+-		if (!force)
++		if (!force || !sync)
+ 			goto uncharge;
+ 		wait_on_page_writeback(page);
+ 	}
+@@ -808,7 +808,7 @@ move_newpage:
+  */
+ static int unmap_and_move_huge_page(new_page_t get_new_page,
+ 				unsigned long private, struct page *hpage,
+-				int force, int offlining)
++				int force, int offlining, bool sync)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -822,7 +822,7 @@ static int unmap_and_move_huge_page(new_
+ 	rc = -EAGAIN;
+ 
+ 	if (!trylock_page(hpage)) {
+-		if (!force)
++		if (!force || !sync)
+ 			goto out;
+ 		lock_page(hpage);
+ 	}
+@@ -890,7 +890,8 @@ out:
+  * Return: Number of pages not migrated or error code.
+  */
+ int migrate_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, int offlining)
++		new_page_t get_new_page, unsigned long private, int offlining,
++		bool sync)
+ {
+ 	int retry = 1;
+ 	int nr_failed = 0;
+@@ -910,7 +911,8 @@ int migrate_pages(struct list_head *from
+ 			cond_resched();
+ 
+ 			rc = unmap_and_move(get_new_page, private,
+-						page, pass > 2, offlining);
++						page, pass > 2, offlining,
++						sync);
+ 
+ 			switch(rc) {
+ 			case -ENOMEM:
+@@ -939,7 +941,8 @@ out:
+ }
+ 
+ int migrate_huge_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, int offlining)
++		new_page_t get_new_page, unsigned long private, int offlining,
++		bool sync)
+ {
+ 	int retry = 1;
+ 	int nr_failed = 0;
+@@ -955,7 +958,8 @@ int migrate_huge_pages(struct list_head 
+ 			cond_resched();
+ 
+ 			rc = unmap_and_move_huge_page(get_new_page,
+-					private, page, pass > 2, offlining);
++					private, page, pass > 2, offlining,
++					sync);
+ 
+ 			switch(rc) {
+ 			case -ENOMEM:
+@@ -1088,7 +1092,7 @@ set_status:
+ 	err = 0;
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, new_page_node,
+-				(unsigned long)pm, 0);
++				(unsigned long)pm, 0, true);
+ 		if (err)
+ 			putback_lru_pages(&pagelist);
+ 	}
+diff -puN mm/page_alloc.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
++++ a/mm/page_alloc.c
+@@ -1807,7 +1807,8 @@ static struct page *
+ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+ 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	int migratetype, unsigned long *did_some_progress)
++	int migratetype, unsigned long *did_some_progress,
++	bool sync_migration)
+ {
+ 	struct page *page;
+ 
+@@ -1815,7 +1816,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		return NULL;
+ 
+ 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
+-								nodemask);
++						nodemask, sync_migration);
+ 	if (*did_some_progress != COMPACT_SKIPPED) {
+ 
+ 		/* Page migration frees to the PCP lists but we want merging */
+@@ -1851,7 +1852,8 @@ static inline struct page *
+ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+ 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	int migratetype, unsigned long *did_some_progress)
++	int migratetype, unsigned long *did_some_progress,
++	bool sync_migration)
+ {
+ 	return NULL;
+ }
+@@ -1993,6 +1995,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	unsigned long pages_reclaimed = 0;
+ 	unsigned long did_some_progress;
+ 	struct task_struct *p = current;
++	bool sync_migration = false;
+ 
+ 	/*
+ 	 * In the slowpath, we sanity check order to avoid ever trying to
+@@ -2055,14 +2058,19 @@ rebalance:
+ 	if (test_thread_flag(TIF_MEMDIE) && !(gfp_mask & __GFP_NOFAIL))
+ 		goto nopage;
+ 
+-	/* Try direct compaction */
++	/*
++	 * Try direct compaction. The first pass is asynchronous. Subsequent
++	 * attempts after direct reclaim are synchronous
++	 */
+ 	page = __alloc_pages_direct_compact(gfp_mask, order,
+ 					zonelist, high_zoneidx,
+ 					nodemask,
+ 					alloc_flags, preferred_zone,
+-					migratetype, &did_some_progress);
++					migratetype, &did_some_progress,
++					sync_migration);
+ 	if (page)
+ 		goto got_pg;
++	sync_migration = true;
+ 
+ 	/* Try direct reclaim and then allocating */
+ 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
+@@ -2126,7 +2134,8 @@ rebalance:
+ 					zonelist, high_zoneidx,
+ 					nodemask,
+ 					alloc_flags, preferred_zone,
+-					migratetype, &did_some_progress);
++					migratetype, &did_some_progress,
++					sync_migration);
+ 		if (page)
+ 			goto got_pg;
+ 	}
+diff -puN mm/vmscan.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path mm/vmscan.c
+--- a/mm/vmscan.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path
 +++ a/mm/vmscan.c
-@@ -51,11 +51,20 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/vmscan.h>
- 
--enum lumpy_mode {
--	LUMPY_MODE_NONE,
--	LUMPY_MODE_ASYNC,
--	LUMPY_MODE_SYNC,
--};
-+/*
-+ * lumpy_mode determines how the inactive list is shrunk
-+ * LUMPY_MODE_SINGLE: Reclaim only order-0 pages
-+ * LUMPY_MODE_ASYNC:  Do not block
-+ * LUMPY_MODE_SYNC:   Allow blocking e.g. call wait_on_page_writeback
-+ * LUMPY_MODE_CONTIGRECLAIM: For high-order allocations, take a reference
-+ *			page from the LRU and reclaim all pages within a
-+ *			naturally aligned range
-+ */
-+typedef unsigned __bitwise__ lumpy_mode;
-+#define LUMPY_MODE_SINGLE		((__force lumpy_mode)0x01u)
-+#define LUMPY_MODE_ASYNC		((__force lumpy_mode)0x02u)
-+#define LUMPY_MODE_SYNC			((__force lumpy_mode)0x04u)
-+#define LUMPY_MODE_CONTIGRECLAIM	((__force lumpy_mode)0x08u)
- 
- struct scan_control {
- 	/* Incremented by the number of inactive pages that were scanned */
-@@ -88,7 +97,7 @@ struct scan_control {
- 	 * Intend to reclaim enough continuous memory rather than reclaim
- 	 * enough amount of memory. i.e, mode for high order allocation.
- 	 */
--	enum lumpy_mode lumpy_reclaim_mode;
-+	lumpy_mode lumpy_reclaim_mode;
- 
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
-@@ -274,13 +283,13 @@ unsigned long shrink_slab(unsigned long 
- static void set_lumpy_reclaim_mode(int priority, struct scan_control *sc,
- 				   bool sync)
- {
--	enum lumpy_mode mode = sync ? LUMPY_MODE_SYNC : LUMPY_MODE_ASYNC;
-+	lumpy_mode syncmode = sync ? LUMPY_MODE_SYNC : LUMPY_MODE_ASYNC;
- 
- 	/*
- 	 * Some reclaim have alredy been failed. No worth to try synchronous
- 	 * lumpy reclaim.
- 	 */
--	if (sync && sc->lumpy_reclaim_mode == LUMPY_MODE_NONE)
-+	if (sync && sc->lumpy_reclaim_mode & LUMPY_MODE_SINGLE)
- 		return;
- 
- 	/*
-@@ -288,17 +297,18 @@ static void set_lumpy_reclaim_mode(int p
- 	 * trouble getting a small set of contiguous pages, we
- 	 * will reclaim both active and inactive pages.
- 	 */
-+	sc->lumpy_reclaim_mode = LUMPY_MODE_CONTIGRECLAIM;
- 	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
--		sc->lumpy_reclaim_mode = mode;
-+		sc->lumpy_reclaim_mode |= syncmode;
- 	else if (sc->order && priority < DEF_PRIORITY - 2)
--		sc->lumpy_reclaim_mode = mode;
-+		sc->lumpy_reclaim_mode |= syncmode;
- 	else
--		sc->lumpy_reclaim_mode = LUMPY_MODE_NONE;
-+		sc->lumpy_reclaim_mode = LUMPY_MODE_SINGLE | LUMPY_MODE_ASYNC;
- }
- 
- static void disable_lumpy_reclaim_mode(struct scan_control *sc)
- {
--	sc->lumpy_reclaim_mode = LUMPY_MODE_NONE;
-+	sc->lumpy_reclaim_mode = LUMPY_MODE_SINGLE | LUMPY_MODE_ASYNC;
- }
- 
- static inline int is_page_cache_freeable(struct page *page)
-@@ -429,7 +439,7 @@ static pageout_t pageout(struct page *pa
- 		 * first attempt to free a range of pages fails.
- 		 */
- 		if (PageWriteback(page) &&
--		    sc->lumpy_reclaim_mode == LUMPY_MODE_SYNC)
-+		    (sc->lumpy_reclaim_mode & LUMPY_MODE_SYNC))
- 			wait_on_page_writeback(page);
- 
- 		if (!PageWriteback(page)) {
-@@ -615,7 +625,7 @@ static enum page_references page_check_r
- 	referenced_page = TestClearPageReferenced(page);
- 
- 	/* Lumpy reclaim - ignore references */
--	if (sc->lumpy_reclaim_mode != LUMPY_MODE_NONE)
-+	if (sc->lumpy_reclaim_mode & LUMPY_MODE_CONTIGRECLAIM)
- 		return PAGEREF_RECLAIM;
- 
- 	/*
-@@ -732,7 +742,7 @@ static unsigned long shrink_page_list(st
- 			 * for any page for which writeback has already
- 			 * started.
+@@ -2370,7 +2370,8 @@ loop_again:
+ 			 * would ordinarily call try_to_compact_pages()
  			 */
--			if (sc->lumpy_reclaim_mode == LUMPY_MODE_SYNC &&
-+			if ((sc->lumpy_reclaim_mode & LUMPY_MODE_SYNC) &&
- 			    may_enter_fs)
- 				wait_on_page_writeback(page);
- 			else {
-@@ -1317,7 +1327,7 @@ static inline bool should_reclaim_stall(
- 		return false;
+ 			if (sc.order > PAGE_ALLOC_COSTLY_ORDER)
+-				compact_zone_order(zone, sc.order, sc.gfp_mask);
++				compact_zone_order(zone, sc.order, sc.gfp_mask,
++							false);
  
- 	/* Only stall on lumpy reclaim */
--	if (sc->lumpy_reclaim_mode == LUMPY_MODE_NONE)
-+	if (sc->lumpy_reclaim_mode & LUMPY_MODE_SINGLE)
- 		return false;
- 
- 	/* If we have relaimed everything on the isolated list, no stall */
-@@ -1368,7 +1378,7 @@ shrink_inactive_list(unsigned long nr_to
- 	if (scanning_global_lru(sc)) {
- 		nr_taken = isolate_pages_global(nr_to_scan,
- 			&page_list, &nr_scanned, sc->order,
--			sc->lumpy_reclaim_mode == LUMPY_MODE_NONE ?
-+			sc->lumpy_reclaim_mode & LUMPY_MODE_SINGLE ?
- 					ISOLATE_INACTIVE : ISOLATE_BOTH,
- 			zone, 0, file);
- 		zone->pages_scanned += nr_scanned;
-@@ -1381,7 +1391,7 @@ shrink_inactive_list(unsigned long nr_to
- 	} else {
- 		nr_taken = mem_cgroup_isolate_pages(nr_to_scan,
- 			&page_list, &nr_scanned, sc->order,
--			sc->lumpy_reclaim_mode == LUMPY_MODE_NONE ?
-+			sc->lumpy_reclaim_mode & LUMPY_MODE_SINGLE ?
- 					ISOLATE_INACTIVE : ISOLATE_BOTH,
- 			zone, sc->mem_cgroup,
- 			0, file);
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), end_zone, 0)) {
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
