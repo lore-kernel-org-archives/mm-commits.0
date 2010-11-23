@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch added to -mm tree
-Date: Tue, 23 Nov 2010 15:11:13 -0800
-Message-ID: <201011232343.oANNhgQg012955@imap1.linux-foundation.org>
+Subject: + mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch added to -mm tree
+Date: Tue, 23 Nov 2010 15:49:46 -0800
+Message-ID: <201011240022.oAO0MFQ1014897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754137Ab0KWXog (ORCPT
+	by vger.kernel.org with ESMTP id S1754484Ab0KXAXJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Nov 2010 18:44:36 -0500
+	Tue, 23 Nov 2010 19:23:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, aarcange@redhat.com, apw@shadowen.org, hannes@cmp
 
 
 The patch titled
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix
+     mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+     mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix
+Subject: mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.o: In function `cpu_callback':
-include/linux/compaction.h:74: multiple definition of `compact_zone_order'
-mm/page_alloc.o:include/linux/compaction.h:74: first defined here
-mm/vmstat.o: In function `setup_vmstat':
-include/linux/compaction.h:74: multiple definition of `compact_zone_order'
+mm/memory-failure.c: In function 'soft_offline_huge_page':
+mm/memory-failure.c:1293: error: too few arguments to function 'migrate_huge_pages'
+make[1]: *** [mm/memory-failure.o] Error 1
 
-copy-n-paste strikes again.  Thwap for not testing with CONFIG_COMPATION=n!
+This is a guess.
+
+Someone please document migrate_huge_pages()?
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -54,21 +54,25 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix include/linux/compaction.h
---- a/include/linux/compaction.h~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix
-+++ a/include/linux/compaction.h
-@@ -67,7 +67,7 @@ static inline unsigned long compaction_s
- 	return COMPACT_SKIPPED;
- }
+diff -puN mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
++++ a/mm/memory-failure.c
+@@ -1290,9 +1290,10 @@ static int soft_offline_huge_page(struct
+ 	/* Keep page count to indicate a given hugepage is isolated. */
  
--extern unsigned long compact_zone_order(struct zone *zone, int order,
-+static inline unsigned long compact_zone_order(struct zone *zone, int order,
- 						gfp_t gfp_mask)
- {
- 	return 0;
+ 	list_add(&hpage->lru, &pagelist);
+-	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0);
++	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
++				true);
+ 	if (ret) {
+-			putback_lru_pages(&pagelist);
++		putback_lru_pages(&pagelist);
+ 		pr_debug("soft offline: %#lx: migration failed %d, type %lx\n",
+ 			 pfn, ret, page->flags);
+ 		if (ret > 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +102,7 @@ writeback-make-nr_to_write-a-per-file-limit-fix.patch
 sync_inode_metadata-fix-comment.patch
 fs-mpagec-consolidate-code-checkpatch-fixes.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
 mm-deactivate-invalidated-pages-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
