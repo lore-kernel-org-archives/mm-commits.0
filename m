@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-fix-up-dependencies.patch added to -mm tree
-Date: Mon, 22 Nov 2010 23:36:57 -0800
-Message-ID: <201011230741.oAN7f30U002293@imap1.linux-foundation.org>
+Subject: [failures] leds-fix-up-dependencies.patch removed from -mm tree
+Date: Tue, 23 Nov 2010 01:18:45 -0800
+Message-ID: <201011230922.oAN9Mq4k006660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752429Ab0KWHl1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752299Ab0KWJXJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Nov 2010 02:41:27 -0500
+	Tue, 23 Nov 2010 04:23:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: johannes.berg@intel.com, arnd@arndnet.de, mhocko@suse.cz, mingo@elte.hu, randy.dunlap@oracle.com, rpurdie@linux.intel.com
+To: johannes.berg@intel.com, arnd@arndnet.de, mhocko@suse.cz, mingo@elte.hu, randy.dunlap@oracle.com, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      leds: fix up dependencies
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      leds-fix-up-dependencies.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -473,6 +463,5 @@ _
 
 Patches currently in -mm which might be from johannes.berg@intel.com are
 
-leds-fix-up-dependencies.patch
 linux-next.patch
 
