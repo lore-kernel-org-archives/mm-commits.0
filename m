@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-unify-module_alloc-code-for-vmalloc.patch added to -mm tree
-Date: Mon, 22 Nov 2010 15:36:56 -0800
-Message-ID: <201011222336.oAMNau8e015687@imap1.linux-foundation.org>
+Subject: + oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch added to -mm tree
+Date: Mon, 22 Nov 2010 16:10:35 -0800
+Message-ID: <201011230010.oAN0AZXN017068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757791Ab0KVXho (ORCPT
+	by vger.kernel.org with ESMTP id S932369Ab0KWALW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Nov 2010 18:37:44 -0500
+	Mon, 22 Nov 2010 19:11:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, cl@linux.com, davem@davemloft.net, hpa@zytor.com, linux@arm.linux.org.uk, mingo@redhat.com, ralf@linux-mips.org, tglx@linutronix.de
+Cc: msb@chromium.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, yinghan@google.com
 
 
 The patch titled
-     mm: unify module_alloc code for vmalloc
+     oom: allow a non-CAP_SYS_RESOURCE proces to oom_score_adj down
 has been added to the -mm tree.  Its filename is
-     mm-unify-module_alloc-code-for-vmalloc.patch
+     oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,246 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: unify module_alloc code for vmalloc
-From: David Rientjes <rientjes@google.com>
+Subject: oom: allow a non-CAP_SYS_RESOURCE proces to oom_score_adj down
+From: Mandeep Singh Baines <msb@chromium.org>
 
-Four architectures (arm, mips, sparc, x86) use __vmalloc_area() for
-module_init().  Much of the code is duplicated and can be generalized in a
-globally accessible function, __vmalloc_node_range().
+We'd like to be able to oom_score_adj a process up/down as it
+enters/leaves the foreground.  Currently, it is not possible to oom_adj
+down without CAP_SYS_RESOURCE.  This patch allows a task to decrease its
+oom_score_adj back to the value that a CAP_SYS_RESOURCE thread set it to
+or its inherited value at fork.  Assuming the thread that has forked it
+has oom_score_adj of 0, each process could decrease it back from 0 upon
+activation unless a CAP_SYS_RESOURCE thread elevated it to something
+higher.
 
-__vmalloc_node() now calls into __vmalloc_node_range() with a range of
-[VMALLOC_START, VMALLOC_END) for functionally equivalent behavior.
+Alternative considered:
 
-Each architecture may then use __vmalloc_node_range() directly to remove
-the duplication of code.
+* a setuid binary
+* a daemon with CAP_SYS_RESOURCE
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Since you don't wan't all processes to be able to reduce their oom_adj, a
+setuid or daemon implementation would be complex.  The alternatives also
+have much higher overhead.
+
+This patch updated from original patch based on feedback from David
+Rientjes.
+
+Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/module.c   |   14 ++-------
- arch/mips/kernel/module.c  |   14 ++-------
- arch/sparc/kernel/module.c |   14 ++-------
- arch/x86/kernel/module.c   |   17 ++---------
- include/linux/vmalloc.h    |    5 ++-
- mm/vmalloc.c               |   50 ++++++++++++++++++++---------------
- 6 files changed, 46 insertions(+), 68 deletions(-)
+ Documentation/filesystems/proc.txt |    4 ++++
+ fs/proc/base.c                     |    4 +++-
+ include/linux/sched.h              |    2 ++
+ kernel/fork.c                      |    1 +
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc arch/arm/kernel/module.c
---- a/arch/arm/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc
-+++ a/arch/arm/kernel/module.c
-@@ -38,17 +38,9 @@
- #ifdef CONFIG_MMU
- void *module_alloc(unsigned long size)
- {
--	struct vm_struct *area;
--
--	size = PAGE_ALIGN(size);
--	if (!size)
--		return NULL;
--
--	area = __get_vm_area(size, VM_ALLOC, MODULES_VADDR, MODULES_END);
--	if (!area)
--		return NULL;
--
--	return __vmalloc_area(area, GFP_KERNEL, PAGE_KERNEL_EXEC);
-+	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
-+				GFP_KERNEL, PAGE_KERNEL_EXEC, -1,
-+				__builtin_return_address(0));
- }
- #else /* CONFIG_MMU */
- void *module_alloc(unsigned long size)
-diff -puN arch/mips/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc arch/mips/kernel/module.c
---- a/arch/mips/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc
-+++ a/arch/mips/kernel/module.c
-@@ -46,17 +46,9 @@ static DEFINE_SPINLOCK(dbe_lock);
- void *module_alloc(unsigned long size)
- {
- #ifdef MODULE_START
--	struct vm_struct *area;
--
--	size = PAGE_ALIGN(size);
--	if (!size)
--		return NULL;
--
--	area = __get_vm_area(size, VM_ALLOC, MODULE_START, MODULE_END);
--	if (!area)
--		return NULL;
--
--	return __vmalloc_area(area, GFP_KERNEL, PAGE_KERNEL);
-+	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
-+				GFP_KERNEL, PAGE_KERNEL, -1,
-+				__builtin_return_address(0));
- #else
- 	if (size == 0)
- 		return NULL;
-diff -puN arch/sparc/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc arch/sparc/kernel/module.c
---- a/arch/sparc/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc
-+++ a/arch/sparc/kernel/module.c
-@@ -23,17 +23,11 @@
+diff -puN Documentation/filesystems/proc.txt~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/Documentation/filesystems/proc.txt
+@@ -1323,6 +1323,10 @@ scaled linearly with /proc/<pid>/oom_sco
+ Writing to /proc/<pid>/oom_score_adj or /proc/<pid>/oom_adj will change the
+ other with its scaled value.
  
- static void *module_map(unsigned long size)
- {
--	struct vm_struct *area;
--
--	size = PAGE_ALIGN(size);
--	if (!size || size > MODULES_LEN)
--		return NULL;
--
--	area = __get_vm_area(size, VM_ALLOC, MODULES_VADDR, MODULES_END);
--	if (!area)
-+	if (PAGE_ALIGN(size) > MODULES_LEN)
- 		return NULL;
--
--	return __vmalloc_area(area, GFP_KERNEL, PAGE_KERNEL);
-+	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
-+				GFP_KERNEL, PAGE_KERNEL, -1,
-+				__builtin_return_address(0));
- }
- 
- static char *dot2underscore(char *name)
-diff -puN arch/x86/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc arch/x86/kernel/module.c
---- a/arch/x86/kernel/module.c~mm-unify-module_alloc-code-for-vmalloc
-+++ a/arch/x86/kernel/module.c
-@@ -37,20 +37,11 @@
- 
- void *module_alloc(unsigned long size)
- {
--	struct vm_struct *area;
--
--	if (!size)
--		return NULL;
--	size = PAGE_ALIGN(size);
--	if (size > MODULES_LEN)
-+	if (PAGE_ALIGN(size) > MODULES_LEN)
- 		return NULL;
--
--	area = __get_vm_area(size, VM_ALLOC, MODULES_VADDR, MODULES_END);
--	if (!area)
--		return NULL;
--
--	return __vmalloc_area(area, GFP_KERNEL | __GFP_HIGHMEM,
--					PAGE_KERNEL_EXEC);
-+	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
-+				GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL_EXEC,
-+				-1, __builtin_return_address(0));
- }
- 
- /* Free memory returned from module_alloc */
-diff -puN include/linux/vmalloc.h~mm-unify-module_alloc-code-for-vmalloc include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-unify-module_alloc-code-for-vmalloc
-+++ a/include/linux/vmalloc.h
-@@ -61,8 +61,9 @@ extern void *vmalloc_exec(unsigned long 
- extern void *vmalloc_32(unsigned long size);
- extern void *vmalloc_32_user(unsigned long size);
- extern void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot);
--extern void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask,
--				pgprot_t prot);
-+extern void *__vmalloc_node_range(unsigned long size, unsigned long align,
-+			unsigned long start, unsigned long end, gfp_t gfp_mask,
-+			pgprot_t prot, int node, void *caller);
- extern void vfree(const void *addr);
- 
- extern void *vmap(struct page **pages, unsigned int count,
-diff -puN mm/vmalloc.c~mm-unify-module_alloc-code-for-vmalloc mm/vmalloc.c
---- a/mm/vmalloc.c~mm-unify-module_alloc-code-for-vmalloc
-+++ a/mm/vmalloc.c
-@@ -1581,25 +1581,12 @@ fail:
- 	return NULL;
- }
- 
--void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask, pgprot_t prot)
--{
--	void *addr = __vmalloc_area_node(area, gfp_mask, prot, -1,
--					 __builtin_return_address(0));
--
--	/*
--	 * A ref_count = 3 is needed because the vm_struct and vmap_area
--	 * structures allocated in the __get_vm_area_node() function contain
--	 * references to the virtual address of the vmalloc'ed block.
--	 */
--	kmemleak_alloc(addr, area->size - PAGE_SIZE, 3, gfp_mask);
--
--	return addr;
--}
--
- /**
-- *	__vmalloc_node  -  allocate virtually contiguous memory
-+ *	__vmalloc_node_range  -  allocate virtually contiguous memory
-  *	@size:		allocation size
-  *	@align:		desired alignment
-+ *	@start:		vm area range start
-+ *	@end:		vm area range end
-  *	@gfp_mask:	flags for the page level allocator
-  *	@prot:		protection mask for the allocated pages
-  *	@node:		node to use for allocation or -1
-@@ -1609,9 +1596,9 @@ void *__vmalloc_area(struct vm_struct *a
-  *	allocator with @gfp_mask flags.  Map them into contiguous
-  *	kernel virtual space, using a pagetable protection of @prot.
-  */
--static void *__vmalloc_node(unsigned long size, unsigned long align,
--			    gfp_t gfp_mask, pgprot_t prot,
--			    int node, void *caller)
-+void *__vmalloc_node_range(unsigned long size, unsigned long align,
-+			unsigned long start, unsigned long end, gfp_t gfp_mask,
-+			pgprot_t prot, int node, void *caller)
- {
- 	struct vm_struct *area;
- 	void *addr;
-@@ -1621,8 +1608,8 @@ static void *__vmalloc_node(unsigned lon
- 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
- 		return NULL;
- 
--	area = __get_vm_area_node(size, align, VM_ALLOC, VMALLOC_START,
--				  VMALLOC_END, node, gfp_mask, caller);
-+	area = __get_vm_area_node(size, align, VM_ALLOC, start, end, node,
-+				  gfp_mask, caller);
- 
- 	if (!area)
- 		return NULL;
-@@ -1639,6 +1626,27 @@ static void *__vmalloc_node(unsigned lon
- 	return addr;
- }
- 
-+/**
-+ *	__vmalloc_node  -  allocate virtually contiguous memory
-+ *	@size:		allocation size
-+ *	@align:		desired alignment
-+ *	@gfp_mask:	flags for the page level allocator
-+ *	@prot:		protection mask for the allocated pages
-+ *	@node:		node to use for allocation or -1
-+ *	@caller:	caller's return address
-+ *
-+ *	Allocate enough pages to cover @size from the page level
-+ *	allocator with @gfp_mask flags.  Map them into contiguous
-+ *	kernel virtual space, using a pagetable protection of @prot.
-+ */
-+static void *__vmalloc_node(unsigned long size, unsigned long align,
-+			    gfp_t gfp_mask, pgprot_t prot,
-+			    int node, void *caller)
-+{
-+	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
-+				gfp_mask, prot, node, caller);
-+}
++The value of /proc/<pid>/oom_score_adj may be reduced no lower than the last
++value set by a CAP_SYS_RESOURCE process. To reduce the value any lower
++requires CAP_SYS_RESOURCE.
 +
- void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot)
- {
- 	return __vmalloc_node(size, 1, gfp_mask, prot, -1,
+ NOTICE: /proc/<pid>/oom_adj is deprecated and will be removed, please see
+ Documentation/feature-removal-schedule.txt.
+ 
+diff -puN fs/proc/base.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down fs/proc/base.c
+--- a/fs/proc/base.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/fs/proc/base.c
+@@ -1164,7 +1164,7 @@ static ssize_t oom_score_adj_write(struc
+ 		goto err_task_lock;
+ 	}
+ 
+-	if (oom_score_adj < task->signal->oom_score_adj &&
++	if (oom_score_adj < task->signal->oom_score_adj_min &&
+ 			!capable(CAP_SYS_RESOURCE)) {
+ 		err = -EACCES;
+ 		goto err_sighand;
+@@ -1177,6 +1177,8 @@ static ssize_t oom_score_adj_write(struc
+ 			atomic_dec(&task->mm->oom_disable_count);
+ 	}
+ 	task->signal->oom_score_adj = oom_score_adj;
++	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
++		task->signal->oom_score_adj_min = oom_score_adj;
+ 	/*
+ 	 * Scale /proc/pid/oom_adj appropriately ensuring that OOM_DISABLE is
+ 	 * always attainable.
+diff -puN include/linux/sched.h~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down include/linux/sched.h
+--- a/include/linux/sched.h~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/include/linux/sched.h
+@@ -626,6 +626,8 @@ struct signal_struct {
+ 
+ 	int oom_adj;		/* OOM kill score adjustment (bit shift) */
+ 	int oom_score_adj;	/* OOM kill score adjustment */
++	int oom_score_adj_min;	/* OOM kill score adjustment minimum value.
++				 * Only settable by CAP_SYS_RESOURCE. */
+ 
+ 	struct mutex cred_guard_mutex;	/* guard against foreign influences on
+ 					 * credential calculations
+diff -puN kernel/fork.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down kernel/fork.c
+--- a/kernel/fork.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/kernel/fork.c
+@@ -907,6 +907,7 @@ static int copy_signal(unsigned long clo
+ 
+ 	sig->oom_adj = current->signal->oom_adj;
+ 	sig->oom_score_adj = current->signal->oom_score_adj;
++	sig->oom_score_adj_min = current->signal->oom_score_adj_min;
+ 
+ 	mutex_init(&sig->cred_guard_mutex);
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from msb@chromium.org are
 
-linux-next.patch
-mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch
-mm-remove-unused-get_vm_area_node.patch
-mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
-mm-unify-module_alloc-code-for-vmalloc.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
+oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
 
