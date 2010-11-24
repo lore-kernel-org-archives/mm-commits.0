@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-use-little-endian-bitops.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:40:10 -0800
-Message-ID: <201011242240.oAOMeAfD008196@imap1.linux-foundation.org>
+Subject: + md-use-little-endian-bit-operations.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:40:13 -0800
+Message-ID: <201011242240.oAOMeDMm008199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755605Ab0KXWkm (ORCPT
+	by vger.kernel.org with ESMTP id S1755949Ab0KXWkq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 17:40:42 -0500
+	Wed, 24 Nov 2010 17:40:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, dushistov@mail.ru
+Cc: akinobu.mita@gmail.com, neilb@suse.de
 
 
 The patch titled
-     ufs: use little-endian bitops
+     md: use little-endian bit operations
 has been added to the -mm tree.  Its filename is
-     ufs-use-little-endian-bitops.patch
+     md-use-little-endian-bit-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: use little-endian bitops
+Subject: md: use little-endian bit operations
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,25 +42,43 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Acked-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/util.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/bitmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/util.h~ufs-use-little-endian-bitops fs/ufs/util.h
---- a/fs/ufs/util.h~ufs-use-little-endian-bitops
-+++ a/fs/ufs/util.h
-@@ -408,7 +408,7 @@ static inline unsigned _ubh_find_next_ze
- 	for (;;) {
- 		count = min_t(unsigned int, size + offset, uspi->s_bpf);
- 		size -= count - offset;
--		pos = ext2_find_next_zero_bit (ubh->bh[base]->b_data, count, offset);
-+		pos = find_next_zero_le_bit((unsigned long *)ubh->bh[base]->b_data, count, offset);
- 		if (pos < count || !size)
- 			break;
- 		base++;
+diff -puN drivers/md/bitmap.c~md-use-little-endian-bit-operations drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-use-little-endian-bit-operations
++++ a/drivers/md/bitmap.c
+@@ -850,7 +850,7 @@ static void bitmap_file_set_bit(struct b
+ 		if (bitmap->flags & BITMAP_HOSTENDIAN)
+ 			set_bit(bit, kaddr);
+ 		else
+-			ext2_set_bit(bit, kaddr);
++			__test_and_set_le_bit(bit, kaddr);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		PRINTK("set file bit %lu page %lu\n", bit, page->index);
+ 	}
+@@ -1046,7 +1046,7 @@ static int bitmap_init_from_disk(struct 
+ 		if (bitmap->flags & BITMAP_HOSTENDIAN)
+ 			b = test_bit(bit, paddr);
+ 		else
+-			b = ext2_test_bit(bit, paddr);
++			b = test_le_bit(bit, paddr);
+ 		kunmap_atomic(paddr, KM_USER0);
+ 		if (b) {
+ 			/* if the disk bit is set, set the memory bit */
+@@ -1222,7 +1222,7 @@ void bitmap_daemon_work(mddev_t *mddev)
+ 						clear_bit(file_page_offset(bitmap, j),
+ 							  paddr);
+ 					else
+-						ext2_clear_bit(file_page_offset(bitmap, j),
++						__test_and_clear_le_bit(file_page_offset(bitmap, j),
+ 							       paddr);
+ 					kunmap_atomic(paddr, KM_USER0);
+ 				} else
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
