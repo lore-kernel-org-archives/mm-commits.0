@@ -1,95 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] a.patch removed from -mm tree
-Date: Wed, 24 Nov 2010 12:56:35 -0800
-Message-ID: <201011242056.oAOKuZLj003631@imap1.linux-foundation.org>
+Subject: + media-fix-timblogiw-kconfig-build-error.patch added to -mm tree
+Date: Wed, 24 Nov 2010 13:33:44 -0800
+Message-ID: <201011242133.oAOLXijV005322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754587Ab0KXU4g (ORCPT
+	by vger.kernel.org with ESMTP id S1753374Ab0KXVeX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 15:56:36 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oAOKuZpi003931
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 24 Nov 2010 12:56:35 -0800
+	Wed, 24 Nov 2010 16:34:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, mchehab@infradead.org
 
 
 The patch titled
-     a
-has been removed from the -mm tree.  Its filename was
-     a.patch
+     media: fix timblogiw kconfig & build error
+has been added to the -mm tree.  Its filename is
+     media-fix-timblogiw-kconfig-build-error.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: media: fix timblogiw kconfig & build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
+timblogiw uses dma() interfaces and it selects TIMB_DMA for that support. 
+However, drivers/dma/ is not built unless CONFIG_DMA_ENGINE is enabled, so
+select/enable that symbol also.
+
+drivers/built-in.o: In function `timblogiw_close':
+timblogiw.c:(.text+0x4419fe): undefined reference to `dma_release_channel'
+drivers/built-in.o: In function `buffer_release':
+timblogiw.c:(.text+0x441a8d): undefined reference to `dma_sync_wait'
+drivers/built-in.o: In function `timblogiw_open':
+timblogiw.c:(.text+0x44212b): undefined reference to `__dma_request_channel'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    1 +
+ drivers/media/video/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/open.c~a fs/open.c
---- a/fs/open.c~a
-+++ a/fs/open.c
-@@ -1042,3 +1042,4 @@ int nonseekable_open(struct inode *inode
- }
- 
- EXPORT_SYMBOL(nonseekable_open);
-+foo
+diff -puN drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error
++++ a/drivers/media/video/Kconfig
+@@ -669,6 +669,7 @@ config VIDEO_HEXIUM_GEMINI
+ config VIDEO_TIMBERDALE
+ 	tristate "Support for timberdale Video In/LogiWIN"
+ 	depends on VIDEO_V4L2 && I2C
++	select DMA_ENGINE
+ 	select TIMB_DMA
+ 	select VIDEO_ADV7180
+ 	select VIDEOBUF_DMA_CONTIG
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-memcg-fix-false-positive-vm_bug-on-non-smp.patch
-mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch
-scripts-fix-gfp-translate-for-recent-changes-to-gfph.patch
+origin.patch
 arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-aesni-nfg.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+ibm_rtl-fix-printk-format-warning.patch
+media-fix-timblogiw-kconfig-build-error.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+w1-ds2423-counter-driver-and-documentation-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
