@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-use-little-endian-bitops.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:40:02 -0800
-Message-ID: <201011242240.oAOMe2RL008184@imap1.linux-foundation.org>
+Subject: + ext4-use-little-endian-bitops.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:39:59 -0800
+Message-ID: <201011242240.oAOMe0Zh008157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755295Ab0KXWp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755215Ab0KXWp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 24 Nov 2010 17:45:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, joel.becker@oracle.com, mfasheh@suse.com
+Cc: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu
 
 
 The patch titled
-     ocfs2: use little-endian bitops
+     ext4: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     ocfs2-use-little-endian-bitops.patch
+     ext4-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs2: use little-endian bitops
+Subject: ext4: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,44 +42,44 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Joel Becker <joel.becker@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/ext4/ext4.h |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-use-little-endian-bitops fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-use-little-endian-bitops
-+++ a/fs/ocfs2/ocfs2.h
-@@ -826,18 +826,21 @@ static inline unsigned int ocfs2_cluster
+diff -puN fs/ext4/ext4.h~ext4-use-little-endian-bitops fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-use-little-endian-bitops
++++ a/fs/ext4/ext4.h
+@@ -921,14 +921,20 @@ struct ext4_inode_info {
+ #define test_opt(sb, opt)		(EXT4_SB(sb)->s_mount_opt & \
+ 					 EXT4_MOUNT_##opt)
  
- static inline void _ocfs2_set_bit(unsigned int bit, unsigned long *bitmap)
- {
--	ext2_set_bit(bit, bitmap);
-+	__test_and_set_le_bit(bit, bitmap);
- }
- #define ocfs2_set_bit(bit, addr) _ocfs2_set_bit((bit), (unsigned long *)(addr))
+-#define ext4_set_bit			ext2_set_bit
++#define ext4_set_bit(nr, addr)	\
++	__test_and_set_le_bit((nr), (unsigned long *)(addr))
+ #define ext4_set_bit_atomic		ext2_set_bit_atomic
+-#define ext4_clear_bit			ext2_clear_bit
++#define ext4_clear_bit(nr, addr)	\
++	__test_and_clear_le_bit((nr), (unsigned long *)(addr))
+ #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
+-#define ext4_test_bit			ext2_test_bit
+-#define ext4_find_first_zero_bit	ext2_find_first_zero_bit
+-#define ext4_find_next_zero_bit		ext2_find_next_zero_bit
+-#define ext4_find_next_bit		ext2_find_next_bit
++#define ext4_test_bit(nr, addr)	\
++	test_le_bit((nr), (unsigned long *)(addr))
++#define ext4_find_first_zero_bit(addr, size)	\
++	find_first_zero_le_bit((unsigned long *)(addr), (size))
++#define ext4_find_next_zero_bit(addr, size, off)	\
++	find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++#define ext4_find_next_bit(addr, size, off)	\
++	find_next_le_bit((unsigned long *)(addr), (size), (off))
  
- static inline void _ocfs2_clear_bit(unsigned int bit, unsigned long *bitmap)
- {
--	ext2_clear_bit(bit, bitmap);
-+	__test_and_clear_le_bit(bit, bitmap);
- }
- #define ocfs2_clear_bit(bit, addr) _ocfs2_clear_bit((bit), (unsigned long *)(addr))
- 
--#define ocfs2_test_bit ext2_test_bit
--#define ocfs2_find_next_zero_bit ext2_find_next_zero_bit
--#define ocfs2_find_next_bit ext2_find_next_bit
-+#define ocfs2_test_bit(nr, addr)	\
-+	test_le_bit(nr, (unsigned long *)(addr))
-+#define ocfs2_find_next_zero_bit(addr, size, off)	\
-+	find_next_zero_le_bit((unsigned long *)(addr), size, off)
-+#define ocfs2_find_next_bit(addr, size, off)	\
-+	find_next_le_bit((unsigned long *)(addr), size, off)
- #endif  /* OCFS2_H */
- 
+ /*
+  * Maximal mount counts between two filesystem checks
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
