@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-use-little-endian-bitops.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:40:04 -0800
-Message-ID: <201011242240.oAOMe5UV008187@imap1.linux-foundation.org>
+Subject: + dm-use-little-endian-bit-operations.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:40:15 -0800
+Message-ID: <201011242240.oAOMeF2X008202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755949Ab0KXWku (ORCPT
+	by vger.kernel.org with ESMTP id S1754641Ab0KXWkz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 17:40:50 -0500
+	Wed, 24 Nov 2010 17:40:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, konishi.ryusuke@lab.ntt.co.jp
+Cc: akinobu.mita@gmail.com, agk@redhat.com
 
 
 The patch titled
-     nilfs2: use little-endian bitops
+     dm: use little-endian bit operations
 has been added to the -mm tree.  Its filename is
-     nilfs2-use-little-endian-bitops.patch
+     dm-use-little-endian-bit-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: use little-endian bitops
+Subject: dm: use little-endian bit operations
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,26 +42,49 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Alasdair Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/md/dm-log.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/alloc.h~nilfs2-use-little-endian-bitops fs/nilfs2/alloc.h
---- a/fs/nilfs2/alloc.h~nilfs2-use-little-endian-bitops
-+++ a/fs/nilfs2/alloc.h
-@@ -74,7 +74,8 @@ int nilfs_palloc_freev(struct inode *, _
+diff -puN drivers/md/dm-log.c~dm-use-little-endian-bit-operations drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-use-little-endian-bit-operations
++++ a/drivers/md/dm-log.c
+@@ -251,20 +251,20 @@ struct log_c {
+  */
+ static inline int log_test_bit(uint32_t *bs, unsigned bit)
+ {
+-	return ext2_test_bit(bit, (unsigned long *) bs) ? 1 : 0;
++	return test_le_bit(bit, (unsigned long *) bs) ? 1 : 0;
+ }
  
- #define nilfs_set_bit_atomic		ext2_set_bit_atomic
- #define nilfs_clear_bit_atomic		ext2_clear_bit_atomic
--#define nilfs_find_next_zero_bit	ext2_find_next_zero_bit
-+#define nilfs_find_next_zero_bit(addr, size, off)	\
-+	find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
+ static inline void log_set_bit(struct log_c *l,
+ 			       uint32_t *bs, unsigned bit)
+ {
+-	ext2_set_bit(bit, (unsigned long *) bs);
++	__test_and_set_le_bit(bit, (unsigned long *) bs);
+ 	l->touched_cleaned = 1;
+ }
  
- /*
-  * persistent object allocator cache
+ static inline void log_clear_bit(struct log_c *l,
+ 				 uint32_t *bs, unsigned bit)
+ {
+-	ext2_clear_bit(bit, (unsigned long *) bs);
++	__test_and_clear_le_bit(bit, (unsigned long *) bs);
+ 	l->touched_dirtied = 1;
+ }
+ 
+@@ -740,7 +740,7 @@ static int core_get_resync_work(struct d
+ 		return 0;
+ 
+ 	do {
+-		*region = ext2_find_next_zero_bit(
++		*region = find_next_zero_le_bit(
+ 					     (unsigned long *) lc->sync_bits,
+ 					     lc->region_count,
+ 					     lc->sync_search);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
