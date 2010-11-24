@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + decompressors-check-for-write-errors-in-decompress_unlzmac.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:42:02 -0800
-Message-ID: <201011242242.oAOMg32S008333@imap1.linux-foundation.org>
+Subject: + decompressors-validate-match-distance-in-decompress_unlzmac.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:42:04 -0800
+Message-ID: <201011242242.oAOMg4LX008336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755083Ab0KXWme (ORCPT
+	by vger.kernel.org with ESMTP id S1755726Ab0KXWmg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 17:42:34 -0500
+	Wed, 24 Nov 2010 17:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com,
 
 
 The patch titled
-     Decompressors: check for write errors in decompress_unlzma.c
+     Decompressors: validate match distance in decompress_unlzma.c
 has been added to the -mm tree.  Its filename is
-     decompressors-check-for-write-errors-in-decompress_unlzmac.patch
+     decompressors-validate-match-distance-in-decompress_unlzmac.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Decompressors: check for write errors in decompress_unlzma.c
+Subject: Decompressors: validate match distance in decompress_unlzma.c
 From: Lasse Collin <lasse.collin@tukaani.org>
 
-The return value of wr->flush() is not checked in write_byte().  This
-means that the decompressor won't stop even if the caller doesn't want
-more data.  This can happen e.g.  with corrupt LZMA-compressed initramfs. 
-Returning the error quickly allows the user to see the error message
-quicker.
-
-There is a similar missing check for wr.flush() near the end of unlzma().
+Validate the newly decoded distance (rep0) in process_bit1().  This is to
+detect corrupt LZMA data quickly.  The old code can run for long time
+producing garbage until it hits the end of the input.
 
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -53,13 +49,26 @@ Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlzma.c      |   53 +++++++++++++++++++--------------
- lib/decompress_unlzma.c.orig |    3 +
+ lib/decompress_unlzma.c      |    3 +
+ lib/decompress_unlzma.c.orig |   53 +++++++++++++++++++--------------
  2 files changed, 35 insertions(+), 21 deletions(-)
 
-diff -puN lib/decompress_unlzma.c~decompressors-check-for-write-errors-in-decompress_unlzmac lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~decompressors-check-for-write-errors-in-decompress_unlzmac
+diff -puN lib/decompress_unlzma.c~decompressors-validate-match-distance-in-decompress_unlzmac lib/decompress_unlzma.c
+--- a/lib/decompress_unlzma.c~decompressors-validate-match-distance-in-decompress_unlzmac
 +++ a/lib/decompress_unlzma.c
+@@ -522,6 +522,9 @@ static inline int INIT process_bit1(stru
+ 			cst->rep0 = pos_slot;
+ 		if (++(cst->rep0) == 0)
+ 			return 0;
++		if (cst->rep0 > wr->header->dict_size
++				|| cst->rep0 > get_pos(wr))
++			return -1;
+ 	}
+ 
+ 	len += LZMA_MATCH_MIN_LEN;
+diff -puN lib/decompress_unlzma.c.orig~decompressors-validate-match-distance-in-decompress_unlzmac lib/decompress_unlzma.c.orig
+--- a/lib/decompress_unlzma.c.orig~decompressors-validate-match-distance-in-decompress_unlzmac
++++ a/lib/decompress_unlzma.c.orig
 @@ -313,32 +313,38 @@ static inline uint8_t INIT peek_old_byte
  
  }
@@ -186,26 +195,6 @@ diff -puN lib/decompress_unlzma.c~decompressors-check-for-write-errors-in-decomp
  exit_3:
  	large_free(p);
  exit_2:
-diff -puN lib/decompress_unlzma.c.orig~decompressors-check-for-write-errors-in-decompress_unlzmac lib/decompress_unlzma.c.orig
---- a/lib/decompress_unlzma.c.orig~decompressors-check-for-write-errors-in-decompress_unlzmac
-+++ a/lib/decompress_unlzma.c.orig
-@@ -631,6 +631,8 @@ STATIC inline int INIT unlzma(unsigned c
- 			if (cst.rep0 == 0)
- 				break;
- 		}
-+		if (rc.buffer_size <= 0)
-+			goto exit_3;
- 	}
- 
- 	if (posp)
-@@ -638,6 +640,7 @@ STATIC inline int INIT unlzma(unsigned c
- 	if (wr.flush)
- 		wr.flush(wr.buffer, wr.buffer_pos);
- 	ret = 0;
-+exit_3:
- 	large_free(p);
- exit_2:
- 	if (!output)
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
