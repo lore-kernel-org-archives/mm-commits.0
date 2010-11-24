@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-fix-timblogiw-kconfig-build-error.patch added to -mm tree
-Date: Wed, 24 Nov 2010 13:33:44 -0800
-Message-ID: <201011242133.oAOLXijV005322@imap1.linux-foundation.org>
+Subject: + proc-use-seq_puts-seq_putc-where-possible.patch added to -mm tree
+Date: Wed, 24 Nov 2010 13:43:26 -0800
+Message-ID: <201011242143.oAOLhQhZ005710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753374Ab0KXVeX (ORCPT
+	by vger.kernel.org with ESMTP id S1751757Ab0KXVn3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 16:34:23 -0500
+	Wed, 24 Nov 2010 16:43:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mchehab@infradead.org
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     media: fix timblogiw kconfig & build error
+     proc: use seq_puts()/seq_putc() where possible
 has been added to the -mm tree.  Its filename is
-     media-fix-timblogiw-kconfig-build-error.patch
+     proc-use-seq_puts-seq_putc-where-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,244 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: fix timblogiw kconfig & build error
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: proc: use seq_puts()/seq_putc() where possible
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-timblogiw uses dma() interfaces and it selects TIMB_DMA for that support. 
-However, drivers/dma/ is not built unless CONFIG_DMA_ENGINE is enabled, so
-select/enable that symbol also.
+For string without format specifiers, use seq_puts().
+For seq_printf("\n"), use seq_putc('\n').
 
-drivers/built-in.o: In function `timblogiw_close':
-timblogiw.c:(.text+0x4419fe): undefined reference to `dma_release_channel'
-drivers/built-in.o: In function `buffer_release':
-timblogiw.c:(.text+0x441a8d): undefined reference to `dma_sync_wait'
-drivers/built-in.o: In function `timblogiw_open':
-timblogiw.c:(.text+0x44212b): undefined reference to `__dma_request_channel'
+   text	   data	    bss	    dec	    hex	filename
+  61866	    488	    112	  62466	   f402	fs/proc/proc.o
+  61729	    488	    112	  62329	   f379	fs/proc/proc.o
+  ----------------------------------------------------
+  			   -139
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/array.c    |   22 +++++++++++-----------
+ fs/proc/base.c     |    2 +-
+ fs/proc/devices.c  |    4 ++--
+ fs/proc/proc_tty.c |   26 +++++++++++++-------------
+ fs/proc/softirqs.c |    6 +++---
+ fs/proc/stat.c     |    2 +-
+ 6 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error
-+++ a/drivers/media/video/Kconfig
-@@ -669,6 +669,7 @@ config VIDEO_HEXIUM_GEMINI
- config VIDEO_TIMBERDALE
- 	tristate "Support for timberdale Video In/LogiWIN"
- 	depends on VIDEO_V4L2 && I2C
-+	select DMA_ENGINE
- 	select TIMB_DMA
- 	select VIDEO_ADV7180
- 	select VIDEOBUF_DMA_CONTIG
+diff -puN fs/proc/array.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/array.c
+--- a/fs/proc/array.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/array.c
+@@ -95,7 +95,7 @@ static inline void task_name(struct seq_
+ 
+ 	get_task_comm(tcomm, p);
+ 
+-	seq_printf(m, "Name:\t");
++	seq_puts(m, "Name:\t");
+ 	end = m->buf + m->size;
+ 	buf = m->buf + m->count;
+ 	name = tcomm;
+@@ -122,7 +122,7 @@ static inline void task_name(struct seq_
+ 		buf++;
+ 	}
+ 	m->count = buf - m->buf;
+-	seq_printf(m, "\n");
++	seq_putc(m, '\n');
+ }
+ 
+ /*
+@@ -208,7 +208,7 @@ static inline void task_state(struct seq
+ 		seq_printf(m, "%d ", GROUP_AT(group_info, g));
+ 	put_cred(cred);
+ 
+-	seq_printf(m, "\n");
++	seq_putc(m, '\n');
+ }
+ 
+ static void render_sigset_t(struct seq_file *m, const char *header,
+@@ -216,7 +216,7 @@ static void render_sigset_t(struct seq_f
+ {
+ 	int i;
+ 
+-	seq_printf(m, "%s", header);
++	seq_puts(m, header);
+ 
+ 	i = _NSIG;
+ 	do {
+@@ -230,7 +230,7 @@ static void render_sigset_t(struct seq_f
+ 		seq_printf(m, "%x", x);
+ 	} while (i >= 4);
+ 
+-	seq_printf(m, "\n");
++	seq_putc(m, '\n');
+ }
+ 
+ static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+@@ -291,12 +291,12 @@ static void render_cap_t(struct seq_file
+ {
+ 	unsigned __capi;
+ 
+-	seq_printf(m, "%s", header);
++	seq_puts(m, header);
+ 	CAP_FOR_EACH_U32(__capi) {
+ 		seq_printf(m, "%08x",
+ 			   a->cap[(_KERNEL_CAPABILITY_U32S-1) - __capi]);
+ 	}
+-	seq_printf(m, "\n");
++	seq_putc(m, '\n');
+ }
+ 
+ static inline void task_cap(struct seq_file *m, struct task_struct *p)
+@@ -329,12 +329,12 @@ static inline void task_context_switch_c
+ 
+ static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
+ {
+-	seq_printf(m, "Cpus_allowed:\t");
++	seq_puts(m, "Cpus_allowed:\t");
+ 	seq_cpumask(m, &task->cpus_allowed);
+-	seq_printf(m, "\n");
+-	seq_printf(m, "Cpus_allowed_list:\t");
++	seq_putc(m, '\n');
++	seq_puts(m, "Cpus_allowed_list:\t");
+ 	seq_cpumask_list(m, &task->cpus_allowed);
+-	seq_printf(m, "\n");
++	seq_putc(m, '\n');
+ }
+ 
+ int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
+diff -puN fs/proc/base.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/base.c
+--- a/fs/proc/base.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/base.c
+@@ -392,7 +392,7 @@ static int lstats_show_proc(struct seq_f
+ 					*c = 0;
+ 				seq_printf(m, "%s ", sym);
+ 			}
+-			seq_printf(m, "\n");
++			seq_putc(m, '\n');
+ 		}
+ 
+ 	}
+diff -puN fs/proc/devices.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/devices.c
+--- a/fs/proc/devices.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/devices.c
+@@ -9,14 +9,14 @@ static int devinfo_show(struct seq_file 
+ 
+ 	if (i < CHRDEV_MAJOR_HASH_SIZE) {
+ 		if (i == 0)
+-			seq_printf(f, "Character devices:\n");
++			seq_puts(f, "Character devices:\n");
+ 		chrdev_show(f, i);
+ 	}
+ #ifdef CONFIG_BLOCK
+ 	else {
+ 		i -= CHRDEV_MAJOR_HASH_SIZE;
+ 		if (i == 0)
+-			seq_printf(f, "\nBlock devices:\n");
++			seq_puts(f, "\nBlock devices:\n");
+ 		blkdev_show(f, i);
+ 	}
+ #endif
+diff -puN fs/proc/proc_tty.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/proc_tty.c
+--- a/fs/proc/proc_tty.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/proc_tty.c
+@@ -36,27 +36,27 @@ static void show_tty_range(struct seq_fi
+ 	}
+ 	switch (p->type) {
+ 	case TTY_DRIVER_TYPE_SYSTEM:
+-		seq_printf(m, "system");
++		seq_puts(m, "system");
+ 		if (p->subtype == SYSTEM_TYPE_TTY)
+-			seq_printf(m, ":/dev/tty");
++			seq_puts(m, ":/dev/tty");
+ 		else if (p->subtype == SYSTEM_TYPE_SYSCONS)
+-			seq_printf(m, ":console");
++			seq_puts(m, ":console");
+ 		else if (p->subtype == SYSTEM_TYPE_CONSOLE)
+-			seq_printf(m, ":vtmaster");
++			seq_puts(m, ":vtmaster");
+ 		break;
+ 	case TTY_DRIVER_TYPE_CONSOLE:
+-		seq_printf(m, "console");
++		seq_puts(m, "console");
+ 		break;
+ 	case TTY_DRIVER_TYPE_SERIAL:
+-		seq_printf(m, "serial");
++		seq_puts(m, "serial");
+ 		break;
+ 	case TTY_DRIVER_TYPE_PTY:
+ 		if (p->subtype == PTY_TYPE_MASTER)
+-			seq_printf(m, "pty:master");
++			seq_puts(m, "pty:master");
+ 		else if (p->subtype == PTY_TYPE_SLAVE)
+-			seq_printf(m, "pty:slave");
++			seq_puts(m, "pty:slave");
+ 		else
+-			seq_printf(m, "pty");
++			seq_puts(m, "pty");
+ 		break;
+ 	default:
+ 		seq_printf(m, "type:%d.%d", p->type, p->subtype);
+@@ -74,19 +74,19 @@ static int show_tty_driver(struct seq_fi
+ 		/* pseudo-drivers first */
+ 		seq_printf(m, "%-20s /dev/%-8s ", "/dev/tty", "tty");
+ 		seq_printf(m, "%3d %7d ", TTYAUX_MAJOR, 0);
+-		seq_printf(m, "system:/dev/tty\n");
++		seq_puts(m, "system:/dev/tty\n");
+ 		seq_printf(m, "%-20s /dev/%-8s ", "/dev/console", "console");
+ 		seq_printf(m, "%3d %7d ", TTYAUX_MAJOR, 1);
+-		seq_printf(m, "system:console\n");
++		seq_puts(m, "system:console\n");
+ #ifdef CONFIG_UNIX98_PTYS
+ 		seq_printf(m, "%-20s /dev/%-8s ", "/dev/ptmx", "ptmx");
+ 		seq_printf(m, "%3d %7d ", TTYAUX_MAJOR, 2);
+-		seq_printf(m, "system\n");
++		seq_puts(m, "system\n");
+ #endif
+ #ifdef CONFIG_VT
+ 		seq_printf(m, "%-20s /dev/%-8s ", "/dev/vc/0", "vc/0");
+ 		seq_printf(m, "%3d %7d ", TTY_MAJOR, 0);
+-		seq_printf(m, "system:vtmaster\n");
++		seq_puts(m, "system:vtmaster\n");
+ #endif
+ 	}
+ 
+diff -puN fs/proc/softirqs.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/softirqs.c
+--- a/fs/proc/softirqs.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/softirqs.c
+@@ -10,16 +10,16 @@ static int show_softirqs(struct seq_file
+ {
+ 	int i, j;
+ 
+-	seq_printf(p, "                    ");
++	seq_puts(p, "                    ");
+ 	for_each_possible_cpu(i)
+ 		seq_printf(p, "CPU%-8d", i);
+-	seq_printf(p, "\n");
++	seq_putc(p, '\n');
+ 
+ 	for (i = 0; i < NR_SOFTIRQS; i++) {
+ 		seq_printf(p, "%12s:", softirq_to_name[i]);
+ 		for_each_possible_cpu(j)
+ 			seq_printf(p, " %10u", kstat_softirqs_cpu(i, j));
+-		seq_printf(p, "\n");
++		seq_putc(p, '\n');
+ 	}
+ 	return 0;
+ }
+diff -puN fs/proc/stat.c~proc-use-seq_puts-seq_putc-where-possible fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-use-seq_puts-seq_putc-where-possible
++++ a/fs/proc/stat.c
+@@ -126,7 +126,7 @@ static int show_stat(struct seq_file *p,
+ 
+ 	for (i = 0; i < NR_SOFTIRQS; i++)
+ 		seq_printf(p, " %u", per_softirq_sums[i]);
+-	seq_printf(p, "\n");
++	seq_putc(p, '\n');
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-arch-x86-include-asm-fixmaph-mark-__set_fixmap_offset-as-__always_inline.patch
-linux-next.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-ibm_rtl-fix-printk-format-warning.patch
-media-fix-timblogiw-kconfig-build-error.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-w1-ds2423-counter-driver-and-documentation-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+proc-use-unsigned-long-inside-proc-statm.patch
 
