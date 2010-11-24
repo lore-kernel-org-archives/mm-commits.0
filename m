@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + decompressors-check-input-size-in-decompress_unlzoc.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:17:02 -0800
-Message-ID: <201011242217.oAOMH3Km007255@imap1.linux-foundation.org>
+Subject: + bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:39:26 -0800
+Message-ID: <201011242239.oAOMdRrS008111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754020Ab0KXWSU (ORCPT
+	by vger.kernel.org with ESMTP id S1755369Ab0KXWkD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 17:18:20 -0500
+	Wed, 24 Nov 2010 17:40:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk
+Cc: akinobu.mita@gmail.com, arnd@arndb.de
 
 
 The patch titled
-     Decompressors: check input size in decompress_unlzo.c
+     bitops: merge little and big endian definisions in asm-generic/bitops/le.h
 has been added to the -mm tree.  Its filename is
-     decompressors-check-input-size-in-decompress_unlzoc.patch
+     bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,169 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Decompressors: check input size in decompress_unlzo.c
-From: Lasse Collin <lasse.collin@tukaani.org>
+Subject: bitops: merge little and big endian definisions in asm-generic/bitops/le.h
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The code assumes that the input is valid and not truncated.  Add checks to
-avoid reading past the end of the input buffer.  Change the type of "skip"
-from u8 to int to fix a possible integer overflow.
+This patch series introduces little-endian bit operations in asm/bitops.h
+for all architectures and converts all ext2 non-atomic and minix bit
+operations to use little-endian bit operations.  It enables us to remove
+ext2 non-atomic and minix bit operations from asm/bitops.h.  The reason
+they should be removed from asm/bitops.h is as follows:
 
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+For ext2 non-atomic bit operations, they are used for little-endian byte
+order bitmap access by some filesystems and modules.  But using ext2_*()
+functions on a module other than ext2 filesystem makes some feel strange.
+
+For minix bit operations, they are only used by minix filesystem and are
+useless by other modules.  Because byte order of inode and block bitmap is
+different on each architecture.
+
+
+
+This patch:
+
+In order to make the forthcoming changes smaller, this merges macro
+definisions in asm-generic/bitops/le.h for big-endian and little-endian as
+much as possible.
+
+This also removes unused BITOP_WORD macro.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlzo.c      |   46 ++++++++++++++++++++++++++++++----
- lib/decompress_unlzo.c.orig |    4 +-
- 2 files changed, 43 insertions(+), 7 deletions(-)
+ include/asm-generic/bitops/le.h |   38 +++++++++++-------------------
+ 1 file changed, 15 insertions(+), 23 deletions(-)
 
-diff -puN lib/decompress_unlzo.c~decompressors-check-input-size-in-decompress_unlzoc lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~decompressors-check-input-size-in-decompress_unlzoc
-+++ a/lib/decompress_unlzo.c
-@@ -48,14 +48,25 @@ static const unsigned char lzop_magic[] 
+diff -puN include/asm-generic/bitops/le.h~bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh
++++ a/include/asm-generic/bitops/le.h
+@@ -4,27 +4,28 @@
+ #include <asm/types.h>
+ #include <asm/byteorder.h>
  
- #define LZO_BLOCK_SIZE        (256*1024l)
- #define HEADER_HAS_FILTER      0x00000800L
-+#define HEADER_SIZE_MIN       (9 + 7     + 4 + 8     + 1       + 4)
-+#define HEADER_SIZE_MAX       (9 + 7 + 1 + 8 + 8 + 4 + 1 + 255 + 4)
+-#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+-#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+-
+ #if defined(__LITTLE_ENDIAN)
  
--STATIC inline int INIT parse_header(u8 *input, u8 *skip)
-+STATIC inline int INIT parse_header(u8 *input, int *skip, int in_len)
- {
- 	int l;
- 	u8 *parse = input;
-+	u8 *end = input + in_len;
- 	u8 level = 0;
- 	u16 version;
+-#define generic_test_le_bit(nr, addr) test_bit(nr, addr)
+-#define generic___set_le_bit(nr, addr) __set_bit(nr, addr)
+-#define generic___clear_le_bit(nr, addr) __clear_bit(nr, addr)
+-
+-#define generic_test_and_set_le_bit(nr, addr) test_and_set_bit(nr, addr)
+-#define generic_test_and_clear_le_bit(nr, addr) test_and_clear_bit(nr, addr)
++#define BITOP_LE_SWIZZLE	0
  
-+	/*
-+	 * Check that there's enough input to possibly have a valid header.
-+	 * Then it is possible to parse several fields until the minimum
-+	 * size may have been used.
-+	 */
-+	if (in_len < HEADER_SIZE_MIN)
-+		return 0;
+-#define generic___test_and_set_le_bit(nr, addr) __test_and_set_bit(nr, addr)
+-#define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
+-
+-#define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++#define generic_find_next_zero_le_bit(addr, size, offset) \
++	find_next_zero_bit(addr, size, offset)
+ #define generic_find_next_le_bit(addr, size, offset) \
+-			find_next_bit(addr, size, offset)
++	find_next_bit(addr, size, offset)
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
++#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
 +
- 	/* read magic: 9 first bits */
- 	for (l = 0; l < 9; l++) {
- 		if (*parse++ != lzop_magic[l])
-@@ -73,6 +84,15 @@ STATIC inline int INIT parse_header(u8 *
- 	else
- 		parse += 4; /* flags */
- 
-+	/*
-+	 * At least mode, mtime_low, filename length, and checksum must
-+	 * be left to be parsed. If also mtime_high is present, it's OK
-+	 * because the next input buffer check is after reading the
-+	 * filename length.
-+	 */
-+	if (end - parse < 8 + 1 + 4)
-+		return 0;
++extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
++extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
 +
- 	/* skip mode and mtime_low */
- 	parse += 8;
- 	if (version >= 0x0940)
-@@ -80,6 +100,8 @@ STATIC inline int INIT parse_header(u8 *
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
++
+ #define generic_test_le_bit(nr, addr) \
+ 	test_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ #define generic___set_le_bit(nr, addr) \
+@@ -42,15 +43,6 @@
+ #define generic___test_and_clear_le_bit(nr, addr) \
+ 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
  
- 	l = *parse++;
- 	/* don't care about the file name, and skip checksum */
-+	if (end - parse < l + 4)
-+		return 0;
- 	parse += l + 4;
+-extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+-		unsigned long size, unsigned long offset);
+-extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
+-		unsigned long size, unsigned long offset);
+-
+-#else
+-#error "Please fix <asm/byteorder.h>"
+-#endif
+-
+ #define generic_find_first_zero_le_bit(addr, size) \
+         generic_find_next_zero_le_bit((addr), (size), 0)
  
- 	*skip = parse - input;
-@@ -92,7 +114,8 @@ STATIC inline int INIT unlzo(u8 *input, 
- 				u8 *output, int *posp,
- 				void (*error) (char *x))
- {
--	u8 skip = 0, r = 0;
-+	u8 r = 0;
-+	int skip = 0;
- 	u32 src_len, dst_len;
- 	size_t tmp;
- 	u8 *in_buf, *in_buf_save, *out_buf;
-@@ -134,19 +157,25 @@ STATIC inline int INIT unlzo(u8 *input, 
- 	if (fill)
- 		fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
- 
--	if (!parse_header(input, &skip)) {
-+	if (!parse_header(input, &skip, in_len)) {
- 		error("invalid header");
- 		goto exit_2;
- 	}
- 	in_buf += skip;
-+	in_len -= skip;
- 
- 	if (posp)
- 		*posp = skip;
- 
- 	for (;;) {
- 		/* read uncompressed block size */
-+		if (in_len < 4) {
-+			error("file corrupted");
-+			goto exit_2;
-+		}
- 		dst_len = get_unaligned_be32(in_buf);
- 		in_buf += 4;
-+		in_len -= 4;
- 
- 		/* exit if last block */
- 		if (dst_len == 0) {
-@@ -161,10 +190,15 @@ STATIC inline int INIT unlzo(u8 *input, 
- 		}
- 
- 		/* read compressed block size, and skip block checksum info */
-+		if (in_len < 8) {
-+			error("file corrupted");
-+			goto exit_2;
-+		}
- 		src_len = get_unaligned_be32(in_buf);
- 		in_buf += 8;
-+		in_len -= 8;
- 
--		if (src_len <= 0 || src_len > dst_len) {
-+		if (src_len <= 0 || src_len > dst_len || src_len > in_len) {
- 			error("file corrupted");
- 			goto exit_2;
- 		}
-@@ -196,8 +230,10 @@ STATIC inline int INIT unlzo(u8 *input, 
- 		if (fill) {
- 			in_buf = in_buf_save;
- 			fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
--		} else
-+		} else {
- 			in_buf += src_len;
-+			in_len -= src_len;
-+		}
- 	}
- 
- 	ret = 0;
-diff -puN lib/decompress_unlzo.c.orig~decompressors-check-input-size-in-decompress_unlzoc lib/decompress_unlzo.c.orig
---- a/lib/decompress_unlzo.c.orig~decompressors-check-input-size-in-decompress_unlzoc
-+++ a/lib/decompress_unlzo.c.orig
-@@ -187,8 +187,8 @@ STATIC inline int INIT unlzo(u8 *input, 
- 			}
- 		}
- 
--		if (flush)
--			flush(out_buf, dst_len);
-+		if (flush && flush(out_buf, dst_len) != dst_len)
-+			goto exit_2;
- 		if (output)
- 			out_buf += dst_len;
- 		if (posp)
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-decompressors-add-missing-init-ie-__init.patch
-decompressors-get-rid-of-set_error_fn-macro.patch
-decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
-decompressors-remove-unused-function-from-lib-decompress_unlzmac.patch
-decompressors-check-for-write-errors-in-decompress_unlzoc.patch
-decompressors-check-input-size-in-decompress_unlzoc.patch
-decompressors-fix-callback-to-callback-mode-in-decompress_unlzoc.patch
+bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
+bitops-rename-generic-little-endian-bitops-functions.patch
+s390-introduce-little-endian-bitops.patch
+arm-introduce-little-endian-bitops.patch
+m68k-introduce-little-endian-bitops.patch
+m68knommu-introduce-little-endian-bitops.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+rds-stop-including-asm-generic-bitops-leh.patch
+kvm-stop-including-asm-generic-bitops-leh.patch
+asm-generic-use-little-endian-bitops.patch
+ext3-use-little-endian-bitops.patch
+ext4-use-little-endian-bitops.patch
+ocfs2-use-little-endian-bitops.patch
+nilfs2-use-little-endian-bitops.patch
+reiserfs-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+ufs-use-little-endian-bitops.patch
+md-use-little-endian-bit-operations.patch
+dm-use-little-endian-bit-operations.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
 
