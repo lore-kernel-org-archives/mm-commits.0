@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dm-use-little-endian-bit-operations.patch added to -mm tree
-Date: Wed, 24 Nov 2010 14:40:15 -0800
-Message-ID: <201011242240.oAOMeF2X008202@imap1.linux-foundation.org>
+Subject: + m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch added to -mm tree
+Date: Wed, 24 Nov 2010 14:40:20 -0800
+Message-ID: <201011242240.oAOMeKe2008208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754641Ab0KXWkz (ORCPT
+	by vger.kernel.org with ESMTP id S1754641Ab0KXWlC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 17:40:55 -0500
+	Wed, 24 Nov 2010 17:41:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, agk@redhat.com
+Cc: akinobu.mita@gmail.com, geert@linux-m68k.org, schwab@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     dm: use little-endian bit operations
+     m68k: remove inline asm from minix_find_first_zero_bit
 has been added to the -mm tree.  Its filename is
-     dm-use-little-endian-bit-operations.patch
+     m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm: use little-endian bit operations
+Subject: m68k: remove inline asm from minix_find_first_zero_bit
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-As a preparation for removing ext2 non-atomic bit operations from
-asm/bitops.h.  This converts ext2 non-atomic bit operations to
-little-endian bit operations.
+As a preparation for moving minix bit operations from asm/bitops.h to
+architecture independent code in minix file system, this removes inline
+asm from minix_find_first_zero_bit() for m68k.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/m68k/include/asm/bitops_mm.h |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/md/dm-log.c~dm-use-little-endian-bit-operations drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~dm-use-little-endian-bit-operations
-+++ a/drivers/md/dm-log.c
-@@ -251,20 +251,20 @@ struct log_c {
-  */
- static inline int log_test_bit(uint32_t *bs, unsigned bit)
+diff -puN arch/m68k/include/asm/bitops_mm.h~m68k-remove-inline-asm-from-minix_find_first_zero_bit arch/m68k/include/asm/bitops_mm.h
+--- a/arch/m68k/include/asm/bitops_mm.h~m68k-remove-inline-asm-from-minix_find_first_zero_bit
++++ a/arch/m68k/include/asm/bitops_mm.h
+@@ -330,23 +330,19 @@ static inline int __fls(int x)
+ static inline int minix_find_first_zero_bit(const void *vaddr, unsigned size)
  {
--	return ext2_test_bit(bit, (unsigned long *) bs) ? 1 : 0;
-+	return test_le_bit(bit, (unsigned long *) bs) ? 1 : 0;
- }
+ 	const unsigned short *p = vaddr, *addr = vaddr;
+-	int res;
+ 	unsigned short num;
  
- static inline void log_set_bit(struct log_c *l,
- 			       uint32_t *bs, unsigned bit)
- {
--	ext2_set_bit(bit, (unsigned long *) bs);
-+	__test_and_set_le_bit(bit, (unsigned long *) bs);
- 	l->touched_cleaned = 1;
- }
- 
- static inline void log_clear_bit(struct log_c *l,
- 				 uint32_t *bs, unsigned bit)
- {
--	ext2_clear_bit(bit, (unsigned long *) bs);
-+	__test_and_clear_le_bit(bit, (unsigned long *) bs);
- 	l->touched_dirtied = 1;
- }
- 
-@@ -740,7 +740,7 @@ static int core_get_resync_work(struct d
+ 	if (!size)
  		return 0;
  
- 	do {
--		*region = ext2_find_next_zero_bit(
-+		*region = find_next_zero_le_bit(
- 					     (unsigned long *) lc->sync_bits,
- 					     lc->region_count,
- 					     lc->sync_search);
+ 	size = (size >> 4) + ((size & 15) > 0);
+-	while (*p++ == 0xffff)
+-	{
++	while (*p++ == 0xffff) {
+ 		if (--size == 0)
+ 			return (p - addr) << 4;
+ 	}
+ 
+-	num = ~*--p;
+-	__asm__ __volatile__ ("bfffo %1{#16,#16},%0"
+-			      : "=d" (res) : "d" (num & -num));
+-	return ((p - addr) << 4) + (res ^ 31);
++	num = *--p;
++	return ((p - addr) << 4) + ffz(num);
+ }
+ 
+ #define minix_test_and_set_bit(nr, addr)	__test_and_set_bit((nr) ^ 16, (unsigned long *)(addr))
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
