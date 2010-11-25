@@ -1,133 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch added to -mm tree
-Date: Wed, 24 Nov 2010 23:02:41 -0800
-Message-ID: <201011250707.oAP773mp032250@imap1.linux-foundation.org>
+Subject: [alternative-merged] ioprio-rcu_read_lock-unlock-protect-find_task_by_vpid-call-v2.patch removed from -mm tree
+Date: Thu, 25 Nov 2010 08:16:41 -0800
+Message-ID: <201011251621.oAPGL6JZ023919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029Ab0KYHHg (ORCPT
+	by vger.kernel.org with ESMTP id S1752478Ab0KYQVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Nov 2010 02:07:36 -0500
+	Thu, 25 Nov 2010 11:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, mingo@elte.hu, paulmck@us.ibm.com
+To: sergey.senozhatsky@gmail.com, axboe@kernel.dk, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk: use RCU to prevent potential lock contention in kmsg_dump
-has been added to the -mm tree.  Its filename is
-     printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch
+     ioprio: rcu_read_lock/unlock protect find_task_by_vpid call (V2)
+has been removed from the -mm tree.  Its filename was
+     ioprio-rcu_read_lock-unlock-protect-find_task_by_vpid-call-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: use RCU to prevent potential lock contention in kmsg_dump
-From: Huang Ying <ying.huang@intel.com>
+Subject: ioprio: rcu_read_lock/unlock protect find_task_by_vpid call (V2)
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-dump_list_lock is used to protect dump_list in kmsg_dumper implementation,
-kmsg_dump() uses it to traverse dump_list too.  But if there is contention
-on the lock, kmsg_dump() will fail, and the valuable kernel message may be
-lost.
+Commit 4221a9918e38b7494cee341dda7b7b4bb8c04bde ("Add RCU check for
+find_task_by_vpid()") introduced rcu_lockdep_assert to
+find_task_by_pid_ns.  Assertion failed in sys_ioprio_get.  The patch is
+fixing assertion failure in ioprio_set as well.
 
-This patch solves this issue with RCU.  Because kmsg_dump() only read the
-list, no lock is needed in kmsg_dump().  So that kmsg_dump() will never
-fail because of lock contention.
+ kernel/pid.c:419 invoked rcu_dereference_check() without protection!
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+ stack backtrace:
+ Pid: 4254, comm: iotop Not tainted
+ Call Trace:
+ [<ffffffff810656f2>] lockdep_rcu_dereference+0xaa/0xb2
+ [<ffffffff81053c67>] find_task_by_pid_ns+0x4f/0x68
+ [<ffffffff81053c9d>] find_task_by_vpid+0x1d/0x1f
+ [<ffffffff811104e2>] sys_ioprio_get+0x50/0x2da
+ [<ffffffff81002182>] system_call_fastpath+0x16/0x1b
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   30 +++++++-----------------------
- 1 file changed, 7 insertions(+), 23 deletions(-)
+ fs/ioprio.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump kernel/printk.c
---- a/kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump
-+++ a/kernel/printk.c
-@@ -39,6 +39,7 @@
- #include <linux/syslog.h>
- #include <linux/cpu.h>
- #include <linux/notifier.h>
-+#include <linux/rculist.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -1498,7 +1499,7 @@ int kmsg_dump_register(struct kmsg_dumpe
- 	/* Don't allow registering multiple times */
- 	if (!dumper->registered) {
- 		dumper->registered = 1;
--		list_add_tail(&dumper->list, &dump_list);
-+		list_add_tail_rcu(&dumper->list, &dump_list);
- 		err = 0;
- 	}
- 	spin_unlock_irqrestore(&dump_list_lock, flags);
-@@ -1522,29 +1523,16 @@ int kmsg_dump_unregister(struct kmsg_dum
- 	spin_lock_irqsave(&dump_list_lock, flags);
- 	if (dumper->registered) {
- 		dumper->registered = 0;
--		list_del(&dumper->list);
-+		list_del_rcu(&dumper->list);
- 		err = 0;
- 	}
- 	spin_unlock_irqrestore(&dump_list_lock, flags);
-+	synchronize_rcu();
- 
- 	return err;
- }
- EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
- 
--static const char * const kmsg_reasons[] = {
--	[KMSG_DUMP_OOPS]	= "oops",
--	[KMSG_DUMP_PANIC]	= "panic",
--	[KMSG_DUMP_KEXEC]	= "kexec",
--};
--
--static const char *kmsg_to_str(enum kmsg_dump_reason reason)
--{
--	if (reason >= ARRAY_SIZE(kmsg_reasons) || reason < 0)
--		return "unknown";
--
--	return kmsg_reasons[reason];
--}
--
- /**
-  * kmsg_dump - dump kernel log to kernel message dumpers.
-  * @reason: the reason (oops, panic etc) for dumping
-@@ -1583,13 +1571,9 @@ void kmsg_dump(enum kmsg_dump_reason rea
- 		l2 = chars;
- 	}
- 
--	if (!spin_trylock_irqsave(&dump_list_lock, flags)) {
--		printk(KERN_ERR "dump_kmsg: dump list lock is held during %s, skipping dump\n",
--				kmsg_to_str(reason));
--		return;
--	}
--	list_for_each_entry(dumper, &dump_list, list)
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(dumper, &dump_list, list)
- 		dumper->dump(dumper, reason, s1, l1, s2, l2);
--	spin_unlock_irqrestore(&dump_list_lock, flags);
-+	rcu_read_unlock();
- }
- #endif
+diff -puN fs/ioprio.c~ioprio-rcu_read_lock-unlock-protect-find_task_by_vpid-call-v2 fs/ioprio.c
+--- a/fs/ioprio.c~ioprio-rcu_read_lock-unlock-protect-find_task_by_vpid-call-v2
++++ a/fs/ioprio.c
+@@ -106,12 +106,14 @@ SYSCALL_DEFINE3(ioprio_set, int, which, 
+ 	rcu_read_lock();
+ 	switch (which) {
+ 		case IOPRIO_WHO_PROCESS:
++			rcu_read_lock();
+ 			if (!who)
+ 				p = current;
+ 			else
+ 				p = find_task_by_vpid(who);
+ 			if (p)
+ 				ret = set_task_ioprio(p, ioprio);
++			rcu_read_unlock();
+ 			break;
+ 		case IOPRIO_WHO_PGRP:
+ 			if (!who)
+@@ -195,12 +197,14 @@ SYSCALL_DEFINE2(ioprio_get, int, which, 
+ 	rcu_read_lock();
+ 	switch (which) {
+ 		case IOPRIO_WHO_PROCESS:
++			rcu_read_lock();
+ 			if (!who)
+ 				p = current;
+ 			else
+ 				p = find_task_by_vpid(who);
+ 			if (p)
+ 				ret = get_task_ioprio(p);
++			rcu_read_unlock();
+ 			break;
+ 		case IOPRIO_WHO_PGRP:
+ 			if (!who)
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 linux-next.patch
-printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch
 
