@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch added to -mm tree
-Date: Wed, 24 Nov 2010 16:33:59 -0800
-Message-ID: <201011250038.oAP0cJ20017553@imap1.linux-foundation.org>
+Subject: + printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch added to -mm tree
+Date: Wed, 24 Nov 2010 23:02:41 -0800
+Message-ID: <201011250707.oAP773mp032250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751510Ab0KYAif (ORCPT
+	by vger.kernel.org with ESMTP id S1752029Ab0KYHHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 19:38:35 -0500
+	Thu, 25 Nov 2010 02:07:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dnelson@redhat.com, stable@kernel.org
+Cc: ying.huang@intel.com, mingo@elte.hu, paulmck@us.ibm.com
 
 
 The patch titled
-     mm/hugetlb.c: avoid double unlock_page() in hugetlb_fault()
+     printk: use RCU to prevent potential lock contention in kmsg_dump
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch
+     printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c: avoid double unlock_page() in hugetlb_fault()
-From: Dean Nelson <dnelson@redhat.com>
+Subject: printk: use RCU to prevent potential lock contention in kmsg_dump
+From: Huang Ying <ying.huang@intel.com>
 
-Have hugetlb_fault() call unlock_page(page) only if it had previously
-called lock_page(page).
+dump_list_lock is used to protect dump_list in kmsg_dumper implementation,
+kmsg_dump() uses it to traverse dump_list too.  But if there is contention
+on the lock, kmsg_dump() will fail, and the valuable kernel message may be
+lost.
 
-Setting CONFIG_DEBUG_VM=y and then running the libhugetlbfs test suite,
-resulted in the tripping of VM_BUG_ON(!PageLocked(page)) in unlock_page()
-having been called by hugetlb_fault() when page == pagecache_page.  This
-patch remedied the problem.
+This patch solves this issue with RCU.  Because kmsg_dump() only read the
+list, no lock is needed in kmsg_dump().  So that kmsg_dump() will never
+fail because of lock contention.
 
-Signed-off-by: Dean Nelson <dnelson@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/printk.c |   30 +++++++-----------------------
+ 1 file changed, 7 insertions(+), 23 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault
-+++ a/mm/hugetlb.c
-@@ -2738,7 +2738,8 @@ out_page_table_lock:
- 		unlock_page(pagecache_page);
- 		put_page(pagecache_page);
- 	}
--	unlock_page(page);
-+	if (page != pagecache_page)
-+		unlock_page(page);
+diff -puN kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump kernel/printk.c
+--- a/kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump
++++ a/kernel/printk.c
+@@ -39,6 +39,7 @@
+ #include <linux/syslog.h>
+ #include <linux/cpu.h>
+ #include <linux/notifier.h>
++#include <linux/rculist.h>
  
- out_mutex:
- 	mutex_unlock(&hugetlb_instantiation_mutex);
+ #include <asm/uaccess.h>
+ 
+@@ -1498,7 +1499,7 @@ int kmsg_dump_register(struct kmsg_dumpe
+ 	/* Don't allow registering multiple times */
+ 	if (!dumper->registered) {
+ 		dumper->registered = 1;
+-		list_add_tail(&dumper->list, &dump_list);
++		list_add_tail_rcu(&dumper->list, &dump_list);
+ 		err = 0;
+ 	}
+ 	spin_unlock_irqrestore(&dump_list_lock, flags);
+@@ -1522,29 +1523,16 @@ int kmsg_dump_unregister(struct kmsg_dum
+ 	spin_lock_irqsave(&dump_list_lock, flags);
+ 	if (dumper->registered) {
+ 		dumper->registered = 0;
+-		list_del(&dumper->list);
++		list_del_rcu(&dumper->list);
+ 		err = 0;
+ 	}
+ 	spin_unlock_irqrestore(&dump_list_lock, flags);
++	synchronize_rcu();
+ 
+ 	return err;
+ }
+ EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
+ 
+-static const char * const kmsg_reasons[] = {
+-	[KMSG_DUMP_OOPS]	= "oops",
+-	[KMSG_DUMP_PANIC]	= "panic",
+-	[KMSG_DUMP_KEXEC]	= "kexec",
+-};
+-
+-static const char *kmsg_to_str(enum kmsg_dump_reason reason)
+-{
+-	if (reason >= ARRAY_SIZE(kmsg_reasons) || reason < 0)
+-		return "unknown";
+-
+-	return kmsg_reasons[reason];
+-}
+-
+ /**
+  * kmsg_dump - dump kernel log to kernel message dumpers.
+  * @reason: the reason (oops, panic etc) for dumping
+@@ -1583,13 +1571,9 @@ void kmsg_dump(enum kmsg_dump_reason rea
+ 		l2 = chars;
+ 	}
+ 
+-	if (!spin_trylock_irqsave(&dump_list_lock, flags)) {
+-		printk(KERN_ERR "dump_kmsg: dump list lock is held during %s, skipping dump\n",
+-				kmsg_to_str(reason));
+-		return;
+-	}
+-	list_for_each_entry(dumper, &dump_list, list)
++	rcu_read_lock();
++	list_for_each_entry_rcu(dumper, &dump_list, list)
+ 		dumper->dump(dumper, reason, s1, l1, s2, l2);
+-	spin_unlock_irqrestore(&dump_list_lock, flags);
++	rcu_read_unlock();
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from dnelson@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch
+linux-next.patch
+printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch
 
