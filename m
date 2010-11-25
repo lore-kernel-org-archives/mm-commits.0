@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-fix-memblock_is_region_memory.patch added to -mm tree
-Date: Wed, 24 Nov 2010 15:32:04 -0800
-Message-ID: <201011242332.oAONW4d0010500@imap1.linux-foundation.org>
+Subject: + mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch added to -mm tree
+Date: Wed, 24 Nov 2010 16:33:59 -0800
+Message-ID: <201011250038.oAP0cJ20017553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751930Ab0KXXcq (ORCPT
+	by vger.kernel.org with ESMTP id S1751510Ab0KYAif (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Nov 2010 18:32:46 -0500
+	Wed, 24 Nov 2010 19:38:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com, benh@kernel.crashing.org, yinghai@kernel.org
+Cc: dnelson@redhat.com, stable@kernel.org
 
 
 The patch titled
-     memblock: fix memblock_is_region_memory()
+     mm/hugetlb.c: avoid double unlock_page() in hugetlb_fault()
 has been added to the -mm tree.  Its filename is
-     memblock-fix-memblock_is_region_memory.patch
+     mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock: fix memblock_is_region_memory()
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: mm/hugetlb.c: avoid double unlock_page() in hugetlb_fault()
+From: Dean Nelson <dnelson@redhat.com>
 
-memblock_is_region_memory() uses reserved memblocks to search for the
-given region, while it should use the memory memblocks.
+Have hugetlb_fault() call unlock_page(page) only if it had previously
+called lock_page(page).
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Setting CONFIG_DEBUG_VM=y and then running the libhugetlbfs test suite,
+resulted in the tripping of VM_BUG_ON(!PageLocked(page)) in unlock_page()
+having been called by hugetlb_fault() when page == pagecache_page.  This
+patch remedied the problem.
+
+Signed-off-by: Dean Nelson <dnelson@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~memblock-fix-memblock_is_region_memory mm/memblock.c
---- a/mm/memblock.c~memblock-fix-memblock_is_region_memory
-+++ a/mm/memblock.c
-@@ -683,13 +683,13 @@ int __init_memblock memblock_is_memory(p
+diff -puN mm/hugetlb.c~mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault
++++ a/mm/hugetlb.c
+@@ -2738,7 +2738,8 @@ out_page_table_lock:
+ 		unlock_page(pagecache_page);
+ 		put_page(pagecache_page);
+ 	}
+-	unlock_page(page);
++	if (page != pagecache_page)
++		unlock_page(page);
  
- int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size)
- {
--	int idx = memblock_search(&memblock.reserved, base);
-+	int idx = memblock_search(&memblock.memory, base);
- 
- 	if (idx == -1)
- 		return 0;
--	return memblock.reserved.regions[idx].base <= base &&
--		(memblock.reserved.regions[idx].base +
--		 memblock.reserved.regions[idx].size) >= (base + size);
-+	return memblock.memory.regions[idx].base <= base &&
-+		(memblock.memory.regions[idx].base +
-+		 memblock.memory.regions[idx].size) >= (base + size);
- }
- 
- int __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
+ out_mutex:
+ 	mutex_unlock(&hugetlb_instantiation_mutex);
 _
 
-Patches currently in -mm which might be from tomi.valkeinen@nokia.com are
+Patches currently in -mm which might be from dnelson@redhat.com are
 
-memblock-fix-memblock_is_region_memory.patch
+mm-hugetlbc-avoid-double-unlock_page-in-hugetlb_fault.patch
 
