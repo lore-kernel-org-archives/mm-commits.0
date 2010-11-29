@@ -1,93 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uml-disable-winch-irq-before-freeing-handler-data.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:50:50 -0800
-Message-ID: <201011291951.oATJpJDq007283@imap1.linux-foundation.org>
+Subject: [merged] include-linux-fsh-fix-userspace-build.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:50:44 -0800
+Message-ID: <201011291951.oATJpDQA007274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756Ab0K2Tvb (ORCPT
+	by vger.kernel.org with ESMTP id S1751756Ab0K2Tv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:51:31 -0500
+	Mon, 29 Nov 2010 14:51:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.newton@gmail.com, jdike@addtoit.com, stable@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: loic.minier@linaro.org, arnd.bergmann@linaro.org, dmonakhov@openvz.org, lczerner@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: disable winch irq before freeing handler data
+     include/linux/fs.h: fix userspace build
 has been removed from the -mm tree.  Its filename was
-     uml-disable-winch-irq-before-freeing-handler-data.patch
+     include-linux-fsh-fix-userspace-build.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: uml: disable winch irq before freeing handler data
-From: Will Newton <will.newton@gmail.com>
+Subject: include/linux/fs.h: fix userspace build
+=46rom: Lo=EFc Minier <loic.minier@linaro.org>
 
-Disable the winch irq early to make sure we don't take an interrupt part
-way through the freeing of the handler data, resulting in a crash on
-shutdown:
+dpkg uses fiemap but didn't particularly need to include stdint.h so fa=
+r.=20
+Since 367a51a33902 ("fs: Add FITRIM ioctl"), build of linux/fs.h failed=
+ in
+dpkg with:
 
-winch_interrupt : read failed, errno = 9
-fd 13 is losing SIGWINCH support
-------------[ cut here ]------------
-WARNING: at lib/list_debug.c:48 list_del+0xc6/0x100()
-list_del corruption, next is LIST_POISON1 (00100100)
-082578c8:  [<081fd77f>] dump_stack+0x22/0x24
-082578e0:  [<0807a18a>] warn_slowpath_common+0x5a/0x80
-08257908:  [<0807a23e>] warn_slowpath_fmt+0x2e/0x30
-08257920:  [<08172196>] list_del+0xc6/0x100
-08257940:  [<08060244>] free_winch+0x14/0x80
-08257958:  [<080606fb>] winch_interrupt+0xdb/0xe0
-08257978:  [<080a65b5>] handle_IRQ_event+0x35/0xe0
-08257998:  [<080a8717>] handle_edge_irq+0xb7/0x170
-082579bc:  [<08059bc4>] do_IRQ+0x34/0x50
-082579d4:  [<08059e1b>] sigio_handler+0x5b/0x80
-082579ec:  [<0806a374>] sig_handler_common+0x44/0xb0
-08257a68:  [<0806a538>] sig_handler+0x38/0x50
-08257a78:  [<0806a77c>] handle_signal+0x5c/0xa0
-08257a9c:  [<0806be28>] hard_handler+0x18/0x20
-08257aac:  [<00c14400>] 0xc14400
+In file included from ../../src/filesdb.c:27:0:
+/usr/include/linux/fs.h:37:2: error: expected specifier-qualifier-list =
+before 'uint64_t'
 
-Signed-off-by: Will Newton <will.newton@gmail.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>
+Use exportable type __u64 to avoid the dependency on stdint.h.
+
+b31d42a5af18 ("Fix compile brekage with !CONFIG_BLOCK") fixed only the
+kernel build by including linux/types.h, but this also fixed "make
+headers_check", so don't revert it.
+
+Signed-off-by: Lo=EFc Minier <loic.minier@linaro.org>
+Tested-by: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/fs.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data
-+++ a/arch/um/drivers/line.c
-@@ -727,6 +727,9 @@ struct winch {
- 
- static void free_winch(struct winch *winch, int free_irq_ok)
- {
-+	if (free_irq_ok)
-+		free_irq(WINCH_IRQ, winch);
-+
- 	list_del(&winch->list);
- 
- 	if (winch->pid != -1)
-@@ -735,8 +738,6 @@ static void free_winch(struct winch *win
- 		os_close_file(winch->fd);
- 	if (winch->stack != 0)
- 		free_stack(winch->stack, 0);
--	if (free_irq_ok)
--		free_irq(WINCH_IRQ, winch);
- 	kfree(winch);
- }
- 
+diff -puN include/linux/fs.h~include-linux-fsh-fix-userspace-build incl=
+ude/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-fix-userspace-build
++++ a/include/linux/fs.h
+@@ -34,9 +34,9 @@
+ #define SEEK_MAX	SEEK_END
+=20
+ struct fstrim_range {
+-	uint64_t start;
+-	uint64_t len;
+-	uint64_t minlen;
++	__u64 start;
++	__u64 len;
++	__u64 minlen;
+ };
+=20
+ /* And dynamically-tunable limits and defaults: */
 _
 
-Patches currently in -mm which might be from will.newton@gmail.com are
+Patches currently in -mm which might be from loic.minier@linaro.org are
 
 origin.patch
-arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
