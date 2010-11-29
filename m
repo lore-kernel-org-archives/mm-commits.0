@@ -1,112 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] pipe-unbork.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:50:34 -0800
-Message-ID: <201011291951.oATJp4QM007197@imap1.linux-foundation.org>
+Subject: [merged] leds-fix-bug-with-reading-nas-ss4200-dmi-code.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:50:41 -0800
+Message-ID: <201011291951.oATJpAfc007271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34692 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756Ab0K2TvH (ORCPT
+	by vger.kernel.org with ESMTP id S1751756Ab0K2TvP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:51:07 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oATJp4LG029521
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2010 11:51:04 -0800
+	Mon, 29 Nov 2010 14:51:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, arjan@linux.intel.com, dave@sr71.net, rpurdie@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     a
+     leds: fix bug with reading NAS SS4200 dmi code
 has been removed from the -mm tree.  Its filename was
-     pipe-unbork.patch
+     leds-fix-bug-with-reading-nas-ss4200-dmi-code.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: fix bug with reading NAS SS4200 dmi code
+From: Steven Rostedt <rostedt@goodmis.org>
 
+While running randconfg with ktest.pl I stumbled upon this bug:
+
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000003
+IP: [<ffffffff815fe44f>] strstr+0x39/0x86
+PGD 0
+Oops: 0000 [#1] SMP
+last sysfs file:
+CPU 0
+Modules linked in:
+
+Pid: 1, comm: swapper Not tainted 2.6.37-rc1-test+ #6 DG965MQ/
+RIP: 0010:[<ffffffff815fe44f>]  [<ffffffff815fe44f>] strstr+0x39/0x86
+RSP: 0018:ffff8800797cbd80  EFLAGS: 00010213
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: ffffffffffffffff
+RDX: 0000000000000000 RSI: ffffffff82eb7ac9 RDI: 0000000000000003
+RBP: ffff8800797cbda0 R08: ffff880000000003 R09: 0000000000030725
+R10: ffff88007d294c00 R11: 0000000000014c00 R12: 0000000000000020
+R13: ffffffff82eb7ac9 R14: ffffffffffffffff R15: ffffffff82eb7b08
+FS:  0000000000000000(0000) GS:ffff88007d200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 0000000000000003 CR3: 0000000002a1d000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 1, threadinfo ffff8800797ca000, task ffff8800797d0000)
+Stack:
+ 00000000000000ba ffffffff82eb7ac9 ffffffff82eb7ab8 00000000000000ba
+ ffff8800797cbdf0 ffffffff81e2050f ffff8800797cbdc0 00000000815f913b
+ ffff8800797cbe00 ffffffff82eb7ab8 0000000000000000 0000000000000000
+Call Trace:
+ [<ffffffff81e2050f>] dmi_matches+0x117/0x154
+ [<ffffffff81e205d7>] dmi_check_system+0x3d/0x8d
+ [<ffffffff82e1ad25>] ? nas_gpio_init+0x0/0x2c8
+ [<ffffffff82e1ad49>] nas_gpio_init+0x24/0x2c8
+ [<ffffffff820d750d>] ? wm8350_led_init+0x0/0x20
+ [<ffffffff82e1ad25>] ? nas_gpio_init+0x0/0x2c8
+ [<ffffffff810022f7>] do_one_initcall+0xab/0x1b2
+ [<ffffffff82da749c>] kernel_init+0x248/0x331
+ [<ffffffff8100e624>] kernel_thread_helper+0x4/0x10
+ [<ffffffff82da7254>] ? kernel_init+0x0/0x331
+
+Found that the nas_led_whitelist dmi_system_id structure array had no
+NULL end delimiter, causing the dmi_check_system() loop to read an
+undefined entry.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Dave Hansen <dave@sr71.net>
+Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/leds/leds-ss4200.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/pipe.c~a fs/pipe.c
---- a/fs/pipe.c~a
-+++ a/fs/pipe.c
-@@ -890,6 +890,15 @@ const struct file_operations rdwr_pipefi
- 	.fasync		= pipe_rdwr_fasync,
+diff -puN drivers/leds/leds-ss4200.c~leds-fix-bug-with-reading-nas-ss4200-dmi-code drivers/leds/leds-ss4200.c
+--- a/drivers/leds/leds-ss4200.c~leds-fix-bug-with-reading-nas-ss4200-dmi-code
++++ a/drivers/leds/leds-ss4200.c
+@@ -102,6 +102,7 @@ static struct dmi_system_id __initdata n
+ 			DMI_MATCH(DMI_PRODUCT_VERSION, "1.00.00")
+ 		}
+ 	},
++	{}
  };
  
-+static bool is_pipe(struct file *file)
-+{
-+	const struct file_operations *f_op = file->f_op;
-+
-+	return (f_op == &read_pipefifo_fops) ||
-+		(f_op == &write_pipefifo_fops) ||
-+		(f_op == &rdwr_pipefifo_fops);
-+}
-+
- struct pipe_inode_info * alloc_pipe_info(struct inode *inode)
- {
- 	struct pipe_inode_info *pipe;
-@@ -1204,6 +1213,9 @@ long pipe_fcntl(struct file *file, unsig
- 	struct pipe_inode_info *pipe;
- 	long ret;
- 
-+	if (!is_pipe(file))
-+		return -EBADF;
-+
- 	pipe = file->f_path.dentry->d_inode->i_pipe;
- 	if (!pipe)
- 		return -EBADF;
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
