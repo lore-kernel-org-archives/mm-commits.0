@@ -1,127 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:17 -0800
-Message-ID: <201011291951.oATJpkeQ007319@imap1.linux-foundation.org>
+Subject: [merged] memcg-avoid-deadlock-between-move-charge-and-try_charge.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:13 -0800
+Message-ID: <201011291951.oATJpgwC007311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751074Ab0K2TwA (ORCPT
+	by vger.kernel.org with ESMTP id S1751358Ab0K2TwA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 29 Nov 2010 14:52:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, akataria@vmware.com, cl@linux-foundation.org, penberg@cs.helsinki.fi, petr@vmware.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c: fix build_all_zonelist() where percpu_alloc() is wrongly called under stop_machine_run()
+     memcg: avoid deadlock between move charge and try_charge()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run.patch
+     memcg-avoid-deadlock-between-move-charge-and-try_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: fix build_all_zonelist() where percpu_alloc() is wrongly called under stop_machine_run()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: avoid deadlock between move charge and try_charge()
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-During memory hotplug, build_allzonelists() may be called under
-stop_machine_run().  In this function, setup_zone_pageset() is called. 
-But it's bug because it will do page allocation under stop_machine_run().
+__mem_cgroup_try_charge() can be called under down_write(&mmap_sem)(e.g.
+mlock does it). This means it can cause deadlock if it races with move charge:
 
-Here is a report from Alok Kataria.
+Ex.1)
+                move charge             |        try charge
+  --------------------------------------+------------------------------
+    mem_cgroup_can_attach()             |  down_write(&mmap_sem)
+      mc.moving_task = current          |    ..
+      mem_cgroup_precharge_mc()         |  __mem_cgroup_try_charge()
+        mem_cgroup_count_precharge()    |    prepare_to_wait()
+          down_read(&mmap_sem)          |    if (mc.moving_task)
+          -> cannot aquire the lock     |    -> true
+                                        |      schedule()
 
-[  142.339267] BUG: sleeping function called from invalid context at kernel/mutex.c:94
-[  142.339276] in_atomic(): 0, irqs_disabled(): 1, pid: 4, name: migration/0
-[  142.339283] Pid: 4, comm: migration/0 Not tainted 2.6.35.6-45.fc14.x86_64 #1
-[  142.339288] Call Trace:
-[  142.339305]  [<ffffffff8103d12b>] __might_sleep+0xeb/0xf0
-[  142.339316]  [<ffffffff81468245>] mutex_lock+0x24/0x50
-[  142.339326]  [<ffffffff8110eaa6>] pcpu_alloc+0x6d/0x7ee
-[  142.339336]  [<ffffffff81048888>] ? load_balance+0xbe/0x60e
-[  142.339343]  [<ffffffff8103a1b3>] ? rt_se_boosted+0x21/0x2f
-[  142.339349]  [<ffffffff8103e1cf>] ? dequeue_rt_stack+0x18b/0x1ed
-[  142.339356]  [<ffffffff8110f237>] __alloc_percpu+0x10/0x12
-[  142.339362]  [<ffffffff81465e22>] setup_zone_pageset+0x38/0xbe
-[  142.339373]  [<ffffffff810d6d81>] ? build_zonelists_node.clone.58+0x79/0x8c
-[  142.339384]  [<ffffffff81452539>] __build_all_zonelists+0x419/0x46c
-[  142.339395]  [<ffffffff8108ef01>] ? cpu_stopper_thread+0xb2/0x198
-[  142.339401]  [<ffffffff8108f075>] stop_machine_cpu_stop+0x8e/0xc5
-[  142.339407]  [<ffffffff8108efe7>] ? stop_machine_cpu_stop+0x0/0xc5
-[  142.339414]  [<ffffffff8108ef57>] cpu_stopper_thread+0x108/0x198
-[  142.339420]  [<ffffffff81467a37>] ? schedule+0x5b2/0x5cc
-[  142.339426]  [<ffffffff8108ee4f>] ? cpu_stopper_thread+0x0/0x198
-[  142.339434]  [<ffffffff81065f29>] kthread+0x7f/0x87
-[  142.339443]  [<ffffffff8100aae4>] kernel_thread_helper+0x4/0x10
-[  142.339449]  [<ffffffff81065eaa>] ? kthread+0x0/0x87
-[  142.339455]  [<ffffffff8100aae0>] ? kernel_thread_helper+0x0/0x10
-[  142.340099] Built 5 zonelists in Node order, mobility grouping on.  Total pages: 289456
-[  142.340108] Policy zone: Normal
+Ex.2)
+                move charge             |        try charge
+  --------------------------------------+------------------------------
+    mem_cgroup_can_attach()             |
+      mc.moving_task = current          |
+      mem_cgroup_precharge_mc()         |
+        mem_cgroup_count_precharge()    |
+          down_read(&mmap_sem)          |
+          ..                            |
+          up_read(&mmap_sem)            |
+                                        |  down_write(&mmap_sem)
+    mem_cgroup_move_task()              |    ..
+      mem_cgroup_move_charge()          |  __mem_cgroup_try_charge()
+        down_read(&mmap_sem)            |    prepare_to_wait()
+        -> cannot aquire the lock       |    if (mc.moving_task)
+                                        |    -> true
+                                        |      schedule()
 
-This patch tries to fix the issue by moving setup_zone_pageset() out from
-stop_machine_run(). It's obviously not necessary to be called under
-stop_machine_run().
+To avoid this deadlock, we do all the move charge works (both can_attach() and
+attach()) under one mmap_sem section.
+And after this patch, we set/clear mc.moving_task outside mc.lock, because we
+use the lock only to check mc.from/to.
 
-[akpm@linux-foundation.org: remove unneeded local]
-Reported-by: Alok Kataria <akataria@vmware.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Petr Vandrovec <petr@vmware.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |   43 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-fix-build_all_zonelist-where-percpu_alloc-is-wrongly-called-under-stop_machine_run
-+++ a/mm/page_alloc.c
-@@ -3008,14 +3008,6 @@ static __init_refok int __build_all_zone
- 		build_zonelist_cache(pgdat);
- 	}
+diff -puN mm/memcontrol.c~memcg-avoid-deadlock-between-move-charge-and-try_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-deadlock-between-move-charge-and-try_charge
++++ a/mm/memcontrol.c
+@@ -278,13 +278,14 @@ enum move_type {
  
--#ifdef CONFIG_MEMORY_HOTPLUG
--	/* Setup real pagesets for the new zone */
--	if (data) {
--		struct zone *zone = data;
--		setup_zone_pageset(zone);
--	}
--#endif
--
- 	/*
- 	 * Initialize the boot_pagesets that are going to be used
- 	 * for bootstrapping processors. The real pagesets for
-@@ -3064,7 +3056,11 @@ void build_all_zonelists(void *data)
- 	} else {
- 		/* we have to stop all cpus to guarantee there is no user
- 		   of zonelist */
--		stop_machine(__build_all_zonelists, data, NULL);
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+		if (data)
-+			setup_zone_pageset((struct zone *)data);
-+#endif
-+		stop_machine(__build_all_zonelists, NULL, NULL);
- 		/* cpuset refresh routine should be here */
+ /* "mc" and its members are protected by cgroup_mutex */
+ static struct move_charge_struct {
+-	spinlock_t	  lock; /* for from, to, moving_task */
++	spinlock_t	  lock; /* for from, to */
+ 	struct mem_cgroup *from;
+ 	struct mem_cgroup *to;
+ 	unsigned long precharge;
+ 	unsigned long moved_charge;
+ 	unsigned long moved_swap;
+ 	struct task_struct *moving_task;	/* a task moving charges */
++	struct mm_struct *mm;
+ 	wait_queue_head_t waitq;		/* a waitq for other context */
+ } mc = {
+ 	.lock = __SPIN_LOCK_UNLOCKED(mc.lock),
+@@ -4631,7 +4632,7 @@ static unsigned long mem_cgroup_count_pr
+ 	unsigned long precharge;
+ 	struct vm_area_struct *vma;
+ 
+-	down_read(&mm->mmap_sem);
++	/* We've already held the mmap_sem */
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		struct mm_walk mem_cgroup_count_precharge_walk = {
+ 			.pmd_entry = mem_cgroup_count_precharge_pte_range,
+@@ -4643,7 +4644,6 @@ static unsigned long mem_cgroup_count_pr
+ 		walk_page_range(vma->vm_start, vma->vm_end,
+ 					&mem_cgroup_count_precharge_walk);
  	}
- 	vm_total_pages = nr_free_pagecache_pages();
+-	up_read(&mm->mmap_sem);
+ 
+ 	precharge = mc.precharge;
+ 	mc.precharge = 0;
+@@ -4694,11 +4694,16 @@ static void mem_cgroup_clear_mc(void)
+ 
+ 		mc.moved_swap = 0;
+ 	}
++	if (mc.mm) {
++		up_read(&mc.mm->mmap_sem);
++		mmput(mc.mm);
++	}
+ 	spin_lock(&mc.lock);
+ 	mc.from = NULL;
+ 	mc.to = NULL;
+-	mc.moving_task = NULL;
+ 	spin_unlock(&mc.lock);
++	mc.moving_task = NULL;
++	mc.mm = NULL;
+ 	mem_cgroup_end_move(from);
+ 	memcg_oom_recover(from);
+ 	memcg_oom_recover(to);
+@@ -4724,12 +4729,21 @@ static int mem_cgroup_can_attach(struct 
+ 			return 0;
+ 		/* We move charges only when we move a owner of the mm */
+ 		if (mm->owner == p) {
++			/*
++			 * We do all the move charge works under one mmap_sem to
++			 * avoid deadlock with down_write(&mmap_sem)
++			 * -> try_charge() -> if (mc.moving_task) -> sleep.
++			 */
++			down_read(&mm->mmap_sem);
++
+ 			VM_BUG_ON(mc.from);
+ 			VM_BUG_ON(mc.to);
+ 			VM_BUG_ON(mc.precharge);
+ 			VM_BUG_ON(mc.moved_charge);
+ 			VM_BUG_ON(mc.moved_swap);
+ 			VM_BUG_ON(mc.moving_task);
++			VM_BUG_ON(mc.mm);
++
+ 			mem_cgroup_start_move(from);
+ 			spin_lock(&mc.lock);
+ 			mc.from = from;
+@@ -4737,14 +4751,16 @@ static int mem_cgroup_can_attach(struct 
+ 			mc.precharge = 0;
+ 			mc.moved_charge = 0;
+ 			mc.moved_swap = 0;
+-			mc.moving_task = current;
+ 			spin_unlock(&mc.lock);
++			mc.moving_task = current;
++			mc.mm = mm;
+ 
+ 			ret = mem_cgroup_precharge_mc(mm);
+ 			if (ret)
+ 				mem_cgroup_clear_mc();
+-		}
+-		mmput(mm);
++			/* We call up_read() and mmput() in clear_mc(). */
++		} else
++			mmput(mm);
+ 	}
+ 	return ret;
+ }
+@@ -4832,7 +4848,7 @@ static void mem_cgroup_move_charge(struc
+ 	struct vm_area_struct *vma;
+ 
+ 	lru_add_drain_all();
+-	down_read(&mm->mmap_sem);
++	/* We've already held the mmap_sem */
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		int ret;
+ 		struct mm_walk mem_cgroup_move_charge_walk = {
+@@ -4851,7 +4867,6 @@ static void mem_cgroup_move_charge(struc
+ 			 */
+ 			break;
+ 	}
+-	up_read(&mm->mmap_sem);
+ }
+ 
+ static void mem_cgroup_move_task(struct cgroup_subsys *ss,
+@@ -4860,17 +4875,11 @@ static void mem_cgroup_move_task(struct 
+ 				struct task_struct *p,
+ 				bool threadgroup)
+ {
+-	struct mm_struct *mm;
+-
+-	if (!mc.to)
++	if (!mc.mm)
+ 		/* no need to move charge */
+ 		return;
+ 
+-	mm = get_task_mm(p);
+-	if (mm) {
+-		mem_cgroup_move_charge(mm);
+-		mmput(mm);
+-	}
++	mem_cgroup_move_charge(mc.mm);
+ 	mem_cgroup_clear_mc();
+ }
+ #else	/* !CONFIG_MMU */
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
 memcg-create-extensible-page-stat-update-routines.patch
 memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
 memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
 
