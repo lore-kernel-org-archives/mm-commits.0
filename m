@@ -1,102 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-fix-bug-with-reading-nas-ss4200-dmi-code.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:50:41 -0800
-Message-ID: <201011291951.oATJpAfc007271@imap1.linux-foundation.org>
+Subject: [merged] uml-disable-winch-irq-before-freeing-handler-data.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:50:50 -0800
+Message-ID: <201011291951.oATJpJDq007283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756Ab0K2TvP (ORCPT
+	by vger.kernel.org with ESMTP id S1751756Ab0K2Tvb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:51:15 -0500
+	Mon, 29 Nov 2010 14:51:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, arjan@linux.intel.com, dave@sr71.net, rpurdie@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: will.newton@gmail.com, jdike@addtoit.com, stable@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: fix bug with reading NAS SS4200 dmi code
+     uml: disable winch irq before freeing handler data
 has been removed from the -mm tree.  Its filename was
-     leds-fix-bug-with-reading-nas-ss4200-dmi-code.patch
+     uml-disable-winch-irq-before-freeing-handler-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix bug with reading NAS SS4200 dmi code
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: uml: disable winch irq before freeing handler data
+From: Will Newton <will.newton@gmail.com>
 
-While running randconfg with ktest.pl I stumbled upon this bug:
+Disable the winch irq early to make sure we don't take an interrupt part
+way through the freeing of the handler data, resulting in a crash on
+shutdown:
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000003
-IP: [<ffffffff815fe44f>] strstr+0x39/0x86
-PGD 0
-Oops: 0000 [#1] SMP
-last sysfs file:
-CPU 0
-Modules linked in:
+winch_interrupt : read failed, errno = 9
+fd 13 is losing SIGWINCH support
+------------[ cut here ]------------
+WARNING: at lib/list_debug.c:48 list_del+0xc6/0x100()
+list_del corruption, next is LIST_POISON1 (00100100)
+082578c8:  [<081fd77f>] dump_stack+0x22/0x24
+082578e0:  [<0807a18a>] warn_slowpath_common+0x5a/0x80
+08257908:  [<0807a23e>] warn_slowpath_fmt+0x2e/0x30
+08257920:  [<08172196>] list_del+0xc6/0x100
+08257940:  [<08060244>] free_winch+0x14/0x80
+08257958:  [<080606fb>] winch_interrupt+0xdb/0xe0
+08257978:  [<080a65b5>] handle_IRQ_event+0x35/0xe0
+08257998:  [<080a8717>] handle_edge_irq+0xb7/0x170
+082579bc:  [<08059bc4>] do_IRQ+0x34/0x50
+082579d4:  [<08059e1b>] sigio_handler+0x5b/0x80
+082579ec:  [<0806a374>] sig_handler_common+0x44/0xb0
+08257a68:  [<0806a538>] sig_handler+0x38/0x50
+08257a78:  [<0806a77c>] handle_signal+0x5c/0xa0
+08257a9c:  [<0806be28>] hard_handler+0x18/0x20
+08257aac:  [<00c14400>] 0xc14400
 
-Pid: 1, comm: swapper Not tainted 2.6.37-rc1-test+ #6 DG965MQ/
-RIP: 0010:[<ffffffff815fe44f>]  [<ffffffff815fe44f>] strstr+0x39/0x86
-RSP: 0018:ffff8800797cbd80  EFLAGS: 00010213
-RAX: 0000000000000000 RBX: 0000000000000003 RCX: ffffffffffffffff
-RDX: 0000000000000000 RSI: ffffffff82eb7ac9 RDI: 0000000000000003
-RBP: ffff8800797cbda0 R08: ffff880000000003 R09: 0000000000030725
-R10: ffff88007d294c00 R11: 0000000000014c00 R12: 0000000000000020
-R13: ffffffff82eb7ac9 R14: ffffffffffffffff R15: ffffffff82eb7b08
-FS:  0000000000000000(0000) GS:ffff88007d200000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000003 CR3: 0000000002a1d000 CR4: 00000000000006f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process swapper (pid: 1, threadinfo ffff8800797ca000, task ffff8800797d0000)
-Stack:
- 00000000000000ba ffffffff82eb7ac9 ffffffff82eb7ab8 00000000000000ba
- ffff8800797cbdf0 ffffffff81e2050f ffff8800797cbdc0 00000000815f913b
- ffff8800797cbe00 ffffffff82eb7ab8 0000000000000000 0000000000000000
-Call Trace:
- [<ffffffff81e2050f>] dmi_matches+0x117/0x154
- [<ffffffff81e205d7>] dmi_check_system+0x3d/0x8d
- [<ffffffff82e1ad25>] ? nas_gpio_init+0x0/0x2c8
- [<ffffffff82e1ad49>] nas_gpio_init+0x24/0x2c8
- [<ffffffff820d750d>] ? wm8350_led_init+0x0/0x20
- [<ffffffff82e1ad25>] ? nas_gpio_init+0x0/0x2c8
- [<ffffffff810022f7>] do_one_initcall+0xab/0x1b2
- [<ffffffff82da749c>] kernel_init+0x248/0x331
- [<ffffffff8100e624>] kernel_thread_helper+0x4/0x10
- [<ffffffff82da7254>] ? kernel_init+0x0/0x331
-
-Found that the nas_led_whitelist dmi_system_id structure array had no
-NULL end delimiter, causing the dmi_check_system() loop to read an
-undefined entry.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Dave Hansen <dave@sr71.net>
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Will Newton <will.newton@gmail.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ss4200.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/drivers/line.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-ss4200.c~leds-fix-bug-with-reading-nas-ss4200-dmi-code drivers/leds/leds-ss4200.c
---- a/drivers/leds/leds-ss4200.c~leds-fix-bug-with-reading-nas-ss4200-dmi-code
-+++ a/drivers/leds/leds-ss4200.c
-@@ -102,6 +102,7 @@ static struct dmi_system_id __initdata n
- 			DMI_MATCH(DMI_PRODUCT_VERSION, "1.00.00")
- 		}
- 	},
-+	{}
- };
+diff -puN arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-disable-winch-irq-before-freeing-handler-data
++++ a/arch/um/drivers/line.c
+@@ -727,6 +727,9 @@ struct winch {
  
- /*
+ static void free_winch(struct winch *winch, int free_irq_ok)
+ {
++	if (free_irq_ok)
++		free_irq(WINCH_IRQ, winch);
++
+ 	list_del(&winch->list);
+ 
+ 	if (winch->pid != -1)
+@@ -735,8 +738,6 @@ static void free_winch(struct winch *win
+ 		os_close_file(winch->fd);
+ 	if (winch->stack != 0)
+ 		free_stack(winch->stack, 0);
+-	if (free_irq_ok)
+-		free_irq(WINCH_IRQ, winch);
+ 	kfree(winch);
+ }
+ 
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from will.newton@gmail.com are
 
 origin.patch
-linux-next.patch
+arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
 
