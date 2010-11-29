@@ -1,125 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lp5523c-adjust-delays-and-add-comments-to-them.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:07 -0800
-Message-ID: <201011291951.oATJpa3E007301@imap1.linux-foundation.org>
+Subject: [merged] cgroups-make-swap-accounting-default-behavior-configurable.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:15 -0800
+Message-ID: <201011291951.oATJpinL007315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752514Ab0K2Tvt (ORCPT
+	by vger.kernel.org with ESMTP id S1751220Ab0K2TwF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:51:49 -0500
+	Mon, 29 Nov 2010 14:52:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/leds/leds-lp5523.c: adjust delays and add comments to them
+     cgroups: make swap accounting default behavior configurable
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lp5523c-adjust-delays-and-add-comments-to-them.patch
+     cgroups-make-swap-accounting-default-behavior-configurable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5523.c: adjust delays and add comments to them
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: cgroups: make swap accounting default behavior configurable
+From: Michal Hocko <mhocko@suse.cz>
 
-Delays were little bit too long.  Adjust delay times and add some comments
-to them.
+Swap accounting can be configured by CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+configuration option and then it is turned on by default.  There is a boot
+option (noswapaccount) which can disable this feature.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+This makes it hard for distributors to enable the configuration option as
+this feature leads to a bigger memory consumption and this is a no-go for
+general purpose distribution kernel.  On the other hand swap accounting
+may be very usuful for some workloads.
+
+This patch adds a new configuration option which controls the default
+behavior (CGROUP_MEM_RES_CTLR_SWAP_ENABLED).  If the option is selected
+then the feature is turned on by default.
+
+It also adds a new boot parameter swapaccount[=1|0] which enhances the
+original noswapaccount parameter semantic by means of enable/disable logic
+(defaults to 1 if no value is provided to be still consistent with
+noswapaccount).
+
+The default behavior is unchanged (if CONFIG_CGROUP_MEM_RES_CTLR_SWAP is
+enabled then CONFIG_CGROUP_MEM_RES_CTLR_SWAP_ENABLED is enabled as well)
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5523.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ Documentation/kernel-parameters.txt |    5 +++++
+ init/Kconfig                        |   13 +++++++++++++
+ mm/memcontrol.c                     |   21 +++++++++++++++++++--
+ 3 files changed, 37 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-adjust-delays-and-add-comments-to-them drivers/leds/leds-lp5523.c
---- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-adjust-delays-and-add-comments-to-them
-+++ a/drivers/leds/leds-lp5523.c
-@@ -205,11 +205,14 @@ static int lp5523_configure(struct i2c_c
+diff -puN Documentation/kernel-parameters.txt~cgroups-make-swap-accounting-default-behavior-configurable Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~cgroups-make-swap-accounting-default-behavior-configurable
++++ a/Documentation/kernel-parameters.txt
+@@ -2385,6 +2385,11 @@ and is between 256 and 4096 characters. 
+ 			improve throughput, but will also increase the
+ 			amount of memory reserved for use by the client.
  
- 	lp5523_write(client, LP5523_REG_RESET, 0xff);
++	swapaccount[=0|1]
++			[KNL] Enable accounting of swap in memory resource
++			controller if no parameter or 1 is given or disable
++			it if 0 is given (See Documentation/cgroups/memory.txt)
++
+ 	swiotlb=	[IA-64] Number of I/O TLB slabs
  
--	usleep_range(10000, 100000);
-+	usleep_range(10000, 20000); /*
-+				     * Exact value is not available. 10 - 20ms
-+				     * appears to be enough for reset.
-+				     */
+ 	switches=	[HW,M68k]
+diff -puN init/Kconfig~cgroups-make-swap-accounting-default-behavior-configurable init/Kconfig
+--- a/init/Kconfig~cgroups-make-swap-accounting-default-behavior-configurable
++++ a/init/Kconfig
+@@ -613,6 +613,19 @@ config CGROUP_MEM_RES_CTLR_SWAP
+ 	  if boot option "noswapaccount" is set, swap will not be accounted.
+ 	  Now, memory usage of swap_cgroup is 2 bytes per entry. If swap page
+ 	  size is 4096bytes, 512k per 1Gbytes of swap.
++config CGROUP_MEM_RES_CTLR_SWAP_ENABLED
++	bool "Memory Resource Controller Swap Extension enabled by default"
++	depends on CGROUP_MEM_RES_CTLR_SWAP
++	default y
++	help
++	  Memory Resource Controller Swap Extension comes with its price in
++	  a bigger memory consumption. General purpose distribution kernels
++	  which want to enable the feautre but keep it disabled by default
++	  and let the user enable it by swapaccount boot command line
++	  parameter should have this option unselected.
++	  For those who want to have the feature enabled by default should
++	  select this option (if, for some reason, they need to disable it
++	  then noswapaccount does the trick).
  
- 	ret |= lp5523_write(client, LP5523_REG_ENABLE, LP5523_ENABLE);
--	/* Chip startup time after reset is 500 us */
--	usleep_range(1000, 10000);
-+	/* Chip startup time is 500 us, 1 - 2 ms gives some margin */
-+	usleep_range(1000, 2000);
+ menuconfig CGROUP_SCHED
+ 	bool "Group CPU scheduler"
+diff -puN mm/memcontrol.c~cgroups-make-swap-accounting-default-behavior-configurable mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroups-make-swap-accounting-default-behavior-configurable
++++ a/mm/memcontrol.c
+@@ -61,7 +61,14 @@ struct mem_cgroup *root_mem_cgroup __rea
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ /* Turned on only when memory cgroup is enabled && really_do_swap_account = 1 */
+ int do_swap_account __read_mostly;
+-static int really_do_swap_account __initdata = 1; /* for remember boot option*/
++
++/* for remember boot option*/
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP_ENABLED
++static int really_do_swap_account __initdata = 1;
++#else
++static int really_do_swap_account __initdata = 0;
++#endif
++
+ #else
+ #define do_swap_account		(0)
+ #endif
+@@ -4920,10 +4927,20 @@ struct cgroup_subsys mem_cgroup_subsys =
+ };
  
- 	ret |= lp5523_write(client, LP5523_REG_CONFIG,
- 			    LP5523_AUTO_INC | LP5523_PWR_SAVE |
-@@ -246,8 +249,8 @@ static int lp5523_configure(struct i2c_c
- 		return -1;
- 	}
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++static int __init enable_swap_account(char *s)
++{
++	/* consider enabled if no parameter or 1 is given */
++	if (!s || !strcmp(s, "1"))
++		really_do_swap_account = 1;
++	else if (!strcmp(s, "0"))
++		really_do_swap_account = 0;
++	return 1;
++}
++__setup("swapaccount", enable_swap_account);
  
--	/* Wait 3ms and check the engine status */
--	usleep_range(3000, 20000);
-+	/* Let the programs run for couple of ms and check the engine status */
-+	usleep_range(3000, 6000);
- 	lp5523_read(client, LP5523_REG_STATUS, &status);
- 	status &= LP5523_ENG_STATUS_MASK;
- 
-@@ -452,10 +455,10 @@ static ssize_t lp5523_selftest(struct de
- 	/* Measure VDD (i.e. VBAT) first (channel 16 corresponds to VDD) */
- 	lp5523_write(chip->client, LP5523_REG_LED_TEST_CTRL,
- 				    LP5523_EN_LEDTEST | 16);
--	usleep_range(3000, 10000);
-+	usleep_range(3000, 6000); /* ADC conversion time is typically 2.7 ms */
- 	ret = lp5523_read(chip->client, LP5523_REG_STATUS, &status);
- 	if (!(status & LP5523_LEDTEST_DONE))
--		usleep_range(3000, 10000);
-+		usleep_range(3000, 6000); /* Was not ready. Wait little bit */
- 
- 	ret |= lp5523_read(chip->client, LP5523_REG_LED_TEST_ADC, &vdd);
- 	vdd--;	/* There may be some fluctuation in measurement */
-@@ -471,16 +474,16 @@ static ssize_t lp5523_selftest(struct de
- 			chip->pdata->led_config[i].led_current);
- 
- 		lp5523_write(chip->client, LP5523_REG_LED_PWM_BASE + i, 0xff);
--		/* let current stabilize 2ms before measurements start */
--		usleep_range(2000, 10000);
-+		/* let current stabilize 2 - 4ms before measurements start */
-+		usleep_range(2000, 4000);
- 		lp5523_write(chip->client,
- 			     LP5523_REG_LED_TEST_CTRL,
- 			     LP5523_EN_LEDTEST | i);
--		/* ledtest takes 2.7ms */
--		usleep_range(3000, 10000);
-+		/* ADC conversion time is 2.7 ms typically */
-+		usleep_range(3000, 6000);
- 		ret = lp5523_read(chip->client, LP5523_REG_STATUS, &status);
- 		if (!(status & LP5523_LEDTEST_DONE))
--			usleep_range(3000, 10000);
-+			usleep_range(3000, 6000);/* Was not ready. Wait. */
- 		ret |= lp5523_read(chip->client, LP5523_REG_LED_TEST_ADC, &adc);
- 
- 		if (adc >= vdd || adc < LP5523_ADC_SHORTCIRC_LIM)
-@@ -933,9 +936,9 @@ static int lp5523_probe(struct i2c_clien
- 
- 	if (pdata->enable) {
- 		pdata->enable(0);
--		usleep_range(1000, 10000);
-+		usleep_range(1000, 2000); /* Keep enable down at least 1ms */
- 		pdata->enable(1);
--		usleep_range(1000, 10000); /* Spec says min 500us */
-+		usleep_range(1000, 2000); /* 500us abs min. */
- 	}
- 
- 	ret = lp5523_detect(client);
+ static int __init disable_swap_account(char *s)
+ {
+-	really_do_swap_account = 0;
++	enable_swap_account("0");
+ 	return 1;
+ }
+ __setup("noswapaccount", disable_swap_account);
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
 
