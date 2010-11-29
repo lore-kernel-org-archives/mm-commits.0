@@ -1,127 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch added to -mm tree
-Date: Mon, 29 Nov 2010 13:41:06 -0800
-Message-ID: <201011292141.oATLf6Gn012683@imap1.linux-foundation.org>
+Subject: [obsolete] arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 14:12:06 -0800
+Message-ID: <201011292212.oATMC6Ta014045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222Ab0K2Vln (ORCPT
+	by vger.kernel.org with ESMTP id S1753214Ab0K2WNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 16:41:43 -0500
+	Mon, 29 Nov 2010 17:13:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de
+To: akpm@linux-foundation.org, heukelum@fastmail.fm, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: use find_first_zero_bit() instead of find_next_zero_bit(addr, size, 0)
-has been added to the -mm tree.  Its filename is
-     bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
+     arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
+has been removed from the -mm tree.  Its filename was
+     arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: use find_first_zero_bit() instead of find_next_zero_bit(addr, size, 0)
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The little-endian bitops patch series introduced inefficiency to some
-little-endian architectures.
+arch/x86/kernel/entry_64.S: Assembler messages:
+arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
+arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
 
-include/asm-generic/bitops/le.h defines find_first_zero_le_bit() like this:
+NFI what's happening here.
 
-	#define find_first_zero_le_bit(addr, size) \
-		find_next_zero_le_bit((addr), (size), 0)
-
-All little-endian architectures include le.h and little-endian bitops
-are just aliases for their native endian bitops. So above macro definision
-is converted to:
-
-	#define find_first_zero_le_bit(addr, size) \
-		find_next_zero_bit(addr, size, 0)
-
-This is inefficient for some architectures which have faster
-find_first_zero_bit() than find_next_zero_bit(addr, size, 0).
-
-Fix it by aliasing find_first_zero_bit() to find_first_zero_le_bit()
-on little-endian architectures.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Alexander van Heukelum <heukelum@fastmail.fm>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/le.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/x86/kernel/entry_64.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/bitops/le.h~bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0 include/asm-generic/bitops/le.h
---- a/include/asm-generic/bitops/le.h~bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0
-+++ a/include/asm-generic/bitops/le.h
-@@ -12,6 +12,8 @@
- 	find_next_zero_bit(addr, size, offset)
- #define find_next_le_bit(addr, size, offset) \
- 	find_next_bit(addr, size, offset)
-+#define find_first_zero_le_bit(addr, size) \
-+	find_first_zero_bit(addr, size)
- 
- #elif defined(__BIG_ENDIAN)
- 
-@@ -22,6 +24,9 @@ extern unsigned long find_next_zero_le_b
- extern unsigned long find_next_le_bit(const unsigned long *addr,
- 		unsigned long size, unsigned long offset);
- 
-+#define find_first_zero_le_bit(addr, size) \
-+	find_next_zero_le_bit((addr), (size), 0)
-+
- #else
- #error "Please fix <asm/byteorder.h>"
- #endif
-@@ -43,7 +48,4 @@ extern unsigned long find_next_le_bit(co
- #define __test_and_clear_le_bit(nr, addr) \
- 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
- 
--#define find_first_zero_le_bit(addr, size) \
--	find_next_zero_le_bit((addr), (size), 0)
--
- #endif /* _ASM_GENERIC_BITOPS_LE_H_ */
+diff -puN arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161 arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161
++++ a/arch/x86/kernel/entry_64.S
+@@ -213,13 +213,13 @@ ENDPROC(native_usergs_sysret64)
+ 	.macro FAKE_STACK_FRAME child_rip
+ 	/* push in order ss, rsp, eflags, cs, rip */
+ 	xorl %eax, %eax
+-	pushq_cfi $__KERNEL_DS /* ss */
++	pushq $__KERNEL_DS /* ss */
+ 	/*CFI_REL_OFFSET	ss,0*/
+ 	pushq_cfi %rax /* rsp */
+ 	CFI_REL_OFFSET	rsp,0
+ 	pushq_cfi $X86_EFLAGS_IF /* eflags - interrupts on */
+ 	/*CFI_REL_OFFSET	rflags,0*/
+-	pushq_cfi $__KERNEL_CS /* cs */
++	pushq $__KERNEL_CS /* cs */
+ 	/*CFI_REL_OFFSET	cs,0*/
+ 	pushq_cfi \child_rip /* rip */
+ 	CFI_REL_OFFSET	rip,0
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
-bitops-rename-generic-little-endian-bitops-functions.patch
-s390-introduce-little-endian-bitops.patch
-arm-introduce-little-endian-bitops.patch
-m68k-introduce-little-endian-bitops.patch
-m68knommu-introduce-little-endian-bitops.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-rds-stop-including-asm-generic-bitops-leh.patch
-kvm-stop-including-asm-generic-bitops-leh.patch
-asm-generic-use-little-endian-bitops.patch
-ext3-use-little-endian-bitops.patch
-ext4-use-little-endian-bitops.patch
-ocfs2-use-little-endian-bitops.patch
-nilfs2-use-little-endian-bitops.patch
-reiserfs-use-little-endian-bitops.patch
-udf-use-little-endian-bitops.patch
-ufs-use-little-endian-bitops.patch
-md-use-little-endian-bit-operations.patch
-dm-use-little-endian-bit-operations.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
-m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
-bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
-bitops-introduce-config_generic_find_le_bit.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
