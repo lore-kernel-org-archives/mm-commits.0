@@ -1,91 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:20 -0800
-Message-ID: <201011291951.oATJpnw1007328@imap1.linux-foundation.org>
+Subject: [merged] media-fix-timblogiw-kconfig-build-error.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:39 -0800
+Message-ID: <201011291952.oATJq8Gd007365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220Ab0K2TxF (ORCPT
+	by vger.kernel.org with ESMTP id S1752701Ab0K2T4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:53:05 -0500
+	Mon, 29 Nov 2010 14:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsterba@suse.cz, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, mpm@selenic.com, n-horiguchi@ah.jp.
+To: randy.dunlap@oracle.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove call to find_vma in pagewalk for non-hugetlbfs
+     media: fix timblogiw kconfig & build error
 has been removed from the -mm tree.  Its filename was
-     mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch
+     media-fix-timblogiw-kconfig-build-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove call to find_vma in pagewalk for non-hugetlbfs
-From: David Sterba <dsterba@suse.cz>
+Subject: media: fix timblogiw kconfig & build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Commit d33b9f45 ("mm: hugetlb: fix hugepage memory leak in
-walk_page_range()") introduces a check if a vma is a hugetlbfs one and
-later in 5dc37642 ("mm hugetlb: add hugepage support to pagemap") it is
-moved under #ifdef CONFIG_HUGETLB_PAGE but a needless find_vma call is
-left behind and its result is not used anywhere else in the function.
+timblogiw uses dma() interfaces and it selects TIMB_DMA for that support. 
+However, drivers/dma/ is not built unless CONFIG_DMA_ENGINE is enabled, so
+select/enable that symbol also.
 
-The side-effect of caching vma for @addr inside walk->mm is neither
-utilized in walk_page_range() nor in called functions.
+drivers/built-in.o: In function `timblogiw_close':
+timblogiw.c:(.text+0x4419fe): undefined reference to `dma_release_channel'
+drivers/built-in.o: In function `buffer_release':
+timblogiw.c:(.text+0x441a8d): undefined reference to `dma_sync_wait'
+drivers/built-in.o: In function `timblogiw_open':
+timblogiw.c:(.text+0x44212b): undefined reference to `__dma_request_channel'
 
-Signed-off-by: David Sterba <dsterba@suse.cz>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs mm/pagewalk.c
---- a/mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs
-+++ a/mm/pagewalk.c
-@@ -139,7 +139,6 @@ int walk_page_range(unsigned long addr, 
- 	pgd_t *pgd;
- 	unsigned long next;
- 	int err = 0;
--	struct vm_area_struct *vma;
- 
- 	if (addr >= end)
- 		return err;
-@@ -149,15 +148,17 @@ int walk_page_range(unsigned long addr, 
- 
- 	pgd = pgd_offset(walk->mm, addr);
- 	do {
-+		struct vm_area_struct *uninitialized_var(vma);
-+
- 		next = pgd_addr_end(addr, end);
- 
-+#ifdef CONFIG_HUGETLB_PAGE
- 		/*
- 		 * handle hugetlb vma individually because pagetable walk for
- 		 * the hugetlb page is dependent on the architecture and
- 		 * we can't handled it in the same manner as non-huge pages.
- 		 */
- 		vma = find_vma(walk->mm, addr);
--#ifdef CONFIG_HUGETLB_PAGE
- 		if (vma && is_vm_hugetlb_page(vma)) {
- 			if (vma->vm_end < next)
- 				next = vma->vm_end;
+diff -puN drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~media-fix-timblogiw-kconfig-build-error
++++ a/drivers/media/video/Kconfig
+@@ -669,6 +669,7 @@ config VIDEO_HEXIUM_GEMINI
+ config VIDEO_TIMBERDALE
+ 	tristate "Support for timberdale Video In/LogiWIN"
+ 	depends on VIDEO_V4L2 && I2C
++	select DMA_ENGINE
+ 	select TIMB_DMA
+ 	select VIDEO_ADV7180
+ 	select VIDEOBUF_DMA_CONTIG
 _
 
-Patches currently in -mm which might be from dsterba@suse.cz are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+w1-ds2423-counter-driver-and-documentation-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
