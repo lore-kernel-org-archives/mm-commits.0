@@ -1,98 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-fix-gfp-translate-for-recent-changes-to-gfph.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:33 -0800
-Message-ID: <201011291952.oATJq29l007354@imap1.linux-foundation.org>
+Subject: [merged] mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:20 -0800
+Message-ID: <201011291951.oATJpnw1007328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220Ab0K2TxB (ORCPT
+	by vger.kernel.org with ESMTP id S1751220Ab0K2TxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:53:01 -0500
+	Mon, 29 Nov 2010 14:53:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, namhyung@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: dsterba@suse.cz, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, mpm@selenic.com, n-horiguchi@ah.jp.
 
 
 The patch titled
-     scripts: fix gfp-translate for recent changes to gfp.h
+     mm: remove call to find_vma in pagewalk for non-hugetlbfs
 has been removed from the -mm tree.  Its filename was
-     scripts-fix-gfp-translate-for-recent-changes-to-gfph.patch
+     mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: fix gfp-translate for recent changes to gfp.h
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm: remove call to find_vma in pagewalk for non-hugetlbfs
+From: David Sterba <dsterba@suse.cz>
 
-The recent changes to gfp.h to satisfy sparse broke scripts/gfp-translate.
-This patch fixes it up to work with old and new versions of gfp.h .
+Commit d33b9f45 ("mm: hugetlb: fix hugepage memory leak in
+walk_page_range()") introduces a check if a vma is a hugetlbfs one and
+later in 5dc37642 ("mm hugetlb: add hugepage support to pagemap") it is
+moved under #ifdef CONFIG_HUGETLB_PAGE but a needless find_vma call is
+left behind and its result is not used anywhere else in the function.
 
-[akpm@linux-foundation.org: use `grep -q', per WANG Cong]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+The side-effect of caching vma for @addr inside walk->mm is neither
+utilized in walk_page_range() nor in called functions.
+
+Signed-off-by: David Sterba <dsterba@suse.cz>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gfp-translate |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/pagewalk.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gfp-translate~scripts-fix-gfp-translate-for-recent-changes-to-gfph scripts/gfp-translate
---- a/scripts/gfp-translate~scripts-fix-gfp-translate-for-recent-changes-to-gfph
-+++ a/scripts/gfp-translate
-@@ -63,7 +63,12 @@ fi
+diff -puN mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-remove-call-to-find_vma-in-pagewalk-for-non-hugetlbfs
++++ a/mm/pagewalk.c
+@@ -139,7 +139,6 @@ int walk_page_range(unsigned long addr, 
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	int err = 0;
+-	struct vm_area_struct *vma;
  
- # Extract GFP flags from the kernel source
- TMPFILE=`mktemp -t gfptranslate-XXXXXX` || exit 1
--grep "^#define __GFP" $SOURCE/include/linux/gfp.h | sed -e 's/(__force gfp_t)//' | sed -e 's/u)/)/' | grep -v GFP_BITS | sed -e 's/)\//) \//' > $TMPFILE
-+grep -q ___GFP $SOURCE/include/linux/gfp.h
-+if [ $? -eq 0 ]; then
-+	grep "^#define ___GFP" $SOURCE/include/linux/gfp.h | sed -e 's/u$//' | grep -v GFP_BITS > $TMPFILE
-+else
-+	grep "^#define __GFP" $SOURCE/include/linux/gfp.h | sed -e 's/(__force gfp_t)//' | sed -e 's/u)/)/' | grep -v GFP_BITS | sed -e 's/)\//) \//' > $TMPFILE
-+fi
+ 	if (addr >= end)
+ 		return err;
+@@ -149,15 +148,17 @@ int walk_page_range(unsigned long addr, 
  
- # Parse the flags
- IFS="
+ 	pgd = pgd_offset(walk->mm, addr);
+ 	do {
++		struct vm_area_struct *uninitialized_var(vma);
++
+ 		next = pgd_addr_end(addr, end);
+ 
++#ifdef CONFIG_HUGETLB_PAGE
+ 		/*
+ 		 * handle hugetlb vma individually because pagetable walk for
+ 		 * the hugetlb page is dependent on the architecture and
+ 		 * we can't handled it in the same manner as non-huge pages.
+ 		 */
+ 		vma = find_vma(walk->mm, addr);
+-#ifdef CONFIG_HUGETLB_PAGE
+ 		if (vma && is_vm_hugetlb_page(vma)) {
+ 			if (vma->vm_end < next)
+ 				next = vma->vm_end;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from dsterba@suse.cz are
 
 origin.patch
 linux-next.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 
