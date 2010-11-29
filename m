@@ -1,71 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:26 -0800
-Message-ID: <201011291951.oATJpt7n007336@imap1.linux-foundation.org>
+Subject: [merged] reiserfs-fix-inode-mutex-reiserfs-lock-misordering.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:30 -0800
+Message-ID: <201011291951.oATJpxfj007342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753038Ab0K2Tw1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750742Ab0K2Tws (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:52:27 -0500
+	Mon, 29 Nov 2010 14:52:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, alan@linux.intel.com, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, jack@suse.cz, jeffm@suse.com, markus.gapp@gmx.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
+     reiserfs: fix inode mutex - reiserfs lock misordering
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove.patch
+     reiserfs-fix-inode-mutex-reiserfs-lock-misordering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/isl29020.c: remove incorrect kfree in isl29020_remove()
-From: Axel Lin <axel.lin@gmail.com>
+Subject: reiserfs: fix inode mutex - reiserfs lock misordering
+From: Frederic Weisbecker <fweisbec@gmail.com>
 
-struct als_data *data is not used in this driver at all.
+reiserfs_unpack() locks the inode mutex with reiserfs_mutex_lock_safe() to
+protect against reiserfs lock dependency.  However this protection
+requires to have the reiserfs lock to be locked.
 
-Also add a missing ">" character for MODULE_AUTHOR.
+This is the case if reiserfs_unpack() is called by reiserfs_ioctl but not
+from reiserfs_quota_on() when it tries to unpack tails of quota files.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
+Fix the ordering of the two locks in reiserfs_unpack() to
+fix this issue.
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Reported-by: Markus Gapp <markus.gapp@gmx.net>
+Reported-by: Jan Kara <jack@suse.cz>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: <stable@kernel.org>		[2.6.36.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/isl29020.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/reiserfs/ioctl.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove drivers/misc/isl29020.c
---- a/drivers/misc/isl29020.c~drivers-misc-isl29020c-remove-incorrect-kfree-in-isl29020_remove
-+++ a/drivers/misc/isl29020.c
-@@ -183,9 +183,7 @@ static int  isl29020_probe(struct i2c_cl
+diff -puN fs/reiserfs/ioctl.c~reiserfs-fix-inode-mutex-reiserfs-lock-misordering fs/reiserfs/ioctl.c
+--- a/fs/reiserfs/ioctl.c~reiserfs-fix-inode-mutex-reiserfs-lock-misordering
++++ a/fs/reiserfs/ioctl.c
+@@ -183,12 +183,11 @@ int reiserfs_unpack(struct inode *inode,
+ 		return 0;
+ 	}
  
- static int isl29020_remove(struct i2c_client *client)
- {
--	struct als_data *data = i2c_get_clientdata(client);
- 	sysfs_remove_group(&client->dev.kobj, &m_als_gr);
--	kfree(data);
- 	return 0;
- }
+-	/* we need to make sure nobody is changing the file size beneath
+-	 ** us
+-	 */
+-	reiserfs_mutex_lock_safe(&inode->i_mutex, inode->i_sb);
+ 	depth = reiserfs_write_lock_once(inode->i_sb);
  
-@@ -245,6 +243,6 @@ static void  __exit sensor_isl29020_exit
- module_init(sensor_isl29020_init);
- module_exit(sensor_isl29020_exit);
- 
--MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com");
-+MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com>");
- MODULE_DESCRIPTION("Intersil isl29020 ALS Driver");
- MODULE_LICENSE("GPL v2");
++	/* we need to make sure nobody is changing the file size beneath us */
++	reiserfs_mutex_lock_safe(&inode->i_mutex, inode->i_sb);
++
+ 	write_from = inode->i_size & (blocksize - 1);
+ 	/* if we are on a block boundary, we are already unpacked.  */
+ 	if (write_from == 0) {
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
-drivers-rtc-rtc-omapc-fix-a-memory-leak.patch
 
