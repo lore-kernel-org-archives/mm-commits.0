@@ -1,85 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-set-pagemap-walk-limit-to-pmd-boundary.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:24 -0800
-Message-ID: <201011291951.oATJprUX007332@imap1.linux-foundation.org>
+Subject: [merged] backlight-grab-ops_lock-before-testing-bd-ops.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:28 -0800
+Message-ID: <201011291951.oATJpvwj007339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753043Ab0K2Tw3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752869Ab0K2Twj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:52:29 -0500
+	Mon, 29 Nov 2010 14:52:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, j-nomura@ce.jp.nec.com, kamezawa.hiroyu@jp.fujitsu.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, rpurdie@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: set pagemap walk limit to PMD boundary
+     backlight: grab ops_lock before testing bd->ops
 has been removed from the -mm tree.  Its filename was
-     pagemap-set-pagemap-walk-limit-to-pmd-boundary.patch
+     backlight-grab-ops_lock-before-testing-bd-ops.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pagemap: set pagemap walk limit to PMD boundary
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: backlight: grab ops_lock before testing bd->ops
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Currently one pagemap_read() call walks in PAGEMAP_WALK_SIZE bytes (== 512
-pages.) But there is a corner case where walk_pmd_range() accidentally
-runs over a VMA associated with a hugetlbfs file.
+According to the comment describing ops_lock in the definition of struc=
+t
+backlight_device and when comparing with other functions in backlight.c
+the mutex must be hold when checking ops to be non-NULL.
 
-For example, when a process has mappings to VMAs as shown below:
+=46ixes a problem added by c835ee7f4154992e6 ("backlight: Add suspend/r=
+esume
+support to the backlight core") in Jan 2009.
 
-  # cat /proc/<pid>/maps
-  ...
-  3a58f6d000-3a58f72000 rw-p 00000000 00:00 0
-  7fbd51853000-7fbd51855000 rw-p 00000000 00:00 0
-  7fbd5186c000-7fbd5186e000 rw-p 00000000 00:00 0
-  7fbd51a00000-7fbd51c00000 rw-s 00000000 00:12 8614   /hugepages/test
-
-then pagemap_read() goes into walk_pmd_range() path and walks in the range
-0x7fbd51853000-0x7fbd51a53000, but the hugetlbfs VMA should be handled by
-walk_hugetlb_range().  Otherwise PMD for the hugepage is considered bad
-and cleared, which causes undesirable results.
-
-This patch fixes it by separating pagemap walk range into one PMD.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/backlight/backlight.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-set-pagemap-walk-limit-to-pmd-boundary fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-set-pagemap-walk-limit-to-pmd-boundary
-+++ a/fs/proc/task_mmu.c
-@@ -706,6 +706,7 @@ static int pagemap_hugetlb_range(pte_t *
-  * skip over unmapped regions.
-  */
- #define PAGEMAP_WALK_SIZE	(PMD_SIZE)
-+#define PAGEMAP_WALK_MASK	(PMD_MASK)
- static ssize_t pagemap_read(struct file *file, char __user *buf,
- 			    size_t count, loff_t *ppos)
+diff -puN drivers/video/backlight/backlight.c~backlight-grab-ops_lock-b=
+efore-testing-bd-ops drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-grab-ops_lock-befor=
+e-testing-bd-ops
++++ a/drivers/video/backlight/backlight.c
+@@ -197,12 +197,12 @@ static int backlight_suspend(struct devi
  {
-@@ -776,7 +777,7 @@ static ssize_t pagemap_read(struct file 
- 		unsigned long end;
- 
- 		pm.pos = 0;
--		end = start_vaddr + PAGEMAP_WALK_SIZE;
-+		end = (start_vaddr + PAGEMAP_WALK_SIZE) & PAGEMAP_WALK_MASK;
- 		/* overflow ? */
- 		if (end < start_vaddr || end > end_vaddr)
- 			end = end_vaddr;
+ 	struct backlight_device *bd =3D to_backlight_device(dev);
+=20
+-	if (bd->ops->options & BL_CORE_SUSPENDRESUME) {
+-		mutex_lock(&bd->ops_lock);
++	mutex_lock(&bd->ops_lock);
++	if (bd->ops && bd->ops->options & BL_CORE_SUSPENDRESUME) {
+ 		bd->props.state |=3D BL_CORE_SUSPENDED;
+ 		backlight_update_status(bd);
+-		mutex_unlock(&bd->ops_lock);
+ 	}
++	mutex_unlock(&bd->ops_lock);
+=20
+ 	return 0;
+ }
+@@ -211,12 +211,12 @@ static int backlight_resume(struct devic
+ {
+ 	struct backlight_device *bd =3D to_backlight_device(dev);
+=20
+-	if (bd->ops->options & BL_CORE_SUSPENDRESUME) {
+-		mutex_lock(&bd->ops_lock);
++	mutex_lock(&bd->ops_lock);
++	if (bd->ops && bd->ops->options & BL_CORE_SUSPENDRESUME) {
+ 		bd->props.state &=3D ~BL_CORE_SUSPENDED;
+ 		backlight_update_status(bd);
+-		mutex_unlock(&bd->ops_lock);
+ 	}
++	mutex_unlock(&bd->ops_lock);
+=20
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 origin.patch
+linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
