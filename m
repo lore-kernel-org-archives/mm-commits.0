@@ -1,48 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-power-changed-makefile-to-use-proper-ccflag-flag.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:41 -0800
-Message-ID: <201011291952.oATJqA6i007368@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch added to -mm tree
+Date: Mon, 29 Nov 2010 13:10:49 -0800
+Message-ID: <201011292110.oATLAnEw011332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346Ab0K2T6S (ORCPT
+	by vger.kernel.org with ESMTP id S1751498Ab0K2VLc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:58:18 -0500
+	Mon, 29 Nov 2010 16:11:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tdent48227@gmail.com, lenb@kernel.org, mmarek@suse.cz, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: maramaopercheseimorto@gmail.com, axel.lin@gmail.com, marek.vasut@gmail.com, rpurdie@rpsys.net, tj@kernel.org
 
 
 The patch titled
-     kernel/power/Makefile: use proper ccflag flag
-has been removed from the -mm tree.  Its filename was
-     kernel-power-changed-makefile-to-use-proper-ccflag-flag.patch
+     drivers/video/backlight/l4f00242t03.c: prevent unbalanced calls to regulator enable/disable
+has been added to the -mm tree.  Its filename is
+     drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/power/Makefile: use proper ccflag flag
-From: Tracey Dent <tdent48227@gmail.com>
+Subject: drivers/video/backlight/l4f00242t03.c: prevent unbalanced calls to regulator enable/disable
+From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 
-Use the ccflags-$ flag instead of EXTRA_CFLAGS because EXTRA_CFLAGS is
-deprecated and should now be switched.  According to
-(documentation/kbuild/makefiles.txt).
+Otherwise a double call to:
+$ echo 4 > /sys/class/lcd/l4f00242t03/lcd_power
+Will, the first power down the lcd and regulators correctly and the
+second produce an unbalanced call to regulator disable.
 
-Signed-off-by: Tracey Dent <tdent48227@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Axel Lin <axel.lin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Makefile |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/power/Makefile~kernel-power-changed-makefile-to-use-proper-ccflag-flag kernel/power/Makefile
---- a/kernel/power/Makefile~kernel-power-changed-makefile-to-use-proper-ccflag-flag
-+++ a/kernel/power/Makefile
-@@ -1,7 +1,4 @@
+diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -134,10 +134,12 @@ static int l4f00242t03_lcd_power_set(str
+ 		}
+ 	} else {
+ 		/* power == FB_BLANK_POWERDOWN */
+-		/* Clear the screen before shutting down */
+-		spi_write(spi, (const u8 *)&disoff, sizeof(u16));
+-		msleep(60);
+-		l4f00242t03_lcd_powerdown(spi);
++		if (priv->lcd_state != FB_BLANK_POWERDOWN) {
++			/* Clear the screen before shutting down */
++			spi_write(spi, (const u8 *)&disoff, sizeof(u16));
++			msleep(60);
++			l4f00242t03_lcd_powerdown(spi);
++		}
+ 	}
+ 
+ 	priv->lcd_state = power;
+_
+
+Patches currently in -mm which might be from maramaopercheseimorto@gmail.com are
+
+origin.patch
+linux-next.patch
+drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
+
