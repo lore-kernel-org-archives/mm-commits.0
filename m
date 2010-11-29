@@ -1,221 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-avoid-deadlock-between-move-charge-and-try_charge.patch removed from -mm tree
-Date: Mon, 29 Nov 2010 11:51:13 -0800
-Message-ID: <201011291951.oATJpgwC007311@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-lp5521c-perform-sw-reset-before-detection.patch removed from -mm tree
+Date: Mon, 29 Nov 2010 11:51:09 -0800
+Message-ID: <201011291951.oATJpcdn007304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751358Ab0K2TwA (ORCPT
+	by vger.kernel.org with ESMTP id S1752944Ab0K2Tvv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Nov 2010 14:52:00 -0500
+	Mon, 29 Nov 2010 14:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: avoid deadlock between move charge and try_charge()
+     drivers/leds/leds-lp5521.c: perform SW reset before detection
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-deadlock-between-move-charge-and-try_charge.patch
+     drivers-leds-leds-lp5521c-perform-sw-reset-before-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid deadlock between move charge and try_charge()
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: drivers/leds/leds-lp5521.c: perform SW reset before detection
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-__mem_cgroup_try_charge() can be called under down_write(&mmap_sem)(e.g.
-mlock does it). This means it can cause deadlock if it races with move charge:
+Chip detection may fail if the chip is in some odd state for example after
+system restart.  Chip doesn't have HW reset line.
 
-Ex.1)
-                move charge             |        try charge
-  --------------------------------------+------------------------------
-    mem_cgroup_can_attach()             |  down_write(&mmap_sem)
-      mc.moving_task = current          |    ..
-      mem_cgroup_precharge_mc()         |  __mem_cgroup_try_charge()
-        mem_cgroup_count_precharge()    |    prepare_to_wait()
-          down_read(&mmap_sem)          |    if (mc.moving_task)
-          -> cannot aquire the lock     |    -> true
-                                        |      schedule()
-
-Ex.2)
-                move charge             |        try charge
-  --------------------------------------+------------------------------
-    mem_cgroup_can_attach()             |
-      mc.moving_task = current          |
-      mem_cgroup_precharge_mc()         |
-        mem_cgroup_count_precharge()    |
-          down_read(&mmap_sem)          |
-          ..                            |
-          up_read(&mmap_sem)            |
-                                        |  down_write(&mmap_sem)
-    mem_cgroup_move_task()              |    ..
-      mem_cgroup_move_charge()          |  __mem_cgroup_try_charge()
-        down_read(&mmap_sem)            |    prepare_to_wait()
-        -> cannot aquire the lock       |    if (mc.moving_task)
-                                        |    -> true
-                                        |      schedule()
-
-To avoid this deadlock, we do all the move charge works (both can_attach() and
-attach()) under one mmap_sem section.
-And after this patch, we set/clear mc.moving_task outside mc.lock, because we
-use the lock only to check mc.from/to.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   43 ++++++++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 17 deletions(-)
+ drivers/leds/leds-lp5521.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-avoid-deadlock-between-move-charge-and-try_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-avoid-deadlock-between-move-charge-and-try_charge
-+++ a/mm/memcontrol.c
-@@ -278,13 +278,14 @@ enum move_type {
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-perform-sw-reset-before-detection drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-perform-sw-reset-before-detection
++++ a/drivers/leds/leds-lp5521.c
+@@ -245,13 +245,6 @@ static int lp5521_configure(struct i2c_c
  
- /* "mc" and its members are protected by cgroup_mutex */
- static struct move_charge_struct {
--	spinlock_t	  lock; /* for from, to, moving_task */
-+	spinlock_t	  lock; /* for from, to */
- 	struct mem_cgroup *from;
- 	struct mem_cgroup *to;
- 	unsigned long precharge;
- 	unsigned long moved_charge;
- 	unsigned long moved_swap;
- 	struct task_struct *moving_task;	/* a task moving charges */
-+	struct mm_struct *mm;
- 	wait_queue_head_t waitq;		/* a waitq for other context */
- } mc = {
- 	.lock = __SPIN_LOCK_UNLOCKED(mc.lock),
-@@ -4631,7 +4632,7 @@ static unsigned long mem_cgroup_count_pr
- 	unsigned long precharge;
- 	struct vm_area_struct *vma;
+ 	lp5521_init_engine(chip, attr_group);
  
--	down_read(&mm->mmap_sem);
-+	/* We've already held the mmap_sem */
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		struct mm_walk mem_cgroup_count_precharge_walk = {
- 			.pmd_entry = mem_cgroup_count_precharge_pte_range,
-@@ -4643,7 +4644,6 @@ static unsigned long mem_cgroup_count_pr
- 		walk_page_range(vma->vm_start, vma->vm_end,
- 					&mem_cgroup_count_precharge_walk);
- 	}
--	up_read(&mm->mmap_sem);
- 
- 	precharge = mc.precharge;
- 	mc.precharge = 0;
-@@ -4694,11 +4694,16 @@ static void mem_cgroup_clear_mc(void)
- 
- 		mc.moved_swap = 0;
- 	}
-+	if (mc.mm) {
-+		up_read(&mc.mm->mmap_sem);
-+		mmput(mc.mm);
-+	}
- 	spin_lock(&mc.lock);
- 	mc.from = NULL;
- 	mc.to = NULL;
--	mc.moving_task = NULL;
- 	spin_unlock(&mc.lock);
-+	mc.moving_task = NULL;
-+	mc.mm = NULL;
- 	mem_cgroup_end_move(from);
- 	memcg_oom_recover(from);
- 	memcg_oom_recover(to);
-@@ -4724,12 +4729,21 @@ static int mem_cgroup_can_attach(struct 
- 			return 0;
- 		/* We move charges only when we move a owner of the mm */
- 		if (mm->owner == p) {
-+			/*
-+			 * We do all the move charge works under one mmap_sem to
-+			 * avoid deadlock with down_write(&mmap_sem)
-+			 * -> try_charge() -> if (mc.moving_task) -> sleep.
-+			 */
-+			down_read(&mm->mmap_sem);
-+
- 			VM_BUG_ON(mc.from);
- 			VM_BUG_ON(mc.to);
- 			VM_BUG_ON(mc.precharge);
- 			VM_BUG_ON(mc.moved_charge);
- 			VM_BUG_ON(mc.moved_swap);
- 			VM_BUG_ON(mc.moving_task);
-+			VM_BUG_ON(mc.mm);
-+
- 			mem_cgroup_start_move(from);
- 			spin_lock(&mc.lock);
- 			mc.from = from;
-@@ -4737,14 +4751,16 @@ static int mem_cgroup_can_attach(struct 
- 			mc.precharge = 0;
- 			mc.moved_charge = 0;
- 			mc.moved_swap = 0;
--			mc.moving_task = current;
- 			spin_unlock(&mc.lock);
-+			mc.moving_task = current;
-+			mc.mm = mm;
- 
- 			ret = mem_cgroup_precharge_mc(mm);
- 			if (ret)
- 				mem_cgroup_clear_mc();
--		}
--		mmput(mm);
-+			/* We call up_read() and mmput() in clear_mc(). */
-+		} else
-+			mmput(mm);
- 	}
- 	return ret;
- }
-@@ -4832,7 +4848,7 @@ static void mem_cgroup_move_charge(struc
- 	struct vm_area_struct *vma;
- 
- 	lru_add_drain_all();
--	down_read(&mm->mmap_sem);
-+	/* We've already held the mmap_sem */
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		int ret;
- 		struct mm_walk mem_cgroup_move_charge_walk = {
-@@ -4851,7 +4867,6 @@ static void mem_cgroup_move_charge(struc
- 			 */
- 			break;
- 	}
--	up_read(&mm->mmap_sem);
- }
- 
- static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-@@ -4860,17 +4875,11 @@ static void mem_cgroup_move_task(struct 
- 				struct task_struct *p,
- 				bool threadgroup)
- {
--	struct mm_struct *mm;
+-	lp5521_write(client, LP5521_REG_RESET, 0xff);
 -
--	if (!mc.to)
-+	if (!mc.mm)
- 		/* no need to move charge */
- 		return;
- 
--	mm = get_task_mm(p);
--	if (mm) {
--		mem_cgroup_move_charge(mm);
--		mmput(mm);
--	}
-+	mem_cgroup_move_charge(mc.mm);
- 	mem_cgroup_clear_mc();
- }
- #else	/* !CONFIG_MMU */
-_
-
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
-
-origin.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-
+-	usleep_range(10000, 20000); /*
+-				     * Exact value is not available. 10 - 20ms
+-				     * appears to be enough for reset.
+-				     */
