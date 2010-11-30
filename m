@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] bitops-introduce-config_generic_find_le_bit.patch removed from -mm tree
-Date: Tue, 30 Nov 2010 12:59:53 -0800
-Message-ID: <201011302059.oAUKxrHE009963@imap1.linux-foundation.org>
+Subject: + bitops-introduce-config_generic_find_le_bit.patch added to -mm tree
+Date: Tue, 30 Nov 2010 13:00:05 -0800
+Message-ID: <201011302100.oAUL069H010001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751349Ab0K3VAh (ORCPT
+	by vger.kernel.org with ESMTP id S1751349Ab0K3VAl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Nov 2010 16:00:37 -0500
+	Tue, 30 Nov 2010 16:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org
 
 
 The patch titled
      bitops: introduce CONFIG_GENERIC_FIND_LE_BIT
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      bitops-introduce-config_generic_find_le_bit.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -27,18 +37,15 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: bitops: introduce CONFIG_GENERIC_FIND_LE_BIT
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The little-endian bitops patch series broke the build on m68knommu.
+This introduces CONFIG_GENERIC_FIND_LE_BIT to tell whether to use generic
+implementation of find_*_le_bit() in lib/find_next_bit.c or not.
 
-lib/find_next_bit.c:190: error: conflicting types for 'find_next_zero_le_bit'
-/home/mita/scm/linux-2.6/arch/m68k/include/asm/bitops_no.h:286: error: previous
-definition of 'find_next_zero_le_bit' was here
+For now we select CONFIG_GENERIC_FIND_LE_BIT for all architectures which
+enable CONFIG_GENERIC_FIND_NEXT_BIT.
 
-Because m68knommu selects CONFIG_GENERIC_FIND_NEXT_BIT, it redefines
-find_next_zero_le_bit() in lib/find_next_bit.c.
-
-This introduces CONFIG_GENERIC_FIND_NEXT_BIT to tell whether to use generic
-implementation of find_*_le_bit() in lib/find_next_bit.c or not.  It will not
-be selected by m68knommu to fix build failure.
+But m68knommu wants to define own faster find_next_zero_le_bit() and
+continues using generic find_next_{,zero_}bit(). 
+(CONFIG_GENERIC_FIND_NEXT_BIT and !CONFIG_GENERIC_FIND_LE_BIT)
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Greg Ungerer <gerg@uclinux.org>
@@ -49,6 +56,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/frv/Kconfig        |    4 ++++
  arch/h8300/Kconfig      |    4 ++++
  arch/m32r/Kconfig       |    4 ++++
+ arch/m68knommu/Kconfig  |    4 ++++
  arch/microblaze/Kconfig |    3 +++
  arch/mips/Kconfig       |    4 ++++
  arch/parisc/Kconfig     |    4 ++++
@@ -59,7 +67,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  lib/Kconfig             |    3 +++
  lib/Makefile            |    1 +
  lib/find_next_bit.c     |    3 +++
- 13 files changed, 44 insertions(+)
+ 14 files changed, 48 insertions(+)
 
 diff -puN arch/frv/Kconfig~bitops-introduce-config_generic_find_le_bit arch/frv/Kconfig
 --- a/arch/frv/Kconfig~bitops-introduce-config_generic_find_le_bit
@@ -103,6 +111,20 @@ diff -puN arch/m32r/Kconfig~bitops-introduce-config_generic_find_le_bit arch/m32
  config GENERIC_HWEIGHT
  	bool
  	default y
+diff -puN arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_le_bit arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_le_bit
++++ a/arch/m68knommu/Kconfig
+@@ -40,6 +40,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_LE_BIT
++	bool
++	default y
++
+ config GENERIC_GPIO
+ 	bool
+ 	default n
 diff -puN arch/microblaze/Kconfig~bitops-introduce-config_generic_find_le_bit arch/microblaze/Kconfig
 --- a/arch/microblaze/Kconfig~bitops-introduce-config_generic_find_le_bit
 +++ a/arch/microblaze/Kconfig
@@ -249,7 +271,7 @@ bitops-rename-generic-little-endian-bitops-functions.patch
 s390-introduce-little-endian-bitops.patch
 arm-introduce-little-endian-bitops.patch
 m68k-introduce-little-endian-bitops.patch
-0006-bitops-introduce-CONFIG_GENERIC_FIND_LE_BIT.patch
+bitops-introduce-config_generic_find_le_bit.patch
 m68knommu-introduce-little-endian-bitops.patch
 bitops-introduce-little-endian-bitops-for-most-architectures.patch
 rds-stop-including-asm-generic-bitops-leh.patch
