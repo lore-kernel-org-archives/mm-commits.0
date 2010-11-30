@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + headers_check-better-search-for-functions-in-headers-fix.patch added to -mm tree
-Date: Tue, 30 Nov 2010 13:52:14 -0800
-Message-ID: <201011302152.oAULqEgR012315@imap1.linux-foundation.org>
+Subject: + headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 30 Nov 2010 13:52:51 -0800
+Message-ID: <201011302152.oAULqppr012341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020Ab0K3Vww (ORCPT
+	by vger.kernel.org with ESMTP id S1750828Ab0K3VxP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Nov 2010 16:52:52 -0500
+	Tue, 30 Nov 2010 16:53:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, amwang@redhat.com, mmarek@suse.cz, randy.dunlap@o
 
 
 The patch titled
-     headers_check-better-search-for-functions-in-headers-fix
+     headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     headers_check-better-search-for-functions-in-headers-fix.patch
+     headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: headers_check-better-search-for-functions-in-headers-fix
+Subject: headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix the warning text too, per Randy
+ERROR: code indent should use tabs where possible
+#25: FILE: scripts/headers_check.pl:69:
++^I^I              "userspace cannot reference function or " .$
+
+total: 1 errors, 0 warnings, 10 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/headers_check-better-search-for-functions-in-headers-fix.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Alexander Shishkin <virtuoso@slind.org>
 Cc: Michal Marek <mmarek@suse.cz>
@@ -47,23 +60,21 @@ Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headers_check.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/headers_check.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/headers_check.pl~headers_check-better-search-for-functions-in-headers-fix scripts/headers_check.pl
---- a/scripts/headers_check.pl~headers_check-better-search-for-functions-in-headers-fix
+diff -puN scripts/headers_check.pl~headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes scripts/headers_check.pl
+--- a/scripts/headers_check.pl~headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes
 +++ a/scripts/headers_check.pl
-@@ -66,8 +66,8 @@ sub check_declarations
+@@ -66,7 +66,7 @@ sub check_declarations
  {
  	if ($line =~m/^(\s*extern|unsigned|char|short|int|long|void)\b/) {
  		printf STDERR "$filename:$lineno: " .
--		              "userspace cannot call function or variable " .
--		              "defined in the kernel\n";
-+		              "userspace cannot reference function or " .
-+			      "variable defined in the kernel\n";
+-		              "userspace cannot reference function or " .
++			      "userspace cannot reference function or " .
+ 			      "variable defined in the kernel\n";
  	}
  }
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +88,7 @@ arch-x86-kernel-apic-io_apicc-fix-warning.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
 headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
