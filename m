@@ -1,111 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-filesystems-vfstxt-fix-repeasepage-description.patch added to -mm tree
-Date: Wed, 01 Dec 2010 14:43:18 -0800
-Message-ID: <201012012243.oB1MhI2f016062@imap1.linux-foundation.org>
+Subject: [to-be-updated] hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch removed from -mm tree
+Date: Wed, 01 Dec 2010 14:51:40 -0800
+Message-ID: <201012012251.oB1MpeZK016470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755735Ab0LAWnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 17:43:24 -0500
+	by vger.kernel.org with ESMTP id S1756545Ab0LAWwA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 17:52:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, neilb@suse.de
+To: scameron@beardog.cce.hp.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/filesystems/vfs.txt: fix ->repeasepage() description
-has been added to the -mm tree.  Its filename is
-     documentation-filesystems-vfstxt-fix-repeasepage-description.patch
+     hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
+has been removed from the -mm tree.  Its filename was
+     hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/filesystems/vfs.txt: fix ->repeasepage() description
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hpsa: remove incorrect redefinition of PCI_DEVICE_ID_HP_CISSF
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 
-->releasepage() does not remove the page from the mapping.
+It is defined correctly in pci_ids.h with the value 0x323b
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/scsi/hpsa.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/filesystems/vfs.txt~documentation-filesystems-vfstxt-fix-repeasepage-description Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~documentation-filesystems-vfstxt-fix-repeasepage-description
-+++ a/Documentation/filesystems/vfs.txt
-@@ -660,11 +660,10 @@ struct address_space_operations {
-   releasepage: releasepage is called on PagePrivate pages to indicate
-         that the page should be freed if possible.  ->releasepage
-         should remove any private data from the page and clear the
--        PagePrivate flag.  It may also remove the page from the
--        address_space.  If this fails for some reason, it may indicate
--        failure with a 0 return value.
--	This is used in two distinct though related cases.  The first
--        is when the VM finds a clean page with no active users and
-+        PagePrivate flag. If releasepage() fails for some reason, it must
-+	indicate failure with a 0 return value.
-+	releasepage() is used in two distinct though related cases.  The
-+	first is when the VM finds a clean page with no active users and
-         wants to make it a free page.  If ->releasepage succeeds, the
-         page will be removed from the address_space and become free.
- 
+diff -puN drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-remove-incorrect-redefinition-of-pci_device_id_hp_cissf
++++ a/drivers/scsi/hpsa.c
+@@ -90,7 +90,6 @@ static const struct pci_device_id hpsa_p
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
+-#define PCI_DEVICE_ID_HP_CISSF 0x333f
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x333F},
+ 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,             PCI_ANY_ID, PCI_ANY_ID,
+ 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-documentation-filesystems-vfstxt-fix-repeasepage-description.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
 
