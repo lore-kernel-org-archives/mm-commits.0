@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-eagerly-clear-ptes-on-vunmap-fix.patch added to -mm tree
-Date: Tue, 30 Nov 2010 16:33:19 -0800
-Message-ID: <201012010033.oB10XJOS019568@imap1.linux-foundation.org>
+Subject: + vmalloc-eagerly-clear-ptes-on-vunmap-fix-2.patch added to -mm tree
+Date: Tue, 30 Nov 2010 19:19:50 -0800
+Message-ID: <201012010320.oB13KU9k026397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753228Ab0LAAeM (ORCPT
+	by vger.kernel.org with ESMTP id S1754064Ab0LADVz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Nov 2010 19:34:12 -0500
+	Tue, 30 Nov 2010 22:21:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeremy@goop.org, Trond.Myklebust@netapp.com, aelder@sgi.com, bjschuma@netapp
 
 
 The patch titled
-     vmalloc: avoid double-unmapping percpu blocks
+     vmalloc: remove vmap_lazy_unmap flag
 has been added to the -mm tree.  Its filename is
-     vmalloc-eagerly-clear-ptes-on-vunmap-fix.patch
+     vmalloc-eagerly-clear-ptes-on-vunmap-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: avoid double-unmapping percpu blocks
+Subject: vmalloc: remove vmap_lazy_unmap flag
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The area has always been unmapped by the time free_vmap_block() is
-called, so there's no need to unmap it again.
+Now that vmunmap no longer leaves stray ptes lying around, we don't need
+the vmap_lazy_unmap flag any more.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -50,61 +50,50 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ arch/x86/xen/mmu.c      |    2 --
+ include/linux/vmalloc.h |    2 --
+ mm/vmalloc.c            |    5 -----
+ 3 files changed, 9 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix
-+++ a/mm/vmalloc.c
-@@ -667,13 +667,12 @@ static void purge_vmap_area_lazy(void)
- }
+diff -puN arch/x86/xen/mmu.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2 arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2
++++ a/arch/x86/xen/mmu.c
+@@ -2415,8 +2415,6 @@ void __init xen_init_mmu_ops(void)
+ 	x86_init.paging.pagetable_setup_done = xen_pagetable_setup_done;
+ 	pv_mmu_ops = xen_mmu_ops;
  
- /*
-- * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
-- * called for the correct range previously.
-+ * Free a vmap area, caller ensuring that the area has been unmapped
-+ * and flush_cache_vunmap had been called for the correct range
-+ * previously.
-  */
--static void free_unmap_vmap_area_noflush(struct vmap_area *va)
-+static void free_vmap_area_noflush(struct vmap_area *va)
- {
--	unmap_vmap_area(va);
+-	vmap_lazy_unmap = false;
 -
- 	va->flags |= VM_LAZY_FREE;
- 	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
- 	if (unlikely(atomic_read(&vmap_lazy_nr) > lazy_max_pages()))
-@@ -681,6 +680,16 @@ static void free_unmap_vmap_area_noflush
+ 	memset(dummy_mapping, 0xff, PAGE_SIZE);
  }
  
- /*
-+ * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
-+ * called for the correct range previously.
-+ */
-+static void free_unmap_vmap_area_noflush(struct vmap_area *va)
-+{
-+	unmap_vmap_area(va);
-+	free_vmap_area_noflush(va);
-+}
-+
-+/*
-  * Free and unmap a vmap area
-  */
- static void free_unmap_vmap_area(struct vmap_area *va)
-@@ -856,7 +865,7 @@ static void free_vmap_block(struct vmap_
- 	spin_unlock(&vmap_block_tree_lock);
- 	BUG_ON(tmp != vb);
+diff -puN include/linux/vmalloc.h~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2 include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2
++++ a/include/linux/vmalloc.h
+@@ -7,8 +7,6 @@
  
--	free_unmap_vmap_area_noflush(vb->va);
-+	free_vmap_area_noflush(vb->va);
- 	call_rcu(&vb->rcu_head, rcu_free_vb);
- }
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
  
-_
-
-Patches currently in -mm which might be from jeremy@goop.org are
-
-linux-next.patch
-vmalloc-eagerly-clear-ptes-on-vunmap.patch
-vmalloc-eagerly-clear-ptes-on-vunmap-fix.patch
-
+-extern bool vmap_lazy_unmap;
+-
+ /* bits in flags of vmalloc's vm_struct below */
+ #define VM_IOREMAP	0x00000001	/* ioremap() and friends */
+ #define VM_ALLOC	0x00000002	/* vmalloc() */
+diff -puN mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2 mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix-2
++++ a/mm/vmalloc.c
+@@ -31,8 +31,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ 
+-bool vmap_lazy_unmap __read_mostly = true;
+-
+ /*** Page table manipulation functions ***/
+ 
+ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
+@@ -503,9 +501,6 @@ static unsigned long lazy_max_pages(void
+ {
+ 	unsigned int log;
+ 
+-	if (!vmap_lazy_unmap)
+-		return 0;
