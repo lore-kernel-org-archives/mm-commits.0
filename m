@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-eagerly-clear-ptes-on-vunmap-fix-2.patch added to -mm tree
-Date: Tue, 30 Nov 2010 19:19:50 -0800
-Message-ID: <201012010320.oB13KU9k026397@imap1.linux-foundation.org>
+Subject: [folded] vmalloc-eagerly-clear-ptes-on-vunmap-fix-2.patch removed from -mm tree
+Date: Tue, 30 Nov 2010 19:20:52 -0800
+Message-ID: <201012010321.oB13LWfE026496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754064Ab0LADVz (ORCPT
+	by vger.kernel.org with ESMTP id S1754064Ab0LADWW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Nov 2010 22:21:55 -0500
+	Tue, 30 Nov 2010 22:22:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, Trond.Myklebust@netapp.com, aelder@sgi.com, bjschuma@netapp.com, david@fromorbit.com, hch@lst.de, jeremy.fitzhardinge@citrix.com, npiggin@kernel.dk
+To: jeremy@goop.org, Trond.Myklebust@netapp.com, aelder@sgi.com, bjschuma@netapp.com, david@fromorbit.com, hch@lst.de, jeremy.fitzhardinge@citrix.com, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
      vmalloc: remove vmap_lazy_unmap flag
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      vmalloc-eagerly-clear-ptes-on-vunmap-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into vmalloc-eagerly-clear-ptes-on-vunmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
