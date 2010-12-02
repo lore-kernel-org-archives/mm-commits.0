@@ -1,86 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] initramfs-fix-build-break-on-symbol-prefixed-archs.patch removed from -mm tree
-Date: Thu, 02 Dec 2010 13:07:00 -0800
-Message-ID: <201012022107.oB2L7tlo008675@imap1.linux-foundation.org>
+Subject: [folded] ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch removed from -mm tree
+Date: Thu, 02 Dec 2010 14:29:50 -0800
+Message-ID: <201012022229.oB2MToPT012336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59232 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932147Ab0LBVI2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2010 16:08:28 -0500
+	by vger.kernel.org with ESMTP id S1757274Ab0LBWam (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2010 17:30:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brueckner@linux.vnet.ibm.com, mmarek@suse.cz, sam@ravnborg.org, vapier.adi@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     initramfs: fix build break on symbol-prefixed archs
+     ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
 has been removed from the -mm tree.  Its filename was
-     initramfs-fix-build-break-on-symbol-prefixed-archs.patch
+     ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: fix build break on symbol-prefixed archs
-From: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Subject: ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Define the __initramfs_size variable using VMLINUX_SYMBOL() to take care
-of symbol-prefixed architectures, for example, blackfin.
+update comment, from Hugh
 
-Depending on the CONFIG_SYMBOL_PREFIX configuration option, define the
-SYMBOL_PREFIX symbol which is evaluated by VMLINUX_SYMBOL().
-
-Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>, 
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Makefile         |    3 +++
- usr/initramfs_data.S |    5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ mm/ksm.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN usr/Makefile~initramfs-fix-build-break-on-symbol-prefixed-archs usr/Makefile
---- a/usr/Makefile~initramfs-fix-build-break-on-symbol-prefixed-archs
-+++ a/usr/Makefile
-@@ -19,6 +19,9 @@ suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZ
- suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZO)   = .lzo
- 
- AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/initramfs_data.cpio$(suffix_y)"
-+ifdef CONFIG_SYMBOL_PREFIX
-+AFLAGS_initramfs_data.o += -DSYMBOL_PREFIX=$(patsubst "%",%,$(CONFIG_SYMBOL_PREFIX))
-+endif
- 
- # Generate builtin.o based on initramfs_data.o
- obj-$(CONFIG_BLK_DEV_INITRD) := initramfs_data.o
-diff -puN usr/initramfs_data.S~initramfs-fix-build-break-on-symbol-prefixed-archs usr/initramfs_data.S
---- a/usr/initramfs_data.S~initramfs-fix-build-break-on-symbol-prefixed-archs
-+++ a/usr/initramfs_data.S
-@@ -22,14 +22,15 @@
- */
- 
- #include <linux/stringify.h>
-+#include <asm-generic/vmlinux.lds.h>
- 
- .section .init.ramfs,"a"
- __irf_start:
- .incbin __stringify(INITRAMFS_IMAGE)
- __irf_end:
- .section .init.ramfs.info,"a"
--.globl __initramfs_size
--__initramfs_size:
-+.globl VMLINUX_SYMBOL(__initramfs_size)
-+VMLINUX_SYMBOL(__initramfs_size):
- #ifdef CONFIG_64BIT
- 	.quad __irf_end - __irf_start
- #else
+diff -puN mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix mm/ksm.c
+--- a/mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
++++ a/mm/ksm.c
+@@ -1724,8 +1724,11 @@ static int ksm_memory_callback(struct no
+ 		/*
+ 		 * Keep it very simple for now: just lock out ksmd and
+ 		 * MADV_UNMERGEABLE while any memory is going offline.
+-		 * Mutex_lock_nested() is necessary to tell that
+-		 * ksm_thread_mutex is not unlocked here intentionally.
++		 * mutex_lock_nested() is necessary because lockdep was alarmed
++		 * that here we take ksm_thread_mutex inside notifier chain
++		 * mutex, and later take notifier chain mutex inside
++		 * ksm_thread_mutex to unlock it.   But that's safe because both
++		 * are inside mem_hotplug_mutex.
+ 		 */
+ 		mutex_lock_nested(&ksm_thread_mutex, SINGLE_DEPTH_NESTING);
+ 		break;
 _
 
-Patches currently in -mm which might be from brueckner@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+documentation-filesystems-vfstxt-fix-repeasepage-description.patch
+ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch
+do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
