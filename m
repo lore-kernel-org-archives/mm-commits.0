@@ -1,105 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch removed from -mm tree
-Date: Thu, 02 Dec 2010 14:29:50 -0800
-Message-ID: <201012022229.oB2MToPT012336@imap1.linux-foundation.org>
+Subject: [folded] vmalloc-eagerly-clear-ptes-on-vunmap-fix.patch removed from -mm tree
+Date: Thu, 02 Dec 2010 14:29:32 -0800
+Message-ID: <201012022229.oB2MTXbG012330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757274Ab0LBWam (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2010 17:30:42 -0500
+	by vger.kernel.org with ESMTP id S1757677Ab0LBWbJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2010 17:31:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, Trond.Myklebust@netapp.com, aelder@sgi.com, bjschuma@netapp.com, david@fromorbit.com, hch@lst.de, jeremy.fitzhardinge@citrix.com, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
+     vmalloc: always unmap in vb_free()
 has been removed from the -mm tree.  Its filename was
-     ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch
+     vmalloc-eagerly-clear-ptes-on-vunmap-fix.patch
 
-This patch was dropped because it was folded into ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch
+This patch was dropped because it was folded into vmalloc-eagerly-clear-ptes-on-vunmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmalloc: always unmap in vb_free()
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-update comment, from Hugh
+free_vmap_block() doesn't unmap anything, so just unconditionally unmap
+the region.
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Bryan Schumaker <bjschuma@netapp.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix mm/ksm.c
---- a/mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix
-+++ a/mm/ksm.c
-@@ -1724,8 +1724,11 @@ static int ksm_memory_callback(struct no
- 		/*
- 		 * Keep it very simple for now: just lock out ksmd and
- 		 * MADV_UNMERGEABLE while any memory is going offline.
--		 * Mutex_lock_nested() is necessary to tell that
--		 * ksm_thread_mutex is not unlocked here intentionally.
-+		 * mutex_lock_nested() is necessary because lockdep was alarmed
-+		 * that here we take ksm_thread_mutex inside notifier chain
-+		 * mutex, and later take notifier chain mutex inside
-+		 * ksm_thread_mutex to unlock it.   But that's safe because both
-+		 * are inside mem_hotplug_mutex.
- 		 */
- 		mutex_lock_nested(&ksm_thread_mutex, SINGLE_DEPTH_NESTING);
- 		break;
+diff -puN mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-eagerly-clear-ptes-on-vunmap-fix
++++ a/mm/vmalloc.c
+@@ -941,6 +941,8 @@ static void vb_free(const void *addr, un
+ 	rcu_read_unlock();
+ 	BUG_ON(!vb);
+ 
++	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
++
+ 	spin_lock(&vb->lock);
+ 	BUG_ON(bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order));
+ 
+@@ -949,10 +951,8 @@ static void vb_free(const void *addr, un
+ 		BUG_ON(vb->free);
+ 		spin_unlock(&vb->lock);
+ 		free_vmap_block(vb);
+-	} else {
++	} else
+ 		spin_unlock(&vb->lock);
+-		vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
+-	}
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-documentation-filesystems-vfstxt-fix-repeasepage-description.patch
-ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch
-do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
+vmalloc-eagerly-clear-ptes-on-vunmap.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
