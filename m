@@ -1,59 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch removed from -mm tree
-Date: Wed, 01 Dec 2010 17:11:06 -0800
-Message-ID: <201012020111.oB21B7Wh022575@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 02 Dec 2010 13:05:35 -0800
+Message-ID: <201012022106.oB2L6THg008539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54513 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754142Ab0LBBLk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 20:11:40 -0500
+	by vger.kernel.org with ESMTP id S1756209Ab0LBVGq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2010 16:06:46 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oB2L6Ubw029574
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 2 Dec 2010 13:06:30 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, nelhage@ksplice.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
-has been removed from the -mm tree.  Its filename was
-     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nelson Elhage <nelhage@ksplice.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/regulator/core.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix kernel/exit.c
---- a/kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
-+++ a/kernel/exit.c
-@@ -917,8 +917,9 @@ NORET_TYPE void do_exit(long code)
- 	/*
- 	 * If do_exit is called because this processes oopsed, it's possible
- 	 * that get_fs() was left as KERNEL_DS, so reset it to USER_DS before
--	 * continuing. This is relevant at least for clearing clear_child_tid in
--	 * mm_release.
-+	 * continuing. Amongst other possible reasons, this is to prevent
-+	 * mm_release()->clear_child_tid() from writing to a user-controlled
-+	 * kernel address.
- 	 */
- 	set_fs(USER_DS);
+diff -puN drivers/regulator/core.c~linux-next-git-rejects drivers/regulator/core.c
+--- a/drivers/regulator/core.c~linux-next-git-rejects
++++ a/drivers/regulator/core.c
+@@ -1039,14 +1039,8 @@ static struct regulator *create_regulato
+ 		err = sysfs_create_link(&rdev->dev.kobj, &dev->kobj,
+ 					buf);
+ 		if (err) {
+-<<<<<<< HEAD
+-			printk(KERN_WARNING
+-			       "%s: could not add device link %s err %d\n",
+-			       __func__, dev->kobj.name, err);
+-=======
+ 			rdev_warn(rdev, "could not add device link %s err %d\n",
+ 				  dev->kobj.name, err);
+->>>>>>> FETCH_HEAD
+ 			goto link_name_err;
+ 		}
+ 	}
+@@ -1269,12 +1263,7 @@ static int _regulator_enable(struct regu
+ 			ret = _regulator_enable(rdev->supply);
+ 			mutex_unlock(&rdev->supply->mutex);
+ 			if (ret < 0) {
+-<<<<<<< HEAD
+-				printk(KERN_ERR "%s: failed to enable %s: %d\n",
+-				       __func__, rdev_get_name(rdev), ret);
+-=======
+ 				rdev_err(rdev, "failed to enable: %d\n", ret);
+->>>>>>> FETCH_HEAD
+ 				return ret;
+ 			}
+ 		}
+@@ -1315,22 +1304,16 @@ static int _regulator_enable(struct regu
+ 			if (ret < 0)
+ 				return ret;
  
+-<<<<<<< HEAD
+-=======
+ 			trace_regulator_enable_delay(rdev_get_name(rdev));
+ 
+->>>>>>> FETCH_HEAD
+ 			if (delay >= 1000) {
+ 				mdelay(delay / 1000);
+ 				udelay(delay % 1000);
+ 			} else if (delay) {
+ 				udelay(delay);
+ 			}
+-<<<<<<< HEAD
+-=======
+ 
+ 			trace_regulator_enable_complete(rdev_get_name(rdev));
+->>>>>>> FETCH_HEAD
+ 
+ 		} else if (ret < 0) {
+ 			rdev_err(rdev, "is_enabled() failed: %d\n", ret);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
