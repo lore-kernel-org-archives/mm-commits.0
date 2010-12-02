@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch added to -mm tree
-Date: Wed, 01 Dec 2010 16:30:11 -0800
-Message-ID: <201012020030.oB20UBkL020836@imap1.linux-foundation.org>
+Subject: + hpsa-fix-redefinition-of-pci_device_id_cissf.patch added to -mm tree
+Date: Wed, 01 Dec 2010 17:02:42 -0800
+Message-ID: <201012020102.oB212gOk022253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754792Ab0LBAaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 19:30:16 -0500
+	by vger.kernel.org with ESMTP id S1753389Ab0LBBDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 20:03:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, nelhage@ksplice.com
+Cc: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
+     hpsa: fix redefinition of PCI_DEVICE_ID_CISSF
 has been added to the -mm tree.  Its filename is
-     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch
+     hpsa-fix-redefinition-of-pci_device_id_cissf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hpsa: fix redefinition of PCI_DEVICE_ID_CISSF
+From: Mike Miller <mike.miller@hp.com>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nelson Elhage <nelhage@ksplice.com>
+drivers/scsi/hpsa.c:93:1: warning: "PCI_DEVICE_ID_HP_CISSF" redefined
+In file included from include/linux/pci.h:58,
+                 from drivers/scsi/hpsa.c:25:
+include/linux/pci_ids.h:746:1: warning: this is the location of the previous definition
+
+PCI_DEVICE_ID_CISSF is defined as 323b in pci_ids.h but redefined as 3fff in
+hpsa.c. The ID of 3fff will _never_ ship as a standalone controller. It is
+intended only as part a complete storage solution. As such, this patch
+removes the redefinition and the StorageWorks P1210m from the product table.
+
+At present 323b controllers will not be recognised due to this bug.
+
+It also removes a duplicate line for the "unknown" controller support.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/scsi/hpsa.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix kernel/exit.c
---- a/kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
-+++ a/kernel/exit.c
-@@ -917,8 +917,9 @@ NORET_TYPE void do_exit(long code)
- 	/*
- 	 * If do_exit is called because this processes oopsed, it's possible
- 	 * that get_fs() was left as KERNEL_DS, so reset it to USER_DS before
--	 * continuing. This is relevant at least for clearing clear_child_tid in
--	 * mm_release.
-+	 * continuing. Amongst other possible reasons, this is to prevent
-+	 * mm_release()->clear_child_tid() from writing to a user-controlled
-+	 * kernel address.
- 	 */
- 	set_fs(USER_DS);
- 
+diff -puN drivers/scsi/hpsa.c~hpsa-fix-redefinition-of-pci_device_id_cissf drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-fix-redefinition-of-pci_device_id_cissf
++++ a/drivers/scsi/hpsa.c
+@@ -90,11 +90,7 @@ static const struct pci_device_id hpsa_p
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
+-#define PCI_DEVICE_ID_HP_CISSF 0x333f
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x333F},
+-	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,             PCI_ANY_ID, PCI_ANY_ID,
+-		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
+-	{PCI_VENDOR_ID_COMPAQ,     PCI_ANY_ID,             PCI_ANY_ID, PCI_ANY_ID,
++	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,	PCI_ANY_ID, PCI_ANY_ID,
+ 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
+ 	{0,}
+ };
+@@ -113,8 +109,6 @@ static struct board_type products[] = {
+ 	{0x3249103C, "Smart Array P812", &SA5_access},
+ 	{0x324a103C, "Smart Array P712m", &SA5_access},
+ 	{0x324b103C, "Smart Array P711m", &SA5_access},
+-	{0x3233103C, "StorageWorks P1210m", &SA5_access},
+-	{0x333F103C, "StorageWorks P1210m", &SA5_access},
+ 	{0x3250103C, "Smart Array", &SA5_access},
+ 	{0x3250113C, "Smart Array", &SA5_access},
+ 	{0x3250123C, "Smart Array", &SA5_access},
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-documentation-filesystems-vfstxt-fix-repeasepage-description.patch
-ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+hpsa-fix-redefinition-of-pci_device_id_cissf.patch
 
