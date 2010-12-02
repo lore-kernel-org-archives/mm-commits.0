@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch added to -mm tree
-Date: Wed, 01 Dec 2010 16:30:09 -0800
-Message-ID: <201012020030.oB20U96k020833@imap1.linux-foundation.org>
+Subject: + do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch added to -mm tree
+Date: Wed, 01 Dec 2010 16:30:11 -0800
+Message-ID: <201012020030.oB20UBkL020836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754725Ab0LBAaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754792Ab0LBAaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2010 19:30:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nelhage@ksplice.com, kosaki.motohiro@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, nelhage@ksplice.com
 
 
 The patch titled
-     do_exit(): make sure that we run with get_fs() == USER_DS.
+     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
 has been added to the -mm tree.  Its filename is
-     do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
+     do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_exit(): make sure that we run with get_fs() == USER_DS.
-From: Nelson Elhage <nelhage@ksplice.com>
+Subject: do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If a user manages to trigger an oops with fs set to KERNEL_DS, fs is not
-otherwise reset before do_exit().  do_exit may later (via mm_release in
-fork.c) do a put_user to a user-controlled address, potentially allowing a
-user to leverage an oops into a controlled write into kernel memory.
-
-A more logical place to put this might be when we know an oops has
-occurred, before we call do_exit(), but that would involve changing every
-architecture, in multiple places.  Let's just stick it in do_exit instead.
-
-Signed-off-by: Nelson Elhage <nelhage@ksplice.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nelson Elhage <nelhage@ksplice.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/exit.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds kernel/exit.c
---- a/kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds
+diff -puN kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix kernel/exit.c
+--- a/kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix
 +++ a/kernel/exit.c
-@@ -914,6 +914,14 @@ NORET_TYPE void do_exit(long code)
- 	if (unlikely(!tsk->pid))
- 		panic("Attempted to kill the idle task!");
+@@ -917,8 +917,9 @@ NORET_TYPE void do_exit(long code)
+ 	/*
+ 	 * If do_exit is called because this processes oopsed, it's possible
+ 	 * that get_fs() was left as KERNEL_DS, so reset it to USER_DS before
+-	 * continuing. This is relevant at least for clearing clear_child_tid in
+-	 * mm_release.
++	 * continuing. Amongst other possible reasons, this is to prevent
++	 * mm_release()->clear_child_tid() from writing to a user-controlled
++	 * kernel address.
+ 	 */
+ 	set_fs(USER_DS);
  
-+	/*
-+	 * If do_exit is called because this processes oopsed, it's possible
-+	 * that get_fs() was left as KERNEL_DS, so reset it to USER_DS before
-+	 * continuing. This is relevant at least for clearing clear_child_tid in
-+	 * mm_release.
-+	 */
-+	set_fs(USER_DS);
-+
- 	tracehook_report_exit(&code);
- 
- 	validate_creds_for_do_exit(tsk);
 _
 
-Patches currently in -mm which might be from nelhage@ksplice.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+documentation-filesystems-vfstxt-fix-repeasepage-description.patch
+ksm-annotate-ksm_thread_mutex-is-no-deadlock-source-fix.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
 do_exit-make-sure-we-run-with-get_fs-==-user_ds-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
