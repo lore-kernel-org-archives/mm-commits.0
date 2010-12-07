@@ -1,156 +1,415 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch removed from -mm tree
-Date: Tue, 07 Dec 2010 11:46:51 -0800
-Message-ID: <201012071948.oB7JmQkY004611@imap1.linux-foundation.org>
+Subject: [merged] leds-fix-up-dependencies.patch removed from -mm tree
+Date: Tue, 07 Dec 2010 11:46:36 -0800
+Message-ID: <201012071948.oB7JmBWE004592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753912Ab0LGTsi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:38 -0500
+	by vger.kernel.org with ESMTP id S1754028Ab0LGTsg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, aarcange@redhat.com, andi@firstfloor.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: johannes.berg@intel.com, arnd@arndnet.de, mhocko@suse.cz, mingo@elte.hu, randy.dunlap@oracle.com, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: annotate ksm_thread_mutex is no deadlock source
+     leds: fix up dependencies
 has been removed from the -mm tree.  Its filename was
-     ksm-annotate-ksm_thread_mutex-is-no-deadlock-source.patch
+     leds-fix-up-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: annotate ksm_thread_mutex is no deadlock source
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: leds: fix up dependencies
+From: Johannes Berg <johannes.berg@intel.com>
 
-commit 62b61f611e ("ksm: memory hotremove migration only") caused the
-following new lockdep warning.
+It's not useful to build LED triggers when there's no LEDs that can be
+triggered by them.  Therefore, fix up the dependencies so that this cannot
+happen, and fix a few users that select triggers to depend on LEDS_CLASS
+as well (there is also one user that also selects LEDS_CLASS, which is
+OK).
 
-  =======================================================
-  [ INFO: possible circular locking dependency detected ]
-  -------------------------------------------------------
-  bash/1621 is trying to acquire lock:
-   ((memory_chain).rwsem){.+.+.+}, at: [<ffffffff81079339>]
-  __blocking_notifier_call_chain+0x69/0xc0
-
-  but task is already holding lock:
-   (ksm_thread_mutex){+.+.+.}, at: [<ffffffff8113a3aa>]
-  ksm_memory_callback+0x3a/0xc0
-
-  which lock already depends on the new lock.
-
-  the existing dependency chain (in reverse order) is:
-
-  -> #1 (ksm_thread_mutex){+.+.+.}:
-       [<ffffffff8108b70a>] lock_acquire+0xaa/0x140
-       [<ffffffff81505d74>] __mutex_lock_common+0x44/0x3f0
-       [<ffffffff81506228>] mutex_lock_nested+0x48/0x60
-       [<ffffffff8113a3aa>] ksm_memory_callback+0x3a/0xc0
-       [<ffffffff8150c21c>] notifier_call_chain+0x8c/0xe0
-       [<ffffffff8107934e>] __blocking_notifier_call_chain+0x7e/0xc0
-       [<ffffffff810793a6>] blocking_notifier_call_chain+0x16/0x20
-       [<ffffffff813afbfb>] memory_notify+0x1b/0x20
-       [<ffffffff81141b7c>] remove_memory+0x1cc/0x5f0
-       [<ffffffff813af53d>] memory_block_change_state+0xfd/0x1a0
-       [<ffffffff813afd62>] store_mem_state+0xe2/0xf0
-       [<ffffffff813a0bb0>] sysdev_store+0x20/0x30
-       [<ffffffff811bc116>] sysfs_write_file+0xe6/0x170
-       [<ffffffff8114f398>] vfs_write+0xc8/0x190
-       [<ffffffff8114fc14>] sys_write+0x54/0x90
-       [<ffffffff810028b2>] system_call_fastpath+0x16/0x1b
-
-  -> #0 ((memory_chain).rwsem){.+.+.+}:
-       [<ffffffff8108b5ba>] __lock_acquire+0x155a/0x1600
-       [<ffffffff8108b70a>] lock_acquire+0xaa/0x140
-       [<ffffffff81506601>] down_read+0x51/0xa0
-       [<ffffffff81079339>] __blocking_notifier_call_chain+0x69/0xc0
-       [<ffffffff810793a6>] blocking_notifier_call_chain+0x16/0x20
-       [<ffffffff813afbfb>] memory_notify+0x1b/0x20
-       [<ffffffff81141f1e>] remove_memory+0x56e/0x5f0
-       [<ffffffff813af53d>] memory_block_change_state+0xfd/0x1a0
-       [<ffffffff813afd62>] store_mem_state+0xe2/0xf0
-       [<ffffffff813a0bb0>] sysdev_store+0x20/0x30
-       [<ffffffff811bc116>] sysfs_write_file+0xe6/0x170
-       [<ffffffff8114f398>] vfs_write+0xc8/0x190
-       [<ffffffff8114fc14>] sys_write+0x54/0x90
-       [<ffffffff810028b2>] system_call_fastpath+0x16/0x1b
-
-But it's a false positive.  Both memory_chain.rwsem and ksm_thread_mutex
-have an outer lock (mem_hotplug_mutex).  So they cannot deadlock.
-
-Thus, This patch annotate ksm_thread_mutex is not deadlock source.
-
-[akpm@linux-foundation.org: update comment, from Hugh]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Tested-by: Ingo Molnar <mingo@elte.hu>
+Cc: Arnd Hannemann <arnd@arndnet.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/leds/Kconfig      |   50 +++++++++++++++++++++++++++++-------
+ drivers/macintosh/Kconfig |    1 
+ net/mac80211/Kconfig      |    2 -
+ 3 files changed, 43 insertions(+), 10 deletions(-)
 
-diff -puN mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source mm/ksm.c
---- a/mm/ksm.c~ksm-annotate-ksm_thread_mutex-is-no-deadlock-source
-+++ a/mm/ksm.c
-@@ -1724,8 +1724,13 @@ static int ksm_memory_callback(struct no
- 		/*
- 		 * Keep it very simple for now: just lock out ksmd and
- 		 * MADV_UNMERGEABLE while any memory is going offline.
-+		 * mutex_lock_nested() is necessary because lockdep was alarmed
-+		 * that here we take ksm_thread_mutex inside notifier chain
-+		 * mutex, and later take notifier chain mutex inside
-+		 * ksm_thread_mutex to unlock it.   But that's safe because both
-+		 * are inside mem_hotplug_mutex.
- 		 */
--		mutex_lock(&ksm_thread_mutex);
-+		mutex_lock_nested(&ksm_thread_mutex, SINGLE_DEPTH_NESTING);
- 		break;
+diff -puN drivers/leds/Kconfig~leds-fix-up-dependencies drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-fix-up-dependencies
++++ a/drivers/leds/Kconfig
+@@ -7,20 +7,20 @@ menuconfig NEW_LEDS
+ 	  This is not related to standard keyboard LEDs which are controlled
+ 	  via the input system.
  
- 	case MEM_OFFLINE:
+-if NEW_LEDS
+-
+ config LEDS_CLASS
+ 	bool "LED Class Support"
++	depends on NEW_LEDS
+ 	help
+ 	  This option enables the led sysfs class in /sys/class/leds.  You'll
+ 	  need this to do anything useful with LEDs.  If unsure, say N.
+ 
+-if LEDS_CLASS
++if NEW_LEDS
+ 
+ comment "LED drivers"
+ 
+ config LEDS_88PM860X
+ 	tristate "LED Support for Marvell 88PM860x PMIC"
++	depends on LEDS_CLASS
+ 	depends on MFD_88PM860X
+ 	help
+ 	  This option enables support for on-chip LED drivers found on Marvell
+@@ -28,6 +28,7 @@ config LEDS_88PM860X
+ 
+ config LEDS_ATMEL_PWM
+ 	tristate "LED Support using Atmel PWM outputs"
++	depends on LEDS_CLASS
+ 	depends on ATMEL_PWM
+ 	help
+ 	  This option enables support for LEDs driven using outputs
+@@ -35,6 +36,7 @@ config LEDS_ATMEL_PWM
+ 
+ config LEDS_LOCOMO
+ 	tristate "LED Support for Locomo device"
++	depends on LEDS_CLASS
+ 	depends on SHARP_LOCOMO
+ 	help
+ 	  This option enables support for the LEDs on Sharp Locomo.
+@@ -42,6 +44,7 @@ config LEDS_LOCOMO
+ 
+ config LEDS_MIKROTIK_RB532
+ 	tristate "LED Support for Mikrotik Routerboard 532"
++	depends on LEDS_CLASS
+ 	depends on MIKROTIK_RB532
+ 	help
+ 	  This option enables support for the so called "User LED" of
+@@ -49,6 +52,7 @@ config LEDS_MIKROTIK_RB532
+ 
+ config LEDS_S3C24XX
+ 	tristate "LED Support for Samsung S3C24XX GPIO LEDs"
++	depends on LEDS_CLASS
+ 	depends on ARCH_S3C2410
+ 	help
+ 	  This option enables support for LEDs connected to GPIO lines
+@@ -56,12 +60,14 @@ config LEDS_S3C24XX
+ 
+ config LEDS_AMS_DELTA
+ 	tristate "LED Support for the Amstrad Delta (E3)"
++	depends on LEDS_CLASS
+ 	depends on MACH_AMS_DELTA
+ 	help
+ 	  This option enables support for the LEDs on Amstrad Delta (E3).
+ 
+ config LEDS_NET48XX
+ 	tristate "LED Support for Soekris net48xx series Error LED"
++	depends on LEDS_CLASS
+ 	depends on SCx200_GPIO
+ 	help
+ 	  This option enables support for the Soekris net4801 and net4826 error
+@@ -79,18 +85,21 @@ config LEDS_NET5501
+ 
+ config LEDS_FSG
+ 	tristate "LED Support for the Freecom FSG-3"
++	depends on LEDS_CLASS
+ 	depends on MACH_FSG
+ 	help
+ 	  This option enables support for the LEDs on the Freecom FSG-3.
+ 
+ config LEDS_WRAP
+ 	tristate "LED Support for the WRAP series LEDs"
++	depends on LEDS_CLASS
+ 	depends on SCx200_GPIO
+ 	help
+ 	  This option enables support for the PCEngines WRAP programmable LEDs.
+ 
+ config LEDS_ALIX2
+ 	tristate "LED Support for ALIX.2 and ALIX.3 series"
++	depends on LEDS_CLASS
+ 	depends on X86 && !GPIO_CS5535 && !CS5535_GPIO
+ 	help
+ 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
+@@ -98,12 +107,14 @@ config LEDS_ALIX2
+ 
+ config LEDS_H1940
+ 	tristate "LED Support for iPAQ H1940 device"
++	depends on LEDS_CLASS
+ 	depends on ARCH_H1940
+ 	help
+ 	  This option enables support for the LEDs on the h1940.
+ 
+ config LEDS_COBALT_QUBE
+ 	tristate "LED Support for the Cobalt Qube series front LED"
++	depends on LEDS_CLASS
+ 	depends on MIPS_COBALT
+ 	help
+ 	  This option enables support for the front LED on Cobalt Qube series
+@@ -117,6 +128,7 @@ config LEDS_COBALT_RAQ
+ 
+ config LEDS_SUNFIRE
+ 	tristate "LED support for SunFire servers."
++	depends on LEDS_CLASS
+ 	depends on SPARC64
+ 	select LEDS_TRIGGERS
+ 	help
+@@ -125,6 +137,7 @@ config LEDS_SUNFIRE
+ 
+ config LEDS_HP6XX
+ 	tristate "LED Support for the HP Jornada 6xx"
++	depends on LEDS_CLASS
+ 	depends on SH_HP6XX
+ 	help
+ 	  This option enables LED support for the handheld
+@@ -132,6 +145,7 @@ config LEDS_HP6XX
+ 
+ config LEDS_PCA9532
+ 	tristate "LED driver for PCA9532 dimmer"
++	depends on LEDS_CLASS
+ 	depends on I2C && INPUT && EXPERIMENTAL
+ 	help
+ 	  This option enables support for NXP pca9532
+@@ -140,6 +154,7 @@ config LEDS_PCA9532
+ 
+ config LEDS_GPIO
+ 	tristate "LED Support for GPIO connected LEDs"
++	depends on LEDS_CLASS
+ 	depends on GENERIC_GPIO
+ 	help
+ 	  This option enables support for the LEDs connected to GPIO
+@@ -167,6 +182,7 @@ config LEDS_GPIO_OF
+ 
+ config LEDS_LP3944
+ 	tristate "LED Support for N.S. LP3944 (Fun Light) I2C chip"
++	depends on LEDS_CLASS
+ 	depends on I2C
+ 	help
+ 	  This option enables support for LEDs connected to the National
+@@ -196,6 +212,7 @@ config LEDS_LP5523
+ 
+ config LEDS_CLEVO_MAIL
+ 	tristate "Mail LED on Clevo notebook"
++	depends on LEDS_CLASS
+ 	depends on X86 && SERIO_I8042 && DMI
+ 	help
+ 	  This driver makes the mail LED accessible from userspace
+@@ -226,6 +243,7 @@ config LEDS_CLEVO_MAIL
+ 
+ config LEDS_PCA955X
+ 	tristate "LED Support for PCA955x I2C chips"
++	depends on LEDS_CLASS
+ 	depends on I2C
+ 	help
+ 	  This option enables support for LEDs connected to PCA955x
+@@ -234,6 +252,7 @@ config LEDS_PCA955X
+ 
+ config LEDS_WM831X_STATUS
+ 	tristate "LED support for status LEDs on WM831x PMICs"
++	depends on LEDS_CLASS
+ 	depends on MFD_WM831X
+ 	help
+ 	  This option enables support for the status LEDs of the WM831x
+@@ -241,6 +260,7 @@ config LEDS_WM831X_STATUS
+ 
+ config LEDS_WM8350
+ 	tristate "LED Support for WM8350 AudioPlus PMIC"
++	depends on LEDS_CLASS
+ 	depends on MFD_WM8350
+ 	help
+ 	  This option enables support for LEDs driven by the Wolfson
+@@ -248,6 +268,7 @@ config LEDS_WM8350
+ 
+ config LEDS_DA903X
+ 	tristate "LED Support for DA9030/DA9034 PMIC"
++	depends on LEDS_CLASS
+ 	depends on PMIC_DA903X
+ 	help
+ 	  This option enables support for on-chip LED drivers found
+@@ -255,6 +276,7 @@ config LEDS_DA903X
+ 
+ config LEDS_DAC124S085
+ 	tristate "LED Support for DAC124S085 SPI DAC"
++	depends on LEDS_CLASS
+ 	depends on SPI
+ 	help
+ 	  This option enables support for DAC124S085 SPI DAC from NatSemi,
+@@ -262,18 +284,21 @@ config LEDS_DAC124S085
+ 
+ config LEDS_PWM
+ 	tristate "PWM driven LED Support"
++	depends on LEDS_CLASS
+ 	depends on HAVE_PWM
+ 	help
+ 	  This option enables support for pwm driven LEDs
+ 
+ config LEDS_REGULATOR
+ 	tristate "REGULATOR driven LED support"
++	depends on LEDS_CLASS
+ 	depends on REGULATOR
+ 	help
+ 	  This option enables support for regulator driven LEDs.
+ 
+ config LEDS_BD2802
+ 	tristate "LED driver for BD2802 RGB LED"
++	depends on LEDS_CLASS
+ 	depends on I2C
+ 	help
+ 	  This option enables support for BD2802GU RGB LED driver chips
+@@ -281,6 +306,7 @@ config LEDS_BD2802
+ 
+ config LEDS_INTEL_SS4200
+ 	tristate "LED driver for Intel NAS SS4200 series"
++	depends on LEDS_CLASS
+ 	depends on PCI && DMI
+ 	help
+ 	  This option enables support for the Intel SS4200 series of
+@@ -290,6 +316,7 @@ config LEDS_INTEL_SS4200
+ 
+ config LEDS_LT3593
+ 	tristate "LED driver for LT3593 controllers"
++	depends on LEDS_CLASS
+ 	depends on GENERIC_GPIO
+ 	help
+ 	  This option enables support for LEDs driven by a Linear Technology
+@@ -298,6 +325,7 @@ config LEDS_LT3593
+ 
+ config LEDS_ADP5520
+ 	tristate "LED Support for ADP5520/ADP5501 PMIC"
++	depends on LEDS_CLASS
+ 	depends on PMIC_ADP5520
+ 	help
+ 	  This option enables support for on-chip LED drivers found
+@@ -308,6 +336,7 @@ config LEDS_ADP5520
+ 
+ config LEDS_DELL_NETBOOKS
+ 	tristate "External LED on Dell Business Netbooks"
++	depends on LEDS_CLASS
+ 	depends on X86 && ACPI_WMI
+ 	help
+ 	  This adds support for the Latitude 2100 and similar
+@@ -315,6 +344,7 @@ config LEDS_DELL_NETBOOKS
+ 
+ config LEDS_MC13783
+ 	tristate "LED Support for MC13783 PMIC"
++	depends on LEDS_CLASS
+ 	depends on MFD_MC13783
+ 	help
+ 	  This option enable support for on-chip LED drivers found
+@@ -322,6 +352,7 @@ config LEDS_MC13783
+ 
+ config LEDS_NS2
+ 	tristate "LED support for Network Space v2 GPIO LEDs"
++	depends on LEDS_CLASS
+ 	depends on MACH_NETSPACE_V2 || MACH_INETSPACE_V2 || MACH_NETSPACE_MAX_V2 || D2NET_V2
+ 	default y
+ 	help
+@@ -340,17 +371,17 @@ config LEDS_NETXBIG
+ 
+ config LEDS_TRIGGERS
+ 	bool "LED Trigger support"
++	depends on LEDS_CLASS
+ 	help
+ 	  This option enables trigger support for the leds class.
+ 	  These triggers allow kernel events to drive the LEDs and can
+ 	  be configured via sysfs. If unsure, say Y.
+ 
+-if LEDS_TRIGGERS
+-
+ comment "LED Triggers"
+ 
+ config LEDS_TRIGGER_TIMER
+ 	tristate "LED Timer Trigger"
++	depends on LEDS_TRIGGERS
+ 	help
+ 	  This allows LEDs to be controlled by a programmable timer
+ 	  via sysfs. Some LED hardware can be programmed to start
+@@ -362,12 +393,14 @@ config LEDS_TRIGGER_TIMER
+ config LEDS_TRIGGER_IDE_DISK
+ 	bool "LED IDE Disk Trigger"
+ 	depends on IDE_GD_ATA
++	depends on LEDS_TRIGGERS
+ 	help
+ 	  This allows LEDs to be controlled by IDE disk activity.
+ 	  If unsure, say Y.
+ 
+ config LEDS_TRIGGER_HEARTBEAT
+ 	tristate "LED Heartbeat Trigger"
++	depends on LEDS_TRIGGERS
+ 	help
+ 	  This allows LEDs to be controlled by a CPU load average.
+ 	  The flash frequency is a hyperbolic function of the 1-minute
+@@ -376,6 +409,7 @@ config LEDS_TRIGGER_HEARTBEAT
+ 
+ config LEDS_TRIGGER_BACKLIGHT
+ 	tristate "LED backlight Trigger"
++	depends on LEDS_TRIGGERS
+ 	help
+ 	  This allows LEDs to be controlled as a backlight device: they
+ 	  turn off and on when the display is blanked and unblanked.
+@@ -384,6 +418,7 @@ config LEDS_TRIGGER_BACKLIGHT
+ 
+ config LEDS_TRIGGER_GPIO
+ 	tristate "LED GPIO Trigger"
++	depends on LEDS_TRIGGERS
+ 	depends on GPIOLIB
+ 	help
+ 	  This allows LEDs to be controlled by gpio events. It's good
+@@ -396,6 +431,7 @@ config LEDS_TRIGGER_GPIO
+ 
+ config LEDS_TRIGGER_DEFAULT_ON
+ 	tristate "LED Default ON Trigger"
++	depends on LEDS_TRIGGERS
+ 	help
+ 	  This allows LEDs to be initialised in the ON state.
+ 	  If unsure, say Y.
+@@ -403,8 +439,4 @@ config LEDS_TRIGGER_DEFAULT_ON
+ comment "iptables trigger is under Netfilter config (LED target)"
+ 	depends on LEDS_TRIGGERS
+ 
+-endif # LEDS_TRIGGERS
+-
+-endif # LEDS_CLASS
+-
+ endif # NEW_LEDS
+diff -puN drivers/macintosh/Kconfig~leds-fix-up-dependencies drivers/macintosh/Kconfig
+--- a/drivers/macintosh/Kconfig~leds-fix-up-dependencies
++++ a/drivers/macintosh/Kconfig
+@@ -102,6 +102,7 @@ config ADB_PMU_LED
+ config ADB_PMU_LED_IDE
+ 	bool "Use front LED as IDE LED by default"
+ 	depends on ADB_PMU_LED
++	depends on LEDS_CLASS
+ 	select LEDS_TRIGGERS
+ 	select LEDS_TRIGGER_IDE_DISK
+ 	help
+diff -puN net/mac80211/Kconfig~leds-fix-up-dependencies net/mac80211/Kconfig
+--- a/net/mac80211/Kconfig~leds-fix-up-dependencies
++++ a/net/mac80211/Kconfig
+@@ -92,7 +92,7 @@ config MAC80211_MESH
+ config MAC80211_LEDS
+ 	bool "Enable LED triggers"
+ 	depends on MAC80211
+-	select NEW_LEDS
++	depends on LEDS_CLASS
+ 	select LEDS_TRIGGERS
+ 	---help---
+ 	  This option enables a few LED triggers for different
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
 linux-next.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-deactivate-invalidated-pages.patch
-mm-deactivate-invalidated-pages-fix.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths.patch
 
