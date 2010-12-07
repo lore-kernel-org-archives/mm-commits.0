@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard.patch added to -mm tree
-Date: Tue, 07 Dec 2010 15:29:59 -0800
-Message-ID: <201012072329.oB7NTxOp014445@imap1.linux-foundation.org>
+Subject: + include-linux-printkh-add-pr_level_once-macros.patch added to -mm tree
+Date: Tue, 07 Dec 2010 15:29:57 -0800
+Message-ID: <201012072329.oB7NTvm7014440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752964Ab0LGXaF (ORCPT
+	by vger.kernel.org with ESMTP id S1752395Ab0LGXaF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 18:30:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: joe@perches.com, mingo@elte.hu, mpm@selenic.com
 
 
 The patch titled
-     include/linux/printk.h lib/hexdump.c: neatening and add CONFIG_PRINTK guard
+     include/linux/printk.h: add pr_<level>_once macros
 has been added to the -mm tree.  Its filename is
-     include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard.patch
+     include-linux-printkh-add-pr_level_once-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/printk.h lib/hexdump.c: neatening and add CONFIG_PRINTK guard
+Subject: include/linux/printk.h: add pr_<level>_once macros
 From: Joe Perches <joe@perches.com>
 
-- Move prototypes and align arguments.
+- Move printk_once definitions and add an #ifdef CONFIG_PRINTK
 
-- Add CONFIG_PRINTK guard for print_hex functions
+- Add pr_<level>_once so printks can use pr_fmt
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -46,83 +46,92 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   42 ++++++++++++++++++++++++++-------------
- lib/hexdump.c          |    2 +
- 2 files changed, 30 insertions(+), 14 deletions(-)
+ include/linux/printk.h |   59 +++++++++++++++++++++++++++++----------
+ 1 file changed, 44 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/printk.h~include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard include/linux/printk.h
---- a/include/linux/printk.h~include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard
+diff -puN include/linux/printk.h~include-linux-printkh-add-pr_level_once-macros include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-add-pr_level_once-macros
 +++ a/include/linux/printk.h
-@@ -140,20 +140,6 @@ static inline void log_buf_kexec_setup(v
+@@ -111,18 +111,6 @@ extern bool printk_timed_ratelimit(unsig
+ extern int printk_delay_msec;
+ extern int dmesg_restrict;
  
- extern void dump_stack(void) __cold;
- 
--enum {
--	DUMP_PREFIX_NONE,
--	DUMP_PREFIX_ADDRESS,
--	DUMP_PREFIX_OFFSET
--};
--extern void hex_dump_to_buffer(const void *buf, size_t len,
--				int rowsize, int groupsize,
--				char *linebuf, size_t linebuflen, bool ascii);
--extern void print_hex_dump(const char *level, const char *prefix_str,
--				int prefix_type, int rowsize, int groupsize,
--				const void *buf, size_t len, bool ascii);
--extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
--			const void *buf, size_t len);
+-/*
+- * Print a one-time message (analogous to WARN_ONCE() et al):
+- */
+-#define printk_once(x...) ({			\
+-	static bool __print_once;		\
+-						\
+-	if (!__print_once) {			\
+-		__print_once = true;		\
+-		printk(x);			\
+-	}					\
+-})
 -
- #ifndef pr_fmt
- #define pr_fmt(fmt) fmt
- #endif
-@@ -285,4 +271,32 @@ extern void print_hex_dump_bytes(const c
- 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ void log_buf_kexec_setup(void);
+ #else
+ static inline __attribute__ ((format (printf, 1, 0)))
+@@ -145,9 +133,6 @@ static inline bool printk_timed_ratelimi
+ 	return false;
+ }
+ 
+-/* No effect, but we still get type checking even in the !PRINTK case: */
+-#define printk_once(fmt, ...) no_printk(fmt, ##__VA_ARGS__)
+-
+ static inline void log_buf_kexec_setup(void)
+ {
+ }
+@@ -214,6 +199,50 @@ extern void print_hex_dump_bytes(const c
  #endif
  
+ /*
++ * Print a one-time message (analogous to WARN_ONCE() et al):
++ */
 +
-+enum {
-+	DUMP_PREFIX_NONE,
-+	DUMP_PREFIX_ADDRESS,
-+	DUMP_PREFIX_OFFSET
-+};
-+extern void hex_dump_to_buffer(const void *buf, size_t len,
-+			       int rowsize, int groupsize,
-+			       char *linebuf, size_t linebuflen, bool ascii);
 +#ifdef CONFIG_PRINTK
-+extern void print_hex_dump(const char *level, const char *prefix_str,
-+			   int prefix_type, int rowsize, int groupsize,
-+			   const void *buf, size_t len, bool ascii);
-+extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-+				 const void *buf, size_t len);
++#define printk_once(fmt, ...)			\
++({						\
++	static bool __print_once;		\
++						\
++	if (!__print_once) {			\
++		__print_once = true;		\
++		printk(fmt, ##__VA_ARGS__);	\
++	}					\
++})
 +#else
-+static inline void print_hex_dump(const char *level, const char *prefix_str,
-+				  int prefix_type, int rowsize, int groupsize,
-+				  const void *buf, size_t len, bool ascii)
-+{
-+}
-+static inline void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-+					const void *buf, size_t len)
-+{
-+}
-+
++#define printk_once(fmt, ...)			\
++	no_printk(fmt, ##__VA_ARGS__)
 +#endif
 +
- #endif
-diff -puN lib/hexdump.c~include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard lib/hexdump.c
---- a/lib/hexdump.c~include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard
-+++ a/lib/hexdump.c
-@@ -154,6 +154,7 @@ nil:
- }
- EXPORT_SYMBOL(hex_dump_to_buffer);
- 
-+#ifdef CONFIG_PRINTK
- /**
-  * print_hex_dump - print a text hex dump to syslog for a binary blob of data
-  * @level: kernel log level (e.g. KERN_DEBUG)
-@@ -238,3 +239,4 @@ void print_hex_dump_bytes(const char *pr
- 		       buf, len, true);
- }
- EXPORT_SYMBOL(print_hex_dump_bytes);
++#define pr_emerg_once(fmt, ...)					\
++	printk_once(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_alert_once(fmt, ...)					\
++	printk_once(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_crit_once(fmt, ...)					\
++	printk_once(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_err_once(fmt, ...)					\
++	printk_once(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_warn_once(fmt, ...)					\
++	printk_once(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_notice_once(fmt, ...)				\
++	printk_once(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_info_once(fmt, ...)					\
++	printk_once(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_cont_once(fmt, ...)					\
++	printk_once(KERN_CONT pr_fmt(fmt), ##__VA_ARGS__)
++/* If you are writing a driver, please use dev_dbg instead */
++#if defined(DEBUG)
++#define pr_debug_once(fmt, ...)					\
++	printk_once(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#else
++#define pr_debug_once(fmt, ...)					\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 +#endif
++
++/*
+  * ratelimited messages with local ratelimit_state,
+  * no local ratelimit_state used in the !PRINTK case
+  */
 _
 
 Patches currently in -mm which might be from joe@perches.com are
