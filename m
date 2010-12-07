@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-speed-up-file-creates-by-optimizing-rec_len-functions.patch added to -mm tree
-Date: Tue, 07 Dec 2010 13:07:22 -0800
-Message-ID: <201012072107.oB7L7MkE008162@imap1.linux-foundation.org>
+Subject: + mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch added to -mm tree
+Date: Tue, 07 Dec 2010 13:10:03 -0800
+Message-ID: <201012072110.oB7LA3Z0008261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754134Ab0LGVHw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:07:52 -0500
+	by vger.kernel.org with ESMTP id S1751706Ab0LGVKb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:10:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, jack@suse.cz
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     ext3: speed up file creates by optimizing rec_len functions
+     mn10300: Fix interrupt mask alteration function call name in gdbstub
 has been added to the -mm tree.  Its filename is
-     ext3-speed-up-file-creates-by-optimizing-rec_len-functions.patch
+     mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: speed up file creates by optimizing rec_len functions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: mn10300: Fix interrupt mask alteration function call name in gdbstub
+From: David Howells <dhowells@redhat.com>
 
-The addition of 64k block capability in the rec_len_from_disk and
-rec_len_to_disk functions added a bit of math overhead which slows down
-file create workloads needlessly when the architecture cannot even support
-64k blocks, thanks to page size limits.
+Fix name of interrupt mask alteration function
+(local_change_intr_mask_level()) called in gdbstub to have an arch_ prefix
+to match the definition in asm/irqflags.h.
 
-Similar changes already exist in the ext4 codebase.
+(akpm: appears to fix a build error)
 
-The directory entry checking can also be optimized a bit by sprinkling in
-some unlikely() conditions to move the error handling out of line.
-
-bonnie++ sequential file creates on a 512MB ramdisk speeds up from about
-77,000/s to about 82,000/s, about a 6% improvement.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc:  Jan Kara <jack@suse.cz>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c           |   15 ++++++++-------
- include/linux/ext3_fs.h |    9 +++++++++
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ arch/mn10300/kernel/gdb-io-serial.c |    3 ++-
+ arch/mn10300/kernel/gdb-io-ttysm.c  |    3 ++-
+ arch/mn10300/kernel/gdb-stub.c      |    3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/dir.c~ext3-speed-up-file-creates-by-optimizing-rec_len-functions fs/ext3/dir.c
---- a/fs/ext3/dir.c~ext3-speed-up-file-creates-by-optimizing-rec_len-functions
-+++ a/fs/ext3/dir.c
-@@ -69,25 +69,26 @@ int ext3_check_dir_entry (const char * f
- 	const char * error_msg = NULL;
- 	const int rlen = ext3_rec_len_from_disk(de->rec_len);
+diff -puN arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-serial.c
+--- a/arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-io-serial.c
+@@ -73,7 +73,8 @@ void gdbstub_io_init(void)
+ 	GDBPORT_SERIAL_IER = UART_IER_RDI | UART_IER_RLSI;
  
--	if (rlen < EXT3_DIR_REC_LEN(1))
-+	if (unlikely(rlen < EXT3_DIR_REC_LEN(1)))
- 		error_msg = "rec_len is smaller than minimal";
--	else if (rlen % 4 != 0)
-+	else if (unlikely(rlen % 4 != 0))
- 		error_msg = "rec_len % 4 != 0";
--	else if (rlen < EXT3_DIR_REC_LEN(de->name_len))
-+	else if (unlikely(rlen < EXT3_DIR_REC_LEN(de->name_len)))
- 		error_msg = "rec_len is too small for name_len";
--	else if (((char *) de - bh->b_data) + rlen > dir->i_sb->s_blocksize)
-+	else if (unlikely((((char *) de - bh->b_data) + rlen > dir->i_sb->s_blocksize)))
- 		error_msg = "directory entry across blocks";
--	else if (le32_to_cpu(de->inode) >
--			le32_to_cpu(EXT3_SB(dir->i_sb)->s_es->s_inodes_count))
-+	else if (unlikely(le32_to_cpu(de->inode) >
-+			le32_to_cpu(EXT3_SB(dir->i_sb)->s_es->s_inodes_count)))
- 		error_msg = "inode out of bounds";
- 
--	if (error_msg != NULL)
-+	if (unlikely(error_msg != NULL))
- 		ext3_error (dir->i_sb, function,
- 			"bad entry in directory #%lu: %s - "
- 			"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
- 			dir->i_ino, error_msg, offset,
- 			(unsigned long) le32_to_cpu(de->inode),
- 			rlen, de->name_len);
-+
- 	return error_msg == NULL ? 1 : 0;
+ 	/* permit level 0 IRQs to take place */
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
  }
  
-diff -puN include/linux/ext3_fs.h~ext3-speed-up-file-creates-by-optimizing-rec_len-functions include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-speed-up-file-creates-by-optimizing-rec_len-functions
-+++ a/include/linux/ext3_fs.h
-@@ -724,21 +724,30 @@ struct ext3_dir_entry_2 {
- 					 ~EXT3_DIR_ROUND)
- #define EXT3_MAX_REC_LEN		((1<<16)-1)
+ /*
+diff -puN arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-ttysm.c
+--- a/arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-io-ttysm.c
+@@ -87,7 +87,8 @@ void __init gdbstub_io_init(void)
+ 	tmp = *gdbstub_port->_control;
  
-+/*
-+ * Tests against MAX_REC_LEN etc were put in place for 64k block
-+ * sizes; if that is not possible on this arch, we can skip
-+ * those tests and speed things up.
-+ */
- static inline unsigned ext3_rec_len_from_disk(__le16 dlen)
- {
- 	unsigned len = le16_to_cpu(dlen);
- 
-+#if (PAGE_CACHE_SIZE >= 65536)
- 	if (len == EXT3_MAX_REC_LEN)
- 		return 1 << 16;
-+#endif
- 	return len;
+ 	/* permit level 0 IRQs only */
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
  }
  
- static inline __le16 ext3_rec_len_to_disk(unsigned len)
- {
-+#if (PAGE_CACHE_SIZE >= 65536)
- 	if (len == (1 << 16))
- 		return cpu_to_le16(EXT3_MAX_REC_LEN);
- 	else if (len > (1 << 16))
- 		BUG();
-+#endif
- 	return cpu_to_le16(len);
- }
+ /*
+diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-stub.c
+--- a/arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-stub.c
+@@ -1194,7 +1194,8 @@ static int gdbstub(struct pt_regs *regs,
+ 
+ 	asm volatile("mov mdr,%0" : "=d"(mdr));
+ 	local_save_flags(epsw);
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
+ 
+ 	gdbstub_store_fpu();
  
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
-ext2-speed-up-file-creates-by-optimizing-rec_len-functions.patch
-ext3-speed-up-file-creates-by-optimizing-rec_len-functions.patch
+mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
+frv-duplicate-output_buffer-of-e03.patch
+set_rtc_mmss-show-warning-message-only-once.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
