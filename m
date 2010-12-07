@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch added to -mm tree
-Date: Tue, 07 Dec 2010 13:10:03 -0800
-Message-ID: <201012072110.oB7LA3Z0008261@imap1.linux-foundation.org>
+Subject: + drivers-telephony-ixjc-fix-warning.patch added to -mm tree
+Date: Tue, 07 Dec 2010 13:16:43 -0800
+Message-ID: <201012072116.oB7LGh96008576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706Ab0LGVKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:10:31 -0500
+	by vger.kernel.org with ESMTP id S1755303Ab0LGVRQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:17:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: akpm@linux-foundation.org, namhyung@gmail.com
 
 
 The patch titled
-     mn10300: Fix interrupt mask alteration function call name in gdbstub
+     drivers/telephony/ixj.c: fix warning
 has been added to the -mm tree.  Its filename is
-     mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
+     drivers-telephony-ixjc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: Fix interrupt mask alteration function call name in gdbstub
-From: David Howells <dhowells@redhat.com>
+Subject: drivers/telephony/ixj.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix name of interrupt mask alteration function
-(local_change_intr_mask_level()) called in gdbstub to have an arch_ prefix
-to match the definition in asm/irqflags.h.
+  CC      drivers/telephony/ixj.o
+drivers/telephony/ixj.c:287: warning: \u2018ixj_pci_tbl\u2019 defined but not used
 
-(akpm: appears to fix a build error)
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Reported-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/gdb-io-serial.c |    3 ++-
- arch/mn10300/kernel/gdb-io-ttysm.c  |    3 ++-
- arch/mn10300/kernel/gdb-stub.c      |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/telephony/ixj.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-serial.c
---- a/arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-io-serial.c
-@@ -73,7 +73,8 @@ void gdbstub_io_init(void)
- 	GDBPORT_SERIAL_IER = UART_IER_RDI | UART_IER_RLSI;
+diff -puN drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning
++++ a/drivers/telephony/ixj.c
+@@ -284,12 +284,11 @@ static int samplerate = 100;
  
- 	/* permit level 0 IRQs to take place */
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
- }
+ module_param(ixjdebug, int, 0);
  
- /*
-diff -puN arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-ttysm.c
---- a/arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-io-ttysm.c
-@@ -87,7 +87,8 @@ void __init gdbstub_io_init(void)
- 	tmp = *gdbstub_port->_control;
+-static struct pci_device_id ixj_pci_tbl[] __devinitdata = {
++static DEFINE_PCI_DEVICE_TABLE(ixj_pci_tbl) = {
+ 	{ PCI_VENDOR_ID_QUICKNET, PCI_DEVICE_ID_QUICKNET_XJ,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{ }
+ };
+-
+ MODULE_DEVICE_TABLE(pci, ixj_pci_tbl);
  
- 	/* permit level 0 IRQs only */
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
- }
- 
- /*
-diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-stub.c
---- a/arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-stub.c
-@@ -1194,7 +1194,8 @@ static int gdbstub(struct pt_regs *regs,
- 
- 	asm volatile("mov mdr,%0" : "=d"(mdr));
- 	local_save_flags(epsw);
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
- 
- 	gdbstub_store_fpu();
- 
+ /************************************************************************
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
-frv-duplicate-output_buffer-of-e03.patch
-set_rtc_mmss-show-warning-message-only-once.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+aesni-nfg.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
