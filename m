@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + user_ns-improve-the-user_ns-on-the-slab-packaging.patch added to -mm tree
-Date: Tue, 07 Dec 2010 13:58:32 -0800
-Message-ID: <201012072158.oB7LwWXL010435@imap1.linux-foundation.org>
+Subject: + user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch added to -mm tree
+Date: Tue, 07 Dec 2010 14:13:52 -0800
+Message-ID: <201012072213.oB7MDqYW011129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753275Ab0LGV7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:59:11 -0500
+	by vger.kernel.org with ESMTP id S1754012Ab0LGWN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 17:13:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@parallels.com, serge@hallyn.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, serge@hallyn.com, xemul@openvz.org, xemul@parallels.com
 
 
 The patch titled
-     user_ns: improve the user_ns on-the-slab packaging
+     user_ns-improve-the-user_ns-on-the-slab-packaging-fix
 has been added to the -mm tree.  Its filename is
-     user_ns-improve-the-user_ns-on-the-slab-packaging.patch
+     user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: user_ns: improve the user_ns on-the-slab packaging
-From: Pavel Emelyanov <xemul@parallels.com>
+Subject: user_ns-improve-the-user_ns-on-the-slab-packaging-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently on 64-bit arch the user_namespace is 2096 and when being
-kmalloc-ed it resides on a 4k slab wasting 2003 bytes.
+s/__initcall/module_init/
 
-If we allocate a separate cache for it and reduce the hash size from 128
-to 64 chains the packaging becomes *much* better - the struct is 1072
-bytes and the hole between is 98 bytes.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    2 +-
- kernel/user_namespace.c        |   16 +++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ kernel/user_namespace.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging
-+++ a/include/linux/user_namespace.h
-@@ -6,7 +6,7 @@
- #include <linux/sched.h>
- #include <linux/err.h>
- 
--#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
-+#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 7)
- #define UIDHASH_SZ	(1 << UIDHASH_BITS)
- 
- struct user_namespace {
-diff -puN kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging kernel/user_namespace.c
---- a/kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging
+diff -puN kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging-fix kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging-fix
 +++ a/kernel/user_namespace.c
-@@ -12,6 +12,8 @@
- #include <linux/highuid.h>
- #include <linux/cred.h>
- 
-+static struct kmem_cache *user_ns_cachep __read_mostly;
-+
- /*
-  * Create a new user namespace, deriving the creator from the user in the
-  * passed credentials, and replacing that user with the new root user for the
-@@ -26,7 +28,7 @@ int create_user_ns(struct cred *new)
- 	struct user_struct *root_user;
- 	int n;
- 
--	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
-+	ns = kmem_cache_alloc(user_ns_cachep, GFP_KERNEL);
- 	if (!ns)
- 		return -ENOMEM;
- 
-@@ -38,7 +40,7 @@ int create_user_ns(struct cred *new)
- 	/* Alloc new root user.  */
- 	root_user = alloc_uid(ns, 0);
- 	if (!root_user) {
--		kfree(ns);
-+		kmem_cache_free(user_ns_cachep, ns);
- 		return -ENOMEM;
- 	}
- 
-@@ -71,7 +73,7 @@ static void free_user_ns_work(struct wor
- 	struct user_namespace *ns =
- 		container_of(work, struct user_namespace, destroyer);
- 	free_uid(ns->creator);
--	kfree(ns);
-+	kmem_cache_free(user_ns_cachep, ns);
+@@ -134,5 +134,4 @@ static __init int user_namespaces_init(v
+ 	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
+ 	return 0;
  }
- 
- void free_user_ns(struct kref *kref)
-@@ -126,3 +128,11 @@ gid_t user_ns_map_gid(struct user_namesp
- 	/* No useful relationship so no mapping */
- 	return overflowgid;
- }
-+
-+static __init int user_namespaces_init(void)
-+{
-+	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
-+	return 0;
-+}
-+
-+__initcall(user_namespaces_init);
+-
+-__initcall(user_namespaces_init);
++module_init(user_namespaces_init);
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+aesni-nfg.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
