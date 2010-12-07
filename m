@@ -1,233 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mem-hotplug-introduce-unlock_memory_hotplug.patch removed from -mm tree
-Date: Tue, 07 Dec 2010 11:46:49 -0800
-Message-ID: <201012071948.oB7JmOJG004607@imap1.linux-foundation.org>
+Subject: [merged] do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch removed from -mm tree
+Date: Tue, 07 Dec 2010 11:46:53 -0800
+Message-ID: <201012071948.oB7JmSjS004614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752144Ab0LGTsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:33 -0500
+	by vger.kernel.org with ESMTP id S1753200Ab0LGTsf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nelhage@ksplice.com, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mem-hotplug: introduce {un}lock_memory_hotplug()
+     do_exit(): make sure that we run with get_fs() == USER_DS
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-introduce-unlock_memory_hotplug.patch
+     do_exit-make-sure-we-run-with-get_fs-==-user_ds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mem-hotplug: introduce {un}lock_memory_hotplug()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: do_exit(): make sure that we run with get_fs() == USER_DS
+From: Nelson Elhage <nelhage@ksplice.com>
 
-Presently hwpoison is using lock_system_sleep() to prevent a race with
-memory hotplug.  However lock_system_sleep() is a no-op if
-CONFIG_HIBERNATION=n.  Therefore we need a new lock.
+If a user manages to trigger an oops with fs set to KERNEL_DS, fs is not
+otherwise reset before do_exit().  do_exit may later (via mm_release in
+fork.c) do a put_user to a user-controlled address, potentially allowing a
+user to leverage an oops into a controlled write into kernel memory.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+This is only triggerable in the presence of another bug, but this
+potentially turns a lot of DoS bugs into privilege escalations, so it's
+worth fixing.  I have proof-of-concept code which uses this bug along with
+CVE-2010-3849 to write a zero to an arbitrary kernel address, so I've
+tested that this is not theoretical.
+
+
+A more logical place to put this fix might be when we know an oops has
+occurred, before we call do_exit(), but that would involve changing every
+architecture, in multiple places.  Let's just stick it in do_exit instead.
+
+[akpm@linux-foundation.org: update code comment]
+Signed-off-by: Nelson Elhage <nelhage@ksplice.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    6 ++++++
- mm/memory-failure.c            |    8 ++++----
- mm/memory_hotplug.c            |   31 ++++++++++++++++++++++++-------
- 3 files changed, 34 insertions(+), 11 deletions(-)
+ kernel/exit.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/memory_hotplug.h~mem-hotplug-introduce-unlock_memory_hotplug include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mem-hotplug-introduce-unlock_memory_hotplug
-+++ a/include/linux/memory_hotplug.h
-@@ -161,6 +161,9 @@ extern void register_page_bootmem_info_n
- extern void put_page_bootmem(struct page *page);
- #endif
+diff -puN kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds kernel/exit.c
+--- a/kernel/exit.c~do_exit-make-sure-we-run-with-get_fs-==-user_ds
++++ a/kernel/exit.c
+@@ -914,6 +914,15 @@ NORET_TYPE void do_exit(long code)
+ 	if (unlikely(!tsk->pid))
+ 		panic("Attempted to kill the idle task!");
  
-+void lock_memory_hotplug(void);
-+void unlock_memory_hotplug(void);
++	/*
++	 * If do_exit is called because this processes oopsed, it's possible
++	 * that get_fs() was left as KERNEL_DS, so reset it to USER_DS before
++	 * continuing. Amongst other possible reasons, this is to prevent
++	 * mm_release()->clear_child_tid() from writing to a user-controlled
++	 * kernel address.
++	 */
++	set_fs(USER_DS);
 +
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-  * Stub functions for when hotplug is off
-@@ -192,6 +195,9 @@ static inline void register_page_bootmem
- {
- }
+ 	tracehook_report_exit(&code);
  
-+static inline void lock_memory_hotplug(void) {}
-+static inline void unlock_memory_hotplug(void) {}
-+
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN mm/memory-failure.c~mem-hotplug-introduce-unlock_memory_hotplug mm/memory-failure.c
---- a/mm/memory-failure.c~mem-hotplug-introduce-unlock_memory_hotplug
-+++ a/mm/memory-failure.c
-@@ -51,6 +51,7 @@
- #include <linux/slab.h>
- #include <linux/swapops.h>
- #include <linux/hugetlb.h>
-+#include <linux/memory_hotplug.h>
- #include "internal.h"
- 
- int sysctl_memory_failure_early_kill __read_mostly = 0;
-@@ -1230,11 +1231,10 @@ static int get_any_page(struct page *p, 
- 		return 1;
- 
- 	/*
--	 * The lock_system_sleep prevents a race with memory hotplug,
--	 * because the isolation assumes there's only a single user.
-+	 * The lock_memory_hotplug prevents a race with memory hotplug.
- 	 * This is a big hammer, a better would be nicer.
- 	 */
--	lock_system_sleep();
-+	lock_memory_hotplug();
- 
- 	/*
- 	 * Isolate the page, so that it doesn't get reallocated if it
-@@ -1264,7 +1264,7 @@ static int get_any_page(struct page *p, 
- 		ret = 1;
- 	}
- 	unset_migratetype_isolate(p);
--	unlock_system_sleep();
-+	unlock_memory_hotplug();
- 	return ret;
- }
- 
-diff -puN mm/memory_hotplug.c~mem-hotplug-introduce-unlock_memory_hotplug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-introduce-unlock_memory_hotplug
-+++ a/mm/memory_hotplug.c
-@@ -34,6 +34,23 @@
- 
- #include "internal.h"
- 
-+DEFINE_MUTEX(mem_hotplug_mutex);
-+
-+void lock_memory_hotplug(void)
-+{
-+	mutex_lock(&mem_hotplug_mutex);
-+
-+	/* for exclusive hibernation if CONFIG_HIBERNATION=y */
-+	lock_system_sleep();
-+}
-+
-+void unlock_memory_hotplug(void)
-+{
-+	unlock_system_sleep();
-+	mutex_unlock(&mem_hotplug_mutex);
-+}
-+
-+
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
- {
-@@ -493,7 +510,7 @@ int mem_online_node(int nid)
- 	pg_data_t	*pgdat;
- 	int	ret;
- 
--	lock_system_sleep();
-+	lock_memory_hotplug();
- 	pgdat = hotadd_new_pgdat(nid, 0);
- 	if (pgdat) {
- 		ret = -ENOMEM;
-@@ -504,7 +521,7 @@ int mem_online_node(int nid)
- 	BUG_ON(ret);
- 
- out:
--	unlock_system_sleep();
-+	unlock_memory_hotplug();
- 	return ret;
- }
- 
-@@ -516,7 +533,7 @@ int __ref add_memory(int nid, u64 start,
- 	struct resource *res;
- 	int ret;
- 
--	lock_system_sleep();
-+	lock_memory_hotplug();
- 
- 	res = register_memory_resource(start, size);
- 	ret = -EEXIST;
-@@ -563,7 +580,7 @@ error:
- 		release_memory_resource(res);
- 
- out:
--	unlock_system_sleep();
-+	unlock_memory_hotplug();
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(add_memory);
-@@ -791,7 +808,7 @@ static int offline_pages(unsigned long s
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return -EINVAL;
- 
--	lock_system_sleep();
-+	lock_memory_hotplug();
- 
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	node = zone_to_nid(zone);
-@@ -880,7 +897,7 @@ repeat:
- 	writeback_set_ratelimit();
- 
- 	memory_notify(MEM_OFFLINE, &arg);
--	unlock_system_sleep();
-+	unlock_memory_hotplug();
- 	return 0;
- 
- failed_removal:
-@@ -891,7 +908,7 @@ failed_removal:
- 	undo_isolate_page_range(start_pfn, end_pfn);
- 
- out:
--	unlock_system_sleep();
-+	unlock_memory_hotplug();
- 	return ret;
- }
- 
+ 	validate_creds_for_do_exit(tsk);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from nelhage@ksplice.com are
 
-linux-next.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-deactivate-invalidated-pages.patch
-mm-deactivate-invalidated-pages-fix.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths.patch
 
