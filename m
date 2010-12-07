@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-low_ino-cleanup.patch added to -mm tree
-Date: Tue, 07 Dec 2010 14:26:30 -0800
-Message-ID: <201012072226.oB7MQUkp011759@imap1.linux-foundation.org>
+Subject: + memstick-set-pmos-values-propery-for-jmicron-38x-controllers.patch added to -mm tree
+Date: Tue, 07 Dec 2010 14:35:17 -0800
+Message-ID: <201012072235.oB7MZHxC012071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065Ab0LGW1D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 17:27:03 -0500
+	by vger.kernel.org with ESMTP id S1751085Ab0LGWfX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 17:35:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: tiwai@suse.de, arieslee@jmicron.com, oakad@yahoo.com
 
 
 The patch titled
-     proc: ->low_ino cleanup
+     memstick: set PMOS values propery for JMicron 38x controllers
 has been added to the -mm tree.  Its filename is
-     proc-low_ino-cleanup.patch
+     memstick-set-pmos-values-propery-for-jmicron-38x-controllers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: ->low_ino cleanup
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: memstick: set PMOS values propery for JMicron 38x controllers
+From: Takashi Iwai <tiwai@suse.de>
 
-- ->low_ino is write-once field -- reading it under locks is unnecessary.
+Add a function jmb38x_ms_pmos() to enable / disable PMOS setups for
+JMicron 38x controllers.
 
-- /proc/$PID stuff never reaches pde_put()/free_proc_entry() --
-   PROC_DYNAMIC_FIRST check never triggers.
-
-- in proc_get_inode(), inode number always matches proc dir entry, so
-  save one parameter.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Aries Lee <arieslee@jmicron.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   12 ++----------
- fs/proc/inode.c    |    7 +++----
- fs/proc/internal.h |    2 +-
- 3 files changed, 6 insertions(+), 15 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c |   37 ++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-low_ino-cleanup fs/proc/generic.c
---- a/fs/proc/generic.c~proc-low_ino-cleanup
-+++ a/fs/proc/generic.c
-@@ -425,13 +425,10 @@ struct dentry *proc_lookup_de(struct pro
- 		if (de->namelen != dentry->d_name.len)
- 			continue;
- 		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
--			unsigned int ino;
--
--			ino = de->low_ino;
- 			pde_get(de);
- 			spin_unlock(&proc_subdir_lock);
- 			error = -EINVAL;
--			inode = proc_get_inode(dir->i_sb, ino, de);
-+			inode = proc_get_inode(dir->i_sb, de);
- 			goto out_unlock;
- 		}
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-set-pmos-values-propery-for-jmicron-38x-controllers drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-set-pmos-values-propery-for-jmicron-38x-controllers
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -758,6 +758,35 @@ static int jmb38x_ms_set_param(struct me
+ 	return 0;
+ }
+ 
++#define PCI_PMOS0_CONTROL		0xae
++#define  PMOS0_ENABLE			0x01
++#define  PMOS0_OVERCURRENT_LEVEL_2_4V	0x06
++#define  PMOS0_EN_OVERCURRENT_DEBOUNCE	0x40
++#define  PMOS0_SW_LED_POLARITY_ENABLE	0x80
++#define  PMOS0_ACTIVE_BITS (PMOS0_ENABLE | PMOS0_EN_OVERCURRENT_DEBOUNCE | \
++			    PMOS0_OVERCURRENT_LEVEL_2_4V)
++#define PCI_CLOCK_CTL			0xb9
++
++static int jmb38x_ms_pmos(struct pci_dev *pdev, int flag)
++{
++	unsigned char val;
++
++	pci_read_config_byte(pdev, PCI_PMOS0_CONTROL, &val);
++	if (flag)
++		val |= PMOS0_ACTIVE_BITS;
++	else
++		val &= ~PMOS0_ACTIVE_BITS;
++	pci_write_config_byte(pdev, PCI_PMOS0_CONTROL, val);
++	dev_dbg(&pdev->dev, "JMB38x: set PMOS0 val 0x%x\n", val);
++
++	pci_read_config_byte(pdev, PCI_CLOCK_CTL, &val);
++	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val & ~0x0f);
++	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val | 0x01);
++	dev_dbg(&pdev->dev, "Clock Control by PCI config is disabled!\n");
++
++        return 0;
++}
++
+ #ifdef CONFIG_PM
+ 
+ static int jmb38x_ms_suspend(struct pci_dev *dev, pm_message_t state)
+@@ -790,8 +819,7 @@ static int jmb38x_ms_resume(struct pci_d
+ 		return rc;
+ 	pci_set_master(dev);
+ 
+-	pci_read_config_dword(dev, 0xac, &rc);
+-	pci_write_config_dword(dev, 0xac, rc | 0x00470000);
++	jmb38x_ms_pmos(dev, 1);
+ 
+ 	for (rc = 0; rc < jm->host_cnt; ++rc) {
+ 		if (!jm->hosts[rc])
+@@ -900,8 +928,7 @@ static int jmb38x_ms_probe(struct pci_de
+ 		goto err_out;
  	}
-@@ -768,12 +765,7 @@ EXPORT_SYMBOL(proc_create_data);
  
- static void free_proc_entry(struct proc_dir_entry *de)
- {
--	unsigned int ino = de->low_ino;
--
--	if (ino < PROC_DYNAMIC_FIRST)
--		return;
--
--	release_inode_number(ino);
-+	release_inode_number(de->low_ino);
+-	pci_read_config_dword(pdev, 0xac, &rc);
+-	pci_write_config_dword(pdev, 0xac, rc | 0x00470000);
++	jmb38x_ms_pmos(pdev, 1);
  
- 	if (S_ISLNK(de->mode))
- 		kfree(de->data);
-diff -puN fs/proc/inode.c~proc-low_ino-cleanup fs/proc/inode.c
---- a/fs/proc/inode.c~proc-low_ino-cleanup
-+++ a/fs/proc/inode.c
-@@ -409,12 +409,11 @@ static const struct file_operations proc
- };
- #endif
+ 	cnt = jmb38x_ms_count_slots(pdev);
+ 	if (!cnt) {
+@@ -982,6 +1009,8 @@ static void jmb38x_ms_remove(struct pci_
+ 		jmb38x_ms_free_host(jm->hosts[cnt]);
+ 	}
  
--struct inode *proc_get_inode(struct super_block *sb, unsigned int ino,
--				struct proc_dir_entry *de)
-+struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
- {
- 	struct inode * inode;
- 
--	inode = iget_locked(sb, ino);
-+	inode = iget_locked(sb, de->low_ino);
- 	if (!inode)
- 		return NULL;
- 	if (inode->i_state & I_NEW) {
-@@ -464,7 +463,7 @@ int proc_fill_super(struct super_block *
- 	s->s_time_gran = 1;
- 	
- 	pde_get(&proc_root);
--	root_inode = proc_get_inode(s, PROC_ROOT_INO, &proc_root);
-+	root_inode = proc_get_inode(s, &proc_root);
- 	if (!root_inode)
- 		goto out_no_root;
- 	root_inode->i_uid = 0;
-diff -puN fs/proc/internal.h~proc-low_ino-cleanup fs/proc/internal.h
---- a/fs/proc/internal.h~proc-low_ino-cleanup
-+++ a/fs/proc/internal.h
-@@ -109,7 +109,7 @@ void pde_put(struct proc_dir_entry *pde)
- 
- extern struct vfsmount *proc_mnt;
- int proc_fill_super(struct super_block *);
--struct inode *proc_get_inode(struct super_block *, unsigned int, struct proc_dir_entry *);
-+struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
- 
- /*
-  * These are generic /proc routines that use the internal
++	jmb38x_ms_pmos(dev, 0);
++
+ 	pci_set_drvdata(dev, NULL);
+ 	pci_release_regions(dev);
+ 	pci_disable_device(dev);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
 linux-next.patch
-proc-use-unsigned-long-inside-proc-statm.patch
-proc-use-seq_puts-seq_putc-where-possible.patch
-proc-low_ino-cleanup.patch
+memstick-fix-setup-for-jmicron-38x-controllers.patch
+memstick-set-pmos-values-propery-for-jmicron-38x-controllers.patch
+memstick-add-support-for-jmicron-jmb-385-and-390-controllers.patch
 
