@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-telephony-ixjc-fix-warning.patch added to -mm tree
-Date: Tue, 07 Dec 2010 13:16:43 -0800
-Message-ID: <201012072116.oB7LGh96008576@imap1.linux-foundation.org>
+Subject: + memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch added to -mm tree
+Date: Tue, 07 Dec 2010 13:45:59 -0800
+Message-ID: <201012072145.oB7LjxVq009870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755303Ab0LGVRQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:17:16 -0500
+	by vger.kernel.org with ESMTP id S1753206Ab0LGVqe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 16:46:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, namhyung@gmail.com
+Cc: minchan.kim@gmail.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     drivers/telephony/ixj.c: fix warning
+     memcg: remove unnecessary return from void-returning mem_cgroup_del_lru_list()
 has been added to the -mm tree.  Its filename is
-     drivers-telephony-ixjc-fix-warning.patch
+     memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/telephony/ixj.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: remove unnecessary return from void-returning mem_cgroup_del_lru_list()
+From: Minchan Kim <minchan.kim@gmail.com>
 
-  CC      drivers/telephony/ixj.o
-drivers/telephony/ixj.c:287: warning: \u2018ixj_pci_tbl\u2019 defined but not used
-
-Reported-by: Namhyung Kim <namhyung@gmail.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/telephony/ixj.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning drivers/telephony/ixj.c
---- a/drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning
-+++ a/drivers/telephony/ixj.c
-@@ -284,12 +284,11 @@ static int samplerate = 100;
+diff -puN mm/memcontrol.c~memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list
++++ a/mm/memcontrol.c
+@@ -821,7 +821,6 @@ void mem_cgroup_del_lru_list(struct page
+ 		return;
+ 	VM_BUG_ON(list_empty(&pc->lru));
+ 	list_del_init(&pc->lru);
+-	return;
+ }
  
- module_param(ixjdebug, int, 0);
- 
--static struct pci_device_id ixj_pci_tbl[] __devinitdata = {
-+static DEFINE_PCI_DEVICE_TABLE(ixj_pci_tbl) = {
- 	{ PCI_VENDOR_ID_QUICKNET, PCI_DEVICE_ID_QUICKNET_XJ,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{ }
- };
--
- MODULE_DEVICE_TABLE(pci, ixj_pci_tbl);
- 
- /************************************************************************
+ void mem_cgroup_del_lru(struct page *page)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-aesni-nfg.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-irq-use-per_cpu-kstat_irqs-checkpatch-fixes.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-find_get_pages_contig-fixlet.patch
+mm-deactivate-invalidated-pages.patch
 mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch
+memcg-use-zalloc-rather-than-mallocmemset.patch
 
