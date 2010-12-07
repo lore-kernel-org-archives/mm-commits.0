@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch added to -mm tree
-Date: Tue, 07 Dec 2010 14:22:44 -0800
-Message-ID: <201012072222.oB7MMira011563@imap1.linux-foundation.org>
+Subject: + proc-low_ino-cleanup.patch added to -mm tree
+Date: Tue, 07 Dec 2010 14:26:30 -0800
+Message-ID: <201012072226.oB7MQUkp011759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754250Ab0LGWXj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 17:23:39 -0500
+	by vger.kernel.org with ESMTP id S1754065Ab0LGW1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 17:27:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     mm: vmscan: tracepoint: account for scanned pages similarly for both ftrace and vmstat
+     proc: ->low_ino cleanup
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch
+     proc-low_ino-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: tracepoint: account for scanned pages similarly for both ftrace and vmstat
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: proc: ->low_ino cleanup
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-When correlating ftrace results with /proc/vmstat, I noticed that the
-reporting scripts value for "pages scanned" differed significantly.  Both
-values were "right" depending on how you look at it.
+- ->low_ino is write-once field -- reading it under locks is unnecessary.
 
-The difference is due to vmstat only counting scanning of the inactive
-list towards pages scanned.  The analysis script for the tracepoint counts
-active and inactive list yielding a far higher value than vmstat.  The
-resulting scanning/reclaim ratio looks much worse.  The tracepoint is ok
-but this patch updates the reporting script so that the report values for
-scanned are similar to vmstat.
+- /proc/$PID stuff never reaches pde_put()/free_proc_entry() --
+   PROC_DYNAMIC_FIRST check never triggers.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+- in proc_get_inode(), inode number always matches proc dir entry, so
+  save one parameter.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   11 +++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ fs/proc/generic.c  |   12 ++----------
+ fs/proc/inode.c    |    7 +++----
+ fs/proc/internal.h |    2 +-
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat Documentation/trace/postprocess/trace-vmscan-postprocess.pl
---- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat
-+++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
-@@ -373,9 +373,18 @@ EVENT_PROCESS:
- 				print "         $regex_lru_isolate/o\n";
- 				next;
- 			}
-+			my $isolate_mode = $1;
- 			my $nr_scanned = $4;
- 			my $nr_contig_dirty = $7;
--			$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
-+
-+			# To closer match vmstat scanning statistics, only count isolate_both
-+			# and isolate_inactive as scanning. isolate_active is rotation
-+			# isolate_inactive == 0
-+			# isolate_active   == 1
-+			# isolate_both     == 2
-+			if ($isolate_mode != 1) {
-+				$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
-+			}
- 			$perprocesspid{$process_pid}->{HIGH_NR_CONTIG_DIRTY} += $nr_contig_dirty;
- 		} elsif ($tracepoint eq "mm_vmscan_lru_shrink_inactive") {
- 			$details = $5;
+diff -puN fs/proc/generic.c~proc-low_ino-cleanup fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-low_ino-cleanup
++++ a/fs/proc/generic.c
+@@ -425,13 +425,10 @@ struct dentry *proc_lookup_de(struct pro
+ 		if (de->namelen != dentry->d_name.len)
+ 			continue;
+ 		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
+-			unsigned int ino;
+-
+-			ino = de->low_ino;
+ 			pde_get(de);
+ 			spin_unlock(&proc_subdir_lock);
+ 			error = -EINVAL;
+-			inode = proc_get_inode(dir->i_sb, ino, de);
++			inode = proc_get_inode(dir->i_sb, de);
+ 			goto out_unlock;
+ 		}
+ 	}
+@@ -768,12 +765,7 @@ EXPORT_SYMBOL(proc_create_data);
+ 
+ static void free_proc_entry(struct proc_dir_entry *de)
+ {
+-	unsigned int ino = de->low_ino;
+-
+-	if (ino < PROC_DYNAMIC_FIRST)
+-		return;
+-
+-	release_inode_number(ino);
++	release_inode_number(de->low_ino);
+ 
+ 	if (S_ISLNK(de->mode))
+ 		kfree(de->data);
+diff -puN fs/proc/inode.c~proc-low_ino-cleanup fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-low_ino-cleanup
++++ a/fs/proc/inode.c
+@@ -409,12 +409,11 @@ static const struct file_operations proc
+ };
+ #endif
+ 
+-struct inode *proc_get_inode(struct super_block *sb, unsigned int ino,
+-				struct proc_dir_entry *de)
++struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
+ {
+ 	struct inode * inode;
+ 
+-	inode = iget_locked(sb, ino);
++	inode = iget_locked(sb, de->low_ino);
+ 	if (!inode)
+ 		return NULL;
+ 	if (inode->i_state & I_NEW) {
+@@ -464,7 +463,7 @@ int proc_fill_super(struct super_block *
+ 	s->s_time_gran = 1;
+ 	
+ 	pde_get(&proc_root);
+-	root_inode = proc_get_inode(s, PROC_ROOT_INO, &proc_root);
++	root_inode = proc_get_inode(s, &proc_root);
+ 	if (!root_inode)
+ 		goto out_no_root;
+ 	root_inode->i_uid = 0;
+diff -puN fs/proc/internal.h~proc-low_ino-cleanup fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-low_ino-cleanup
++++ a/fs/proc/internal.h
+@@ -109,7 +109,7 @@ void pde_put(struct proc_dir_entry *pde)
+ 
+ extern struct vfsmount *proc_mnt;
+ int proc_fill_super(struct super_block *);
+-struct inode *proc_get_inode(struct super_block *, unsigned int, struct proc_dir_entry *);
++struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
+ 
+ /*
+  * These are generic /proc routines that use the internal
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 linux-next.patch
-mm-compactionc-avoid-double-mem_cgroup_del_lru.patch
-mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+proc-use-unsigned-long-inside-proc-statm.patch
+proc-use-seq_puts-seq_putc-where-possible.patch
+proc-low_ino-cleanup.patch
 
