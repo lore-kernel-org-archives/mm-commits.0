@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-printkh-use-space-after-define.patch added to -mm tree
-Date: Tue, 07 Dec 2010 15:29:53 -0800
-Message-ID: <201012072329.oB7NTrvb014434@imap1.linux-foundation.org>
+Subject: + include-linux-printkh-move-console-functions-and-variables-together.patch added to -mm tree
+Date: Tue, 07 Dec 2010 15:29:50 -0800
+Message-ID: <201012072329.oB7NTov3014424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752964Ab0LGXaI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 18:30:08 -0500
+	by vger.kernel.org with ESMTP id S1751815Ab0LGXaF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 18:30:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: joe@perches.com, mingo@elte.hu, mpm@selenic.com
 
 
 The patch titled
-     include/linux/printk.h: use space after #define
+     include/linux/printk.h: move console functions and variables together
 has been added to the -mm tree.  Its filename is
-     include-linux-printkh-use-space-after-define.patch
+     include-linux-printkh-move-console-functions-and-variables-together.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,8 +33,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/printk.h: use space after #define
+Subject: include/linux/printk.h: move console functions and variables together
 From: Joe Perches <joe@perches.com>
+
+There are many uses of printk_once(KERN_<level>, so add pr_<level>_once
+macros to avoid printk_once(KERN_<level> pr_fmt(fmt).
+
+Add an #ifdef CONFIG_PRINTK for print_hex_dump and static inline void
+functions for the #else cases to reduce embedded code size.  Neaten and
+organize the rest of the code.
+
+
+This patch:
+
+Move console functions and variables together.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -42,60 +54,41 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/printk.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/printk.h~include-linux-printkh-use-space-after-define include/linux/printk.h
---- a/include/linux/printk.h~include-linux-printkh-use-space-after-define
+diff -puN include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together
 +++ a/include/linux/printk.h
-@@ -4,14 +4,14 @@
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
+@@ -29,6 +29,17 @@ extern int console_printk[];
+ #define minimum_console_loglevel (console_printk[2])
+ #define default_console_loglevel (console_printk[3])
  
--#define	KERN_EMERG	"<0>"	/* system is unusable			*/
--#define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
--#define	KERN_CRIT	"<2>"	/* critical conditions			*/
--#define	KERN_ERR	"<3>"	/* error conditions			*/
--#define	KERN_WARNING	"<4>"	/* warning conditions			*/
--#define	KERN_NOTICE	"<5>"	/* normal but significant condition	*/
--#define	KERN_INFO	"<6>"	/* informational			*/
--#define	KERN_DEBUG	"<7>"	/* debug-level messages			*/
-+#define KERN_EMERG	"<0>"	/* system is unusable			*/
-+#define KERN_ALERT	"<1>"	/* action must be taken immediately	*/
-+#define KERN_CRIT	"<2>"	/* critical conditions			*/
-+#define KERN_ERR	"<3>"	/* error conditions			*/
-+#define KERN_WARNING	"<4>"	/* warning conditions			*/
-+#define KERN_NOTICE	"<5>"	/* normal but significant condition	*/
-+#define KERN_INFO	"<6>"	/* informational			*/
-+#define KERN_DEBUG	"<7>"	/* debug-level messages			*/
++static inline void console_silent(void)
++{
++	console_loglevel = 0;
++}
++
++static inline void console_verbose(void)
++{
++	if (console_loglevel)
++		console_loglevel = 15;
++}
++
+ struct va_format {
+ 	const char *fmt;
+ 	va_list *va;
+@@ -130,17 +141,6 @@ extern void printk_tick(void);
+ extern void asmlinkage __attribute__((format(printf, 1, 2)))
+ 	early_printk(const char *fmt, ...);
  
- /* Use the default kernel loglevel */
- #define KERN_DEFAULT	"<d>"
-@@ -20,7 +20,7 @@ extern const char linux_proc_banner[];
-  * line that had no enclosing \n). Only to be used by core/arch code
-  * during early bootup (a continued line is not SMP-safe otherwise).
-  */
--#define	KERN_CONT	"<c>"
-+#define KERN_CONT	"<c>"
- 
- extern int console_printk[];
- 
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-linux-next.patch
-mm-convert-sprintf_symbol-to-%ps.patch
-include-linux-printkh-move-console-functions-and-variables-together.patch
-include-linux-printkh-use-space-after-define.patch
-include-linux-printkh-use-and-neaten-no_printk.patch
-include-linux-printkh-add-pr_level_once-macros.patch
-include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard.patch
-include-linux-printkh-organize-printk_ratelimited-macros.patch
-include-linux-printkh-use-tab-not-spaces-for-indent.patch
-scripts-get_maintainerpl-make-rolestats-the-default.patch
-scripts-get_maintainerpl-use-git-fallback-more-often.patch
-scripts-checkpatchpl-add-check-for-multiple-terminating-semicolons-and-casts-of-vmalloc.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-
+-static inline void console_silent(void)
+-{
+-	console_loglevel = 0;
+-}
+-
+-static inline void console_verbose(void)
+-{
+-	if (console_loglevel)
+-		console_loglevel = 15;
+-}
