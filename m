@@ -1,114 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmstat-fix-dirty-threshold-ordering.patch removed from -mm tree
-Date: Tue, 07 Dec 2010 11:46:34 -0800
-Message-ID: <201012071948.oB7Jm9Xw004589@imap1.linux-foundation.org>
+Subject: [merged] cs5535-gpio-apply-cs5536-errata-workaround-for-gpios.patch removed from -mm tree
+Date: Tue, 07 Dec 2010 11:46:41 -0800
+Message-ID: <201012071948.oB7JmG1g004598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753845Ab0LGTsT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:19 -0500
+	by vger.kernel.org with ESMTP id S1752195Ab0LGTs1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 14:48:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, mrubin@google.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmstat: fix dirty threshold ordering
+     cs5535-gpio: apply CS5536 errata workaround for GPIOs
 has been removed from the -mm tree.  Its filename was
-     vmstat-fix-dirty-threshold-ordering.patch
+     cs5535-gpio-apply-cs5536-errata-workaround-for-gpios.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: fix dirty threshold ordering
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: cs5535-gpio: apply CS5536 errata workaround for GPIOs
+From: Andres Salomon <dilinger@queued.net>
 
-The nr_dirty_[background_]threshold fields are misplaced before the numa_*
-fields, and users will read strange values.
+The AMD Geode CS5536 Companion Device Silicon Revision B1 Specification
+Update mentions the follow as issue #36:
 
-This is the right order. Before patch, nr_dirty_background_threshold
-will read as 0 (the value from numa_miss).
+"Atomic write transactions to the atomic GPIO High Bank Feature Bit registers
+should only affect the bits selected [...]"
+"after Suspend, an atomic write transaction [...] will clear all non-selected
+bits of the accessed register."
 
-	numa_hit 128501
-	numa_miss 0
-	numa_foreign 0
-	numa_interleave 7388
-	numa_local 128501
-	numa_other 0
-	nr_dirty_threshold 144291
-	nr_dirty_background_threshold 72145
+In other words, writing to the high bank for a single GPIO bit will clear
+every other GPIO bit (but only sometimes after a suspend).  The workaround
+described is obvious and simple; do a read-modify-write.  This patch does
+that, and documents why we're doing it.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Michael Rubin <mrubin@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/cs5535-gpio.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-dirty-threshold-ordering mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-dirty-threshold-ordering
-+++ a/mm/vmstat.c
-@@ -750,8 +750,6 @@ static const char * const vmstat_text[] 
- 	"nr_shmem",
- 	"nr_dirtied",
- 	"nr_written",
--	"nr_dirty_threshold",
--	"nr_dirty_background_threshold",
+diff -puN drivers/gpio/cs5535-gpio.c~cs5535-gpio-apply-cs5536-errata-workaround-for-gpios drivers/gpio/cs5535-gpio.c
+--- a/drivers/gpio/cs5535-gpio.c~cs5535-gpio-apply-cs5536-errata-workaround-for-gpios
++++ a/drivers/gpio/cs5535-gpio.c
+@@ -56,6 +56,18 @@ static struct cs5535_gpio_chip {
+  * registers, see include/linux/cs5535.h.
+  */
  
- #ifdef CONFIG_NUMA
- 	"numa_hit",
-@@ -761,6 +759,8 @@ static const char * const vmstat_text[] 
- 	"numa_local",
- 	"numa_other",
- #endif
-+	"nr_dirty_threshold",
-+	"nr_dirty_background_threshold",
++static void errata_outl(u32 val, unsigned long addr)
++{
++	/*
++	 * According to the CS5536 errata (#36), after suspend
++	 * a write to the high bank GPIO register will clear all
++	 * non-selected bits; the recommended workaround is a
++	 * read-modify-write operation.
++	 */
++	val |= inl(addr);
++	outl(val, addr);
++}
++
+ static void __cs5535_gpio_set(struct cs5535_gpio_chip *chip, unsigned offset,
+ 		unsigned int reg)
+ {
+@@ -64,7 +76,7 @@ static void __cs5535_gpio_set(struct cs5
+ 		outl(1 << offset, chip->base + reg);
+ 	else
+ 		/* high bank register */
+-		outl(1 << (offset - 16), chip->base + 0x80 + reg);
++		errata_outl(1 << (offset - 16), chip->base + 0x80 + reg);
+ }
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
- 	"pgpgin",
+ void cs5535_gpio_set(unsigned offset, unsigned int reg)
+@@ -86,7 +98,7 @@ static void __cs5535_gpio_clear(struct c
+ 		outl(1 << (offset + 16), chip->base + reg);
+ 	else
+ 		/* high bank register */
+-		outl(1 << offset, chip->base + 0x80 + reg);
++		errata_outl(1 << offset, chip->base + 0x80 + reg);
+ }
+ 
+ void cs5535_gpio_clear(unsigned offset, unsigned int reg)
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 linux-next.patch
-writeback-integrated-background-writeback-work.patch
-writeback-trace-wakeup-event-for-background-writeback.patch
-writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
-writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
-writeback-avoid-livelocking-wb_sync_all-writeback.patch
-writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-mm-page-writebackc-fix-__set_page_dirty_no_writeback-return-value.patch
-mm-find_get_pages_contig-fixlet.patch
-mm-smaps-export-mlock-information.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality.patch
+drivers-staging-olpc_dcon-convert-to-new-cs5535-gpio-api.patch
 
