@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-xo-1-suspend-resume-support.patch added to -mm tree
-Date: Wed, 08 Dec 2010 14:40:52 -0800
-Message-ID: <201012082240.oB8MeqPg013784@imap1.linux-foundation.org>
+Subject: [failures] x86-olpc-add-xo-1-suspend-resume-support.patch removed from -mm tree
+Date: Wed, 08 Dec 2010 14:51:03 -0800
+Message-ID: <201012082251.oB8Mp3dC014243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753406Ab0LHWlt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 17:41:49 -0500
+	by vger.kernel.org with ESMTP id S932072Ab0LHWvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 17:51:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+To: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      x86: OLPC: add XO-1 suspend/resume support
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-olpc-add-xo-1-suspend-resume-support.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -662,6 +652,5 @@ _
 Patches currently in -mm which might be from dsd@laptop.org are
 
 linux-next.patch
-x86-olpc-add-xo-1-suspend-resume-support.patch
 drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality.patch
 
