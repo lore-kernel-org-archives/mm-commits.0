@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rwsem-implement-rwsem_is_contended.patch added to -mm tree
-Date: Wed, 08 Dec 2010 15:42:40 -0800
-Message-ID: <201012082342.oB8NgeSk016598@imap1.linux-foundation.org>
+Subject: + mm-add-foll_mlock-follow_page-flag.patch added to -mm tree
+Date: Wed, 08 Dec 2010 15:42:34 -0800
+Message-ID: <201012082342.oB8NgYTt016587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754430Ab0LHXnQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:43:16 -0500
+	by vger.kernel.org with ESMTP id S1754184Ab0LHXnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: walken@google.com, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kos
 
 
 The patch titled
-     rwsem: implement rwsem_is_contended()
+     mm: add FOLL_MLOCK follow_page flag.
 has been added to the -mm tree.  Its filename is
-     rwsem-implement-rwsem_is_contended.patch
+     mm-add-foll_mlock-follow_page-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: implement rwsem_is_contended()
+Subject: mm: add FOLL_MLOCK follow_page flag.
 From: Michel Lespinasse <walken@google.com>
 
-Trivial implementations for rwsem_is_contended()
+Move the code to mlock pages from __mlock_vma_pages_range() to
+follow_page().
+
+This allows __mlock_vma_pages_range() to not have to break down work into
+16-page batches.
+
+An additional motivation for doing this within the present patch series is
+that it'll make it easier for a later chagne to drop mmap_sem when
+blocking on disk (we'd like to be able to resume at the page that was read
+from disk instead of at the start of a 16-page batch).
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -51,173 +60,134 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/rwsem.h   |    5 +++++
- arch/ia64/include/asm/rwsem.h    |    5 +++++
- arch/powerpc/include/asm/rwsem.h |    5 +++++
- arch/s390/include/asm/rwsem.h    |    5 +++++
- arch/sh/include/asm/rwsem.h      |    5 +++++
- arch/sparc/include/asm/rwsem.h   |    5 +++++
- arch/x86/include/asm/rwsem.h     |    5 +++++
- arch/xtensa/include/asm/rwsem.h  |    5 +++++
- include/linux/rwsem-spinlock.h   |    1 +
- lib/rwsem-spinlock.c             |   12 ++++++++++++
- 10 files changed, 53 insertions(+)
+ include/linux/mm.h |    1 
+ mm/memory.c        |   22 ++++++++++++++
+ mm/mlock.c         |   65 +++----------------------------------------
+ 3 files changed, 28 insertions(+), 60 deletions(-)
 
-diff -puN arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/alpha/include/asm/rwsem.h
---- a/arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/alpha/include/asm/rwsem.h
-@@ -255,5 +255,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
+diff -puN include/linux/mm.h~mm-add-foll_mlock-follow_page-flag include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-foll_mlock-follow_page-flag
++++ a/include/linux/mm.h
+@@ -1420,6 +1420,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+ #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+ #define FOLL_MINOR	0x20	/* do only minor page faults */
++#define FOLL_MLOCK	0x40	/* mark page as mlocked */
  
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ALPHA_RWSEM_H */
-diff -puN arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/ia64/include/asm/rwsem.h
---- a/arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/ia64/include/asm/rwsem.h
-@@ -179,4 +179,9 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* _ASM_IA64_RWSEM_H */
-diff -puN arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/powerpc/include/asm/rwsem.h
---- a/arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/powerpc/include/asm/rwsem.h
-@@ -179,5 +179,10 @@ static inline int rwsem_is_locked(struct
- 	return sem->count != 0;
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return sem->count < 0;
-+}
-+
- #endif	/* __KERNEL__ */
- #endif	/* _ASM_POWERPC_RWSEM_H */
-diff -puN arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/s390/include/asm/rwsem.h
---- a/arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/s390/include/asm/rwsem.h
-@@ -382,5 +382,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _S390_RWSEM_H */
-diff -puN arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/sh/include/asm/rwsem.h
---- a/arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/sh/include/asm/rwsem.h
-@@ -184,5 +184,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_SH_RWSEM_H */
-diff -puN arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/sparc/include/asm/rwsem.h
---- a/arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/sparc/include/asm/rwsem.h
-@@ -165,6 +165,11 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _SPARC64_RWSEM_H */
-diff -puN arch/x86/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/x86/include/asm/rwsem.h
---- a/arch/x86/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/x86/include/asm/rwsem.h
-@@ -275,5 +275,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+	return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_X86_RWSEM_H */
-diff -puN arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/xtensa/include/asm/rwsem.h
---- a/arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/xtensa/include/asm/rwsem.h
-@@ -165,4 +165,9 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif	/* _XTENSA_RWSEM_H */
-diff -puN include/linux/rwsem-spinlock.h~rwsem-implement-rwsem_is_contended include/linux/rwsem-spinlock.h
---- a/include/linux/rwsem-spinlock.h~rwsem-implement-rwsem_is_contended
-+++ a/include/linux/rwsem-spinlock.h
-@@ -69,6 +69,7 @@ extern void __up_read(struct rw_semaphor
- extern void __up_write(struct rw_semaphore *sem);
- extern void __downgrade_write(struct rw_semaphore *sem);
- extern int rwsem_is_locked(struct rw_semaphore *sem);
-+extern int rwsem_is_contended(struct rw_semaphore *sem);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_RWSEM_SPINLOCK_H */
-diff -puN lib/rwsem-spinlock.c~rwsem-implement-rwsem_is_contended lib/rwsem-spinlock.c
---- a/lib/rwsem-spinlock.c~rwsem-implement-rwsem_is_contended
-+++ a/lib/rwsem-spinlock.c
-@@ -30,6 +30,18 @@ int rwsem_is_locked(struct rw_semaphore 
- }
- EXPORT_SYMBOL(rwsem_is_locked);
- 
-+int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+	int ret = 0;
-+	unsigned long flags;
-+
-+	if (spin_trylock_irqsave(&sem->wait_lock, flags)) {
-+		ret = !list_empty(&sem->wait_list);
-+		spin_unlock_irqrestore(&sem->wait_lock, flags);
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/memory.c~mm-add-foll_mlock-follow_page-flag mm/memory.c
+--- a/mm/memory.c~mm-add-foll_mlock-follow_page-flag
++++ a/mm/memory.c
+@@ -1310,6 +1310,28 @@ struct page *follow_page(struct vm_area_
+ 		 */
+ 		mark_page_accessed(page);
+ 	}
++	if (flags & FOLL_MLOCK) {
++		/*
++		 * The preliminary mapping check is mainly to avoid the
++		 * pointless overhead of lock_page on the ZERO_PAGE
++		 * which might bounce very badly if there is contention.
++		 *
++		 * If the page is already locked, we don't need to
++		 * handle it now - vmscan will handle it later if and
++		 * when it attempts to reclaim the page.
++		 */
++		if (page->mapping && trylock_page(page)) {
++			lru_add_drain();  /* push cached pages to LRU */
++			/*
++			 * Because we lock page here and migration is
++			 * blocked by the pte's page reference, we need
++			 * only check for file-cache page truncation.
++			 */
++			if (page->mapping)
++				mlock_vma_page(page);
++			unlock_page(page);
++		}
 +	}
-+	return ret;
-+}
-+
- /*
-  * initialise the semaphore
-  */
-_
-
-Patches currently in -mm which might be from walken@google.com are
-
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
-rwsem-implement-rwsem_is_contended.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
-x86-rwsem-more-precise-rwsem_is_contended-implementation.patch
-
+ unlock:
+ 	pte_unmap_unlock(ptep, ptl);
+ out:
+diff -puN mm/mlock.c~mm-add-foll_mlock-follow_page-flag mm/mlock.c
+--- a/mm/mlock.c~mm-add-foll_mlock-follow_page-flag
++++ a/mm/mlock.c
+@@ -159,10 +159,9 @@ static long __mlock_vma_pages_range(stru
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long addr = start;
+-	struct page *pages[16]; /* 16 gives a reasonable batch */
+ 	int nr_pages = (end - start) / PAGE_SIZE;
+-	int ret = 0;
+ 	int gup_flags;
++	int ret;
+ 
+ 	VM_BUG_ON(start & ~PAGE_MASK);
+ 	VM_BUG_ON(end   & ~PAGE_MASK);
+@@ -170,7 +169,7 @@ static long __mlock_vma_pages_range(stru
+ 	VM_BUG_ON(end   > vma->vm_end);
+ 	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
+ 
+-	gup_flags = FOLL_TOUCH | FOLL_GET;
++	gup_flags = FOLL_TOUCH | FOLL_MLOCK;
+ 	/*
+ 	 * We want to touch writable mappings with a write fault in order
+ 	 * to break COW, except for shared mappings because these don't COW
+@@ -185,63 +184,9 @@ static long __mlock_vma_pages_range(stru
+ 		nr_pages--;
+ 	}
+ 
+-	while (nr_pages > 0) {
+-		int i;
+-
+-		cond_resched();
+-
+-		/*
+-		 * get_user_pages makes pages present if we are
+-		 * setting mlock. and this extra reference count will
+-		 * disable migration of this page.  However, page may
+-		 * still be truncated out from under us.
+-		 */
+-		ret = __get_user_pages(current, mm, addr,
+-				min_t(int, nr_pages, ARRAY_SIZE(pages)),
+-				gup_flags, pages, NULL);
+-		/*
+-		 * This can happen for, e.g., VM_NONLINEAR regions before
+-		 * a page has been allocated and mapped at a given offset,
+-		 * or for addresses that map beyond end of a file.
+-		 * We'll mlock the pages if/when they get faulted in.
+-		 */
+-		if (ret < 0)
+-			break;
+-
+-		lru_add_drain();	/* push cached pages to LRU */
+-
+-		for (i = 0; i < ret; i++) {
+-			struct page *page = pages[i];
+-
+-			if (page->mapping) {
+-				/*
+-				 * That preliminary check is mainly to avoid
+-				 * the pointless overhead of lock_page on the
+-				 * ZERO_PAGE: which might bounce very badly if
+-				 * there is contention.  However, we're still
+-				 * dirtying its cacheline with get/put_page:
+-				 * we'll add another __get_user_pages flag to
+-				 * avoid it if that case turns out to matter.
+-				 */
+-				lock_page(page);
+-				/*
+-				 * Because we lock page here and migration is
+-				 * blocked by the elevated reference, we need
+-				 * only check for file-cache page truncation.
+-				 */
+-				if (page->mapping)
+-					mlock_vma_page(page);
+-				unlock_page(page);
+-			}
+-			put_page(page);	/* ref from get_user_pages() */
+-		}
+-
+-		addr += ret * PAGE_SIZE;
+-		nr_pages -= ret;
+-		ret = 0;
+-	}
