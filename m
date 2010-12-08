@@ -1,94 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch removed from -mm tree
-Date: Wed, 08 Dec 2010 11:51:04 -0800
-Message-ID: <201012081952.oB8JqlLH005730@imap1.linux-foundation.org>
+Subject: [alternative-merged] percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations.patch removed from -mm tree
+Date: Wed, 08 Dec 2010 11:50:52 -0800
+Message-ID: <201012081952.oB8JqZU4005657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55446 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753748Ab0LHTw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 14:52:59 -0500
+	by vger.kernel.org with ESMTP id S1755862Ab0LHTxH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 14:53:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: cl@linux.com, eric.dumazet@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300: Fix interrupt mask alteration function call name in gdbstub
+     percpu_counter: optimize __percpu_counter_add a bit through the use of this_cpu operations
 has been removed from the -mm tree.  Its filename was
-     mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
+     percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: Fix interrupt mask alteration function call name in gdbstub
-From: David Howells <dhowells@redhat.com>
+Subject: percpu_counter: optimize __percpu_counter_add a bit through the use of this_cpu operations
+From: Christoph Lameter <cl@linux.com>
 
-Fix name of interrupt mask alteration function
-(local_change_intr_mask_level()) called in gdbstub to have an arch_ prefix
-to match the definition in asm/irqflags.h.
+this_cpu_* operations can be used to optimize __percpu_counter_add a bit. 
+Avoids some address arithmetic and saves 12 bytes.
 
-(akpm: appears to fix a build error)
+Before:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+00000000000001d3 <__percpu_counter_add>:
+ 1d3:	55                   	push   %rbp
+ 1d4:	48 89 e5             	mov    %rsp,%rbp
+ 1d7:	41 55                	push   %r13
+ 1d9:	41 54                	push   %r12
+ 1db:	53                   	push   %rbx
+ 1dc:	48 89 fb             	mov    %rdi,%rbx
+ 1df:	48 83 ec 08          	sub    $0x8,%rsp
+ 1e3:	4c 8b 67 30          	mov    0x30(%rdi),%r12
+ 1e7:	65 4c 03 24 25 00 00 	add    %gs:0x0,%r12
+ 1ee:	00 00
+ 1f0:	4d 63 2c 24          	movslq (%r12),%r13
+ 1f4:	48 63 c2             	movslq %edx,%rax
+ 1f7:	49 01 f5             	add    %rsi,%r13
+ 1fa:	49 39 c5             	cmp    %rax,%r13
+ 1fd:	7d 0a                	jge    209 <__percpu_counter_add+0x36>
+ 1ff:	f7 da                	neg    %edx
+ 201:	48 63 d2             	movslq %edx,%rdx
+ 204:	49 39 d5             	cmp    %rdx,%r13
+ 207:	7f 1e                	jg     227 <__percpu_counter_add+0x54>
+ 209:	48 89 df             	mov    %rbx,%rdi
+ 20c:	e8 00 00 00 00       	callq  211 <__percpu_counter_add+0x3e>
+ 211:	4c 01 6b 18          	add    %r13,0x18(%rbx)
+ 215:	48 89 df             	mov    %rbx,%rdi
+ 218:	41 c7 04 24 00 00 00 	movl   $0x0,(%r12)
+ 21f:	00
+ 220:	e8 00 00 00 00       	callq  225 <__percpu_counter_add+0x52>
+ 225:	eb 04                	jmp    22b <__percpu_counter_add+0x58>
+ 227:	45 89 2c 24          	mov    %r13d,(%r12)
+ 22b:	5b                   	pop    %rbx
+ 22c:	5b                   	pop    %rbx
+ 22d:	41 5c                	pop    %r12
+ 22f:	41 5d                	pop    %r13
+ 231:	c9                   	leaveq
+ 232:	c3                   	retq
+
+After:
+
+00000000000001d3 <__percpu_counter_add>:
+ 1d3:	55                   	push   %rbp
+ 1d4:	48 63 ca             	movslq %edx,%rcx
+ 1d7:	48 89 e5             	mov    %rsp,%rbp
+ 1da:	41 54                	push   %r12
+ 1dc:	53                   	push   %rbx
+ 1dd:	48 89 fb             	mov    %rdi,%rbx
+ 1e0:	48 8b 47 30          	mov    0x30(%rdi),%rax
+ 1e4:	65 44 8b 20          	mov    %gs:(%rax),%r12d
+ 1e8:	4d 63 e4             	movslq %r12d,%r12
+ 1eb:	49 01 f4             	add    %rsi,%r12
+ 1ee:	49 39 cc             	cmp    %rcx,%r12
+ 1f1:	7d 0a                	jge    1fd <__percpu_counter_add+0x2a>
+ 1f3:	f7 da                	neg    %edx
+ 1f5:	48 63 d2             	movslq %edx,%rdx
+ 1f8:	49 39 d4             	cmp    %rdx,%r12
+ 1fb:	7f 21                	jg     21e <__percpu_counter_add+0x4b>
+ 1fd:	48 89 df             	mov    %rbx,%rdi
+ 200:	e8 00 00 00 00       	callq  205 <__percpu_counter_add+0x32>
+ 205:	4c 01 63 18          	add    %r12,0x18(%rbx)
+ 209:	48 8b 43 30          	mov    0x30(%rbx),%rax
+ 20d:	48 89 df             	mov    %rbx,%rdi
+ 210:	65 c7 00 00 00 00 00 	movl   $0x0,%gs:(%rax)
+ 217:	e8 00 00 00 00       	callq  21c <__percpu_counter_add+0x49>
+ 21c:	eb 04                	jmp    222 <__percpu_counter_add+0x4f>
+ 21e:	65 44 89 20          	mov    %r12d,%gs:(%rax)
+ 222:	5b                   	pop    %rbx
+ 223:	41 5c                	pop    %r12
+ 225:	c9                   	leaveq
+ 226:	c3                   	retq
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/gdb-io-serial.c |    3 ++-
- arch/mn10300/kernel/gdb-io-ttysm.c  |    3 ++-
- arch/mn10300/kernel/gdb-stub.c      |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ lib/percpu_counter.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-serial.c
---- a/arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-io-serial.c
-@@ -73,7 +73,8 @@ void gdbstub_io_init(void)
- 	GDBPORT_SERIAL_IER = UART_IER_RDI | UART_IER_RLSI;
+diff -puN lib/percpu_counter.c~percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpucounter-optimize-__percpu_counter_add-a-bit-through-the-use-of-this_cpu-operations
++++ a/lib/percpu_counter.c
+@@ -72,18 +72,16 @@ EXPORT_SYMBOL(percpu_counter_set);
+ void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
+ {
+ 	s64 count;
+-	s32 *pcount;
  
- 	/* permit level 0 IRQs to take place */
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
+ 	preempt_disable();
+-	pcount = this_cpu_ptr(fbc->counters);
+-	count = *pcount + amount;
++	count = this_cpu_read(*fbc->counters) + amount;
+ 	if (count >= batch || count <= -batch) {
+ 		spin_lock(&fbc->lock);
+ 		fbc->count += count;
+-		*pcount = 0;
++		this_cpu_write(*fbc->counters, 0);
+ 		spin_unlock(&fbc->lock);
+ 	} else {
+-		*pcount = count;
++		this_cpu_write(*fbc->counters, count);
+ 	}
+ 	preempt_enable();
  }
- 
- /*
-diff -puN arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-ttysm.c
---- a/arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-io-ttysm.c
-@@ -87,7 +87,8 @@ void __init gdbstub_io_init(void)
- 	tmp = *gdbstub_port->_control;
- 
- 	/* permit level 0 IRQs only */
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
- }
- 
- /*
-diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-stub.c
---- a/arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
-+++ a/arch/mn10300/kernel/gdb-stub.c
-@@ -1194,7 +1194,8 @@ static int gdbstub(struct pt_regs *regs,
- 
- 	asm volatile("mov mdr,%0" : "=d"(mdr));
- 	local_save_flags(epsw);
--	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
-+	arch_local_change_intr_mask_level(
-+		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
- 
- 	gdbstub_store_fpu();
- 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from cl@linux.com are
 
-origin.patch
 linux-next.patch
-frv-duplicate-output_buffer-of-e03.patch
-set_rtc_mmss-show-warning-message-only-once.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+irq-use-per_cpu-kstat_irqs.patch
+timers-use-this_cpu_read.patch
+mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
+mm-remove-unused-get_vm_area_node.patch
+mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
+mm-unify-module_alloc-code-for-vmalloc.patch
 
