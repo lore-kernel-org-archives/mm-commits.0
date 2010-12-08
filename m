@@ -1,112 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + vmware-balloon-stop-locking-pages-when-hypervisor-tells-us-enough.patch added to -mm tree
-Date: Tue, 07 Dec 2010 17:10:32 -0800
-Message-ID: <201012080110.oB81AWvL019574@imap1.linux-foundation.org>
+Subject: [merged] mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch removed from -mm tree
+Date: Wed, 08 Dec 2010 11:51:04 -0800
+Message-ID: <201012081952.oB8JqlLH005730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756563Ab0LHBSr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2010 20:18:47 -0500
+	by vger.kernel.org with ESMTP id S1753748Ab0LHTw7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 14:52:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dtor@vmware.com
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VMware balloon: stop locking pages when hypervisor tells us enough
-has been added to the -mm tree.  Its filename is
-     vmware-balloon-stop-locking-pages-when-hypervisor-tells-us-enough.patch
+     mn10300: Fix interrupt mask alteration function call name in gdbstub
+has been removed from the -mm tree.  Its filename was
+     mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VMware balloon: stop locking pages when hypervisor tells us enough
-From: Dmitry Torokhov <dtor@vmware.com>
+Subject: mn10300: Fix interrupt mask alteration function call name in gdbstub
+From: David Howells <dhowells@redhat.com>
 
-When hypervisor decides to decrease target balloon size while the balloon
-driver tries to lock pages hypervisor may respond with
-VMW_BALLOON_PPN_NOTNEEDED.  Use this data and immediately stop reserving
-pages and wait for the next update cycle to fetch new target instead of
-continuing trying to lock pages until size of refused list grows above
-VMW_BALLOON_MAX_REFUSED (16) pages.
+Fix name of interrupt mask alteration function
+(local_change_intr_mask_level()) called in gdbstub to have an arch_ prefix
+to match the definition in asm/irqflags.h.
 
-Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
+(akpm: appears to fix a build error)
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/vmw_balloon.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ arch/mn10300/kernel/gdb-io-serial.c |    3 ++-
+ arch/mn10300/kernel/gdb-io-ttysm.c  |    3 ++-
+ arch/mn10300/kernel/gdb-stub.c      |    3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/vmw_balloon.c~vmware-balloon-stop-locking-pages-when-hypervisor-tells-us-enough drivers/misc/vmw_balloon.c
---- a/drivers/misc/vmw_balloon.c~vmware-balloon-stop-locking-pages-when-hypervisor-tells-us-enough
-+++ a/drivers/misc/vmw_balloon.c
-@@ -45,7 +45,7 @@
+diff -puN arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-serial.c
+--- a/arch/mn10300/kernel/gdb-io-serial.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-io-serial.c
+@@ -73,7 +73,8 @@ void gdbstub_io_init(void)
+ 	GDBPORT_SERIAL_IER = UART_IER_RDI | UART_IER_RLSI;
  
- MODULE_AUTHOR("VMware, Inc.");
- MODULE_DESCRIPTION("VMware Memory Control (Balloon) Driver");
--MODULE_VERSION("1.2.1.1-k");
-+MODULE_VERSION("1.2.1.2-k");
- MODULE_ALIAS("dmi:*:svnVMware*:*");
- MODULE_ALIAS("vmware_vmmemctl");
- MODULE_LICENSE("GPL");
-@@ -315,7 +315,8 @@ static bool vmballoon_send_get_target(st
-  * fear that guest will need it. Host may reject some pages, we need to
-  * check the return value and maybe submit a different page.
-  */
--static bool vmballoon_send_lock_page(struct vmballoon *b, unsigned long pfn)
-+static bool vmballoon_send_lock_page(struct vmballoon *b, unsigned long pfn,
-+				     unsigned int *hv_status)
- {
- 	unsigned long status, dummy;
- 	u32 pfn32;
-@@ -326,7 +327,7 @@ static bool vmballoon_send_lock_page(str
+ 	/* permit level 0 IRQs to take place */
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
+ }
  
- 	STATS_INC(b->stats.lock);
+ /*
+diff -puN arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-io-ttysm.c
+--- a/arch/mn10300/kernel/gdb-io-ttysm.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-io-ttysm.c
+@@ -87,7 +87,8 @@ void __init gdbstub_io_init(void)
+ 	tmp = *gdbstub_port->_control;
  
--	status = VMWARE_BALLOON_CMD(LOCK, pfn, dummy);
-+	*hv_status = status = VMWARE_BALLOON_CMD(LOCK, pfn, dummy);
- 	if (vmballoon_check_status(b, status))
- 		return true;
+ 	/* permit level 0 IRQs only */
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
+ }
  
-@@ -410,6 +411,7 @@ static int vmballoon_reserve_page(struct
- {
- 	struct page *page;
- 	gfp_t flags;
-+	unsigned int hv_status;
- 	bool locked = false;
+ /*
+diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub arch/mn10300/kernel/gdb-stub.c
+--- a/arch/mn10300/kernel/gdb-stub.c~mn10300-fix-interrupt-mask-alteration-function-call-name-in-gdbstub
++++ a/arch/mn10300/kernel/gdb-stub.c
+@@ -1194,7 +1194,8 @@ static int gdbstub(struct pt_regs *regs,
  
- 	do {
-@@ -429,11 +431,12 @@ static int vmballoon_reserve_page(struct
- 		}
+ 	asm volatile("mov mdr,%0" : "=d"(mdr));
+ 	local_save_flags(epsw);
+-	local_change_intr_mask_level(NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
++	arch_local_change_intr_mask_level(
++		NUM2EPSW_IM(CONFIG_GDBSTUB_IRQ_LEVEL + 1));
  
- 		/* inform monitor */
--		locked = vmballoon_send_lock_page(b, page_to_pfn(page));
-+		locked = vmballoon_send_lock_page(b, page_to_pfn(page), &hv_status);
- 		if (!locked) {
- 			STATS_INC(b->stats.refused_alloc);
+ 	gdbstub_store_fpu();
  
--			if (b->reset_required) {
-+			if (hv_status == VMW_BALLOON_ERROR_RESET ||
-+			    hv_status == VMW_BALLOON_ERROR_PPN_NOTNEEDED) {
- 				__free_page(page);
- 				return -EIO;
- 			}
 _
 
-Patches currently in -mm which might be from dtor@vmware.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-vmware-balloon-stop-locking-pages-when-hypervisor-tells-us-enough.patch
+origin.patch
+linux-next.patch
+frv-duplicate-output_buffer-of-e03.patch
+set_rtc_mmss-show-warning-message-only-once.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
