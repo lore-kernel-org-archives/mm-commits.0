@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-do-uninterruptible-sleep-in-balance_dirty_pages.patch added to -mm tree
-Date: Wed, 08 Dec 2010 15:55:20 -0800
-Message-ID: <201012082355.oB8NtKv6017176@imap1.linux-foundation.org>
+Subject: + mempolicy-remove-tasklist_lock-from-migrate_pages.patch added to -mm tree
+Date: Wed, 08 Dec 2010 15:57:13 -0800
+Message-ID: <201012082357.oB8NvD3m017233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103Ab0LHXzW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:55:22 -0500
+	by vger.kernel.org with ESMTP id S1755283Ab0LHX5W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:57:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, peterz@infradead.org
 
 
 The patch titled
-     writeback: do uninterruptible sleep in balance_dirty_pages()
+     mempolicy: remove tasklist_lock from migrate_pages
 has been added to the -mm tree.  Its filename is
-     writeback-do-uninterruptible-sleep-in-balance_dirty_pages.patch
+     mempolicy-remove-tasklist_lock-from-migrate_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: do uninterruptible sleep in balance_dirty_pages()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mempolicy: remove tasklist_lock from migrate_pages
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Using TASK_INTERRUPTIBLE in balance_dirty_pages() seems wrong.  If it's
-going to do that then it must break out if signal_pending(), otherwise
-it's pretty much guaranteed to degenerate into a busywait loop.  Plus we
-*do* want these processes to appear in D state and to contribute to load
-average.
+Today, tasklist_lock in migrate_pages doesn't protect anything. 
+rcu_read_lock() provide enough protection from pid hash walk.
 
-So it should be TASK_UNINTERRUPTIBLE.                 -- Andrew Morton
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reported-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-do-uninterruptible-sleep-in-balance_dirty_pages mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-do-uninterruptible-sleep-in-balance_dirty_pages
-+++ a/mm/page-writeback.c
-@@ -563,7 +563,7 @@ static void balance_dirty_pages(struct a
- 				break;		/* We've done our duty */
- 		}
- 		trace_wbc_balance_dirty_wait(&wbc, bdi);
--		__set_current_state(TASK_INTERRUPTIBLE);
-+		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		io_schedule_timeout(pause);
+diff -puN mm/mempolicy.c~mempolicy-remove-tasklist_lock-from-migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-remove-tasklist_lock-from-migrate_pages
++++ a/mm/mempolicy.c
+@@ -1310,16 +1310,13 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
  
- 		/*
+ 	/* Find the mm_struct */
+ 	rcu_read_lock();
+-	read_lock(&tasklist_lock);
+ 	task = pid ? find_task_by_vpid(pid) : current;
+ 	if (!task) {
+-		read_unlock(&tasklist_lock);
+ 		rcu_read_unlock();
+ 		err = -ESRCH;
+ 		goto out;
+ 	}
+ 	mm = get_task_mm(task);
+-	read_unlock(&tasklist_lock);
+ 	rcu_read_unlock();
+ 
+ 	err = -EINVAL;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 linux-next.patch
-writeback-do-uninterruptible-sleep-in-balance_dirty_pages.patch
-writeback-integrated-background-writeback-work.patch
-writeback-trace-wakeup-event-for-background-writeback.patch
-writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
-writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
-writeback-avoid-livelocking-wb_sync_all-writeback.patch
-writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
@@ -94,16 +91,28 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-writeback-enabling-gate-for-light-dirtied-bdi.patch
-writeback-enabling-gate-for-light-dirtied-bdi-fix.patch
-writeback-safety-margin-for-bdi-stat-error.patch
-mm-page-writebackc-fix-__set_page_dirty_no_writeback-return-value.patch
-mm-find_get_pages_contig-fixlet.patch
-mm-smaps-export-mlock-information.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-deactivate-invalidated-pages.patch
+mm-deactivate-invalidated-pages-fix.patch
+oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
+do_wp_page-remove-the-reuse-flag.patch
+do_wp_page-clarify-dirty_page-handling.patch
+mlock-avoid-dirtying-pages-and-triggering-writeback.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+mm-add-foll_mlock-follow_page-flag.patch
+mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
+rwsem-implement-rwsem_is_contended.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+x86-rwsem-more-precise-rwsem_is_contended-implementation.patch
+mempolicy-remove-tasklist_lock-from-migrate_pages.patch
+kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths.patch
 
