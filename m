@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch added to -mm tree
-Date: Wed, 08 Dec 2010 15:42:43 -0800
-Message-ID: <201012082342.oB8NghR2016604@imap1.linux-foundation.org>
+Subject: + x86-rwsem-more-precise-rwsem_is_contended-implementation.patch added to -mm tree
+Date: Wed, 08 Dec 2010 15:42:45 -0800
+Message-ID: <201012082342.oB8NgkKa016607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50664 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754208Ab0LHXnS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:43:18 -0500
+	by vger.kernel.org with ESMTP id S1754208Ab0LHXnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2010 18:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: walken@google.com, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kos
 
 
 The patch titled
-     mlock: do not hold mmap_sem for extended periods of time
+     x86 rwsem: more precise rwsem_is_contended() implementation
 has been added to the -mm tree.  Its filename is
-     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+     x86-rwsem-more-precise-rwsem_is_contended-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: do not hold mmap_sem for extended periods of time
+Subject: x86 rwsem: more precise rwsem_is_contended() implementation
 From: Michel Lespinasse <walken@google.com>
 
-__get_user_pages gets a new 'nonblocking' parameter to signal that the
-caller is prepared to re-acquire mmap_sem and retry the operation if
-needed.  This is used to split off long operations if they are going to
-block on a disk transfer, or when we detect contention on the mmap_sem.
+We would like rwsem_is_contended() to return true only once a contending
+writer has had a chance to insert itself onto the rwsem wait queue.  To
+that end, we need to differenciate between active and queued writers.
+
+A new property is introduced: RWSEM_ACTIVE_WRITE_BIAS is set to be 'more
+negative' than RWSEM_WAITING_BIAS.  RWSEM_WAITING_MASK designates a bit in
+the rwsem count that will be set only when RWSEM_WAITING_BIAS is in
+effect.
+
+The basic properties that have been true so far also still hold:
+- RWSEM_ACTIVE_READ_BIAS  & RWSEM_ACTIVE_MASK == 1
+- RWSEM_ACTIVE_WRITE_BIAS & RWSEM_ACTIVE_MASK == 1
+- RWSEM_WAITING_BIAS      & RWSEM_ACTIVE_MASK == 0
+- RWSEM_ACTIVE_WRITE_BIAS < 0 and RWSEM_WAITING_BIAS < 0
+
+In addition, the rwsem count will be < RWSEM_WAITING_BIAS only if there
+are any active writers (though we don't make use of this property so far).
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -54,221 +67,107 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 ++-
- mm/memory.c   |   35 ++++++++++++++++++++++++++---------
- mm/mlock.c    |   32 +++++++++++++++++++-------------
- mm/nommu.c    |    6 ++++--
- 4 files changed, 51 insertions(+), 25 deletions(-)
+ arch/x86/include/asm/rwsem.h |   32 +++++++++++++++++++-------------
+ arch/x86/lib/rwsem_64.S      |    4 ++--
+ arch/x86/lib/semaphore_32.S  |    4 ++--
+ 3 files changed, 23 insertions(+), 17 deletions(-)
 
-diff -puN mm/internal.h~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time mm/internal.h
---- a/mm/internal.h~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time
-+++ a/mm/internal.h
-@@ -243,7 +243,8 @@ static inline void mminit_validate_memmo
- 
- int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		     unsigned long start, int len, unsigned int foll_flags,
--		     struct page **pages, struct vm_area_struct **vmas);
-+		     struct page **pages, struct vm_area_struct **vmas,
-+		     int *nonblocking);
- 
- #define ZONE_RECLAIM_NOSCAN	-2
- #define ZONE_RECLAIM_FULL	-1
-diff -puN mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time mm/memory.c
---- a/mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time
-+++ a/mm/memory.c
-@@ -1363,7 +1363,8 @@ no_page_table:
- 
- int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		     unsigned long start, int nr_pages, unsigned int gup_flags,
--		     struct page **pages, struct vm_area_struct **vmas)
-+		     struct page **pages, struct vm_area_struct **vmas,
-+		     int *nonblocking)
- {
- 	int i;
- 	unsigned long vm_flags;
-@@ -1463,13 +1464,17 @@ int __get_user_pages(struct task_struct 
- 			cond_resched();
- 			while (!(page = follow_page(vma, start, foll_flags))) {
- 				int ret;
--				unsigned int fault_fl =
--					((foll_flags & FOLL_WRITE) ?
--					FAULT_FLAG_WRITE : 0) |
--					((foll_flags & FOLL_MINOR) ?
--					FAULT_FLAG_MINOR : 0);
-+				unsigned int fault_flags = 0;
- 
--				ret = handle_mm_fault(mm, vma, start, fault_fl);
-+				if (foll_flags & FOLL_WRITE)
-+					fault_flags |= FAULT_FLAG_WRITE;
-+				if (nonblocking)
-+					fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+				if (foll_flags & FOLL_MINOR)
-+					fault_flags |= FAULT_FLAG_MINOR;
-+
-+				ret = handle_mm_fault(mm, vma, start,
-+							fault_flags);
- 
- 				if (ret & VM_FAULT_ERROR) {
- 					if (ret & VM_FAULT_OOM)
-@@ -1487,6 +1492,11 @@ int __get_user_pages(struct task_struct 
- 				else
- 					tsk->min_flt++;
- 
-+				if (ret & VM_FAULT_RETRY) {
-+					*nonblocking = 0;
-+					return i;
-+				}
-+
- 				/*
- 				 * The VM_FAULT_WRITE bit tells us that
- 				 * do_wp_page has broken COW when necessary,
-@@ -1518,6 +1528,11 @@ int __get_user_pages(struct task_struct 
- 			i++;
- 			start += PAGE_SIZE;
- 			nr_pages--;
-+			if (nonblocking && rwsem_is_contended(&mm->mmap_sem)) {
-+				up_read(&mm->mmap_sem);
-+				*nonblocking = 0;
-+				return i;
-+			}
- 		} while (nr_pages && start < vma->vm_end);
- 	} while (nr_pages);
- 	return i;
-@@ -1586,7 +1601,8 @@ int get_user_pages(struct task_struct *t
- 	if (force)
- 		flags |= FOLL_FORCE;
- 
--	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
-+	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas,
-+				NULL);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
-@@ -1628,7 +1644,8 @@ struct page *get_dump_page(unsigned long
- 	struct page *page;
- 
- 	if (__get_user_pages(current, current->mm, addr, 1,
--			FOLL_FORCE | FOLL_DUMP | FOLL_GET, &page, &vma) < 1)
-+			     FOLL_FORCE | FOLL_DUMP | FOLL_GET, &page, &vma,
-+			     NULL) < 1)
- 		return NULL;
- 	flush_cache_page(vma, addr, page_to_pfn(page));
- 	return page;
-diff -puN mm/mlock.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time mm/mlock.c
---- a/mm/mlock.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time
-+++ a/mm/mlock.c
-@@ -155,13 +155,13 @@ static inline int stack_guard_page(struc
-  * vma->vm_mm->mmap_sem must be held for at least read.
+diff -puN arch/x86/include/asm/rwsem.h~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/include/asm/rwsem.h
+--- a/arch/x86/include/asm/rwsem.h~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/include/asm/rwsem.h
+@@ -16,11 +16,10 @@
+  * if there are writers (and maybe) readers waiting (in which case it goes to
+  * sleep).
+  *
+- * The value of WAITING_BIAS supports up to 32766 waiting processes. This can
+- * be extended to 65534 by manually checking the whole MSW rather than relying
+- * on the S flag.
++ * The WRITE_BIAS value supports up to 32767 processes simultaneously
++ * trying to acquire a write lock.
+  *
+- * The value of ACTIVE_BIAS supports up to 65535 active processes.
++ * The value of ACTIVE_MASK supports up to 32767 active processes.
+  *
+  * This should be totally fair - if anything is waiting, a process that wants a
+  * lock will go to the back of the queue. When the currently active lock is
+@@ -62,17 +61,23 @@ extern asmregparm struct rw_semaphore *
+  * for 64 bits.
   */
- static long __mlock_vma_pages_range(struct vm_area_struct *vma,
--				    unsigned long start, unsigned long end)
-+				    unsigned long start, unsigned long end,
-+				    int *nonblocking)
+ 
++
+ #ifdef CONFIG_X86_64
+-# define RWSEM_ACTIVE_MASK		0xffffffffL
++# define RWSEM_UNLOCKED_VALUE		0x0000000000000000L
++# define RWSEM_ACTIVE_MASK		0x000000007fffffffL
++# define RWSEM_ACTIVE_READ_BIAS		0x0000000000000001L
++# define RWSEM_ACTIVE_WRITE_BIAS	0xffffffff00000001L
++# define RWSEM_WAITING_BIAS		0xffffffff80000000L
++# define RWSEM_WAITING_MASK		0x0000000080000000L
+ #else
+-# define RWSEM_ACTIVE_MASK		0x0000ffffL
++# define RWSEM_UNLOCKED_VALUE		0x00000000L
++# define RWSEM_ACTIVE_MASK		0x00007fffL
++# define RWSEM_ACTIVE_READ_BIAS		0x00000001L
++# define RWSEM_ACTIVE_WRITE_BIAS	0xffff0001L
++# define RWSEM_WAITING_BIAS		0xffff8000L
++# define RWSEM_WAITING_MASK		0x00008000L
+ #endif
+ 
+-#define RWSEM_UNLOCKED_VALUE		0x00000000L
+-#define RWSEM_ACTIVE_BIAS		0x00000001L
+-#define RWSEM_WAITING_BIAS		(-RWSEM_ACTIVE_MASK-1)
+-#define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
+-#define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
+ 
+ typedef signed long rwsem_count_t;
+ 
+@@ -240,7 +245,8 @@ static inline void __downgrade_write(str
+ 		     "1:\n\t"
+ 		     "# ending __downgrade_write\n"
+ 		     : "+m" (sem->count)
+-		     : "a" (sem), "er" (-RWSEM_WAITING_BIAS)
++		     : "a" (sem),
++		       "er" (RWSEM_ACTIVE_READ_BIAS - RWSEM_ACTIVE_WRITE_BIAS)
+ 		     : "memory", "cc");
+ }
+ 
+@@ -277,7 +283,7 @@ static inline int rwsem_is_locked(struct
+ 
+ static inline int rwsem_is_contended(struct rw_semaphore *sem)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long addr = start;
- 	int nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
--	int ret;
- 
- 	VM_BUG_ON(start & ~PAGE_MASK);
- 	VM_BUG_ON(end   & ~PAGE_MASK);
-@@ -187,9 +187,8 @@ static long __mlock_vma_pages_range(stru
- 		nr_pages--;
- 	}
- 
--	ret = __get_user_pages(current, mm, addr, nr_pages, gup_flags,
--			       NULL, NULL);
--	return max(ret, 0);	/* 0 or negative error code */
-+	return __get_user_pages(current, mm, addr, nr_pages, gup_flags,
-+				NULL, NULL, nonblocking);
+-	return (sem->count < 0);
++	return (sem->count & RWSEM_WAITING_MASK) != 0;
  }
  
- /*
-@@ -233,7 +232,7 @@ long mlock_vma_pages_range(struct vm_are
- 			is_vm_hugetlb_page(vma) ||
- 			vma == get_gate_vma(current))) {
+ #endif /* __KERNEL__ */
+diff -puN arch/x86/lib/rwsem_64.S~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/lib/rwsem_64.S
+--- a/arch/x86/lib/rwsem_64.S~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/lib/rwsem_64.S
+@@ -60,8 +60,8 @@ ENTRY(call_rwsem_down_write_failed)
+ 	ENDPROC(call_rwsem_down_write_failed)
  
--		__mlock_vma_pages_range(vma, start, end);
-+		__mlock_vma_pages_range(vma, start, end, NULL);
+ ENTRY(call_rwsem_wake)
+-	decl %edx	/* do nothing if still outstanding active readers */
+-	jnz 1f
++	cmpl $0x80000001, %edx
++	jne 1f	/* do nothing unless there are waiters and no active threads */
+ 	save_common_regs
+ 	movq %rax,%rdi
+ 	call rwsem_wake
+diff -puN arch/x86/lib/semaphore_32.S~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/lib/semaphore_32.S
+--- a/arch/x86/lib/semaphore_32.S~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/lib/semaphore_32.S
+@@ -103,8 +103,8 @@ ENTRY(call_rwsem_down_write_failed)
  
- 		/* Hide errors from mmap() and other callers */
- 		return 0;
-@@ -429,21 +428,23 @@ static int do_mlock_pages(unsigned long 
- 	struct mm_struct *mm = current->mm;
- 	unsigned long end, nstart, nend;
- 	struct vm_area_struct *vma = NULL;
-+	int locked = 0;
- 	int ret = 0;
- 
- 	VM_BUG_ON(start & ~PAGE_MASK);
- 	VM_BUG_ON(len != PAGE_ALIGN(len));
- 	end = start + len;
- 
--	down_read(&mm->mmap_sem);
- 	for (nstart = start; nstart < end; nstart = nend) {
- 		/*
- 		 * We want to fault in pages for [nstart; end) address range.
- 		 * Find first corresponding VMA.
- 		 */
--		if (!vma)
-+		if (!locked) {
-+			locked = 1;
-+			down_read(&mm->mmap_sem);
- 			vma = find_vma(mm, nstart);
--		else
-+		} else if (nstart >= vma->vm_end)
- 			vma = vma->vm_next;
- 		if (!vma || vma->vm_start >= end)
- 			break;
-@@ -457,15 +458,20 @@ static int do_mlock_pages(unsigned long 
- 		if (nstart < vma->vm_start)
- 			nstart = vma->vm_start;
- 		/*
--		 * Now fault in a range of pages within the first VMA.
-+		 * Now fault in a range of pages. __mlock_vma_pages_range()
-+		 * double checks the vma flags, so that it won't mlock pages
-+		 * if the vma was already munlocked.
- 		 */
--		ret = __mlock_vma_pages_range(vma, nstart, nend);
--		if (ret) {
-+		ret = __mlock_vma_pages_range(vma, nstart, nend, &locked);
-+		if (ret < 0) {
- 			ret = __mlock_posix_error_return(ret);
- 			break;
- 		}
-+		nend = nstart + ret * PAGE_SIZE;
-+		ret = 0;
- 	}
--	up_read(&mm->mmap_sem);
-+	if (locked)
-+		up_read(&mm->mmap_sem);
- 	return ret;	/* 0 or negative error code */
- }
- 
-diff -puN mm/nommu.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time mm/nommu.c
---- a/mm/nommu.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time
-+++ a/mm/nommu.c
-@@ -127,7 +127,8 @@ unsigned int kobjsize(const void *objp)
- 
- int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		     unsigned long start, int nr_pages, unsigned int foll_flags,
--		     struct page **pages, struct vm_area_struct **vmas)
-+		     struct page **pages, struct vm_area_struct **vmas,
-+		     int *retry)
- {
- 	struct vm_area_struct *vma;
- 	unsigned long vm_flags;
-@@ -185,7 +186,8 @@ int get_user_pages(struct task_struct *t
- 	if (force)
- 		flags |= FOLL_FORCE;
- 
--	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
-+	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas,
-+				NULL);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
+ ENTRY(call_rwsem_wake)
+ 	CFI_STARTPROC
+-	decw %dx    /* do nothing if still outstanding active readers */
+-	jnz 1f
++	cmpw $0x8001, %dx
++	jne 1f	/* do nothing unless there are waiters and no active threads */
+ 	push %ecx
+ 	CFI_ADJUST_CFA_OFFSET 4
+ 	CFI_REL_OFFSET ecx,0
 _
 
 Patches currently in -mm which might be from walken@google.com are
