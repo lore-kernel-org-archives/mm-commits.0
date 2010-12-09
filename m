@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cs5535-deprecate-older-cs5535_gpio-driver.patch added to -mm tree
-Date: Thu, 09 Dec 2010 13:13:43 -0800
-Message-ID: <201012092113.oB9LDh6g007368@imap1.linux-foundation.org>
+Subject: + decompressors-add-boot-time-xz-support.patch added to -mm tree
+Date: Thu, 09 Dec 2010 13:55:43 -0800
+Message-ID: <201012092155.oB9LthIk009238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753609Ab0LIVNs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 16:13:48 -0500
+	by vger.kernel.org with ESMTP id S932139Ab0LIV43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 16:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, bgardner@wabtec.com, dsd@laptop.org, greg@kroah.com
+Cc: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     cs5535: deprecate older cs5535_gpio driver
+     decompressors: add boot-time XZ support
 has been added to the -mm tree.  Its filename is
-     cs5535-deprecate-older-cs5535_gpio-driver.patch
+     decompressors-add-boot-time-xz-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,674 +33,658 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs5535: deprecate older cs5535_gpio driver
-From: Andres Salomon <dilinger@queued.net>
+Subject: decompressors: add boot-time XZ support
+From: Lasse Collin <lasse.collin@tukaani.org>
 
-The newer drivers/gpio/cs5535-gpio.c replaces drivers/misc/cs5535_gpio.c. 
-The new driver has been in the tree for a little while, and has received
-some testing; it's time to mark the old one as deprecated.  I'm thinking
-removal around 2.6.40 would be good, provided we're not missing critical
-functionality in the newer driver.
+This implements the API defined in <linux/decompress/generic.h> which is
+used for kernel, initramfs, and initrd decompression.  This patch together
+with the first patch is enough for XZ-compressed initramfs and initrd;
+XZ-compressed kernel will need arch-specific changes.
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
-Cc: Daniel Drake <dsd@laptop.org>
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: Greg KH <greg@kroah.com>
+In contrast to other initramfs compression methods, support for
+XZ-compressed initramfs is not enabled by default in usr/Kconfig.  This is
+primarily due to the Kconfig options of the xz_dec module.  It can be good
+to require that xz_dec is enabled separately so the user can select only
+the BCJ filters he needs when EMBEDDED=y.
+
+The buffering requirements described in decompress_unxz.c are stricter
+than with gzip, so the relevant changes should be done to the
+arch-specific code when adding support for XZ-compressed kernel. 
+Similarly, the heap size in arch-specific pre-boot code may need to be
+increased (30 KiB is enough).
+
+The XZ decompressor needs memmove(), memeq() (memcmp() == 0), and
+memzero() (memset(ptr, 0, size)), which aren't available in all
+arch-specific pre-boot environments.  I'm including simple versions in
+decompress_unxz.c, but a cleaner solution would naturally be nicer.
+
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   14 +
- drivers/char/Kconfig                       |    9 
- drivers/char/Makefile                      |    1 
- drivers/char/cs5535_gpio.c                 |  259 -------------------
- drivers/staging/Kconfig                    |    2 
- drivers/staging/Makefile                   |    1 
- drivers/staging/cs5535_gpio/Kconfig        |   11 
- drivers/staging/cs5535_gpio/Makefile       |    1 
- drivers/staging/cs5535_gpio/TODO           |    6 
- drivers/staging/cs5535_gpio/cs5535_gpio.c  |  259 +++++++++++++++++++
- 10 files changed, 294 insertions(+), 269 deletions(-)
+ include/linux/decompress/unxz.h |   19 +
+ init/Kconfig                    |   20 +
+ lib/Kconfig                     |    3 
+ lib/Makefile                    |    1 
+ lib/decompress.c                |    5 
+ lib/decompress_unxz.c           |  397 ++++++++++++++++++++++++++++++
+ scripts/gen_initramfs_list.sh   |    2 
+ usr/Kconfig                     |   21 +
+ usr/Makefile                    |    5 
+ 9 files changed, 471 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~cs5535-deprecate-older-cs5535_gpio-driver Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~cs5535-deprecate-older-cs5535_gpio-driver
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -191,6 +191,20 @@ Why:	/proc/<pid>/oom_adj allows userspac
- 
- ---------------------------
- 
-+What:	CS5535/CS5536 obsolete GPIO driver
-+When:	June 2011
-+Files:	drivers/staging/cs5535_gpio/*
-+Check:	drivers/staging/cs5535_gpio/cs5535_gpio.c
-+Why:	A newer driver replaces this; it is drivers/gpio/cs5535-gpio.c, and
-+	integrates with the Linux GPIO subsystem.  The old driver has been
-+	moved to staging, and will be removed altogether around 2.6.40.
-+	Please test the new driver, and ensure that the functionality you
-+	need and any bugfixes from the old driver are available in the new
-+	one.
-+Who:	Andres Salomon <dilinger@queued.net>
-+
-+--------------------------
-+
- What:	remove EXPORT_SYMBOL(kernel_thread)
- When:	August 2006
- Files:	arch/*/kernel/*_ksyms.c
-diff -puN drivers/char/Kconfig~cs5535-deprecate-older-cs5535_gpio-driver drivers/char/Kconfig
---- a/drivers/char/Kconfig~cs5535-deprecate-older-cs5535_gpio-driver
-+++ a/drivers/char/Kconfig
-@@ -1047,15 +1047,6 @@ config NSC_GPIO
- 	  pc8736x_gpio drivers.  If those drivers are built as
- 	  modules, this one will be too, named nsc_gpio
- 
--config CS5535_GPIO
--	tristate "AMD CS5535/CS5536 GPIO (Geode Companion Device)"
--	depends on X86_32
--	help
--	  Give userspace access to the GPIO pins on the AMD CS5535 and
--	  CS5536 Geode companion devices.
--
--	  If compiled as a module, it will be called cs5535_gpio.
--
- config RAW_DRIVER
- 	tristate "RAW driver (/dev/raw/rawN)"
- 	depends on BLOCK
-diff -puN drivers/char/Makefile~cs5535-deprecate-older-cs5535_gpio-driver drivers/char/Makefile
---- a/drivers/char/Makefile~cs5535-deprecate-older-cs5535_gpio-driver
-+++ a/drivers/char/Makefile
-@@ -82,7 +82,6 @@ obj-$(CONFIG_NWFLASH)		+= nwflash.o
- obj-$(CONFIG_SCx200_GPIO)	+= scx200_gpio.o
- obj-$(CONFIG_PC8736x_GPIO)	+= pc8736x_gpio.o
- obj-$(CONFIG_NSC_GPIO)		+= nsc_gpio.o
--obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio.o
- obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
- obj-$(CONFIG_TELCLOCK)		+= tlclk.o
- 
-diff -puN drivers/char/cs5535_gpio.c~cs5535-deprecate-older-cs5535_gpio-driver /dev/null
---- a/drivers/char/cs5535_gpio.c
-+++ /dev/null
-@@ -1,259 +0,0 @@
--/*
-- * AMD CS5535/CS5536 GPIO driver.
-- * Allows a user space process to play with the GPIO pins.
-- *
-- * Copyright (c) 2005 Ben Gardner <bgardner@wabtec.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the smems of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- */
--
--#include <linux/fs.h>
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/cdev.h>
--#include <linux/ioport.h>
--#include <linux/pci.h>
--
--#include <asm/uaccess.h>
--#include <asm/io.h>
--
--
--#define NAME			"cs5535_gpio"
--
--MODULE_AUTHOR("Ben Gardner <bgardner@wabtec.com>");
--MODULE_DESCRIPTION("AMD CS5535/CS5536 GPIO Pin Driver");
--MODULE_LICENSE("GPL");
--
--static int major;
--module_param(major, int, 0);
--MODULE_PARM_DESC(major, "Major device number");
--
--static ulong mask;
--module_param(mask, ulong, 0);
--MODULE_PARM_DESC(mask, "GPIO channel mask");
--
--#define MSR_LBAR_GPIO		0x5140000C
--
--static u32 gpio_base;
--
--static struct pci_device_id divil_pci[] = {
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
--	{ } /* NULL entry */
--};
--MODULE_DEVICE_TABLE(pci, divil_pci);
--
--static struct cdev cs5535_gpio_cdev;
--
--/* reserve 32 entries even though some aren't usable */
--#define CS5535_GPIO_COUNT	32
--
--/* IO block size */
--#define CS5535_GPIO_SIZE	256
--
--struct gpio_regmap {
--	u32	rd_offset;
--	u32	wr_offset;
--	char	on;
--	char	off;
--};
--static struct gpio_regmap rm[] =
--{
--	{ 0x30, 0x00, '1', '0' },	/* GPIOx_READ_BACK / GPIOx_OUT_VAL */
--	{ 0x20, 0x20, 'I', 'i' },	/* GPIOx_IN_EN */
--	{ 0x04, 0x04, 'O', 'o' },	/* GPIOx_OUT_EN */
--	{ 0x08, 0x08, 't', 'T' },	/* GPIOx_OUT_OD_EN */
--	{ 0x18, 0x18, 'P', 'p' },	/* GPIOx_OUT_PU_EN */
--	{ 0x1c, 0x1c, 'D', 'd' },	/* GPIOx_OUT_PD_EN */
--};
--
--
--/**
-- * Gets the register offset for the GPIO bank.
-- * Low (0-15) starts at 0x00, high (16-31) starts at 0x80
-- */
--static inline u32 cs5535_lowhigh_base(int reg)
--{
--	return (reg & 0x10) << 3;
--}
--
--static ssize_t cs5535_gpio_write(struct file *file, const char __user *data,
--				 size_t len, loff_t *ppos)
--{
--	u32	m = iminor(file->f_path.dentry->d_inode);
--	int	i, j;
--	u32	base = gpio_base + cs5535_lowhigh_base(m);
--	u32	m0, m1;
--	char	c;
--
--	/**
--	 * Creates the mask for atomic bit programming.
--	 * The high 16 bits and the low 16 bits are used to set the mask.
--	 * For example, GPIO 15 maps to 31,15: 0,1 => On; 1,0=> Off
--	 */
--	m1 = 1 << (m & 0x0F);
--	m0 = m1 << 16;
--
--	for (i = 0; i < len; ++i) {
--		if (get_user(c, data+i))
--			return -EFAULT;
--
--		for (j = 0; j < ARRAY_SIZE(rm); j++) {
--			if (c == rm[j].on) {
--				outl(m1, base + rm[j].wr_offset);
--				/* If enabling output, turn off AUX 1 and AUX 2 */
--				if (c == 'O') {
--					outl(m0, base + 0x10);
--					outl(m0, base + 0x14);
--				}
--				break;
--			} else if (c == rm[j].off) {
--				outl(m0, base + rm[j].wr_offset);
--				break;
--			}
--		}
--	}
--	*ppos = 0;
--	return len;
--}
--
--static ssize_t cs5535_gpio_read(struct file *file, char __user *buf,
--				size_t len, loff_t *ppos)
--{
--	u32	m = iminor(file->f_path.dentry->d_inode);
--	u32	base = gpio_base + cs5535_lowhigh_base(m);
--	int	rd_bit = 1 << (m & 0x0f);
--	int	i;
--	char	ch;
--	ssize_t	count = 0;
--
--	if (*ppos >= ARRAY_SIZE(rm))
--		return 0;
--
--	for (i = *ppos; (i < (*ppos + len)) && (i < ARRAY_SIZE(rm)); i++) {
--		ch = (inl(base + rm[i].rd_offset) & rd_bit) ?
--		     rm[i].on : rm[i].off;
--
--		if (put_user(ch, buf+count))
--			return -EFAULT;
--
--		count++;
--	}
--
--	/* add a line-feed if there is room */
--	if ((i == ARRAY_SIZE(rm)) && (count < len)) {
--		put_user('\n', buf + count);
--		count++;
--	}
--
--	*ppos += count;
--	return count;
--}
--
--static int cs5535_gpio_open(struct inode *inode, struct file *file)
--{
--	u32 m = iminor(inode);
--
--	/* the mask says which pins are usable by this driver */
--	if ((mask & (1 << m)) == 0)
--		return -EINVAL;
--
--	return nonseekable_open(inode, file);
--}
--
--static const struct file_operations cs5535_gpio_fops = {
--	.owner	= THIS_MODULE,
--	.write	= cs5535_gpio_write,
--	.read	= cs5535_gpio_read,
--	.open	= cs5535_gpio_open,
--	.llseek = no_llseek,
--};
--
--static int __init cs5535_gpio_init(void)
--{
--	dev_t	dev_id;
--	u32	low, hi;
--	int	retval;
--
--	if (pci_dev_present(divil_pci) == 0) {
--		printk(KERN_WARNING NAME ": DIVIL not found\n");
--		return -ENODEV;
--	}
--
--	/* Grab the GPIO I/O range */
--	rdmsr(MSR_LBAR_GPIO, low, hi);
--
--	/* Check the mask and whether GPIO is enabled (sanity check) */
--	if (hi != 0x0000f001) {
--		printk(KERN_WARNING NAME ": GPIO not enabled\n");
--		return -ENODEV;
--	}
--
--	/* Mask off the IO base address */
--	gpio_base = low & 0x0000ff00;
--
--	/**
--	 * Some GPIO pins
--	 *  31-29,23 : reserved (always mask out)
--	 *  28       : Power Button
--	 *  26       : PME#
--	 *  22-16    : LPC
--	 *  14,15    : SMBus
--	 *  9,8      : UART1
--	 *  7        : PCI INTB
--	 *  3,4      : UART2/DDC
--	 *  2        : IDE_IRQ0
--	 *  0        : PCI INTA
--	 *
--	 * If a mask was not specified, be conservative and only allow:
--	 *  1,2,5,6,10-13,24,25,27
--	 */
--	if (mask != 0)
--		mask &= 0x1f7fffff;
--	else
--		mask = 0x0b003c66;
--
--	if (!request_region(gpio_base, CS5535_GPIO_SIZE, NAME)) {
--		printk(KERN_ERR NAME ": can't allocate I/O for GPIO\n");
--		return -ENODEV;
--	}
--
--	if (major) {
--		dev_id = MKDEV(major, 0);
--		retval = register_chrdev_region(dev_id, CS5535_GPIO_COUNT,
--						NAME);
--	} else {
--		retval = alloc_chrdev_region(&dev_id, 0, CS5535_GPIO_COUNT,
--					     NAME);
--		major = MAJOR(dev_id);
--	}
--
--	if (retval) {
--		release_region(gpio_base, CS5535_GPIO_SIZE);
--		return -1;
--	}
--
--	printk(KERN_DEBUG NAME ": base=%#x mask=%#lx major=%d\n",
--	       gpio_base, mask, major);
--
--	cdev_init(&cs5535_gpio_cdev, &cs5535_gpio_fops);
--	cdev_add(&cs5535_gpio_cdev, dev_id, CS5535_GPIO_COUNT);
--
--	return 0;
--}
--
--static void __exit cs5535_gpio_cleanup(void)
--{
--	dev_t dev_id = MKDEV(major, 0);
--
--	cdev_del(&cs5535_gpio_cdev);
--	unregister_chrdev_region(dev_id, CS5535_GPIO_COUNT);
--	release_region(gpio_base, CS5535_GPIO_SIZE);
--}
--
--module_init(cs5535_gpio_init);
--module_exit(cs5535_gpio_cleanup);
-diff -puN drivers/staging/Kconfig~cs5535-deprecate-older-cs5535_gpio-driver drivers/staging/Kconfig
---- a/drivers/staging/Kconfig~cs5535-deprecate-older-cs5535_gpio-driver
-+++ a/drivers/staging/Kconfig
-@@ -134,6 +134,8 @@ source "drivers/staging/sep/Kconfig"
- 
- source "drivers/staging/iio/Kconfig"
- 
-+source "drivers/staging/cs5535_gpio/Kconfig"
-+
- source "drivers/staging/zram/Kconfig"
- 
- source "drivers/staging/wlags49_h2/Kconfig"
-diff -puN drivers/staging/Makefile~cs5535-deprecate-older-cs5535_gpio-driver drivers/staging/Makefile
---- a/drivers/staging/Makefile~cs5535-deprecate-older-cs5535_gpio-driver
-+++ a/drivers/staging/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_VME_BUS)		+= vme/
- obj-$(CONFIG_MRST_RAR_HANDLER)	+= memrar/
- obj-$(CONFIG_DX_SEP)            += sep/
- obj-$(CONFIG_IIO)		+= iio/
-+obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio/
- obj-$(CONFIG_ZRAM)		+= zram/
- obj-$(CONFIG_WLAGS49_H2)	+= wlags49_h2/
- obj-$(CONFIG_WLAGS49_H25)	+= wlags49_h25/
-diff -puN /dev/null drivers/staging/cs5535_gpio/Kconfig
+diff -puN /dev/null include/linux/decompress/unxz.h
 --- /dev/null
-+++ a/drivers/staging/cs5535_gpio/Kconfig
-@@ -0,0 +1,11 @@
-+config CS5535_GPIO
-+	tristate "AMD CS5535/CS5536 GPIO (Geode Companion Device)"
-+	depends on X86_32
-+	help
-+	  Note: this driver is DEPRECATED.  Please use the cs5535-gpio module
-+	  in the GPIO section instead (CONFIG_GPIO_CS5535).
-+
-+	  Give userspace access to the GPIO pins on the AMD CS5535 and
-+	  CS5536 Geode companion devices.
-+
-+	  If compiled as a module, it will be called cs5535_gpio.
-diff -puN /dev/null drivers/staging/cs5535_gpio/Makefile
---- /dev/null
-+++ a/drivers/staging/cs5535_gpio/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio.o
-diff -puN /dev/null drivers/staging/cs5535_gpio/TODO
---- /dev/null
-+++ a/drivers/staging/cs5535_gpio/TODO
-@@ -0,0 +1,6 @@
-+This is an obsolete driver for some the CS5535 and CS5536 southbridge GPIOs.
-+It has been replaced by a driver that makes use of the Linux GPIO subsystem.
-+Please switch to that driver, and let dilinger@queued.net know if there's
-+anything missing from the new driver.
-+
-+This driver is scheduled for removal in 2.6.40.
-diff -puN /dev/null drivers/staging/cs5535_gpio/cs5535_gpio.c
---- /dev/null
-+++ a/drivers/staging/cs5535_gpio/cs5535_gpio.c
-@@ -0,0 +1,259 @@
++++ a/include/linux/decompress/unxz.h
+@@ -0,0 +1,19 @@
 +/*
-+ * AMD CS5535/CS5536 GPIO driver.
-+ * Allows a user space process to play with the GPIO pins.
++ * Wrapper for decompressing XZ-compressed kernel, initramfs, and initrd
 + *
-+ * Copyright (c) 2005 Ben Gardner <bgardner@wabtec.com>
++ * Author: Lasse Collin <lasse.collin@tukaani.org>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the smems of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
++ * This file has been put into the public domain.
++ * You can do whatever you want with this file.
 + */
 +
-+#include <linux/fs.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/cdev.h>
-+#include <linux/ioport.h>
-+#include <linux/pci.h>
++#ifndef DECOMPRESS_UNXZ_H
++#define DECOMPRESS_UNXZ_H
 +
-+#include <asm/uaccess.h>
-+#include <asm/io.h>
++int unxz(unsigned char *in, int in_size,
++	 int (*fill)(void *dest, unsigned int size),
++	 int (*flush)(void *src, unsigned int size),
++	 unsigned char *out, int *in_used,
++	 void (*error)(char *x));
 +
++#endif
+diff -puN init/Kconfig~decompressors-add-boot-time-xz-support init/Kconfig
+--- a/init/Kconfig~decompressors-add-boot-time-xz-support
++++ a/init/Kconfig
+@@ -130,13 +130,16 @@ config HAVE_KERNEL_BZIP2
+ config HAVE_KERNEL_LZMA
+ 	bool
+ 
++config HAVE_KERNEL_XZ
++	bool
 +
-+#define NAME			"cs5535_gpio"
+ config HAVE_KERNEL_LZO
+ 	bool
+ 
+ choice
+ 	prompt "Kernel compression mode"
+ 	default KERNEL_GZIP
+-	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_LZO
++	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_XZ || HAVE_KERNEL_LZO
+ 	help
+ 	  The linux kernel is a kind of self-extracting executable.
+ 	  Several compression algorithms are available, which differ
+@@ -181,6 +184,21 @@ config KERNEL_LZMA
+ 	  two. Compression is slowest.	The kernel size is about 33%
+ 	  smaller with LZMA in comparison to gzip.
+ 
++config KERNEL_XZ
++	bool "XZ"
++	depends on HAVE_KERNEL_XZ
++	help
++	  XZ uses the LZMA2 algorithm and instruction set specific
++	  BCJ filters which can improve compression ratio of executable
++	  code. The size of the kernel is about 30% smaller with XZ in
++	  comparison to gzip. On architectures for which there is a BCJ
++	  filter (i386, x86_64, ARM, IA-64, PowerPC, and SPARC), XZ
++	  will create a few percent smaller kernel than plain LZMA.
 +
-+MODULE_AUTHOR("Ben Gardner <bgardner@wabtec.com>");
-+MODULE_DESCRIPTION("AMD CS5535/CS5536 GPIO Pin Driver");
-+MODULE_LICENSE("GPL");
++	  The speed is about the same as with LZMA: The decompression
++	  speed of XZ is better than that of bzip2 but worse than gzip
++	  and LZO. Compression is slow.
 +
-+static int major;
-+module_param(major, int, 0);
-+MODULE_PARM_DESC(major, "Major device number");
+ config KERNEL_LZO
+ 	bool "LZO"
+ 	depends on HAVE_KERNEL_LZO
+diff -puN lib/Kconfig~decompressors-add-boot-time-xz-support lib/Kconfig
+--- a/lib/Kconfig~decompressors-add-boot-time-xz-support
++++ a/lib/Kconfig
+@@ -122,6 +122,9 @@ config DECOMPRESS_BZIP2
+ config DECOMPRESS_LZMA
+ 	tristate
+ 
++config DECOMPRESS_XZ
++	tristate
 +
-+static ulong mask;
-+module_param(mask, ulong, 0);
-+MODULE_PARM_DESC(mask, "GPIO channel mask");
-+
-+#define MSR_LBAR_GPIO		0x5140000C
-+
-+static u32 gpio_base;
-+
-+static struct pci_device_id divil_pci[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
-+	{ } /* NULL entry */
-+};
-+MODULE_DEVICE_TABLE(pci, divil_pci);
-+
-+static struct cdev cs5535_gpio_cdev;
-+
-+/* reserve 32 entries even though some aren't usable */
-+#define CS5535_GPIO_COUNT	32
-+
-+/* IO block size */
-+#define CS5535_GPIO_SIZE	256
-+
-+struct gpio_regmap {
-+	u32	rd_offset;
-+	u32	wr_offset;
-+	char	on;
-+	char	off;
-+};
-+static struct gpio_regmap rm[] =
-+{
-+	{ 0x30, 0x00, '1', '0' },	/* GPIOx_READ_BACK / GPIOx_OUT_VAL */
-+	{ 0x20, 0x20, 'I', 'i' },	/* GPIOx_IN_EN */
-+	{ 0x04, 0x04, 'O', 'o' },	/* GPIOx_OUT_EN */
-+	{ 0x08, 0x08, 't', 'T' },	/* GPIOx_OUT_OD_EN */
-+	{ 0x18, 0x18, 'P', 'p' },	/* GPIOx_OUT_PU_EN */
-+	{ 0x1c, 0x1c, 'D', 'd' },	/* GPIOx_OUT_PD_EN */
-+};
-+
-+
-+/**
-+ * Gets the register offset for the GPIO bank.
-+ * Low (0-15) starts at 0x00, high (16-31) starts at 0x80
+ config DECOMPRESS_LZO
+ 	select LZO_DECOMPRESS
+ 	tristate
+diff -puN lib/Makefile~decompressors-add-boot-time-xz-support lib/Makefile
+--- a/lib/Makefile~decompressors-add-boot-time-xz-support
++++ a/lib/Makefile
+@@ -75,6 +75,7 @@ obj-$(CONFIG_RAID6_PQ) += raid6/
+ lib-$(CONFIG_DECOMPRESS_GZIP) += decompress_inflate.o
+ lib-$(CONFIG_DECOMPRESS_BZIP2) += decompress_bunzip2.o
+ lib-$(CONFIG_DECOMPRESS_LZMA) += decompress_unlzma.o
++lib-$(CONFIG_DECOMPRESS_XZ) += decompress_unxz.o
+ lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
+ 
+ obj-$(CONFIG_TEXTSEARCH) += textsearch.o
+diff -puN lib/decompress.c~decompressors-add-boot-time-xz-support lib/decompress.c
+--- a/lib/decompress.c~decompressors-add-boot-time-xz-support
++++ a/lib/decompress.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/decompress/bunzip2.h>
+ #include <linux/decompress/unlzma.h>
++#include <linux/decompress/unxz.h>
+ #include <linux/decompress/inflate.h>
+ #include <linux/decompress/unlzo.h>
+ 
+@@ -23,6 +24,9 @@
+ #ifndef CONFIG_DECOMPRESS_LZMA
+ # define unlzma NULL
+ #endif
++#ifndef CONFIG_DECOMPRESS_XZ
++# define unxz NULL
++#endif
+ #ifndef CONFIG_DECOMPRESS_LZO
+ # define unlzo NULL
+ #endif
+@@ -36,6 +40,7 @@ static const struct compress_format {
+ 	{ {037, 0236}, "gzip", gunzip },
+ 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
+ 	{ {0x5d, 0x00}, "lzma", unlzma },
++	{ {0xfd, 0x37}, "xz", unxz },
+ 	{ {0x89, 0x4c}, "lzo", unlzo },
+ 	{ {0, 0}, NULL, NULL }
+ };
+diff -puN /dev/null lib/decompress_unxz.c
+--- /dev/null
++++ a/lib/decompress_unxz.c
+@@ -0,0 +1,397 @@
++/*
++ * Wrapper for decompressing XZ-compressed kernel, initramfs, and initrd
++ *
++ * Author: Lasse Collin <lasse.collin@tukaani.org>
++ *
++ * This file has been put into the public domain.
++ * You can do whatever you want with this file.
 + */
-+static inline u32 cs5535_lowhigh_base(int reg)
++
++/*
++ * Important notes about in-place decompression
++ *
++ * At least on x86, the kernel is decompressed in place: the compressed data
++ * is placed to the end of the output buffer, and the decompressor overwrites
++ * most of the compressed data. There must be enough safety margin to
++ * guarantee that the write position is always behind the read position.
++ *
++ * The safety margin for XZ with LZMA2 or BCJ+LZMA2 is calculated below.
++ * Note that the margin with XZ is bigger than with Deflate (gzip)!
++ *
++ * The worst case for in-place decompression is that the beginning of
++ * the file is compressed extremely well, and the rest of the file is
++ * uncompressible. Thus, we must look for worst-case expansion when the
++ * compressor is encoding uncompressible data.
++ *
++ * The structure of the .xz file in case of a compresed kernel is as follows.
++ * Sizes (as bytes) of the fields are in parenthesis.
++ *
++ *    Stream Header (12)
++ *    Block Header:
++ *      Block Header (8-12)
++ *      Compressed Data (N)
++ *      Block Padding (0-3)
++ *      CRC32 (4)
++ *    Index (8-20)
++ *    Stream Footer (12)
++ *
++ * Normally there is exactly one Block, but let's assume that there are
++ * 2-4 Blocks just in case. Because Stream Header and also Block Header
++ * of the first Block don't make the decompressor produce any uncompressed
++ * data, we can ignore them from our calculations. Block Headers of possible
++ * additional Blocks have to be taken into account still. With these
++ * assumptions, it is safe to assume that the total header overhead is
++ * less than 128 bytes.
++ *
++ * Compressed Data contains LZMA2 or BCJ+LZMA2 encoded data. Since BCJ
++ * doesn't change the size of the data, it is enough to calculate the
++ * safety margin for LZMA2.
++ *
++ * LZMA2 stores the data in chunks. Each chunk has a header whose size is
++ * a maximum of 6 bytes, but to get round 2^n numbers, let's assume that
++ * the maximum chunk header size is 8 bytes. After the chunk header, there
++ * may be up to 64 KiB of actual payload in the chunk. Often the payload is
++ * quite a bit smaller though; to be safe, let's assume that an average
++ * chunk has only 32 KiB of payload.
++ *
++ * The maximum uncompressed size of the payload is 2 MiB. The minimum
++ * uncompressed size of the payload is in practice never less than the
++ * payload size itself. The LZMA2 format would allow uncompressed size
++ * to be less than the payload size, but no sane compressor creates such
++ * files. LZMA2 supports storing uncompressible data in uncompressed form,
++ * so there's never a need to create payloads whose uncompressed size is
++ * smaller than the compressed size.
++ *
++ * The assumption, that the uncompressed size of the payload is never
++ * smaller than the payload itself, is valid only when talking about
++ * the payload as a whole. It is possible that the payload has parts where
++ * the decompressor consumes more input than it produces output. Calculating
++ * the worst case for this would be tricky. Instead of trying to do that,
++ * let's simply make sure that the decompressor never overwrites any bytes
++ * of the payload which it is currently reading.
++ *
++ * Now we have enough information to calculate the safety margin. We need
++ *   - 128 bytes for the .xz file format headers;
++ *   - 8 bytes per every 32 KiB of uncompressed size (one LZMA2 chunk header
++ *     per chunk, each chunk having average payload size of 32 KiB); and
++ *   - 64 KiB (biggest possible LZMA2 chunk payload size) to make sure that
++ *     the decompressor never overwrites anything from the LZMA2 chunk
++ *     payload it is currently reading.
++ *
++ * We get the following formula:
++ *
++ *    safety_margin = 128 + uncompressed_size * 8 / 32768 + 65536
++ *                  = 128 + (uncompressed_size >> 12) + 65536
++ *
++ * For comparision, according to arch/x86/boot/compressed/misc.c, the
++ * equivalent formula for Deflate is this:
++ *
++ *    safety_margin = 18 + (uncompressed_size >> 12) + 32768
++ *
++ * Thus, when updating Deflate-only in-place kernel decompressor to
++ * support XZ, the fixed overhead has to be increased from 18+32768 bytes
++ * to 128+65536 bytes.
++ */
++
++/*
++ * STATIC is defined to "static" if we are being built for kernel
++ * decompression (pre-boot code). <linux/decompress/mm.h> will define
++ * STATIC to empty if it wasn't already defined. Since we will need to
++ * know later if we are being used for kernel decompression, we define
++ * XZ_PREBOOT here.
++ */
++#ifdef STATIC
++#	define XZ_PREBOOT
++#endif
++#ifdef __KERNEL__
++#	include <linux/decompress/mm.h>
++#endif
++#define XZ_EXTERN STATIC
++
++#ifndef XZ_PREBOOT
++#	include <linux/slab.h>
++#	include <linux/xz.h>
++#else
++/*
++ * Use the internal CRC32 code instead of kernel's CRC32 module, which
++ * is not available in early phase of booting.
++ */
++#define XZ_INTERNAL_CRC32 1
++
++/*
++ * For boot time use, we enable only the BCJ filter of the current
++ * architecture or none if no BCJ filter is available for the architecture.
++ */
++#ifdef CONFIG_X86
++#	define XZ_DEC_X86
++#endif
++#ifdef CONFIG_PPC
++#	define XZ_DEC_POWERPC
++#endif
++#ifdef CONFIG_ARM
++#	define XZ_DEC_ARM
++#endif
++#ifdef CONFIG_IA64
++#	define XZ_DEC_IA64
++#endif
++#ifdef CONFIG_SPARC
++#	define XZ_DEC_SPARC
++#endif
++
++/*
++ * This will get the basic headers so that memeq() and others
++ * can be defined.
++ */
++#include "xz/xz_private.h"
++
++/*
++ * Replace the normal allocation functions with the versions from
++ * <linux/decompress/mm.h>. vfree() needs to support vfree(NULL)
++ * when XZ_DYNALLOC is used, but the pre-boot free() doesn't support it.
++ * Workaround it here because the other decompressors don't need it.
++ */
++#undef kmalloc
++#undef kfree
++#undef vmalloc
++#undef vfree
++#define kmalloc(size, flags) malloc(size)
++#define kfree(ptr) free(ptr)
++#define vmalloc(size) malloc(size)
++#define vfree(ptr) do { if (ptr != NULL) free(ptr); } while (0)
++
++/*
++ * FIXME: Not all basic memory functions are provided in architecture-specific
++ * files (yet). We define our own versions here for now, but this should be
++ * only a temporary solution.
++ *
++ * memeq and memzero are not used much and any remotely sane implementation
++ * is fast enough. memcpy/memmove speed matters in multi-call mode, but
++ * the kernel image is decompressed in single-call mode, in which only
++ * memcpy speed can matter and only if there is a lot of uncompressible data
++ * (LZMA2 stores uncompressible chunks in uncompressed form). Thus, the
++ * functions below should just be kept small; it's probably not worth
++ * optimizing for speed.
++ */
++
++#ifndef memeq
++static bool memeq(const void *a, const void *b, size_t size)
 +{
-+	return (reg & 0x10) << 3;
++	const uint8_t *x = a;
++	const uint8_t *y = b;
++	size_t i;
++
++	for (i = 0; i < size; ++i)
++		if (x[i] != y[i])
++			return false;
++
++	return true;
 +}
++#endif
 +
-+static ssize_t cs5535_gpio_write(struct file *file, const char __user *data,
-+				 size_t len, loff_t *ppos)
++#ifndef memzero
++static void memzero(void *buf, size_t size)
 +{
-+	u32	m = iminor(file->f_path.dentry->d_inode);
-+	int	i, j;
-+	u32	base = gpio_base + cs5535_lowhigh_base(m);
-+	u32	m0, m1;
-+	char	c;
++	uint8_t *b = buf;
++	uint8_t *e = b + size;
 +
-+	/**
-+	 * Creates the mask for atomic bit programming.
-+	 * The high 16 bits and the low 16 bits are used to set the mask.
-+	 * For example, GPIO 15 maps to 31,15: 0,1 => On; 1,0=> Off
-+	 */
-+	m1 = 1 << (m & 0x0F);
-+	m0 = m1 << 16;
++	while (b != e)
++		*b++ = '\0';
++}
++#endif
 +
-+	for (i = 0; i < len; ++i) {
-+		if (get_user(c, data+i))
-+			return -EFAULT;
++#ifndef memmove
++/* Not static to avoid a conflict with the prototype in the Linux headers. */
++void *memmove(void *dest, const void *src, size_t size)
++{
++	uint8_t *d = dest;
++	const uint8_t *s = src;
++	size_t i;
 +
-+		for (j = 0; j < ARRAY_SIZE(rm); j++) {
-+			if (c == rm[j].on) {
-+				outl(m1, base + rm[j].wr_offset);
-+				/* If enabling output, turn off AUX 1 and AUX 2 */
-+				if (c == 'O') {
-+					outl(m0, base + 0x10);
-+					outl(m0, base + 0x14);
-+				}
-+				break;
-+			} else if (c == rm[j].off) {
-+				outl(m0, base + rm[j].wr_offset);
-+				break;
-+			}
-+		}
++	if (d < s) {
++		for (i = 0; i < size; ++i)
++			d[i] = s[i];
++	} else if (d > s) {
++		i = size;
++		while (i-- > 0)
++			d[i] = s[i];
 +	}
-+	*ppos = 0;
-+	return len;
++
++	return dest;
 +}
++#endif
 +
-+static ssize_t cs5535_gpio_read(struct file *file, char __user *buf,
-+				size_t len, loff_t *ppos)
++/*
++ * Since we need memmove anyway, would use it as memcpy too.
++ * Commented out for now to avoid breaking things.
++ */
++/*
++#ifndef memcpy
++#	define memcpy memmove
++#endif
++*/
++
++#include "xz/xz_crc32.c"
++#include "xz/xz_dec_stream.c"
++#include "xz/xz_dec_lzma2.c"
++#include "xz/xz_dec_bcj.c"
++
++#endif /* XZ_PREBOOT */
++
++/* Size of the input and output buffers in multi-call mode */
++#define XZ_IOBUF_SIZE 4096
++
++/*
++ * This function implements the API defined in <linux/decompress/generic.h>.
++ *
++ * This wrapper will automatically choose single-call or multi-call mode
++ * of the native XZ decoder API. The single-call mode can be used only when
++ * both input and output buffers are available as a single chunk, i.e. when
++ * fill() and flush() won't be used.
++ */
++STATIC int INIT unxz(unsigned char *in, int in_size,
++		     int (*fill)(void *dest, unsigned int size),
++		     int (*flush)(void *src, unsigned int size),
++		     unsigned char *out, int *in_used,
++		     void (*error)(char *x))
 +{
-+	u32	m = iminor(file->f_path.dentry->d_inode);
-+	u32	base = gpio_base + cs5535_lowhigh_base(m);
-+	int	rd_bit = 1 << (m & 0x0f);
-+	int	i;
-+	char	ch;
-+	ssize_t	count = 0;
++	struct xz_buf b;
++	struct xz_dec *s;
++	enum xz_ret ret;
++	bool must_free_in = false;
 +
-+	if (*ppos >= ARRAY_SIZE(rm))
++#if XZ_INTERNAL_CRC32
++	xz_crc32_init();
++#endif
++
++	if (in_used != NULL)
++		*in_used = 0;
++
++	if (fill == NULL && flush == NULL)
++		s = xz_dec_init(XZ_SINGLE, 0);
++	else
++		s = xz_dec_init(XZ_DYNALLOC, (uint32_t)-1);
++
++	if (s == NULL)
++		goto error_alloc_state;
++
++	if (flush == NULL) {
++		b.out = out;
++		b.out_size = (size_t)-1;
++	} else {
++		b.out_size = XZ_IOBUF_SIZE;
++		b.out = malloc(XZ_IOBUF_SIZE);
++		if (b.out == NULL)
++			goto error_alloc_out;
++	}
++
++	if (in == NULL) {
++		must_free_in = true;
++		in = malloc(XZ_IOBUF_SIZE);
++		if (in == NULL)
++			goto error_alloc_in;
++	}
++
++	b.in = in;
++	b.in_pos = 0;
++	b.in_size = in_size;
++	b.out_pos = 0;
++
++	if (fill == NULL && flush == NULL) {
++		ret = xz_dec_run(s, &b);
++	} else {
++		do {
++			if (b.in_pos == b.in_size && fill != NULL) {
++				if (in_used != NULL)
++					*in_used += b.in_pos;
++
++				b.in_pos = 0;
++
++				in_size = fill(in, XZ_IOBUF_SIZE);
++				if (in_size < 0) {
++					/*
++					 * This isn't an optimal error code
++					 * but it probably isn't worth making
++					 * a new one either.
++					 */
++					ret = XZ_BUF_ERROR;
++					break;
++				}
++
++				b.in_size = in_size;
++			}
++
++			ret = xz_dec_run(s, &b);
++
++			if (flush != NULL && (b.out_pos == b.out_size
++					|| (ret != XZ_OK && b.out_pos > 0))) {
++				/*
++				 * Setting ret here may hide an error
++				 * returned by xz_dec_run(), but probably
++				 * it's not too bad.
++				 */
++				if (flush(b.out, b.out_pos) != (int)b.out_pos)
++					ret = XZ_BUF_ERROR;
++
++				b.out_pos = 0;
++			}
++		} while (ret == XZ_OK);
++
++		if (must_free_in)
++			free(in);
++
++		if (flush != NULL)
++			free(b.out);
++	}
++
++	if (in_used != NULL)
++		*in_used += b.in_pos;
++
++	xz_dec_end(s);
++
++	switch (ret) {
++	case XZ_STREAM_END:
 +		return 0;
 +
-+	for (i = *ppos; (i < (*ppos + len)) && (i < ARRAY_SIZE(rm)); i++) {
-+		ch = (inl(base + rm[i].rd_offset) & rd_bit) ?
-+		     rm[i].on : rm[i].off;
++	case XZ_MEM_ERROR:
++		/* This can occur only in multi-call mode. */
++		error("XZ decompressor ran out of memory");
++		break;
 +
-+		if (put_user(ch, buf+count))
-+			return -EFAULT;
++	case XZ_FORMAT_ERROR:
++		error("Input is not in the XZ format (wrong magic bytes)");
++		break;
 +
-+		count++;
++	case XZ_OPTIONS_ERROR:
++		error("Input was encoded with settings that are not "
++				"supported by this XZ decoder");
++		break;
++
++	case XZ_DATA_ERROR:
++	case XZ_BUF_ERROR:
++		error("XZ-compressed data is corrupt");
++		break;
++
++	default:
++		error("Bug in the XZ decompressor");
++		break;
 +	}
 +
-+	/* add a line-feed if there is room */
-+	if ((i == ARRAY_SIZE(rm)) && (count < len)) {
-+		put_user('\n', buf + count);
-+		count++;
-+	}
++	return -1;
 +
-+	*ppos += count;
-+	return count;
++error_alloc_in:
++	if (flush != NULL)
++		free(b.out);
++
++error_alloc_out:
++	xz_dec_end(s);
++
++error_alloc_state:
++	error("XZ decompressor ran out of memory");
++	return -1;
 +}
 +
-+static int cs5535_gpio_open(struct inode *inode, struct file *file)
-+{
-+	u32 m = iminor(inode);
++/*
++ * This macro is used by architecture-specific files to decompress
++ * the kernel image.
++ */
++#define decompress unxz
+diff -puN scripts/gen_initramfs_list.sh~decompressors-add-boot-time-xz-support scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~decompressors-add-boot-time-xz-support
++++ a/scripts/gen_initramfs_list.sh
+@@ -243,6 +243,8 @@ case "$arg" in
+ 		echo "$output_file" | grep -q "\.gz$" && compr="gzip -9 -f"
+ 		echo "$output_file" | grep -q "\.bz2$" && compr="bzip2 -9 -f"
+ 		echo "$output_file" | grep -q "\.lzma$" && compr="lzma -9 -f"
++		echo "$output_file" | grep -q "\.xz$" && \
++				compr="xz --check=crc32 --lzma2=dict=1MiB"
+ 		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
+ 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
+ 		shift
+diff -puN usr/Kconfig~decompressors-add-boot-time-xz-support usr/Kconfig
+--- a/usr/Kconfig~decompressors-add-boot-time-xz-support
++++ a/usr/Kconfig
+@@ -72,6 +72,18 @@ config RD_LZMA
+ 	  Support loading of a LZMA encoded initial ramdisk or cpio buffer
+ 	  If unsure, say N.
+ 
++config RD_XZ
++	bool "Support initial ramdisks compressed using XZ"
++	depends on BLK_DEV_INITRD && XZ_DEC=y
++	select DECOMPRESS_XZ
++	help
++	  Support loading of a XZ encoded initial ramdisk or cpio buffer.
 +
-+	/* the mask says which pins are usable by this driver */
-+	if ((mask & (1 << m)) == 0)
-+		return -EINVAL;
++	  If this option is inactive, say Y to "XZ decompression support"
++	  under "Library routines" first.
 +
-+	return nonseekable_open(inode, file);
-+}
++	  If unsure, say N.
 +
-+static const struct file_operations cs5535_gpio_fops = {
-+	.owner	= THIS_MODULE,
-+	.write	= cs5535_gpio_write,
-+	.read	= cs5535_gpio_read,
-+	.open	= cs5535_gpio_open,
-+	.llseek = no_llseek,
-+};
+ config RD_LZO
+ 	bool "Support initial ramdisks compressed using LZO" if EMBEDDED
+ 	default !EMBEDDED
+@@ -139,6 +151,15 @@ config INITRAMFS_COMPRESSION_LZMA
+ 	  three. Compression is slowest. The initramfs size is about 33%
+ 	  smaller with LZMA in comparison to gzip.
+ 
++config INITRAMFS_COMPRESSION_XZ
++	bool "XZ"
++	depends on RD_XZ
++	help
++	  XZ uses the LZMA2 algorithm. The initramfs size is about 30%
++	  smaller with XZ in comparison to gzip. Decompression speed
++	  is better than that of bzip2 but worse than gzip and LZO.
++	  Compression is slow.
 +
-+static int __init cs5535_gpio_init(void)
-+{
-+	dev_t	dev_id;
-+	u32	low, hi;
-+	int	retval;
+ config INITRAMFS_COMPRESSION_LZO
+ 	bool "LZO"
+ 	depends on RD_LZO
+diff -puN usr/Makefile~decompressors-add-boot-time-xz-support usr/Makefile
+--- a/usr/Makefile~decompressors-add-boot-time-xz-support
++++ a/usr/Makefile
+@@ -15,6 +15,9 @@ suffix_$(CONFIG_INITRAMFS_COMPRESSION_BZ
+ # Lzma
+ suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZMA)   = .lzma
+ 
++# XZ
++suffix_$(CONFIG_INITRAMFS_COMPRESSION_XZ)     = .xz
 +
-+	if (pci_dev_present(divil_pci) == 0) {
-+		printk(KERN_WARNING NAME ": DIVIL not found\n");
-+		return -ENODEV;
-+	}
-+
-+	/* Grab the GPIO I/O range */
-+	rdmsr(MSR_LBAR_GPIO, low, hi);
-+
-+	/* Check the mask and whether GPIO is enabled (sanity check) */
-+	if (hi != 0x0000f001) {
-+		printk(KERN_WARNING NAME ": GPIO not enabled\n");
-+		return -ENODEV;
-+	}
-+
-+	/* Mask off the IO base address */
-+	gpio_base = low & 0x0000ff00;
-+
-+	/**
-+	 * Some GPIO pins
-+	 *  31-29,23 : reserved (always mask out)
-+	 *  28       : Power Button
-+	 *  26       : PME#
-+	 *  22-16    : LPC
-+	 *  14,15    : SMBus
-+	 *  9,8      : UART1
-+	 *  7        : PCI INTB
-+	 *  3,4      : UART2/DDC
-+	 *  2        : IDE_IRQ0
-+	 *  0        : PCI INTA
-+	 *
-+	 * If a mask was not specified, be conservative and only allow:
-+	 *  1,2,5,6,10-13,24,25,27
-+	 */
-+	if (mask != 0)
-+		mask &= 0x1f7fffff;
-+	else
-+		mask = 0x0b003c66;
-+
-+	if (!request_region(gpio_base, CS5535_GPIO_SIZE, NAME)) {
-+		printk(KERN_ERR NAME ": can't allocate I/O for GPIO\n");
-+		return -ENODEV;
-+	}
-+
-+	if (major) {
-+		dev_id = MKDEV(major, 0);
-+		retval = register_chrdev_region(dev_id, CS5535_GPIO_COUNT,
-+						NAME);
-+	} else {
-+		retval = alloc_chrdev_region(&dev_id, 0, CS5535_GPIO_COUNT,
-+					     NAME);
-+		major = MAJOR(dev_id);
-+	}
-+
-+	if (retval) {
-+		release_region(gpio_base, CS5535_GPIO_SIZE);
-+		return -1;
-+	}
-+
-+	printk(KERN_DEBUG NAME ": base=%#x mask=%#lx major=%d\n",
-+	       gpio_base, mask, major);
-+
-+	cdev_init(&cs5535_gpio_cdev, &cs5535_gpio_fops);
-+	cdev_add(&cs5535_gpio_cdev, dev_id, CS5535_GPIO_COUNT);
-+
-+	return 0;
-+}
-+
-+static void __exit cs5535_gpio_cleanup(void)
-+{
-+	dev_t dev_id = MKDEV(major, 0);
-+
-+	cdev_del(&cs5535_gpio_cdev);
-+	unregister_chrdev_region(dev_id, CS5535_GPIO_COUNT);
-+	release_region(gpio_base, CS5535_GPIO_SIZE);
-+}
-+
-+module_init(cs5535_gpio_init);
-+module_exit(cs5535_gpio_cleanup);
+ # Lzo
+ suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZO)   = .lzo
+ 
+@@ -50,7 +53,7 @@ endif
+ quiet_cmd_initfs = GEN     $@
+       cmd_initfs = $(initramfs) -o $@ $(ramfs-args) $(ramfs-input)
+ 
+-targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 initramfs_data.cpio.lzma initramfs_data.cpio.lzo initramfs_data.cpio
++targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 initramfs_data.cpio.lzma initramfs_data.cpio.xz initramfs_data.cpio.lzo initramfs_data.cpio
+ # do not try to update files included in initramfs
+ $(deps_initramfs): ;
+ 
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from lasse.collin@tukaani.org are
 
-linux-next.patch
-maintainers-update-geode-entry.patch
-drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality.patch
-drivers-staging-olpc_dcon-convert-to-new-cs5535-gpio-api.patch
-cs5535-deprecate-older-cs5535_gpio-driver.patch
+decompressors-add-missing-init-ie-__init.patch
+decompressors-get-rid-of-set_error_fn-macro.patch
+decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
+decompressors-remove-unused-function-from-lib-decompress_unlzmac.patch
+decompressors-fix-header-validation-in-decompress_unlzmac.patch
+decompressors-check-for-read-errors-in-decompress_unlzmac.patch
+decompressors-check-for-write-errors-in-decompress_unlzmac.patch
+decompressors-validate-match-distance-in-decompress_unlzmac.patch
+decompressors-check-for-write-errors-in-decompress_unlzoc.patch
+decompressors-check-input-size-in-decompress_unlzoc.patch
+decompressors-fix-callback-to-callback-mode-in-decompress_unlzoc.patch
+decompressors-add-xz-decompressor-module.patch
+decompressors-add-boot-time-xz-support.patch
+x86-support-xz-compressed-kernel.patch
 
