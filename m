@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch added to -mm tree
-Date: Thu, 09 Dec 2010 14:24:36 -0800
-Message-ID: <201012092224.oB9MOarn010617@imap1.linux-foundation.org>
+Subject: + percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch added to -mm tree
+Date: Thu, 09 Dec 2010 14:30:33 -0800
+Message-ID: <201012092230.oB9MUX5F010909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750758Ab0LIWZV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:25:21 -0500
+	by vger.kernel.org with ESMTP id S1752261Ab0LIWbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, aarcange@redhat.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: shaohua.li@intel.com, eric.dumazet@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     mm: vmscan: rename lumpy_mode to reclaim_mode fix
+     percpu: add new macros to make percpu readmostly section correctly align
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
+     percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: rename lumpy_mode to reclaim_mode fix
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: percpu: add new macros to make percpu readmostly section correctly align
+From: Shaohua Li <shaohua.li@intel.com>
 
-As suggested by Johannes, rename reclaim_mode to reclaim_mode_t.  This is
-a fix to the mmotm patch
-broken-out/mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch.
+The percpu readmostly section should start and end at a cacheline aligned
+address.  Idealy we should change PERCPU_VADDR/PERCPU, but I can't change
+all arch code, so I add new macros for x86.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/asm-generic/vmlinux.lds.h |   66 ++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix
-+++ a/mm/vmscan.c
-@@ -63,12 +63,12 @@
-  * RECLAIM_MODE_COMPACTION: For high-order allocations, reclaim a number of
-  *			order-0 pages and then compact the zone
-  */
--typedef unsigned __bitwise__ reclaim_mode;
--#define RECLAIM_MODE_SINGLE		((__force reclaim_mode)0x01u)
--#define RECLAIM_MODE_ASYNC		((__force reclaim_mode)0x02u)
--#define RECLAIM_MODE_SYNC		((__force reclaim_mode)0x04u)
--#define RECLAIM_MODE_LUMPYRECLAIM	((__force reclaim_mode)0x08u)
--#define RECLAIM_MODE_COMPACTION		((__force reclaim_mode)0x10u)
-+typedef unsigned __bitwise__ reclaim_mode_t;
-+#define RECLAIM_MODE_SINGLE		((__force reclaim_mode_t)0x01u)
-+#define RECLAIM_MODE_ASYNC		((__force reclaim_mode_t)0x02u)
-+#define RECLAIM_MODE_SYNC		((__force reclaim_mode_t)0x04u)
-+#define RECLAIM_MODE_LUMPYRECLAIM	((__force reclaim_mode_t)0x08u)
-+#define RECLAIM_MODE_COMPACTION		((__force reclaim_mode_t)0x10u)
+diff -puN include/asm-generic/vmlinux.lds.h~percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -726,6 +726,72 @@
+ 		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
+ 	}
  
- struct scan_control {
- 	/* Incremented by the number of inactive pages that were scanned */
-@@ -101,7 +101,7 @@ struct scan_control {
- 	 * Intend to reclaim enough continuous memory rather than reclaim
- 	 * enough amount of memory. i.e, mode for high order allocation.
- 	 */
--	reclaim_mode reclaim_mode;
-+	reclaim_mode_t reclaim_mode;
++/**
++ * PERCPU_VADDR_CACHEALIGNED - define output section for percpu area
++ * @vaddr: explicit base address (optional)
++ * @phdr: destination PHDR (optional)
++ * @cacheline: cachline size required by readmostly percpu data
++ *
++ * Macro which expands to output section for percpu area.  If @vaddr
++ * is not blank, it specifies explicit base address and all percpu
++ * symbols will be offset from the given address.  If blank, @vaddr
++ * always equals @laddr + LOAD_OFFSET.
++ *
++ * @phdr defines the output PHDR to use if not blank.  Be warned that
++ * output PHDR is sticky.  If @phdr is specified, the next output
++ * section in the linker script will go there too.  @phdr should have
++ * a leading colon.
++ *
++ * Note that this macros defines __per_cpu_load as an absolute symbol.
++ * If there is no need to put the percpu section at a predetermined
++ * address, use PERCPU_CACHEALIGNED().
++ */
++#define PERCPU_VADDR_CACHEALIGNED(vaddr, phdr, cacheline)		\
++	VMLINUX_SYMBOL(__per_cpu_load) = .;				\
++	.data..percpu vaddr : AT(VMLINUX_SYMBOL(__per_cpu_load)		\
++				- LOAD_OFFSET) {			\
++		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
++		*(.data..percpu..first)					\
++		. = ALIGN(PAGE_SIZE);					\
++		*(.data..percpu..page_aligned)				\
++		. = ALIGN(cacheline);					\
++		*(.data..percpu..readmostly)				\
++		. = ALIGN(cacheline);					\
++		*(.data..percpu)					\
++		*(.data..percpu..shared_aligned)			\
++		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
++	} phdr								\
++	. = VMLINUX_SYMBOL(__per_cpu_load) + SIZEOF(.data..percpu);
++
++/**
++ * PERCPU_CACHEALIGNED - define output section for percpu area, simple version
++ * @align: required alignment
++ * @cacheline: cachline size required by readmostly percpu data
++ *
++ * Align to @align and outputs output section for percpu area.  This
++ * macro doesn't maniuplate @vaddr or @phdr and __per_cpu_load and
++ * __per_cpu_start will be identical.
++ *
++ * This macro is equivalent to ALIGN(align); PERCPU_VADDR_CACHEALIGNED( , ) except
++ * that __per_cpu_load is defined as a relative symbol against
++ * .data..percpu which is required for relocatable x86_32
++ * configuration.
++ */
++#define PERCPU_CACHEALIGNED(align, cacheline)				\
++	. = ALIGN(align);						\
++	.data..percpu	: AT(ADDR(.data..percpu) - LOAD_OFFSET) {	\
++		VMLINUX_SYMBOL(__per_cpu_load) = .;			\
++		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
++		*(.data..percpu..first)					\
++		. = ALIGN(PAGE_SIZE);					\
++		*(.data..percpu..page_aligned)				\
++		. = ALIGN(cacheline);					\
++		*(.data..percpu..readmostly)				\
++		. = ALIGN(cacheline);					\
++		*(.data..percpu)					\
++		*(.data..percpu..shared_aligned)			\
++		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
++	}
  
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
-@@ -287,7 +287,7 @@ unsigned long shrink_slab(unsigned long 
- static void set_reclaim_mode(int priority, struct scan_control *sc,
- 				   bool sync)
- {
--	reclaim_mode syncmode = sync ? RECLAIM_MODE_SYNC : RECLAIM_MODE_ASYNC;
-+	reclaim_mode_t syncmode = sync ? RECLAIM_MODE_SYNC : RECLAIM_MODE_ASYNC;
- 
- 	/*
- 	 * Initially assume we are entering either lumpy reclaim or
+ /*
+  * Definition of the high level *_SECTION macros
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-linux-next.patch
-mm-compactionc-avoid-double-mem_cgroup_del_lru.patch
-mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch
 mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
@@ -119,20 +149,8 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-writeback-enabling-gate-for-light-dirtied-bdi.patch
-writeback-enabling-gate-for-light-dirtied-bdi-fix.patch
-writeback-safety-margin-for-bdi-stat-error.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
 vmscan-make-kswapd-use-a-correct-order.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
+percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
+percpu-use-new-macros-for-x86-percpu-readmostly-section.patch
 
