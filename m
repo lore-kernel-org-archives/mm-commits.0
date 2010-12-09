@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-use-new-macros-for-x86-percpu-readmostly-section.patch added to -mm tree
-Date: Thu, 09 Dec 2010 14:30:35 -0800
-Message-ID: <201012092230.oB9MUZo7010913@imap1.linux-foundation.org>
+Subject: + flex_array-export-symbols-to-modules.patch added to -mm tree
+Date: Thu, 09 Dec 2010 14:35:02 -0800
+Message-ID: <201012092235.oB9MZ2wM011147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756133Ab0LIWcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:32:20 -0500
+	by vger.kernel.org with ESMTP id S1754433Ab0LIWfn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:35:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, eric.dumazet@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org
+Cc: rientjes@google.com, dave@linux.vnet.ibm.com, kernel-hacker@bennee.com, lethal@linux-sh.org
 
 
 The patch titled
-     percpu: use new macros for x86 percpu readmostly section
+     flex_array: export symbols to modules
 has been added to the -mm tree.  Its filename is
-     percpu-use-new-macros-for-x86-percpu-readmostly-section.patch
+     flex_array-export-symbols-to-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: use new macros for x86 percpu readmostly section
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: flex_array: export symbols to modules
+From: David Rientjes <rientjes@google.com>
 
-Use the new macros to correctly align the percpu readmostly data.
+Alex said:
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+  I want to use flex_array to store a sparse array of ATM cell
+  re-assembly buffers for my ATM over Ethernet driver.  Using the per-vcc
+  user_back structure causes problems when stacked with things like
+  br2684.
+
+Add EXPORT_SYMBOL() for all publically accessible flex array functions
+and move to obj-y so that modules may use this library.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Reported-by: Alex Bennee <kernel-hacker@bennee.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Makefile     |    4 ++--
+ lib/flex_array.c |   10 ++++++++++
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/vmlinux.lds.S~percpu-use-new-macros-for-x86-percpu-readmostly-section arch/x86/kernel/vmlinux.lds.S
---- a/arch/x86/kernel/vmlinux.lds.S~percpu-use-new-macros-for-x86-percpu-readmostly-section
-+++ a/arch/x86/kernel/vmlinux.lds.S
-@@ -230,7 +230,7 @@ SECTIONS
- 	 * output PHDR, so the next output section - .init.text - should
- 	 * start another segment - init.
- 	 */
--	PERCPU_VADDR(0, :percpu)
-+	PERCPU_VADDR_CACHEALIGNED(0, :percpu, INTERNODE_CACHE_BYTES)
- #endif
+diff -puN lib/Makefile~flex_array-export-symbols-to-modules lib/Makefile
+--- a/lib/Makefile~flex_array-export-symbols-to-modules
++++ a/lib/Makefile
+@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
+-	 is_single_threaded.o plist.o decompress.o flex_array.o
++	 is_single_threaded.o plist.o decompress.o
  
- 	INIT_TEXT_SECTION(PAGE_SIZE)
-@@ -305,7 +305,7 @@ SECTIONS
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
+ 
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o
++	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN lib/flex_array.c~flex_array-export-symbols-to-modules lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-export-symbols-to-modules
++++ a/lib/flex_array.c
+@@ -23,6 +23,7 @@
+ #include <linux/flex_array.h>
+ #include <linux/slab.h>
+ #include <linux/stddef.h>
++#include <linux/module.h>
+ 
+ struct flex_array_part {
+ 	char elements[FLEX_ARRAY_PART_SIZE];
+@@ -103,6 +104,7 @@ struct flex_array *flex_array_alloc(int 
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
+ 	return ret;
+ }
++EXPORT_SYMBOL(flex_array_alloc);
+ 
+ static int fa_element_to_part_nr(struct flex_array *fa,
+ 					unsigned int element_nr)
+@@ -126,12 +128,14 @@ void flex_array_free_parts(struct flex_a
+ 	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++)
+ 		kfree(fa->parts[part_nr]);
+ }
++EXPORT_SYMBOL(flex_array_free_parts);
+ 
+ void flex_array_free(struct flex_array *fa)
+ {
+ 	flex_array_free_parts(fa);
+ 	kfree(fa);
+ }
++EXPORT_SYMBOL(flex_array_free);
+ 
+ static unsigned int index_inside_part(struct flex_array *fa,
+ 					unsigned int element_nr)
+@@ -196,6 +200,7 @@ int flex_array_put(struct flex_array *fa
+ 	memcpy(dst, src, fa->element_size);
+ 	return 0;
+ }
++EXPORT_SYMBOL(flex_array_put);
+ 
+ /**
+  * flex_array_clear - clear element in array at @element_nr
+@@ -223,6 +228,7 @@ int flex_array_clear(struct flex_array *
+ 	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
+ 	return 0;
+ }
++EXPORT_SYMBOL(flex_array_clear);
+ 
+ /**
+  * flex_array_prealloc - guarantee that array space exists
+@@ -259,6 +265,7 @@ int flex_array_prealloc(struct flex_arra
  	}
+ 	return 0;
+ }
++EXPORT_SYMBOL(flex_array_prealloc);
  
- #if !defined(CONFIG_X86_64) || !defined(CONFIG_SMP)
--	PERCPU(THREAD_SIZE)
-+	PERCPU_CACHEALIGNED(THREAD_SIZE, INTERNODE_CACHE_BYTES)
- #endif
+ /**
+  * flex_array_get - pull data back out of the array
+@@ -288,6 +295,7 @@ void *flex_array_get(struct flex_array *
+ 	}
+ 	return &part->elements[index_inside_part(fa, element_nr)];
+ }
++EXPORT_SYMBOL(flex_array_get);
  
- 	. = ALIGN(PAGE_SIZE);
+ /**
+  * flex_array_get_ptr - pull a ptr back out of the array
+@@ -308,6 +316,7 @@ void *flex_array_get_ptr(struct flex_arr
+ 
+ 	return *tmp;
+ }
++EXPORT_SYMBOL(flex_array_get_ptr);
+ 
+ static int part_is_free(struct flex_array_part *part)
+ {
+@@ -348,3 +357,4 @@ int flex_array_shrink(struct flex_array 
+ 	}
+ 	return ret;
+ }
++EXPORT_SYMBOL(flex_array_shrink);
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-make-kswapd-use-a-correct-order.patch
-include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
-percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
-percpu-use-new-macros-for-x86-percpu-readmostly-section.patch
+linux-next.patch
+mm-remove-unused-get_vm_area_node.patch
+mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
+mm-unify-module_alloc-code-for-vmalloc.patch
+oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
+flex_array-export-symbols-to-modules.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
+proc-use-single_open-correctly.patch
 
