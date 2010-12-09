@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flex_array-export-symbols-to-modules.patch added to -mm tree
-Date: Thu, 09 Dec 2010 14:35:02 -0800
-Message-ID: <201012092235.oB9MZ2wM011147@imap1.linux-foundation.org>
+Subject: + kernel-clean-up-use_generic_smp_helpers.patch added to -mm tree
+Date: Thu, 09 Dec 2010 15:35:31 -0800
+Message-ID: <201012092335.oB9NZVNU013843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754433Ab0LIWfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:35:43 -0500
+	by vger.kernel.org with ESMTP id S1755715Ab0LIXgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 18:36:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dave@linux.vnet.ibm.com, kernel-hacker@bennee.com, lethal@linux-sh.org
+Cc: amwang@redhat.com, a.p.zijlstra@chello.nl, dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     flex_array: export symbols to modules
+     kernel: clean up USE_GENERIC_SMP_HELPERS
 has been added to the -mm tree.  Its filename is
-     flex_array-export-symbols-to-modules.patch
+     kernel-clean-up-use_generic_smp_helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,141 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: export symbols to modules
-From: David Rientjes <rientjes@google.com>
+Subject: kernel: clean up USE_GENERIC_SMP_HELPERS
+From: Amerigo Wang <amwang@redhat.com>
 
-Alex said:
+For arch which needs USE_GENERIC_SMP_HELPERS, it has to select
+USE_GENERIC_SMP_HELPERS, rather than leaving a choice to user, since they
+don't provide their own implementions.
 
-  I want to use flex_array to store a sparse array of ATM cell
-  re-assembly buffers for my ATM over Ethernet driver.  Using the per-vcc
-  user_back structure causes problems when stacked with things like
-  br2684.
+Also, move on_each_cpu() to kernel/smp.c, it is strange to put it in
+kernel/softirq.c.
 
-Add EXPORT_SYMBOL() for all publically accessible flex array functions
-and move to obj-y so that modules may use this library.
+For arch which doesn't use USE_GENERIC_SMP_HELPERS, e.g.  blackfin, only
+on_each_cpu() is compiled.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Reported-by: Alex Bennee <kernel-hacker@bennee.com>
+Signed-off-by: Amerigo Wang <amwang@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile     |    4 ++--
- lib/flex_array.c |   10 ++++++++++
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ arch/mn10300/Kconfig |    6 +-----
+ arch/x86/Kconfig     |    5 +----
+ kernel/Makefile      |    2 +-
+ kernel/smp.c         |   20 ++++++++++++++++++++
+ kernel/softirq.c     |   19 -------------------
+ 5 files changed, 23 insertions(+), 29 deletions(-)
 
-diff -puN lib/Makefile~flex_array-export-symbols-to-modules lib/Makefile
---- a/lib/Makefile~flex_array-export-symbols-to-modules
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o flex_array.o
-+	 is_single_threaded.o plist.o decompress.o
+diff -puN arch/mn10300/Kconfig~kernel-clean-up-use_generic_smp_helpers arch/mn10300/Kconfig
+--- a/arch/mn10300/Kconfig~kernel-clean-up-use_generic_smp_helpers
++++ a/arch/mn10300/Kconfig
+@@ -203,6 +203,7 @@ endmenu
+ config SMP
+ 	bool "Symmetric multi-processing support"
+ 	default y
++	select USE_GENERIC_SMP_HELPERS
+ 	depends on MN10300_PROC_MN2WS0038 || MN10300_PROC_MN2WS0050
+ 	---help---
+ 	  This enables support for systems with more than one CPU. If you have
+@@ -226,11 +227,6 @@ config NR_CPUS
+ 	depends on SMP
+ 	default "2"
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
+-config USE_GENERIC_SMP_HELPERS
+-	bool
+-	depends on SMP
+-	default y
+-
+ source "kernel/Kconfig.preempt"
  
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
--	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o
-+	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o
+ config MN10300_CURRENT_IN_E2
+diff -puN arch/x86/Kconfig~kernel-clean-up-use_generic_smp_helpers arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kernel-clean-up-use_generic_smp_helpers
++++ a/arch/x86/Kconfig
+@@ -65,6 +65,7 @@ config X86
+ 	select HAVE_SPARSE_IRQ
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PENDING_IRQ if SMP
++	select USE_GENERIC_SMP_HELPERS if SMP
  
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
-diff -puN lib/flex_array.c~flex_array-export-symbols-to-modules lib/flex_array.c
---- a/lib/flex_array.c~flex_array-export-symbols-to-modules
-+++ a/lib/flex_array.c
-@@ -23,6 +23,7 @@
- #include <linux/flex_array.h>
- #include <linux/slab.h>
- #include <linux/stddef.h>
-+#include <linux/module.h>
+ config INSTRUCTION_DECODER
+ 	def_bool (KPROBES || PERF_EVENTS)
+@@ -203,10 +204,6 @@ config HAVE_INTEL_TXT
+ 	def_bool y
+ 	depends on EXPERIMENTAL && DMAR && ACPI
  
- struct flex_array_part {
- 	char elements[FLEX_ARRAY_PART_SIZE];
-@@ -103,6 +104,7 @@ struct flex_array *flex_array_alloc(int 
- 						FLEX_ARRAY_BASE_BYTES_LEFT);
- 	return ret;
- }
-+EXPORT_SYMBOL(flex_array_alloc);
+-config USE_GENERIC_SMP_HELPERS
+-	def_bool y
+-	depends on SMP
+-
+ config X86_32_SMP
+ 	def_bool y
+ 	depends on X86_32 && SMP
+diff -puN kernel/Makefile~kernel-clean-up-use_generic_smp_helpers kernel/Makefile
+--- a/kernel/Makefile~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/Makefile
+@@ -43,7 +43,7 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
+ obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
+ obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
+ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+-obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
++obj-$(CONFIG_SMP) += smp.o
+ ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
+diff -puN kernel/smp.c~kernel-clean-up-use_generic_smp_helpers kernel/smp.c
+--- a/kernel/smp.c~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/smp.c
+@@ -13,6 +13,7 @@
+ #include <linux/smp.h>
+ #include <linux/cpu.h>
  
- static int fa_element_to_part_nr(struct flex_array *fa,
- 					unsigned int element_nr)
-@@ -126,12 +128,14 @@ void flex_array_free_parts(struct flex_a
- 	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++)
- 		kfree(fa->parts[part_nr]);
- }
-+EXPORT_SYMBOL(flex_array_free_parts);
- 
- void flex_array_free(struct flex_array *fa)
++#ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+ static struct {
+ 	struct list_head	queue;
+ 	raw_spinlock_t		lock;
+@@ -529,3 +530,22 @@ void ipi_call_unlock_irq(void)
  {
- 	flex_array_free_parts(fa);
- 	kfree(fa);
+ 	raw_spin_unlock_irq(&call_function.lock);
  }
-+EXPORT_SYMBOL(flex_array_free);
- 
- static unsigned int index_inside_part(struct flex_array *fa,
- 					unsigned int element_nr)
-@@ -196,6 +200,7 @@ int flex_array_put(struct flex_array *fa
- 	memcpy(dst, src, fa->element_size);
- 	return 0;
++#endif /* USE_GENERIC_SMP_HELPERS */
++
++/*
++ * Call a function on all processors
++ */
++int on_each_cpu(void (*func) (void *info), void *info, int wait)
++{
++	int ret = 0;
++
++	preempt_disable();
++	ret = smp_call_function(func, info, wait);
++	local_irq_disable();
++	func(info);
++	local_irq_enable();
++	preempt_enable();
++	return ret;
++}
++EXPORT_SYMBOL(on_each_cpu);
++
+diff -puN kernel/softirq.c~kernel-clean-up-use_generic_smp_helpers kernel/softirq.c
+--- a/kernel/softirq.c~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/softirq.c
+@@ -885,25 +885,6 @@ static __init int spawn_ksoftirqd(void)
  }
-+EXPORT_SYMBOL(flex_array_put);
+ early_initcall(spawn_ksoftirqd);
  
- /**
-  * flex_array_clear - clear element in array at @element_nr
-@@ -223,6 +228,7 @@ int flex_array_clear(struct flex_array *
- 	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
- 	return 0;
- }
-+EXPORT_SYMBOL(flex_array_clear);
- 
- /**
-  * flex_array_prealloc - guarantee that array space exists
-@@ -259,6 +265,7 @@ int flex_array_prealloc(struct flex_arra
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(flex_array_prealloc);
- 
- /**
-  * flex_array_get - pull data back out of the array
-@@ -288,6 +295,7 @@ void *flex_array_get(struct flex_array *
- 	}
- 	return &part->elements[index_inside_part(fa, element_nr)];
- }
-+EXPORT_SYMBOL(flex_array_get);
- 
- /**
-  * flex_array_get_ptr - pull a ptr back out of the array
-@@ -308,6 +316,7 @@ void *flex_array_get_ptr(struct flex_arr
- 
- 	return *tmp;
- }
-+EXPORT_SYMBOL(flex_array_get_ptr);
- 
- static int part_is_free(struct flex_array_part *part)
- {
-@@ -348,3 +357,4 @@ int flex_array_shrink(struct flex_array 
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL(flex_array_shrink);
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-linux-next.patch
-mm-remove-unused-get_vm_area_node.patch
-mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
-mm-unify-module_alloc-code-for-vmalloc.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
-flex_array-export-symbols-to-modules.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-proc-use-single_open-correctly.patch
-
+-#ifdef CONFIG_SMP
+-/*
+- * Call a function on all processors
+- */
+-int on_each_cpu(void (*func) (void *info), void *info, int wait)
+-{
+-	int ret = 0;
+-
+-	preempt_disable();
+-	ret = smp_call_function(func, info, wait);
+-	local_irq_disable();
+-	func(info);
+-	local_irq_enable();
+-	preempt_enable();
+-	return ret;
+-}
+-EXPORT_SYMBOL(on_each_cpu);
+-#endif
