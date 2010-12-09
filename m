@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch added to -mm tree
-Date: Thu, 09 Dec 2010 14:30:33 -0800
-Message-ID: <201012092230.oB9MUX5F010909@imap1.linux-foundation.org>
+Subject: + include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch added to -mm tree
+Date: Thu, 09 Dec 2010 14:30:31 -0800
+Message-ID: <201012092230.oB9MUW01010906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752261Ab0LIWbV (ORCPT
+	by vger.kernel.org with ESMTP id S1752507Ab0LIWbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 17:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: shaohua.li@intel.com, eric.dumazet@gmail.com, hpa@zytor.com, mingo@elte.hu, 
 
 
 The patch titled
-     percpu: add new macros to make percpu readmostly section correctly align
+     include/asm-generic/vmlinux.lds.h: make readmostly section correctly align
 has been added to the -mm tree.  Its filename is
-     percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
+     include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: add new macros to make percpu readmostly section correctly align
+Subject: include/asm-generic/vmlinux.lds.h: make readmostly section correctly align
 From: Shaohua Li <shaohua.li@intel.com>
 
-The percpu readmostly section should start and end at a cacheline aligned
-address.  Idealy we should change PERCPU_VADDR/PERCPU, but I can't change
-all arch code, so I add new macros for x86.
+The readmostly section should end at a cacheline aligned address,
+otherwise the last several data might share cachline with other data and
+make the readmostly data still have cache bounce.
+
+For example, in ia64, secpath_cachep is the last readmostly data, and it
+shares cacheline with init_uts_ns.
+
+a000000100e80480 d secpath_cachep
+a000000100e80488 D init_uts_ns
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -49,85 +55,22 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |   66 ++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ include/asm-generic/vmlinux.lds.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align
+diff -puN include/asm-generic/vmlinux.lds.h~include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align
 +++ a/include/asm-generic/vmlinux.lds.h
-@@ -726,6 +726,72 @@
- 		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
- 	}
+@@ -192,7 +192,8 @@
  
-+/**
-+ * PERCPU_VADDR_CACHEALIGNED - define output section for percpu area
-+ * @vaddr: explicit base address (optional)
-+ * @phdr: destination PHDR (optional)
-+ * @cacheline: cachline size required by readmostly percpu data
-+ *
-+ * Macro which expands to output section for percpu area.  If @vaddr
-+ * is not blank, it specifies explicit base address and all percpu
-+ * symbols will be offset from the given address.  If blank, @vaddr
-+ * always equals @laddr + LOAD_OFFSET.
-+ *
-+ * @phdr defines the output PHDR to use if not blank.  Be warned that
-+ * output PHDR is sticky.  If @phdr is specified, the next output
-+ * section in the linker script will go there too.  @phdr should have
-+ * a leading colon.
-+ *
-+ * Note that this macros defines __per_cpu_load as an absolute symbol.
-+ * If there is no need to put the percpu section at a predetermined
-+ * address, use PERCPU_CACHEALIGNED().
-+ */
-+#define PERCPU_VADDR_CACHEALIGNED(vaddr, phdr, cacheline)		\
-+	VMLINUX_SYMBOL(__per_cpu_load) = .;				\
-+	.data..percpu vaddr : AT(VMLINUX_SYMBOL(__per_cpu_load)		\
-+				- LOAD_OFFSET) {			\
-+		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
-+		*(.data..percpu..first)					\
-+		. = ALIGN(PAGE_SIZE);					\
-+		*(.data..percpu..page_aligned)				\
-+		. = ALIGN(cacheline);					\
-+		*(.data..percpu..readmostly)				\
-+		. = ALIGN(cacheline);					\
-+		*(.data..percpu)					\
-+		*(.data..percpu..shared_aligned)			\
-+		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
-+	} phdr								\
-+	. = VMLINUX_SYMBOL(__per_cpu_load) + SIZEOF(.data..percpu);
-+
-+/**
-+ * PERCPU_CACHEALIGNED - define output section for percpu area, simple version
-+ * @align: required alignment
-+ * @cacheline: cachline size required by readmostly percpu data
-+ *
-+ * Align to @align and outputs output section for percpu area.  This
-+ * macro doesn't maniuplate @vaddr or @phdr and __per_cpu_load and
-+ * __per_cpu_start will be identical.
-+ *
-+ * This macro is equivalent to ALIGN(align); PERCPU_VADDR_CACHEALIGNED( , ) except
-+ * that __per_cpu_load is defined as a relative symbol against
-+ * .data..percpu which is required for relocatable x86_32
-+ * configuration.
-+ */
-+#define PERCPU_CACHEALIGNED(align, cacheline)				\
-+	. = ALIGN(align);						\
-+	.data..percpu	: AT(ADDR(.data..percpu) - LOAD_OFFSET) {	\
-+		VMLINUX_SYMBOL(__per_cpu_load) = .;			\
-+		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
-+		*(.data..percpu..first)					\
-+		. = ALIGN(PAGE_SIZE);					\
-+		*(.data..percpu..page_aligned)				\
-+		. = ALIGN(cacheline);					\
-+		*(.data..percpu..readmostly)				\
-+		. = ALIGN(cacheline);					\
-+		*(.data..percpu)					\
-+		*(.data..percpu..shared_aligned)			\
-+		VMLINUX_SYMBOL(__per_cpu_end) = .;			\
-+	}
+ #define READ_MOSTLY_DATA(align)						\
+ 	. = ALIGN(align);						\
+-	*(.data..read_mostly)
++	*(.data..read_mostly)						\
++	. = ALIGN(align);
  
- /*
-  * Definition of the high level *_SECTION macros
+ #define CACHELINE_ALIGNED_DATA(align)					\
+ 	. = ALIGN(align);						\
 _
 
 Patches currently in -mm which might be from shaohua.li@intel.com are
