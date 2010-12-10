@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-use-kthread_create_on_cpu.patch added to -mm tree
-Date: Thu, 09 Dec 2010 16:45:00 -0800
-Message-ID: <201012100045.oBA0j0Hd016994@imap1.linux-foundation.org>
+Subject: + kthread-numa-aware-kthread_create_on_cpu.patch added to -mm tree
+Date: Thu, 09 Dec 2010 16:44:57 -0800
+Message-ID: <201012100044.oBA0ivp3016990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757629Ab0LJApO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 19:45:14 -0500
+	by vger.kernel.org with ESMTP id S1757629Ab0LJApM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2010 19:45:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: eric.dumazet@gmail.com, ak@linux.intel.com, davem@davemloft.net, dhowells@re
 
 
 The patch titled
-     kthread: use kthread_create_on_cpu()
+     kthread: NUMA aware kthread_create_on_cpu()
 has been added to the -mm tree.  Its filename is
-     kthread-use-kthread_create_on_cpu.patch
+     kthread-numa-aware-kthread_create_on_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: use kthread_create_on_cpu()
+Subject: kthread: NUMA aware kthread_create_on_cpu()
 From: Eric Dumazet <eric.dumazet@gmail.com>
 
-ksoftirqd, kworker, migration, and pktgend kthreads can be created with
-kthread_create_on_cpu(), to get proper NUMA affinities for their stack and
-task_struct.
+All kthreads being created from a single helper task, they all use memory
+from a single node for their kernel stack and task struct.
+
+This patch suite creates kthread_create_on_cpu(), adding a 'cpu' parameter
+to parameters already used by kthread_create().
+
+This parameter serves in allocating memory for the new kthread on its
+memory node if possible.
 
 Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
 Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -52,66 +57,161 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c      |    3 ++-
- kernel/stop_machine.c |    4 ++--
- kernel/workqueue.c    |    4 ++--
- net/core/pktgen.c     |    3 ++-
- 4 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/kthread.h |   14 ++++++++++----
+ include/linux/sched.h   |    1 +
+ kernel/fork.c           |    3 ++-
+ kernel/kthread.c        |   32 ++++++++++++++++++++++++++------
+ 4 files changed, 39 insertions(+), 11 deletions(-)
 
-diff -puN kernel/softirq.c~kthread-use-kthread_create_on_cpu kernel/softirq.c
---- a/kernel/softirq.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/softirq.c
-@@ -831,7 +831,8 @@ static int __cpuinit cpu_callback(struct
- 	switch (action) {
- 	case CPU_UP_PREPARE:
- 	case CPU_UP_PREPARE_FROZEN:
--		p = kthread_create(run_ksoftirqd, hcpu, "ksoftirqd/%d", hotcpu);
-+		p = kthread_create_on_cpu(run_ksoftirqd, hcpu, hotcpu,
-+					  "ksoftirqd/%d", hotcpu);
- 		if (IS_ERR(p)) {
- 			printk("ksoftirqd for %i failed\n", hotcpu);
- 			return notifier_from_errno(PTR_ERR(p));
-diff -puN kernel/stop_machine.c~kthread-use-kthread_create_on_cpu kernel/stop_machine.c
---- a/kernel/stop_machine.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/stop_machine.c
-@@ -301,8 +301,8 @@ static int __cpuinit cpu_stop_cpu_callba
- 	case CPU_UP_PREPARE:
- 		BUG_ON(stopper->thread || stopper->enabled ||
- 		       !list_empty(&stopper->works));
--		p = kthread_create(cpu_stopper_thread, stopper, "migration/%d",
--				   cpu);
-+		p = kthread_create_on_cpu(cpu_stopper_thread, stopper, cpu,
-+					  "migration/%d", cpu);
- 		if (IS_ERR(p))
- 			return notifier_from_errno(PTR_ERR(p));
- 		get_task_struct(p);
-diff -puN kernel/workqueue.c~kthread-use-kthread_create_on_cpu kernel/workqueue.c
---- a/kernel/workqueue.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/workqueue.c
-@@ -1318,8 +1318,8 @@ static struct worker *create_worker(stru
- 	worker->id = id;
+diff -puN include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu
++++ a/include/linux/kthread.h
+@@ -4,10 +4,15 @@
+ #include <linux/err.h>
+ #include <linux/sched.h>
  
- 	if (!on_unbound_cpu)
--		worker->task = kthread_create(worker_thread, worker,
--					      "kworker/%u:%d", gcwq->cpu, id);
-+		worker->task = kthread_create_on_cpu(worker_thread, worker, gcwq->cpu,
-+						     "kworker/%u:%d", gcwq->cpu, id);
- 	else
- 		worker->task = kthread_create(worker_thread, worker,
- 					      "kworker/u:%d", id);
-diff -puN net/core/pktgen.c~kthread-use-kthread_create_on_cpu net/core/pktgen.c
---- a/net/core/pktgen.c~kthread-use-kthread_create_on_cpu
-+++ a/net/core/pktgen.c
-@@ -3811,7 +3811,8 @@ static int __init pktgen_create_thread(i
- 	list_add_tail(&t->th_list, &pktgen_threads);
- 	init_completion(&t->start_done);
+-struct task_struct *kthread_create(int (*threadfn)(void *data),
+-				   void *data,
+-				   const char namefmt[], ...)
+-	__attribute__((format(printf, 3, 4)));
++struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
++					  void *data,
++					  int cpu,
++					  const char namefmt[], ...)
++	__attribute__((format(printf, 4, 5)));
++
++#define kthread_create(threadfn, data, namefmt, arg...) \
++	kthread_create_on_cpu(threadfn, data, -1, namefmt, ##arg)
++
  
--	p = kthread_create(pktgen_thread_worker, t, "kpktgend_%d", cpu);
-+	p = kthread_create_on_cpu(pktgen_thread_worker, t, cpu,
-+				  "kpktgend_%d", cpu);
- 	if (IS_ERR(p)) {
- 		pr_err("kernel_thread() failed for cpu %d\n", t->cpu);
- 		list_del(&t->th_list);
+ /**
+  * kthread_run - create and wake a thread.
+@@ -34,6 +39,7 @@ void *kthread_data(struct task_struct *k
+ 
+ int kthreadd(void *unused);
+ extern struct task_struct *kthreadd_task;
++extern int tsk_fork_get_node(struct task_struct *tsk);
+ 
+ /*
+  * Simple work processor based on kthread.
+diff -puN include/linux/sched.h~kthread-numa-aware-kthread_create_on_cpu include/linux/sched.h
+--- a/include/linux/sched.h~kthread-numa-aware-kthread_create_on_cpu
++++ a/include/linux/sched.h
+@@ -1466,6 +1466,7 @@ struct task_struct {
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *mempolicy;	/* Protected by alloc_lock */
+ 	short il_next;
++	short pref_node_fork;
+ #endif
+ 	atomic_t fs_excl;	/* holding fs exclusive resources */
+ 	struct rcu_head rcu;
+diff -puN kernel/fork.c~kthread-numa-aware-kthread_create_on_cpu kernel/fork.c
+--- a/kernel/fork.c~kthread-numa-aware-kthread_create_on_cpu
++++ a/kernel/fork.c
+@@ -66,6 +66,7 @@
+ #include <linux/posix-timers.h>
+ #include <linux/user-return-notifier.h>
+ #include <linux/oom.h>
++#include <linux/kthread.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -253,7 +254,7 @@ static struct task_struct *dup_task_stru
+ 	struct task_struct *tsk;
+ 	struct thread_info *ti;
+ 	unsigned long *stackend;
+-	int node = numa_node_id();
++	int node = tsk_fork_get_node(orig);
+ 	int err;
+ 
+ 	prepare_to_copy(orig);
+diff -puN kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu kernel/kthread.c
+--- a/kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu
++++ a/kernel/kthread.c
+@@ -27,6 +27,7 @@ struct kthread_create_info
+ 	/* Information passed to kthread() from kthreadd. */
+ 	int (*threadfn)(void *data);
+ 	void *data;
++	int cpu;
+ 
+ 	/* Result passed back to kthread_create() from kthreadd. */
+ 	struct task_struct *result;
+@@ -98,10 +99,24 @@ static int kthread(void *_create)
+ 	do_exit(ret);
+ }
+ 
++/* called from do_fork() to get node information for about to be created task */
++int tsk_fork_get_node(struct task_struct *tsk)
++{
++#ifdef CONFIG_NUMA
++	if (tsk == kthreadd_task)
++		return tsk->pref_node_fork;
++#endif
++	return numa_node_id();
++}
++
+ static void create_kthread(struct kthread_create_info *create)
+ {
+ 	int pid;
+ 
++#ifdef CONFIG_NUMA
++	current->pref_node_fork = (create->cpu != -1) ?
++		cpu_to_node(create->cpu) : -1;
++#endif
+ 	/* We want our own signal handler (we take no signals by default). */
+ 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	if (pid < 0) {
+@@ -111,15 +126,18 @@ static void create_kthread(struct kthrea
+ }
+ 
+ /**
+- * kthread_create - create a kthread.
++ * kthread_create_on_cpu - create a kthread.
+  * @threadfn: the function to run until signal_pending(current).
+  * @data: data ptr for @threadfn.
++ * @cpu: cpu number.
+  * @namefmt: printf-style name for the thread.
+  *
+  * Description: This helper function creates and names a kernel
+  * thread.  The thread will be stopped: use wake_up_process() to start
+  * it.  See also kthread_run().
+  *
++ * If thread is going to be bound on a particular cpu, give its number
++ * in @cpu, to get NUMA affinity for kthread stack, or else give -1.
+  * When woken, the thread will run @threadfn() with @data as its
+  * argument. @threadfn() can either call do_exit() directly if it is a
+  * standalone thread for which noone will call kthread_stop(), or
+@@ -129,15 +147,17 @@ static void create_kthread(struct kthrea
+  *
+  * Returns a task_struct or ERR_PTR(-ENOMEM).
+  */
+-struct task_struct *kthread_create(int (*threadfn)(void *data),
+-				   void *data,
+-				   const char namefmt[],
+-				   ...)
++struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
++					  void *data,
++					  int cpu,
++					  const char namefmt[],
++					  ...)
+ {
+ 	struct kthread_create_info create;
+ 
+ 	create.threadfn = threadfn;
+ 	create.data = data;
++	create.cpu = cpu;
+ 	init_completion(&create.done);
+ 
+ 	spin_lock(&kthread_create_lock);
+@@ -164,7 +184,7 @@ struct task_struct *kthread_create(int (
+ 	}
+ 	return create.result;
+ }
+-EXPORT_SYMBOL(kthread_create);
++EXPORT_SYMBOL(kthread_create_on_cpu);
+ 
+ /**
+  * kthread_bind - bind a just-created kthread to a cpu.
 _
 
 Patches currently in -mm which might be from eric.dumazet@gmail.com are
