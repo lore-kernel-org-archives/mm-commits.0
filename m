@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-new-sysfs-attributes.patch added to -mm tree
-Date: Fri, 10 Dec 2010 15:24:31 -0800
-Message-ID: <201012102324.oBANOVqJ009040@imap1.linux-foundation.org>
+Subject: + fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch added to -mm tree
+Date: Fri, 10 Dec 2010 15:42:34 -0800
+Message-ID: <201012102342.oBANgYrN009690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755531Ab0LJXZE (ORCPT
+	by vger.kernel.org with ESMTP id S1751522Ab0LJXnP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Dec 2010 18:25:04 -0500
+	Fri, 10 Dec 2010 18:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+Cc: edward.shishkin@gmail.com, hch@lst.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     rapidio: add new sysfs attributes
+     fs: relax count limitation in rw_verify_area(), permit >2G read() and write()
 has been added to the -mm tree.  Its filename is
-     rapidio-add-new-sysfs-attributes.patch
+     fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add new sysfs attributes
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: fs: relax count limitation in rw_verify_area(), permit >2G read() and write()
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Add new sysfs attributes.
+Relax synthetic limitation introduced by rw_verify_area().
 
-1. Routing information required to to reach the RIO device:
-destid - device destination ID (real for for endpoint, route for switch)
-hopcount - hopcount for maintenance requests (switches only)
+We limit @count to something that fits in ssize_t instead of int, so that
+the kernel now permits single reads and writes of up to 2^63 bytes on
+64-bit systems (whereas it was previously limited to 2^31), because:
 
-2. device linking information:
-lprev - name of device that precedes the given device in the enumeration
-        or discovery order (displayed along with of the port to which it
-        is attached).
-lnext - names of devices (with corresponding port numbers) that are
-        attached to the given device as next in the enumeration or
-        discovery order (switches only)
+1. This is more conformable to man pages, where @count
+   should be of size_t (but not more than SSIZE_MAX for
+   predictable results).
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+2. Old limitation restricts size of atomic writes that
+   can be performed by a local file system: 2G can be
+   not enough in the near future.
+
+3. Some applications of our users don't work with the
+   old limitation (and it is really hard to fix them).
+
+The following subsystems were tested with this patch applied:
+
+direct-io,
+ntfs,
+squashfs,
+cifs,
+ecryptfs,
+ext[2,3,4]
+hfs,
+hfsplus,
+reiserfs,
+xfs,
+jfs,
+nfs,
+gfs2,
+btrfs,
+isofs
+
+Everything works fine.  While testing the new relaxed limitation there
+were found and fixed truncation bugs in direct-io and ecryptfs.  The
+fixups are in upstream already.
+
+Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-sysfs.c |   39 +++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+ fs/read_write.c    |   16 ++++++----------
+ fs/splice.c        |    4 ++--
+ include/linux/fs.h |    4 ++--
+ 3 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-add-new-sysfs-attributes drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-add-new-sysfs-attributes
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -33,6 +33,8 @@ rio_config_attr(device_rev, "0x%08x\n");
- rio_config_attr(asm_did, "0x%04x\n");
- rio_config_attr(asm_vid, "0x%04x\n");
- rio_config_attr(asm_rev, "0x%04x\n");
-+rio_config_attr(destid, "0x%04x\n");
-+rio_config_attr(hopcount, "0x%02x\n");
+diff -puN fs/read_write.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write fs/read_write.c
+--- a/fs/read_write.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
++++ a/fs/read_write.c
+@@ -236,21 +236,19 @@ bad:
+ }
+ #endif
  
- static ssize_t routes_show(struct device *dev, struct device_attribute *attr, char *buf)
+-
+ /*
+- * rw_verify_area doesn't like huge counts. We limit
+- * them to something that fits in "int" so that others
+- * won't have to do range checks all the time.
++ * We limit huge counts to something that fits in "ssize_t"
+  */
+-int rw_verify_area(int read_write, struct file *file, loff_t *ppos, size_t count)
++ssize_t rw_verify_area(int read_write, struct file *file, loff_t *ppos,
++		       size_t count)
  {
-@@ -52,6 +54,33 @@ static ssize_t routes_show(struct device
- 	return (str - buf);
+ 	struct inode *inode;
+ 	loff_t pos;
+ 	int retval = -EINVAL;
+ 
+ 	inode = file->f_path.dentry->d_inode;
+-	if (unlikely((ssize_t) count < 0))
+-		return retval;
++	if (unlikely(count > MAX_RW_COUNT))
++		count = MAX_RW_COUNT;
+ 	pos = *ppos;
+ 	if (unlikely((pos < 0) || (loff_t) (pos + count) < 0)) {
+ 		retval = __negative_fpos_check(file, pos, count);
+@@ -267,9 +265,7 @@ int rw_verify_area(int read_write, struc
+ 	}
+ 	retval = security_file_permission(file,
+ 				read_write == READ ? MAY_READ : MAY_WRITE);
+-	if (retval)
+-		return retval;
+-	return count > MAX_RW_COUNT ? MAX_RW_COUNT : count;
++	return retval ? retval : count;
  }
  
-+static ssize_t lprev_show(struct device *dev,
-+			  struct device_attribute *attr, char *buf)
-+{
-+	struct rio_dev *rdev = to_rio_dev(dev);
-+
-+	return sprintf(buf, "%02d %s\n", RIO_GET_PORT_NUM(rdev->swpinfo),
-+		       (rdev->prev) ? rio_name(rdev->prev) : "host");
-+}
-+
-+static ssize_t lnext_show(struct device *dev,
-+			  struct device_attribute *attr, char *buf)
-+{
-+	struct rio_dev *rdev = to_rio_dev(dev);
-+	char *str = buf;
-+	int i;
-+
-+	if (rdev->pef & RIO_PEF_SWITCH) {
-+		for (i = 0; i < RIO_GET_TOTAL_PORTS(rdev->swpinfo); i++) {
-+			if (rdev->rswitch->nextdev[i])
-+				str += sprintf(str, "%02d %s\n", i,
-+					rio_name(rdev->rswitch->nextdev[i]));
-+		}
-+	}
-+
-+	return str - buf;
-+}
-+
- struct device_attribute rio_dev_attrs[] = {
- 	__ATTR_RO(did),
- 	__ATTR_RO(vid),
-@@ -59,10 +88,14 @@ struct device_attribute rio_dev_attrs[] 
- 	__ATTR_RO(asm_did),
- 	__ATTR_RO(asm_vid),
- 	__ATTR_RO(asm_rev),
-+	__ATTR_RO(lprev),
-+	__ATTR_RO(destid),
- 	__ATTR_NULL,
- };
+ static void wait_on_retry_sync_kiocb(struct kiocb *iocb)
+diff -puN fs/splice.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write fs/splice.c
+--- a/fs/splice.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
++++ a/fs/splice.c
+@@ -1097,7 +1097,7 @@ static long do_splice_from(struct pipe_i
+ {
+ 	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *,
+ 				loff_t *, size_t, unsigned int);
+-	int ret;
++	ssize_t ret;
  
- static DEVICE_ATTR(routes, S_IRUGO, routes_show, NULL);
-+static DEVICE_ATTR(lnext, S_IRUGO, lnext_show, NULL);
-+static DEVICE_ATTR(hopcount, S_IRUGO, hopcount_show, NULL);
+ 	if (unlikely(!(out->f_mode & FMODE_WRITE)))
+ 		return -EBADF;
+@@ -1126,7 +1126,7 @@ static long do_splice_to(struct file *in
+ {
+ 	ssize_t (*splice_read)(struct file *, loff_t *,
+ 			       struct pipe_inode_info *, size_t, unsigned int);
+-	int ret;
++	ssize_t ret;
  
- static ssize_t
- rio_read_config(struct file *filp, struct kobject *kobj,
-@@ -218,7 +251,9 @@ int rio_create_sysfs_dev_files(struct ri
- 	err = device_create_bin_file(&rdev->dev, &rio_config_attr);
+ 	if (unlikely(!(in->f_mode & FMODE_READ)))
+ 		return -EBADF;
+diff -puN include/linux/fs.h~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write include/linux/fs.h
+--- a/include/linux/fs.h~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
++++ a/include/linux/fs.h
+@@ -1872,8 +1872,8 @@ extern int current_umask(void);
+ /* /sys/fs */
+ extern struct kobject *fs_kobj;
  
- 	if (!err && (rdev->pef & RIO_PEF_SWITCH)) {
--		err = device_create_file(&rdev->dev, &dev_attr_routes);
-+		err |= device_create_file(&rdev->dev, &dev_attr_routes);
-+		err |= device_create_file(&rdev->dev, &dev_attr_lnext);
-+		err |= device_create_file(&rdev->dev, &dev_attr_hopcount);
- 		if (!err && rdev->rswitch->sw_sysfs)
- 			err = rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_CREATE);
- 	}
-@@ -241,6 +276,8 @@ void rio_remove_sysfs_dev_files(struct r
- 	device_remove_bin_file(&rdev->dev, &rio_config_attr);
- 	if (rdev->pef & RIO_PEF_SWITCH) {
- 		device_remove_file(&rdev->dev, &dev_attr_routes);
-+		device_remove_file(&rdev->dev, &dev_attr_lnext);
-+		device_remove_file(&rdev->dev, &dev_attr_hopcount);
- 		if (rdev->rswitch->sw_sysfs)
- 			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
- 	}
+-#define MAX_RW_COUNT (INT_MAX & PAGE_CACHE_MASK)
+-extern int rw_verify_area(int, struct file *, loff_t *, size_t);
++#define MAX_RW_COUNT ((~(size_t)0) >> 1 & PAGE_CACHE_MASK)
++extern ssize_t rw_verify_area(int, struct file *, loff_t *, size_t);
+ 
+ #define FLOCK_VERIFY_READ  1
+ #define FLOCK_VERIFY_WRITE 2
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-rapidio-use-common-destid-storage-for-endpoints-and-switches.patch
-rapidio-integrate-rio_switch-into-rio_dev.patch
-rapidio-add-definitions-of-component-tag-fields.patch
-rapidio-add-device-object-linking-into-discovery.patch
-rapidio-use-component-tag-for-unified-switch-identification.patch
-rapidio-add-new-sysfs-attributes.patch
-rapidio-add-new-idt-srio-switches.patch
+linux-next.patch
+fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch
 
