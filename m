@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-use-component-tag-for-unified-switch-identification.patch added to -mm tree
-Date: Fri, 10 Dec 2010 15:24:29 -0800
-Message-ID: <201012102324.oBANOT0F009036@imap1.linux-foundation.org>
+Subject: + rapidio-add-new-idt-srio-switches.patch added to -mm tree
+Date: Fri, 10 Dec 2010 15:24:34 -0800
+Message-ID: <201012102324.oBANOYBF009043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755395Ab0LJXZC (ORCPT
+	by vger.kernel.org with ESMTP id S1755531Ab0LJXZD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Dec 2010 18:25:02 -0500
+	Fri, 10 Dec 2010 18:25:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, m
 
 
 The patch titled
-     rapidio: use Component Tag for unified switch identification
+     rapidio: add new idt sRIO switches
 has been added to the -mm tree.  Its filename is
-     rapidio-use-component-tag-for-unified-switch-identification.patch
+     rapidio-add-new-idt-srio-switches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: use Component Tag for unified switch identification
+Subject: rapidio: add new idt sRIO switches
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Change the way how switchid value is set.  Local counter variable does not
-provide unified way to identify switch devices in a system with multiple
-processors.  Using local counter leads to the situation when the same RIO
-switch has different switch ID for each processor.  Replacing local
-counter with unique portion of the Component Tag provides unified
-reference to the switch by every processor in the system.
+Add new sRIO switch device IDs and enable a basic support for them.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
@@ -53,50 +48,39 @@ Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/rapidio/switches/idt_gen2.c |    2 ++
+ include/linux/rio_ids.h             |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-use-component-tag-for-unified-switch-identification drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-use-component-tag-for-unified-switch-identification
-+++ a/drivers/rapidio/rio-scan.c
-@@ -46,7 +46,6 @@ static void rio_init_em(struct rio_dev *
- DEFINE_SPINLOCK(rio_global_list_lock);
+diff -puN drivers/rapidio/switches/idt_gen2.c~rapidio-add-new-idt-srio-switches drivers/rapidio/switches/idt_gen2.c
+--- a/drivers/rapidio/switches/idt_gen2.c~rapidio-add-new-idt-srio-switches
++++ a/drivers/rapidio/switches/idt_gen2.c
+@@ -416,3 +416,5 @@ static int idtg2_switch_init(struct rio_
  
- static int next_destid = 0;
--static int next_switchid = 0;
- static int next_net = 0;
- static int next_comptag = 1;
+ DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1848, idtg2_switch_init);
+ DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1616, idtg2_switch_init);
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTVPS1616, idtg2_switch_init);
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTSPS1616, idtg2_switch_init);
+diff -puN include/linux/rio_ids.h~rapidio-add-new-idt-srio-switches include/linux/rio_ids.h
+--- a/include/linux/rio_ids.h~rapidio-add-new-idt-srio-switches
++++ a/include/linux/rio_ids.h
+@@ -36,5 +36,7 @@
+ #define RIO_DID_IDTCPS10Q		0x035e
+ #define RIO_DID_IDTCPS1848		0x0374
+ #define RIO_DID_IDTCPS1616		0x0379
++#define RIO_DID_IDTVPS1616		0x0377
++#define RIO_DID_IDTSPS1616		0x0378
  
-@@ -438,6 +437,10 @@ static struct rio_dev __devinit *rio_set
- 		rio_mport_write_config_32(port, destid, hopcount,
- 					  RIO_COMPONENT_TAG_CSR, next_comptag);
- 		rdev->comp_tag = next_comptag++;
-+	}  else {
-+		rio_mport_read_config_32(port, destid, hopcount,
-+					 RIO_COMPONENT_TAG_CSR,
-+					 &rdev->comp_tag);
- 	}
- 
- 	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)) {
-@@ -461,7 +464,7 @@ static struct rio_dev __devinit *rio_set
- 	/* If a PE has both switch and other functions, show it as a switch */
- 	if (rio_is_switch(rdev)) {
- 		rswitch = rdev->rswitch;
--		rswitch->switchid = next_switchid;
-+		rswitch->switchid = rdev->comp_tag & RIO_CTAG_UDEVID;
- 		rswitch->port_ok = 0;
- 		rswitch->route_table = kzalloc(sizeof(u8)*
- 					RIO_MAX_ROUTE_ENTRIES(port->sys_size),
-@@ -816,7 +819,6 @@ static int __devinit rio_enum_peer(struc
- 		return -1;
- 
- 	if (rio_is_switch(rdev)) {
--		next_switchid++;
- 		sw_inport = RIO_GET_PORT_NUM(rdev->swpinfo);
- 		rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
- 				    port->host_deviceid, sw_inport, 0);
-@@ -964,8 +966,6 @@ rio_disc_peer(struct rio_net *net, struc
- 		return -1;
- 
- 	if (rio_is_switch(rdev)) {
--		next_switchid++;
+ #endif				/* LINUX_RIO_IDS_H */
+_
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+rapidio-use-common-destid-storage-for-endpoints-and-switches.patch
+rapidio-integrate-rio_switch-into-rio_dev.patch
+rapidio-add-definitions-of-component-tag-fields.patch
+rapidio-add-device-object-linking-into-discovery.patch
+rapidio-use-component-tag-for-unified-switch-identification.patch
+rapidio-add-new-sysfs-attributes.patch
+rapidio-add-new-idt-srio-switches.patch
+
