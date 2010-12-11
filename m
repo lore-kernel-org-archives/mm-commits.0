@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch added to -mm tree
-Date: Fri, 10 Dec 2010 15:42:34 -0800
-Message-ID: <201012102342.oBANgYrN009690@imap1.linux-foundation.org>
+Subject: [nacked] fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch removed from -mm tree
+Date: Fri, 10 Dec 2010 17:47:54 -0800
+Message-ID: <201012110149.oBB1nuXP014920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751522Ab0LJXnP (ORCPT
+	by vger.kernel.org with ESMTP id S1753235Ab0LKBuJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Dec 2010 18:43:15 -0500
+	Fri, 10 Dec 2010 20:50:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: edward.shishkin@gmail.com, hch@lst.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: edward.shishkin@gmail.com, hch@lst.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      fs: relax count limitation in rw_verify_area(), permit >2G read() and write()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -169,5 +159,4 @@ _
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
 linux-next.patch
-fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch
 
