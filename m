@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-adp5588-gpio-irq_data-conversion.patch added to -mm tree
-Date: Mon, 13 Dec 2010 15:51:04 -0800
-Message-ID: <201012132351.oBDNp4aH019659@imap1.linux-foundation.org>
+Subject: + gpio-sx150x-irq_data-conversion.patch added to -mm tree
+Date: Mon, 13 Dec 2010 15:51:19 -0800
+Message-ID: <201012132351.oBDNpJIS019677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756767Ab0LMXvq (ORCPT
+	by vger.kernel.org with ESMTP id S1756767Ab0LMXvv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Dec 2010 18:51:46 -0500
+	Mon, 13 Dec 2010 18:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, Michael.Hennerich@analog.com, broonie@opensource.wolfsonmicro.com, buytenh@secretlab.ca
+Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, gbean@codeaurora.org
 
 
 The patch titled
-     gpio: adp5588-gpio: irq_data conversion
+     gpio: sx150x: irq_data conversion
 has been added to the -mm tree.  Its filename is
-     gpio-adp5588-gpio-irq_data-conversion.patch
+     gpio-sx150x-irq_data-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: adp5588-gpio: irq_data conversion
+Subject: gpio: sx150x: irq_data conversion
 From: Lennert Buytenhek <buytenh@wantstofly.org>
 
 Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Acked-by: "Hennerich, Michael" <Michael.Hennerich@analog.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Gregory Bean <gbean@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/adp5588-gpio.c |   39 +++++++++++++++++-----------------
- 1 file changed, 20 insertions(+), 19 deletions(-)
+ drivers/gpio/sx150x.c |   46 ++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN drivers/gpio/adp5588-gpio.c~gpio-adp5588-gpio-irq_data-conversion drivers/gpio/adp5588-gpio.c
---- a/drivers/gpio/adp5588-gpio.c~gpio-adp5588-gpio-irq_data-conversion
-+++ a/drivers/gpio/adp5588-gpio.c
-@@ -146,9 +146,10 @@ static int adp5588_gpio_to_irq(struct gp
- 	return dev->irq_base + off;
+diff -puN drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion drivers/gpio/sx150x.c
+--- a/drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion
++++ a/drivers/gpio/sx150x.c
+@@ -304,36 +304,36 @@ static int sx150x_gpio_to_irq(struct gpi
+ 	return chip->irq_base + offset;
  }
  
--static void adp5588_irq_bus_lock(unsigned int irq)
-+static void adp5588_irq_bus_lock(struct irq_data *d)
+-static void sx150x_irq_mask(unsigned int irq)
++static void sx150x_irq_mask(struct irq_data *d)
  {
--	struct adp5588_gpio *dev = get_irq_chip_data(irq);
-+	struct adp5588_gpio *dev = irq_data_get_irq_chip_data(d);
-+
- 	mutex_lock(&dev->irq_lock);
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
+ 
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
+ 
+ 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 1);
+ 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense, 0);
  }
  
-@@ -160,9 +161,9 @@ static void adp5588_irq_bus_lock(unsigne
-   * and unlocks the bus.
-   */
- 
--static void adp5588_irq_bus_sync_unlock(unsigned int irq)
-+static void adp5588_irq_bus_sync_unlock(struct irq_data *d)
+-static void sx150x_irq_unmask(unsigned int irq)
++static void sx150x_irq_unmask(struct irq_data *d)
  {
--	struct adp5588_gpio *dev = get_irq_chip_data(irq);
-+	struct adp5588_gpio *dev = irq_data_get_irq_chip_data(d);
- 	int i;
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
  
- 	for (i = 0; i <= ADP5588_BANK(ADP5588_MAXGPIO); i++)
-@@ -175,31 +176,31 @@ static void adp5588_irq_bus_sync_unlock(
- 	mutex_unlock(&dev->irq_lock);
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
+ 
+ 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 0);
+ 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense,
+ 			 chip->irq_sense >> (n * 2));
  }
  
--static void adp5588_irq_mask(unsigned int irq)
-+static void adp5588_irq_mask(struct irq_data *d)
+-static int sx150x_irq_set_type(unsigned int irq, unsigned int flow_type)
++static int sx150x_irq_set_type(struct irq_data *d, unsigned int flow_type)
  {
--	struct adp5588_gpio *dev = get_irq_chip_data(irq);
--	unsigned gpio = irq - dev->irq_base;
-+	struct adp5588_gpio *dev = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - dev->irq_base;
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n, val = 0;
  
- 	dev->irq_mask[ADP5588_BANK(gpio)] &= ~ADP5588_BIT(gpio);
- }
- 
--static void adp5588_irq_unmask(unsigned int irq)
-+static void adp5588_irq_unmask(struct irq_data *d)
- {
--	struct adp5588_gpio *dev = get_irq_chip_data(irq);
--	unsigned gpio = irq - dev->irq_base;
-+	struct adp5588_gpio *dev = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - dev->irq_base;
- 
- 	dev->irq_mask[ADP5588_BANK(gpio)] |= ADP5588_BIT(gpio);
- }
- 
--static int adp5588_irq_set_type(unsigned int irq, unsigned int type)
-+static int adp5588_irq_set_type(struct irq_data *d, unsigned int type)
- {
--	struct adp5588_gpio *dev = get_irq_chip_data(irq);
--	uint16_t gpio = irq - dev->irq_base;
-+	struct adp5588_gpio *dev = irq_data_get_irq_chip_data(d);
-+	uint16_t gpio = d->irq - dev->irq_base;
- 	unsigned bank, bit;
- 
- 	if ((type & IRQ_TYPE_EDGE_BOTH)) {
- 		dev_err(&dev->client->dev, "irq %d: unsupported type %d\n",
--			irq, type);
-+			d->irq, type);
+@@ -341,7 +341,7 @@ static int sx150x_irq_set_type(unsigned 
  		return -EINVAL;
- 	}
  
-@@ -222,11 +223,11 @@ static int adp5588_irq_set_type(unsigned
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
  
- static struct irq_chip adp5588_irq_chip = {
- 	.name			= "adp5588",
--	.mask			= adp5588_irq_mask,
--	.unmask			= adp5588_irq_unmask,
--	.bus_lock		= adp5588_irq_bus_lock,
--	.bus_sync_unlock	= adp5588_irq_bus_sync_unlock,
--	.set_type		= adp5588_irq_set_type,
-+	.irq_mask		= adp5588_irq_mask,
-+	.irq_unmask		= adp5588_irq_unmask,
-+	.irq_bus_lock		= adp5588_irq_bus_lock,
-+	.irq_bus_sync_unlock	= adp5588_irq_bus_sync_unlock,
-+	.irq_set_type		= adp5588_irq_set_type,
- };
+ 	if (flow_type & IRQ_TYPE_EDGE_RISING)
+ 		val |= 0x1;
+@@ -386,9 +386,9 @@ static irqreturn_t sx150x_irq_thread_fn(
+ 	return (nhandled > 0 ? IRQ_HANDLED : IRQ_NONE);
+ }
  
- static int adp5588_gpio_read_intstat(struct i2c_client *client, u8 *buf)
+-static void sx150x_irq_bus_lock(unsigned int irq)
++static void sx150x_irq_bus_lock(struct irq_data *d)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+@@ -396,9 +396,9 @@ static void sx150x_irq_bus_lock(unsigned
+ 	mutex_lock(&chip->lock);
+ }
+ 
+-static void sx150x_irq_bus_sync_unlock(unsigned int irq)
++static void sx150x_irq_bus_sync_unlock(struct irq_data *d)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
+ 
+@@ -437,16 +437,16 @@ static void sx150x_init_chip(struct sx15
+ 	if (pdata->oscio_is_gpo)
+ 		++chip->gpio_chip.ngpio;
+ 
+-	chip->irq_chip.name            = client->name;
+-	chip->irq_chip.mask            = sx150x_irq_mask;
+-	chip->irq_chip.unmask          = sx150x_irq_unmask;
+-	chip->irq_chip.set_type        = sx150x_irq_set_type;
+-	chip->irq_chip.bus_lock        = sx150x_irq_bus_lock;
+-	chip->irq_chip.bus_sync_unlock = sx150x_irq_bus_sync_unlock;
+-	chip->irq_summary              = -1;
+-	chip->irq_base                 = -1;
+-	chip->irq_sense                = 0;
+-	chip->irq_set_type_pending     = 0;
++	chip->irq_chip.name                = client->name;
++	chip->irq_chip.irq_mask            = sx150x_irq_mask;
++	chip->irq_chip.irq_unmask          = sx150x_irq_unmask;
++	chip->irq_chip.irq_set_type        = sx150x_irq_set_type;
++	chip->irq_chip.irq_bus_lock        = sx150x_irq_bus_lock;
++	chip->irq_chip.irq_bus_sync_unlock = sx150x_irq_bus_sync_unlock;
++	chip->irq_summary                  = -1;
++	chip->irq_base                     = -1;
++	chip->irq_sense                    = 0;
++	chip->irq_set_type_pending         = 0;
+ }
+ 
+ static int sx150x_init_io(struct sx150x_chip *chip, u8 base, u16 cfg)
 _
 
 Patches currently in -mm which might be from buytenh@wantstofly.org are
