@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-pl061-irq_data-conversion.patch added to -mm tree
-Date: Mon, 13 Dec 2010 15:51:14 -0800
-Message-ID: <201012132351.oBDNpELu019671@imap1.linux-foundation.org>
+Subject: + gpio-max732x-irq_data-conversion.patch added to -mm tree
+Date: Mon, 13 Dec 2010 15:51:09 -0800
+Message-ID: <201012132351.oBDNp9s0019665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756767Ab0LMXwD (ORCPT
+	by vger.kernel.org with ESMTP id S1756854Ab0LMXwD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 13 Dec 2010 18:52:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, baruch@tkos.co.il, buytenh@secretlab.ca, david-b@pacbell.net
+Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, eric.y.miao@gmail.com, maz@misterjones.org
 
 
 The patch titled
-     gpio: pl061: irq_data conversion
+     gpio: max732x: irq_data conversion
 has been added to the -mm tree.  Its filename is
-     gpio-pl061-irq_data-conversion.patch
+     gpio-max732x-irq_data-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pl061: irq_data conversion
+Subject: gpio: max732x: irq_data conversion
 From: Lennert Buytenhek <buytenh@wantstofly.org>
 
 Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Acked-by: Baruch Siach <baruch@tkos.co.il>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Marc Zyngier <maz@misterjones.org>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/gpio/max732x.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN drivers/gpio/pl061.c~gpio-pl061-irq_data-conversion drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~gpio-pl061-irq_data-conversion
-+++ a/drivers/gpio/pl061.c
-@@ -129,10 +129,10 @@ static int pl061_to_irq(struct gpio_chip
- /*
-  * PL061 GPIO IRQ
-  */
--static void pl061_irq_disable(unsigned irq)
-+static void pl061_irq_disable(struct irq_data *d)
- {
--	struct pl061_gpio *chip = get_irq_chip_data(irq);
--	int offset = irq - chip->irq_base;
-+	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
-+	int offset = d->irq - chip->irq_base;
- 	unsigned long flags;
- 	u8 gpioie;
- 
-@@ -143,10 +143,10 @@ static void pl061_irq_disable(unsigned i
- 	spin_unlock_irqrestore(&chip->irq_lock, flags);
+diff -puN drivers/gpio/max732x.c~gpio-max732x-irq_data-conversion drivers/gpio/max732x.c
+--- a/drivers/gpio/max732x.c~gpio-max732x-irq_data-conversion
++++ a/drivers/gpio/max732x.c
+@@ -327,40 +327,40 @@ static int max732x_gpio_to_irq(struct gp
+ 	return chip->irq_base + off;
  }
  
--static void pl061_irq_enable(unsigned irq)
-+static void pl061_irq_enable(struct irq_data *d)
+-static void max732x_irq_mask(unsigned int irq)
++static void max732x_irq_mask(struct irq_data *d)
  {
--	struct pl061_gpio *chip = get_irq_chip_data(irq);
--	int offset = irq - chip->irq_base;
-+	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
-+	int offset = d->irq - chip->irq_base;
- 	unsigned long flags;
- 	u8 gpioie;
+-	struct max732x_chip *chip = get_irq_chip_data(irq);
++	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
  
-@@ -157,10 +157,10 @@ static void pl061_irq_enable(unsigned ir
- 	spin_unlock_irqrestore(&chip->irq_lock, flags);
+-	chip->irq_mask_cur &= ~(1 << (irq - chip->irq_base));
++	chip->irq_mask_cur &= ~(1 << (d->irq - chip->irq_base));
  }
  
--static int pl061_irq_type(unsigned irq, unsigned trigger)
-+static int pl061_irq_type(struct irq_data *d, unsigned trigger)
+-static void max732x_irq_unmask(unsigned int irq)
++static void max732x_irq_unmask(struct irq_data *d)
  {
--	struct pl061_gpio *chip = get_irq_chip_data(irq);
--	int offset = irq - chip->irq_base;
-+	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
-+	int offset = d->irq - chip->irq_base;
- 	unsigned long flags;
- 	u8 gpiois, gpioibe, gpioiev;
+-	struct max732x_chip *chip = get_irq_chip_data(irq);
++	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
  
-@@ -203,9 +203,9 @@ static int pl061_irq_type(unsigned irq, 
+-	chip->irq_mask_cur |= 1 << (irq - chip->irq_base);
++	chip->irq_mask_cur |= 1 << (d->irq - chip->irq_base);
+ }
  
- static struct irq_chip pl061_irqchip = {
- 	.name		= "GPIO",
--	.enable		= pl061_irq_enable,
--	.disable	= pl061_irq_disable,
--	.set_type	= pl061_irq_type,
-+	.irq_enable	= pl061_irq_enable,
-+	.irq_disable	= pl061_irq_disable,
-+	.irq_set_type	= pl061_irq_type,
+-static void max732x_irq_bus_lock(unsigned int irq)
++static void max732x_irq_bus_lock(struct irq_data *d)
+ {
+-	struct max732x_chip *chip = get_irq_chip_data(irq);
++	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
+ 
+ 	mutex_lock(&chip->irq_lock);
+ 	chip->irq_mask_cur = chip->irq_mask;
+ }
+ 
+-static void max732x_irq_bus_sync_unlock(unsigned int irq)
++static void max732x_irq_bus_sync_unlock(struct irq_data *d)
+ {
+-	struct max732x_chip *chip = get_irq_chip_data(irq);
++	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
+ 
+ 	max732x_irq_update_mask(chip);
+ 	mutex_unlock(&chip->irq_lock);
+ }
+ 
+-static int max732x_irq_set_type(unsigned int irq, unsigned int type)
++static int max732x_irq_set_type(struct irq_data *d, unsigned int type)
+ {
+-	struct max732x_chip *chip = get_irq_chip_data(irq);
+-	uint16_t off = irq - chip->irq_base;
++	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
++	uint16_t off = d->irq - chip->irq_base;
+ 	uint16_t mask = 1 << off;
+ 
+ 	if (!(mask & chip->dir_input)) {
+@@ -371,7 +371,7 @@ static int max732x_irq_set_type(unsigned
+ 
+ 	if (!(type & IRQ_TYPE_EDGE_BOTH)) {
+ 		dev_err(&chip->client->dev, "irq %d: unsupported type %d\n",
+-			irq, type);
++			d->irq, type);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -390,11 +390,11 @@ static int max732x_irq_set_type(unsigned
+ 
+ static struct irq_chip max732x_irq_chip = {
+ 	.name			= "max732x",
+-	.mask			= max732x_irq_mask,
+-	.unmask			= max732x_irq_unmask,
+-	.bus_lock		= max732x_irq_bus_lock,
+-	.bus_sync_unlock	= max732x_irq_bus_sync_unlock,
+-	.set_type		= max732x_irq_set_type,
++	.irq_mask		= max732x_irq_mask,
++	.irq_unmask		= max732x_irq_unmask,
++	.irq_bus_lock		= max732x_irq_bus_lock,
++	.irq_bus_sync_unlock	= max732x_irq_bus_sync_unlock,
++	.irq_set_type		= max732x_irq_set_type,
  };
  
- static void pl061_irq_handler(unsigned irq, struct irq_desc *desc)
-@@ -214,7 +214,7 @@ static void pl061_irq_handler(unsigned i
- 	struct list_head *ptr;
- 	struct pl061_gpio *chip;
- 
--	desc->chip->ack(irq);
-+	desc->irq_data.chip->irq_ack(&desc->irq_data);
- 	list_for_each(ptr, chip_list) {
- 		unsigned long pending;
- 		int offset;
-@@ -229,7 +229,7 @@ static void pl061_irq_handler(unsigned i
- 		for_each_set_bit(offset, &pending, PL061_GPIO_NR)
- 			generic_handle_irq(pl061_to_irq(&chip->gc, offset));
- 	}
--	desc->chip->unmask(irq);
-+	desc->irq_data.chip->irq_unmask(&desc->irq_data);
- }
- 
- static int pl061_probe(struct amba_device *dev, struct amba_id *id)
+ static uint8_t max732x_irq_pending(struct max732x_chip *chip)
 _
 
 Patches currently in -mm which might be from buytenh@wantstofly.org are
