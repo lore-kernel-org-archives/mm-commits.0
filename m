@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-sx150x-irq_data-conversion.patch added to -mm tree
-Date: Mon, 13 Dec 2010 15:51:19 -0800
-Message-ID: <201012132351.oBDNpJIS019677@imap1.linux-foundation.org>
+Subject: + gpio-pl061-irq_data-conversion.patch added to -mm tree
+Date: Mon, 13 Dec 2010 15:51:14 -0800
+Message-ID: <201012132351.oBDNpELu019671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756767Ab0LMXvv (ORCPT
+	by vger.kernel.org with ESMTP id S1756767Ab0LMXwD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Dec 2010 18:51:51 -0500
+	Mon, 13 Dec 2010 18:52:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, gbean@codeaurora.org
+Cc: buytenh@wantstofly.org, baruch@tkos.co.il, buytenh@secretlab.ca, david-b@pacbell.net
 
 
 The patch titled
-     gpio: sx150x: irq_data conversion
+     gpio: pl061: irq_data conversion
 has been added to the -mm tree.  Its filename is
-     gpio-sx150x-irq_data-conversion.patch
+     gpio-pl061-irq_data-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: sx150x: irq_data conversion
+Subject: gpio: pl061: irq_data conversion
 From: Lennert Buytenhek <buytenh@wantstofly.org>
 
 Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Cc: Gregory Bean <gbean@codeaurora.org>
+Acked-by: Baruch Siach <baruch@tkos.co.il>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/sx150x.c |   46 ++++++++++++++++++++--------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/gpio/pl061.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion drivers/gpio/sx150x.c
---- a/drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion
-+++ a/drivers/gpio/sx150x.c
-@@ -304,36 +304,36 @@ static int sx150x_gpio_to_irq(struct gpi
- 	return chip->irq_base + offset;
- }
- 
--static void sx150x_irq_mask(unsigned int irq)
-+static void sx150x_irq_mask(struct irq_data *d)
+diff -puN drivers/gpio/pl061.c~gpio-pl061-irq_data-conversion drivers/gpio/pl061.c
+--- a/drivers/gpio/pl061.c~gpio-pl061-irq_data-conversion
++++ a/drivers/gpio/pl061.c
+@@ -129,10 +129,10 @@ static int pl061_to_irq(struct gpio_chip
+ /*
+  * PL061 GPIO IRQ
+  */
+-static void pl061_irq_disable(unsigned irq)
++static void pl061_irq_disable(struct irq_data *d)
  {
--	struct irq_chip *ic = get_irq_chip(irq);
-+	struct irq_chip *ic = irq_data_get_irq_chip(d);
- 	struct sx150x_chip *chip;
- 	unsigned n;
+-	struct pl061_gpio *chip = get_irq_chip_data(irq);
+-	int offset = irq - chip->irq_base;
++	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
++	int offset = d->irq - chip->irq_base;
+ 	unsigned long flags;
+ 	u8 gpioie;
  
- 	chip = container_of(ic, struct sx150x_chip, irq_chip);
--	n = irq - chip->irq_base;
-+	n = d->irq - chip->irq_base;
- 
- 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 1);
- 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense, 0);
+@@ -143,10 +143,10 @@ static void pl061_irq_disable(unsigned i
+ 	spin_unlock_irqrestore(&chip->irq_lock, flags);
  }
  
--static void sx150x_irq_unmask(unsigned int irq)
-+static void sx150x_irq_unmask(struct irq_data *d)
+-static void pl061_irq_enable(unsigned irq)
++static void pl061_irq_enable(struct irq_data *d)
  {
--	struct irq_chip *ic = get_irq_chip(irq);
-+	struct irq_chip *ic = irq_data_get_irq_chip(d);
- 	struct sx150x_chip *chip;
- 	unsigned n;
+-	struct pl061_gpio *chip = get_irq_chip_data(irq);
+-	int offset = irq - chip->irq_base;
++	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
++	int offset = d->irq - chip->irq_base;
+ 	unsigned long flags;
+ 	u8 gpioie;
  
- 	chip = container_of(ic, struct sx150x_chip, irq_chip);
--	n = irq - chip->irq_base;
-+	n = d->irq - chip->irq_base;
- 
- 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 0);
- 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense,
- 			 chip->irq_sense >> (n * 2));
+@@ -157,10 +157,10 @@ static void pl061_irq_enable(unsigned ir
+ 	spin_unlock_irqrestore(&chip->irq_lock, flags);
  }
  
--static int sx150x_irq_set_type(unsigned int irq, unsigned int flow_type)
-+static int sx150x_irq_set_type(struct irq_data *d, unsigned int flow_type)
+-static int pl061_irq_type(unsigned irq, unsigned trigger)
++static int pl061_irq_type(struct irq_data *d, unsigned trigger)
  {
--	struct irq_chip *ic = get_irq_chip(irq);
-+	struct irq_chip *ic = irq_data_get_irq_chip(d);
- 	struct sx150x_chip *chip;
- 	unsigned n, val = 0;
+-	struct pl061_gpio *chip = get_irq_chip_data(irq);
+-	int offset = irq - chip->irq_base;
++	struct pl061_gpio *chip = irq_data_get_irq_chip_data(d);
++	int offset = d->irq - chip->irq_base;
+ 	unsigned long flags;
+ 	u8 gpiois, gpioibe, gpioiev;
  
-@@ -341,7 +341,7 @@ static int sx150x_irq_set_type(unsigned 
- 		return -EINVAL;
+@@ -203,9 +203,9 @@ static int pl061_irq_type(unsigned irq, 
  
- 	chip = container_of(ic, struct sx150x_chip, irq_chip);
--	n = irq - chip->irq_base;
-+	n = d->irq - chip->irq_base;
+ static struct irq_chip pl061_irqchip = {
+ 	.name		= "GPIO",
+-	.enable		= pl061_irq_enable,
+-	.disable	= pl061_irq_disable,
+-	.set_type	= pl061_irq_type,
++	.irq_enable	= pl061_irq_enable,
++	.irq_disable	= pl061_irq_disable,
++	.irq_set_type	= pl061_irq_type,
+ };
  
- 	if (flow_type & IRQ_TYPE_EDGE_RISING)
- 		val |= 0x1;
-@@ -386,9 +386,9 @@ static irqreturn_t sx150x_irq_thread_fn(
- 	return (nhandled > 0 ? IRQ_HANDLED : IRQ_NONE);
+ static void pl061_irq_handler(unsigned irq, struct irq_desc *desc)
+@@ -214,7 +214,7 @@ static void pl061_irq_handler(unsigned i
+ 	struct list_head *ptr;
+ 	struct pl061_gpio *chip;
+ 
+-	desc->chip->ack(irq);
++	desc->irq_data.chip->irq_ack(&desc->irq_data);
+ 	list_for_each(ptr, chip_list) {
+ 		unsigned long pending;
+ 		int offset;
+@@ -229,7 +229,7 @@ static void pl061_irq_handler(unsigned i
+ 		for_each_set_bit(offset, &pending, PL061_GPIO_NR)
+ 			generic_handle_irq(pl061_to_irq(&chip->gc, offset));
+ 	}
+-	desc->chip->unmask(irq);
++	desc->irq_data.chip->irq_unmask(&desc->irq_data);
  }
  
--static void sx150x_irq_bus_lock(unsigned int irq)
-+static void sx150x_irq_bus_lock(struct irq_data *d)
- {
--	struct irq_chip *ic = get_irq_chip(irq);
-+	struct irq_chip *ic = irq_data_get_irq_chip(d);
- 	struct sx150x_chip *chip;
- 
- 	chip = container_of(ic, struct sx150x_chip, irq_chip);
-@@ -396,9 +396,9 @@ static void sx150x_irq_bus_lock(unsigned
- 	mutex_lock(&chip->lock);
- }
- 
--static void sx150x_irq_bus_sync_unlock(unsigned int irq)
-+static void sx150x_irq_bus_sync_unlock(struct irq_data *d)
- {
--	struct irq_chip *ic = get_irq_chip(irq);
-+	struct irq_chip *ic = irq_data_get_irq_chip(d);
- 	struct sx150x_chip *chip;
- 	unsigned n;
- 
-@@ -437,16 +437,16 @@ static void sx150x_init_chip(struct sx15
- 	if (pdata->oscio_is_gpo)
- 		++chip->gpio_chip.ngpio;
- 
--	chip->irq_chip.name            = client->name;
--	chip->irq_chip.mask            = sx150x_irq_mask;
--	chip->irq_chip.unmask          = sx150x_irq_unmask;
--	chip->irq_chip.set_type        = sx150x_irq_set_type;
--	chip->irq_chip.bus_lock        = sx150x_irq_bus_lock;
--	chip->irq_chip.bus_sync_unlock = sx150x_irq_bus_sync_unlock;
--	chip->irq_summary              = -1;
--	chip->irq_base                 = -1;
--	chip->irq_sense                = 0;
--	chip->irq_set_type_pending     = 0;
-+	chip->irq_chip.name                = client->name;
-+	chip->irq_chip.irq_mask            = sx150x_irq_mask;
-+	chip->irq_chip.irq_unmask          = sx150x_irq_unmask;
-+	chip->irq_chip.irq_set_type        = sx150x_irq_set_type;
-+	chip->irq_chip.irq_bus_lock        = sx150x_irq_bus_lock;
-+	chip->irq_chip.irq_bus_sync_unlock = sx150x_irq_bus_sync_unlock;
-+	chip->irq_summary                  = -1;
-+	chip->irq_base                     = -1;
-+	chip->irq_sense                    = 0;
-+	chip->irq_set_type_pending         = 0;
- }
- 
- static int sx150x_init_io(struct sx150x_chip *chip, u8 base, u16 cfg)
+ static int pl061_probe(struct amba_device *dev, struct amba_id *id)
 _
 
 Patches currently in -mm which might be from buytenh@wantstofly.org are
