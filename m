@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-timbgpio-irq_data-conversion.patch added to -mm tree
-Date: Mon, 13 Dec 2010 15:51:23 -0800
-Message-ID: <201012132351.oBDNpNut019686@imap1.linux-foundation.org>
+Subject: + gpio-vr41xx_giu-irq_data-conversion.patch added to -mm tree
+Date: Mon, 13 Dec 2010 15:51:26 -0800
+Message-ID: <201012132351.oBDNpQ5O019689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756584Ab0LMXwS (ORCPT
+	by vger.kernel.org with ESMTP id S1756584Ab0LMXww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Dec 2010 18:52:18 -0500
+	Mon, 13 Dec 2010 18:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, richard.rojfors@mocean-labs.com
+Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, yuasa@linux-mips.org
 
 
 The patch titled
-     gpio: timbgpio: irq_data conversion
+     gpio: vr41xx_giu: irq_data conversion
 has been added to the -mm tree.  Its filename is
-     gpio-timbgpio-irq_data-conversion.patch
+     gpio-vr41xx_giu-irq_data-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,103 +26,122 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: timbgpio: irq_data conversion
-=46rom: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: gpio: vr41xx_giu: irq_data conversion
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
 Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Cc: Richard R=F6jfors <richard.rojfors@mocean-labs.com>
+Cc: Yoichi Yuasa <yuasa@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/gpio/vr41xx_giu.c |   48 ++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN drivers/gpio/timbgpio.c~gpio-timbgpio-irq_data-conversion dri=
-vers/gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~gpio-timbgpio-irq_data-conversion
-+++ a/drivers/gpio/timbgpio.c
-@@ -109,10 +109,10 @@ static int timbgpio_to_irq(struct gpio_c
- /*
-  * GPIO IRQ
-  */
--static void timbgpio_irq_disable(unsigned irq)
-+static void timbgpio_irq_disable(struct irq_data *d)
- {
--	struct timbgpio *tgpio =3D get_irq_chip_data(irq);
--	int offset =3D irq - tgpio->irq_base;
-+	struct timbgpio *tgpio =3D irq_data_get_irq_chip_data(d);
-+	int offset =3D d->irq - tgpio->irq_base;
- 	unsigned long flags;
-=20
- 	spin_lock_irqsave(&tgpio->lock, flags);
-@@ -121,10 +121,10 @@ static void timbgpio_irq_disable(unsigne
- 	spin_unlock_irqrestore(&tgpio->lock, flags);
+diff -puN drivers/gpio/vr41xx_giu.c~gpio-vr41xx_giu-irq_data-conversion drivers/gpio/vr41xx_giu.c
+--- a/drivers/gpio/vr41xx_giu.c~gpio-vr41xx_giu-irq_data-conversion
++++ a/drivers/gpio/vr41xx_giu.c
+@@ -111,69 +111,69 @@ static inline u16 giu_clear(u16 offset, 
+ 	return data;
  }
-=20
--static void timbgpio_irq_enable(unsigned irq)
-+static void timbgpio_irq_enable(struct irq_data *d)
+ 
+-static void ack_giuint_low(unsigned int irq)
++static void ack_giuint_low(struct irq_data *d)
  {
--	struct timbgpio *tgpio =3D get_irq_chip_data(irq);
--	int offset =3D irq - tgpio->irq_base;
-+	struct timbgpio *tgpio =3D irq_data_get_irq_chip_data(d);
-+	int offset =3D d->irq - tgpio->irq_base;
- 	unsigned long flags;
-=20
- 	spin_lock_irqsave(&tgpio->lock, flags);
-@@ -133,10 +133,10 @@ static void timbgpio_irq_enable(unsigned
- 	spin_unlock_irqrestore(&tgpio->lock, flags);
+-	giu_write(GIUINTSTATL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_write(GIUINTSTATL, 1 << GPIO_PIN_OF_IRQ(d->irq));
  }
-=20
--static int timbgpio_irq_type(unsigned irq, unsigned trigger)
-+static int timbgpio_irq_type(struct irq_data *d, unsigned trigger)
+ 
+-static void mask_giuint_low(unsigned int irq)
++static void mask_giuint_low(struct irq_data *d)
  {
--	struct timbgpio *tgpio =3D get_irq_chip_data(irq);
--	int offset =3D irq - tgpio->irq_base;
-+	struct timbgpio *tgpio =3D irq_data_get_irq_chip_data(d);
-+	int offset =3D d->irq - tgpio->irq_base;
- 	unsigned long flags;
- 	u32 lvr, flr, bflr =3D 0;
- 	u32 ver;
-@@ -193,13 +193,13 @@ out:
- 	return ret;
+-	giu_clear(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_clear(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(d->irq));
  }
-=20
--static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
-+static void timbgpio_irq(struct irq_data *d, struct irq_desc *desc)
+ 
+-static void mask_ack_giuint_low(unsigned int irq)
++static void mask_ack_giuint_low(struct irq_data *d)
  {
--	struct timbgpio *tgpio =3D get_irq_data(irq);
-+	struct timbgpio *tgpio =3D irq_data_get_irq_data(d);
- 	unsigned long ipr;
- 	int offset;
-=20
--	desc->chip->ack(irq);
-+	desc->irq_data.chip->ack(irq_get_irq_data(d));
- 	ipr =3D ioread32(tgpio->membase + TGPIO_IPR);
- 	iowrite32(ipr, tgpio->membase + TGPIO_ICR);
-=20
-@@ -217,9 +217,9 @@ static void timbgpio_irq(unsigned int ir
-=20
- static struct irq_chip timbgpio_irqchip =3D {
- 	.name		=3D "GPIO",
--	.enable		=3D timbgpio_irq_enable,
--	.disable	=3D timbgpio_irq_disable,
--	.set_type	=3D timbgpio_irq_type,
-+	.irq_enable	=3D timbgpio_irq_enable,
-+	.irq_disable	=3D timbgpio_irq_disable,
-+	.irq_set_type	=3D timbgpio_irq_type,
+ 	unsigned int pin;
+ 
+-	pin = GPIO_PIN_OF_IRQ(irq);
++	pin = GPIO_PIN_OF_IRQ(d->irq);
+ 	giu_clear(GIUINTENL, 1 << pin);
+ 	giu_write(GIUINTSTATL, 1 << pin);
+ }
+ 
+-static void unmask_giuint_low(unsigned int irq)
++static void unmask_giuint_low(struct irq_data *d)
+ {
+-	giu_set(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_set(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(d->irq));
+ }
+ 
+ static struct irq_chip giuint_low_irq_chip = {
+ 	.name		= "GIUINTL",
+-	.ack		= ack_giuint_low,
+-	.mask		= mask_giuint_low,
+-	.mask_ack	= mask_ack_giuint_low,
+-	.unmask		= unmask_giuint_low,
++	.irq_ack	= ack_giuint_low,
++	.irq_mask	= mask_giuint_low,
++	.irq_mask_ack	= mask_ack_giuint_low,
++	.irq_unmask	= unmask_giuint_low,
  };
-=20
- static int __devinit timbgpio_probe(struct platform_device *pdev)
+ 
+-static void ack_giuint_high(unsigned int irq)
++static void ack_giuint_high(struct irq_data *d)
+ {
+ 	giu_write(GIUINTSTATH,
+-		  1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++		  1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+-static void mask_giuint_high(unsigned int irq)
++static void mask_giuint_high(struct irq_data *d)
+ {
+-	giu_clear(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++	giu_clear(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+-static void mask_ack_giuint_high(unsigned int irq)
++static void mask_ack_giuint_high(struct irq_data *d)
+ {
+ 	unsigned int pin;
+ 
+-	pin = GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET;
++	pin = GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET;
+ 	giu_clear(GIUINTENH, 1 << pin);
+ 	giu_write(GIUINTSTATH, 1 << pin);
+ }
+ 
+-static void unmask_giuint_high(unsigned int irq)
++static void unmask_giuint_high(struct irq_data *d)
+ {
+-	giu_set(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++	giu_set(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+ static struct irq_chip giuint_high_irq_chip = {
+ 	.name		= "GIUINTH",
+-	.ack		= ack_giuint_high,
+-	.mask		= mask_giuint_high,
+-	.mask_ack	= mask_ack_giuint_high,
+-	.unmask		= unmask_giuint_high,
++	.irq_ack	= ack_giuint_high,
++	.irq_mask	= mask_giuint_high,
++	.irq_mask_ack	= mask_ack_giuint_high,
++	.irq_unmask	= unmask_giuint_high,
+ };
+ 
+ static int giu_get_irq(unsigned int irq)
 _
 
 Patches currently in -mm which might be from buytenh@wantstofly.org are
@@ -143,8 +159,3 @@ gpio-tc35892-gpio-irq_data-conversion.patch
 gpio-timbgpio-irq_data-conversion.patch
 gpio-vr41xx_giu-irq_data-conversion.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
