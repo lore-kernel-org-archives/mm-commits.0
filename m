@@ -1,162 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch removed from -mm tree
-Date: Fri, 10 Dec 2010 17:47:54 -0800
-Message-ID: <201012110149.oBB1nuXP014920@imap1.linux-foundation.org>
+Subject: [merged] pci-update-mcp55-quirk-to-not-affect-non-hypertransport-variants.patch removed from -mm tree
+Date: Mon, 13 Dec 2010 12:53:02 -0800
+Message-ID: <201012132055.oBDKtRS6011627__37576.7467231073$1292273815$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753235Ab0LKBuJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756017Ab0LMU4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Dec 2010 20:50:09 -0500
+	Mon, 13 Dec 2010 15:56:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, hch@lst.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, jbarnes@virtuousgeek.org, mathieu@mberard.eu, stable@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: relax count limitation in rw_verify_area(), permit >2G read() and write()
+     pci: update MCP55 quirk to not affect non HyperTransport variants
 has been removed from the -mm tree.  Its filename was
-     fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write.patch
+     pci-update-mcp55-quirk-to-not-affect-non-hypertransport-variants.p=
+atch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs: relax count limitation in rw_verify_area(), permit >2G read() and write()
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: pci: update MCP55 quirk to not affect non HyperTransport varia=
+nts
+=46rom: Neil Horman <nhorman@tuxdriver.com>
 
-Relax synthetic limitation introduced by rw_verify_area().
+I wrote this quirk awhile ago to properly setup MCP55 chips on
+hypertransport busses so that interrupts reached whatever cpu happend t=
+o
+boot the kdump kernel.  while that works well, it was recently shown to=
+ me
+that a a non-hypertransport variant of the MCP55 exists, and on those
+system the register that this quirk manipulates causes hangs if you wri=
+te
+to it.  Since the quirk was only meant to handle errors found on MCP55
+chips that have a HT interface, this patch adds a filter to make sure t=
+he
+chip is an HT capable before making the needed register adjustment.  Th=
+is
+lets the broken MCP55s work with kdump while not breaking the non-HT
+variants.
 
-We limit @count to something that fits in ssize_t instead of int, so that
-the kernel now permits single reads and writes of up to 2^63 bytes on
-64-bit systems (whereas it was previously limited to 2^31), because:
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=3D23952
 
-1. This is more conformable to man pages, where @count
-   should be of size_t (but not more than SSIZE_MAX for
-   predictable results).
+Tested successfully by the reporter and myself.
 
-2. Old limitation restricts size of atomic writes that
-   can be performed by a local file system: 2G can be
-   not enough in the near future.
-
-3. Some applications of our users don't work with the
-   old limitation (and it is really hard to fix them).
-
-The following subsystems were tested with this patch applied:
-
-direct-io,
-ntfs,
-squashfs,
-cifs,
-ecryptfs,
-ext[2,3,4]
-hfs,
-hfsplus,
-reiserfs,
-xfs,
-jfs,
-nfs,
-gfs2,
-btrfs,
-isofs
-
-Everything works fine.  While testing the new relaxed limitation there
-were found and fixed truncation bugs in direct-io and ecryptfs.  The
-fixups are in upstream already.
-
-Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reported-by: Mathieu B=E9rard <mathieu@mberard.eu>
+Tested-by: Mathieu B=E9rard <mathieu@mberard.eu>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c    |   16 ++++++----------
- fs/splice.c        |    4 ++--
- include/linux/fs.h |    4 ++--
- 3 files changed, 10 insertions(+), 14 deletions(-)
+ drivers/pci/quirks.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/read_write.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write fs/read_write.c
---- a/fs/read_write.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
-+++ a/fs/read_write.c
-@@ -236,21 +236,19 @@ bad:
- }
- #endif
- 
--
- /*
-- * rw_verify_area doesn't like huge counts. We limit
-- * them to something that fits in "int" so that others
-- * won't have to do range checks all the time.
-+ * We limit huge counts to something that fits in "ssize_t"
-  */
--int rw_verify_area(int read_write, struct file *file, loff_t *ppos, size_t count)
-+ssize_t rw_verify_area(int read_write, struct file *file, loff_t *ppos,
-+		       size_t count)
+diff -puN drivers/pci/quirks.c~pci-update-mcp55-quirk-to-not-affect-non=
+-hypertransport-variants drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-update-mcp55-quirk-to-not-affect-non-hyp=
+ertransport-variants
++++ a/drivers/pci/quirks.c
+@@ -2329,6 +2329,9 @@ static void __devinit nvbridge_check_leg
  {
- 	struct inode *inode;
- 	loff_t pos;
- 	int retval = -EINVAL;
- 
- 	inode = file->f_path.dentry->d_inode;
--	if (unlikely((ssize_t) count < 0))
--		return retval;
-+	if (unlikely(count > MAX_RW_COUNT))
-+		count = MAX_RW_COUNT;
- 	pos = *ppos;
- 	if (unlikely((pos < 0) || (loff_t) (pos + count) < 0)) {
- 		retval = __negative_fpos_check(file, pos, count);
-@@ -267,9 +265,7 @@ int rw_verify_area(int read_write, struc
- 	}
- 	retval = security_file_permission(file,
- 				read_write == READ ? MAY_READ : MAY_WRITE);
--	if (retval)
--		return retval;
--	return count > MAX_RW_COUNT ? MAX_RW_COUNT : count;
-+	return retval ? retval : count;
- }
- 
- static void wait_on_retry_sync_kiocb(struct kiocb *iocb)
-diff -puN fs/splice.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write fs/splice.c
---- a/fs/splice.c~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
-+++ a/fs/splice.c
-@@ -1097,7 +1097,7 @@ static long do_splice_from(struct pipe_i
- {
- 	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *,
- 				loff_t *, size_t, unsigned int);
--	int ret;
-+	ssize_t ret;
- 
- 	if (unlikely(!(out->f_mode & FMODE_WRITE)))
- 		return -EBADF;
-@@ -1126,7 +1126,7 @@ static long do_splice_to(struct file *in
- {
- 	ssize_t (*splice_read)(struct file *, loff_t *,
- 			       struct pipe_inode_info *, size_t, unsigned int);
--	int ret;
-+	ssize_t ret;
- 
- 	if (unlikely(!(in->f_mode & FMODE_READ)))
- 		return -EBADF;
-diff -puN include/linux/fs.h~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write include/linux/fs.h
---- a/include/linux/fs.h~fs-relax-count-limitation-in-rw_verify_area-permit-2g-read-and-write
-+++ a/include/linux/fs.h
-@@ -1872,8 +1872,8 @@ extern int current_umask(void);
- /* /sys/fs */
- extern struct kobject *fs_kobj;
- 
--#define MAX_RW_COUNT (INT_MAX & PAGE_CACHE_MASK)
--extern int rw_verify_area(int, struct file *, loff_t *, size_t);
-+#define MAX_RW_COUNT ((~(size_t)0) >> 1 & PAGE_CACHE_MASK)
-+extern ssize_t rw_verify_area(int, struct file *, loff_t *, size_t);
- 
- #define FLOCK_VERIFY_READ  1
- #define FLOCK_VERIFY_WRITE 2
+ 	u32 cfg;
+=20
++	if (!pci_find_capability(dev, PCI_CAP_ID_HT))
++		return;
++
+ 	pci_read_config_dword(dev, 0x74, &cfg);
+=20
+ 	if (cfg & ((1 << 2) | (1 << 15))) {
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 linux-next.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
