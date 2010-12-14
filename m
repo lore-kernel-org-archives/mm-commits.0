@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-remove-unlikely-from-fput_light.patch added to -mm tree
-Date: Tue, 14 Dec 2010 12:22:55 -0800
-Message-ID: <201012142022.oBEKMtLV007507@imap1.linux-foundation.org>
+Subject: + mm-remove-likely-from-grab_cache_page_write_begin.patch added to -mm tree
+Date: Tue, 14 Dec 2010 12:24:40 -0800
+Message-ID: <201012142024.oBEKOeBa007588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759576Ab0LNUXS (ORCPT
+	by vger.kernel.org with ESMTP id S1759914Ab0LNUYx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 15:23:18 -0500
+	Tue, 14 Dec 2010 15:24:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srostedt@redhat.com, hch@lst.de, rostedt@goodmis.org, viro@zeniv.linux.org.uk
+Cc: srostedt@redhat.com, npiggin@kernel.dk, rostedt@goodmis.org
 
 
 The patch titled
-     vfs: remove unlikely() from fput_light()
+     mm: remove likely() from grab_cache_page_write_begin()
 has been added to the -mm tree.  Its filename is
-     vfs-remove-unlikely-from-fput_light.patch
+     mm-remove-likely-from-grab_cache_page_write_begin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: remove unlikely() from fput_light()
+Subject: mm: remove likely() from grab_cache_page_write_begin()
 From: Steven Rostedt <srostedt@redhat.com>
 
-In fput_light(), there's an unlikely(fput_needed), which running on my
-normal desktop doing firefox, xchat, evolution and part of my distcc farm,
-and running the annotate branch profiler shows that the unlikely is not
-very unlikely.
+Running the annotated branch profiler on a box doing average work
+(firefox, evolution, xchat, distcc farm), the likely() used in
+grab_cache_page_write_begin() was incorrect most of the time:
 
- correct incorrect  %        Function             File              Line
- ------- ---------  -        --------             ----              ----
-       0       48 100 fput_light                file.h               26
-115828710 897415279  88 fput_light              file.h               26
-865271179 5286128445  85 fput_light             file.h               26
-19568539  8923664  31 fput_light                file.h               26
-12353677  3562279  22 fput_light                file.h               26
-  267691    67062  20 fput_light                file.h               26
-15014853   348172   2 fput_light                file.h               26
-  209258      205   0 fput_light                file.h               26
- 1364164        0   0 fput_light                file.h               26
+ correct incorrect  %        Function                  File              Line
+ ------- ---------  -        --------                  ----              ----
+ 1924262 71332401  97 grab_cache_page_write_begin    filemap.c           2206
 
-Which gives 1032903812 times it was correct and 6203351846 times it was
-incorrect, or 85% incorrect.
+Adding a trace_printk() and running the function tracer limited to
+just this function I can see:
+
+        gconfd-2-2696  [000]  4467.268935: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=7
+        gconfd-2-2696  [000]  4467.268946: grab_cache_page_write_begin <-ext3_write_begin
+        gconfd-2-2696  [000]  4467.268947: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=8
+        gconfd-2-2696  [000]  4467.268959: grab_cache_page_write_begin <-ext3_write_begin
+        gconfd-2-2696  [000]  4467.268960: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=9
+        gconfd-2-2696  [000]  4467.268972: grab_cache_page_write_begin <-ext3_write_begin
+        gconfd-2-2696  [000]  4467.268973: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=10
+        gconfd-2-2696  [000]  4467.268991: grab_cache_page_write_begin <-ext3_write_begin
+        gconfd-2-2696  [000]  4467.268992: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=11
+        gconfd-2-2696  [000]  4467.269005: grab_cache_page_write_begin <-ext3_write_begin
+
+Which shows that a lot of calls from ext3_write_begin will result in the
+page returned by "find_lock_page" will be NULL.
 
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: Nick Piggin <npiggin@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/file.h |    2 +-
+ mm/filemap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/file.h~vfs-remove-unlikely-from-fput_light include/linux/file.h
---- a/include/linux/file.h~vfs-remove-unlikely-from-fput_light
-+++ a/include/linux/file.h
-@@ -23,7 +23,7 @@ extern struct file *alloc_file(struct pa
+diff -puN mm/filemap.c~mm-remove-likely-from-grab_cache_page_write_begin mm/filemap.c
+--- a/mm/filemap.c~mm-remove-likely-from-grab_cache_page_write_begin
++++ a/mm/filemap.c
+@@ -2241,7 +2241,7 @@ struct page *grab_cache_page_write_begin
+ 		gfp_notmask = __GFP_FS;
+ repeat:
+ 	page = find_lock_page(mapping, index);
+-	if (likely(page))
++	if (page)
+ 		return page;
  
- static inline void fput_light(struct file *file, int fput_needed)
- {
--	if (unlikely(fput_needed))
-+	if (fput_needed)
- 		fput(file);
- }
- 
+ 	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~gfp_notmask);
 _
 
 Patches currently in -mm which might be from srostedt@redhat.com are
 
 linux-next.patch
-vfs-remove-unlikely-from-fput_light.patch
-fs-remove-unlikely-from-fget_light.patch
 mm-remove-likely-from-mapping_unevictable.patch
 mm-remove-unlikely-from-page_mapping.patch
 mm-remove-likely-from-grab_cache_page_write_begin.patch
+vfs-remove-unlikely-from-fput_light.patch
+vfs-remove-unlikely-from-fget_light.patch
 
