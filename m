@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-likely-from-grab_cache_page_write_begin.patch added to -mm tree
-Date: Tue, 14 Dec 2010 12:24:40 -0800
-Message-ID: <201012142024.oBEKOeBa007588@imap1.linux-foundation.org>
+Subject: + mm-remove-unlikely-from-page_mapping.patch added to -mm tree
+Date: Tue, 14 Dec 2010 12:24:38 -0800
+Message-ID: <201012142024.oBEKOcVV007584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759914Ab0LNUYx (ORCPT
+	by vger.kernel.org with ESMTP id S1759920Ab0LNUYx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Dec 2010 15:24:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srostedt@redhat.com, npiggin@kernel.dk, rostedt@goodmis.org
+Cc: srostedt@redhat.com, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, npiggin@kernel.dk, riel@redhat.com, rostedt@goodmis.org
 
 
 The patch titled
-     mm: remove likely() from grab_cache_page_write_begin()
+     mm: remove unlikely() from page_mapping()
 has been added to the -mm tree.  Its filename is
-     mm-remove-likely-from-grab_cache_page_write_begin.patch
+     mm-remove-unlikely-from-page_mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove likely() from grab_cache_page_write_begin()
+Subject: mm: remove unlikely() from page_mapping()
 From: Steven Rostedt <srostedt@redhat.com>
 
-Running the annotated branch profiler on a box doing average work
-(firefox, evolution, xchat, distcc farm), the likely() used in
-grab_cache_page_write_begin() was incorrect most of the time:
+page_mapping() has a unlikely that the mapping has PAGE_MAPPING_ANON set. 
+But running the annotated branch profiler on a normal desktop system doing
+vairous tasks (xchat, evolution, firefox, distcc), it is not really that
+unlikely that the mapping here will have the PAGE_MAPPING_ANON flag set:
 
  correct incorrect  %        Function                  File              Line
  ------- ---------  -        --------                  ----              ----
- 1924262 71332401  97 grab_cache_page_write_begin    filemap.c           2206
+35935762 1270265395  97 page_mapping                   mm.h                 659
+1306198001   143659   0 page_mapping                   mm.h                 657
+203131478   121586   0 page_mapping                   mm.h                 657
+ 5415491     1116   0 page_mapping                   mm.h                 657
+74899487     1116   0 page_mapping                   mm.h                 657
+203132845      224   0 page_mapping                   mm.h                 659
+ 5415464       27   0 page_mapping                   mm.h                 659
+   13552        0   0 page_mapping                   mm.h                 657
+   13552        0   0 page_mapping                   mm.h                 659
+  242630        0   0 page_mapping                   mm.h                 657
+  242630        0   0 page_mapping                   mm.h                 659
+74899487        0   0 page_mapping                   mm.h                 659
 
-Adding a trace_printk() and running the function tracer limited to
-just this function I can see:
+The page_mapping() is a static inline, which is why it shows up multiple
+times.
 
-        gconfd-2-2696  [000]  4467.268935: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=7
-        gconfd-2-2696  [000]  4467.268946: grab_cache_page_write_begin <-ext3_write_begin
-        gconfd-2-2696  [000]  4467.268947: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=8
-        gconfd-2-2696  [000]  4467.268959: grab_cache_page_write_begin <-ext3_write_begin
-        gconfd-2-2696  [000]  4467.268960: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=9
-        gconfd-2-2696  [000]  4467.268972: grab_cache_page_write_begin <-ext3_write_begin
-        gconfd-2-2696  [000]  4467.268973: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=10
-        gconfd-2-2696  [000]  4467.268991: grab_cache_page_write_begin <-ext3_write_begin
-        gconfd-2-2696  [000]  4467.268992: grab_cache_page_write_begin: page=          (null) mapping=ffff8800676a9460 index=11
-        gconfd-2-2696  [000]  4467.269005: grab_cache_page_write_begin <-ext3_write_begin
-
-Which shows that a lot of calls from ext3_write_begin will result in the
-page returned by "find_lock_page" will be NULL.
+The unlikely in page_mapping() was correct a total of 1909540379 times and
+incorrect 1270533123 times, with a 39% being incorrect.  With this much of
+an error, it's best to simply remove the unlikely and have the compiler
+and branch prediction figure this out.
 
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Nick Piggin <npiggin@kernel.dk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
+ include/linux/mm.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-remove-likely-from-grab_cache_page_write_begin mm/filemap.c
---- a/mm/filemap.c~mm-remove-likely-from-grab_cache_page_write_begin
-+++ a/mm/filemap.c
-@@ -2241,7 +2241,7 @@ struct page *grab_cache_page_write_begin
- 		gfp_notmask = __GFP_FS;
- repeat:
- 	page = find_lock_page(mapping, index);
--	if (likely(page))
-+	if (page)
- 		return page;
- 
- 	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~gfp_notmask);
+diff -puN include/linux/mm.h~mm-remove-unlikely-from-page_mapping include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-unlikely-from-page_mapping
++++ a/include/linux/mm.h
+@@ -658,7 +658,7 @@ static inline struct address_space *page
+ 	VM_BUG_ON(PageSlab(page));
+ 	if (unlikely(PageSwapCache(page)))
+ 		mapping = &swapper_space;
+-	else if (unlikely((unsigned long)mapping & PAGE_MAPPING_ANON))
++	else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
+ 		mapping = NULL;
+ 	return mapping;
+ }
 _
 
 Patches currently in -mm which might be from srostedt@redhat.com are
