@@ -1,215 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] rwsem-implement-rwsem_is_contended.patch removed from -mm tree
-Date: Mon, 13 Dec 2010 16:56:50 -0800
-Message-ID: <201012140056.oBE0upMv022477@imap1.linux-foundation.org>
+Subject: + mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch added to -mm tree
+Date: Mon, 13 Dec 2010 16:57:22 -0800
+Message-ID: <201012140057.oBE0vMrr022504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932109Ab0LNA53 (ORCPT
+	by vger.kernel.org with ESMTP id S1758844Ab0LNA5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Dec 2010 19:57:29 -0500
+	Mon, 13 Dec 2010 19:57:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, tglx@
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, tglx@linutronix.de, walken@google.com
 
 
 The patch titled
-     rwsem: implement rwsem_is_contended()
-has been removed from the -mm tree.  Its filename was
-     rwsem-implement-rwsem_is_contended.patch
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
+has been added to the -mm tree.  Its filename is
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: implement rwsem_is_contended()
-From: Michel Lespinasse <walken@google.com>
+Subject: mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Trivial implementations for rwsem_is_contended()
+remove ref to rwsem_is_contended()
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/rwsem.h   |    5 +++++
- arch/ia64/include/asm/rwsem.h    |    5 +++++
- arch/powerpc/include/asm/rwsem.h |    5 +++++
- arch/s390/include/asm/rwsem.h    |    5 +++++
- arch/sh/include/asm/rwsem.h      |    5 +++++
- arch/sparc/include/asm/rwsem.h   |    5 +++++
- arch/x86/include/asm/rwsem.h     |    5 +++++
- arch/xtensa/include/asm/rwsem.h  |    5 +++++
- include/linux/rwsem-spinlock.h   |    1 +
- lib/rwsem-spinlock.c             |   12 ++++++++++++
- 10 files changed, 53 insertions(+)
+ mm/memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/alpha/include/asm/rwsem.h
---- a/arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/alpha/include/asm/rwsem.h
-@@ -255,5 +255,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ALPHA_RWSEM_H */
-diff -puN arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/ia64/include/asm/rwsem.h
---- a/arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/ia64/include/asm/rwsem.h
-@@ -179,4 +179,9 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* _ASM_IA64_RWSEM_H */
-diff -puN arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/powerpc/include/asm/rwsem.h
---- a/arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/powerpc/include/asm/rwsem.h
-@@ -179,5 +179,10 @@ static inline int rwsem_is_locked(struct
- 	return sem->count != 0;
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return sem->count < 0;
-+}
-+
- #endif	/* __KERNEL__ */
- #endif	/* _ASM_POWERPC_RWSEM_H */
-diff -puN arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/s390/include/asm/rwsem.h
---- a/arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/s390/include/asm/rwsem.h
-@@ -382,5 +382,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _S390_RWSEM_H */
-diff -puN arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/sh/include/asm/rwsem.h
---- a/arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/sh/include/asm/rwsem.h
-@@ -184,5 +184,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_SH_RWSEM_H */
-diff -puN arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/sparc/include/asm/rwsem.h
---- a/arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/sparc/include/asm/rwsem.h
-@@ -165,6 +165,11 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _SPARC64_RWSEM_H */
-diff -puN arch/x86/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/x86/include/asm/rwsem.h
---- a/arch/x86/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/x86/include/asm/rwsem.h
-@@ -275,5 +275,10 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+	return (sem->count < 0);
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_X86_RWSEM_H */
-diff -puN arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended arch/xtensa/include/asm/rwsem.h
---- a/arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended
-+++ a/arch/xtensa/include/asm/rwsem.h
-@@ -165,4 +165,9 @@ static inline int rwsem_is_locked(struct
- 	return (sem->count != 0);
- }
- 
-+static inline int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+        return (sem->count < 0);
-+}
-+
- #endif	/* _XTENSA_RWSEM_H */
-diff -puN include/linux/rwsem-spinlock.h~rwsem-implement-rwsem_is_contended include/linux/rwsem-spinlock.h
---- a/include/linux/rwsem-spinlock.h~rwsem-implement-rwsem_is_contended
-+++ a/include/linux/rwsem-spinlock.h
-@@ -69,6 +69,7 @@ extern void __up_read(struct rw_semaphor
- extern void __up_write(struct rw_semaphore *sem);
- extern void __downgrade_write(struct rw_semaphore *sem);
- extern int rwsem_is_locked(struct rw_semaphore *sem);
-+extern int rwsem_is_contended(struct rw_semaphore *sem);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_RWSEM_SPINLOCK_H */
-diff -puN lib/rwsem-spinlock.c~rwsem-implement-rwsem_is_contended lib/rwsem-spinlock.c
---- a/lib/rwsem-spinlock.c~rwsem-implement-rwsem_is_contended
-+++ a/lib/rwsem-spinlock.c
-@@ -30,6 +30,18 @@ int rwsem_is_locked(struct rw_semaphore 
- }
- EXPORT_SYMBOL(rwsem_is_locked);
- 
-+int rwsem_is_contended(struct rw_semaphore *sem)
-+{
-+	int ret = 0;
-+	unsigned long flags;
-+
-+	if (spin_trylock_irqsave(&sem->wait_lock, flags)) {
-+		ret = !list_empty(&sem->wait_list);
-+		spin_unlock_irqrestore(&sem->wait_lock, flags);
-+	}
-+	return ret;
-+}
-+
- /*
-  * initialise the semaphore
-  */
+diff -puN mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix mm/memory.c
+--- a/mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
++++ a/mm/memory.c
+@@ -1528,11 +1528,6 @@ int __get_user_pages(struct task_struct 
+ 			i++;
+ 			start += PAGE_SIZE;
+ 			nr_pages--;
+-			if (nonblocking && rwsem_is_contended(&mm->mmap_sem)) {
+-				up_read(&mm->mmap_sem);
+-				*nonblocking = 0;
+-				return i;
+-			}
+ 		} while (nr_pages && start < vma->vm_end);
+ 	} while (nr_pages);
+ 	return i;
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
-rwsem-implement-rwsem_is_contended-checkpatch-fixes.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+aesni-nfg.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-install_special_mapping-skips-security_file_mmap-check-fix.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-x86-rwsem-more-precise-rwsem_is_contended-implementation.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-async-pps-event-handler-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
