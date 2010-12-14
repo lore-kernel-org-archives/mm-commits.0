@@ -1,67 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] writeback-enabling-gate-for-light-dirtied-bdi-fix.patch removed from -mm tree
-Date: Tue, 14 Dec 2010 15:41:52 -0800
-Message-ID: <201012150014.oBF0Enbd018335@imap1.linux-foundation.org>
+Subject: [to-be-updated] writeback-safety-margin-for-bdi-stat-error.patch removed from -mm tree
+Date: Tue, 14 Dec 2010 15:41:54 -0800
+Message-ID: <201012150014.oBF0Ep3N018338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752642Ab0LOAQP (ORCPT
+	by vger.kernel.org with ESMTP id S1754578Ab0LOAQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 19:16:15 -0500
+	Tue, 14 Dec 2010 19:16:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, david@fromorbit.com, hch@lst.de, jack@suse.cz, mel@csn.ul.ie, mrubin@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback-enabling-gate-for-light-dirtied-bdi-fix
+     writeback: safety margin for bdi stat error
 has been removed from the -mm tree.  Its filename was
-     writeback-enabling-gate-for-light-dirtied-bdi-fix.patch
+     writeback-safety-margin-for-bdi-stat-error.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-enabling-gate-for-light-dirtied-bdi-fix
+Subject: writeback: safety margin for bdi stat error
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-> +	 * Provide a global safety margin of ~1%, or up to 32MB for a 20GB box.
-> +	 */
-> +	dirty -= min(dirty / 128, 32768ULL >> (PAGE_SHIFT-10));
+In a simple dd test on a 8p system with "mem=256M", I find all light
+dirtier tasks on the root fs are get heavily throttled.  That happens
+because the global limit is exceeded.  It's unbelievable at first sight,
+because the test fs doing the heavy dd is under its bdi limit.  After
+doing some tracing, it's discovered that
 
-/home/wfg/cc/linux-next/mm/page-writeback.c: In function `bdi_dirty_limit':
-/home/wfg/cc/linux-next/mm/page-writeback.c:464:133: warning: comparison of distinct pointer types lacks a cast
+	bdi_dirty < bdi_dirty_limit() < global_dirty_limit() < nr_dirty
 
-Sorry, here is the fixed version.
+So the root cause is, the bdi_dirty is well under the global nr_dirty due
+to accounting errors.  This can be fixed by using bdi_stat_sum(), however
+that's costly on large NUMA machines.  So do a less costly fix of lowering
+the bdi limit, so that the accounting errors won't lead to the absurd
+situation "global limit exceeded but bdi limit not exceeded".
+
+This provides guarantee when there is only 1 heavily dirtied bdi, and
+works by opportunity for 2+ heavy dirtied bdi's (hopefully they won't
+reach big error _and_ exceed their bdi limit at the same time).
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Michael Rubin <mrubin@google.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-enabling-gate-for-light-dirtied-bdi-fix mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-enabling-gate-for-light-dirtied-bdi-fix
+diff -puN mm/page-writeback.c~writeback-safety-margin-for-bdi-stat-error mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-safety-margin-for-bdi-stat-error
 +++ a/mm/page-writeback.c
-@@ -447,7 +447,7 @@ unsigned long bdi_dirty_limit(struct bac
- 	/*
- 	 * Provide a global safety margin of ~1%, or up to 32MB for a 20GB box.
- 	 */
--	dirty -= min(dirty / 128, 32768ULL >> (PAGE_SHIFT-10));
-+	dirty -= min(dirty / 128, 32768UL >> (PAGE_SHIFT-10));
+@@ -421,10 +421,16 @@ void global_dirty_limits(unsigned long *
+ 	*pdirty = dirty;
+ }
+ 
+-/*
++/**
+  * bdi_dirty_limit - @bdi's share of dirty throttling threshold
++ * @bdi: the backing_dev_info to query
++ * @dirty: global dirty limit in pages
++ * @dirty_pages: current number of dirty pages
+  *
+- * Allocate high/low dirty limits to fast/slow devices, in order to prevent
++ * Returns @bdi's dirty limit in pages. The term "dirty" in the context of
++ * dirty balancing includes all PG_dirty, PG_writeback and NFS unstable pages.
++ *
++ * It allocates high/low dirty limits to fast/slow devices, in order to prevent
+  * - starving fast devices
+  * - piling up dirty pages (that will take long time to sync) on slow devices
+  *
+@@ -445,6 +451,14 @@ unsigned long bdi_dirty_limit(struct bac
+ 	long numerator, denominator;
  
  	/*
- 	 * Calculate this BDI's share of the dirty ratio.
++	 * try to prevent "global limit exceeded but bdi limit not exceeded"
++	 */
++	if (likely(dirty > bdi_stat_error(bdi)))
++		dirty -= bdi_stat_error(bdi);
++	else
++		return 0;
++
++	/*
+ 	 * Provide a global safety margin of ~1%, or up to 32MB for a 20GB box.
+ 	 */
+ 	dirty -= min(dirty / 128, 32768UL >> (PAGE_SHIFT-10));
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -93,7 +127,6 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-writeback-safety-margin-for-bdi-stat-error.patch
 mm-page-writebackc-fix-__set_page_dirty_no_writeback-return-value.patch
 mm-find_get_pages_contig-fixlet.patch
 mm-smaps-export-mlock-information.patch
