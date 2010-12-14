@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-obsolete-comments.patch added to -mm tree
-Date: Tue, 14 Dec 2010 13:36:54 -0800
-Message-ID: <201012142136.oBELasMa011170@imap1.linux-foundation.org>
+Subject: + decompressors-add-boot-time-xz-support-update.patch added to -mm tree
+Date: Tue, 14 Dec 2010 13:39:07 -0800
+Message-ID: <201012142139.oBELd782011267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753573Ab0LNVhZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751302Ab0LNVkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 16:37:25 -0500
+	Tue, 14 Dec 2010 16:40:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bookjovi@gmail.com, hidave.darkstar@gmail.com, xiyou.wangcong@gmail.com
+Cc: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     sysctl: remove obsolete comments
+     decompressors-add-boot-time-xz-support-update
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-obsolete-comments.patch
+     decompressors-add-boot-time-xz-support-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: remove obsolete comments
-From: Jovi Zhang <bookjovi@gmail.com>
+Subject: decompressors-add-boot-time-xz-support-update
+From: Lasse Collin <lasse.collin@tukaani.org>
 
-ctl_unnumbered.txt have been removed in Documentation directory so just
-also remove this invalid comments
+Compared to the previous version of this patch, this makes the
+XZ-compressed initramfs Kconfig option behave the same way as
+the other compression methods. Now the option isn't hidden if
+the xz_dec module hasn't been enabled separately. Support for
+XZ-compressed initramfs is now enabled by default if !EMBEDDED.
 
-Signed-off-by: Jovi Zhang <bookjovi@gmail.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ lib/Kconfig |    1 +
+ usr/Kconfig |    9 +++------
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-remove-obsolete-comments kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-obsolete-comments
-+++ a/kernel/sysctl.c
-@@ -245,10 +245,6 @@ static struct ctl_table root_table[] = {
- 		.mode		= 0555,
- 		.child		= dev_table,
- 	},
--/*
-- * NOTE: do not add new entries to this table unless you have read
-- * Documentation/sysctl/ctl_unnumbered.txt
-- */
- 	{ }
- };
+diff -puN lib/Kconfig~decompressors-add-boot-time-xz-support-update lib/Kconfig
+--- a/lib/Kconfig~decompressors-add-boot-time-xz-support-update
++++ a/lib/Kconfig
+@@ -123,6 +123,7 @@ config DECOMPRESS_LZMA
+ 	tristate
  
-@@ -962,10 +958,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dointvec,
- 	},
- #endif
--/*
-- * NOTE: do not add new entries to this table unless you have read
-- * Documentation/sysctl/ctl_unnumbered.txt
-- */
- 	{ }
- };
+ config DECOMPRESS_XZ
++	select XZ_DEC
+ 	tristate
  
-@@ -1326,11 +1318,6 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one,
- 	},
- #endif
+ config DECOMPRESS_LZO
+diff -puN usr/Kconfig~decompressors-add-boot-time-xz-support-update usr/Kconfig
+--- a/usr/Kconfig~decompressors-add-boot-time-xz-support-update
++++ a/usr/Kconfig
+@@ -73,15 +73,12 @@ config RD_LZMA
+ 	  If unsure, say N.
+ 
+ config RD_XZ
+-	bool "Support initial ramdisks compressed using XZ"
+-	depends on BLK_DEV_INITRD && XZ_DEC=y
++	bool "Support initial ramdisks compressed using XZ" if EMBEDDED
++	default !EMBEDDED
++	depends on BLK_DEV_INITRD
+ 	select DECOMPRESS_XZ
+ 	help
+ 	  Support loading of a XZ encoded initial ramdisk or cpio buffer.
 -
--/*
-- * NOTE: do not add new entries to this table unless you have read
-- * Documentation/sysctl/ctl_unnumbered.txt
-- */
- 	{ }
- };
- 
-@@ -1486,10 +1473,6 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &pipe_proc_fn,
- 		.extra1		= &pipe_min_size,
- 	},
--/*
-- * NOTE: do not add new entries to this table unless you have read
-- * Documentation/sysctl/ctl_unnumbered.txt
-- */
- 	{ }
- };
- 
-_
-
-Patches currently in -mm which might be from bookjovi@gmail.com are
-
-linux-next.patch
-proc-use-single_open-correctly.patch
-sysctl-fix-ifdef-guard-comment.patch
-sysctl-remove-obsolete-comments.patch
-sysctl-remove-obsolete-comments-fix.patch
-
+-	  If this option is inactive, say Y to "XZ decompression support"
+-	  under "Library routines" first.
