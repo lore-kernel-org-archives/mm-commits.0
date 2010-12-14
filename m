@@ -1,196 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch added to -mm tree
-Date: Tue, 14 Dec 2010 14:47:44 -0800
-Message-ID: <201012142247.oBEMljZB014518@imap1.linux-foundation.org>
+Subject: [to-be-updated] writeback-enabling-gate-for-light-dirtied-bdi.patch removed from -mm tree
+Date: Tue, 14 Dec 2010 15:41:47 -0800
+Message-ID: <201012150014.oBF0EjmI018330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760127Ab0LNWs2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755127Ab0LOAQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 17:48:28 -0500
+	Tue, 14 Dec 2010 19:16:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com, sim@hostway.ca
+To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, david@fromorbit.com, hch@lst.de, jack@suse.cz, mel@csn.ul.ie, mrubin@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: kswapd: keep kswapd awake for high-order allocations until a percentage of the node is balanced
-has been added to the -mm tree.  Its filename is
-     mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+     writeback: enabling-gate for light dirtied bdi
+has been removed from the -mm tree.  Its filename was
+     writeback-enabling-gate-for-light-dirtied-bdi.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: kswapd: keep kswapd awake for high-order allocations until a percentage of the node is balanced
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: writeback: enabling-gate for light dirtied bdi
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-When reclaiming for high-orders, kswapd is responsible for balancing a
-node but it should not reclaim excessively.  It avoids excessive reclaim
-by considering if any zone in a node is balanced then the node is
-balanced.  In the cases where there are imbalanced zone sizes (e.g. 
-ZONE_DMA with both ZONE_DMA32 and ZONE_NORMAL), kswapd can go to sleep
-prematurely as just one small zone was balanced.
+I noticed that my NFSROOT test system goes slow responding when there is
+heavy dd to a local disk.  Traces show that the NFSROOT's bdi limit is
+near 0 and many tasks in the system are repeatedly stuck in
+balance_dirty_pages().
 
-This alters the sleep logic of kswapd slightly.  It counts the number of
-pages that make up the balanced zones.  If the total number of balanced
-pages is more than a quarter of the zone, kswapd will go back to sleep. 
-This should keep a node balanced without reclaiming an excessive number of
-pages.
+There are two generic problems:
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Cc: Simon Kirby <sim@hostway.ca>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+- light dirtiers at one device (more often than not the rootfs) get
+  heavily impacted by heavy dirtiers on another independent device
+
+- the light dirtied device does heavy throttling because bdi limit=0,
+  and the heavy throttling may in turn withhold its bdi limit in 0 as
+  it cannot dirty fast enough to grow up the bdi's proportional weight.
+
+Fix it by introducing some "low pass" gate, which is a small (<=32MB)
+value reserved by others and can be safely "stole" from the current
+global dirty margin.  It does not need to be big to help the bdi gain
+its initial weight.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   58 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 49 insertions(+), 9 deletions(-)
+ include/linux/writeback.h |    3 ++-
+ mm/backing-dev.c          |    2 +-
+ mm/page-writeback.c       |   29 ++++++++++++++++++++++++++---
+ 3 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced mm/vmscan.c
---- a/mm/vmscan.c~mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced
-+++ a/mm/vmscan.c
-@@ -2198,10 +2198,40 @@ unsigned long try_to_free_mem_cgroup_pag
- }
- #endif
+diff -puN include/linux/writeback.h~writeback-enabling-gate-for-light-dirtied-bdi include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-enabling-gate-for-light-dirtied-bdi
++++ a/include/linux/writeback.h
+@@ -137,7 +137,8 @@ int dirty_writeback_centisecs_handler(st
  
-+/*
-+ * pgdat_balanced is used when checking if a node is balanced for high-order
-+ * allocations. Only zones that meet watermarks and are in a zone allowed
-+ * by the callers classzone_idx are added to balanced_pages. The total of
-+ * balanced pages must be at least 25% of the zones allowed by classzone_idx
-+ * for the node to be considered balanced. Forcing all zones to be balanced
-+ * for high orders can cause excessive reclaim when there are imbalanced zones.
-+ * The choice of 25% is due to
-+ *   o a 16M DMA zone that is balanced will not balance a zone on any
-+ *     reasonable sized machine
-+ *   o On all other machines, the top zone must be at least a reasonable
-+ *     precentage of the middle zones. For example, on 32-bit x86, highmem
-+ *     would need to be at least 256M for it to be balance a whole node.
-+ *     Similarly, on x86-64 the Normal zone would need to be at least 1G
-+ *     to balance a node on its own. These seemed like reasonable ratios.
+ void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
+ unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
+-			       unsigned long dirty);
++			       unsigned long dirty,
++			       unsigned long dirty_pages);
+ void bdi_update_write_bandwidth(struct backing_dev_info *bdi,
+ 				unsigned long *bw_time,
+ 				s64 *bw_written);
+diff -puN mm/backing-dev.c~writeback-enabling-gate-for-light-dirtied-bdi mm/backing-dev.c
+--- a/mm/backing-dev.c~writeback-enabling-gate-for-light-dirtied-bdi
++++ a/mm/backing-dev.c
+@@ -83,7 +83,7 @@ static int bdi_debug_stats_show(struct s
+ 	spin_unlock(&inode_lock);
+ 
+ 	global_dirty_limits(&background_thresh, &dirty_thresh);
+-	bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
++	bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh, dirty_thresh);
+ 
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	seq_printf(m,
+diff -puN mm/page-writeback.c~writeback-enabling-gate-for-light-dirtied-bdi mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-enabling-gate-for-light-dirtied-bdi
++++ a/mm/page-writeback.c
+@@ -430,13 +430,26 @@ void global_dirty_limits(unsigned long *
+  *
+  * The bdi's share of dirty limit will be adapting to its throughput and
+  * bounded by the bdi->min_ratio and/or bdi->max_ratio parameters, if set.
+- */
+-unsigned long bdi_dirty_limit(struct backing_dev_info *bdi, unsigned long dirty)
++ *
++ * There is a chicken and egg problem: when bdi A (eg. /pub) is heavy dirtied
++ * and bdi B (eg. /) is light dirtied hence has 0 dirty limit, tasks writing to
++ * B always get heavily throttled and bdi B's dirty limit might never be able
++ * to grow up from 0. So we do tricks to reserve some global margin and honour
++ * it to the bdi's that run low.
 + */
-+static bool pgdat_balanced(pg_data_t *pgdat, unsigned long balanced_pages,
-+						int classzone_idx)
-+{
-+	unsigned long present_pages = 0;
-+	int i;
-+
-+	for (i = 0; i <= classzone_idx; i++)
-+		present_pages += pgdat->node_zones[i].present_pages;
-+
-+	return balanced_pages > (present_pages >> 2);
-+}
-+
- /* is kswapd sleeping prematurely? */
- static int sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
++unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
++			      unsigned long dirty,
++			      unsigned long dirty_pages)
  {
- 	int i;
-+	unsigned long balanced = 0;
-+	bool all_zones_ok = true;
- 
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
- 	if (remaining)
-@@ -2219,10 +2249,20 @@ static int sleeping_prematurely(pg_data_
- 
- 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
- 								0, 0))
--			return 1;
-+			all_zones_ok = false;
-+		else
-+			balanced += zone->present_pages;
- 	}
- 
--	return 0;
-+	/*
-+	 * For high-order requests, the balanced zones must contain at least
-+	 * 25% of the nodes pages for kswapd to sleep. For order-0, all zones
-+	 * must be balanced
-+	 */
-+	if (order)
-+		return pgdat_balanced(pgdat, balanced, 0);
-+	else
-+		return !all_zones_ok;
- }
- 
- /*
-@@ -2250,7 +2290,7 @@ static unsigned long balance_pgdat(pg_da
- 							int classzone_idx)
- {
- 	int all_zones_ok;
--	int any_zone_ok;
-+	unsigned long balanced;
- 	int priority;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
-@@ -2284,7 +2324,7 @@ loop_again:
- 			disable_swap_token();
- 
- 		all_zones_ok = 1;
--		any_zone_ok = 0;
-+		balanced = 0;
- 
- 		/*
- 		 * Scan in the highmem->dma direction for the highest
-@@ -2404,11 +2444,11 @@ loop_again:
- 				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
- 				if (i <= classzone_idx)
--					any_zone_ok = 1;
-+					balanced += zone->present_pages;
- 			}
- 
- 		}
--		if (all_zones_ok || (order && any_zone_ok))
-+		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))
- 			break;		/* kswapd: all done */
- 		/*
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
-@@ -2434,10 +2474,10 @@ out:
+ 	u64 bdi_dirty;
+ 	long numerator, denominator;
  
  	/*
- 	 * order-0: All zones must meet high watermark for a balanced node
--	 * high-order: Any zone below pgdats classzone_idx must meet the high
--	 *             watermark for a balanced node
-+	 * high-order: Balanced zones must make up at least 25% of the node
-+	 *             for the node to be balanced
++	 * Provide a global safety margin of ~1%, or up to 32MB for a 20GB box.
++	 */
++	dirty -= min(dirty / 128, 32768ULL >> (PAGE_SHIFT-10));
++
++	/*
+ 	 * Calculate this BDI's share of the dirty ratio.
  	 */
--	if (!(all_zones_ok || (order && any_zone_ok))) {
-+	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))) {
- 		cond_resched();
+ 	bdi_writeout_fraction(bdi, &numerator, &denominator);
+@@ -446,6 +459,15 @@ unsigned long bdi_dirty_limit(struct bac
+ 	do_div(bdi_dirty, denominator);
  
- 		try_to_freeze();
+ 	bdi_dirty += (dirty * bdi->min_ratio) / 100;
++
++	/*
++	 * If we can dirty N more pages globally, honour N/2 to the bdi that
++	 * runs low, so as to help it ramp up.
++	 */
++	if (unlikely(bdi_dirty < (dirty - dirty_pages) / 2 &&
++		     dirty > dirty_pages))
++		bdi_dirty = (dirty - dirty_pages) / 2;
++
+ 	if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
+ 		bdi_dirty = dirty * bdi->max_ratio / 100;
+ 
+@@ -567,7 +589,8 @@ static void balance_dirty_pages(struct a
+ 		if (nr_dirty <= (background_thresh + dirty_thresh) / 2)
+ 			break;
+ 
+-		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
++		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh,
++					     nr_reclaimable + nr_writeback);
+ 		task_thresh = task_dirty_limit(current, bdi_thresh);
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-mm-compactionc-avoid-double-mem_cgroup_del_lru.patch
-mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
+writeback-do-uninterruptible-sleep-in-balance_dirty_pages.patch
+writeback-integrated-background-writeback-work.patch
+writeback-trace-wakeup-event-for-background-writeback.patch
+writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
+writeback-stop-background-kupdate-works-from-livelocking-other-works-update.patch
+writeback-avoid-livelocking-wb_sync_all-writeback.patch
+writeback-avoid-livelocking-wb_sync_all-writeback-update.patch
+writeback-check-skipped-pages-on-wb_sync_all.patch
+writeback-check-skipped-pages-on-wb_sync_all-update.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
@@ -207,26 +176,15 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-writeback-enabling-gate-for-light-dirtied-bdi.patch
 writeback-enabling-gate-for-light-dirtied-bdi-fix.patch
 writeback-safety-margin-for-bdi-stat-error.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-vmscan-make-kswapd-use-a-correct-order.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-page-writebackc-fix-__set_page_dirty_no_writeback-return-value.patch
+mm-find_get_pages_contig-fixlet.patch
+mm-smaps-export-mlock-information.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+memcg-use-zalloc-rather-than-mallocmemset.patch
 
