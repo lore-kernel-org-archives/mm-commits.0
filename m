@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch added to -mm tree
-Date: Tue, 14 Dec 2010 14:47:53 -0800
-Message-ID: <201012142247.oBEMls0G014533@imap1.linux-foundation.org>
+Subject: + mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch added to -mm tree
+Date: Tue, 14 Dec 2010 14:47:47 -0800
+Message-ID: <201012142247.oBEMlmXX014521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760142Ab0LNWsa (ORCPT
+	by vger.kernel.org with ESMTP id S1760127Ab0LNWsa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Dec 2010 17:48:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.or
 
 
 The patch titled
-     mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
+     mm: kswapd: use the order that kswapd was reclaiming at for sleeping_prematurely()
 has been added to the -mm tree.  Its filename is
-     mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+     mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
+Subject: mm: kswapd: use the order that kswapd was reclaiming at for sleeping_prematurely()
 From: Mel Gorman <mel@csn.ul.ie>
 
-When kswapd is woken up for a high-order allocation, it takes account of
-the highest usable zone by the caller (the classzone idx).  During
-allocation, this index is used to select the lowmem_reserve[] that should
-be applied to the watermark calculation in zone_watermark_ok().
-
-When balancing a node, kswapd considers the highest unbalanced zone to be
-the classzone index.  This will always be at least be the callers
-classzone_idx and can be higher.  However, sleeping_prematurely() always
-considers the lowest zone (e.g.  ZONE_DMA) to be the classzone index. 
-This means that sleeping_prematurely() can consider a zone to be balanced
-that is unusable by the allocation request that originally woke kswapd. 
-This patch changes sleeping_prematurely() to use a classzone_idx matching
-the value it used in balance_pgdat().
+Before kswapd goes to sleep, it uses sleeping_prematurely() to check if
+there was a race pushing a zone below its watermark.  If the race
+happened, it stays awake.  However, balance_pgdat() can decide to reclaim
+at order-0 if it decides that high-order reclaim is not working as
+expected.  This information is not passed back to sleeping_prematurely(). 
+The impact is that kswapd remains awake reclaiming pages long after it
+should have gone to sleep.  This patch passes the adjusted order to
+sleeping_prematurely and uses the same logic as balance_pgdat to decide if
+it's ok to go to sleep.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Simon Kirby <sim@hostway.ca>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Shaohua Li <shaohua.li@intel.com>
@@ -64,136 +60,60 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ mm/vmscan.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely mm/vmscan.c
---- a/mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely
+diff -puN mm/vmscan.c~mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely
 +++ a/mm/vmscan.c
-@@ -2227,7 +2227,8 @@ static bool pgdat_balanced(pg_data_t *pg
+@@ -2227,7 +2227,7 @@ static bool pgdat_balanced(pg_data_t *pg
  }
  
  /* is kswapd sleeping prematurely? */
--static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
-+static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
-+					int classzone_idx)
+-static int sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
++static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
  {
  	int i;
  	unsigned long balanced = 0;
-@@ -2235,7 +2236,7 @@ static bool sleeping_prematurely(pg_data
- 
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
+@@ -2237,7 +2237,7 @@ static int sleeping_prematurely(pg_data_
  	if (remaining)
--		return 1;
-+		return true;
+ 		return 1;
  
- 	/* Check the watermark levels */
+-	/* If after HZ/10, a zone is below the high mark, it's premature */
++	/* Check the watermark levels */
  	for (i = 0; i < pgdat->nr_zones; i++) {
-@@ -2256,7 +2257,7 @@ static bool sleeping_prematurely(pg_data
- 		}
+ 		struct zone *zone = pgdat->node_zones + i;
  
- 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
--								0, 0))
-+							classzone_idx, 0))
- 			all_zones_ok = false;
- 		else
- 			balanced += zone->present_pages;
-@@ -2268,7 +2269,7 @@ static bool sleeping_prematurely(pg_data
- 	 * must be balanced
- 	 */
- 	if (order)
--		return pgdat_balanced(pgdat, balanced, 0);
-+		return pgdat_balanced(pgdat, balanced, classzone_idx);
- 	else
- 		return !all_zones_ok;
- }
-@@ -2295,7 +2296,7 @@ static bool sleeping_prematurely(pg_data
-  * of pages is balanced across the zones.
-  */
- static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
--							int classzone_idx)
-+							int *classzone_idx)
- {
- 	int all_zones_ok;
- 	unsigned long balanced;
-@@ -2358,6 +2359,7 @@ loop_again:
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
-+				*classzone_idx = i;
- 				break;
- 			}
+@@ -2269,7 +2269,7 @@ static int sleeping_prematurely(pg_data_
+  * For kswapd, balance_pgdat() will work across all this node's zones until
+  * they are all at high_wmark_pages(zone).
+  *
+- * Returns the number of pages which were actually freed.
++ * Returns the final order kswapd was reclaiming at
+  *
+  * There is special handling here for zones which are full of pinned pages.
+  * This can happen if the pages are all mlocked, or if they are all used by
+@@ -2532,7 +2532,13 @@ out:
  		}
-@@ -2451,12 +2453,12 @@ loop_again:
- 				 * spectulatively avoid congestion waits
- 				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
--				if (i <= classzone_idx)
-+				if (i <= *classzone_idx)
- 					balanced += zone->present_pages;
- 			}
+ 	}
  
- 		}
--		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))
-+		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))
- 			break;		/* kswapd: all done */
- 		/*
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
-@@ -2485,7 +2487,7 @@ out:
- 	 * high-order: Balanced zones must make up at least 25% of the node
- 	 *             for the node to be balanced
- 	 */
--	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))) {
-+	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))) {
- 		cond_resched();
- 
- 		try_to_freeze();
-@@ -2546,10 +2548,11 @@ out:
- 	 * if another caller entered the allocator slow path while kswapd
- 	 * was awake, order will remain at the higher level
- 	 */
-+	*classzone_idx = end_zone;
- 	return order;
+-	return sc.nr_reclaimed;
++	/*
++	 * Return the order we were reclaiming at so sleeping_prematurely()
++	 * makes a decision on the order we were last reclaiming at. However,
++	 * if another caller entered the allocator slow path while kswapd
++	 * was awake, order will remain at the higher level
++	 */
++	return order;
  }
  
--static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
-+static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
- {
- 	long remaining = 0;
- 	DEFINE_WAIT(wait);
-@@ -2560,7 +2563,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
- 
- 	/* Try to sleep for a short interval */
--	if (!sleeping_prematurely(pgdat, order, remaining)) {
-+	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
- 		remaining = schedule_timeout(HZ/10);
- 		finish_wait(&pgdat->kswapd_wait, &wait);
- 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-@@ -2570,7 +2573,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	 * After a short sleep, check if it was a premature sleep. If not, then
- 	 * go fully to sleep until explicitly woken up.
- 	 */
--	if (!sleeping_prematurely(pgdat, order, remaining)) {
-+	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
- 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
- 
- 		/*
-@@ -2658,7 +2661,7 @@ static int kswapd(void *p)
- 			order = new_order;
- 			classzone_idx = new_classzone_idx;
- 		} else {
--			kswapd_try_to_sleep(pgdat, order);
-+			kswapd_try_to_sleep(pgdat, order, classzone_idx);
- 			order = pgdat->kswapd_max_order;
- 			classzone_idx = pgdat->classzone_idx;
- 			pgdat->kswapd_max_order = 0;
-@@ -2675,7 +2678,7 @@ static int kswapd(void *p)
+ static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
+@@ -2659,7 +2665,7 @@ static int kswapd(void *p)
  		 */
  		if (!ret) {
  			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
--			order = balance_pgdat(pgdat, order, classzone_idx);
-+			order = balance_pgdat(pgdat, order, &classzone_idx);
+-			balance_pgdat(pgdat, order, classzone_idx);
++			order = balance_pgdat(pgdat, order, classzone_idx);
  		}
  	}
  	return 0;
