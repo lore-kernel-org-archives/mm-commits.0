@@ -1,239 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] rwsem-implement-rwsem_is_contended-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 13 Dec 2010 16:56:54 -0800
-Message-ID: <201012140056.oBE0usHR022480@imap1.linux-foundation.org>
+Subject: [nacked] x86-rwsem-more-precise-rwsem_is_contended-implementation.patch removed from -mm tree
+Date: Mon, 13 Dec 2010 16:56:57 -0800
+Message-ID: <201012140056.oBE0uvLd022483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754518Ab0LNA46 (ORCPT
+	by vger.kernel.org with ESMTP id S932153Ab0LNA5c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Dec 2010 19:56:58 -0500
+	Mon, 13 Dec 2010 19:57:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
+To: walken@google.com, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, tglx@
 
 
 The patch titled
-     rwsem-implement-rwsem_is_contended-checkpatch-fixes
+     x86 rwsem: more precise rwsem_is_contended() implementation
 has been removed from the -mm tree.  Its filename was
-     rwsem-implement-rwsem_is_contended-checkpatch-fixes.patch
+     x86-rwsem-more-precise-rwsem_is_contended-implementation.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem-implement-rwsem_is_contended-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86 rwsem: more precise rwsem_is_contended() implementation
+From: Michel Lespinasse <walken@google.com>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: arch/alpha/include/asm/rwsem.h:260:
-+        return (sem->count < 0);$
+We would like rwsem_is_contended() to return true only once a contending
+writer has had a chance to insert itself onto the rwsem wait queue.  To
+that end, we need to differenciate between active and queued writers.
 
-WARNING: please, no spaces at the start of a line
-#39: FILE: arch/alpha/include/asm/rwsem.h:260:
-+        return (sem->count < 0);$
+A new property is introduced: RWSEM_ACTIVE_WRITE_BIAS is set to be 'more
+negative' than RWSEM_WAITING_BIAS.  RWSEM_WAITING_MASK designates a bit in
+the rwsem count that will be set only when RWSEM_WAITING_BIAS is in
+effect.
 
-ERROR: code indent should use tabs where possible
-#53: FILE: arch/ia64/include/asm/rwsem.h:184:
-+        return (sem->count < 0);$
+The basic properties that have been true so far also still hold:
+- RWSEM_ACTIVE_READ_BIAS  & RWSEM_ACTIVE_MASK == 1
+- RWSEM_ACTIVE_WRITE_BIAS & RWSEM_ACTIVE_MASK == 1
+- RWSEM_WAITING_BIAS      & RWSEM_ACTIVE_MASK == 0
+- RWSEM_ACTIVE_WRITE_BIAS < 0 and RWSEM_WAITING_BIAS < 0
 
-WARNING: please, no spaces at the start of a line
-#53: FILE: arch/ia64/include/asm/rwsem.h:184:
-+        return (sem->count < 0);$
+In addition, the rwsem count will be < RWSEM_WAITING_BIAS only if there
+are any active writers (though we don't make use of this property so far).
 
-ERROR: code indent should use tabs where possible
-#66: FILE: arch/powerpc/include/asm/rwsem.h:184:
-+        return sem->count < 0;$
-
-WARNING: please, no spaces at the start of a line
-#66: FILE: arch/powerpc/include/asm/rwsem.h:184:
-+        return sem->count < 0;$
-
-ERROR: code indent should use tabs where possible
-#80: FILE: arch/s390/include/asm/rwsem.h:387:
-+        return (sem->count < 0);$
-
-WARNING: please, no spaces at the start of a line
-#80: FILE: arch/s390/include/asm/rwsem.h:387:
-+        return (sem->count < 0);$
-
-ERROR: code indent should use tabs where possible
-#94: FILE: arch/sh/include/asm/rwsem.h:189:
-+        return (sem->count < 0);$
-
-WARNING: please, no spaces at the start of a line
-#94: FILE: arch/sh/include/asm/rwsem.h:189:
-+        return (sem->count < 0);$
-
-ERROR: code indent should use tabs where possible
-#108: FILE: arch/sparc/include/asm/rwsem.h:170:
-+        return (sem->count < 0);$
-
-WARNING: please, no spaces at the start of a line
-#108: FILE: arch/sparc/include/asm/rwsem.h:170:
-+        return (sem->count < 0);$
-
-ERROR: code indent should use tabs where possible
-#137: FILE: arch/xtensa/include/asm/rwsem.h:170:
-+        return (sem->count < 0);$
-
-WARNING: please, no spaces at the start of a line
-#137: FILE: arch/xtensa/include/asm/rwsem.h:170:
-+        return (sem->count < 0);$
-
-total: 7 errors, 7 warnings, 104 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/rwsem-implement-rwsem_is_contended.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michel Lespinasse <walken@google.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/rwsem.h   |    2 +-
- arch/ia64/include/asm/rwsem.h    |    2 +-
- arch/powerpc/include/asm/rwsem.h |    2 +-
- arch/s390/include/asm/rwsem.h    |    2 +-
- arch/sh/include/asm/rwsem.h      |    2 +-
- arch/sparc/include/asm/rwsem.h   |    2 +-
- arch/xtensa/include/asm/rwsem.h  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/rwsem.h |   32 +++++++++++++++++++-------------
+ arch/x86/lib/rwsem_64.S      |    4 ++--
+ arch/x86/lib/semaphore_32.S  |    4 ++--
+ 3 files changed, 23 insertions(+), 17 deletions(-)
 
-diff -puN arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/alpha/include/asm/rwsem.h
---- a/arch/alpha/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/alpha/include/asm/rwsem.h
-@@ -257,7 +257,7 @@ static inline int rwsem_is_locked(struct
+diff -puN arch/x86/include/asm/rwsem.h~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/include/asm/rwsem.h
+--- a/arch/x86/include/asm/rwsem.h~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/include/asm/rwsem.h
+@@ -16,11 +16,10 @@
+  * if there are writers (and maybe) readers waiting (in which case it goes to
+  * sleep).
+  *
+- * The value of WAITING_BIAS supports up to 32766 waiting processes. This can
+- * be extended to 65534 by manually checking the whole MSW rather than relying
+- * on the S flag.
++ * The WRITE_BIAS value supports up to 32767 processes simultaneously
++ * trying to acquire a write lock.
+  *
+- * The value of ACTIVE_BIAS supports up to 65535 active processes.
++ * The value of ACTIVE_MASK supports up to 32767 active processes.
+  *
+  * This should be totally fair - if anything is waiting, a process that wants a
+  * lock will go to the back of the queue. When the currently active lock is
+@@ -62,17 +61,23 @@ extern asmregparm struct rw_semaphore *
+  * for 64 bits.
+  */
+ 
++
+ #ifdef CONFIG_X86_64
+-# define RWSEM_ACTIVE_MASK		0xffffffffL
++# define RWSEM_UNLOCKED_VALUE		0x0000000000000000L
++# define RWSEM_ACTIVE_MASK		0x000000007fffffffL
++# define RWSEM_ACTIVE_READ_BIAS		0x0000000000000001L
++# define RWSEM_ACTIVE_WRITE_BIAS	0xffffffff00000001L
++# define RWSEM_WAITING_BIAS		0xffffffff80000000L
++# define RWSEM_WAITING_MASK		0x0000000080000000L
+ #else
+-# define RWSEM_ACTIVE_MASK		0x0000ffffL
++# define RWSEM_UNLOCKED_VALUE		0x00000000L
++# define RWSEM_ACTIVE_MASK		0x00007fffL
++# define RWSEM_ACTIVE_READ_BIAS		0x00000001L
++# define RWSEM_ACTIVE_WRITE_BIAS	0xffff0001L
++# define RWSEM_WAITING_BIAS		0xffff8000L
++# define RWSEM_WAITING_MASK		0x00008000L
+ #endif
+ 
+-#define RWSEM_UNLOCKED_VALUE		0x00000000L
+-#define RWSEM_ACTIVE_BIAS		0x00000001L
+-#define RWSEM_WAITING_BIAS		(-RWSEM_ACTIVE_MASK-1)
+-#define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
+-#define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
+ 
+ typedef signed long rwsem_count_t;
+ 
+@@ -240,7 +245,8 @@ static inline void __downgrade_write(str
+ 		     "1:\n\t"
+ 		     "# ending __downgrade_write\n"
+ 		     : "+m" (sem->count)
+-		     : "a" (sem), "er" (-RWSEM_WAITING_BIAS)
++		     : "a" (sem),
++		       "er" (RWSEM_ACTIVE_READ_BIAS - RWSEM_ACTIVE_WRITE_BIAS)
+ 		     : "memory", "cc");
+ }
+ 
+@@ -277,7 +283,7 @@ static inline int rwsem_is_locked(struct
  
  static inline int rwsem_is_contended(struct rw_semaphore *sem)
  {
--        return (sem->count < 0);
-+	return (sem->count < 0);
+-	return (sem->count < 0);
++	return (sem->count & RWSEM_WAITING_MASK) != 0;
  }
  
  #endif /* __KERNEL__ */
-diff -puN arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/ia64/include/asm/rwsem.h
---- a/arch/ia64/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/ia64/include/asm/rwsem.h
-@@ -181,7 +181,7 @@ static inline int rwsem_is_locked(struct
+diff -puN arch/x86/lib/rwsem_64.S~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/lib/rwsem_64.S
+--- a/arch/x86/lib/rwsem_64.S~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/lib/rwsem_64.S
+@@ -60,8 +60,8 @@ ENTRY(call_rwsem_down_write_failed)
+ 	ENDPROC(call_rwsem_down_write_failed)
  
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return (sem->count < 0);
-+	return (sem->count < 0);
- }
+ ENTRY(call_rwsem_wake)
+-	decl %edx	/* do nothing if still outstanding active readers */
+-	jnz 1f
++	cmpl $0x80000001, %edx
++	jne 1f	/* do nothing unless there are waiters and no active threads */
+ 	save_common_regs
+ 	movq %rax,%rdi
+ 	call rwsem_wake
+diff -puN arch/x86/lib/semaphore_32.S~x86-rwsem-more-precise-rwsem_is_contended-implementation arch/x86/lib/semaphore_32.S
+--- a/arch/x86/lib/semaphore_32.S~x86-rwsem-more-precise-rwsem_is_contended-implementation
++++ a/arch/x86/lib/semaphore_32.S
+@@ -103,8 +103,8 @@ ENTRY(call_rwsem_down_write_failed)
  
- #endif /* _ASM_IA64_RWSEM_H */
-diff -puN arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/powerpc/include/asm/rwsem.h
---- a/arch/powerpc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/powerpc/include/asm/rwsem.h
-@@ -181,7 +181,7 @@ static inline int rwsem_is_locked(struct
- 
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return sem->count < 0;
-+	return sem->count < 0;
- }
- 
- #endif	/* __KERNEL__ */
-diff -puN arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/s390/include/asm/rwsem.h
---- a/arch/s390/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/s390/include/asm/rwsem.h
-@@ -384,7 +384,7 @@ static inline int rwsem_is_locked(struct
- 
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return (sem->count < 0);
-+	return (sem->count < 0);
- }
- 
- #endif /* __KERNEL__ */
-diff -puN arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/sh/include/asm/rwsem.h
---- a/arch/sh/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/sh/include/asm/rwsem.h
-@@ -186,7 +186,7 @@ static inline int rwsem_is_locked(struct
- 
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return (sem->count < 0);
-+	return (sem->count < 0);
- }
- 
- #endif /* __KERNEL__ */
-diff -puN arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/sparc/include/asm/rwsem.h
---- a/arch/sparc/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/sparc/include/asm/rwsem.h
-@@ -167,7 +167,7 @@ static inline int rwsem_is_locked(struct
- 
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return (sem->count < 0);
-+	return (sem->count < 0);
- }
- 
- #endif /* __KERNEL__ */
-diff -puN arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes arch/xtensa/include/asm/rwsem.h
---- a/arch/xtensa/include/asm/rwsem.h~rwsem-implement-rwsem_is_contended-checkpatch-fixes
-+++ a/arch/xtensa/include/asm/rwsem.h
-@@ -167,7 +167,7 @@ static inline int rwsem_is_locked(struct
- 
- static inline int rwsem_is_contended(struct rw_semaphore *sem)
- {
--        return (sem->count < 0);
-+	return (sem->count < 0);
- }
- 
- #endif	/* _XTENSA_RWSEM_H */
+ ENTRY(call_rwsem_wake)
+ 	CFI_STARTPROC
+-	decw %dx    /* do nothing if still outstanding active readers */
+-	jnz 1f
++	cmpw $0x8001, %dx
++	jne 1f	/* do nothing unless there are waiters and no active threads */
+ 	push %ecx
+ 	CFI_ADJUST_CFA_OFFSET 4
+ 	CFI_REL_OFFSET ecx,0
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-aesni-nfg.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-install_special_mapping-skips-security_file_mmap-check-fix.patch
-mm-vmap-area-cache.patch
-arch-x86-kernel-apic-io_apicc-fix-warning.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
+do_wp_page-remove-the-reuse-flag.patch
+do_wp_page-clarify-dirty_page-handling.patch
+mlock-avoid-dirtying-pages-and-triggering-writeback.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+mm-add-foll_mlock-follow_page-flag.patch
+mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-async-pps-event-handler-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
