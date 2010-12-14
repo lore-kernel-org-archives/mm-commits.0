@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + delayacct-fix-iotop-on-x86_64.patch added to -mm tree
-Date: Tue, 14 Dec 2010 12:16:49 -0800
-Message-ID: <201012142016.oBEKGoOQ007249@imap1.linux-foundation.org>
+Subject: + delayacct-fix-iotop-on-x86_64-fix.patch added to -mm tree
+Date: Tue, 14 Dec 2010 12:16:52 -0800
+Message-ID: <201012142016.oBEKGqgO007252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759873Ab0LNUQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1759882Ab0LNURB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 15:16:59 -0500
+	Tue, 14 Dec 2010 15:17:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, balbir@in.ibm.com, brian@xyzw.org, guichaz@gmail.com, jeffm@suse.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, brian@xyzw.org, error27@gmail.com, guichaz@gmail.com, jeffm@suse.com
 
 
 The patch titled
-     delayacct: fix iotop on x86_64
+     delayacct-fix-iotop-on-x86_64-fix
 has been added to the -mm tree.  Its filename is
-     delayacct-fix-iotop-on-x86_64.patch
+     delayacct-fix-iotop-on-x86_64-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: delayacct: fix iotop on x86_64
-From: Dan Carpenter <error27@gmail.com>
+Subject: delayacct-fix-iotop-on-x86_64-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We changed how the taskstats was exported to user space in: 85893120699
-("delayacct: align to 8 byte boundary on 64-bit systems").  This was
-important because it fixes a run time warning on IA64.  In theory it
-shouldn't have broken anything, if you just assume that user space
-programmers don't smoke crack all day long.
-
-But actually it breaks iotop on x86_64.
-
-Reported-by: Brian Rogers <brian@xyzw.org>
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Guillaume Chazarain <guichaz@gmail.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Brian Rogers <brian@xyzw.org>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Guillaume Chazarain <guichaz@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ kernel/taskstats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/taskstats.c~delayacct-fix-iotop-on-x86_64 kernel/taskstats.c
---- a/kernel/taskstats.c~delayacct-fix-iotop-on-x86_64
+diff -puN kernel/taskstats.c~delayacct-fix-iotop-on-x86_64-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~delayacct-fix-iotop-on-x86_64-fix
 +++ a/kernel/taskstats.c
-@@ -357,7 +357,19 @@ static struct taskstats *mk_reply(struct
- 	 * This causes lots of runtime warnings on systems requiring 8 byte
- 	 * alignment */
- 	u32 pids[2] = { pid, 0 };
--	int pid_size = ALIGN(sizeof(pid), sizeof(long));
-+	int pid_size;
-+
-+	/*
-+	 * IA64 can't be aligned on a 4 byte boundary.  But iotop on x86_64
-+	 * depends on the current struct layout.  The next version of iotop
-+	 * will fix this so maybe we can move everything to the new code in
-+	 * a couple years.
-+	 */
-+#if defined(CONFIG_IA64)
-+	pid_size = ALIGN(sizeof(pid), sizeof(long));
-+#else
-+	pid_size = sizeof(u32);
-+#endif
- 
- 	aggr = (type == TASKSTATS_TYPE_PID)
- 			? TASKSTATS_TYPE_AGGR_PID
+@@ -363,7 +363,7 @@ static struct taskstats *mk_reply(struct
+ 	 * IA64 can't be aligned on a 4 byte boundary.  But iotop on x86_64
+ 	 * depends on the current struct layout.  The next version of iotop
+ 	 * will fix this so maybe we can move everything to the new code in
+-	 * a couple years.
++	 * a couple years (ie: 2012).
+ 	 */
+ #if defined(CONFIG_IA64)
+ 	pid_size = ALIGN(sizeof(pid), sizeof(long));
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-delayacct-fix-iotop-on-x86_64.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+aesni-nfg.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-install_special_mapping-skips-security_file_mmap-check-fix.patch
 delayacct-fix-iotop-on-x86_64-fix.patch
-dca-remove-unneeded-null-check.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+headers_check-better-search-for-functions-in-headers-fix.patch
+headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-async-pps-event-handler-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
