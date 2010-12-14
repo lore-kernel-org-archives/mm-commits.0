@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unlikely-from-page_mapping.patch added to -mm tree
-Date: Tue, 14 Dec 2010 12:24:38 -0800
-Message-ID: <201012142024.oBEKOcVV007584@imap1.linux-foundation.org>
+Subject: + mm-remove-likely-from-mapping_unevictable.patch added to -mm tree
+Date: Tue, 14 Dec 2010 12:24:35 -0800
+Message-ID: <201012142024.oBEKOZeU007580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759920Ab0LNUYx (ORCPT
+	by vger.kernel.org with ESMTP id S1759915Ab0LNUYx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Dec 2010 15:24:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: srostedt@redhat.com, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: remove unlikely() from page_mapping()
+     mm: remove likely() from mapping_unevictable()
 has been added to the -mm tree.  Its filename is
-     mm-remove-unlikely-from-page_mapping.patch
+     mm-remove-likely-from-mapping_unevictable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove unlikely() from page_mapping()
+Subject: mm: remove likely() from mapping_unevictable()
 From: Steven Rostedt <srostedt@redhat.com>
 
-page_mapping() has a unlikely that the mapping has PAGE_MAPPING_ANON set. 
-But running the annotated branch profiler on a normal desktop system doing
-vairous tasks (xchat, evolution, firefox, distcc), it is not really that
-unlikely that the mapping here will have the PAGE_MAPPING_ANON flag set:
+The mapping_unevictable() has a likely() around the mapping parameter. 
+This mapping parameter comes from page_mapping() which has an unlikely()
+that the page will be set as PAGE_MAPPING_ANON, and if so, it will return
+NULL.  One would think that this unlikely() means that the mapping
+returned by page_mapping() would not be NULL, but where page_mapping() is
+used just above mapping_unevictable(), that unlikely() is incorrect most
+of the time.  This means that the "likely(mapping)" in
+mapping_unevictable() is incorrect most of the time.
+
+Running the annotated branch profiler on my main box which runs firefox,
+evolution, xchat and is part of my distcc farm, I had this:
 
  correct incorrect  %        Function                  File              Line
  ------- ---------  -        --------                  ----              ----
+12872836 1269443893  98 mapping_unevictable            pagemap.h            51
 35935762 1270265395  97 page_mapping                   mm.h                 659
 1306198001   143659   0 page_mapping                   mm.h                 657
 203131478   121586   0 page_mapping                   mm.h                 657
@@ -58,35 +66,35 @@ unlikely that the mapping here will have the PAGE_MAPPING_ANON flag set:
 74899487        0   0 page_mapping                   mm.h                 659
 
 The page_mapping() is a static inline, which is why it shows up multiple
-times.
+times.  The mapping_unevictable() is also a static inline but seems to be
+used only once in my setup.
 
 The unlikely in page_mapping() was correct a total of 1909540379 times and
-incorrect 1270533123 times, with a 39% being incorrect.  With this much of
-an error, it's best to simply remove the unlikely and have the compiler
-and branch prediction figure this out.
+incorrect 1270533123 times, with a 39% being incorrect.  Perhaps this is
+enough to remove the unlikely from page_mapping() as well.
 
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Nick Piggin <npiggin@kernel.dk>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ include/linux/pagemap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-remove-unlikely-from-page_mapping include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-unlikely-from-page_mapping
-+++ a/include/linux/mm.h
-@@ -658,7 +658,7 @@ static inline struct address_space *page
- 	VM_BUG_ON(PageSlab(page));
- 	if (unlikely(PageSwapCache(page)))
- 		mapping = &swapper_space;
--	else if (unlikely((unsigned long)mapping & PAGE_MAPPING_ANON))
-+	else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
- 		mapping = NULL;
- 	return mapping;
+diff -puN include/linux/pagemap.h~mm-remove-likely-from-mapping_unevictable include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-likely-from-mapping_unevictable
++++ a/include/linux/pagemap.h
+@@ -48,7 +48,7 @@ static inline void mapping_clear_unevict
+ 
+ static inline int mapping_unevictable(struct address_space *mapping)
+ {
+-	if (likely(mapping))
++	if (mapping)
+ 		return test_bit(AS_UNEVICTABLE, &mapping->flags);
+ 	return !!mapping;
  }
 _
 
