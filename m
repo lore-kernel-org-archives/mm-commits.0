@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-verify-pmd_trans_huge-isnt-leaking.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:07 -0800
-Message-ID: <201012152357.oBFNv7Bb013569@imap1.linux-foundation.org>
+Subject: + thp-madvisemadv_hugepage.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:09 -0800
+Message-ID: <201012152357.oBFNv9XR013572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755840Ab0LOX5v (ORCPT
+	by vger.kernel.org with ESMTP id S1755854Ab0LOX5v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 15 Dec 2010 18:57:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
+Cc: aarcange@redhat.com, riel@redhat.com
 
 
 The patch titled
-     thp: verify pmd_trans_huge isn't leaking
+     thp: madvise(MADV_HUGEPAGE)
 has been added to the -mm tree.  Its filename is
-     thp-verify-pmd_trans_huge-isnt-leaking.patch
+     thp-madvisemadv_hugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: verify pmd_trans_huge isn't leaking
+Subject: thp: madvise(MADV_HUGEPAGE)
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-pte_trans_huge must not leak in certain vmas like the mmio special pfn or
-filebacked mappings.
+Add madvise MADV_HUGEPAGE to mark regions that are important to be
+hugepage backed.  Return -EINVAL if the vma is not of an anonymous type,
+or the feature isn't built into the kernel.  Never silently return
+success.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/huge_mm.h |    6 ++++++
+ mm/huge_memory.c        |   16 ++++++++++++++++
+ mm/madvise.c            |    8 ++++++++
+ 3 files changed, 30 insertions(+)
 
-diff -puN mm/memory.c~thp-verify-pmd_trans_huge-isnt-leaking mm/memory.c
---- a/mm/memory.c~thp-verify-pmd_trans_huge-isnt-leaking
-+++ a/mm/memory.c
-@@ -1451,6 +1451,7 @@ int __get_user_pages(struct task_struct 
- 			pmd = pmd_offset(pud, pg);
- 			if (pmd_none(*pmd))
- 				return i ? : -EFAULT;
-+			VM_BUG_ON(pmd_trans_huge(*pmd));
- 			pte = pte_offset_map(pmd, pg);
- 			if (pte_none(*pte)) {
- 				pte_unmap(pte);
-@@ -1697,8 +1698,10 @@ pte_t *__get_locked_pte(struct mm_struct
- 	pud_t * pud = pud_alloc(mm, pgd, addr);
- 	if (pud) {
- 		pmd_t * pmd = pmd_alloc(mm, pud, addr);
--		if (pmd)
-+		if (pmd) {
-+			VM_BUG_ON(pmd_trans_huge(*pmd));
- 			return pte_alloc_map_lock(mm, pmd, addr, ptl);
-+		}
- 	}
- 	return NULL;
+diff -puN include/linux/huge_mm.h~thp-madvisemadv_hugepage include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-madvisemadv_hugepage
++++ a/include/linux/huge_mm.h
+@@ -97,6 +97,7 @@ extern void __split_huge_page_pmd(struct
+ #if HPAGE_PMD_ORDER > MAX_ORDER
+ #error "hugepages can't be allocated by the buddy allocator"
+ #endif
++extern int hugepage_madvise(unsigned long *vm_flags);
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #define HPAGE_PMD_SHIFT ({ BUG(); 0; })
+ #define HPAGE_PMD_MASK ({ BUG(); 0; })
+@@ -113,6 +114,11 @@ static inline int split_huge_page(struct
+ 	do { } while (0)
+ #define wait_split_huge_page(__anon_vma, __pmd)	\
+ 	do { } while (0)
++static inline int hugepage_madvise(unsigned long *vm_flags)
++{
++	BUG();
++	return 0;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #endif /* _LINUX_HUGE_MM_H */
+diff -puN mm/huge_memory.c~thp-madvisemadv_hugepage mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-madvisemadv_hugepage
++++ a/mm/huge_memory.c
+@@ -896,6 +896,22 @@ out:
+ 	return ret;
  }
-@@ -1917,6 +1920,7 @@ static inline int remap_pmd_range(struct
- 	pmd = pmd_alloc(mm, pud, addr);
- 	if (!pmd)
- 		return -ENOMEM;
-+	VM_BUG_ON(pmd_trans_huge(*pmd));
- 	do {
- 		next = pmd_addr_end(addr, end);
- 		if (remap_pte_range(mm, pmd, addr, next,
-@@ -3496,6 +3500,7 @@ static int __follow_pte(struct mm_struct
- 		goto out;
  
- 	pmd = pmd_offset(pud, address);
-+	VM_BUG_ON(pmd_trans_huge(*pmd));
- 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
++int hugepage_madvise(unsigned long *vm_flags)
++{
++	/*
++	 * Be somewhat over-protective like KSM for now!
++	 */
++	if (*vm_flags & (VM_HUGEPAGE | VM_SHARED  | VM_MAYSHARE   |
++			 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
++			 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
++			 VM_MIXEDMAP | VM_SAO))
++		return -EINVAL;
++
++	*vm_flags |= VM_HUGEPAGE;
++
++	return 0;
++}
++
+ void __split_huge_page_pmd(struct mm_struct *mm, pmd_t *pmd)
+ {
+ 	struct page *page;
+diff -puN mm/madvise.c~thp-madvisemadv_hugepage mm/madvise.c
+--- a/mm/madvise.c~thp-madvisemadv_hugepage
++++ a/mm/madvise.c
+@@ -71,6 +71,11 @@ static long madvise_behavior(struct vm_a
+ 		if (error)
+ 			goto out;
+ 		break;
++	case MADV_HUGEPAGE:
++		error = hugepage_madvise(&new_flags);
++		if (error)
++			goto out;
++		break;
+ 	}
  
+ 	if (new_flags == vma->vm_flags) {
+@@ -283,6 +288,9 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_MERGEABLE:
+ 	case MADV_UNMERGEABLE:
+ #endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	case MADV_HUGEPAGE:
++#endif
+ 		return 1;
+ 
+ 	default:
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
