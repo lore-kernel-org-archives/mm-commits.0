@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-mmapper_kern-needs-module_license.patch added to -mm tree
-Date: Wed, 15 Dec 2010 14:29:53 -0800
-Message-ID: <201012152229.oBFMTrel009717@imap1.linux-foundation.org>
+Subject: + gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch added to -mm tree
+Date: Wed, 15 Dec 2010 14:31:45 -0800
+Message-ID: <201012152231.oBFMVj6Q009842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751718Ab0LOWaG (ORCPT
+	by vger.kernel.org with ESMTP id S1751718Ab0LOWbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:30:06 -0500
+	Wed, 15 Dec 2010 17:31:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, glonnon@ridgerun.com, jdike@addtoit.com
+Cc: randy.dunlap@oracle.com, florian@openwrt.org
 
 
 The patch titled
-     uml: mmapper_kern needs MODULE_LICENSE
+     GPIO_RDC321X: select MFD_SUPPORT to squelch kconfig warning
 has been added to the -mm tree.  Its filename is
-     uml-mmapper_kern-needs-module_license.patch
+     gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: mmapper_kern needs MODULE_LICENSE
+Subject: GPIO_RDC321X: select MFD_SUPPORT to squelch kconfig warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add missing MODULE_LICENSE():
+Fix kconfig dependency warning to satisfy dependencies:
 
-WARNING: modpost: missing MODULE_LICENSE() in arch/um/drivers/mmapper_kern.o
+warning: (GPIO_RDC321X && PCI && GPIOLIB) selects MFD_RDC321X which has unmet direct dependencies (MFD_SUPPORT && PCI)
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg Lonnon <glonnon@ridgerun.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mmapper_kern.c |    1 +
+ drivers/gpio/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/um/drivers/mmapper_kern.c~uml-mmapper_kern-needs-module_license arch/um/drivers/mmapper_kern.c
---- a/arch/um/drivers/mmapper_kern.c~uml-mmapper_kern-needs-module_license
-+++ a/arch/um/drivers/mmapper_kern.c
-@@ -137,3 +137,4 @@ module_exit(mmapper_exit);
- 
- MODULE_AUTHOR("Greg Lonnon <glonnon@ridgerun.com>");
- MODULE_DESCRIPTION("DSPLinux simulator mmapper driver");
-+MODULE_LICENSE("GPL");
+diff -puN drivers/gpio/Kconfig~gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning
++++ a/drivers/gpio/Kconfig
+@@ -342,6 +342,7 @@ config GPIO_TIMBERDALE
+ config GPIO_RDC321X
+ 	tristate "RDC R-321x GPIO support"
+ 	depends on PCI && GPIOLIB
++	select MFD_SUPPORT
+ 	select MFD_CORE
+ 	select MFD_RDC321X
+ 	help
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -68,6 +70,8 @@ backlight-fix-88pm860x_bl-macro-collision.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 uml-mmapper_kern-needs-module_license.patch
 kernel-clean-up-use_generic_smp_helpers.patch
+gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
+gpio_vx855-eliminate-kconfig-dependency-warning.patch
 w1-ds2423-counter-driver-and-documentation-fix.patch
 mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
