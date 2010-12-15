@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line.patch added to -mm tree
-Date: Wed, 15 Dec 2010 14:20:07 -0800
-Message-ID: <201012152220.oBFMK7op009018@imap1.linux-foundation.org>
+Subject: + uml-mmapper_kern-needs-module_license.patch added to -mm tree
+Date: Wed, 15 Dec 2010 14:29:53 -0800
+Message-ID: <201012152229.oBFMTrel009717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751969Ab0LOWU6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751718Ab0LOWaG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:20:58 -0500
+	Wed, 15 Dec 2010 17:30:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: volodymyrgl@gmail.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: randy.dunlap@oracle.com, glonnon@ridgerun.com, jdike@addtoit.com
 
 
 The patch titled
-     mm: set correct numa_zonelist_order string when configured on the kernel command line
+     uml: mmapper_kern needs MODULE_LICENSE
 has been added to the -mm tree.  Its filename is
-     mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line.patch
+     uml-mmapper_kern-needs-module_license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: set correct numa_zonelist_order string when configured on the kernel command line
-From: "Volodymyr G. Lukiianyk" <volodymyrgl@gmail.com>
+Subject: uml: mmapper_kern needs MODULE_LICENSE
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When numa_zonelist_order parameter is set to "node" or "zone" on the
-command line it's still showing as "default" in sysctl.  That's because
-early_param parsing function changes only user_zonelist_order variable. 
-Fix this by copying user-provided string to numa_zonelist_order if it was
-successfully parsed.
+Add missing MODULE_LICENSE():
 
-Signed-off-by: Volodymyr G Lukiianyk <volodymyrgl@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+WARNING: modpost: missing MODULE_LICENSE() in arch/um/drivers/mmapper_kern.o
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg Lonnon <glonnon@ridgerun.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ arch/um/drivers/mmapper_kern.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line mm/page_alloc.c
---- a/mm/page_alloc.c~mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line
-+++ a/mm/page_alloc.c
-@@ -2628,9 +2628,16 @@ static int __parse_numa_zonelist_order(c
+diff -puN arch/um/drivers/mmapper_kern.c~uml-mmapper_kern-needs-module_license arch/um/drivers/mmapper_kern.c
+--- a/arch/um/drivers/mmapper_kern.c~uml-mmapper_kern-needs-module_license
++++ a/arch/um/drivers/mmapper_kern.c
+@@ -137,3 +137,4 @@ module_exit(mmapper_exit);
  
- static __init int setup_numa_zonelist_order(char *s)
- {
--	if (s)
--		return __parse_numa_zonelist_order(s);
--	return 0;
-+	int ret;
-+
-+	if (!s)
-+		return 0;
-+
-+	ret = __parse_numa_zonelist_order(s);
-+	if (ret == 0)
-+		strlcpy(numa_zonelist_order, s, NUMA_ZONELIST_ORDER_LEN);
-+
-+	return ret;
- }
- early_param("numa_zonelist_order", setup_numa_zonelist_order);
- 
+ MODULE_AUTHOR("Greg Lonnon <glonnon@ridgerun.com>");
+ MODULE_DESCRIPTION("DSPLinux simulator mmapper driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from volodymyrgl@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line.patch
+origin.patch
+linux-next.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+uml-mmapper_kern-needs-module_license.patch
+kernel-clean-up-use_generic_smp_helpers.patch
+w1-ds2423-counter-driver-and-documentation-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
