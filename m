@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-ksm-free-swap-when-swapcache-page-is-replaced.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:03 -0800
-Message-ID: <201012152356.oBFNu3Td013371@imap1.linux-foundation.org>
+Subject: + thp-compound_lock.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:11 -0800
+Message-ID: <201012152356.oBFNuB4C013387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755717Ab0LOX4r (ORCPT
+	by vger.kernel.org with ESMTP id S1755791Ab0LOX4u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:56:47 -0500
+	Wed, 15 Dec 2010 18:56:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com
+Cc: aarcange@redhat.com, riel@redhat.com
 
 
 The patch titled
-     thp: ksm: free swap when swapcache page is replaced
+     thp: compound_lock
 has been added to the -mm tree.  Its filename is
-     thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
+     thp-compound_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: ksm: free swap when swapcache page is replaced
+Subject: thp: compound_lock
 From: Andrea Arcangeli <aarcange@redhat.com>
 
+Add a new compound_lock() needed to serialize put_page against
+__split_huge_page_refcount().
 
-When a swapcache page is replaced by a ksm page, it's best to free that
-swap immediately.
-
-Reported-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h         |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/page-flags.h |   12 +++++++++++-
+ 2 files changed, 45 insertions(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~thp-ksm-free-swap-when-swapcache-page-is-replaced mm/ksm.c
---- a/mm/ksm.c~thp-ksm-free-swap-when-swapcache-page-is-replaced
-+++ a/mm/ksm.c
-@@ -800,6 +800,8 @@ static int replace_page(struct vm_area_s
- 	set_pte_at_notify(mm, addr, ptep, mk_pte(kpage, vma->vm_page_prot));
+diff -puN include/linux/mm.h~thp-compound_lock include/linux/mm.h
+--- a/include/linux/mm.h~thp-compound_lock
++++ a/include/linux/mm.h
+@@ -14,6 +14,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/range.h>
+ #include <linux/pfn.h>
++#include <linux/bit_spinlock.h>
  
- 	page_remove_rmap(page);
-+	if (!page_mapped(page))
-+		try_to_free_swap(page);
- 	put_page(page);
+ struct mempolicy;
+ struct anon_vma;
+@@ -306,6 +307,39 @@ static inline int is_vmalloc_or_module_a
+ }
+ #endif
  
- 	pte_unmap_unlock(ptep, ptl);
++static inline void compound_lock(struct page *page)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	bit_spin_lock(PG_compound_lock, &page->flags);
++#endif
++}
++
++static inline void compound_unlock(struct page *page)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	bit_spin_unlock(PG_compound_lock, &page->flags);
++#endif
++}
++
++static inline unsigned long compound_lock_irqsave(struct page *page)
++{
++	unsigned long uninitialized_var(flags);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	local_irq_save(flags);
++	compound_lock(page);
++#endif
++	return flags;
++}
++
++static inline void compound_unlock_irqrestore(struct page *page,
++					      unsigned long flags)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	compound_unlock(page);
++	local_irq_restore(flags);
++#endif
++}
++
+ static inline struct page *compound_head(struct page *page)
+ {
+ 	if (unlikely(PageTail(page)))
+diff -puN include/linux/page-flags.h~thp-compound_lock include/linux/page-flags.h
+--- a/include/linux/page-flags.h~thp-compound_lock
++++ a/include/linux/page-flags.h
+@@ -108,6 +108,9 @@ enum pageflags {
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
+ #endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	PG_compound_lock,
++#endif
+ 	__NR_PAGEFLAGS,
+ 
+ 	/* Filesystems */
+@@ -397,6 +400,12 @@ static inline void __ClearPageTail(struc
+ #define __PG_MLOCKED		0
+ #endif
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define __PG_COMPOUND_LOCK		(1 << PG_compound_lock)
++#else
++#define __PG_COMPOUND_LOCK		0
++#endif
++
+ /*
+  * Flags checked when a page is freed.  Pages being freed should not have
+  * these flags set.  It they are, there is a problem.
+@@ -406,7 +415,8 @@ static inline void __ClearPageTail(struc
+ 	 1 << PG_private | 1 << PG_private_2 | \
+ 	 1 << PG_buddy	 | 1 << PG_writeback | 1 << PG_reserved | \
+ 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
+-	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON)
++	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON | \
++	 __PG_COMPOUND_LOCK)
+ 
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
