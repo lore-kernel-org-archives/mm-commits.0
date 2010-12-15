@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-transparent-hugepage-sysfs-meminfo.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:58:15 -0800
-Message-ID: <201012152358.oBFNwFe3013692@imap1.linux-foundation.org>
+Subject: + thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:58:19 -0800
+Message-ID: <201012152358.oBFNwJSs013703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47801 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755937Ab0LOX63 (ORCPT
+	by vger.kernel.org with ESMTP id S1755906Ab0LOX6c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:29 -0500
+	Wed, 15 Dec 2010 18:58:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, aarcange@redhat.com, riel@redhat.com
+Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: transparent hugepage sysfs meminfo
+     thp: fix memory-failure hugetlbfs vs THP collision
 has been added to the -mm tree.  Its filename is
-     thp-transparent-hugepage-sysfs-meminfo.patch
+     thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: transparent hugepage sysfs meminfo
-From: David Rientjes <rientjes@google.com>
+Subject: thp: fix memory-failure hugetlbfs vs THP collision
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add hugepage statistics to per-node sysfs meminfo
+hugetlbfs was changed to allow memory failure to migrate the hugetlbfs
+pages and that broke THP as split_huge_page was then called on hugetlbfs
+pages too.
 
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+compound_head/order was also run unsafe on THP pages that can be splitted
+at any time.
+
+All compound_head() invocations in memory-failure.c that are run on pages
+that aren't pinned and that can be freed and reused from under us (while
+compound_head is running) are buggy because compound_head can return a
+dangling pointer, but I'm not fixing this as this is a generic
+memory-failure bug not specific to THP but it applies to hugetlbfs too, so
+I can fix it later after THP is merged upstream.
+
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    2 +-
+ mm/rmap.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo drivers/base/node.c
---- a/drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo
-+++ a/drivers/base/node.c
-@@ -117,12 +117,21 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d WritebackTmp:   %8lu kB\n"
- 		       "Node %d Slab:           %8lu kB\n"
- 		       "Node %d SReclaimable:   %8lu kB\n"
--		       "Node %d SUnreclaim:     %8lu kB\n",
-+		       "Node %d SUnreclaim:     %8lu kB\n"
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		       "Node %d AnonHugePages:  %8lu kB\n"
-+#endif
-+			,
- 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
- 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
--		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
-+		       nid, K(node_page_state(nid, NR_ANON_PAGES)
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			+ node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
-+			HPAGE_PMD_NR
-+#endif
-+		       ),
- 		       nid, K(node_page_state(nid, NR_SHMEM)),
- 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
-@@ -133,7 +142,13 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
- 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
--		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
-+		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			, nid,
-+			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
-+			HPAGE_PMD_NR)
-+#endif
-+		       );
- 	n += hugetlb_report_node_meminfo(nid, buf + n);
- 	return n;
- }
+diff -puN mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/memory-failure.c
+--- a/mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
++++ a/mm/memory-failure.c
+@@ -386,7 +386,7 @@ static void collect_procs_anon(struct pa
+ 	struct task_struct *tsk;
+ 	struct anon_vma *av;
+ 
+-	if (unlikely(split_huge_page(page)))
++	if (!PageHuge(page) && unlikely(split_huge_page(page)))
+ 		return;
+ 	read_lock(&tasklist_lock);
+ 	av = page_lock_anon_vma(page);
+diff -puN mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/rmap.c
+--- a/mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
++++ a/mm/rmap.c
+@@ -1430,7 +1430,7 @@ int try_to_unmap(struct page *page, enum
+ 	int ret;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	BUG_ON(PageTransHuge(page));
++	VM_BUG_ON(!PageHuge(page) && PageTransHuge(page));
+ 
+ 	if (unlikely(PageKsm(page)))
+ 		ret = try_to_unmap_ksm(page, flags);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-linux-next.patch
-mm-remove-unused-get_vm_area_node.patch
-mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
-mm-unify-module_alloc-code-for-vmalloc.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
+thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
+thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
+thp-transparent-hugepage-support-documentation.patch
+thp-mm-define-madv_hugepage.patch
+thp-compound_lock.patch
+thp-alter-compound-get_page-put_page.patch
+thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
+thp-update-futex-compound-knowledge.patch
+thp-clear-compound-mapping.patch
+thp-add-native_set_pmd_at.patch
+thp-add-pmd-paravirt-ops.patch
+thp-no-paravirt-version-of-pmd-ops.patch
+thp-export-maybe_mkwrite.patch
+thp-comment-reminder-in-destroy_compound_page.patch
+thp-config_transparent_hugepage.patch
+thp-special-pmd_trans_-functions.patch
+thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-functions-to-x86.patch
+thp-bail-out-gup_fast-on-splitting-pmd.patch
+thp-pte-alloc-trans-splitting.patch
+thp-add-pmd-mmu_notifier-helpers.patch
+thp-clear-page-compound.patch
+thp-add-pmd_huge_pte-to-mm_struct.patch
+thp-split_huge_page_mm-vma.patch
+thp-split_huge_page-paging.patch
+thp-clear_copy_huge_page.patch
+thp-_gfp_no_kswapd.patch
+thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
+thp-transparent-hugepage-core.patch
+thp-split_huge_page-anon_vma-ordering-dependency.patch
+thp-verify-pmd_trans_huge-isnt-leaking.patch
+thp-madvisemadv_hugepage.patch
+thp-add-pagetranscompound.patch
+thp-pmd_trans_huge-migrate-bugcheck.patch
+thp-memcg-compound.patch
+thp-transhuge-memcg-commit-tail-pages-at-charge.patch
+thp-memcg-huge-memory.patch
+thp-transparent-hugepage-vmstat.patch
+thp-khugepaged.patch
+thp-khugepaged-vma-merge.patch
+thp-skip-transhuge-pages-in-ksm-for-now.patch
+thp-remove-pg_buddy.patch
+thp-add-x86-32bit-support.patch
+thp-mincore-transparent-hugepage-support.patch
+thp-add-pmd_modify.patch
+thp-mprotect-pass-vma-down-to-page-table-walkers.patch
+thp-mprotect-transparent-huge-page-support.patch
+thp-set-recommended-min-free-kbytes.patch
+thp-enable-direct-defrag.patch
+thp-add-numa-awareness-to-hugepage-allocations.patch
+thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
+thp-transparent-hugepage-config-choice.patch
+thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+thp-transhuge-isolate_migratepages.patch
+thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
+thp-dont-allow-transparent-hugepage-support-without-pse.patch
+thp-mmu_notifier_test_young.patch
+thp-freeze-khugepaged-and-ksmd.patch
+thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
+thp-use-compaction-for-all-allocation-orders.patch
+thp-disable-transparent-hugepages-by-default-on-small-systems.patch
+thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
+thp-scale-nr_rotated-to-balance-memory-pressure.patch
 thp-transparent-hugepage-sysfs-meminfo.patch
-flex_array-export-symbols-to-modules.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-proc-use-single_open-correctly.patch
+thp-add-debug-checks-for-mapcount-related-invariants.patch
+thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
+thp-compound_trans_order.patch
+thp-mm-define-madv_nohugepage.patch
+thp-madvisemadv_nohugepage.patch
 
