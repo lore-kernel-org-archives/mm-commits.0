@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-remove-pg_buddy.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:31 -0800
-Message-ID: <201012152357.oBFNvVJ1013613@imap1.linux-foundation.org>
+Subject: + thp-memcg-compound.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:15 -0800
+Message-ID: <201012152357.oBFNvFNV013581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755842Ab0LPAB6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755842Ab0LPACA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 19:01:58 -0500
+	Wed, 15 Dec 2010 19:02:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com
+Cc: aarcange@redhat.com, riel@redhat.com
 
 
 The patch titled
-     thp: remove PG_buddy
+     thp: memcg compound
 has been added to the -mm tree.  Its filename is
-     thp-remove-pg_buddy.patch
+     thp-memcg-compound.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,235 +34,323 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: remove PG_buddy
+Subject: thp: memcg compound
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-PG_buddy can be converted to _mapcount == -2.  So the PG_compound_lock can
-be added to page->flags without overflowing (because of the sparse section
-bits increasing) with CONFIG_X86_PAE=y and CONFIG_X86_PAT=y.  This also
-has to move the memory hotplug code from _mapcount to lru.next to avoid
-any risk of clashes.  We can't use lru.next for PG_buddy removal, but
-memory hotplug can use lru.next even more easily than the mapcount
-instead.
+Teach memcg to charge/uncharge compound pages.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c                 |   14 ++++++++------
- include/linux/memory_hotplug.h |   14 +++++++++-----
- include/linux/mm.h             |   21 +++++++++++++++++++++
- include/linux/page-flags.h     |    7 +------
- mm/memory_hotplug.c            |   14 ++++++++------
- mm/page_alloc.c                |    7 +++----
- mm/sparse.c                    |    4 ++--
- 7 files changed, 52 insertions(+), 29 deletions(-)
+ mm/memcontrol.c |   83 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 53 insertions(+), 30 deletions(-)
 
-diff -puN fs/proc/page.c~thp-remove-pg_buddy fs/proc/page.c
---- a/fs/proc/page.c~thp-remove-pg_buddy
-+++ a/fs/proc/page.c
-@@ -116,15 +116,17 @@ u64 stable_page_flags(struct page *page)
- 	if (PageHuge(page))
- 		u |= 1 << KPF_HUGE;
- 
--	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
--
- 	/*
--	 * Caveats on high order pages:
--	 * PG_buddy will only be set on the head page; SLUB/SLQB do the same
--	 * for PG_slab; SLOB won't set PG_slab at all on compound pages.
-+	 * Caveats on high order pages: page->_count will only be set
-+	 * -1 on the head page; SLUB/SLQB do the same for PG_slab;
-+	 * SLOB won't set PG_slab at all on compound pages.
- 	 */
-+	if (PageBuddy(page))
-+		u |= 1 << KPF_BUDDY;
+diff -puN mm/memcontrol.c~thp-memcg-compound mm/memcontrol.c
+--- a/mm/memcontrol.c~thp-memcg-compound
++++ a/mm/memcontrol.c
+@@ -1027,6 +1027,10 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ {
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
++	int page_size = PAGE_SIZE;
 +
-+	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
-+
- 	u |= kpf_copy_bit(k, KPF_SLAB,		PG_slab);
--	u |= kpf_copy_bit(k, KPF_BUDDY,		PG_buddy);
++	if (PageTransHuge(page))
++		page_size <<= compound_order(page);
  
- 	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
- 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
-diff -puN include/linux/memory_hotplug.h~thp-remove-pg_buddy include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~thp-remove-pg_buddy
-+++ a/include/linux/memory_hotplug.h
-@@ -13,12 +13,16 @@ struct mem_section;
- #ifdef CONFIG_MEMORY_HOTPLUG
- 
- /*
-- * Types for free bootmem.
-- * The normal smallest mapcount is -1. Here is smaller value than it.
-+ * Types for free bootmem stored in page->lru.next. These have to be in
-+ * some random range in unsigned long space for debugging purposes.
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1887,12 +1891,14 @@ static int __mem_cgroup_do_charge(struct
+  * oom-killer can be invoked.
   */
--#define SECTION_INFO		(-1 - 1)
--#define MIX_SECTION_INFO	(-1 - 2)
--#define NODE_INFO		(-1 - 3)
-+enum {
-+	MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE = 12,
-+	SECTION_INFO = MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE,
-+	MIX_SECTION_INFO,
-+	NODE_INFO,
-+	MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE = NODE_INFO,
-+};
+ static int __mem_cgroup_try_charge(struct mm_struct *mm,
+-		gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
++				   gfp_t gfp_mask,
++				   struct mem_cgroup **memcg, bool oom,
++				   int page_size)
+ {
+ 	int nr_oom_retries = MEM_CGROUP_RECLAIM_RETRIES;
+ 	struct mem_cgroup *mem = NULL;
+ 	int ret;
+-	int csize = CHARGE_SIZE;
++	int csize = max(CHARGE_SIZE, (unsigned long) page_size);
  
- /*
-  * pgdat resizing functions
-diff -puN include/linux/mm.h~thp-remove-pg_buddy include/linux/mm.h
---- a/include/linux/mm.h~thp-remove-pg_buddy
-+++ a/include/linux/mm.h
-@@ -398,6 +398,27 @@ static inline void init_page_count(struc
- 	atomic_set(&page->_count, 1);
+ 	/*
+ 	 * Unlike gloval-vm's OOM-kill, we're not in memory shortage
+@@ -1917,7 +1923,7 @@ again:
+ 		VM_BUG_ON(css_is_removed(&mem->css));
+ 		if (mem_cgroup_is_root(mem))
+ 			goto done;
+-		if (consume_stock(mem))
++		if (page_size == PAGE_SIZE && consume_stock(mem))
+ 			goto done;
+ 		css_get(&mem->css);
+ 	} else {
+@@ -1941,7 +1947,7 @@ again:
+ 			rcu_read_unlock();
+ 			goto done;
+ 		}
+-		if (consume_stock(mem)) {
++		if (page_size == PAGE_SIZE && consume_stock(mem)) {
+ 			/*
+ 			 * It seems dagerous to access memcg without css_get().
+ 			 * But considering how consume_stok works, it's not
+@@ -1982,7 +1988,7 @@ again:
+ 		case CHARGE_OK:
+ 			break;
+ 		case CHARGE_RETRY: /* not in OOM situation but retry */
+-			csize = PAGE_SIZE;
++			csize = page_size;
+ 			css_put(&mem->css);
+ 			mem = NULL;
+ 			goto again;
+@@ -2003,8 +2009,8 @@ again:
+ 		}
+ 	} while (ret != CHARGE_OK);
+ 
+-	if (csize > PAGE_SIZE)
+-		refill_stock(mem, csize - PAGE_SIZE);
++	if (csize > page_size)
++		refill_stock(mem, csize - page_size);
+ 	css_put(&mem->css);
+ done:
+ 	*memcg = mem;
+@@ -2032,9 +2038,10 @@ static void __mem_cgroup_cancel_charge(s
+ 	}
  }
  
-+/*
-+ * PageBuddy() indicate that the page is free and in the buddy system
-+ * (see mm/page_alloc.c).
-+ */
-+static inline int PageBuddy(struct page *page)
-+{
-+	return atomic_read(&page->_mapcount) == -2;
-+}
-+
-+static inline void __SetPageBuddy(struct page *page)
-+{
-+	VM_BUG_ON(atomic_read(&page->_mapcount) != -1);
-+	atomic_set(&page->_mapcount, -2);
-+}
-+
-+static inline void __ClearPageBuddy(struct page *page)
-+{
-+	VM_BUG_ON(!PageBuddy(page));
-+	atomic_set(&page->_mapcount, -1);
-+}
-+
- void put_page(struct page *page);
- void put_pages_list(struct list_head *pages);
+-static void mem_cgroup_cancel_charge(struct mem_cgroup *mem)
++static void mem_cgroup_cancel_charge(struct mem_cgroup *mem,
++				     int page_size)
+ {
+-	__mem_cgroup_cancel_charge(mem, 1);
++	__mem_cgroup_cancel_charge(mem, page_size >> PAGE_SHIFT);
+ }
  
-diff -puN include/linux/page-flags.h~thp-remove-pg_buddy include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-remove-pg_buddy
-+++ a/include/linux/page-flags.h
-@@ -48,9 +48,6 @@
-  * struct page (these bits with information) are always mapped into kernel
-  * address space...
-  *
-- * PG_buddy is set to indicate that the page is free and in the buddy system
-- * (see mm/page_alloc.c).
-- *
-  * PG_hwpoison indicates that a page got corrupted in hardware and contains
-  * data with incorrect ECC bits that triggered a machine check. Accessing is
-  * not safe since it may cause another machine check. Don't touch!
-@@ -96,7 +93,6 @@ enum pageflags {
- 	PG_swapcache,		/* Swap page: swp_entry_t in private */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
--	PG_buddy,		/* Page is free, on buddy lists */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
- 	PG_unevictable,		/* Page is "unevictable"  */
- #ifdef CONFIG_MMU
-@@ -233,7 +229,6 @@ PAGEFLAG(OwnerPriv1, owner_priv_1) TESTC
-  * risky: they bypass page accounting.
+ /*
+@@ -2090,8 +2097,9 @@ struct mem_cgroup *try_get_mem_cgroup_fr
   */
- TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
--__PAGEFLAG(Buddy, buddy)
- PAGEFLAG(MappedToDisk, mappedtodisk)
  
- /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
-@@ -457,7 +452,7 @@ static inline int PageTransCompound(stru
- #define PAGE_FLAGS_CHECK_AT_FREE \
- 	(1 << PG_lru	 | 1 << PG_locked    | \
- 	 1 << PG_private | 1 << PG_private_2 | \
--	 1 << PG_buddy	 | 1 << PG_writeback | 1 << PG_reserved | \
-+	 1 << PG_writeback | 1 << PG_reserved | \
- 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
- 	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON | \
- 	 __PG_COMPOUND_LOCK)
-diff -puN mm/memory_hotplug.c~thp-remove-pg_buddy mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~thp-remove-pg_buddy
-+++ a/mm/memory_hotplug.c
-@@ -82,9 +82,10 @@ static void release_memory_resource(stru
- 
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--static void get_page_bootmem(unsigned long info,  struct page *page, int type)
-+static void get_page_bootmem(unsigned long info,  struct page *page,
-+			     unsigned long type)
+ static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
+-				     struct page_cgroup *pc,
+-				     enum charge_type ctype)
++				       struct page_cgroup *pc,
++				       enum charge_type ctype,
++				       int page_size)
  {
--	atomic_set(&page->_mapcount, type);
-+	page->lru.next = (struct list_head *) type;
- 	SetPagePrivate(page);
- 	set_page_private(page, info);
- 	atomic_inc(&page->_count);
-@@ -94,15 +95,16 @@ static void get_page_bootmem(unsigned lo
-  * so use __ref to tell modpost not to generate a warning */
- void __ref put_page_bootmem(struct page *page)
- {
--	int type;
-+	unsigned long type;
- 
--	type = atomic_read(&page->_mapcount);
--	BUG_ON(type >= -1);
-+	type = (unsigned long) page->lru.next;
-+	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
-+	       type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE);
- 
- 	if (atomic_dec_return(&page->_count) == 1) {
- 		ClearPagePrivate(page);
- 		set_page_private(page, 0);
--		reset_page_mapcount(page);
-+		INIT_LIST_HEAD(&page->lru);
- 		__free_pages_bootmem(page, 0);
+ 	/* try_charge() can return NULL to *memcg, taking care of it. */
+ 	if (!mem)
+@@ -2100,7 +2108,7 @@ static void __mem_cgroup_commit_charge(s
+ 	lock_page_cgroup(pc);
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+-		mem_cgroup_cancel_charge(mem);
++		mem_cgroup_cancel_charge(mem, page_size);
+ 		return;
  	}
  
-diff -puN mm/page_alloc.c~thp-remove-pg_buddy mm/page_alloc.c
---- a/mm/page_alloc.c~thp-remove-pg_buddy
-+++ a/mm/page_alloc.c
-@@ -449,8 +449,8 @@ __find_combined_index(unsigned long page
-  * (c) a page and its buddy have the same order &&
-  * (d) a page and its buddy are in the same zone.
-  *
-- * For recording whether a page is in the buddy system, we use PG_buddy.
-- * Setting, clearing, and testing PG_buddy is serialized by zone->lock.
-+ * For recording whether a page is in the buddy system, we set ->_mapcount -2.
-+ * Setting, clearing, and testing _mapcount -2 is serialized by zone->lock.
-  *
-  * For recording page's order, we use page_private(page).
-  */
-@@ -483,7 +483,7 @@ static inline int page_is_buddy(struct p
-  * as necessary, plus some accounting needed to play nicely with other
-  * parts of the VM system.
-  * At each level, we keep a list of pages, which are heads of continuous
-- * free pages of length of (1 << order) and marked with PG_buddy. Page's
-+ * free pages of length of (1 << order) and marked with _mapcount -2. Page's
-  * order is recorded in page_private(page) field.
-  * So when we are allocating or freeing one, we can derive the state of the
-  * other.  That is, if we allocate a small block, and both were   
-@@ -5571,7 +5571,6 @@ static struct trace_print_flags pageflag
- 	{1UL << PG_swapcache,		"swapcache"	},
- 	{1UL << PG_mappedtodisk,	"mappedtodisk"	},
- 	{1UL << PG_reclaim,		"reclaim"	},
--	{1UL << PG_buddy,		"buddy"		},
- 	{1UL << PG_swapbacked,		"swapbacked"	},
- 	{1UL << PG_unevictable,		"unevictable"	},
- #ifdef CONFIG_MMU
-diff -puN mm/sparse.c~thp-remove-pg_buddy mm/sparse.c
---- a/mm/sparse.c~thp-remove-pg_buddy
-+++ a/mm/sparse.c
-@@ -671,10 +671,10 @@ static void __kfree_section_memmap(struc
- static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+@@ -2174,7 +2182,7 @@ static void __mem_cgroup_move_account(st
+ 	mem_cgroup_charge_statistics(from, pc, false);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+-		mem_cgroup_cancel_charge(from);
++		mem_cgroup_cancel_charge(from, PAGE_SIZE);
+ 
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+@@ -2235,13 +2243,14 @@ static int mem_cgroup_move_parent(struct
+ 		goto put;
+ 
+ 	parent = mem_cgroup_from_cont(pcg);
+-	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false,
++				      PAGE_SIZE);
+ 	if (ret || !parent)
+ 		goto put_back;
+ 
+ 	ret = mem_cgroup_move_account(pc, child, parent, true);
+ 	if (ret)
+-		mem_cgroup_cancel_charge(parent);
++		mem_cgroup_cancel_charge(parent, PAGE_SIZE);
+ put_back:
+ 	putback_lru_page(page);
+ put:
+@@ -2262,6 +2271,10 @@ static int mem_cgroup_charge_common(stru
+ 	struct mem_cgroup *mem = NULL;
+ 	struct page_cgroup *pc;
+ 	int ret;
++	int page_size = PAGE_SIZE;
++
++	if (PageTransHuge(page))
++		page_size <<= compound_order(page);
+ 
+ 	pc = lookup_page_cgroup(page);
+ 	/* can happen at boot */
+@@ -2269,11 +2282,11 @@ static int mem_cgroup_charge_common(stru
+ 		return 0;
+ 	prefetchw(pc);
+ 
+-	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
++	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true, page_size);
+ 	if (ret || !mem)
+ 		return ret;
+ 
+-	__mem_cgroup_commit_charge(mem, pc, ctype);
++	__mem_cgroup_commit_charge(mem, pc, ctype, page_size);
+ 	return 0;
+ }
+ 
+@@ -2282,8 +2295,6 @@ int mem_cgroup_newpage_charge(struct pag
  {
- 	unsigned long maps_section_nr, removing_section_nr, i;
--	int magic;
-+	unsigned long magic;
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+-	if (PageCompound(page))
+-		return 0;
+ 	/*
+ 	 * If already mapped, we don't have to account.
+ 	 * If page cache, page->mapping has address_space.
+@@ -2389,13 +2400,13 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	if (!mem)
+ 		goto charge_cur_mm;
+ 	*ptr = mem;
+-	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true);
++	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true, PAGE_SIZE);
+ 	css_put(&mem->css);
+ 	return ret;
+ charge_cur_mm:
+ 	if (unlikely(!mm))
+ 		mm = &init_mm;
+-	return __mem_cgroup_try_charge(mm, mask, ptr, true);
++	return __mem_cgroup_try_charge(mm, mask, ptr, true, PAGE_SIZE);
+ }
  
- 	for (i = 0; i < nr_pages; i++, page++) {
--		magic = atomic_read(&page->_mapcount);
-+		magic = (unsigned long) page->lru.next;
+ static void
+@@ -2411,7 +2422,7 @@ __mem_cgroup_commit_charge_swapin(struct
+ 	cgroup_exclude_rmdir(&ptr->css);
+ 	pc = lookup_page_cgroup(page);
+ 	mem_cgroup_lru_del_before_commit_swapcache(page);
+-	__mem_cgroup_commit_charge(ptr, pc, ctype);
++	__mem_cgroup_commit_charge(ptr, pc, ctype, PAGE_SIZE);
+ 	mem_cgroup_lru_add_after_commit_swapcache(page);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+@@ -2460,11 +2471,12 @@ void mem_cgroup_cancel_charge_swapin(str
+ 		return;
+ 	if (!mem)
+ 		return;
+-	mem_cgroup_cancel_charge(mem);
++	mem_cgroup_cancel_charge(mem, PAGE_SIZE);
+ }
  
- 		BUG_ON(magic == NODE_INFO);
+ static void
+-__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
++__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype,
++	      int page_size)
+ {
+ 	struct memcg_batch_info *batch = NULL;
+ 	bool uncharge_memsw = true;
+@@ -2491,6 +2503,9 @@ __do_uncharge(struct mem_cgroup *mem, co
+ 	if (!batch->do_batch || test_thread_flag(TIF_MEMDIE))
+ 		goto direct_uncharge;
  
++	if (page_size != PAGE_SIZE)
++		goto direct_uncharge;
++
+ 	/*
+ 	 * In typical case, batch->memcg == mem. This means we can
+ 	 * merge a series of uncharges to an uncharge of res_counter.
+@@ -2504,9 +2519,9 @@ __do_uncharge(struct mem_cgroup *mem, co
+ 		batch->memsw_bytes += PAGE_SIZE;
+ 	return;
+ direct_uncharge:
+-	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	res_counter_uncharge(&mem->res, page_size);
+ 	if (uncharge_memsw)
+-		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++		res_counter_uncharge(&mem->memsw, page_size);
+ 	if (unlikely(batch->memcg != mem))
+ 		memcg_oom_recover(mem);
+ 	return;
+@@ -2520,6 +2535,7 @@ __mem_cgroup_uncharge_common(struct page
+ {
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
++	int page_size = PAGE_SIZE;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -2527,6 +2543,9 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (PageSwapCache(page))
+ 		return NULL;
+ 
++	if (PageTransHuge(page))
++		page_size <<= compound_order(page);
++
+ 	/*
+ 	 * Check if our page_cgroup is valid
+ 	 */
+@@ -2580,7 +2599,7 @@ __mem_cgroup_uncharge_common(struct page
+ 		mem_cgroup_get(mem);
+ 	}
+ 	if (!mem_cgroup_is_root(mem))
+-		__do_uncharge(mem, ctype);
++		__do_uncharge(mem, ctype, page_size);
+ 
+ 	return mem;
+ 
+@@ -2775,6 +2794,7 @@ int mem_cgroup_prepare_migration(struct 
+ 	enum charge_type ctype;
+ 	int ret = 0;
+ 
++	VM_BUG_ON(PageTransHuge(page));
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+ 
+@@ -2824,7 +2844,7 @@ int mem_cgroup_prepare_migration(struct 
+ 		return 0;
+ 
+ 	*ptr = mem;
+-	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
++	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false, PAGE_SIZE);
+ 	css_put(&mem->css);/* drop extra refcnt */
+ 	if (ret || *ptr == NULL) {
+ 		if (PageAnon(page)) {
+@@ -2851,7 +2871,7 @@ int mem_cgroup_prepare_migration(struct 
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	else
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+-	__mem_cgroup_commit_charge(mem, pc, ctype);
++	__mem_cgroup_commit_charge(mem, pc, ctype, PAGE_SIZE);
+ 	return ret;
+ }
+ 
+@@ -4462,7 +4482,8 @@ one_by_one:
+ 			batch_count = PRECHARGE_COUNT_AT_ONCE;
+ 			cond_resched();
+ 		}
+-		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false);
++		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false,
++					      PAGE_SIZE);
+ 		if (ret || !mem)
+ 			/* mem_cgroup_clear_mc() will do uncharge later */
+ 			return -ENOMEM;
+@@ -4624,6 +4645,7 @@ static int mem_cgroup_count_precharge_pt
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 
++	VM_BUG_ON(pmd_trans_huge(*pmd));
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+ 		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
+@@ -4790,6 +4812,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 	spinlock_t *ptl;
+ 
+ retry:
++	VM_BUG_ON(pmd_trans_huge(*pmd));
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pte_t ptent = *(pte++);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
