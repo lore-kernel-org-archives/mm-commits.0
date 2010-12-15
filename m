@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mm-define-madv_hugepage.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:09 -0800
-Message-ID: <201012152356.oBFNu9HU013384@imap1.linux-foundation.org>
+Subject: + thp-add-pmd-mmu_notifier-helpers.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:43 -0800
+Message-ID: <201012152356.oBFNuhRs013525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755832Ab0LOX5U (ORCPT
+	by vger.kernel.org with ESMTP id S1755778Ab0LOX5V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:57:20 -0500
+	Wed, 15 Dec 2010 18:57:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, arnd@arndb.de, mel@csn.ul.ie, riel@redhat.com
+Cc: aarcange@redhat.com, riel@redhat.com
 
 
 The patch titled
-     thp: mm: define MADV_HUGEPAGE
+     thp: add pmd mmu_notifier helpers
 has been added to the -mm tree.  Its filename is
-     thp-mm-define-madv_hugepage.patch
+     thp-add-pmd-mmu_notifier-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: mm: define MADV_HUGEPAGE
+Subject: thp: add pmd mmu_notifier helpers
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Define MADV_HUGEPAGE.
+Add mmu notifier helpers to handle pmd huge operations.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h     |    2 ++
- arch/mips/include/asm/mman.h      |    2 ++
- arch/parisc/include/asm/mman.h    |    2 ++
- arch/xtensa/include/asm/mman.h    |    2 ++
- include/asm-generic/mman-common.h |    2 ++
- 5 files changed, 10 insertions(+)
+ include/linux/mmu_notifier.h |   40 +++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff -puN arch/alpha/include/asm/mman.h~thp-mm-define-madv_hugepage arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~thp-mm-define-madv_hugepage
-+++ a/arch/alpha/include/asm/mman.h
-@@ -53,6 +53,8 @@
- #define MADV_MERGEABLE   12		/* KSM may merge identical pages */
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
+diff -puN include/linux/mmu_notifier.h~thp-add-pmd-mmu_notifier-helpers include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~thp-add-pmd-mmu_notifier-helpers
++++ a/include/linux/mmu_notifier.h
+@@ -243,6 +243,32 @@ static inline void mmu_notifier_mm_destr
+ 	__pte;								\
+ })
  
-+#define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
++#define pmdp_clear_flush_notify(__vma, __address, __pmdp)		\
++({									\
++	pmd_t __pmd;							\
++	struct vm_area_struct *___vma = __vma;				\
++	unsigned long ___address = __address;				\
++	VM_BUG_ON(__address & ~HPAGE_PMD_MASK);				\
++	mmu_notifier_invalidate_range_start(___vma->vm_mm, ___address,	\
++					    (__address)+HPAGE_PMD_SIZE);\
++	__pmd = pmdp_clear_flush(___vma, ___address, __pmdp);		\
++	mmu_notifier_invalidate_range_end(___vma->vm_mm, ___address,	\
++					  (__address)+HPAGE_PMD_SIZE);	\
++	__pmd;								\
++})
 +
- /* compatibility flags */
- #define MAP_FILE	0
- 
-diff -puN arch/mips/include/asm/mman.h~thp-mm-define-madv_hugepage arch/mips/include/asm/mman.h
---- a/arch/mips/include/asm/mman.h~thp-mm-define-madv_hugepage
-+++ a/arch/mips/include/asm/mman.h
-@@ -77,6 +77,8 @@
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
- #define MADV_HWPOISON    100		/* poison a page for testing */
- 
-+#define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
++#define pmdp_splitting_flush_notify(__vma, __address, __pmdp)		\
++({									\
++	struct vm_area_struct *___vma = __vma;				\
++	unsigned long ___address = __address;				\
++	VM_BUG_ON(__address & ~HPAGE_PMD_MASK);				\
++	mmu_notifier_invalidate_range_start(___vma->vm_mm, ___address,	\
++					    (__address)+HPAGE_PMD_SIZE);\
++	pmdp_splitting_flush(___vma, ___address, __pmdp);		\
++	mmu_notifier_invalidate_range_end(___vma->vm_mm, ___address,	\
++					  (__address)+HPAGE_PMD_SIZE);	\
++})
 +
- /* compatibility flags */
- #define MAP_FILE	0
+ #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
+ ({									\
+ 	int __young;							\
+@@ -254,6 +280,17 @@ static inline void mmu_notifier_mm_destr
+ 	__young;							\
+ })
  
-diff -puN arch/parisc/include/asm/mman.h~thp-mm-define-madv_hugepage arch/parisc/include/asm/mman.h
---- a/arch/parisc/include/asm/mman.h~thp-mm-define-madv_hugepage
-+++ a/arch/parisc/include/asm/mman.h
-@@ -59,6 +59,8 @@
- #define MADV_MERGEABLE   65		/* KSM may merge identical pages */
- #define MADV_UNMERGEABLE 66		/* KSM may not merge identical pages */
- 
-+#define MADV_HUGEPAGE	67		/* Worth backing with hugepages */
++#define pmdp_clear_flush_young_notify(__vma, __address, __pmdp)		\
++({									\
++	int __young;							\
++	struct vm_area_struct *___vma = __vma;				\
++	unsigned long ___address = __address;				\
++	__young = pmdp_clear_flush_young(___vma, ___address, __pmdp);	\
++	__young |= mmu_notifier_clear_flush_young(___vma->vm_mm,	\
++						  ___address);		\
++	__young;							\
++})
 +
- /* compatibility flags */
- #define MAP_FILE	0
- #define MAP_VARIABLE	0
-diff -puN arch/xtensa/include/asm/mman.h~thp-mm-define-madv_hugepage arch/xtensa/include/asm/mman.h
---- a/arch/xtensa/include/asm/mman.h~thp-mm-define-madv_hugepage
-+++ a/arch/xtensa/include/asm/mman.h
-@@ -83,6 +83,8 @@
- #define MADV_MERGEABLE   12		/* KSM may merge identical pages */
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
+ #define set_pte_at_notify(__mm, __address, __ptep, __pte)		\
+ ({									\
+ 	struct mm_struct *___mm = __mm;					\
+@@ -305,7 +342,10 @@ static inline void mmu_notifier_mm_destr
+ }
  
-+#define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+
- /* compatibility flags */
- #define MAP_FILE	0
+ #define ptep_clear_flush_young_notify ptep_clear_flush_young
++#define pmdp_clear_flush_young_notify pmdp_clear_flush_young
+ #define ptep_clear_flush_notify ptep_clear_flush
++#define pmdp_clear_flush_notify pmdp_clear_flush
++#define pmdp_splitting_flush_notify pmdp_splitting_flush
+ #define set_pte_at_notify set_pte_at
  
-diff -puN include/asm-generic/mman-common.h~thp-mm-define-madv_hugepage include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~thp-mm-define-madv_hugepage
-+++ a/include/asm-generic/mman-common.h
-@@ -45,6 +45,8 @@
- #define MADV_MERGEABLE   12		/* KSM may merge identical pages */
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
- 
-+#define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+
- /* compatibility flags */
- #define MAP_FILE	0
- 
+ #endif /* CONFIG_MMU_NOTIFIER */
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
