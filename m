@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-special-pmd_trans_-functions.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:33 -0800
-Message-ID: <201012152356.oBFNuXRc013510@imap1.linux-foundation.org>
+Subject: + thp-_gfp_no_kswapd.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:56 -0800
+Message-ID: <201012152356.oBFNuu8p013543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755879Ab0LPAC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755879Ab0LPAC0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 19:02:27 -0500
+	Wed, 15 Dec 2010 19:02:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: special pmd_trans_* functions
+     thp: _GFP_NO_KSWAPD
 has been added to the -mm tree.  Its filename is
-     thp-special-pmd_trans_-functions.patch
+     thp-_gfp_no_kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: special pmd_trans_* functions
+Subject: thp: _GFP_NO_KSWAPD
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-These returns 0 at compile time when the config option is disabled, to
-allow gcc to eliminate the transparent hugepage function calls at compile
-time without additional #ifdefs (only the export of those functions have
-to be visible to gcc but they won't be required at link time and
-huge_memory.o can be not built at all).
-
-_PAGE_BIT_UNUSED1 is never used for pmd, only on pte.
+Transparent hugepage allocations must be allowed not to invoke kswapd or
+any other kind of indirect reclaim (especially when the defrag sysfs is
+control disabled).  It's unacceptable to swap out anonymous pages
+(potentially anonymous transparent hugepages) in order to create new
+transparent hugepages.  This is true for the MADV_HUGEPAGE areas too
+(swapping out a kvm virtual machine and so having it suffer an unbearable
+slowdown, so another one with guest physical memory marked MADV_HUGEPAGE
+can run 30% faster if it is running memory intensive workloads, makes no
+sense).  If a transparent hugepage allocation fails the slowdown is minor
+and there is total fallback, so kswapd should never be asked to swapout
+memory to allow the high order allocation to succeed.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -51,74 +55,51 @@ Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_64.h    |   13 +++++++++++++
- arch/x86/include/asm/pgtable_types.h |    2 ++
- include/asm-generic/pgtable.h        |   11 +++++++++++
- 3 files changed, 26 insertions(+)
+ include/linux/gfp.h |    5 ++++-
+ mm/page_alloc.c     |    3 ++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -168,6 +168,19 @@ extern void cleanup_highmap(void);
- #define	kc_offset_to_vaddr(o) ((o) | ~__VIRTUAL_MASK)
- 
- #define __HAVE_ARCH_PTE_SAME
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static inline int pmd_trans_splitting(pmd_t pmd)
-+{
-+	return pmd_val(pmd) & _PAGE_SPLITTING;
-+}
-+
-+static inline int pmd_trans_huge(pmd_t pmd)
-+{
-+	return pmd_val(pmd) & _PAGE_PSE;
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_X86_PGTABLE_64_H */
-diff -puN arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -22,6 +22,7 @@
- #define _PAGE_BIT_PAT_LARGE	12	/* On 2MB or 1GB pages */
- #define _PAGE_BIT_SPECIAL	_PAGE_BIT_UNUSED1
- #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_UNUSED1
-+#define _PAGE_BIT_SPLITTING	_PAGE_BIT_UNUSED1 /* only valid on a PSE pmd */
- #define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
- 
- /* If _PAGE_BIT_PRESENT is clear, we use these: */
-@@ -45,6 +46,7 @@
- #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
- #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
- #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
-+#define _PAGE_SPLITTING	(_AT(pteval_t, 1) << _PAGE_BIT_SPLITTING)
- #define __HAVE_ARCH_PTE_SPECIAL
- 
- #ifdef CONFIG_KMEMCHECK
-diff -puN include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions
-+++ a/include/asm-generic/pgtable.h
-@@ -348,6 +348,17 @@ extern void untrack_pfn_vma(struct vm_ar
- 				unsigned long size);
+diff -puN include/linux/gfp.h~thp-_gfp_no_kswapd include/linux/gfp.h
+--- a/include/linux/gfp.h~thp-_gfp_no_kswapd
++++ a/include/linux/gfp.h
+@@ -34,6 +34,7 @@ struct vm_area_struct;
+ #else
+ #define ___GFP_NOTRACK		0
  #endif
++#define ___GFP_NO_KSWAPD	0x400000u
  
-+#ifndef CONFIG_TRANSPARENT_HUGEPAGE
-+static inline int pmd_trans_huge(pmd_t pmd)
-+{
-+	return 0;
-+}
-+static inline int pmd_trans_splitting(pmd_t pmd)
-+{
-+	return 0;
-+}
-+#endif
+ /*
+  * GFP bitmasks..
+@@ -81,13 +82,15 @@ struct vm_area_struct;
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
+ 
++#define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
 +
- #endif /* !__ASSEMBLY__ */
+ /*
+  * This may seem redundant, but it's a way of annotating false positives vs.
+  * allocations that simply cannot be supported (e.g. page tables).
+  */
+ #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
  
- #endif /* _ASM_GENERIC_PGTABLE_H */
+-#define __GFP_BITS_SHIFT 22	/* Room for 22 __GFP_FOO bits */
++#define __GFP_BITS_SHIFT 23	/* Room for 23 __GFP_FOO bits */
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /* This equals 0, but use constants in case they ever change */
+diff -puN mm/page_alloc.c~thp-_gfp_no_kswapd mm/page_alloc.c
+--- a/mm/page_alloc.c~thp-_gfp_no_kswapd
++++ a/mm/page_alloc.c
+@@ -2024,7 +2024,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		goto nopage;
+ 
+ restart:
+-	wake_all_kswapd(order, zonelist, high_zoneidx,
++	if (!(gfp_mask & __GFP_NO_KSWAPD))
++		wake_all_kswapd(order, zonelist, high_zoneidx,
+ 						zone_idx(preferred_zone));
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
