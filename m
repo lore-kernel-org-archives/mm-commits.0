@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio_vx855-eliminate-kconfig-dependency-warning.patch added to -mm tree
-Date: Wed, 15 Dec 2010 14:31:47 -0800
-Message-ID: <201012152231.oBFMVlKX009846@imap1.linux-foundation.org>
+Subject: + cgroups-remove-deprecated-subsystem-from-examples.patch added to -mm tree
+Date: Wed, 15 Dec 2010 14:33:09 -0800
+Message-ID: <201012152233.oBFMX961009889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751718Ab0LOWbx (ORCPT
+	by vger.kernel.org with ESMTP id S1751718Ab0LOWdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:31:53 -0500
+	Wed, 15 Dec 2010 17:33:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dsd@laptop.org
+Cc: twoerner@gmail.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     GPIO_VX855: eliminate kconfig dependency warning
+     cgroups: remove deprecated subsystem from examples.
 has been added to the -mm tree.  Its filename is
-     gpio_vx855-eliminate-kconfig-dependency-warning.patch
+     cgroups-remove-deprecated-subsystem-from-examples.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GPIO_VX855: eliminate kconfig dependency warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroups: remove deprecated subsystem from examples.
+From: Trevor Woerner <twoerner@gmail.com>
 
-Fix kconfig dependency warning to satisfy dependencies:
+The 'ns' cgroup is considered deprecated. Change the cgroup subsystem
+used in the examples of the cgroup documentation from 'ns' to 'blkio'.
 
-warning: (GPIO_VX855 && GPIOLIB) selects MFD_VX855 which has unmet direct dependencies (MFD_SUPPORT && PCI)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Daniel Drake <dsd@laptop.org>
+Signed-off-by: Trevor Woerner <twoerner@gmail.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/cgroups.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio_vx855-eliminate-kconfig-dependency-warning drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio_vx855-eliminate-kconfig-dependency-warning
-+++ a/drivers/gpio/Kconfig
-@@ -118,7 +118,7 @@ config GPIO_SCH
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-remove-deprecated-subsystem-from-examples Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-remove-deprecated-subsystem-from-examples
++++ a/Documentation/cgroups/cgroups.txt
+@@ -355,13 +355,13 @@ subsystems, type:
  
- config GPIO_VX855
- 	tristate "VIA VX855/VX875 GPIO"
--	depends on GPIOLIB
-+	depends on GPIOLIB && MFD_SUPPORT && PCI
- 	select MFD_CORE
- 	select MFD_VX855
- 	help
+ To change the set of subsystems bound to a mounted hierarchy, just
+ remount with different options:
+-# mount -o remount,cpuset,ns hier1 /dev/cgroup
++# mount -o remount,cpuset,blkio hier1 /dev/cgroup
+ 
+-Now memory is removed from the hierarchy and ns is added.
++Now memory is removed from the hierarchy and blkio is added.
+ 
+-Note this will add ns to the hierarchy but won't remove memory or
++Note this will add blkio to the hierarchy but won't remove memory or
+ cpuset, because the new options are appended to the old ones:
+-# mount -o remount,ns /dev/cgroup
++# mount -o remount,blkio /dev/cgroup
+ 
+ To Specify a hierarchy's release_agent:
+ # mount -t cgroup -o cpuset,release_agent="/sbin/cpuset_release_agent" \
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from twoerner@gmail.com are
 
-origin.patch
-linux-next.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-uml-mmapper_kern-needs-module_license.patch
-kernel-clean-up-use_generic_smp_helpers.patch
-gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
-gpio_vx855-eliminate-kconfig-dependency-warning.patch
-w1-ds2423-counter-driver-and-documentation-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+cgroups-remove-deprecated-subsystem-from-examples.patch
 
