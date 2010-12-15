@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-skip-transhuge-pages-in-ksm-for-now.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:29 -0800
-Message-ID: <201012152357.oBFNvTOW013605@imap1.linux-foundation.org>
+Subject: + thp-comment-reminder-in-destroy_compound_page.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:29 -0800
+Message-ID: <201012152356.oBFNuTsi013504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755879Ab0LPACU (ORCPT
+	by vger.kernel.org with ESMTP id S1755849Ab0LPACT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 19:02:20 -0500
+	Wed, 15 Dec 2010 19:02:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: skip transhuge pages in ksm for now
+     thp: comment reminder in destroy_compound_page
 has been added to the -mm tree.  Its filename is
-     thp-skip-transhuge-pages-in-ksm-for-now.patch
+     thp-comment-reminder-in-destroy_compound_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: skip transhuge pages in ksm for now
+Subject: thp: comment reminder in destroy_compound_page
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Skip transhuge pages in ksm for now.
+Warn destroy_compound_page that __split_huge_page_refcount is heavily
+dependent on its internal behavior.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/ksm.c~thp-skip-transhuge-pages-in-ksm-for-now mm/ksm.c
---- a/mm/ksm.c~thp-skip-transhuge-pages-in-ksm-for-now
-+++ a/mm/ksm.c
-@@ -430,7 +430,7 @@ static struct page *get_mergeable_page(s
- 	page = follow_page(vma, addr, FOLL_GET);
- 	if (IS_ERR_OR_NULL(page))
- 		goto out;
--	if (PageAnon(page)) {
-+	if (PageAnon(page) && !PageTransCompound(page)) {
- 		flush_anon_page(vma, page, addr);
- 		flush_dcache_page(page);
- 	} else {
-@@ -1279,7 +1279,19 @@ next_mm:
- 			if (ksm_test_exit(mm))
- 				break;
- 			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
--			if (!IS_ERR_OR_NULL(*page) && PageAnon(*page)) {
-+			if (IS_ERR_OR_NULL(*page)) {
-+				ksm_scan.address += PAGE_SIZE;
-+				cond_resched();
-+				continue;
-+			}
-+			if (PageTransCompound(*page)) {
-+				put_page(*page);
-+				ksm_scan.address &= HPAGE_PMD_MASK;
-+				ksm_scan.address += HPAGE_PMD_SIZE;
-+				cond_resched();
-+				continue;
-+			}
-+			if (PageAnon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
- 				rmap_item = get_next_rmap_item(slot,
-@@ -1293,8 +1305,7 @@ next_mm:
- 				up_read(&mm->mmap_sem);
- 				return rmap_item;
- 			}
--			if (!IS_ERR_OR_NULL(*page))
--				put_page(*page);
-+			put_page(*page);
- 			ksm_scan.address += PAGE_SIZE;
- 			cond_resched();
- 		}
+diff -puN mm/page_alloc.c~thp-comment-reminder-in-destroy_compound_page mm/page_alloc.c
+--- a/mm/page_alloc.c~thp-comment-reminder-in-destroy_compound_page
++++ a/mm/page_alloc.c
+@@ -357,6 +357,7 @@ void prep_compound_page(struct page *pag
+ 	}
+ }
+ 
++/* update __split_huge_page_refcount if you change this function */
+ static int destroy_compound_page(struct page *page, unsigned long order)
+ {
+ 	int i;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
