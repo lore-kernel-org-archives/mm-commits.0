@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + thp-split_huge_page-paging.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:52 -0800
-Message-ID: <201012152356.oBFNuqUK013537@imap1.linux-foundation.org>
+Subject: + thp-special-pmd_trans_-functions.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:33 -0800
+Message-ID: <201012152356.oBFNuXRc013510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755885Ab0LPAC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755879Ab0LPAC1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 15 Dec 2010 19:02:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: split_huge_page paging
+     thp: special pmd_trans_* functions
 has been added to the -mm tree.  Its filename is
-     thp-split_huge_page-paging.patch
+     thp-special-pmd_trans_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: split_huge_page paging
+Subject: thp: special pmd_trans_* functions
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Paging logic that splits the page before it is unmapped and added to swap
-to ensure backwards compatibility with the legacy swap code.  Eventually
-swap should natively pageout the hugepages to increase performance and
-decrease seeking and fragmentation of swap space.  swapoff can just skip
-over huge pmd as they cannot be part of swap yet.  In add_to_swap be
-careful to split the page only if we got a valid swap entry so we don't
-split hugepages with a full swap.
+These returns 0 at compile time when the config option is disabled, to
+allow gcc to eliminate the transparent hugepage function calls at compile
+time without additional #ifdefs (only the export of those functions have
+to be visible to gcc but they won't be required at link time and
+huge_memory.o can be not built at all).
 
-In theory we could split pages before isolating them during the lru scan,
-but for khugepaged to be safe, I'm relying on either mmap_sem write mode,
-or PG_lock taken, so split_huge_page has to run either with mmap_sem
-read/write mode or PG_lock taken.  Calling it from isolate_lru_page would
-make locking more complicated, in addition to that split_huge_page would
-deadlock if called by __isolate_lru_page because it has to take the lru
-lock to add the tail pages.
+_PAGE_BIT_UNUSED1 is never used for pmd, only on pte.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 ++
- mm/rmap.c           |    1 +
- mm/swap_state.c     |    6 ++++++
- mm/swapfile.c       |    2 ++
- 4 files changed, 11 insertions(+)
+ arch/x86/include/asm/pgtable_64.h    |   13 +++++++++++++
+ arch/x86/include/asm/pgtable_types.h |    2 ++
+ include/asm-generic/pgtable.h        |   11 +++++++++++
+ 3 files changed, 26 insertions(+)
 
-diff -puN mm/memory-failure.c~thp-split_huge_page-paging mm/memory-failure.c
---- a/mm/memory-failure.c~thp-split_huge_page-paging
-+++ a/mm/memory-failure.c
-@@ -386,6 +386,8 @@ static void collect_procs_anon(struct pa
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
+diff -puN arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -168,6 +168,19 @@ extern void cleanup_highmap(void);
+ #define	kc_offset_to_vaddr(o) ((o) | ~__VIRTUAL_MASK)
  
-+	if (unlikely(split_huge_page(page)))
-+		return;
- 	read_lock(&tasklist_lock);
- 	av = page_lock_anon_vma(page);
- 	if (av == NULL)	/* Not actually mapped anymore */
-diff -puN mm/rmap.c~thp-split_huge_page-paging mm/rmap.c
---- a/mm/rmap.c~thp-split_huge_page-paging
-+++ a/mm/rmap.c
-@@ -1400,6 +1400,7 @@ int try_to_unmap(struct page *page, enum
- 	int ret;
- 
- 	BUG_ON(!PageLocked(page));
-+	BUG_ON(PageTransHuge(page));
- 
- 	if (unlikely(PageKsm(page)))
- 		ret = try_to_unmap_ksm(page, flags);
-diff -puN mm/swap_state.c~thp-split_huge_page-paging mm/swap_state.c
---- a/mm/swap_state.c~thp-split_huge_page-paging
-+++ a/mm/swap_state.c
-@@ -157,6 +157,12 @@ int add_to_swap(struct page *page)
- 	if (!entry.val)
- 		return 0;
- 
-+	if (unlikely(PageTransHuge(page)))
-+		if (unlikely(split_huge_page(page))) {
-+			swapcache_free(entry, NULL);
-+			return 0;
-+		}
+ #define __HAVE_ARCH_PTE_SAME
 +
- 	/*
- 	 * Radix-tree node allocations from PF_MEMALLOC contexts could
- 	 * completely exhaust the page allocator. __GFP_NOMEMALLOC
-diff -puN mm/swapfile.c~thp-split_huge_page-paging mm/swapfile.c
---- a/mm/swapfile.c~thp-split_huge_page-paging
-+++ a/mm/swapfile.c
-@@ -964,6 +964,8 @@ static inline int unuse_pmd_range(struct
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
-+		if (unlikely(pmd_trans_huge(*pmd)))
-+			continue;
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
- 		ret = unuse_pte_range(vma, pmd, addr, next, entry, page);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return pmd_val(pmd) & _PAGE_SPLITTING;
++}
++
++static inline int pmd_trans_huge(pmd_t pmd)
++{
++	return pmd_val(pmd) & _PAGE_PSE;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_X86_PGTABLE_64_H */
+diff -puN arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -22,6 +22,7 @@
+ #define _PAGE_BIT_PAT_LARGE	12	/* On 2MB or 1GB pages */
+ #define _PAGE_BIT_SPECIAL	_PAGE_BIT_UNUSED1
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_UNUSED1
++#define _PAGE_BIT_SPLITTING	_PAGE_BIT_UNUSED1 /* only valid on a PSE pmd */
+ #define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
+ 
+ /* If _PAGE_BIT_PRESENT is clear, we use these: */
+@@ -45,6 +46,7 @@
+ #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
+ #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
+ #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
++#define _PAGE_SPLITTING	(_AT(pteval_t, 1) << _PAGE_BIT_SPLITTING)
+ #define __HAVE_ARCH_PTE_SPECIAL
+ 
+ #ifdef CONFIG_KMEMCHECK
+diff -puN include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions
++++ a/include/asm-generic/pgtable.h
+@@ -348,6 +348,17 @@ extern void untrack_pfn_vma(struct vm_ar
+ 				unsigned long size);
+ #endif
+ 
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_trans_huge(pmd_t pmd)
++{
++	return 0;
++}
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return 0;
++}
++#endif
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
