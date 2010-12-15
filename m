@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-compound_lock.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:11 -0800
-Message-ID: <201012152356.oBFNuB4C013387@imap1.linux-foundation.org>
+Subject: + thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:15 -0800
+Message-ID: <201012152356.oBFNuFrh013480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755791Ab0LOX4u (ORCPT
+	by vger.kernel.org with ESMTP id S1755791Ab0LOX47 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:56:50 -0500
+	Wed, 15 Dec 2010 18:56:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, riel@redhat.com
+Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: compound_lock
+     thp: put_page: recheck PageHead after releasing the compound_lock
 has been added to the -mm tree.  Its filename is
-     thp-compound_lock.patch
+     thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: compound_lock
+Subject: thp: put_page: recheck PageHead after releasing the compound_lock
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add a new compound_lock() needed to serialize put_page against
-__split_huge_page_refcount().
+After releasing the compound_lock split_huge_page can still run and release the
+page before put_page_testzero runs.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |   34 ++++++++++++++++++++++++++++++++++
- include/linux/page-flags.h |   12 +++++++++++-
- 2 files changed, 45 insertions(+), 1 deletion(-)
+ mm/swap.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~thp-compound_lock include/linux/mm.h
---- a/include/linux/mm.h~thp-compound_lock
-+++ a/include/linux/mm.h
-@@ -14,6 +14,7 @@
- #include <linux/mm_types.h>
- #include <linux/range.h>
- #include <linux/pfn.h>
-+#include <linux/bit_spinlock.h>
- 
- struct mempolicy;
- struct anon_vma;
-@@ -306,6 +307,39 @@ static inline int is_vmalloc_or_module_a
- }
- #endif
- 
-+static inline void compound_lock(struct page *page)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	bit_spin_lock(PG_compound_lock, &page->flags);
-+#endif
-+}
-+
-+static inline void compound_unlock(struct page *page)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	bit_spin_unlock(PG_compound_lock, &page->flags);
-+#endif
-+}
-+
-+static inline unsigned long compound_lock_irqsave(struct page *page)
-+{
-+	unsigned long uninitialized_var(flags);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	local_irq_save(flags);
-+	compound_lock(page);
-+#endif
-+	return flags;
-+}
-+
-+static inline void compound_unlock_irqrestore(struct page *page,
-+					      unsigned long flags)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	compound_unlock(page);
-+	local_irq_restore(flags);
-+#endif
-+}
-+
- static inline struct page *compound_head(struct page *page)
- {
- 	if (unlikely(PageTail(page)))
-diff -puN include/linux/page-flags.h~thp-compound_lock include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-compound_lock
-+++ a/include/linux/page-flags.h
-@@ -108,6 +108,9 @@ enum pageflags {
- #ifdef CONFIG_MEMORY_FAILURE
- 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
- #endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	PG_compound_lock,
-+#endif
- 	__NR_PAGEFLAGS,
- 
- 	/* Filesystems */
-@@ -397,6 +400,12 @@ static inline void __ClearPageTail(struc
- #define __PG_MLOCKED		0
- #endif
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define __PG_COMPOUND_LOCK		(1 << PG_compound_lock)
-+#else
-+#define __PG_COMPOUND_LOCK		0
-+#endif
-+
- /*
-  * Flags checked when a page is freed.  Pages being freed should not have
-  * these flags set.  It they are, there is a problem.
-@@ -406,7 +415,8 @@ static inline void __ClearPageTail(struc
- 	 1 << PG_private | 1 << PG_private_2 | \
- 	 1 << PG_buddy	 | 1 << PG_writeback | 1 << PG_reserved | \
- 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
--	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON)
-+	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON | \
-+	 __PG_COMPOUND_LOCK)
- 
- /*
-  * Flags checked when a page is prepped for return by the page allocator.
+diff -puN mm/swap.c~thp-put_page-recheck-pagehead-after-releasing-the-compound_lock mm/swap.c
+--- a/mm/swap.c~thp-put_page-recheck-pagehead-after-releasing-the-compound_lock
++++ a/mm/swap.c
+@@ -133,8 +133,12 @@ static void put_compound_page(struct pag
+ 			atomic_dec(&page->_count);
+ 			VM_BUG_ON(atomic_read(&page_head->_count) <= 0);
+ 			compound_unlock_irqrestore(page_head, flags);
+-			if (put_page_testzero(page_head))
+-				__put_compound_page(page_head);
++			if (put_page_testzero(page_head)) {
++				if (PageHead(page_head))
++					__put_compound_page(page_head);
++				else
++					__put_single_page(page_head);
++			}
+ 		} else {
+ 			/* page_head is a dangling pointer */
+ 			VM_BUG_ON(PageTail(page));
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
