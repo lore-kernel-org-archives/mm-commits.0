@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-bail-out-gup_fast-on-splitting-pmd.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:39 -0800
-Message-ID: <201012152356.oBFNudv4013519@imap1.linux-foundation.org>
+Subject: + thp-clear-compound-mapping.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:19 -0800
+Message-ID: <201012152356.oBFNuJeM013488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49672 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755778Ab0LOX5T (ORCPT
+	by vger.kernel.org with ESMTP id S1755778Ab0LOX5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:57:19 -0500
+	Wed, 15 Dec 2010 18:57:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: bail out gup_fast on splitting pmd
+     thp: clear compound mapping
 has been added to the -mm tree.  Its filename is
-     thp-bail-out-gup_fast-on-splitting-pmd.patch
+     thp-clear-compound-mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: bail out gup_fast on splitting pmd
+Subject: thp: clear compound mapping
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Force gup_fast to take the slow path and block if the pmd is splitting,
-not only if it's none.
+Clear compound mapping for anonymous compound pages like it already
+happens for regular anonymous pages.  But crash if mapping is set for any
+tail page, also the PageAnon check is meaningless for tail pages.  This
+check only makes sense for the head page, for tail page it can only hide
+bugs and we definitely don't want to hide bugs.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -46,32 +49,30 @@ Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/mm/gup.c~thp-bail-out-gup_fast-on-splitting-pmd arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~thp-bail-out-gup_fast-on-splitting-pmd
-+++ a/arch/x86/mm/gup.c
-@@ -160,7 +160,18 @@ static int gup_pmd_range(pud_t pud, unsi
- 		pmd_t pmd = *pmdp;
+diff -puN mm/page_alloc.c~thp-clear-compound-mapping mm/page_alloc.c
+--- a/mm/page_alloc.c~thp-clear-compound-mapping
++++ a/mm/page_alloc.c
+@@ -651,13 +651,10 @@ static bool free_pages_prepare(struct pa
+ 	trace_mm_page_free_direct(page, order);
+ 	kmemcheck_free_shadow(page, order);
  
- 		next = pmd_addr_end(addr, end);
--		if (pmd_none(pmd))
-+		/*
-+		 * The pmd_trans_splitting() check below explains why
-+		 * pmdp_splitting_flush has to flush the tlb, to stop
-+		 * this gup-fast code from running while we set the
-+		 * splitting bit in the pmd. Returning zero will take
-+		 * the slow path that will call wait_split_huge_page()
-+		 * if the pmd is still in splitting state. gup-fast
-+		 * can't because it has irq disabled and
-+		 * wait_split_huge_page() would never return as the
-+		 * tlb flush IPI wouldn't run.
-+		 */
-+		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
- 			return 0;
- 		if (unlikely(pmd_large(pmd))) {
- 			if (!gup_huge_pmd(pmd, addr, next, write, pages, nr))
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *pg = page + i;
+-
+-		if (PageAnon(pg))
+-			pg->mapping = NULL;
+-		bad += free_pages_check(pg);
+-	}
++	if (PageAnon(page))
++		page->mapping = NULL;
++	for (i = 0; i < (1 << order); i++)
++		bad += free_pages_check(page + i);
+ 	if (bad)
+ 		return false;
+ 
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
