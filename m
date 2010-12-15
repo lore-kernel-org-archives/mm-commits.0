@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-compound_trans_order.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:58:21 -0800
-Message-ID: <201012152358.oBFNwLn7013706@imap1.linux-foundation.org>
+Subject: + thp-madvisemadv_nohugepage.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:58:25 -0800
+Message-ID: <201012152358.oBFNwPfP013716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755906Ab0LOX6d (ORCPT
+	by vger.kernel.org with ESMTP id S1755906Ab0LOX6h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:33 -0500
+	Wed, 15 Dec 2010 18:58:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: compound_trans_order
+     thp: madvise(MADV_NOHUGEPAGE)
 has been added to the -mm tree.  Its filename is
-     thp-compound_trans_order.patch
+     thp-madvisemadv_nohugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,171 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: compound_trans_order
+Subject: thp: madvise(MADV_NOHUGEPAGE)
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Read compound_trans_order safe. Noop for CONFIG_TRANSPARENT_HUGEPAGE=n.
+Add madvise MADV_NOHUGEPAGE to mark regions that are not important to be
+hugepage backed.  Return -EINVAL if the vma is not of an anonymous type,
+or the feature isn't built into the kernel.  Never silently return
+success.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |   14 ++++++++++++++
- mm/memcontrol.c     |    6 +++---
- mm/memory-failure.c |   12 ++++++------
- 3 files changed, 23 insertions(+), 9 deletions(-)
+ include/linux/huge_mm.h    |   14 ++++++-----
+ include/linux/khugepaged.h |    7 +++--
+ include/linux/mm.h         |    1 
+ mm/huge_memory.c           |   41 +++++++++++++++++++++++++----------
+ mm/madvise.c               |    4 ++-
+ 5 files changed, 46 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mm.h~thp-compound_trans_order include/linux/mm.h
---- a/include/linux/mm.h~thp-compound_trans_order
-+++ a/include/linux/mm.h
-@@ -451,6 +451,20 @@ static inline int compound_order(struct 
- 	return (unsigned long)page[1].lru.prev;
- }
+diff -puN include/linux/huge_mm.h~thp-madvisemadv_nohugepage include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-madvisemadv_nohugepage
++++ a/include/linux/huge_mm.h
+@@ -52,10 +52,12 @@ extern pmd_t *page_check_address_pmd(str
+ #define HPAGE_PMD_SIZE HPAGE_SIZE
  
-+static inline int compound_trans_order(struct page *page)
-+{
-+	int order;
-+	unsigned long flags;
-+
-+	if (!PageHead(page))
-+		return 0;
-+
-+	flags = compound_lock_irqsave(page);
-+	order = compound_order(page);
-+	compound_unlock_irqrestore(page, flags);
-+	return order;
-+}
-+
- static inline void set_compound_order(struct page *page, unsigned long order)
- {
- 	page[1].lru.prev = (void *)order;
-diff -puN mm/memcontrol.c~thp-compound_trans_order mm/memcontrol.c
---- a/mm/memcontrol.c~thp-compound_trans_order
-+++ a/mm/memcontrol.c
-@@ -1030,7 +1030,7 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 	int page_size = PAGE_SIZE;
- 
- 	if (PageTransHuge(page))
--		page_size <<= compound_order(page);
-+		page_size <<= compound_trans_order(page);
- 
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -2288,7 +2288,7 @@ static int mem_cgroup_charge_common(stru
- 	int page_size = PAGE_SIZE;
- 
- 	if (PageTransHuge(page))
--		page_size <<= compound_order(page);
-+		page_size <<= compound_trans_order(page);
- 
- 	pc = lookup_page_cgroup(page);
- 	/* can happen at boot */
-@@ -2560,7 +2560,7 @@ __mem_cgroup_uncharge_common(struct page
- 		return NULL;
- 
- 	if (PageTransHuge(page))
--		page_size <<= compound_order(page);
-+		page_size <<= compound_trans_order(page);
- 
- 	count = page_size >> PAGE_SHIFT;
- 	/*
-diff -puN mm/memory-failure.c~thp-compound_trans_order mm/memory-failure.c
---- a/mm/memory-failure.c~thp-compound_trans_order
-+++ a/mm/memory-failure.c
-@@ -203,7 +203,7 @@ static int kill_proc_ao(struct task_stru
- #ifdef __ARCH_SI_TRAPNO
- 	si.si_trapno = trapno;
+ #define transparent_hugepage_enabled(__vma)				\
+-	(transparent_hugepage_flags & (1<<TRANSPARENT_HUGEPAGE_FLAG) ||	\
+-	 (transparent_hugepage_flags &					\
+-	  (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
+-	  (__vma)->vm_flags & VM_HUGEPAGE))
++	((transparent_hugepage_flags &					\
++	  (1<<TRANSPARENT_HUGEPAGE_FLAG) ||				\
++	  (transparent_hugepage_flags &					\
++	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
++	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
++	 !((__vma)->vm_flags & VM_NOHUGEPAGE))
+ #define transparent_hugepage_defrag(__vma)				\
+ 	((transparent_hugepage_flags &					\
+ 	  (1<<TRANSPARENT_HUGEPAGE_DEFRAG_FLAG)) ||			\
+@@ -103,7 +105,7 @@ extern void __split_huge_page_pmd(struct
+ #if HPAGE_PMD_ORDER > MAX_ORDER
+ #error "hugepages can't be allocated by the buddy allocator"
  #endif
--	si.si_addr_lsb = compound_order(compound_head(page)) + PAGE_SHIFT;
-+	si.si_addr_lsb = compound_trans_order(compound_head(page)) + PAGE_SHIFT;
- 	/*
- 	 * Don't use force here, it's convenient if the signal
- 	 * can be temporarily blocked.
-@@ -930,7 +930,7 @@ static int hwpoison_user_mappings(struct
- static void set_page_hwpoison_huge_page(struct page *hpage)
+-extern int hugepage_madvise(unsigned long *vm_flags);
++extern int hugepage_madvise(unsigned long *vm_flags, int advice);
+ extern void __vma_adjust_trans_huge(struct vm_area_struct *vma,
+ 				    unsigned long start,
+ 				    unsigned long end,
+@@ -141,7 +143,7 @@ static inline int split_huge_page(struct
+ 	do { } while (0)
+ #define wait_split_huge_page(__anon_vma, __pmd)	\
+ 	do { } while (0)
+-static inline int hugepage_madvise(unsigned long *vm_flags)
++static inline int hugepage_madvise(unsigned long *vm_flags, int advice)
  {
- 	int i;
--	int nr_pages = 1 << compound_order(hpage);
-+	int nr_pages = 1 << compound_trans_order(hpage);
- 	for (i = 0; i < nr_pages; i++)
- 		SetPageHWPoison(hpage + i);
- }
-@@ -938,7 +938,7 @@ static void set_page_hwpoison_huge_page(
- static void clear_page_hwpoison_huge_page(struct page *hpage)
+ 	BUG();
+ 	return 0;
+diff -puN include/linux/khugepaged.h~thp-madvisemadv_nohugepage include/linux/khugepaged.h
+--- a/include/linux/khugepaged.h~thp-madvisemadv_nohugepage
++++ a/include/linux/khugepaged.h
+@@ -38,9 +38,10 @@ static inline void khugepaged_exit(struc
+ static inline int khugepaged_enter(struct vm_area_struct *vma)
  {
- 	int i;
--	int nr_pages = 1 << compound_order(hpage);
-+	int nr_pages = 1 << compound_trans_order(hpage);
- 	for (i = 0; i < nr_pages; i++)
- 		ClearPageHWPoison(hpage + i);
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
+-		if (khugepaged_always() ||
+-		    (khugepaged_req_madv() &&
+-		     vma->vm_flags & VM_HUGEPAGE))
++		if ((khugepaged_always() ||
++		     (khugepaged_req_madv() &&
++		      vma->vm_flags & VM_HUGEPAGE)) &&
++		    !(vma->vm_flags & VM_NOHUGEPAGE))
+ 			if (__khugepaged_enter(vma->vm_mm))
+ 				return -ENOMEM;
+ 	return 0;
+diff -puN include/linux/mm.h~thp-madvisemadv_nohugepage include/linux/mm.h
+--- a/include/linux/mm.h~thp-madvisemadv_nohugepage
++++ a/include/linux/mm.h
+@@ -83,6 +83,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_GROWSUP	0x00000200
+ #else
+ #define VM_GROWSUP	0x00000000
++#define VM_NOHUGEPAGE	0x00000200	/* MADV_NOHUGEPAGE marked this vma */
+ #endif
+ #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+ #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
+diff -puN mm/huge_memory.c~thp-madvisemadv_nohugepage mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-madvisemadv_nohugepage
++++ a/mm/huge_memory.c
+@@ -16,6 +16,7 @@
+ #include <linux/kthread.h>
+ #include <linux/khugepaged.h>
+ #include <linux/freezer.h>
++#include <linux/mman.h>
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+@@ -1388,18 +1389,36 @@ out:
+ 	return ret;
  }
-@@ -968,7 +968,7 @@ int __memory_failure(unsigned long pfn, 
- 		return 0;
- 	}
  
--	nr_pages = 1 << compound_order(hpage);
-+	nr_pages = 1 << compound_trans_order(hpage);
- 	atomic_long_add(nr_pages, &mce_bad_pages);
+-int hugepage_madvise(unsigned long *vm_flags)
++int hugepage_madvise(unsigned long *vm_flags, int advice)
+ {
+-	/*
+-	 * Be somewhat over-protective like KSM for now!
+-	 */
+-	if (*vm_flags & (VM_HUGEPAGE | VM_SHARED  | VM_MAYSHARE   |
+-			 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
+-			 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
+-			 VM_MIXEDMAP | VM_SAO))
+-		return -EINVAL;
+-
+-	*vm_flags |= VM_HUGEPAGE;
++	switch (advice) {
++	case MADV_HUGEPAGE:
++		/*
++		 * Be somewhat over-protective like KSM for now!
++		 */
++		if (*vm_flags & (VM_HUGEPAGE |
++				 VM_SHARED   | VM_MAYSHARE   |
++				 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
++				 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
++				 VM_MIXEDMAP | VM_SAO))
++			return -EINVAL;
++		*vm_flags &= ~VM_NOHUGEPAGE;
++		*vm_flags |= VM_HUGEPAGE;
++		break;
++	case MADV_NOHUGEPAGE:
++		/*
++		 * Be somewhat over-protective like KSM for now!
++		 */
++		if (*vm_flags & (VM_NOHUGEPAGE |
++				 VM_SHARED   | VM_MAYSHARE   |
++				 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
++				 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
++				 VM_MIXEDMAP | VM_SAO))
++			return -EINVAL;
++		*vm_flags &= ~VM_HUGEPAGE;
++		*vm_flags |= VM_NOHUGEPAGE;
++		break;
++	}
  
- 	/*
-@@ -1166,7 +1166,7 @@ int unpoison_memory(unsigned long pfn)
- 		return 0;
- 	}
+ 	return 0;
+ }
+diff -puN mm/madvise.c~thp-madvisemadv_nohugepage mm/madvise.c
+--- a/mm/madvise.c~thp-madvisemadv_nohugepage
++++ a/mm/madvise.c
+@@ -72,7 +72,8 @@ static long madvise_behavior(struct vm_a
+ 			goto out;
+ 		break;
+ 	case MADV_HUGEPAGE:
+-		error = hugepage_madvise(&new_flags);
++	case MADV_NOHUGEPAGE:
++		error = hugepage_madvise(&new_flags, behavior);
+ 		if (error)
+ 			goto out;
+ 		break;
+@@ -290,6 +291,7 @@ madvise_behavior_valid(int behavior)
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	case MADV_HUGEPAGE:
++	case MADV_NOHUGEPAGE:
+ #endif
+ 		return 1;
  
--	nr_pages = 1 << compound_order(page);
-+	nr_pages = 1 << compound_trans_order(page);
- 
- 	if (!get_page_unless_zero(page)) {
- 		/*
-@@ -1304,7 +1304,7 @@ static int soft_offline_huge_page(struct
- 	}
- done:
- 	if (!PageHWPoison(hpage))
--		atomic_long_add(1 << compound_order(hpage), &mce_bad_pages);
-+		atomic_long_add(1 << compound_trans_order(hpage), &mce_bad_pages);
- 	set_page_hwpoison_huge_page(hpage);
- 	dequeue_hwpoisoned_huge_page(hpage);
- 	/* keep elevated page count for bad page */
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
