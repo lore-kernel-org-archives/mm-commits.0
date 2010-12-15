@@ -1,82 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch added to -mm tree
-Date: Tue, 14 Dec 2010 15:49:12 -0800
-Message-ID: <201012150022.oBF0M9F5018711@imap1.linux-foundation.org>
+Subject: [merged] mm-install_special_mapping-skips-security_file_mmap-check-fix.patch removed from -mm tree
+Date: Wed, 15 Dec 2010 13:04:52 -0800
+Message-ID: <201012152107.oBFL7Xrx006021__2580.19308462298$1292447328$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756583Ab0LOAWn (ORCPT
+	by vger.kernel.org with ESMTP id S1753350Ab0LOVIh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Dec 2010 19:22:43 -0500
+	Wed, 15 Dec 2010 16:08:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, walken@google.com
+To: akpm@linux-foundation.org, eugene@redhat.com, greg@kroah.com, jmorris@namei.org, kees.cook@canonical.com, randy.dunlap@oracle.com, stable@kernel.org, swiecki@google.com, taviso@cmpxch
 
 
 The patch titled
-     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
-has been added to the -mm tree.  Its filename is
-     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+     mm-install_special_mapping-skips-security_file_mmap-check-fix
+has been removed from the -mm tree.  Its filename was
+     mm-install_special_mapping-skips-security_file_mmap-check-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
+Subject: mm-install_special_mapping-skips-security_file_mmap-check-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Michel Lespinasse <walken@google.com>
+preserve security_file_mmap() and insert_vm_struct return values
+
+Cc: <stable@kernel.org>
+Cc: Eugene Teo <eugene@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Kees Cook <kees.cook@canonical.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Robert Swiecki <swiecki@google.com>
+Cc: Tavis Ormandy <taviso@cmpxchg8b.com>
+Cc: Tavis Ormandy <taviso@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- nommu.c     |    0 
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/mmap.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/internal.h~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2 mm/internal.h
-diff -puN mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2 mm/memory.c
---- a/mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
-+++ a/mm/memory.c
-@@ -1614,7 +1614,8 @@ int get_user_pages_noio(struct task_stru
- 	if (force)
- 		flags |= FOLL_FORCE;
+diff -puN mm/mmap.c~mm-install_special_mapping-skips-security_file_mmap-check-fix mm/mmap.c
+--- a/mm/mmap.c~mm-install_special_mapping-skips-security_file_mmap-check-fix
++++ a/mm/mmap.c
+@@ -2463,6 +2463,7 @@ int install_special_mapping(struct mm_st
+ 			    unsigned long vm_flags, struct page **pages)
+ {
+ 	struct vm_area_struct *vma;
++	int ret;
  
--	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
-+	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas,
-+				NULL);
+ 	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+ 	if (unlikely(vma == NULL))
+@@ -2479,21 +2480,21 @@ int install_special_mapping(struct mm_st
+ 	vma->vm_ops = &special_mapping_vmops;
+ 	vma->vm_private_data = pages;
+ 
+-	if (security_file_mmap(NULL, 0, 0, 0, vma->vm_start, 1)) {
+-		kmem_cache_free(vm_area_cachep, vma);
+-		return -EPERM;
+-	}
+-
+-	if (unlikely(insert_vm_struct(mm, vma))) {
+-		kmem_cache_free(vm_area_cachep, vma);
+-		return -ENOMEM;
+-	}
++	ret = security_file_mmap(NULL, 0, 0, 0, vma->vm_start, 1);
++	if (ret < 0)
++		goto out;
++
++	ret = insert_vm_struct(mm, vma);
++	if (ret < 0)
++		goto out;
+ 
+ 	mm->total_vm += len >> PAGE_SHIFT;
+ 
+ 	perf_event_mmap(vma);
+-
+ 	return 0;
++out:
++	kmem_cache_free(vm_area_cachep, vma);
++	return ret;
  }
- EXPORT_SYMBOL(get_user_pages_noio);
  
-diff -puN mm/mlock.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2 mm/mlock.c
-diff -puN mm/nommu.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2 mm/nommu.c
+ static DEFINE_MUTEX(mm_all_locks_mutex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 aesni-nfg.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-install_special_mapping-skips-security_file_mmap-check-fix.patch
 delayacct-fix-iotop-on-x86_64-fix.patch
 mm-vmap-area-cache.patch
 arch-x86-kernel-apic-io_apicc-fix-warning.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
-headers_check-better-search-for-functions-in-headers-fix.patch
-headers_check-better-search-for-functions-in-headers-fix-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
