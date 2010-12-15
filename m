@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:49 -0800
-Message-ID: <201012152357.oBFNvnvL013644@imap1.linux-foundation.org>
+Subject: + thp-transparent-hugepage-config-choice.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:51 -0800
+Message-ID: <201012152357.oBFNvpsu013647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755885Ab0LOX6B (ORCPT
+	by vger.kernel.org with ESMTP id S1755893Ab0LOX6C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:01 -0500
+	Wed, 15 Dec 2010 18:58:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: allocate memory in khugepaged outside of mmap_sem write mode
+     thp: transparent hugepage config choice
 has been added to the -mm tree.  Its filename is
-     thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
+     thp-transparent-hugepage-config-choice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: allocate memory in khugepaged outside of mmap_sem write mode
+Subject: thp: transparent hugepage config choice
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-This tries to be more friendly to filesystem in userland, with userland
-backends that allocate memory in the I/O paths and that could deadlock if
-khugepaged holds the mmap_sem write mode of the userland backend while
-allocating memory.  Memory allocation may wait for writeback I/O
-completion from the daemon that may be blocked in the mmap_sem read mode
-if a page fault happens and the daemon wasn't using mlock for the memory
-required for the I/O submission and completion.
+Allow to choose between the always|madvise default for page faults and
+khugepaged at config time.  madvise guarantees zero risk of higher memory
+footprint for applications (applications using madvise(MADV_HUGEPAGE)
+won't risk to use any more memory by backing their virtual regions with
+hugepages).
+
+Initially set the default to N and don't depend on EMBEDDED.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   50 +++++++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 19 deletions(-)
+ mm/Kconfig       |   27 +++++++++++++++++++++++++--
+ mm/huge_memory.c |    5 +++++
+ 2 files changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode mm/huge_memory.c
---- a/mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode
-+++ a/mm/huge_memory.c
-@@ -1680,9 +1680,34 @@ static void collapse_huge_page(struct mm
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- #ifndef CONFIG_NUMA
- 	VM_BUG_ON(!*hpage);
-+	new_page = *hpage;
- #else
- 	VM_BUG_ON(*hpage);
-+	/*
-+	 * Allocate the page while the vma is still valid and under
-+	 * the mmap_sem read mode so there is no memory allocation
-+	 * later when we take the mmap_sem in write mode. This is more
-+	 * friendly behavior (OTOH it may actually hide bugs) to
-+	 * filesystems in userland with daemons allocating memory in
-+	 * the userland I/O paths.  Allocating memory with the
-+	 * mmap_sem in read mode is good idea also to allow greater
-+	 * scalability.
-+	 */
-+	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address);
-+	if (unlikely(!new_page)) {
-+		up_read(&mm->mmap_sem);
-+		*hpage = ERR_PTR(-ENOMEM);
-+		return;
-+	}
- #endif
-+	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
-+		up_read(&mm->mmap_sem);
-+		put_page(new_page);
-+		return;
-+	}
+diff -puN mm/Kconfig~thp-transparent-hugepage-config-choice mm/Kconfig
+--- a/mm/Kconfig~thp-transparent-hugepage-config-choice
++++ a/mm/Kconfig
+@@ -303,9 +303,8 @@ config NOMMU_INITIAL_TRIM_EXCESS
+ 	  See Documentation/nommu-mmap.txt for more information.
+ 
+ config TRANSPARENT_HUGEPAGE
+-	bool "Transparent Hugepage Support" if EMBEDDED
++	bool "Transparent Hugepage Support"
+ 	depends on X86 && MMU
+-	default y
+ 	help
+ 	  Transparent Hugepages allows the kernel to use huge pages and
+ 	  huge tlb transparently to the applications whenever possible.
+@@ -316,6 +315,30 @@ config TRANSPARENT_HUGEPAGE
+ 
+ 	  If memory constrained on embedded, you may want to say N.
+ 
++choice
++	prompt "Transparent Hugepage Support sysfs defaults"
++	depends on TRANSPARENT_HUGEPAGE
++	default TRANSPARENT_HUGEPAGE_ALWAYS
++	help
++	  Selects the sysfs defaults for Transparent Hugepage Support.
 +
-+	/* after allocating the hugepage upgrade to mmap_sem write mode */
-+	up_read(&mm->mmap_sem);
++	config TRANSPARENT_HUGEPAGE_ALWAYS
++		bool "always"
++	help
++	  Enabling Transparent Hugepage always, can increase the
++	  memory footprint of applications without a guaranteed
++	  benefit but it will work automatically for all applications.
++
++	config TRANSPARENT_HUGEPAGE_MADVISE
++		bool "madvise"
++	help
++	  Enabling Transparent Hugepage madvise, will only provide a
++	  performance improvement benefit to the applications using
++	  madvise(MADV_HUGEPAGE) but it won't risk to increase the
++	  memory footprint of applications without a guaranteed
++	  benefit.
++endchoice
++
+ #
+ # UP and nommu archs use km based percpu allocator
+ #
+diff -puN mm/huge_memory.c~thp-transparent-hugepage-config-choice mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-transparent-hugepage-config-choice
++++ a/mm/huge_memory.c
+@@ -27,7 +27,12 @@
+  * allocations.
+  */
+ unsigned long transparent_hugepage_flags __read_mostly =
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS
+ 	(1<<TRANSPARENT_HUGEPAGE_FLAG)|
++#endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE_MADVISE
++	(1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)|
++#endif
+ 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_FLAG)|
+ 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
  
- 	/*
- 	 * Prevent all access to pagetables with the exception of
-@@ -1720,18 +1745,6 @@ static void collapse_huge_page(struct mm
- 	if (!pmd_present(*pmd) || pmd_trans_huge(*pmd))
- 		goto out;
- 
--#ifndef CONFIG_NUMA
--	new_page = *hpage;
--#else
--	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address);
--	if (unlikely(!new_page)) {
--		*hpage = ERR_PTR(-ENOMEM);
--		goto out;
--	}
--#endif
--	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL)))
--		goto out_put_page;
--
- 	anon_vma_lock(vma->anon_vma);
- 
- 	pte = pte_offset_map(pmd, address);
-@@ -1759,7 +1772,7 @@ static void collapse_huge_page(struct mm
- 		spin_unlock(&mm->page_table_lock);
- 		anon_vma_unlock(vma->anon_vma);
- 		mem_cgroup_uncharge_page(new_page);
--		goto out_put_page;
-+		goto out;
- 	}
- 
- 	/*
-@@ -1798,15 +1811,15 @@ static void collapse_huge_page(struct mm
- 	*hpage = NULL;
- #endif
- 	khugepaged_pages_collapsed++;
--out:
-+out_up_write:
- 	up_write(&mm->mmap_sem);
- 	return;
- 
--out_put_page:
-+out:
- #ifdef CONFIG_NUMA
- 	put_page(new_page);
- #endif
--	goto out;
-+	goto out_up_write;
- }
- 
- static int khugepaged_scan_pmd(struct mm_struct *mm,
-@@ -1865,10 +1878,9 @@ static int khugepaged_scan_pmd(struct mm
- 		ret = 1;
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
--	if (ret) {
--		up_read(&mm->mmap_sem);
-+	if (ret)
-+		/* collapse_huge_page will return with the mmap_sem released */
- 		collapse_huge_page(mm, address, hpage);
--	}
- out:
- 	return ret;
- }
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
