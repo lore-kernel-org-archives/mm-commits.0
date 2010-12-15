@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-select-config_compaction-if-transparent_hugepage-enabled.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:53 -0800
-Message-ID: <201012152357.oBFNvrJa013651@imap1.linux-foundation.org>
+Subject: + thp-dont-allow-transparent-hugepage-support-without-pse.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:59 -0800
+Message-ID: <201012152357.oBFNvxWw013661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755899Ab0LOX6G (ORCPT
+	by vger.kernel.org with ESMTP id S1755917Ab0LOX6K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:06 -0500
+	Wed, 15 Dec 2010 18:58:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, mel@csn.ul.ie
+Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: select CONFIG_COMPACTION if TRANSPARENT_HUGEPAGE enabled
+     thp: don't allow transparent hugepage support without PSE
 has been added to the -mm tree.  Its filename is
-     thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+     thp-dont-allow-transparent-hugepage-support-without-pse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: select CONFIG_COMPACTION if TRANSPARENT_HUGEPAGE enabled
+Subject: thp: don't allow transparent hugepage support without PSE
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-With transparent hugepage support we need compaction for the "defrag"
-sysfs controls to be effective.
-
-At the moment THP hangs the system if COMPACTION isn't selected, as
-without COMPACTION lumpy reclaim wouldn't be entirely disabled.  So at the
-moment it's not orthogonal.  When lumpy will be removed from the VM I can
-remove the select COMPACTION in theory, but then 99% of THP users would be
-still doing a mistake in disabling compaction, even if the mistake won't
-return in fatal runtime but just slightly degraded performance.  So from a
-theoretical standpoing forcing the below select is not needed (the
-dependency isn't strict nor at compile time nor at runtime) but from a
-practical standpoint it is safer.
-
-If anybody really wants THP to run without compaction, it'd be such a
-weird setup that editing the Kconfig file to allow it will be surely not a
-problem.
+Archs implementing Transparent Hugepage Support must implement a function
+called has_transparent_hugepage to be sure the virtual or physical CPU
+supports Transparent Hugepages.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ mm/huge_memory.c               |    8 ++++++++
+ 2 files changed, 13 insertions(+)
 
-diff -puN mm/Kconfig~thp-select-config_compaction-if-transparent_hugepage-enabled mm/Kconfig
---- a/mm/Kconfig~thp-select-config_compaction-if-transparent_hugepage-enabled
-+++ a/mm/Kconfig
-@@ -305,6 +305,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
- config TRANSPARENT_HUGEPAGE
- 	bool "Transparent Hugepage Support"
- 	depends on X86 && MMU
-+	select COMPACTION
- 	help
- 	  Transparent Hugepages allows the kernel to use huge pages and
- 	  huge tlb transparently to the applications whenever possible.
+diff -puN arch/x86/include/asm/pgtable.h~thp-dont-allow-transparent-hugepage-support-without-pse arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~thp-dont-allow-transparent-hugepage-support-without-pse
++++ a/arch/x86/include/asm/pgtable.h
+@@ -160,6 +160,11 @@ static inline int pmd_trans_huge(pmd_t p
+ {
+ 	return pmd_val(pmd) & _PAGE_PSE;
+ }
++
++static inline int has_transparent_hugepage(void)
++{
++	return cpu_has_pse;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
+diff -puN mm/huge_memory.c~thp-dont-allow-transparent-hugepage-support-without-pse mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-dont-allow-transparent-hugepage-support-without-pse
++++ a/mm/huge_memory.c
+@@ -487,7 +487,15 @@ static int __init hugepage_init(void)
+ 	int err;
+ #ifdef CONFIG_SYSFS
+ 	static struct kobject *hugepage_kobj;
++#endif
+ 
++	err = -EINVAL;
++	if (!has_transparent_hugepage()) {
++		transparent_hugepage_flags = 0;
++		goto out;
++	}
++
++#ifdef CONFIG_SYSFS
+ 	err = -ENOMEM;
+ 	hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!hugepage_kobj)) {
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
