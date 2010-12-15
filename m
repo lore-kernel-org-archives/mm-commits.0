@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-memcg-compound.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:15 -0800
-Message-ID: <201012152357.oBFNvFNV013581@imap1.linux-foundation.org>
+Subject: + thp-add-pmd-paravirt-ops.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:56:23 -0800
+Message-ID: <201012152356.oBFNuN1j013495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755842Ab0LPACA (ORCPT
+	by vger.kernel.org with ESMTP id S1755842Ab0LPACI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 19:02:00 -0500
+	Wed, 15 Dec 2010 19:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, riel@redhat.com
+Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: memcg compound
+     thp: add pmd paravirt ops
 has been added to the -mm tree.  Its filename is
-     thp-memcg-compound.patch
+     thp-add-pmd-paravirt-ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,323 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: memcg compound
+Subject: thp: add pmd paravirt ops
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Teach memcg to charge/uncharge compound pages.
+Paravirt ops pmd_update/pmd_update_defer/pmd_set_at.  Not all might be
+necessary (vmware needs pmd_update, Xen needs set_pmd_at, nobody needs
+pmd_update_defer), but this is to keep full simmetry with pte paravirt
+ops, which looks cleaner and simpler from a common code POV.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   83 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 53 insertions(+), 30 deletions(-)
+ arch/x86/include/asm/paravirt.h       |   25 ++++++++++++++++++++++++
+ arch/x86/include/asm/paravirt_types.h |    6 +++++
+ arch/x86/kernel/paravirt.c            |    3 ++
+ 3 files changed, 34 insertions(+)
 
-diff -puN mm/memcontrol.c~thp-memcg-compound mm/memcontrol.c
---- a/mm/memcontrol.c~thp-memcg-compound
-+++ a/mm/memcontrol.c
-@@ -1027,6 +1027,10 @@ mem_cgroup_get_reclaim_stat_from_page(st
+diff -puN arch/x86/include/asm/paravirt.h~thp-add-pmd-paravirt-ops arch/x86/include/asm/paravirt.h
+--- a/arch/x86/include/asm/paravirt.h~thp-add-pmd-paravirt-ops
++++ a/arch/x86/include/asm/paravirt.h
+@@ -435,6 +435,11 @@ static inline void pte_update(struct mm_
  {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup_per_zone *mz;
-+	int page_size = PAGE_SIZE;
+ 	PVOP_VCALL3(pv_mmu_ops.pte_update, mm, addr, ptep);
+ }
++static inline void pmd_update(struct mm_struct *mm, unsigned long addr,
++			      pmd_t *pmdp)
++{
++	PVOP_VCALL3(pv_mmu_ops.pmd_update, mm, addr, pmdp);
++}
+ 
+ static inline void pte_update_defer(struct mm_struct *mm, unsigned long addr,
+ 				    pte_t *ptep)
+@@ -442,6 +447,12 @@ static inline void pte_update_defer(stru
+ 	PVOP_VCALL3(pv_mmu_ops.pte_update_defer, mm, addr, ptep);
+ }
+ 
++static inline void pmd_update_defer(struct mm_struct *mm, unsigned long addr,
++				    pmd_t *pmdp)
++{
++	PVOP_VCALL3(pv_mmu_ops.pmd_update_defer, mm, addr, pmdp);
++}
 +
-+	if (PageTransHuge(page))
-+		page_size <<= compound_order(page);
- 
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -1887,12 +1891,14 @@ static int __mem_cgroup_do_charge(struct
-  * oom-killer can be invoked.
-  */
- static int __mem_cgroup_try_charge(struct mm_struct *mm,
--		gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
-+				   gfp_t gfp_mask,
-+				   struct mem_cgroup **memcg, bool oom,
-+				   int page_size)
+ static inline pte_t __pte(pteval_t val)
  {
- 	int nr_oom_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct mem_cgroup *mem = NULL;
- 	int ret;
--	int csize = CHARGE_SIZE;
-+	int csize = max(CHARGE_SIZE, (unsigned long) page_size);
- 
- 	/*
- 	 * Unlike gloval-vm's OOM-kill, we're not in memory shortage
-@@ -1917,7 +1923,7 @@ again:
- 		VM_BUG_ON(css_is_removed(&mem->css));
- 		if (mem_cgroup_is_root(mem))
- 			goto done;
--		if (consume_stock(mem))
-+		if (page_size == PAGE_SIZE && consume_stock(mem))
- 			goto done;
- 		css_get(&mem->css);
- 	} else {
-@@ -1941,7 +1947,7 @@ again:
- 			rcu_read_unlock();
- 			goto done;
- 		}
--		if (consume_stock(mem)) {
-+		if (page_size == PAGE_SIZE && consume_stock(mem)) {
- 			/*
- 			 * It seems dagerous to access memcg without css_get().
- 			 * But considering how consume_stok works, it's not
-@@ -1982,7 +1988,7 @@ again:
- 		case CHARGE_OK:
- 			break;
- 		case CHARGE_RETRY: /* not in OOM situation but retry */
--			csize = PAGE_SIZE;
-+			csize = page_size;
- 			css_put(&mem->css);
- 			mem = NULL;
- 			goto again;
-@@ -2003,8 +2009,8 @@ again:
- 		}
- 	} while (ret != CHARGE_OK);
- 
--	if (csize > PAGE_SIZE)
--		refill_stock(mem, csize - PAGE_SIZE);
-+	if (csize > page_size)
-+		refill_stock(mem, csize - page_size);
- 	css_put(&mem->css);
- done:
- 	*memcg = mem;
-@@ -2032,9 +2038,10 @@ static void __mem_cgroup_cancel_charge(s
- 	}
+ 	pteval_t ret;
+@@ -543,6 +554,20 @@ static inline void set_pte_at(struct mm_
+ 		PVOP_VCALL4(pv_mmu_ops.set_pte_at, mm, addr, ptep, pte.pte);
  }
  
--static void mem_cgroup_cancel_charge(struct mem_cgroup *mem)
-+static void mem_cgroup_cancel_charge(struct mem_cgroup *mem,
-+				     int page_size)
- {
--	__mem_cgroup_cancel_charge(mem, 1);
-+	__mem_cgroup_cancel_charge(mem, page_size >> PAGE_SHIFT);
- }
- 
- /*
-@@ -2090,8 +2097,9 @@ struct mem_cgroup *try_get_mem_cgroup_fr
-  */
- 
- static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
--				     struct page_cgroup *pc,
--				     enum charge_type ctype)
-+				       struct page_cgroup *pc,
-+				       enum charge_type ctype,
-+				       int page_size)
- {
- 	/* try_charge() can return NULL to *memcg, taking care of it. */
- 	if (!mem)
-@@ -2100,7 +2108,7 @@ static void __mem_cgroup_commit_charge(s
- 	lock_page_cgroup(pc);
- 	if (unlikely(PageCgroupUsed(pc))) {
- 		unlock_page_cgroup(pc);
--		mem_cgroup_cancel_charge(mem);
-+		mem_cgroup_cancel_charge(mem, page_size);
- 		return;
- 	}
- 
-@@ -2174,7 +2182,7 @@ static void __mem_cgroup_move_account(st
- 	mem_cgroup_charge_statistics(from, pc, false);
- 	if (uncharge)
- 		/* This is not "cancel", but cancel_charge does all we need. */
--		mem_cgroup_cancel_charge(from);
-+		mem_cgroup_cancel_charge(from, PAGE_SIZE);
- 
- 	/* caller should have done css_get */
- 	pc->mem_cgroup = to;
-@@ -2235,13 +2243,14 @@ static int mem_cgroup_move_parent(struct
- 		goto put;
- 
- 	parent = mem_cgroup_from_cont(pcg);
--	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
-+	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false,
-+				      PAGE_SIZE);
- 	if (ret || !parent)
- 		goto put_back;
- 
- 	ret = mem_cgroup_move_account(pc, child, parent, true);
- 	if (ret)
--		mem_cgroup_cancel_charge(parent);
-+		mem_cgroup_cancel_charge(parent, PAGE_SIZE);
- put_back:
- 	putback_lru_page(page);
- put:
-@@ -2262,6 +2271,10 @@ static int mem_cgroup_charge_common(stru
- 	struct mem_cgroup *mem = NULL;
- 	struct page_cgroup *pc;
- 	int ret;
-+	int page_size = PAGE_SIZE;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
++			      pmd_t *pmdp, pmd_t pmd)
++{
++#if PAGETABLE_LEVELS >= 3
++	if (sizeof(pmdval_t) > sizeof(long))
++		/* 5 arg words */
++		pv_mmu_ops.set_pmd_at(mm, addr, pmdp, pmd);
++	else
++		PVOP_VCALL4(pv_mmu_ops.set_pmd_at, mm, addr, pmdp, pmd.pmd);
++#endif
++}
++#endif
 +
-+	if (PageTransHuge(page))
-+		page_size <<= compound_order(page);
- 
- 	pc = lookup_page_cgroup(page);
- 	/* can happen at boot */
-@@ -2269,11 +2282,11 @@ static int mem_cgroup_charge_common(stru
- 		return 0;
- 	prefetchw(pc);
- 
--	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
-+	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true, page_size);
- 	if (ret || !mem)
- 		return ret;
- 
--	__mem_cgroup_commit_charge(mem, pc, ctype);
-+	__mem_cgroup_commit_charge(mem, pc, ctype, page_size);
- 	return 0;
- }
- 
-@@ -2282,8 +2295,6 @@ int mem_cgroup_newpage_charge(struct pag
+ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
  {
- 	if (mem_cgroup_disabled())
- 		return 0;
--	if (PageCompound(page))
--		return 0;
- 	/*
- 	 * If already mapped, we don't have to account.
- 	 * If page cache, page->mapping has address_space.
-@@ -2389,13 +2400,13 @@ int mem_cgroup_try_charge_swapin(struct 
- 	if (!mem)
- 		goto charge_cur_mm;
- 	*ptr = mem;
--	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true);
-+	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true, PAGE_SIZE);
- 	css_put(&mem->css);
- 	return ret;
- charge_cur_mm:
- 	if (unlikely(!mm))
- 		mm = &init_mm;
--	return __mem_cgroup_try_charge(mm, mask, ptr, true);
-+	return __mem_cgroup_try_charge(mm, mask, ptr, true, PAGE_SIZE);
- }
+ 	pmdval_t val = native_pmd_val(pmd);
+diff -puN arch/x86/include/asm/paravirt_types.h~thp-add-pmd-paravirt-ops arch/x86/include/asm/paravirt_types.h
+--- a/arch/x86/include/asm/paravirt_types.h~thp-add-pmd-paravirt-ops
++++ a/arch/x86/include/asm/paravirt_types.h
+@@ -265,10 +265,16 @@ struct pv_mmu_ops {
+ 	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep, pte_t pteval);
+ 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
++	void (*set_pmd_at)(struct mm_struct *mm, unsigned long addr,
++			   pmd_t *pmdp, pmd_t pmdval);
+ 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep);
+ 	void (*pte_update_defer)(struct mm_struct *mm,
+ 				 unsigned long addr, pte_t *ptep);
++	void (*pmd_update)(struct mm_struct *mm, unsigned long addr,
++			   pmd_t *pmdp);
++	void (*pmd_update_defer)(struct mm_struct *mm,
++				 unsigned long addr, pmd_t *pmdp);
  
- static void
-@@ -2411,7 +2422,7 @@ __mem_cgroup_commit_charge_swapin(struct
- 	cgroup_exclude_rmdir(&ptr->css);
- 	pc = lookup_page_cgroup(page);
- 	mem_cgroup_lru_del_before_commit_swapcache(page);
--	__mem_cgroup_commit_charge(ptr, pc, ctype);
-+	__mem_cgroup_commit_charge(ptr, pc, ctype, PAGE_SIZE);
- 	mem_cgroup_lru_add_after_commit_swapcache(page);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
-@@ -2460,11 +2471,12 @@ void mem_cgroup_cancel_charge_swapin(str
- 		return;
- 	if (!mem)
- 		return;
--	mem_cgroup_cancel_charge(mem);
-+	mem_cgroup_cancel_charge(mem, PAGE_SIZE);
- }
+ 	pte_t (*ptep_modify_prot_start)(struct mm_struct *mm, unsigned long addr,
+ 					pte_t *ptep);
+diff -puN arch/x86/kernel/paravirt.c~thp-add-pmd-paravirt-ops arch/x86/kernel/paravirt.c
+--- a/arch/x86/kernel/paravirt.c~thp-add-pmd-paravirt-ops
++++ a/arch/x86/kernel/paravirt.c
+@@ -421,8 +421,11 @@ struct pv_mmu_ops pv_mmu_ops = {
+ 	.set_pte = native_set_pte,
+ 	.set_pte_at = native_set_pte_at,
+ 	.set_pmd = native_set_pmd,
++	.set_pmd_at = native_set_pmd_at,
+ 	.pte_update = paravirt_nop,
+ 	.pte_update_defer = paravirt_nop,
++	.pmd_update = paravirt_nop,
++	.pmd_update_defer = paravirt_nop,
  
- static void
--__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
-+__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype,
-+	      int page_size)
- {
- 	struct memcg_batch_info *batch = NULL;
- 	bool uncharge_memsw = true;
-@@ -2491,6 +2503,9 @@ __do_uncharge(struct mem_cgroup *mem, co
- 	if (!batch->do_batch || test_thread_flag(TIF_MEMDIE))
- 		goto direct_uncharge;
- 
-+	if (page_size != PAGE_SIZE)
-+		goto direct_uncharge;
-+
- 	/*
- 	 * In typical case, batch->memcg == mem. This means we can
- 	 * merge a series of uncharges to an uncharge of res_counter.
-@@ -2504,9 +2519,9 @@ __do_uncharge(struct mem_cgroup *mem, co
- 		batch->memsw_bytes += PAGE_SIZE;
- 	return;
- direct_uncharge:
--	res_counter_uncharge(&mem->res, PAGE_SIZE);
-+	res_counter_uncharge(&mem->res, page_size);
- 	if (uncharge_memsw)
--		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
-+		res_counter_uncharge(&mem->memsw, page_size);
- 	if (unlikely(batch->memcg != mem))
- 		memcg_oom_recover(mem);
- 	return;
-@@ -2520,6 +2535,7 @@ __mem_cgroup_uncharge_common(struct page
- {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
-+	int page_size = PAGE_SIZE;
- 
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -2527,6 +2543,9 @@ __mem_cgroup_uncharge_common(struct page
- 	if (PageSwapCache(page))
- 		return NULL;
- 
-+	if (PageTransHuge(page))
-+		page_size <<= compound_order(page);
-+
- 	/*
- 	 * Check if our page_cgroup is valid
- 	 */
-@@ -2580,7 +2599,7 @@ __mem_cgroup_uncharge_common(struct page
- 		mem_cgroup_get(mem);
- 	}
- 	if (!mem_cgroup_is_root(mem))
--		__do_uncharge(mem, ctype);
-+		__do_uncharge(mem, ctype, page_size);
- 
- 	return mem;
- 
-@@ -2775,6 +2794,7 @@ int mem_cgroup_prepare_migration(struct 
- 	enum charge_type ctype;
- 	int ret = 0;
- 
-+	VM_BUG_ON(PageTransHuge(page));
- 	if (mem_cgroup_disabled())
- 		return 0;
- 
-@@ -2824,7 +2844,7 @@ int mem_cgroup_prepare_migration(struct 
- 		return 0;
- 
- 	*ptr = mem;
--	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
-+	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false, PAGE_SIZE);
- 	css_put(&mem->css);/* drop extra refcnt */
- 	if (ret || *ptr == NULL) {
- 		if (PageAnon(page)) {
-@@ -2851,7 +2871,7 @@ int mem_cgroup_prepare_migration(struct 
- 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	else
- 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
--	__mem_cgroup_commit_charge(mem, pc, ctype);
-+	__mem_cgroup_commit_charge(mem, pc, ctype, PAGE_SIZE);
- 	return ret;
- }
- 
-@@ -4462,7 +4482,8 @@ one_by_one:
- 			batch_count = PRECHARGE_COUNT_AT_ONCE;
- 			cond_resched();
- 		}
--		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false);
-+		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false,
-+					      PAGE_SIZE);
- 		if (ret || !mem)
- 			/* mem_cgroup_clear_mc() will do uncharge later */
- 			return -ENOMEM;
-@@ -4624,6 +4645,7 @@ static int mem_cgroup_count_precharge_pt
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
-+	VM_BUG_ON(pmd_trans_huge(*pmd));
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
-@@ -4790,6 +4812,7 @@ static int mem_cgroup_move_charge_pte_ra
- 	spinlock_t *ptl;
- 
- retry:
-+	VM_BUG_ON(pmd_trans_huge(*pmd));
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; addr += PAGE_SIZE) {
- 		pte_t ptent = *(pte++);
+ 	.ptep_modify_prot_start = __ptep_modify_prot_start,
+ 	.ptep_modify_prot_commit = __ptep_modify_prot_commit,
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
