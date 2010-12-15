@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mm-define-madv_nohugepage.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:58:23 -0800
-Message-ID: <201012152358.oBFNwNHN013713@imap1.linux-foundation.org>
+Subject: + thp-khugepaged-vma-merge.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:27 -0800
+Message-ID: <201012152357.oBFNvRVs013600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755906Ab0LOX6f (ORCPT
+	by vger.kernel.org with ESMTP id S1755717Ab0LPAB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:35 -0500
+	Wed, 15 Dec 2010 19:01:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: mm: define MADV_NOHUGEPAGE
+     thp: khugepaged vma merge
 has been added to the -mm tree.  Its filename is
-     thp-mm-define-madv_nohugepage.patch
+     thp-khugepaged-vma-merge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: mm: define MADV_NOHUGEPAGE
+Subject: thp: khugepaged vma merge
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Define MADV_NOHUGEPAGE.
+register in khugepaged if the vma grows.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h     |    1 +
- arch/mips/include/asm/mman.h      |    1 +
- arch/parisc/include/asm/mman.h    |    1 +
- arch/xtensa/include/asm/mman.h    |    1 +
- include/asm-generic/mman-common.h |    1 +
- 5 files changed, 5 insertions(+)
+ mm/mmap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/alpha/include/asm/mman.h~thp-mm-define-madv_nohugepage arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~thp-mm-define-madv_nohugepage
-+++ a/arch/alpha/include/asm/mman.h
-@@ -54,6 +54,7 @@
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
+diff -puN mm/mmap.c~thp-khugepaged-vma-merge mm/mmap.c
+--- a/mm/mmap.c~thp-khugepaged-vma-merge
++++ a/mm/mmap.c
+@@ -29,6 +29,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/perf_event.h>
+ #include <linux/audit.h>
++#include <linux/khugepaged.h>
  
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+#define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -815,6 +816,7 @@ struct vm_area_struct *vma_merge(struct 
+ 				end, prev->vm_pgoff, NULL);
+ 		if (err)
+ 			return NULL;
++		khugepaged_enter_vma_merge(prev);
+ 		return prev;
+ 	}
  
- /* compatibility flags */
- #define MAP_FILE	0
-diff -puN arch/mips/include/asm/mman.h~thp-mm-define-madv_nohugepage arch/mips/include/asm/mman.h
---- a/arch/mips/include/asm/mman.h~thp-mm-define-madv_nohugepage
-+++ a/arch/mips/include/asm/mman.h
-@@ -78,6 +78,7 @@
- #define MADV_HWPOISON    100		/* poison a page for testing */
+@@ -833,6 +835,7 @@ struct vm_area_struct *vma_merge(struct 
+ 				next->vm_pgoff - pglen, NULL);
+ 		if (err)
+ 			return NULL;
++		khugepaged_enter_vma_merge(area);
+ 		return area;
+ 	}
  
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+#define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+@@ -1761,6 +1764,7 @@ int expand_upwards(struct vm_area_struct
+ 		}
+ 	}
+ 	vma_unlock_anon_vma(vma);
++	khugepaged_enter_vma_merge(vma);
+ 	return error;
+ }
+ #endif /* CONFIG_STACK_GROWSUP || CONFIG_IA64 */
+@@ -1808,6 +1812,7 @@ static int expand_downwards(struct vm_ar
+ 		}
+ 	}
+ 	vma_unlock_anon_vma(vma);
++	khugepaged_enter_vma_merge(vma);
+ 	return error;
+ }
  
- /* compatibility flags */
- #define MAP_FILE	0
-diff -puN arch/parisc/include/asm/mman.h~thp-mm-define-madv_nohugepage arch/parisc/include/asm/mman.h
---- a/arch/parisc/include/asm/mman.h~thp-mm-define-madv_nohugepage
-+++ a/arch/parisc/include/asm/mman.h
-@@ -60,6 +60,7 @@
- #define MADV_UNMERGEABLE 66		/* KSM may not merge identical pages */
- 
- #define MADV_HUGEPAGE	67		/* Worth backing with hugepages */
-+#define MADV_NOHUGEPAGE	68		/* Not worth backing with hugepages */
- 
- /* compatibility flags */
- #define MAP_FILE	0
-diff -puN arch/xtensa/include/asm/mman.h~thp-mm-define-madv_nohugepage arch/xtensa/include/asm/mman.h
---- a/arch/xtensa/include/asm/mman.h~thp-mm-define-madv_nohugepage
-+++ a/arch/xtensa/include/asm/mman.h
-@@ -84,6 +84,7 @@
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
- 
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+#define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
- 
- /* compatibility flags */
- #define MAP_FILE	0
-diff -puN include/asm-generic/mman-common.h~thp-mm-define-madv_nohugepage include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~thp-mm-define-madv_nohugepage
-+++ a/include/asm-generic/mman-common.h
-@@ -46,6 +46,7 @@
- #define MADV_UNMERGEABLE 13		/* KSM may not merge identical pages */
- 
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
-+#define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
- 
- /* compatibility flags */
- #define MAP_FILE	0
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
