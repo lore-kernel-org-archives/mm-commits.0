@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-no-paravirt-version-of-pmd-ops.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:56:25 -0800
-Message-ID: <201012152356.oBFNuPN9013498@imap1.linux-foundation.org>
+Subject: + thp-skip-transhuge-pages-in-ksm-for-now.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:57:29 -0800
+Message-ID: <201012152357.oBFNvTOW013605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755878Ab0LPACR (ORCPT
+	by vger.kernel.org with ESMTP id S1755879Ab0LPACU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 19:02:17 -0500
+	Wed, 15 Dec 2010 19:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp: no paravirt version of pmd ops
+     thp: skip transhuge pages in ksm for now
 has been added to the -mm tree.  Its filename is
-     thp-no-paravirt-version-of-pmd-ops.patch
+     thp-skip-transhuge-pages-in-ksm-for-now.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: no paravirt version of pmd ops
+Subject: thp: skip transhuge pages in ksm for now
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-No paravirt version of set_pmd_at/pmd_update/pmd_update_defer.
+Skip transhuge pages in ksm for now.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/ksm.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~thp-no-paravirt-version-of-pmd-ops arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~thp-no-paravirt-version-of-pmd-ops
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -35,6 +35,7 @@ extern struct mm_struct *pgd_page_get_mm
- #else  /* !CONFIG_PARAVIRT */
- #define set_pte(ptep, pte)		native_set_pte(ptep, pte)
- #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
-+#define set_pmd_at(mm, addr, pmdp, pmd)	native_set_pmd_at(mm, addr, pmdp, pmd)
- 
- #define set_pte_atomic(ptep, pte)					\
- 	native_set_pte_atomic(ptep, pte)
-@@ -59,6 +60,8 @@ extern struct mm_struct *pgd_page_get_mm
- 
- #define pte_update(mm, addr, ptep)              do { } while (0)
- #define pte_update_defer(mm, addr, ptep)        do { } while (0)
-+#define pmd_update(mm, addr, ptep)              do { } while (0)
-+#define pmd_update_defer(mm, addr, ptep)        do { } while (0)
- 
- #define pgd_val(x)	native_pgd_val(x)
- #define __pgd(x)	native_make_pgd(x)
+diff -puN mm/ksm.c~thp-skip-transhuge-pages-in-ksm-for-now mm/ksm.c
+--- a/mm/ksm.c~thp-skip-transhuge-pages-in-ksm-for-now
++++ a/mm/ksm.c
+@@ -430,7 +430,7 @@ static struct page *get_mergeable_page(s
+ 	page = follow_page(vma, addr, FOLL_GET);
+ 	if (IS_ERR_OR_NULL(page))
+ 		goto out;
+-	if (PageAnon(page)) {
++	if (PageAnon(page) && !PageTransCompound(page)) {
+ 		flush_anon_page(vma, page, addr);
+ 		flush_dcache_page(page);
+ 	} else {
+@@ -1279,7 +1279,19 @@ next_mm:
+ 			if (ksm_test_exit(mm))
+ 				break;
+ 			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
+-			if (!IS_ERR_OR_NULL(*page) && PageAnon(*page)) {
++			if (IS_ERR_OR_NULL(*page)) {
++				ksm_scan.address += PAGE_SIZE;
++				cond_resched();
++				continue;
++			}
++			if (PageTransCompound(*page)) {
++				put_page(*page);
++				ksm_scan.address &= HPAGE_PMD_MASK;
++				ksm_scan.address += HPAGE_PMD_SIZE;
++				cond_resched();
++				continue;
++			}
++			if (PageAnon(*page)) {
+ 				flush_anon_page(vma, *page, ksm_scan.address);
+ 				flush_dcache_page(*page);
+ 				rmap_item = get_next_rmap_item(slot,
+@@ -1293,8 +1305,7 @@ next_mm:
+ 				up_read(&mm->mmap_sem);
+ 				return rmap_item;
+ 			}
+-			if (!IS_ERR_OR_NULL(*page))
+-				put_page(*page);
++			put_page(*page);
+ 			ksm_scan.address += PAGE_SIZE;
+ 			cond_resched();
+ 		}
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
