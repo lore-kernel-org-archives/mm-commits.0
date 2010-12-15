@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch added to -mm tree
-Date: Wed, 15 Dec 2010 15:57:57 -0800
-Message-ID: <201012152357.oBFNvvvi013658@imap1.linux-foundation.org>
+Subject: + thp-freeze-khugepaged-and-ksmd.patch added to -mm tree
+Date: Wed, 15 Dec 2010 15:58:03 -0800
+Message-ID: <201012152358.oBFNw33a013673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755910Ab0LOX6J (ORCPT
+	by vger.kernel.org with ESMTP id S1755922Ab0LOX6P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 18:58:09 -0500
+	Wed, 15 Dec 2010 18:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: avoid breaking huge pmd invariants in case of vma_adjust failures
+     thp: freeze khugepaged and ksmd
 has been added to the -mm tree.  Its filename is
-     thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
+     thp-freeze-khugepaged-and-ksmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,171 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: avoid breaking huge pmd invariants in case of vma_adjust failures
+Subject: thp: freeze khugepaged and ksmd
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-An huge pmd can only be mapped if the corresponding 2M virtual range is
-fully contained in the vma.  At times the VM calls split_vma twice, if the
-first split_vma succeeds and the second fail, the first split_vma remains
-in effect and it's not rolled back.  For split_vma or vma_adjust to fail
-an allocation failure is needed so it's a very unlikely event (the out of
-memory killer would normally fire before any allocation failure is visible
-to kernel and userland and if an out of memory condition happens it's
-unlikely to happen exactly here).  Nevertheless it's safer to ensure that
-no huge pmd can be left around if the vma is adjusted in a way that can't
-fit hugepages anymore at the new vm_start/vm_end address.
+It's unclear why schedule friendly kernel threads can't be taken away by
+the CPU through the scheduler itself.  It's safer to stop them as they can
+trigger memory allocation, if kswapd also freezes itself to avoid
+generating I/O they have too.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   19 +++++++++
- mm/huge_memory.c        |   80 +++++++++++++++++++++++++++++++++++++-
- mm/mmap.c               |    2 
- 3 files changed, 99 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   14 ++++++++++++--
+ mm/ksm.c         |    8 ++++++--
+ 2 files changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/huge_mm.h~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures
-+++ a/include/linux/huge_mm.h
-@@ -104,6 +104,19 @@ extern void __split_huge_page_pmd(struct
- #error "hugepages can't be allocated by the buddy allocator"
- #endif
- extern int hugepage_madvise(unsigned long *vm_flags);
-+extern void __vma_adjust_trans_huge(struct vm_area_struct *vma,
-+				    unsigned long start,
-+				    unsigned long end,
-+				    long adjust_next);
-+static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
-+					 unsigned long start,
-+					 unsigned long end,
-+					 long adjust_next)
-+{
-+	if (!vma->anon_vma || vma->vm_ops || vma->vm_file)
-+		return;
-+	__vma_adjust_trans_huge(vma, start, end, adjust_next);
-+}
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUG(); 0; })
-@@ -125,6 +138,12 @@ static inline int hugepage_madvise(unsig
- 	BUG();
- 	return 0;
- }
-+static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
-+					 unsigned long start,
-+					 unsigned long end,
-+					 long adjust_next)
-+{
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #endif /* _LINUX_HUGE_MM_H */
-diff -puN mm/huge_memory.c~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures mm/huge_memory.c
---- a/mm/huge_memory.c~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures
+diff -puN mm/huge_memory.c~thp-freeze-khugepaged-and-ksmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-freeze-khugepaged-and-ksmd
 +++ a/mm/huge_memory.c
-@@ -1075,8 +1075,16 @@ pmd_t *page_check_address_pmd(struct pag
- 		goto out;
- 	if (pmd_page(*pmd) != page)
- 		goto out;
--	VM_BUG_ON(flag == PAGE_CHECK_ADDRESS_PMD_NOTSPLITTING_FLAG &&
--		  pmd_trans_splitting(*pmd));
-+	/*
-+	 * split_vma() may create temporary aliased mappings. There is
-+	 * no risk as long as all huge pmd are found and have their
-+	 * splitting bit set before __split_huge_page_refcount
-+	 * runs. Finding the same huge pmd more than once during the
-+	 * same rmap walk is not a problem.
-+	 */
-+	if (flag == PAGE_CHECK_ADDRESS_PMD_NOTSPLITTING_FLAG &&
-+	    pmd_trans_splitting(*pmd))
-+		goto out;
- 	if (pmd_trans_huge(*pmd)) {
- 		VM_BUG_ON(flag == PAGE_CHECK_ADDRESS_PMD_SPLITTING_FLAG &&
- 			  !pmd_trans_splitting(*pmd));
-@@ -2196,3 +2204,71 @@ void __split_huge_page_pmd(struct mm_str
- 	put_page(page);
- 	BUG_ON(pmd_trans_huge(*pmd));
+@@ -15,6 +15,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/kthread.h>
+ #include <linux/khugepaged.h>
++#include <linux/freezer.h>
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+@@ -2085,6 +2086,9 @@ static void khugepaged_do_scan(struct pa
+ 			break;
+ #endif
+ 
++		if (unlikely(kthread_should_stop() || freezing(current)))
++			break;
++
+ 		spin_lock(&khugepaged_mm_lock);
+ 		if (!khugepaged_scan.mm_slot)
+ 			pass_through_head++;
+@@ -2147,6 +2151,9 @@ static void khugepaged_loop(void)
+ 		if (hpage)
+ 			put_page(hpage);
+ #endif
++		try_to_freeze();
++		if (unlikely(kthread_should_stop()))
++			break;
+ 		if (khugepaged_has_work()) {
+ 			DEFINE_WAIT(wait);
+ 			if (!khugepaged_scan_sleep_millisecs)
+@@ -2157,8 +2164,8 @@ static void khugepaged_loop(void)
+ 					khugepaged_scan_sleep_millisecs));
+ 			remove_wait_queue(&khugepaged_wait, &wait);
+ 		} else if (khugepaged_enabled())
+-			wait_event_interruptible(khugepaged_wait,
+-						 khugepaged_wait_event());
++			wait_event_freezable(khugepaged_wait,
++					     khugepaged_wait_event());
+ 	}
  }
-+
-+static void split_huge_page_address(struct mm_struct *mm,
-+				    unsigned long address)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+
-+	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
-+
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		return;
-+
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		return;
-+
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_present(*pmd))
-+		return;
-+	/*
-+	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-+	 * materialize from under us.
-+	 */
-+	split_huge_page_pmd(mm, pmd);
-+}
-+
-+void __vma_adjust_trans_huge(struct vm_area_struct *vma,
-+			     unsigned long start,
-+			     unsigned long end,
-+			     long adjust_next)
-+{
-+	/*
-+	 * If the new start address isn't hpage aligned and it could
-+	 * previously contain an hugepage: check if we need to split
-+	 * an huge pmd.
-+	 */
-+	if (start & ~HPAGE_PMD_MASK &&
-+	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
-+	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
-+		split_huge_page_address(vma->vm_mm, start);
-+
-+	/*
-+	 * If the new end address isn't hpage aligned and it could
-+	 * previously contain an hugepage: check if we need to split
-+	 * an huge pmd.
-+	 */
-+	if (end & ~HPAGE_PMD_MASK &&
-+	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
-+	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
-+		split_huge_page_address(vma->vm_mm, end);
-+
-+	/*
-+	 * If we're also updating the vma->vm_next->vm_start, if the new
-+	 * vm_next->vm_start isn't page aligned and it could previously
-+	 * contain an hugepage: check if we need to split an huge pmd.
-+	 */
-+	if (adjust_next > 0) {
-+		struct vm_area_struct *next = vma->vm_next;
-+		unsigned long nstart = next->vm_start;
-+		nstart += adjust_next << PAGE_SHIFT;
-+		if (nstart & ~HPAGE_PMD_MASK &&
-+		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
-+		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
-+			split_huge_page_address(next->vm_mm, nstart);
-+	}
-+}
-diff -puN mm/mmap.c~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures mm/mmap.c
---- a/mm/mmap.c~thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures
-+++ a/mm/mmap.c
-@@ -589,6 +589,8 @@ again:			remove_next = 1 + (end > next->
- 		}
+ 
+@@ -2166,6 +2173,7 @@ static int khugepaged(void *none)
+ {
+ 	struct mm_slot *mm_slot;
+ 
++	set_freezable();
+ 	set_user_nice(current, 19);
+ 
+ 	/* serialize with start_khugepaged() */
+@@ -2180,6 +2188,8 @@ static int khugepaged(void *none)
+ 		mutex_lock(&khugepaged_mutex);
+ 		if (!khugepaged_enabled())
+ 			break;
++		if (unlikely(kthread_should_stop()))
++			break;
  	}
  
-+	vma_adjust_trans_huge(vma, start, end, adjust_next);
+ 	spin_lock(&khugepaged_mm_lock);
+diff -puN mm/ksm.c~thp-freeze-khugepaged-and-ksmd mm/ksm.c
+--- a/mm/ksm.c~thp-freeze-khugepaged-and-ksmd
++++ a/mm/ksm.c
+@@ -34,6 +34,7 @@
+ #include <linux/swap.h>
+ #include <linux/ksm.h>
+ #include <linux/hash.h>
++#include <linux/freezer.h>
+ 
+ #include <asm/tlbflush.h>
+ #include "internal.h"
+@@ -1365,7 +1366,7 @@ static void ksm_do_scan(unsigned int sca
+ 	struct rmap_item *rmap_item;
+ 	struct page *uninitialized_var(page);
+ 
+-	while (scan_npages--) {
++	while (scan_npages-- && likely(!freezing(current))) {
+ 		cond_resched();
+ 		rmap_item = scan_get_next_rmap_item(&page);
+ 		if (!rmap_item)
+@@ -1383,6 +1384,7 @@ static int ksmd_should_run(void)
+ 
+ static int ksm_scan_thread(void *nothing)
+ {
++	set_freezable();
+ 	set_user_nice(current, 5);
+ 
+ 	while (!kthread_should_stop()) {
+@@ -1391,11 +1393,13 @@ static int ksm_scan_thread(void *nothing
+ 			ksm_do_scan(ksm_thread_pages_to_scan);
+ 		mutex_unlock(&ksm_thread_mutex);
+ 
++		try_to_freeze();
 +
- 	/*
- 	 * When changing only vma->vm_end, we don't really need anon_vma
- 	 * lock. This is a fairly rare case by itself, but the anon_vma
+ 		if (ksmd_should_run()) {
+ 			schedule_timeout_interruptible(
+ 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
+ 		} else {
+-			wait_event_interruptible(ksm_thread_wait,
++			wait_event_freezable(ksm_thread_wait,
+ 				ksmd_should_run() || kthread_should_stop());
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
