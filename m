@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch added to -mm tree
-Date: Thu, 16 Dec 2010 00:27:40 -0800
-Message-ID: <201012160830.oBG8UPC2000610@imap1.linux-foundation.org>
+Subject: + fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog.patch added to -mm tree
+Date: Thu, 16 Dec 2010 14:31:15 -0800
+Message-ID: <201012162304.oBGN4Ghj005822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330Ab0LPIah (ORCPT
+	by vger.kernel.org with ESMTP id S1750855Ab0LPXEm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Dec 2010 03:30:37 -0500
+	Thu, 16 Dec 2010 18:04:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com
+Cc: akpm@linux-foundation.org, dzickus@redhat.com, gorcunov@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     thp: mm: khugepaged: pass vma to collapse_huge_page
+     fix "lockup detector: Compile fixes from removing the old x86 nmi watchdog"
 has been added to the -mm tree.  Its filename is
-     thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
+     fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: mm: khugepaged: pass vma to collapse_huge_page
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: fix "lockup detector: Compile fixes from removing the old x86 nmi watchdog"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A local variable declaration hidden the fact the vma wasn't passed to
-collapse_huge_page.
+i386 allnoconfig:
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+arch/x86/kernel/apic/hw_nmi.c:29: error: redefinition of 'touch_nmi_watchdog'
+include/linux/nmi.h:23: error: previous definition of 'touch_nmi_watchdog' was here
+
+Please don't break bisection when fixing this :(
+
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/nmi.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix
-+++ a/mm/huge_memory.c
-@@ -1664,9 +1664,9 @@ static void __collapse_huge_page_copy(pt
- 
- static void collapse_huge_page(struct mm_struct *mm,
- 			       unsigned long address,
--			       struct page **hpage)
-+			       struct page **hpage,
-+			       struct vm_area_struct *vma)
+diff -puN arch/x86/kernel/apic/hw_nmi.c~fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog arch/x86/kernel/apic/hw_nmi.c
+diff -puN include/linux/nmi.h~fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog include/linux/nmi.h
+--- a/include/linux/nmi.h~fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog
++++ a/include/linux/nmi.h
+@@ -18,7 +18,7 @@
+ #include <asm/nmi.h>
+ extern void touch_nmi_watchdog(void);
+ #else
+-#ifndef CONFIG_HARDLOCKUP_DETECTOR
++#ifdef CONFIG_HARDLOCKUP_DETECTOR
+ static inline void touch_nmi_watchdog(void)
  {
--	struct vm_area_struct *vma;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd, _pmd;
-@@ -1880,7 +1880,7 @@ out_unmap:
- 	pte_unmap_unlock(pte, ptl);
- 	if (ret)
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage);
-+		collapse_huge_page(mm, address, hpage, vma);
- out:
- 	return ret;
- }
+ 	touch_softlockup_watchdog();
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+fix-lockup-detector-compile-fixes-from-removing-the-old-x86-nmi-watchdog.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+delayacct-fix-iotop-on-x86_64-fix.patch
+mm-vmap-area-cache.patch
+arch-x86-kernel-apic-io_apicc-fix-warning.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-transparent-hugepage-support-documentation.patch
-thp-mm-define-madv_hugepage.patch
-thp-compound_lock.patch
-thp-alter-compound-get_page-put_page.patch
-thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-functions-to-x86.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
-thp-pte-alloc-trans-splitting.patch
-thp-add-pmd-mmu_notifier-helpers.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-kvm-mmu-transparent-hugepage-support.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-transparent-hugepage-core.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-madvisemadv_hugepage.patch
-thp-add-pagetranscompound.patch
-thp-pmd_trans_huge-migrate-bugcheck.patch
-thp-memcg-compound.patch
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-memcg-huge-memory.patch
-thp-transparent-hugepage-vmstat.patch
-thp-khugepaged.patch
-thp-khugepaged-vma-merge.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-remove-pg_buddy.patch
-thp-add-x86-32bit-support.patch
-thp-mincore-transparent-hugepage-support.patch
-thp-add-pmd_modify.patch
-thp-mprotect-pass-vma-down-to-page-table-walkers.patch
-thp-mprotect-transparent-huge-page-support.patch
-thp-set-recommended-min-free-kbytes.patch
-thp-enable-direct-defrag.patch
-thp-add-numa-awareness-to-hugepage-allocations.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
-thp-transparent-hugepage-config-choice.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
-thp-dont-allow-transparent-hugepage-support-without-pse.patch
-thp-mmu_notifier_test_young.patch
-thp-freeze-khugepaged-and-ksmd.patch
-thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
-thp-use-compaction-for-all-allocation-orders.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
-thp-scale-nr_rotated-to-balance-memory-pressure.patch
-thp-transparent-hugepage-sysfs-meminfo.patch
-thp-add-debug-checks-for-mapcount-related-invariants.patch
-thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
-thp-compound_trans_order.patch
-thp-mm-define-madv_nohugepage.patch
-thp-madvisemadv_nohugepage.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-async-pps-event-handler-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
