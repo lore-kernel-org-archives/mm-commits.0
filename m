@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-kvm-mmu-transparent-hugepage-support.patch added to -mm tree
-Date: Wed, 15 Dec 2010 19:32:07 -0800
-Message-ID: <201012160334.oBG3YocS022107@imap1.linux-foundation.org>
+Subject: + thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch added to -mm tree
+Date: Thu, 16 Dec 2010 00:27:40 -0800
+Message-ID: <201012160830.oBG8UPC2000610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401Ab0LPDfC (ORCPT
+	by vger.kernel.org with ESMTP id S1751330Ab0LPIah (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Dec 2010 22:35:02 -0500
+	Thu, 16 Dec 2010 03:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, avi@redhat.com, mtosatti@redhat.com
+Cc: aarcange@redhat.com
 
 
 The patch titled
-     thp: kvm mmu transparent hugepage support
+     thp: mm: khugepaged: pass vma to collapse_huge_page
 has been added to the -mm tree.  Its filename is
-     thp-kvm-mmu-transparent-hugepage-support.patch
+     thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: kvm mmu transparent hugepage support
+Subject: thp: mm: khugepaged: pass vma to collapse_huge_page
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-This should work for both hugetlbfs and transparent hugepages.
+A local variable declaration hidden the fact the vma wasn't passed to
+collapse_huge_page.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c         |   14 ++++++++++++++
- arch/x86/kvm/paging_tmpl.h |    1 +
- virt/kvm/kvm_main.c        |   32 ++++++++++++++++++++++++++++++--
- 3 files changed, 45 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~thp-kvm-mmu-transparent-hugepage-support arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~thp-kvm-mmu-transparent-hugepage-support
-+++ a/arch/x86/kvm/mmu.c
-@@ -2286,6 +2286,18 @@ static int kvm_handle_bad_page(struct kv
- 	return 1;
- }
+diff -puN mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix
++++ a/mm/huge_memory.c
+@@ -1664,9 +1664,9 @@ static void __collapse_huge_page_copy(pt
  
-+static void transparent_hugepage_adjust(gfn_t *gfn, pfn_t *pfn, int * level)
-+{
-+	/* check if it's a transparent hugepage */
-+	if (!is_error_pfn(*pfn) && !kvm_is_mmio_pfn(*pfn) &&
-+	    *level == PT_PAGE_TABLE_LEVEL &&
-+	    PageTransCompound(pfn_to_page(*pfn))) {
-+		*level = PT_DIRECTORY_LEVEL;
-+		*gfn = *gfn & ~(KVM_PAGES_PER_HPAGE(*level) - 1);
-+		*pfn = *pfn & ~(KVM_PAGES_PER_HPAGE(*level) - 1);
-+	}
-+}
-+
- static bool try_async_pf(struct kvm_vcpu *vcpu, bool no_apf, gfn_t gfn,
- 			 gva_t gva, pfn_t *pfn, bool write, bool *writable);
- 
-@@ -2314,6 +2326,7 @@ static int nonpaging_map(struct kvm_vcpu
- 
- 	if (try_async_pf(vcpu, no_apf, gfn, v, &pfn, write, &map_writable))
- 		return 0;
-+	transparent_hugepage_adjust(&gfn, &pfn, &level);
- 
- 	/* mmio */
- 	if (is_error_pfn(pfn))
-@@ -2676,6 +2689,7 @@ static int tdp_page_fault(struct kvm_vcp
- 
- 	if (try_async_pf(vcpu, no_apf, gfn, gpa, &pfn, write, &map_writable))
- 		return 0;
-+	transparent_hugepage_adjust(&gfn, &pfn, &level);
- 
- 	/* mmio */
- 	if (is_error_pfn(pfn))
-diff -puN arch/x86/kvm/paging_tmpl.h~thp-kvm-mmu-transparent-hugepage-support arch/x86/kvm/paging_tmpl.h
---- a/arch/x86/kvm/paging_tmpl.h~thp-kvm-mmu-transparent-hugepage-support
-+++ a/arch/x86/kvm/paging_tmpl.h
-@@ -575,6 +575,7 @@ static int FNAME(page_fault)(struct kvm_
- 	if (try_async_pf(vcpu, no_apf, walker.gfn, addr, &pfn, write_fault,
- 			 &map_writable))
- 		return 0;
-+	transparent_hugepage_adjust(&walker.gfn, &pfn, &level);
- 
- 	/* mmio */
- 	if (is_error_pfn(pfn))
-diff -puN virt/kvm/kvm_main.c~thp-kvm-mmu-transparent-hugepage-support virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~thp-kvm-mmu-transparent-hugepage-support
-+++ a/virt/kvm/kvm_main.c
-@@ -103,8 +103,36 @@ static pfn_t fault_pfn;
- inline int kvm_is_mmio_pfn(pfn_t pfn)
+ static void collapse_huge_page(struct mm_struct *mm,
+ 			       unsigned long address,
+-			       struct page **hpage)
++			       struct page **hpage,
++			       struct vm_area_struct *vma)
  {
- 	if (pfn_valid(pfn)) {
--		struct page *page = compound_head(pfn_to_page(pfn));
--		return PageReserved(page);
-+		struct page *head;
-+		struct page *tail = pfn_to_page(pfn);
-+		head = compound_head(tail);
-+		if (head != tail) {
-+			smp_rmb();
-+			/*
-+			 * head may be a dangling pointer.
-+			 * __split_huge_page_refcount clears PageTail
-+			 * before overwriting first_page, so if
-+			 * PageTail is still there it means the head
-+			 * pointer isn't dangling.
-+			 */
-+			if (PageTail(tail)) {
-+				/*
-+				 * the "head" is not a dangling
-+				 * pointer but the hugepage may have
-+				 * been splitted from under us (and we
-+				 * may not hold a reference count on
-+				 * the head page so it can be reused
-+				 * before we run PageReferenced), so
-+				 * we've to recheck PageTail before
-+				 * returning what we just read.
-+				 */
-+				int reserved = PageReserved(head);
-+				smp_rmb();
-+				if (PageTail(tail))
-+					return reserved;
-+			}
-+		}
-+		return PageReserved(tail);
- 	}
- 
- 	return true;
+-	struct vm_area_struct *vma;
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd, _pmd;
+@@ -1880,7 +1880,7 @@ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
+ 	if (ret)
+ 		/* collapse_huge_page will return with the mmap_sem released */
+-		collapse_huge_page(mm, address, hpage);
++		collapse_huge_page(mm, address, hpage, vma);
+ out:
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -207,6 +137,7 @@ thp-set-recommended-min-free-kbytes.patch
 thp-enable-direct-defrag.patch
 thp-add-numa-awareness-to-hugepage-allocations.patch
 thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
+thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
 thp-transparent-hugepage-config-choice.patch
 thp-select-config_compaction-if-transparent_hugepage-enabled.patch
 thp-transhuge-isolate_migratepages.patch
