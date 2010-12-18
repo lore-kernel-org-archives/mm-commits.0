@@ -1,36 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] pps-trivial-fixes.patch removed from -mm tree
-Date: Fri, 17 Dec 2010 16:04:23 -0800
-Message-ID: <201012180004.oBI04OM7004176@imap1.linux-foundation.org>
+Subject: [to-be-updated] pps-declare-variables-where-they-are-used-in-switch.patch removed from -mm tree
+Date: Fri, 17 Dec 2010 16:04:29 -0800
+Message-ID: <201012180004.oBI04TGJ004183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754160Ab0LRAEu (ORCPT
+	by vger.kernel.org with ESMTP id S1756490Ab0LRAE7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:04:50 -0500
+	Fri, 17 Dec 2010 19:04:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com, joonwpark81@gmail.com, tj@kernel.org, yoush@cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: trivial fixes
+     pps: define variables where they are used in switch
 has been removed from the -mm tree.  Its filename was
-     pps-trivial-fixes.patch
+     pps-declare-variables-where-they-are-used-in-switch.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: trivial fixes
+Subject: pps: define variables where they are used in switch
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Here are some very trivial fixes combined:
- * add macro definitions to protect header file from including several times
- * remove declaration for an unexistent array
- * fix typos
+Move variable definitions where they are used in pps_cdev_ioctl.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -41,68 +38,42 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c         |    2 +-
- include/linux/pps_kernel.h |    7 ++++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/pps/pps.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-trivial-fixes drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-trivial-fixes
-+++ a/drivers/pps/kapi.c
-@@ -324,7 +324,7 @@ void pps_event(int source, struct pps_kt
- 		captured = ~0;
- 	}
+diff -puN drivers/pps/pps.c~pps-declare-variables-where-they-are-used-in-switch drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-declare-variables-where-they-are-used-in-switch
++++ a/drivers/pps/pps.c
+@@ -61,8 +61,6 @@ static long pps_cdev_ioctl(struct file *
+ {
+ 	struct pps_device *pps = file->private_data;
+ 	struct pps_kparams params;
+-	struct pps_fdata fdata;
+-	unsigned long ticks;
+ 	void __user *uarg = (void __user *) arg;
+ 	int __user *iuarg = (int __user *) arg;
+ 	int err;
+@@ -136,7 +134,9 @@ static long pps_cdev_ioctl(struct file *
  
--	/* Wake up iif captured somthing */
-+	/* Wake up if captured something */
- 	if (captured) {
- 		pps->go = ~0;
- 		wake_up_interruptible(&pps->queue);
-diff -puN include/linux/pps_kernel.h~pps-trivial-fixes include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-trivial-fixes
-+++ a/include/linux/pps_kernel.h
-@@ -18,6 +18,9 @@
-  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+ 		break;
  
-+#ifndef LINUX_PPS_KERNEL_H
-+#define LINUX_PPS_KERNEL_H
+-	case PPS_FETCH:
++	case PPS_FETCH: {
++		struct pps_fdata fdata;
 +
- #include <linux/pps.h>
+ 		pr_debug("PPS_FETCH: source %d\n", pps->id);
  
- #include <linux/cdev.h>
-@@ -71,7 +74,6 @@ struct pps_device {
- 
- extern spinlock_t pps_idr_lock;
- extern struct idr pps_idr;
--extern struct timespec pps_irq_ts[];
- 
- extern struct device_attribute pps_attrs[];
- 
-@@ -87,3 +89,6 @@ extern void pps_unregister_source(int so
- extern int pps_register_cdev(struct pps_device *pps);
- extern void pps_unregister_cdev(struct pps_device *pps);
- extern void pps_event(int source, struct pps_ktime *ts, int event, void *data);
+ 		err = copy_from_user(&fdata, uarg, sizeof(struct pps_fdata));
+@@ -149,6 +149,8 @@ static long pps_cdev_ioctl(struct file *
+ 		if (fdata.timeout.flags & PPS_TIME_INVALID)
+ 			err = wait_event_interruptible(pps->queue, pps->go);
+ 		else {
++			unsigned long ticks;
 +
-+#endif /* LINUX_PPS_KERNEL_H */
-+
-_
-
-Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
-
-pps-declare-variables-where-they-are-used-in-switch.patch
-pps-fix-race-in-pps_fetch-handler.patch
-pps-unify-timestamp-gathering.patch
-pps-access-pps-device-by-direct-pointer.patch
-pps-convert-printk-pr_-to-dev_.patch
-pps-move-idr-stuff-to-ppsc.patch
-pps-add-async-pps-event-handler.patch
-pps-add-async-pps-event-handler-fix.patch
-pps-dont-disable-interrupts-when-using-spin-locks.patch
-pps-use-bug_on-for-kernel-api-safety-checks.patch
-pps-simplify-conditions-a-bit.patch
-ntp-add-hardpps-implementation.patch
-pps-capture-monotonic_raw-timestamps-as-well.patch
-pps-add-kernel-consumer-support.patch
-pps-add-parallel-port-pps-client.patch
-pps-add-parallel-port-pps-signal-generator.patch
-
+ 			pr_debug("timeout %lld.%09d\n",
+ 					(long long) fdata.timeout.sec,
+ 					fdata.timeout.nsec);
+@@ -185,7 +187,7 @@ static long pps_cdev_ioctl(struct file *
+ 			return -EFAULT;
+ 
+ 		break;
