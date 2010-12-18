@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-add-hardpps-implementation.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:20:10 -0800
-Message-ID: <201012180020.oBI0KAOU004922@imap1.linux-foundation.org>
+Subject: + kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:54:22 -0800
+Message-ID: <201012180054.oBI0sMMe006350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652Ab0LRAU0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756582Ab0LRAy6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:20:26 -0500
+	Fri, 17 Dec 2010 19:54:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lasaine@lvk.cs.msu.su, johnstul@us.ibm.com
+Cc: drosenberg@vsecurity.com, a.p.zijlstra@chello.nl, davem@davemloft.net, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
 
 
 The patch titled
-     ntp: add hardpps implementation
+     kptr_restrict for hiding kernel pointers from unprivileged users
 has been added to the -mm tree.  Its filename is
-     ntp-add-hardpps-implementation.patch
+     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,574 +34,178 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: add hardpps implementation
-From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Subject: kptr_restrict for hiding kernel pointers from unprivileged users
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-This commit adds hardpps() implementation based upon the original one from
-the NTPv4 reference kernel code from David Mills.  However, it is highly
-optimized towards very fast syncronization and maximum stickness to PPS
-signal.  The typical error is less then a microsecond.
+Add the %pK printk format specifier, the CONFIG_SECURITY_KPTR_RESTRICT
+configuration option, and the kptr_restrict sysctl.
 
-To make it sync faster I had to throw away exponential phase filter so
-that the full phase offset is corrected immediately.  Then I also had to
-throw away median phase filter because it gives a bigger error itself if
-used without exponential filter.
+The %pK format specifier is designed to hide exposed kernel pointers from
+unprivileged users, specifically via /proc interfaces.  Its behavior
+depends on the kptr_restrict sysctl, whose default value depends on
+CONFIG_SECURITY_KPTR_RESTRICT.
 
-Maybe we will find an appropriate filtering scheme in the future but it's
-not necessary if the signal quality is ok.
+If kptr_restrict is set to 0, no deviation from the standard %p behavior
+occurs.  If kptr_restrict is set to 1, if the current user (intended to be
+a reader via seq_printf(), etc.) does not have CAP_SYSLOG (which is
+currently in the LSM tree), kernel pointers using %pK are printed as 0's. 
+This was chosen over the default "(null)", which cannot be parsed by
+userland %p, which expects "(nil)".
 
-Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Acked-by: John Stultz <johnstul@us.ibm.com>
+v2 improves checking for inappropriate context, on suggestion by Peter
+Zijlstra.  Thanks to Thomas Graf for suggesting use of a centralized
+format specifier.
+
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Thomas Graf <tgraf@infradead.org>
+Acked-by: Eugene Teo <eugeneteo@kernel.org>
+Acked-by: Kees Cook <kees.cook@canonical.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/Kconfig   |    7 
- include/linux/timex.h |    1 
- kernel/time/ntp.c     |  425 ++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 418 insertions(+), 15 deletions(-)
+ Documentation/sysctl/kernel.txt |   14 ++++++++++++++
+ include/linux/kernel.h          |    2 ++
+ kernel/sysctl.c                 |    9 +++++++++
+ lib/vsprintf.c                  |   18 ++++++++++++++++++
+ security/Kconfig                |   12 ++++++++++++
+ 5 files changed, 55 insertions(+)
 
-diff -puN drivers/pps/Kconfig~ntp-add-hardpps-implementation drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~ntp-add-hardpps-implementation
-+++ a/drivers/pps/Kconfig
-@@ -30,6 +30,13 @@ config PPS_DEBUG
- 	  messages to the system log.  Select this if you are having a
- 	  problem with PPS support and want to see more of what is going on.
+diff -puN Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
++++ a/Documentation/sysctl/kernel.txt
+@@ -34,6 +34,7 @@ show up in /proc/sys/kernel:
+ - hotplug
+ - java-appletviewer           [ binfmt_java, obsolete ]
+ - java-interpreter            [ binfmt_java, obsolete ]
++- kptr_restrict
+ - kstack_depth_to_print       [ X86 only ]
+ - l2cr                        [ PPC only ]
+ - modprobe                    ==> Documentation/debugging-modules.txt
+@@ -261,6 +262,19 @@ This flag controls the L2 cache of G3 pr
  
-+config NTP_PPS
-+	bool "PPS kernel consumer support"
-+	depends on PPS
+ ==============================================================
+ 
++kptr_restrict:
++
++This toggle indicates whether unprivileged users are prevented from reading
++kernel addresses via /proc and other interfaces.  When kptr_restrict is set
++to (0), there are no restrictions.  When kptr_restrict is set to (1), kernel
++pointers printed using the %pK format specifier will be replaced with 0's
++unless the user has CAP_SYSLOG.
++
++The kernel config option CONFIG_SECURITY_KPTR_RESTRICT sets the default
++value of kptr_restrict.
++
++==============================================================
++
+ kstack_depth_to_print: (X86 only)
+ 
+ Controls the number of words to print when dumping the raw
+diff -puN include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users include/linux/kernel.h
+--- a/include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
++++ a/include/linux/kernel.h
+@@ -216,6 +216,8 @@ extern int sscanf(const char *, const ch
+ extern int vsscanf(const char *, const char *, va_list)
+ 	__attribute__ ((format (scanf, 2, 0)));
+ 
++extern int kptr_restrict;	/* for sysctl */
++
+ extern int get_option(char **str, int *pint);
+ extern char *get_options(const char *str, int nints, int *ints);
+ extern unsigned long long memparse(const char *ptr, char **retptr);
+diff -puN kernel/sysctl.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users kernel/sysctl.c
+--- a/kernel/sysctl.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
++++ a/kernel/sysctl.c
+@@ -712,6 +712,15 @@ static struct ctl_table kern_table[] = {
+ 	},
+ #endif
+ 	{
++		.procname	= "kptr_restrict",
++		.data		= &kptr_restrict,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++	{
+ 		.procname	= "ngroups_max",
+ 		.data		= &ngroups_max,
+ 		.maxlen		= sizeof (int),
+diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users lib/vsprintf.c
+--- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
++++ a/lib/vsprintf.c
+@@ -936,6 +936,8 @@ char *uuid_string(char *buf, char *end, 
+ 	return string(buf, end, uuid, spec);
+ }
+ 
++int kptr_restrict = CONFIG_SECURITY_KPTR_RESTRICT;
++
+ /*
+  * Show a '%p' thing.  A kernel extension is that the '%p' is followed
+  * by an extra set of alphanumeric characters that are extended format
+@@ -979,6 +981,7 @@ char *uuid_string(char *buf, char *end, 
+  *       Implements a "recursive vsnprintf".
+  *       Do not use this feature without some mechanism to verify the
+  *       correctness of the format string and va_list arguments.
++ * - 'K' For a kernel pointer that should be hidden from unprivileged users
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -1035,6 +1038,21 @@ char *pointer(const char *fmt, char *buf
+ 		return buf + vsnprintf(buf, end - buf,
+ 				       ((struct va_format *)ptr)->fmt,
+ 				       *(((struct va_format *)ptr)->va));
++	case 'K':
++		if (kptr_restrict) {
++			if (in_irq() || in_serving_softirq() || in_nmi())
++				WARN(1, "%%pK used in interrupt context.\n");
++
++			else if (capable(CAP_SYSLOG))
++				break;
++
++			if (spec.field_width == -1) {
++				spec.field_width = 2 * sizeof(void *);
++				spec.flags |= ZEROPAD;
++			}
++			return number(buf, end, 0, spec);
++		}
++		break;
+ 	}
+ 	spec.flags |= SMALL;
+ 	if (spec.field_width == -1) {
+diff -puN security/Kconfig~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users security/Kconfig
+--- a/security/Kconfig~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
++++ a/security/Kconfig
+@@ -82,6 +82,18 @@ config SECURITY_DMESG_RESTRICT
+ 
+ 	  If you are unsure how to answer this question, answer N.
+ 
++config SECURITY_KPTR_RESTRICT
++	bool "Hide kernel pointers from unprivileged users"
++	default n
 +	help
-+	  This option adds support for direct in-kernel time
-+	  syncronization using an external PPS signal.
++	  This enforces restrictions on unprivileged users reading kernel
++	  addresses via various interfaces, e.g. /proc.
 +
- source drivers/pps/clients/Kconfig
- 
- endmenu
-diff -puN include/linux/timex.h~ntp-add-hardpps-implementation include/linux/timex.h
---- a/include/linux/timex.h~ntp-add-hardpps-implementation
-+++ a/include/linux/timex.h
-@@ -268,6 +268,7 @@ extern u64 tick_length;
- extern void second_overflow(void);
- extern void update_ntp_one_tick(void);
- extern int do_adjtimex(struct timex *);
-+extern void hardpps(const struct timespec *, const struct timespec *);
- 
- int read_current_timer(unsigned long *timer_val);
- 
-diff -puN kernel/time/ntp.c~ntp-add-hardpps-implementation kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-add-hardpps-implementation
-+++ a/kernel/time/ntp.c
-@@ -14,6 +14,7 @@
- #include <linux/timex.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/module.h>
- 
- /*
-  * NTP timekeeping variables:
-@@ -74,6 +75,162 @@ static long			time_adjust;
- /* constant (boot-param configurable) NTP tick adjustment (upscaled)	*/
- static s64			ntp_tick_adj;
- 
-+#ifdef CONFIG_NTP_PPS
++	  If this option is not selected, no restrictions will be enforced
++	  unless the kptr_restrict sysctl is explicitly set to (1).
 +
-+/*
-+ * The following variables are used when a pulse-per-second (PPS) signal
-+ * is available. They establish the engineering parameters of the clock
-+ * discipline loop when controlled by the PPS signal.
-+ */
-+#define PPS_VALID	10	/* PPS signal watchdog max (s) */
-+#define PPS_POPCORN	4	/* popcorn spike threshold (shift) */
-+#define PPS_INTMIN	2	/* min freq interval (s) (shift) */
-+#define PPS_INTMAX	8	/* max freq interval (s) (shift) */
-+#define PPS_INTCOUNT	4	/* number of consecutive good intervals to
-+				   increase pps_shift or consecutive bad
-+				   intervals to decrease it */
-+#define PPS_MAXWANDER	100000	/* max PPS freq wander (ns/s) */
++	  If you are unsure how to answer this question, answer N.
 +
-+static int pps_valid;		/* signal watchdog counter */
-+static long pps_tf[3];		/* phase median filter */
-+static long pps_jitter;		/* current jitter (ns) */
-+static struct timespec pps_fbase; /* beginning of the last freq interval */
-+static int pps_shift;		/* current interval duration (s) (shift) */
-+static int pps_intcnt;		/* interval counter */
-+static s64 pps_freq;		/* frequency offset (scaled ns/s) */
-+static long pps_stabil;		/* current stability (scaled ns/s) */
-+
-+/*
-+ * PPS signal quality monitors
-+ */
-+static long pps_calcnt;		/* calibration intervals */
-+static long pps_jitcnt;		/* jitter limit exceeded */
-+static long pps_stbcnt;		/* stability limit exceeded */
-+static long pps_errcnt;		/* calibration errors */
-+
-+
-+/* PPS kernel consumer compensates the whole phase error immediately.
-+ * Otherwise, reduce the offset by a fixed factor times the time constant.
-+ */
-+static inline s64 ntp_offset_chunk(s64 offset)
-+{
-+	if (time_status & STA_PPSTIME && time_status & STA_PPSSIGNAL)
-+		return offset;
-+	else
-+		return shift_right(offset, SHIFT_PLL + time_constant);
-+}
-+
-+static inline void pps_reset_freq_interval(void)
-+{
-+	/* the PPS calibration interval may end
-+	   surprisingly early */
-+	pps_shift = PPS_INTMIN;
-+	pps_intcnt = 0;
-+}
-+
-+/**
-+ * pps_clear - Clears the PPS state variables
-+ *
-+ * Must be called while holding a write on the xtime_lock
-+ */
-+static inline void pps_clear(void)
-+{
-+	pps_reset_freq_interval();
-+	pps_tf[0] = 0;
-+	pps_tf[1] = 0;
-+	pps_tf[2] = 0;
-+	pps_fbase.tv_sec = pps_fbase.tv_nsec = 0;
-+	pps_freq = 0;
-+}
-+
-+/* Decrease pps_valid to indicate that another second has passed since
-+ * the last PPS signal. When it reaches 0, indicate that PPS signal is
-+ * missing.
-+ *
-+ * Must be called while holding a write on the xtime_lock
-+ */
-+static inline void pps_dec_valid(void)
-+{
-+	if (pps_valid > 0)
-+		pps_valid--;
-+	else {
-+		time_status &= ~(STA_PPSSIGNAL | STA_PPSJITTER |
-+				 STA_PPSWANDER | STA_PPSERROR);
-+		pps_clear();
-+	}
-+}
-+
-+static inline void pps_set_freq(s64 freq)
-+{
-+	pps_freq = freq;
-+}
-+
-+static inline int is_error_status(int status)
-+{
-+	return (time_status & (STA_UNSYNC|STA_CLOCKERR))
-+		/* PPS signal lost when either PPS time or
-+		 * PPS frequency synchronization requested
-+		 */
-+		|| ((time_status & (STA_PPSFREQ|STA_PPSTIME))
-+			&& !(time_status & STA_PPSSIGNAL))
-+		/* PPS jitter exceeded when
-+		 * PPS time synchronization requested */
-+		|| ((time_status & (STA_PPSTIME|STA_PPSJITTER))
-+			== (STA_PPSTIME|STA_PPSJITTER))
-+		/* PPS wander exceeded or calibration error when
-+		 * PPS frequency synchronization requested
-+		 */
-+		|| ((time_status & STA_PPSFREQ)
-+			&& (time_status & (STA_PPSWANDER|STA_PPSERROR)));
-+}
-+
-+static inline void pps_fill_timex(struct timex *txc)
-+{
-+	txc->ppsfreq	   = shift_right((pps_freq >> PPM_SCALE_INV_SHIFT) *
-+					 PPM_SCALE_INV, NTP_SCALE_SHIFT);
-+	txc->jitter	   = pps_jitter;
-+	if (!(time_status & STA_NANO))
-+		txc->jitter /= NSEC_PER_USEC;
-+	txc->shift	   = pps_shift;
-+	txc->stabil	   = pps_stabil;
-+	txc->jitcnt	   = pps_jitcnt;
-+	txc->calcnt	   = pps_calcnt;
-+	txc->errcnt	   = pps_errcnt;
-+	txc->stbcnt	   = pps_stbcnt;
-+}
-+
-+#else /* !CONFIG_NTP_PPS */
-+
-+static inline s64 ntp_offset_chunk(s64 offset)
-+{
-+	return shift_right(offset, SHIFT_PLL + time_constant);
-+}
-+
-+static inline void pps_reset_freq_interval(void) {}
-+static inline void pps_clear(void) {}
-+static inline void pps_dec_valid(void) {}
-+static inline void pps_set_freq(s64 freq) {}
-+
-+static inline int is_error_status(int status)
-+{
-+	return status & (STA_UNSYNC|STA_CLOCKERR);
-+}
-+
-+static inline void pps_fill_timex(struct timex *txc)
-+{
-+	/* PPS is not implemented, so these are zero */
-+	txc->ppsfreq	   = 0;
-+	txc->jitter	   = 0;
-+	txc->shift	   = 0;
-+	txc->stabil	   = 0;
-+	txc->jitcnt	   = 0;
-+	txc->calcnt	   = 0;
-+	txc->errcnt	   = 0;
-+	txc->stbcnt	   = 0;
-+}
-+
-+#endif /* CONFIG_NTP_PPS */
-+
- /*
-  * NTP methods:
-  */
-@@ -185,6 +342,9 @@ void ntp_clear(void)
- 
- 	tick_length	= tick_length_base;
- 	time_offset	= 0;
-+
-+	/* Clear PPS state variables */
-+	pps_clear();
- }
- 
- /*
-@@ -250,16 +410,16 @@ void second_overflow(void)
- 		time_status |= STA_UNSYNC;
- 	}
- 
--	/*
--	 * Compute the phase adjustment for the next second. The offset is
--	 * reduced by a fixed factor times the time constant.
--	 */
-+	/* Compute the phase adjustment for the next second */
- 	tick_length	 = tick_length_base;
- 
--	delta		 = shift_right(time_offset, SHIFT_PLL + time_constant);
-+	delta		 = ntp_offset_chunk(time_offset);
- 	time_offset	-= delta;
- 	tick_length	+= delta;
- 
-+	/* Check PPS signal */
-+	pps_dec_valid();
-+
- 	if (!time_adjust)
- 		return;
- 
-@@ -369,6 +529,8 @@ static inline void process_adj_status(st
- 	if ((time_status & STA_PLL) && !(txc->status & STA_PLL)) {
- 		time_state = TIME_OK;
- 		time_status = STA_UNSYNC;
-+		/* restart PPS frequency calibration */
-+		pps_reset_freq_interval();
- 	}
- 
- 	/*
-@@ -418,6 +580,8 @@ static inline void process_adjtimex_mode
- 		time_freq = txc->freq * PPM_SCALE;
- 		time_freq = min(time_freq, MAXFREQ_SCALED);
- 		time_freq = max(time_freq, -MAXFREQ_SCALED);
-+		/* update pps_freq */
-+		pps_set_freq(time_freq);
- 	}
- 
- 	if (txc->modes & ADJ_MAXERROR)
-@@ -508,7 +672,8 @@ int do_adjtimex(struct timex *txc)
- 	}
- 
- 	result = time_state;	/* mostly `TIME_OK' */
--	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
-+	/* check for errors */
-+	if (is_error_status(time_status))
- 		result = TIME_ERROR;
- 
- 	txc->freq	   = shift_right((time_freq >> PPM_SCALE_INV_SHIFT) *
-@@ -522,15 +687,8 @@ int do_adjtimex(struct timex *txc)
- 	txc->tick	   = tick_usec;
- 	txc->tai	   = time_tai;
- 
--	/* PPS is not implemented, so these are zero */
--	txc->ppsfreq	   = 0;
--	txc->jitter	   = 0;
--	txc->shift	   = 0;
--	txc->stabil	   = 0;
--	txc->jitcnt	   = 0;
--	txc->calcnt	   = 0;
--	txc->errcnt	   = 0;
--	txc->stbcnt	   = 0;
-+	/* fill PPS status fields */
-+	pps_fill_timex(txc);
- 
- 	write_sequnlock_irq(&xtime_lock);
- 
-@@ -544,6 +702,243 @@ int do_adjtimex(struct timex *txc)
- 	return result;
- }
- 
-+#ifdef	CONFIG_NTP_PPS
-+
-+/* actually struct pps_normtime is good old struct timespec, but it is
-+ * semantically different (and it is the reason why it was invented):
-+ * pps_normtime.nsec has a range of ( -NSEC_PER_SEC / 2, NSEC_PER_SEC / 2 ]
-+ * while timespec.tv_nsec has a range of [0, NSEC_PER_SEC) */
-+struct pps_normtime {
-+	__kernel_time_t	sec;	/* seconds */
-+	long		nsec;	/* nanoseconds */
-+};
-+
-+/* normalize the timestamp so that nsec is in the
-+   ( -NSEC_PER_SEC / 2, NSEC_PER_SEC / 2 ] interval */
-+static inline struct pps_normtime pps_normalize_ts(struct timespec ts)
-+{
-+	struct pps_normtime norm = {
-+		.sec = ts.tv_sec,
-+		.nsec = ts.tv_nsec
-+	};
-+
-+	if (norm.nsec > (NSEC_PER_SEC >> 1)) {
-+		norm.nsec -= NSEC_PER_SEC;
-+		norm.sec++;
-+	}
-+
-+	return norm;
-+}
-+
-+/* get current phase correction and jitter */
-+static inline long pps_phase_filter_get(long *jitter)
-+{
-+	*jitter = pps_tf[0] - pps_tf[1];
-+	if (*jitter < 0)
-+		*jitter = -*jitter;
-+
-+	/* TODO: test various filters */
-+	return pps_tf[0];
-+}
-+
-+/* add the sample to the phase filter */
-+static inline void pps_phase_filter_add(long err)
-+{
-+	pps_tf[2] = pps_tf[1];
-+	pps_tf[1] = pps_tf[0];
-+	pps_tf[0] = err;
-+}
-+
-+/* decrease frequency calibration interval length.
-+ * It is halved after four consecutive unstable intervals.
-+ */
-+static inline void pps_dec_freq_interval(void)
-+{
-+	if (--pps_intcnt <= -PPS_INTCOUNT) {
-+		pps_intcnt = -PPS_INTCOUNT;
-+		if (pps_shift > PPS_INTMIN) {
-+			pps_shift--;
-+			pps_intcnt = 0;
-+		}
-+	}
-+}
-+
-+/* increase frequency calibration interval length.
-+ * It is doubled after four consecutive stable intervals.
-+ */
-+static inline void pps_inc_freq_interval(void)
-+{
-+	if (++pps_intcnt >= PPS_INTCOUNT) {
-+		pps_intcnt = PPS_INTCOUNT;
-+		if (pps_shift < PPS_INTMAX) {
-+			pps_shift++;
-+			pps_intcnt = 0;
-+		}
-+	}
-+}
-+
-+/* update clock frequency based on MONOTONIC_RAW clock PPS signal
-+ * timestamps
-+ *
-+ * At the end of the calibration interval the difference between the
-+ * first and last MONOTONIC_RAW clock timestamps divided by the length
-+ * of the interval becomes the frequency update. If the interval was
-+ * too long, the data are discarded.
-+ * Returns the difference between old and new frequency values.
-+ */
-+static long hardpps_update_freq(struct pps_normtime freq_norm)
-+{
-+	long delta, delta_mod;
-+	s64 ftemp;
-+
-+	/* check if the frequency interval was too long */
-+	if (freq_norm.sec > (2 << pps_shift)) {
-+		time_status |= STA_PPSERROR;
-+		pps_errcnt++;
-+		pps_dec_freq_interval();
-+		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
-+				freq_norm.sec);
-+		return 0;
-+	}
-+
-+	/* here the raw frequency offset and wander (stability) is
-+	 * calculated. If the wander is less than the wander threshold
-+	 * the interval is increased; otherwise it is decreased.
-+	 */
-+	ftemp = div_s64(((s64)(-freq_norm.nsec)) << NTP_SCALE_SHIFT,
-+			freq_norm.sec);
-+	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
-+	pps_freq = ftemp;
-+	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
-+		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
-+		time_status |= STA_PPSWANDER;
-+		pps_stbcnt++;
-+		pps_dec_freq_interval();
-+	} else {	/* good sample */
-+		pps_inc_freq_interval();
-+	}
-+
-+	/* the stability metric is calculated as the average of recent
-+	 * frequency changes, but is used only for performance
-+	 * monitoring
-+	 */
-+	delta_mod = delta;
-+	if (delta_mod < 0)
-+		delta_mod = -delta_mod;
-+	pps_stabil += (div_s64(((s64)delta_mod) <<
-+				(NTP_SCALE_SHIFT - SHIFT_USEC),
-+				NSEC_PER_USEC) - pps_stabil) >> PPS_INTMIN;
-+
-+	/* if enabled, the system clock frequency is updated */
-+	if ((time_status & STA_PPSFREQ) != 0 &&
-+	    (time_status & STA_FREQHOLD) == 0) {
-+		time_freq = pps_freq;
-+		ntp_update_frequency();
-+	}
-+
-+	return delta;
-+}
-+
-+/* correct REALTIME clock phase error against PPS signal */
-+static void hardpps_update_phase(long error)
-+{
-+	long correction = -error;
-+	long jitter;
-+
-+	/* add the sample to the median filter */
-+	pps_phase_filter_add(correction);
-+	correction = pps_phase_filter_get(&jitter);
-+
-+	/* Nominal jitter is due to PPS signal noise. If it exceeds the
-+	 * threshold, the sample is discarded; otherwise, if so enabled,
-+	 * the time offset is updated.
-+	 */
-+	if (jitter > (pps_jitter << PPS_POPCORN)) {
-+		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
-+		       jitter, (pps_jitter << PPS_POPCORN));
-+		time_status |= STA_PPSJITTER;
-+		pps_jitcnt++;
-+	} else if (time_status & STA_PPSTIME) {
-+		/* correct the time using the phase offset */
-+		time_offset = div_s64(((s64)correction) << NTP_SCALE_SHIFT,
-+				NTP_INTERVAL_FREQ);
-+		/* cancel running adjtime() */
-+		time_adjust = 0;
-+	}
-+	/* update jitter */
-+	pps_jitter += (jitter - pps_jitter) >> PPS_INTMIN;
-+}
-+
-+/*
-+ * hardpps() - discipline CPU clock oscillator to external PPS signal
-+ *
-+ * This routine is called at each PPS signal arrival in order to
-+ * discipline the CPU clock oscillator to the PPS signal. It takes two
-+ * parameters: REALTIME and MONOTONIC_RAW clock timestamps. The former
-+ * is used to correct clock phase error and the latter is used to
-+ * correct the frequency.
-+ *
-+ * This code is based on David Mills's reference nanokernel
-+ * implementation. It was mostly rewritten but keeps the same idea.
-+ */
-+void hardpps(const struct timespec *phase_ts, const struct timespec *raw_ts)
-+{
-+	struct pps_normtime pts_norm, freq_norm;
-+	unsigned long flags;
-+
-+	pts_norm = pps_normalize_ts(*phase_ts);
-+
-+	write_seqlock_irqsave(&xtime_lock, flags);
-+
-+	/* clear the error bits, they will be set again if needed */
-+	time_status &= ~(STA_PPSJITTER | STA_PPSWANDER | STA_PPSERROR);
-+
-+	/* indicate signal presence */
-+	time_status |= STA_PPSSIGNAL;
-+	pps_valid = PPS_VALID;
-+
-+	/* when called for the first time,
-+	 * just start the frequency interval */
-+	if (unlikely(pps_fbase.tv_sec == 0)) {
-+		pps_fbase = *raw_ts;
-+		write_sequnlock_irqrestore(&xtime_lock, flags);
-+		return;
-+	}
-+
-+	/* ok, now we have a base for frequency calculation */
-+	freq_norm = pps_normalize_ts(timespec_sub(*raw_ts, pps_fbase));
-+
-+	/* check that the signal is in the range
-+	 * [1s - MAXFREQ us, 1s + MAXFREQ us], otherwise reject it */
-+	if ((freq_norm.sec == 0) ||
-+			(freq_norm.nsec > MAXFREQ * freq_norm.sec) ||
-+			(freq_norm.nsec < -MAXFREQ * freq_norm.sec)) {
-+		time_status |= STA_PPSJITTER;
-+		/* restart the frequency calibration interval */
-+		pps_fbase = *raw_ts;
-+		write_sequnlock_irqrestore(&xtime_lock, flags);
-+		pr_err("hardpps: PPSJITTER: bad pulse\n");
-+		return;
-+	}
-+
-+	/* signal is ok */
-+
-+	/* check if the current frequency interval is finished */
-+	if (freq_norm.sec >= (1 << pps_shift)) {
-+		pps_calcnt++;
-+		/* restart the frequency calibration interval */
-+		pps_fbase = *raw_ts;
-+		hardpps_update_freq(freq_norm);
-+	}
-+
-+	hardpps_update_phase(pts_norm.nsec);
-+
-+	write_sequnlock_irqrestore(&xtime_lock, flags);
-+}
-+EXPORT_SYMBOL(hardpps);
-+
-+#endif	/* CONFIG_NTP_PPS */
-+
- static int __init ntp_tick_adj_setup(char *str)
- {
- 	ntp_tick_adj = simple_strtol(str, NULL, 0);
+ config SECURITY
+ 	bool "Enable different security models"
+ 	depends on SYSFS
 _
 
-Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
-pps-trivial-fixes.patch
-pps-declare-variables-where-they-are-used-in-switch.patch
-pps-fix-race-in-pps_fetch-handler.patch
-pps-unify-timestamp-gathering.patch
-pps-access-pps-device-by-direct-pointer.patch
-pps-convert-printk-pr_-to-dev_.patch
-pps-move-idr-stuff-to-ppsc.patch
-pps-do-not-disable-interrupts-for-idr-operations.patch
-pps-use-bug_on-for-kernel-api-safety-checks.patch
-pps-simplify-conditions-a-bit.patch
-pps-timestamp-is-always-passed-to-dcd_change.patch
-ntp-add-hardpps-implementation.patch
-pps-capture-monotonic_raw-timestamps-as-well.patch
-pps-add-kernel-consumer-support.patch
-pps-add-parallel-port-pps-client.patch
-pps-add-parallel-port-pps-signal-generator.patch
+linux-next.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
 
