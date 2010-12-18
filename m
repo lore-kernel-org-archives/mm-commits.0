@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pps-fix-race-in-pps_fetch-handler.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:19:52 -0800
-Message-ID: <201012180019.oBI0JqJX004858@imap1.linux-foundation.org>
+Subject: + pps-convert-printk-pr_-to-dev_.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:19:58 -0800
+Message-ID: <201012180019.oBI0Jwgw004873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752948Ab0LRAT7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753645Ab0LRAUG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:19:59 -0500
+	Fri, 17 Dec 2010 19:20:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: fix race in PPS_FETCH handler
+     pps: convert printk/pr_* to dev_*
 has been added to the -mm tree.  Its filename is
-     pps-fix-race-in-pps_fetch-handler.patch
+     pps-convert-printk-pr_-to-dev_.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,250 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: fix race in PPS_FETCH handler
+Subject: pps: convert printk/pr_* to dev_*
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-There was a race in PPS_FETCH ioctl handler when several processes want to
-obtain PPS data simultaneously using sleeping PPS_FETCH.  They all sleep
-most of the time in the system call.
-
-With the old approach when the first process waiting on the pps queue is
-waken up it makes new system call right away and zeroes pps->go.  So other
-processes continue to sleep.  This is a clear race condition because of
-the global 'go' variable.
-
-With the new approach pps->last_ev holds some value increasing at each PPS
-event.  PPS_FETCH ioctl handler saves current value to the local variable
-at the very beginning so it can safely check that there is a new event by
-just comparing both variables.
+Since we now have direct pointers to struct pps_device everywhere it's
+easy to use dev_* functions to print messages instead of plain printks. 
+Where dev_* cannot be used printks are converted to pr_*.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c         |    4 ++--
- drivers/pps/pps.c          |   10 +++++++---
- include/linux/pps_kernel.h |    2 +-
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/pps/clients/pps-ktimer.c |    5 +++--
+ drivers/pps/clients/pps-ldisc.c  |    2 ++
+ drivers/pps/kapi.c               |   15 ++++++++-------
+ drivers/pps/pps.c                |   25 +++++++++++++------------
+ 4 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler
-+++ a/drivers/pps/kapi.c
-@@ -326,8 +326,8 @@ void pps_event(int source, struct pps_kt
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_ drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- 	/* Wake up if captured something */
- 	if (captured) {
--		pps->go = ~0;
--		wake_up_interruptible(&pps->queue);
-+		pps->last_ev++;
-+		wake_up_interruptible_all(&pps->queue);
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -45,7 +46,7 @@ static void pps_ktimer_event(unsigned lo
+ 	/* First of all we get the time stamp... */
+ 	pps_get_ts(&ts);
+ 
+-	pr_info("PPS event at %lu\n", jiffies);
++	dev_info(pps->dev, "PPS event at %lu\n", jiffies);
+ 
+ 	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ 
+@@ -94,7 +95,7 @@ static int __init pps_ktimer_init(void)
+ 	pps = pps_register_source(&pps_ktimer_info,
+ 				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
+ 	if (pps == NULL) {
+-		printk(KERN_ERR "cannot register ktimer source\n");
++		pr_err("cannot register PPS source\n");
+ 		return -ENOMEM;
  	}
-diff -puN drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler
+ 
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-convert-printk-pr_-to-dev_ drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -19,6 +19,8 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/serial_core.h>
+ #include <linux/tty.h>
+diff -puN drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_ drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/kapi.c
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -80,20 +81,20 @@ struct pps_device *pps_register_source(s
+ 
+ 	/* Sanity checks */
+ 	if ((info->mode & default_params) != default_params) {
+-		printk(KERN_ERR "pps: %s: unsupported default parameters\n",
++		pr_err("%s: unsupported default parameters\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
+ 			info->echo == NULL) {
+-		printk(KERN_ERR "pps: %s: echo function is not defined\n",
++		pr_err("%s: echo function is not defined\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+-		printk(KERN_ERR "pps: %s: unspecified time format\n",
++		pr_err("%s: unspecified time format\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+@@ -138,7 +139,7 @@ struct pps_device *pps_register_source(s
+ 	if (id >= PPS_MAX_SOURCES) {
+ 		spin_unlock_irq(&pps_idr_lock);
+ 
+-		printk(KERN_ERR "pps: %s: too many PPS sources in the system\n",
++		pr_err("%s: too many PPS sources in the system\n",
+ 					info->name);
+ 		err = -EBUSY;
+ 		goto free_idr;
+@@ -150,12 +151,12 @@ struct pps_device *pps_register_source(s
+ 	/* Create the char device */
+ 	err = pps_register_cdev(pps);
+ 	if (err < 0) {
+-		printk(KERN_ERR "pps: %s: unable to create char device\n",
++		pr_err("%s: unable to create char device\n",
+ 					info->name);
+ 		goto free_idr;
+ 	}
+ 
+-	pr_info("new PPS source %s at ID %d\n", info->name, id);
++	dev_info(pps->dev, "new PPS source %s\n", info->name);
+ 
+ 	return pps;
+ 
+@@ -168,7 +169,7 @@ kfree_pps:
+ 	kfree(pps);
+ 
+ pps_register_source_exit:
+-	printk(KERN_ERR "pps: %s: unable to register source\n", info->name);
++	pr_err("%s: unable to register source\n", info->name);
+ 
+ 	return NULL;
+ }
+diff -puN drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_ drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_
 +++ a/drivers/pps/pps.c
-@@ -136,6 +136,7 @@ static long pps_cdev_ioctl(struct file *
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- 	case PPS_FETCH: {
- 		struct pps_fdata fdata;
-+		unsigned int ev;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 		pr_debug("PPS_FETCH: source %d\n", pps->id);
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -67,7 +68,7 @@ static long pps_cdev_ioctl(struct file *
  
-@@ -143,11 +144,12 @@ static long pps_cdev_ioctl(struct file *
+ 	switch (cmd) {
+ 	case PPS_GETPARAMS:
+-		pr_debug("PPS_GETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETPARAMS\n");
+ 
+ 		spin_lock_irq(&pps->lock);
+ 
+@@ -83,7 +84,7 @@ static long pps_cdev_ioctl(struct file *
+ 		break;
+ 
+ 	case PPS_SETPARAMS:
+-		pr_debug("PPS_SETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_SETPARAMS\n");
+ 
+ 		/* Check the capabilities */
+ 		if (!capable(CAP_SYS_TIME))
+@@ -93,14 +94,14 @@ static long pps_cdev_ioctl(struct file *
  		if (err)
  			return -EFAULT;
+ 		if (!(params.mode & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR))) {
+-			pr_debug("capture mode unspecified (%x)\n",
++			dev_dbg(pps->dev, "capture mode unspecified (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
  
--		pps->go = 0;
-+		ev = pps->last_ev;
+ 		/* Check for supported capabilities */
+ 		if ((params.mode & ~pps->info.mode) != 0) {
+-			pr_debug("unsupported capabilities (%x)\n",
++			dev_dbg(pps->dev, "unsupported capabilities (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
+@@ -113,7 +114,7 @@ static long pps_cdev_ioctl(struct file *
+ 		/* Restore the read only parameters */
+ 		if ((params.mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+ 			/* section 3.3 of RFC 2783 interpreted */
+-			pr_debug("time format unspecified (%x)\n",
++			dev_dbg(pps->dev, "time format unspecified (%x)\n",
+ 								params.mode);
+ 			pps->params.mode |= PPS_TSFMT_TSPEC;
+ 		}
+@@ -126,7 +127,7 @@ static long pps_cdev_ioctl(struct file *
+ 		break;
  
- 		/* Manage the timeout */
- 		if (fdata.timeout.flags & PPS_TIME_INVALID)
--			err = wait_event_interruptible(pps->queue, pps->go);
-+			err = wait_event_interruptible(pps->queue,
-+					ev != pps->last_ev);
+ 	case PPS_GETCAP:
+-		pr_debug("PPS_GETCAP: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETCAP\n");
+ 
+ 		err = put_user(pps->info.mode, iuarg);
+ 		if (err)
+@@ -138,7 +139,7 @@ static long pps_cdev_ioctl(struct file *
+ 		struct pps_fdata fdata;
+ 		unsigned int ev;
+ 
+-		pr_debug("PPS_FETCH: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_FETCH\n");
+ 
+ 		err = copy_from_user(&fdata, uarg, sizeof(struct pps_fdata));
+ 		if (err)
+@@ -153,7 +154,7 @@ static long pps_cdev_ioctl(struct file *
  		else {
  			unsigned long ticks;
  
-@@ -159,7 +161,9 @@ static long pps_cdev_ioctl(struct file *
+-			pr_debug("timeout %lld.%09d\n",
++			dev_dbg(pps->dev, "timeout %lld.%09d\n",
+ 					(long long) fdata.timeout.sec,
+ 					fdata.timeout.nsec);
+ 			ticks = fdata.timeout.sec * HZ;
+@@ -171,7 +172,7 @@ static long pps_cdev_ioctl(struct file *
  
- 			if (ticks != 0) {
- 				err = wait_event_interruptible_timeout(
--						pps->queue, pps->go, ticks);
-+						pps->queue,
-+						ev != pps->last_ev,
-+						ticks);
- 				if (err == 0)
- 					return -ETIMEDOUT;
- 			}
-diff -puN include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler
-+++ a/include/linux/pps_kernel.h
-@@ -55,7 +55,7 @@ struct pps_device {
- 	struct pps_ktime clear_tu;
- 	int current_mode;			/* PPS mode at event time */
+ 		/* Check for pending signals */
+ 		if (err == -ERESTARTSYS) {
+-			pr_debug("pending signal caught\n");
++			dev_dbg(pps->dev, "pending signal caught\n");
+ 			return -EINTR;
+ 		}
  
--	int go;					/* PPS event is arrived? */
-+	unsigned int last_ev;			/* last PPS event id */
- 	wait_queue_head_t queue;		/* PPS event queue */
+@@ -240,7 +241,7 @@ int pps_register_cdev(struct pps_device 
  
- 	unsigned int id;			/* PPS source unique ID */
+ 	err = cdev_add(&pps->cdev, devt, 1);
+ 	if (err) {
+-		printk(KERN_ERR "pps: %s: failed to add char device %d:%d\n",
++		pr_err("%s: failed to add char device %d:%d\n",
+ 				pps->info.name, MAJOR(pps_devt), pps->id);
+ 		return err;
+ 	}
+@@ -282,14 +283,14 @@ static int __init pps_init(void)
+ 
+ 	pps_class = class_create(THIS_MODULE, "pps");
+ 	if (!pps_class) {
+-		printk(KERN_ERR "pps: failed to allocate class\n");
++		pr_err("failed to allocate class\n");
+ 		return -ENOMEM;
+ 	}
+ 	pps_class->dev_attrs = pps_attrs;
+ 
+ 	err = alloc_chrdev_region(&pps_devt, 0, PPS_MAX_SOURCES, "pps");
+ 	if (err < 0) {
+-		printk(KERN_ERR "pps: failed to allocate char device region\n");
++		pr_err("failed to allocate char device region\n");
+ 		goto remove_class;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
