@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-capture-monotonic_raw-timestamps-as-well.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:20:13 -0800
-Message-ID: <201012180020.oBI0KDhA004925@imap1.linux-foundation.org>
+Subject: + pps-add-parallel-port-pps-signal-generator.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:20:19 -0800
+Message-ID: <201012180020.oBI0KJlK004934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652Ab0LRAUe (ORCPT
+	by vger.kernel.org with ESMTP id S1756565Ab0LRAUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:20:34 -0500
+	Fri, 17 Dec 2010 19:20:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lasaine@lvk.cs.msu.su, johnstul@us.ibm.com
+Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: capture MONOTONIC_RAW timestamps as well
+     pps: add parallel port PPS signal generator
 has been added to the -mm tree.  Its filename is
-     pps-capture-monotonic_raw-timestamps-as-well.patch
+     pps-add-parallel-port-pps-signal-generator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,413 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: capture MONOTONIC_RAW timestamps as well
+Subject: pps: add parallel port PPS signal generator
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-MONOTONIC_RAW clock timestamps are ideally suited for frequency
-calculation and also fit well into the original NTP hardpps design.  Now
-phase and frequency can be adjusted separately: the former based on
-REALTIME clock and the latter based on MONOTONIC_RAW clock.
-
-A new function getnstime_raw_and_real is added to timekeeping subsystem to
-capture both timestamps at the same time and atomically.
+Add PPS signal generator which utilizes STROBE pin of a parallel port to
+send PPS signals.  It uses parport abstraction layer and hrtimers to
+precisely control the signal.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Acked-by: John Stultz <johnstul@us.ibm.com>
+Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pps_kernel.h |    3 +-
- include/linux/time.h       |    2 +
- kernel/time/timekeeping.c  |   39 +++++++++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 1 deletion(-)
+ Documentation/pps/pps.txt                |   46 +++
+ drivers/pps/Kconfig                      |    2 
+ drivers/pps/Makefile                     |    2 
+ drivers/pps/generators/Kconfig           |   17 +
+ drivers/pps/generators/Makefile          |    9 
+ drivers/pps/generators/pps_gen_parport.c |  275 +++++++++++++++++++++
+ 6 files changed, 350 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/include/linux/pps_kernel.h
-@@ -47,6 +47,7 @@ struct pps_source_info {
- };
+diff -puN Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator Documentation/pps/pps.txt
+--- a/Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator
++++ a/Documentation/pps/pps.txt
+@@ -170,3 +170,49 @@ and the run ppstest as follow:
  
- struct pps_event_time {
-+	struct timespec ts_raw;
- 	struct timespec ts_real;
- };
+ Please, note that to compile userland programs you need the file timepps.h
+ (see Documentation/pps/).
++
++
++Generators
++----------
++
++Sometimes one needs to be able not only to catch PPS signals but to produce
++them also. For example, running a distributed simulation, which requires
++computers' clock to be synchronized very tightly. One way to do this is to
++invent some complicated hardware solutions but it may be neither necessary
++nor affordable. The cheap way is to load a PPS generator on one of the
++computers (master) and PPS clients on others (slaves), and use very simple
++cables to deliver signals using parallel ports, for example.
++
++Parallel port cable pinout:
++pin	name	master      slave
++1	STROBE	  *------     *
++2	D0	  *     |     *
++3	D1	  *     |     *
++4	D2	  *     |     *
++5	D3	  *     |     *
++6	D4	  *     |     *
++7	D5	  *     |     *
++8	D6	  *     |     *
++9	D7	  *     |     *
++10	ACK	  *     ------*
++11	BUSY	  *           *
++12	PE	  *           *
++13	SEL	  *           *
++14	AUTOFD	  *           *
++15	ERROR	  *           *
++16	INIT	  *           *
++17	SELIN	  *           *
++18-25	GND	  *-----------*
++
++Please note that parallel port interrupt occurs only on high->low transition,
++so it is used for PPS assert edge. PPS clear edge can be determined only
++using polling in the interrupt handler which actually can be done way more
++precisely because interrupt handling delays can be quite big and random. So
++current parport PPS generator implementation (pps_gen_parport module) is
++geared towards using the clear edge for time synchronization.
++
++Clear edge polling is done with disabled interrupts so it's better to select
++delay between assert and clear edge as small as possible to reduce system
++latencies. But if it is too small slave won't be able to capture clear edge
++transition. The default of 30us should be good enough in most situations.
++The delay can be selected using 'delay' pps_gen_parport module parameter.
+diff -puN drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator
++++ a/drivers/pps/Kconfig
+@@ -40,4 +40,6 @@ config NTP_PPS
  
-@@ -99,7 +100,7 @@ static inline void timespec_to_pps_ktime
+ source drivers/pps/clients/Kconfig
  
- static inline void pps_get_ts(struct pps_event_time *ts)
- {
--	getnstimeofday(&ts->ts_real);
-+	getnstime_raw_and_real(&ts->ts_raw, &ts->ts_real);
- }
++source drivers/pps/generators/Kconfig
++
+ endmenu
+diff -puN drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator drivers/pps/Makefile
+--- a/drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator
++++ a/drivers/pps/Makefile
+@@ -4,6 +4,6 @@
  
- #endif /* LINUX_PPS_KERNEL_H */
-diff -puN include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/time.h
---- a/include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/include/linux/time.h
-@@ -158,6 +158,8 @@ extern unsigned int alarm_setitimer(unsi
- extern int do_getitimer(int which, struct itimerval *value);
- extern void getnstimeofday(struct timespec *tv);
- extern void getrawmonotonic(struct timespec *ts);
-+extern void getnstime_raw_and_real(struct timespec *ts_raw,
-+		struct timespec *ts_real);
- extern void getboottime(struct timespec *ts);
- extern void monotonic_to_bootbased(struct timespec *ts);
+ pps_core-y			:= pps.o kapi.o sysfs.o
+ obj-$(CONFIG_PPS)		:= pps_core.o
+-obj-y				+= clients/
++obj-y				+= clients/ generators/
  
-diff -puN kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/kernel/time/timekeeping.c
-@@ -289,6 +289,45 @@ void ktime_get_ts(struct timespec *ts)
- EXPORT_SYMBOL_GPL(ktime_get_ts);
- 
- /**
-+ * getnstime_raw_and_real - get day and raw monotonic time in timespec format
-+ * @ts_raw:	pointer to the timespec to be set to raw monotonic time
-+ * @ts_real:	pointer to the timespec to be set to the time of day
+ ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
+diff -puN /dev/null drivers/pps/generators/Kconfig
+--- /dev/null
++++ a/drivers/pps/generators/Kconfig
+@@ -0,0 +1,17 @@
++#
++# PPS generators configuration
++#
++
++if PPS
++
++comment "PPS generators support"
++
++config PPS_GENERATOR_PARPORT
++	tristate "Parallel port PPS signal generator"
++	depends on PARPORT != n && GENERIC_TIME
++	help
++	  If you say yes here you get support for a PPS signal generator which
++	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
++	  parport abstraction layer and hrtimers to precisely control the signal.
++
++endif
+diff -puN /dev/null drivers/pps/generators/Makefile
+--- /dev/null
++++ a/drivers/pps/generators/Makefile
+@@ -0,0 +1,9 @@
++#
++# Makefile for PPS generators.
++#
++
++obj-$(CONFIG_PPS_GENERATOR_PARPORT) += pps_gen_parport.o
++
++ifeq ($(CONFIG_PPS_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+diff -puN /dev/null drivers/pps/generators/pps_gen_parport.c
+--- /dev/null
++++ a/drivers/pps/generators/pps_gen_parport.c
+@@ -0,0 +1,275 @@
++/*
++ * pps_gen_parport.c -- kernel parallel port PPS signal generator
 + *
-+ * This function reads both the time of day and raw monotonic time at the
-+ * same time atomically and stores the resulting timestamps in timespec
-+ * format.
++ *
++ * Copyright (C) 2009   Alexander Gordeev <lasaine@lvk.cs.msu.su>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
-+void getnstime_raw_and_real(struct timespec *ts_raw, struct timespec *ts_real)
++
++
++/*
++ * TODO:
++ * fix issues when realtime clock is adjusted in a leap
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/time.h>
++#include <linux/hrtimer.h>
++#include <linux/parport.h>
++
++#define DRVDESC "parallel port PPS signal generator"
++
++#define SIGNAL		0
++#define NO_SIGNAL	PARPORT_CONTROL_STROBE
++
++/* module parameters */
++
++#define SEND_DELAY_MAX		100000
++
++static unsigned int send_delay = 30000;
++MODULE_PARM_DESC(delay,
++	"Delay between setting and dropping the signal (ns)");
++module_param_named(delay, send_delay, uint, 0);
++
++
++#define SAFETY_INTERVAL	3000	/* set the hrtimer earlier for safety (ns) */
++
++/* internal per port structure */
++struct pps_generator_pp {
++	struct pardevice *pardev;	/* parport device */
++	struct hrtimer timer;
++	long port_write_time;		/* calibrated port write time (ns) */
++};
++
++static struct pps_generator_pp device = {
++	.pardev = NULL,
++};
++
++static int attached;
++
++/* calibrated time between a hrtimer event and the reaction */
++static long hrtimer_error = SAFETY_INTERVAL;
++
++/* the kernel hrtimer event */
++static enum hrtimer_restart hrtimer_event(struct hrtimer *timer)
 +{
-+	unsigned long seq;
-+	s64 nsecs_raw, nsecs_real;
++	struct timespec expire_time, ts1, ts2, ts3, dts;
++	struct pps_generator_pp *dev;
++	struct parport *port;
++	long lim, delta;
++	unsigned long flags;
 +
-+	WARN_ON_ONCE(timekeeping_suspended);
++	/* NB: approx time with blocked interrupts =
++	   send_delay + 3 * SAFETY_INTERVAL */
++	local_irq_save(flags);
 +
++	/* first of all we get the time stamp... */
++	getnstimeofday(&ts1);
++	expire_time = ktime_to_timespec(timer->_expires);
++	dev = container_of(timer, struct pps_generator_pp, timer);
++	lim = NSEC_PER_SEC - send_delay - dev->port_write_time;
++
++	/* check if we are late */
++	if (expire_time.tv_sec != ts1.tv_sec || ts1.tv_nsec > lim) {
++		local_irq_restore(flags);
++		pr_err("we are late this time %ld.%09ld\n",
++				ts1.tv_sec, ts1.tv_nsec);
++		goto done;
++	}
++
++	/* busy loop until the time is right for an assert edge */
 +	do {
-+		u32 arch_offset;
++		getnstimeofday(&ts2);
++	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
 +
-+		seq = read_seqbegin(&xtime_lock);
++	/* set the signal */
++	port = dev->pardev->port;
++	port->ops->write_control(port, SIGNAL);
 +
-+		*ts_raw = raw_time;
-+		*ts_real = xtime;
++	/* busy loop until the time is right for a clear edge */
++	lim = NSEC_PER_SEC - dev->port_write_time;
++	do {
++		getnstimeofday(&ts2);
++	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
 +
-+		nsecs_raw = timekeeping_get_ns_raw();
-+		nsecs_real = timekeeping_get_ns();
++	/* unset the signal */
++	port->ops->write_control(port, NO_SIGNAL);
 +
-+		/* If arch requires, add in gettimeoffset() */
-+		arch_offset = arch_gettimeoffset();
-+		nsecs_raw += arch_offset;
-+		nsecs_real += arch_offset;
++	getnstimeofday(&ts3);
 +
-+	} while (read_seqretry(&xtime_lock, seq));
++	local_irq_restore(flags);
 +
-+	timespec_add_ns(ts_raw, nsecs_raw);
-+	timespec_add_ns(ts_real, nsecs_real);
++	/* update calibrated port write time */
++	dts = timespec_sub(ts3, ts2);
++	dev->port_write_time =
++		(dev->port_write_time + timespec_to_ns(&dts)) >> 1;
++
++done:
++	/* update calibrated hrtimer error */
++	dts = timespec_sub(ts1, expire_time);
++	delta = timespec_to_ns(&dts);
++	/* If the new error value is bigger then the old, use the new
++	 * value, if not then slowly move towards the new value. This
++	 * way it should be safe in bad conditions and efficient in
++	 * good conditions.
++	 */
++	if (delta >= hrtimer_error)
++		hrtimer_error = delta;
++	else
++		hrtimer_error = (3 * hrtimer_error + delta) >> 2;
++
++	/* update the hrtimer expire time */
++	hrtimer_set_expires(timer,
++			ktime_set(expire_time.tv_sec + 1,
++				NSEC_PER_SEC - (send_delay +
++				dev->port_write_time + SAFETY_INTERVAL +
++				2 * hrtimer_error)));
++
++	return HRTIMER_RESTART;
 +}
-+EXPORT_SYMBOL(getnstime_raw_and_real);
 +
-+/**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
++/* calibrate port write time */
++#define PORT_NTESTS_SHIFT	5
++static void calibrate_port(struct pps_generator_pp *dev)
++{
++	struct parport *port = dev->pardev->port;
++	int i;
++	long acc = 0;
++
++	for (i = 0; i < (1 << PORT_NTESTS_SHIFT); i++) {
++		struct timespec a, b;
++		unsigned long irq_flags;
++
++		local_irq_save(irq_flags);
++		getnstimeofday(&a);
++		port->ops->write_control(port, NO_SIGNAL);
++		getnstimeofday(&b);
++		local_irq_restore(irq_flags);
++
++		b = timespec_sub(b, a);
++		acc += timespec_to_ns(&b);
++	}
++
++	dev->port_write_time = acc >> PORT_NTESTS_SHIFT;
++	pr_info("port write takes %ldns\n", dev->port_write_time);
++}
++
++static inline ktime_t next_intr_time(struct pps_generator_pp *dev)
++{
++	struct timespec ts;
++
++	getnstimeofday(&ts);
++
++	return ktime_set(ts.tv_sec +
++			((ts.tv_nsec > 990 * NSEC_PER_MSEC) ? 1 : 0),
++			NSEC_PER_SEC - (send_delay +
++			dev->port_write_time + 3 * SAFETY_INTERVAL));
++}
++
++static void parport_attach(struct parport *port)
++{
++	if (attached) {
++		/* we already have a port */
++		return;
++	}
++
++	device.pardev = parport_register_device(port, KBUILD_MODNAME,
++			NULL, NULL, NULL, 0, &device);
++	if (!device.pardev) {
++		pr_err("couldn't register with %s\n", port->name);
++		return;
++	}
++
++	if (parport_claim_or_block(device.pardev) < 0) {
++		pr_err("couldn't claim %s\n", port->name);
++		goto err_unregister_dev;
++	}
++
++	pr_info("attached to %s\n", port->name);
++	attached = 1;
++
++	calibrate_port(&device);
++
++	hrtimer_init(&device.timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
++	device.timer.function = hrtimer_event;
++#ifdef CONFIG_PREEMPT_RT
++	/* hrtimer interrupt will run in the interrupt context with this */
++	device.timer.irqsafe = 1;
++#endif
++
++	hrtimer_start(&device.timer, next_intr_time(&device), HRTIMER_MODE_ABS);
++
++	return;
++
++err_unregister_dev:
++	parport_unregister_device(device.pardev);
++}
++
++static void parport_detach(struct parport *port)
++{
++	if (port->cad != device.pardev)
++		return;	/* not our port */
++
++	hrtimer_cancel(&device.timer);
++	parport_release(device.pardev);
++	parport_unregister_device(device.pardev);
++}
++
++static struct parport_driver pps_gen_parport_driver = {
++	.name = KBUILD_MODNAME,
++	.attach = parport_attach,
++	.detach = parport_detach,
++};
++
++/* module staff */
++
++static int __init pps_gen_parport_init(void)
++{
++	int ret;
++
++	pr_info(DRVDESC "\n");
++
++	if (send_delay > SEND_DELAY_MAX) {
++		pr_err("delay value should be not greater"
++				" then %d\n", SEND_DELAY_MAX);
++		return -EINVAL;
++	}
++
++	ret = parport_register_driver(&pps_gen_parport_driver);
++	if (ret) {
++		pr_err("unable to register with parport\n");
++		return ret;
++	}
++
++	return  0;
++}
++
++static void __exit pps_gen_parport_exit(void)
++{
++	parport_unregister_driver(&pps_gen_parport_driver);
++	pr_info("hrtimer avg error is %ldns\n", hrtimer_error);
++}
++
++module_init(pps_gen_parport_init);
++module_exit(pps_gen_parport_exit);
++
++MODULE_AUTHOR("Alexander Gordeev <lasaine@lvk.cs.msu.su>");
++MODULE_DESCRIPTION(DRVDESC);
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
