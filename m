@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:54:22 -0800
-Message-ID: <201012180054.oBI0sMMe006350@imap1.linux-foundation.org>
+Subject: + kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:54:24 -0800
+Message-ID: <201012180054.oBI0sP29006353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756582Ab0LRAy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756582Ab0LRAy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:54:58 -0500
+	Fri, 17 Dec 2010 19:54:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, a.p.zijlstra@chello.nl, davem@davemloft.net, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, davem@davemloft.net, drosenberg@vsecurity.com, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
 
 
 The patch titled
-     kptr_restrict for hiding kernel pointers from unprivileged users
+     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
 has been added to the -mm tree.  Its filename is
-     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,178 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kptr_restrict for hiding kernel pointers from unprivileged users
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add the %pK printk format specifier, the CONFIG_SECURITY_KPTR_RESTRICT
-configuration option, and the kptr_restrict sysctl.
+- check for IRQ context when !kptr_restrict
 
-The %pK format specifier is designed to hide exposed kernel pointers from
-unprivileged users, specifically via /proc interfaces.  Its behavior
-depends on the kptr_restrict sysctl, whose default value depends on
-CONFIG_SECURITY_KPTR_RESTRICT.
+- save an indent level
 
-If kptr_restrict is set to 0, no deviation from the standard %p behavior
-occurs.  If kptr_restrict is set to 1, if the current user (intended to be
-a reader via seq_printf(), etc.) does not have CAP_SYSLOG (which is
-currently in the LSM tree), kernel pointers using %pK are printed as 0's. 
-This was chosen over the default "(null)", which cannot be parsed by
-userland %p, which expects "(nil)".
+- s/WARN/WARN_ONCE/
 
-v2 improves checking for inappropriate context, on suggestion by Peter
-Zijlstra.  Thanks to Thomas Graf for suggesting use of a centralized
-format specifier.
-
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Thomas Graf <tgraf@infradead.org>
-Acked-by: Eugene Teo <eugeneteo@kernel.org>
-Acked-by: Kees Cook <kees.cook@canonical.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Eugene Teo <eugeneteo@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: James Morris <jmorris@namei.org>
+Cc: Kees Cook <kees.cook@canonical.com>
+Cc: Thomas Graf <tgraf@infradead.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   14 ++++++++++++++
- include/linux/kernel.h          |    2 ++
- kernel/sysctl.c                 |    9 +++++++++
- lib/vsprintf.c                  |   18 ++++++++++++++++++
- security/Kconfig                |   12 ++++++++++++
- 5 files changed, 55 insertions(+)
+ lib/vsprintf.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
-+++ a/Documentation/sysctl/kernel.txt
-@@ -34,6 +34,7 @@ show up in /proc/sys/kernel:
- - hotplug
- - java-appletviewer           [ binfmt_java, obsolete ]
- - java-interpreter            [ binfmt_java, obsolete ]
-+- kptr_restrict
- - kstack_depth_to_print       [ X86 only ]
- - l2cr                        [ PPC only ]
- - modprobe                    ==> Documentation/debugging-modules.txt
-@@ -261,6 +262,19 @@ This flag controls the L2 cache of G3 pr
- 
- ==============================================================
- 
-+kptr_restrict:
-+
-+This toggle indicates whether unprivileged users are prevented from reading
-+kernel addresses via /proc and other interfaces.  When kptr_restrict is set
-+to (0), there are no restrictions.  When kptr_restrict is set to (1), kernel
-+pointers printed using the %pK format specifier will be replaced with 0's
-+unless the user has CAP_SYSLOG.
-+
-+The kernel config option CONFIG_SECURITY_KPTR_RESTRICT sets the default
-+value of kptr_restrict.
-+
-+==============================================================
-+
- kstack_depth_to_print: (X86 only)
- 
- Controls the number of words to print when dumping the raw
-diff -puN include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users include/linux/kernel.h
---- a/include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
-+++ a/include/linux/kernel.h
-@@ -216,6 +216,8 @@ extern int sscanf(const char *, const ch
- extern int vsscanf(const char *, const char *, va_list)
- 	__attribute__ ((format (scanf, 2, 0)));
- 
-+extern int kptr_restrict;	/* for sysctl */
-+
- extern int get_option(char **str, int *pint);
- extern char *get_options(const char *str, int nints, int *ints);
- extern unsigned long long memparse(const char *ptr, char **retptr);
-diff -puN kernel/sysctl.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users kernel/sysctl.c
---- a/kernel/sysctl.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
-+++ a/kernel/sysctl.c
-@@ -712,6 +712,15 @@ static struct ctl_table kern_table[] = {
- 	},
- #endif
- 	{
-+		.procname	= "kptr_restrict",
-+		.data		= &kptr_restrict,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+	{
- 		.procname	= "ngroups_max",
- 		.data		= &ngroups_max,
- 		.maxlen		= sizeof (int),
-diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users lib/vsprintf.c
---- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
+diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
 +++ a/lib/vsprintf.c
-@@ -936,6 +936,8 @@ char *uuid_string(char *buf, char *end, 
- 	return string(buf, end, uuid, spec);
- }
- 
-+int kptr_restrict = CONFIG_SECURITY_KPTR_RESTRICT;
-+
- /*
-  * Show a '%p' thing.  A kernel extension is that the '%p' is followed
-  * by an extra set of alphanumeric characters that are extended format
-@@ -979,6 +981,7 @@ char *uuid_string(char *buf, char *end, 
-  *       Implements a "recursive vsnprintf".
-  *       Do not use this feature without some mechanism to verify the
-  *       correctness of the format string and va_list arguments.
-+ * - 'K' For a kernel pointer that should be hidden from unprivileged users
-  *
-  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
-  * function pointers are really function descriptors, which contain a
-@@ -1035,6 +1038,21 @@ char *pointer(const char *fmt, char *buf
- 		return buf + vsnprintf(buf, end - buf,
+@@ -1039,20 +1039,24 @@ char *pointer(const char *fmt, char *buf
  				       ((struct va_format *)ptr)->fmt,
  				       *(((struct va_format *)ptr)->va));
-+	case 'K':
-+		if (kptr_restrict) {
-+			if (in_irq() || in_serving_softirq() || in_nmi())
-+				WARN(1, "%%pK used in interrupt context.\n");
+ 	case 'K':
+-		if (kptr_restrict) {
+-			if (in_irq() || in_serving_softirq() || in_nmi())
+-				WARN(1, "%%pK used in interrupt context.\n");
++		/*
++		 * %pK cannot be used in IRQ context because it tests
++		 * CAP_SYSLOG.
++		 */
++		if (in_irq() || in_serving_softirq() || in_nmi())
++			WARN_ONCE(1, "%%pK used in interrupt context.\n");
+ 
+-			else if (capable(CAP_SYSLOG))
+-				break;
++		if (!kptr_restrict)
++			break;		/* %pK does not obscure pointers */
+ 
+-			if (spec.field_width == -1) {
+-				spec.field_width = 2 * sizeof(void *);
+-				spec.flags |= ZEROPAD;
+-			}
+-			return number(buf, end, 0, spec);
++		if (capable(CAP_SYSLOG))
++			break;		/* privileged apps expose pointers */
 +
-+			else if (capable(CAP_SYSLOG))
-+				break;
-+
-+			if (spec.field_width == -1) {
-+				spec.field_width = 2 * sizeof(void *);
-+				spec.flags |= ZEROPAD;
-+			}
-+			return number(buf, end, 0, spec);
-+		}
-+		break;
++		if (spec.field_width == -1) {
++			spec.field_width = 2 * sizeof(void *);
++			spec.flags |= ZEROPAD;
+ 		}
+-		break;
++		return number(buf, end, 0, spec);
  	}
  	spec.flags |= SMALL;
  	if (spec.field_width == -1) {
-diff -puN security/Kconfig~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users security/Kconfig
---- a/security/Kconfig~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users
-+++ a/security/Kconfig
-@@ -82,6 +82,18 @@ config SECURITY_DMESG_RESTRICT
- 
- 	  If you are unsure how to answer this question, answer N.
- 
-+config SECURITY_KPTR_RESTRICT
-+	bool "Hide kernel pointers from unprivileged users"
-+	default n
-+	help
-+	  This enforces restrictions on unprivileged users reading kernel
-+	  addresses via various interfaces, e.g. /proc.
-+
-+	  If this option is not selected, no restrictions will be enforced
-+	  unless the kptr_restrict sysctl is explicitly set to (1).
-+
-+	  If you are unsure how to answer this question, answer N.
-+
- config SECURITY
- 	bool "Enable different security models"
- 	depends on SYSFS
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+delayacct-fix-iotop-on-x86_64-fix.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
 kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
