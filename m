@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] pps-add-kernel-consumer-support.patch removed from -mm tree
-Date: Fri, 17 Dec 2010 16:05:01 -0800
-Message-ID: <201012180005.oBI051E0004234@imap1.linux-foundation.org>
+Subject: [to-be-updated] pps-add-async-pps-event-handler.patch removed from -mm tree
+Date: Fri, 17 Dec 2010 16:04:44 -0800
+Message-ID: <201012180004.oBI04ij1004204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756542Ab0LRAFV (ORCPT
+	by vger.kernel.org with ESMTP id S1754160Ab0LRAFd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:05:21 -0500
+	Fri, 17 Dec 2010 19:05:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com, joonwpark81@gmail.com, tj@kernel.org, yoush@cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: add kernel consumer support
+     pps: add async PPS event handler
 has been removed from the -mm tree.  Its filename was
-     pps-add-kernel-consumer-support.patch
+     pps-add-async-pps-event-handler.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add kernel consumer support
+Subject: pps: add async PPS event handler
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Add an optional feature of PPSAPI, kernel consumer support, which uses
-the added hardpps() function.
+This handler should be called from an IRQ handler.  It uses per-device
+workqueue internally.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -39,207 +39,263 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    2 
- drivers/pps/Kconfig                  |    1 
- drivers/pps/kapi.c                   |   23 +++++++++
- drivers/pps/pps.c                    |   62 ++++++++++++++++++++++++-
- include/linux/pps.h                  |    7 ++
- include/linux/pps_kernel.h           |    6 ++
- 6 files changed, 99 insertions(+), 2 deletions(-)
+ drivers/pps/clients/pps-ktimer.c |    2 
+ drivers/pps/clients/pps-ldisc.c  |    2 
+ drivers/pps/kapi.c               |   95 +++++++++++++++++++++++++++--
+ drivers/pps/pps.c                |   14 +++-
+ include/linux/pps_kernel.h       |   16 ++++
+ 5 files changed, 119 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -249,7 +249,7 @@ Code  Seq#(hex)	Include File		Comments
- 'p'	40-7F	linux/nvram.h
- 'p'	80-9F	linux/ppdev.h		user-space parport
- 					<mailto:tim@cyberelk.net>
--'p'	A1-A4	linux/pps.h		LinuxPPS
-+'p'	A1-A5	linux/pps.h		LinuxPPS
- 					<mailto:giometti@linux.it>
- 'q'	00-1F	linux/serio.h
- 'q'	80-FF	linux/telephony.h	Internet PhoneJACK, Internet LineJACK
-diff -puN drivers/pps/Kconfig~pps-add-kernel-consumer-support drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-add-kernel-consumer-support
-+++ a/drivers/pps/Kconfig
-@@ -7,6 +7,7 @@ menu "PPS support"
- config PPS
- 	tristate "PPS support"
- 	depends on EXPERIMENTAL
-+	select NTP_PPS
- 	---help---
- 	  PPS (Pulse Per Second) is a special pulse provided by some GPS
- 	  antennae. Userland can use it to get a high-precision time
-diff -puN drivers/pps/kapi.c~pps-add-kernel-consumer-support drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/kapi.c
-@@ -25,6 +25,7 @@
- #include <linux/init.h>
- #include <linux/sched.h>
- #include <linux/time.h>
-+#include <linux/timex.h>
- #include <linux/spinlock.h>
- #include <linux/fs.h>
- #include <linux/pps_kernel.h>
-@@ -37,6 +38,12 @@
- /* PPS event workqueue */
- struct workqueue_struct *pps_event_workqueue;
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-add-async-pps-event-handler drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-add-async-pps-event-handler
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -47,7 +47,7 @@ static void pps_ktimer_event(unsigned lo
  
-+/* state variables to bind kernel consumer */
-+/* PPS API (RFC 2783): current source and mode for ``kernel consumer'' */
-+DEFINE_SPINLOCK(pps_kc_hardpps_lock);
-+void	*pps_kc_hardpps_dev;	/* some unique pointer to device */
-+int	pps_kc_hardpps_mode;	/* mode bits for kernel consumer */
-+
+ 	dev_info(pps->dev, "PPS event at %lu\n", jiffies);
+ 
+-	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
++	pps_event_irq(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ 
+ 	mod_timer(&ktimer, jiffies + HZ);
+ }
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-add-async-pps-event-handler drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-add-async-pps-event-handler
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -40,7 +40,7 @@ static void pps_tty_dcd_change(struct tt
+ 		ts = &__ts;
+ 
+ 	/* Now do the PPS event report */
+-	pps_event(pps, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
++	pps_event_irq(pps, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
+ 			NULL);
+ 
+ 	dev_dbg(pps->dev, "PPS %s at %lu\n", status ? "assert" : "clear",
+diff -puN drivers/pps/kapi.c~pps-add-async-pps-event-handler drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-add-async-pps-event-handler
++++ a/drivers/pps/kapi.c
+@@ -31,9 +31,19 @@
+ #include <linux/slab.h>
+ 
  /*
++ * Global variables
++ */
++
++/* PPS event workqueue */
++struct workqueue_struct *pps_event_workqueue;
++
++/*
   * Local functions
   */
-@@ -140,6 +147,16 @@ EXPORT_SYMBOL(pps_register_source);
  
- void pps_unregister_source(struct pps_device *pps)
++static void assert_work_func(struct work_struct *work);
++static void clear_work_func(struct work_struct *work);
++
+ static void pps_add_offset(struct pps_ktime *ts, struct pps_ktime *offset)
  {
-+	spin_lock(&pps_kc_hardpps_lock);
-+	if (pps == pps_kc_hardpps_dev) {
-+		pps_kc_hardpps_mode = 0;
-+		pps_kc_hardpps_dev = NULL;
-+		spin_unlock(&pps_kc_hardpps_lock);
-+		dev_info(pps->dev, "unbound kernel consumer"
-+				" on device removal\n");
-+	} else
-+		spin_unlock(&pps_kc_hardpps_lock);
+ 	ts->nsec += offset->nsec;
+@@ -107,6 +117,9 @@ struct pps_device *pps_register_source(s
+ 	init_waitqueue_head(&pps->queue);
+ 	spin_lock_init(&pps->lock);
+ 
++	INIT_WORK(&pps->assert_work, assert_work_func);
++	INIT_WORK(&pps->clear_work, clear_work_func);
 +
- 	pps_unregister_cdev(pps);
+ 	/* Create the char device */
+ 	err = pps_register_cdev(pps);
+ 	if (err < 0) {
+@@ -148,11 +161,12 @@ EXPORT_SYMBOL(pps_unregister_source);
+  * @event: the event type
+  * @data: userdef pointer
+  *
+- * This function is used by each PPS client in order to register a new
+- * PPS event into the system (it's usually called inside an IRQ handler).
++ * This function is used by PPS clients in order to register a new
++ * PPS event into the system. It should not be called from an IRQ
++ * handler. Use pps_event_irq instead.
+  *
+- * If an echo function is associated with the PPS device it will be called
+- * as:
++ * If an echo function is associated with the PPS device it will be
++ * called as:
+  *	pps->info.echo(pps, event, data);
+  */
+ void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
+@@ -222,3 +236,76 @@ void pps_event(struct pps_device *pps, s
+ 	spin_unlock_irqrestore(&pps->lock, flags);
  }
- EXPORT_SYMBOL(pps_unregister_source);
-@@ -209,6 +226,12 @@ void pps_event(struct pps_device *pps, s
- 		captured = ~0;
- 	}
- 
-+	/* Pass some events to kernel consumer if activated */
-+	spin_lock(&pps_kc_hardpps_lock);
-+	if (pps == pps_kc_hardpps_dev && event & pps_kc_hardpps_mode)
-+		hardpps(&ts->ts_real, &ts->ts_raw);
-+	spin_unlock(&pps_kc_hardpps_lock);
+ EXPORT_SYMBOL(pps_event);
 +
- 	/* Wake up if captured something */
- 	if (captured) {
- 		pps->last_ev++;
-diff -puN drivers/pps/pps.c~pps-add-kernel-consumer-support drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/pps.c
-@@ -196,9 +196,69 @@ static long pps_cdev_ioctl(struct file *
- 
- 		break;
- 	}
-+	case PPS_KC_BIND: {
-+		struct pps_bind_args bind_args;
++/* Async event handlers */
 +
-+		dev_dbg(pps->dev, "PPS_KC_BIND\n");
++static void assert_work_func(struct work_struct *work)
++{
++	struct pps_device *pps = container_of(work,
++			struct pps_device, assert_work);
 +
-+		/* Check the capabilities */
-+		if (!capable(CAP_SYS_TIME))
-+			return -EPERM;
++	pps_event(pps, &pps->assert_work_ts, PPS_CAPTUREASSERT,
++			pps->assert_work_data);
++}
 +
-+		if (copy_from_user(&bind_args, uarg,
-+					sizeof(struct pps_bind_args)))
-+			return -EFAULT;
++static void clear_work_func(struct work_struct *work)
++{
++	struct pps_device *pps = container_of(work,
++			struct pps_device, clear_work);
 +
-+		/* Check for supported capabilities */
-+		if ((bind_args.edge & ~pps->info.mode) != 0) {
-+			dev_err(pps->dev, "unsupported capabilities (%x)\n",
-+					bind_args.edge);
-+			return -EINVAL;
++	pps_event(pps, &pps->clear_work_ts, PPS_CAPTURECLEAR,
++			pps->clear_work_data);
++}
++
++/* pps_event_irq - register a PPS event for deffered handling using
++ * workqueue
++ *
++ * @pps: the PPS device
++ * @ts: the event timestamp
++ * @event: the event type
++ * @data: userdef pointer
++ *
++ * This function is used by PPS clients in order to register a new
++ * PPS event into the system. It should be called from an IRQ handler
++ * only.
++ *
++ * If an echo function is associated with the PPS device it will be
++ * called as:
++ *	pps->info.echo(pps, event, data);
++ */
++void pps_event_irq(struct pps_device *pps, struct pps_event_time *ts,
++		int event, void *data)
++{
++	/* check event type */
++	BUG_ON((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0);
++
++	if (event & PPS_CAPTUREASSERT) {
++		if (work_pending(&pps->assert_work)) {
++			dev_err(pps->dev, "deferred assert edge work haven't"
++					" been handled within a second\n");
++			/* FIXME: do something more intelligent
++			 * then just exit */
++		} else {
++			/* now we can copy data safely */
++			pps->assert_work_ts = *ts;
++			pps->assert_work_data = data;
++
++			queue_work(pps_event_workqueue, &pps->assert_work);
 +		}
-+
-+		/* Validate parameters roughly */
-+		if (bind_args.tsformat != PPS_TSFMT_TSPEC ||
-+				(bind_args.edge & ~PPS_CAPTUREBOTH) != 0 ||
-+				bind_args.consumer != PPS_KC_HARDPPS) {
-+			dev_err(pps->dev, "invalid kernel consumer bind"
-+					" parameters (%x)\n", bind_args.edge);
-+			return -EINVAL;
-+		}
-+
-+		/* Check if another consumer is already bound */
-+		spin_lock(&pps_kc_hardpps_lock);
-+
-+		if (bind_args.edge == 0)
-+			if (pps_kc_hardpps_dev == pps) {
-+				pps_kc_hardpps_mode = 0;
-+				pps_kc_hardpps_dev = NULL;
-+				spin_unlock(&pps_kc_hardpps_lock);
-+				dev_info(pps->dev, "unbound kernel"
-+						" consumer\n");
-+			} else {
-+				spin_unlock(&pps_kc_hardpps_lock);
-+				dev_err(pps->dev, "selected kernel consumer"
-+						" is not bound\n");
-+				return -EINVAL;
-+			}
-+		else
-+			if (pps_kc_hardpps_dev == NULL ||
-+					pps_kc_hardpps_dev == pps) {
-+				pps_kc_hardpps_mode = bind_args.edge;
-+				pps_kc_hardpps_dev = pps;
-+				spin_unlock(&pps_kc_hardpps_lock);
-+				dev_info(pps->dev, "bound kernel consumer: "
-+					"edge=0x%x\n", bind_args.edge);
-+			} else {
-+				spin_unlock(&pps_kc_hardpps_lock);
-+				dev_err(pps->dev, "another kernel consumer"
-+						" is already bound\n");
-+				return -EINVAL;
-+			}
-+		break;
 +	}
- 	default:
- 		return -ENOTTY;
--		break;
- 	}
++	if (event & PPS_CAPTURECLEAR) {
++		if (work_pending(&pps->clear_work)) {
++			dev_err(pps->dev, "deferred clear edge work haven't"
++					" been handled within a second\n");
++			/* FIXME: do something more intelligent
++			 * then just exit */
++		} else {
++			/* now we can copy data safely */
++			pps->clear_work_ts = *ts;
++			pps->clear_work_data = data;
++
++			queue_work(pps_event_workqueue, &pps->clear_work);
++		}
++	}
++}
++EXPORT_SYMBOL(pps_event_irq);
+diff -puN drivers/pps/pps.c~pps-add-async-pps-event-handler drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-add-async-pps-event-handler
++++ a/drivers/pps/pps.c
+@@ -319,18 +319,26 @@ void pps_unregister_cdev(struct pps_devi
  
- 	return 0;
-diff -puN include/linux/pps.h~pps-add-kernel-consumer-support include/linux/pps.h
---- a/include/linux/pps.h~pps-add-kernel-consumer-support
-+++ a/include/linux/pps.h
-@@ -114,11 +114,18 @@ struct pps_fdata {
- 	struct pps_ktime timeout;
+ static void __exit pps_exit(void)
+ {
+-	class_destroy(pps_class);
+ 	unregister_chrdev_region(pps_devt, PPS_MAX_SOURCES);
++	class_destroy(pps_class);
++	destroy_workqueue(pps_event_workqueue);
+ }
+ 
+ static int __init pps_init(void)
+ {
+ 	int err;
+ 
++	pps_event_workqueue = create_rt_workqueue("pps");
++	if (!pps_event_workqueue) {
++		pr_err("pps: failed to create workqueue\n");
++		return -ENOMEM;
++	}
++
+ 	pps_class = class_create(THIS_MODULE, "pps");
+ 	if (!pps_class) {
+ 		pr_err("pps: failed to allocate class\n");
+-		return -ENOMEM;
++		err = -ENOMEM;
++		goto destroy_workqueue;
+ 	}
+ 	pps_class->dev_attrs = pps_attrs;
+ 
+@@ -348,6 +356,8 @@ static int __init pps_init(void)
+ 
+ remove_class:
+ 	class_destroy(pps_class);
++destroy_workqueue:
++	destroy_workqueue(pps_event_workqueue);
+ 
+ 	return err;
+ }
+diff -puN include/linux/pps_kernel.h~pps-add-async-pps-event-handler include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-add-async-pps-event-handler
++++ a/include/linux/pps_kernel.h
+@@ -26,6 +26,7 @@
+ #include <linux/cdev.h>
+ #include <linux/device.h>
+ #include <linux/time.h>
++#include <linux/workqueue.h>
+ 
+ /*
+  * Global defines
+@@ -70,6 +71,13 @@ struct pps_device {
+ 	struct device *dev;
+ 	struct fasync_struct *async_queue;	/* fasync method */
+ 	spinlock_t lock;
++
++	struct work_struct assert_work;
++	struct work_struct clear_work;
++	struct pps_event_time assert_work_ts;
++	struct pps_event_time clear_work_ts;
++	void *assert_work_data;
++	void *clear_work_data;
  };
  
-+struct pps_bind_args {
-+	int tsformat;	/* format of time stamps */
-+	int edge;	/* selected event type */
-+	int consumer;	/* selected kernel consumer */
-+};
-+
- #include <linux/ioctl.h>
- 
- #define PPS_GETPARAMS		_IOR('p', 0xa1, struct pps_kparams *)
- #define PPS_SETPARAMS		_IOW('p', 0xa2, struct pps_kparams *)
- #define PPS_GETCAP		_IOR('p', 0xa3, int *)
- #define PPS_FETCH		_IOWR('p', 0xa4, struct pps_fdata *)
-+#define PPS_KC_BIND		_IOW('p', 0xa5, struct pps_bind_args *)
- 
- #endif /* _PPS_H_ */
-diff -puN include/linux/pps_kernel.h~pps-add-kernel-consumer-support include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-add-kernel-consumer-support
-+++ a/include/linux/pps_kernel.h
-@@ -87,6 +87,12 @@ struct pps_device {
+ /*
+@@ -78,6 +86,8 @@ struct pps_device {
  
  extern struct device_attribute pps_attrs[];
  
-+/* state variables to bind kernel consumer */
-+/* PPS API (RFC 2783): current source and mode for ``kernel consumer'' */
-+extern spinlock_t pps_kc_hardpps_lock;
-+extern void *pps_kc_hardpps_dev;	/* some unique pointer to device */
-+extern int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
++extern struct workqueue_struct *pps_event_workqueue;
 +
- extern struct workqueue_struct *pps_event_workqueue;
- 
  /*
+  * Exported functions
+  */
+@@ -87,8 +97,10 @@ extern struct pps_device *pps_register_s
+ extern void pps_unregister_source(struct pps_device *pps);
+ extern int pps_register_cdev(struct pps_device *pps);
+ extern void pps_unregister_cdev(struct pps_device *pps);
+-extern void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
+-		void *data);
++extern void pps_event(struct pps_device *pps,
++		struct pps_event_time *ts, int event, void *data);
++extern void pps_event_irq(struct pps_device *pps,
++		struct pps_event_time *ts, int event, void *data);
+ 
+ static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
+ 		struct timespec ts)
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
+pps-add-async-pps-event-handler-fix.patch
+pps-dont-disable-interrupts-when-using-spin-locks.patch
+pps-use-bug_on-for-kernel-api-safety-checks.patch
+pps-simplify-conditions-a-bit.patch
+ntp-add-hardpps-implementation.patch
+pps-capture-monotonic_raw-timestamps-as-well.patch
+pps-add-kernel-consumer-support.patch
 pps-add-parallel-port-pps-client.patch
 pps-add-parallel-port-pps-signal-generator.patch
 
