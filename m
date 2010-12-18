@@ -1,134 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] pps-capture-monotonic_raw-timestamps-as-well.patch removed from -mm tree
-Date: Fri, 17 Dec 2010 16:04:58 -0800
-Message-ID: <201012180004.oBI04wvj004225@imap1.linux-foundation.org>
+Subject: + pps-trivial-fixes.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:19:48 -0800
+Message-ID: <201012180019.oBI0JmZr004852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756587Ab0LRAFk (ORCPT
+	by vger.kernel.org with ESMTP id S1752948Ab0LRATz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:05:40 -0500
+	Fri, 17 Dec 2010 19:19:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com, joonwpark81@gmail.com, tj@kernel.org, yoush@cs.msu.su, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: capture MONOTONIC_RAW timestamps as well
-has been removed from the -mm tree.  Its filename was
-     pps-capture-monotonic_raw-timestamps-as-well.patch
+     pps: trivial fixes
+has been added to the -mm tree.  Its filename is
+     pps-trivial-fixes.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: capture MONOTONIC_RAW timestamps as well
+Subject: pps: trivial fixes
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-MONOTONIC_RAW clock timestamps are ideally suited for frequency
-calculation and also fit well into the original NTP hardpps design.  Now
-phase and frequency can be adjusted separately: the former based on
+Here are some very trivial fixes combined:
 
-REALTIME clock and the latter based on MONOTONIC_RAW clock.  A new
-function getnstime_raw_and_real is added to timekeeping subsystem to
-capture both timestamps at the same time and atomically.
+- add macro definitions to protect header file from including several times
+
+- remove declaration for an unexistent array
+
+- fix typos
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Joonwoo Park <joonwpark81@gmail.com>
+Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pps_kernel.h |    3 ++-
- include/linux/time.h       |    2 ++
- kernel/time/timekeeping.c  |   34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 1 deletion(-)
+ drivers/pps/kapi.c         |    2 +-
+ include/linux/pps_kernel.h |    7 ++++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well
+diff -puN drivers/pps/kapi.c~pps-trivial-fixes drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-trivial-fixes
++++ a/drivers/pps/kapi.c
+@@ -324,7 +324,7 @@ void pps_event(int source, struct pps_kt
+ 		captured = ~0;
+ 	}
+ 
+-	/* Wake up iif captured somthing */
++	/* Wake up if captured something */
+ 	if (captured) {
+ 		pps->go = ~0;
+ 		wake_up_interruptible(&pps->queue);
+diff -puN include/linux/pps_kernel.h~pps-trivial-fixes include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-trivial-fixes
 +++ a/include/linux/pps_kernel.h
-@@ -48,6 +48,7 @@ struct pps_source_info {
- };
+@@ -18,6 +18,9 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- struct pps_event_time {
-+	struct timespec ts_raw;
- 	struct timespec ts_real;
- };
++#ifndef LINUX_PPS_KERNEL_H
++#define LINUX_PPS_KERNEL_H
++
+ #include <linux/pps.h>
  
-@@ -111,7 +112,7 @@ static inline void timespec_to_pps_ktime
+ #include <linux/cdev.h>
+@@ -71,7 +74,6 @@ struct pps_device {
  
- static inline void pps_get_ts(struct pps_event_time *ts)
- {
--	getnstimeofday(&ts->ts_real);
-+	getnstime_raw_and_real(&ts->ts_raw, &ts->ts_real);
- }
+ extern spinlock_t pps_idr_lock;
+ extern struct idr pps_idr;
+-extern struct timespec pps_irq_ts[];
  
- #endif /* LINUX_PPS_KERNEL_H */
-diff -puN include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/time.h
---- a/include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/include/linux/time.h
-@@ -158,6 +158,8 @@ extern unsigned int alarm_setitimer(unsi
- extern int do_getitimer(int which, struct itimerval *value);
- extern void getnstimeofday(struct timespec *tv);
- extern void getrawmonotonic(struct timespec *ts);
-+extern void getnstime_raw_and_real(struct timespec *ts_raw,
-+		struct timespec *ts_real);
- extern void getboottime(struct timespec *ts);
- extern void monotonic_to_bootbased(struct timespec *ts);
+ extern struct device_attribute pps_attrs[];
  
-diff -puN kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/kernel/time/timekeeping.c
-@@ -289,6 +289,40 @@ void ktime_get_ts(struct timespec *ts)
- EXPORT_SYMBOL_GPL(ktime_get_ts);
- 
- /**
-+ * getnstime_raw_and_real - Returns both the time of day an raw
-+ * monotonic time in a timespec format
-+ * @ts_mono_raw:	pointer to the timespec to be set to raw
-+ *			monotonic time
-+ * @ts_real:		pointer to the timespec to be set to the time
-+ *			of day
-+ */
-+void getnstime_raw_and_real(struct timespec *ts_raw, struct timespec *ts_real)
-+{
-+	unsigned long seq;
-+	s64 nsecs_raw, nsecs_real;
+@@ -87,3 +89,6 @@ extern void pps_unregister_source(int so
+ extern int pps_register_cdev(struct pps_device *pps);
+ extern void pps_unregister_cdev(struct pps_device *pps);
+ extern void pps_event(int source, struct pps_ktime *ts, int event, void *data);
 +
-+	WARN_ON(timekeeping_suspended);
++#endif /* LINUX_PPS_KERNEL_H */
 +
-+	do {
-+		seq = read_seqbegin(&xtime_lock);
-+
-+		*ts_raw = raw_time;
-+		*ts_real = xtime;
-+
-+		nsecs_raw = timekeeping_get_ns_raw();
-+		nsecs_real = timekeeping_get_ns();
-+
-+		/* If arch requires, add in gettimeoffset() */
-+		nsecs_real += arch_gettimeoffset();
-+
-+	} while (read_seqretry(&xtime_lock, seq));
-+
-+	timespec_add_ns(ts_raw, nsecs_raw);
-+	timespec_add_ns(ts_real, nsecs_real);
-+}
-+EXPORT_SYMBOL(getnstime_raw_and_real);
-+
-+/**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
+pps-trivial-fixes.patch
+pps-declare-variables-where-they-are-used-in-switch.patch
+pps-fix-race-in-pps_fetch-handler.patch
+pps-unify-timestamp-gathering.patch
+pps-access-pps-device-by-direct-pointer.patch
+pps-convert-printk-pr_-to-dev_.patch
+pps-move-idr-stuff-to-ppsc.patch
+pps-do-not-disable-interrupts-for-idr-operations.patch
+pps-use-bug_on-for-kernel-api-safety-checks.patch
+pps-simplify-conditions-a-bit.patch
+pps-timestamp-is-always-passed-to-dcd_change.patch
+ntp-add-hardpps-implementation.patch
+pps-capture-monotonic_raw-timestamps-as-well.patch
 pps-add-kernel-consumer-support.patch
 pps-add-parallel-port-pps-client.patch
 pps-add-parallel-port-pps-signal-generator.patch
