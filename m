@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pps-unify-timestamp-gathering.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:19:54 -0800
-Message-ID: <201012180019.oBI0JsJT004861@imap1.linux-foundation.org>
+Subject: + pps-fix-race-in-pps_fetch-handler.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:19:52 -0800
+Message-ID: <201012180019.oBI0JqJX004858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752948Ab0LRAUB (ORCPT
+	by vger.kernel.org with ESMTP id S1752948Ab0LRAT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:20:01 -0500
+	Fri, 17 Dec 2010 19:19:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: unify timestamp gathering
+     pps: fix race in PPS_FETCH handler
 has been added to the -mm tree.  Its filename is
-     pps-unify-timestamp-gathering.patch
+     pps-fix-race-in-pps_fetch-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,232 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: unify timestamp gathering
+Subject: pps: fix race in PPS_FETCH handler
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Add a helper function to gather timestamps.  This way clients don't have
-to duplicate it.
+There was a race in PPS_FETCH ioctl handler when several processes want to
+obtain PPS data simultaneously using sleeping PPS_FETCH.  They all sleep
+most of the time in the system call.
+
+With the old approach when the first process waiting on the pps queue is
+waken up it makes new system call right away and zeroes pps->go.  So other
+processes continue to sleep.  This is a clear race condition because of
+the global 'go' variable.
+
+With the new approach pps->last_ev holds some value increasing at each PPS
+event.  PPS_FETCH ioctl handler saves current value to the local variable
+at the very beginning so it can safely check that there is a new event by
+just comparing both variables.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ktimer.c |    9 ++-------
- drivers/pps/clients/pps-ldisc.c  |   18 ++++++------------
- drivers/pps/kapi.c               |   19 ++++++++++++-------
- include/linux/pps_kernel.h       |   19 ++++++++++++++++++-
- include/linux/serial_core.h      |    5 +++--
- include/linux/tty_ldisc.h        |    5 +++--
- 6 files changed, 44 insertions(+), 31 deletions(-)
+ drivers/pps/kapi.c         |    4 ++--
+ drivers/pps/pps.c          |   10 +++++++---
+ include/linux/pps_kernel.h |    2 +-
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pps/clients/pps-ktimer.c~pps-unify-timestamp-gathering drivers/pps/clients/pps-ktimer.c
---- a/drivers/pps/clients/pps-ktimer.c~pps-unify-timestamp-gathering
-+++ a/drivers/pps/clients/pps-ktimer.c
-@@ -40,18 +40,13 @@ static struct timer_list ktimer;
- 
- static void pps_ktimer_event(unsigned long ptr)
- {
--	struct timespec __ts;
--	struct pps_ktime ts;
-+	struct pps_event_time ts;
- 
- 	/* First of all we get the time stamp... */
--	getnstimeofday(&__ts);
-+	pps_get_ts(&ts);
- 
- 	pr_info("PPS event at %lu\n", jiffies);
- 
--	/* ... and translate it to PPS time data struct */
--	ts.sec = __ts.tv_sec;
--	ts.nsec = __ts.tv_nsec;
--
- 	pps_event(source, &ts, PPS_CAPTUREASSERT, NULL);
- 
- 	mod_timer(&ktimer, jiffies + HZ);
-diff -puN drivers/pps/clients/pps-ldisc.c~pps-unify-timestamp-gathering drivers/pps/clients/pps-ldisc.c
---- a/drivers/pps/clients/pps-ldisc.c~pps-unify-timestamp-gathering
-+++ a/drivers/pps/clients/pps-ldisc.c
-@@ -27,26 +27,20 @@
- #define PPS_TTY_MAGIC		0x0001
- 
- static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status,
--				struct timespec *ts)
-+				struct pps_event_time *ts)
- {
- 	int id = (long)tty->disc_data;
--	struct timespec __ts;
--	struct pps_ktime pps_ts;
-+	struct pps_event_time __ts;
- 
- 	/* First of all we get the time stamp... */
--	getnstimeofday(&__ts);
-+	pps_get_ts(&__ts);
- 
- 	/* Does caller give us a timestamp? */
--	if (ts) {	/* Yes. Let's use it! */
--		pps_ts.sec = ts->tv_sec;
--		pps_ts.nsec = ts->tv_nsec;
--	} else {	/* No. Do it ourself! */
--		pps_ts.sec = __ts.tv_sec;
--		pps_ts.nsec = __ts.tv_nsec;
--	}
-+	if (!ts)	/* No. Do it ourself! */
-+		ts = &__ts;
- 
- 	/* Now do the PPS event report */
--	pps_event(id, &pps_ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
-+	pps_event(id, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
- 			NULL);
- 
- 	pr_debug("PPS %s at %lu on source #%d\n",
-diff -puN drivers/pps/kapi.c~pps-unify-timestamp-gathering drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-unify-timestamp-gathering
+diff -puN drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler
 +++ a/drivers/pps/kapi.c
-@@ -268,11 +268,12 @@ EXPORT_SYMBOL(pps_unregister_source);
-  *	pps->info.echo(source, event, data);
-  */
+@@ -326,8 +326,8 @@ void pps_event(int source, struct pps_kt
  
--void pps_event(int source, struct pps_ktime *ts, int event, void *data)
-+void pps_event(int source, struct pps_event_time *ts, int event, void *data)
- {
- 	struct pps_device *pps;
- 	unsigned long flags;
- 	int captured = 0;
-+	struct pps_ktime ts_real;
+ 	/* Wake up if captured something */
+ 	if (captured) {
+-		pps->go = ~0;
+-		wake_up_interruptible(&pps->queue);
++		pps->last_ev++;
++		wake_up_interruptible_all(&pps->queue);
  
- 	if ((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0) {
- 		printk(KERN_ERR "pps: unknown event (%x) for source %d\n",
-@@ -284,8 +285,10 @@ void pps_event(int source, struct pps_kt
- 	if (!pps)
- 		return;
+ 		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
+ 	}
+diff -puN drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler
++++ a/drivers/pps/pps.c
+@@ -136,6 +136,7 @@ static long pps_cdev_ioctl(struct file *
  
--	pr_debug("PPS event on source %d at %llu.%06u\n",
--			pps->id, (unsigned long long) ts->sec, ts->nsec);
-+	pr_debug("PPS event on source %d at %ld.%09ld\n",
-+			pps->id, ts->ts_real.tv_sec, ts->ts_real.tv_nsec);
-+
-+	timespec_to_pps_ktime(&ts_real, ts->ts_real);
+ 	case PPS_FETCH: {
+ 		struct pps_fdata fdata;
++		unsigned int ev;
  
- 	spin_lock_irqsave(&pps->lock, flags);
+ 		pr_debug("PPS_FETCH: source %d\n", pps->id);
  
-@@ -299,10 +302,11 @@ void pps_event(int source, struct pps_kt
- 			(pps->params.mode & PPS_CAPTUREASSERT)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETASSERT)
--			pps_add_offset(ts, &pps->params.assert_off_tu);
-+			pps_add_offset(&ts_real,
-+					&pps->params.assert_off_tu);
+@@ -143,11 +144,12 @@ static long pps_cdev_ioctl(struct file *
+ 		if (err)
+ 			return -EFAULT;
  
- 		/* Save the time stamp */
--		pps->assert_tu = *ts;
-+		pps->assert_tu = ts_real;
- 		pps->assert_sequence++;
- 		pr_debug("capture assert seq #%u for source %d\n",
- 			pps->assert_sequence, source);
-@@ -313,10 +317,11 @@ void pps_event(int source, struct pps_kt
- 			(pps->params.mode & PPS_CAPTURECLEAR)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETCLEAR)
--			pps_add_offset(ts, &pps->params.clear_off_tu);
-+			pps_add_offset(&ts_real,
-+					&pps->params.clear_off_tu);
+-		pps->go = 0;
++		ev = pps->last_ev;
  
- 		/* Save the time stamp */
--		pps->clear_tu = *ts;
-+		pps->clear_tu = ts_real;
- 		pps->clear_sequence++;
- 		pr_debug("capture clear seq #%u for source %d\n",
- 			pps->clear_sequence, source);
-diff -puN include/linux/pps_kernel.h~pps-unify-timestamp-gathering include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-unify-timestamp-gathering
+ 		/* Manage the timeout */
+ 		if (fdata.timeout.flags & PPS_TIME_INVALID)
+-			err = wait_event_interruptible(pps->queue, pps->go);
++			err = wait_event_interruptible(pps->queue,
++					ev != pps->last_ev);
+ 		else {
+ 			unsigned long ticks;
+ 
+@@ -159,7 +161,9 @@ static long pps_cdev_ioctl(struct file *
+ 
+ 			if (ticks != 0) {
+ 				err = wait_event_interruptible_timeout(
+-						pps->queue, pps->go, ticks);
++						pps->queue,
++						ev != pps->last_ev,
++						ticks);
+ 				if (err == 0)
+ 					return -ETIMEDOUT;
+ 			}
+diff -puN include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler
 +++ a/include/linux/pps_kernel.h
-@@ -43,6 +43,10 @@ struct pps_source_info {
- 	struct device *dev;
- };
+@@ -55,7 +55,7 @@ struct pps_device {
+ 	struct pps_ktime clear_tu;
+ 	int current_mode;			/* PPS mode at event time */
  
-+struct pps_event_time {
-+	struct timespec ts_real;
-+};
-+
- /* The main struct */
- struct pps_device {
- 	struct pps_source_info info;		/* PSS source info */
-@@ -88,7 +92,20 @@ extern int pps_register_source(struct pp
- extern void pps_unregister_source(int source);
- extern int pps_register_cdev(struct pps_device *pps);
- extern void pps_unregister_cdev(struct pps_device *pps);
--extern void pps_event(int source, struct pps_ktime *ts, int event, void *data);
-+extern void pps_event(int source, struct pps_event_time *ts, int event,
-+		void *data);
-+
-+static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
-+		struct timespec ts)
-+{
-+	kt->sec = ts.tv_sec;
-+	kt->nsec = ts.tv_nsec;
-+}
-+
-+static inline void pps_get_ts(struct pps_event_time *ts)
-+{
-+	getnstimeofday(&ts->ts_real);
-+}
+-	int go;					/* PPS event is arrived? */
++	unsigned int last_ev;			/* last PPS event id */
+ 	wait_queue_head_t queue;		/* PPS event queue */
  
- #endif /* LINUX_PPS_KERNEL_H */
- 
-diff -puN include/linux/serial_core.h~pps-unify-timestamp-gathering include/linux/serial_core.h
---- a/include/linux/serial_core.h~pps-unify-timestamp-gathering
-+++ a/include/linux/serial_core.h
-@@ -212,6 +212,7 @@
- #include <linux/tty.h>
- #include <linux/mutex.h>
- #include <linux/sysrq.h>
-+#include <linux/pps_kernel.h>
- 
- struct uart_port;
- struct serial_struct;
-@@ -528,10 +529,10 @@ uart_handle_dcd_change(struct uart_port 
- 	struct uart_state *state = uport->state;
- 	struct tty_port *port = &state->port;
- 	struct tty_ldisc *ld = tty_ldisc_ref(port->tty);
--	struct timespec ts;
-+	struct pps_event_time ts;
- 
- 	if (ld && ld->ops->dcd_change)
--		getnstimeofday(&ts);
-+		pps_get_ts(&ts);
- 
- 	uport->icount.dcd++;
- #ifdef CONFIG_HARD_PPS
-diff -puN include/linux/tty_ldisc.h~pps-unify-timestamp-gathering include/linux/tty_ldisc.h
---- a/include/linux/tty_ldisc.h~pps-unify-timestamp-gathering
-+++ a/include/linux/tty_ldisc.h
-@@ -101,7 +101,7 @@
-  *	any pending driver I/O is completed.
-  *
-  * void (*dcd_change)(struct tty_struct *tty, unsigned int status,
-- * 			struct timespec *ts)
-+ *			struct pps_event_time *ts)
-  *
-  *	Tells the discipline that the DCD pin has changed its status and
-  *	the relative timestamp. Pointer ts can be NULL.
-@@ -109,6 +109,7 @@
- 
- #include <linux/fs.h>
- #include <linux/wait.h>
-+#include <linux/pps_kernel.h>
- 
- struct tty_ldisc_ops {
- 	int	magic;
-@@ -143,7 +144,7 @@ struct tty_ldisc_ops {
- 			       char *fp, int count);
- 	void	(*write_wakeup)(struct tty_struct *);
- 	void	(*dcd_change)(struct tty_struct *, unsigned int,
--				struct timespec *);
-+				struct pps_event_time *);
- 
- 	struct  module *owner;
- 	
+ 	unsigned int id;			/* PPS source unique ID */
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
