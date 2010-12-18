@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pps-add-kernel-consumer-support.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:20:15 -0800
-Message-ID: <201012180020.oBI0KFaZ004928@imap1.linux-foundation.org>
+Subject: + pps-timestamp-is-always-passed-to-dcd_change.patch added to -mm tree
+Date: Fri, 17 Dec 2010 16:20:08 -0800
+Message-ID: <201012180020.oBI0K8mv004919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756713Ab0LRAUY (ORCPT
+	by vger.kernel.org with ESMTP id S1756601Ab0LRAUY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 17 Dec 2010 19:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: add kernel consumer support
+     pps: timestamp is always passed to dcd_change()
 has been added to the -mm tree.  Its filename is
-     pps-add-kernel-consumer-support.patch
+     pps-timestamp-is-always-passed-to-dcd_change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,217 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add kernel consumer support
+Subject: pps: timestamp is always passed to dcd_change()
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Add an optional feature of PPSAPI, kernel consumer support, which uses the
-added hardpps() function.
+Remove the code that gatheres timestamp in pps_tty_dcd_change() in case
+passed ts parameter is NULL because it never happens in the current code. 
+Fix comments as well.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    2 
- drivers/pps/Kconfig                  |    1 
- drivers/pps/kapi.c                   |   27 ++++++++++
- drivers/pps/pps.c                    |   62 ++++++++++++++++++++++++-
- include/linux/pps.h                  |    7 ++
- include/linux/pps_kernel.h           |    6 ++
- 6 files changed, 103 insertions(+), 2 deletions(-)
+ Documentation/serial/tty.txt    |    2 +-
+ drivers/pps/clients/pps-ldisc.c |    8 --------
+ include/linux/tty_ldisc.h       |    2 +-
+ 3 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -249,7 +249,7 @@ Code  Seq#(hex)	Include File		Comments
- 'p'	40-7F	linux/nvram.h
- 'p'	80-9F	linux/ppdev.h		user-space parport
- 					<mailto:tim@cyberelk.net>
--'p'	A1-A4	linux/pps.h		LinuxPPS
-+'p'	A1-A5	linux/pps.h		LinuxPPS
- 					<mailto:giometti@linux.it>
- 'q'	00-1F	linux/serio.h
- 'q'	80-FF	linux/telephony.h	Internet PhoneJACK, Internet LineJACK
-diff -puN drivers/pps/Kconfig~pps-add-kernel-consumer-support drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-add-kernel-consumer-support
-+++ a/drivers/pps/Kconfig
-@@ -7,6 +7,7 @@ menu "PPS support"
- config PPS
- 	tristate "PPS support"
- 	depends on EXPERIMENTAL
-+	select NTP_PPS
- 	---help---
- 	  PPS (Pulse Per Second) is a special pulse provided by some GPS
- 	  antennae. Userland can use it to get a high-precision time
-diff -puN drivers/pps/kapi.c~pps-add-kernel-consumer-support drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/kapi.c
-@@ -26,12 +26,23 @@
- #include <linux/init.h>
- #include <linux/sched.h>
- #include <linux/time.h>
-+#include <linux/timex.h>
- #include <linux/spinlock.h>
- #include <linux/fs.h>
- #include <linux/pps_kernel.h>
- #include <linux/slab.h>
+diff -puN Documentation/serial/tty.txt~pps-timestamp-is-always-passed-to-dcd_change Documentation/serial/tty.txt
+--- a/Documentation/serial/tty.txt~pps-timestamp-is-always-passed-to-dcd_change
++++ a/Documentation/serial/tty.txt
+@@ -107,7 +107,7 @@ write_wakeup()	-	May be called at any po
  
- /*
-+ * Global variables
-+ */
-+
-+/* state variables to bind kernel consumer */
-+/* PPS API (RFC 2783): current source and mode for ``kernel consumer'' */
-+DEFINE_SPINLOCK(pps_kc_hardpps_lock);
-+void	*pps_kc_hardpps_dev;	/* some unique pointer to device */
-+int	pps_kc_hardpps_mode;	/* mode bits for kernel consumer */
-+
-+/*
-  * Local functions
-  */
+ dcd_change()	-	Report to the tty line the current DCD pin status
+ 			changes and the relative timestamp. The timestamp
+-			can be NULL.
++			cannot be NULL.
  
-@@ -139,6 +150,16 @@ EXPORT_SYMBOL(pps_register_source);
  
- void pps_unregister_source(struct pps_device *pps)
+ Driver Access
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-timestamp-is-always-passed-to-dcd_change drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-timestamp-is-always-passed-to-dcd_change
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -32,14 +32,6 @@ static void pps_tty_dcd_change(struct tt
+ 				struct pps_event_time *ts)
  {
-+	spin_lock_irq(&pps_kc_hardpps_lock);
-+	if (pps == pps_kc_hardpps_dev) {
-+		pps_kc_hardpps_mode = 0;
-+		pps_kc_hardpps_dev = NULL;
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+		dev_info(pps->dev, "unbound kernel consumer"
-+				" on device removal\n");
-+	} else
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+
- 	pps_unregister_cdev(pps);
+ 	struct pps_device *pps = (struct pps_device *)tty->disc_data;
+-	struct pps_event_time __ts;
+-
+-	/* First of all we get the time stamp... */
+-	pps_get_ts(&__ts);
+-
+-	/* Does caller give us a timestamp? */
+-	if (!ts)	/* No. Do it ourself! */
+-		ts = &__ts;
  
- 	/* don't have to kfree(pps) here because it will be done on
-@@ -211,6 +232,12 @@ void pps_event(struct pps_device *pps, s
- 		captured = ~0;
- 	}
+ 	BUG_ON(pps == NULL);
  
-+	/* Pass some events to kernel consumer if activated */
-+	spin_lock(&pps_kc_hardpps_lock);
-+	if (pps == pps_kc_hardpps_dev && event & pps_kc_hardpps_mode)
-+		hardpps(&ts->ts_real, &ts->ts_raw);
-+	spin_unlock(&pps_kc_hardpps_lock);
-+
- 	/* Wake up if captured something */
- 	if (captured) {
- 		pps->last_ev++;
-diff -puN drivers/pps/pps.c~pps-add-kernel-consumer-support drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/pps.c
-@@ -197,9 +197,69 @@ static long pps_cdev_ioctl(struct file *
- 
- 		break;
- 	}
-+	case PPS_KC_BIND: {
-+		struct pps_bind_args bind_args;
-+
-+		dev_dbg(pps->dev, "PPS_KC_BIND\n");
-+
-+		/* Check the capabilities */
-+		if (!capable(CAP_SYS_TIME))
-+			return -EPERM;
-+
-+		if (copy_from_user(&bind_args, uarg,
-+					sizeof(struct pps_bind_args)))
-+			return -EFAULT;
-+
-+		/* Check for supported capabilities */
-+		if ((bind_args.edge & ~pps->info.mode) != 0) {
-+			dev_err(pps->dev, "unsupported capabilities (%x)\n",
-+					bind_args.edge);
-+			return -EINVAL;
-+		}
-+
-+		/* Validate parameters roughly */
-+		if (bind_args.tsformat != PPS_TSFMT_TSPEC ||
-+				(bind_args.edge & ~PPS_CAPTUREBOTH) != 0 ||
-+				bind_args.consumer != PPS_KC_HARDPPS) {
-+			dev_err(pps->dev, "invalid kernel consumer bind"
-+					" parameters (%x)\n", bind_args.edge);
-+			return -EINVAL;
-+		}
-+
-+		/* Check if another consumer is already bound */
-+		spin_lock_irq(&pps_kc_hardpps_lock);
-+
-+		if (bind_args.edge == 0)
-+			if (pps_kc_hardpps_dev == pps) {
-+				pps_kc_hardpps_mode = 0;
-+				pps_kc_hardpps_dev = NULL;
-+				spin_unlock_irq(&pps_kc_hardpps_lock);
-+				dev_info(pps->dev, "unbound kernel"
-+						" consumer\n");
-+			} else {
-+				spin_unlock_irq(&pps_kc_hardpps_lock);
-+				dev_err(pps->dev, "selected kernel consumer"
-+						" is not bound\n");
-+				return -EINVAL;
-+			}
-+		else
-+			if (pps_kc_hardpps_dev == NULL ||
-+					pps_kc_hardpps_dev == pps) {
-+				pps_kc_hardpps_mode = bind_args.edge;
-+				pps_kc_hardpps_dev = pps;
-+				spin_unlock_irq(&pps_kc_hardpps_lock);
-+				dev_info(pps->dev, "bound kernel consumer: "
-+					"edge=0x%x\n", bind_args.edge);
-+			} else {
-+				spin_unlock_irq(&pps_kc_hardpps_lock);
-+				dev_err(pps->dev, "another kernel consumer"
-+						" is already bound\n");
-+				return -EINVAL;
-+			}
-+		break;
-+	}
- 	default:
- 		return -ENOTTY;
--		break;
- 	}
- 
- 	return 0;
-diff -puN include/linux/pps.h~pps-add-kernel-consumer-support include/linux/pps.h
---- a/include/linux/pps.h~pps-add-kernel-consumer-support
-+++ a/include/linux/pps.h
-@@ -114,11 +114,18 @@ struct pps_fdata {
- 	struct pps_ktime timeout;
- };
- 
-+struct pps_bind_args {
-+	int tsformat;	/* format of time stamps */
-+	int edge;	/* selected event type */
-+	int consumer;	/* selected kernel consumer */
-+};
-+
- #include <linux/ioctl.h>
- 
- #define PPS_GETPARAMS		_IOR('p', 0xa1, struct pps_kparams *)
- #define PPS_SETPARAMS		_IOW('p', 0xa2, struct pps_kparams *)
- #define PPS_GETCAP		_IOR('p', 0xa3, int *)
- #define PPS_FETCH		_IOWR('p', 0xa4, struct pps_fdata *)
-+#define PPS_KC_BIND		_IOW('p', 0xa5, struct pps_bind_args *)
- 
- #endif /* _PPS_H_ */
-diff -puN include/linux/pps_kernel.h~pps-add-kernel-consumer-support include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-add-kernel-consumer-support
-+++ a/include/linux/pps_kernel.h
-@@ -79,6 +79,12 @@ struct pps_device {
- 
- extern struct device_attribute pps_attrs[];
- 
-+/* state variables to bind kernel consumer */
-+/* PPS API (RFC 2783): current source and mode for ``kernel consumer'' */
-+extern spinlock_t pps_kc_hardpps_lock;
-+extern void *pps_kc_hardpps_dev;	/* some unique pointer to device */
-+extern int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
-+
- /*
-  * Exported functions
+diff -puN include/linux/tty_ldisc.h~pps-timestamp-is-always-passed-to-dcd_change include/linux/tty_ldisc.h
+--- a/include/linux/tty_ldisc.h~pps-timestamp-is-always-passed-to-dcd_change
++++ a/include/linux/tty_ldisc.h
+@@ -104,7 +104,7 @@
+  *			struct pps_event_time *ts)
+  *
+  *	Tells the discipline that the DCD pin has changed its status and
+- *	the relative timestamp. Pointer ts can be NULL.
++ *	the relative timestamp. Pointer ts cannot be NULL.
   */
+ 
+ #include <linux/fs.h>
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
