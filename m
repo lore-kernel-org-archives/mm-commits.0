@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:08:24 -0800
-Message-ID: <201012212208.oBLM8PIX028845@imap1.linux-foundation.org>
+Subject: + thp-pte-alloc-trans-splitting-fix.patch added to -mm tree
+Date: Tue, 21 Dec 2010 14:10:40 -0800
+Message-ID: <201012212210.oBLMAerR028888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751895Ab0LUWJC (ORCPT
+	by vger.kernel.org with ESMTP id S1752661Ab0LUWLQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:09:02 -0500
+	Tue, 21 Dec 2010 17:11:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
+     thp-pte-alloc-trans-splitting-fix
 has been added to the -mm tree.  Its filename is
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+     thp-pte-alloc-trans-splitting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
+Subject: thp-pte-alloc-trans-splitting-fix
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Hi everyone,
-
-On Fri, Dec 17, 2010 at 04:58:34PM -0800, Andrew Morton wrote:
-> The first one millionth:
->
-> include/asm-generic/pgtable.h: In function 'ptep_get_and_clear':
-> include/asm-generic/pgtable.h:77: error: expected statement before ')' token
-> include/asm-generic/pgtable.h:94: error: invalid storage class for function 'pmdp_get_and_clear'
->
-> Due to thp-add-pmd-mangling-generic-functions.patch
-
-Here two fixes for the um build.
-
-This is thp-add-pmd-mangling-generic-functions-fix.patch. I hope I'm
-not asking for more build troubles down the road insisting on inline
-and returning (pmd_t) { 0 } instead of converting it back to a
-preprocessor macro.
-
-========
-Subject: thp: fix pgtable.h build for um
-
-
-make ARCH=um failed because of some typo error in newly written code to cleanup
-asm-generic/pgtable.h but that was never compiled in on x86/x64 without um.
+vma can be NULL safely for archs not implementing THP.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -68,43 +45,99 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    4 ++--
- mm/pgtable-generic.c          |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mm/pgd.c           |    2 +-
+ arch/ia64/mm/hugetlbpage.c  |    2 +-
+ arch/sh/mm/hugetlbpage.c    |    2 +-
+ arch/sparc/mm/generic_32.c  |    2 +-
+ arch/sparc/mm/generic_64.c  |    2 +-
+ arch/sparc/mm/hugetlbpage.c |    2 +-
+ arch/um/kernel/skas/mmu.c   |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
-+++ a/include/asm-generic/pgtable.h
-@@ -74,7 +74,7 @@ static inline pte_t ptep_get_and_clear(s
- 	pte_t pte = *ptep;
- 	pte_clear(mm, address, ptep);
- 	return pte;
--)
-+}
- #endif
+diff -puN arch/arm/mm/pgd.c~thp-pte-alloc-trans-splitting-fix arch/arm/mm/pgd.c
+--- a/arch/arm/mm/pgd.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/arm/mm/pgd.c
+@@ -55,7 +55,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+ 		if (!new_pmd)
+ 			goto no_pmd;
  
- #ifndef __HAVE_ARCH_PMDP_GET_AND_CLEAR
-@@ -93,7 +93,7 @@ static inline pmd_t pmdp_get_and_clear(s
- 				       pmd_t *pmdp)
- {
- 	BUG();
--	return 0;
-+	return (pmd_t){ 0 };
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
-diff -puN mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
-+++ a/mm/pgtable-generic.c
-@@ -29,7 +29,7 @@ int ptep_set_access_flags(struct vm_area
- 		flush_tlb_page(vma, address);
+-		new_pte = pte_alloc_map(mm, new_pmd, 0);
++		new_pte = pte_alloc_map(mm, NULL, new_pmd, 0);
+ 		if (!new_pte)
+ 			goto no_pte;
+ 
+diff -puN arch/ia64/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -38,7 +38,7 @@ huge_pte_alloc(struct mm_struct *mm, uns
+ 	if (pud) {
+ 		pmd = pmd_alloc(mm, pud, taddr);
+ 		if (pmd)
+-			pte = pte_alloc_map(mm, pmd, taddr);
++			pte = pte_alloc_map(mm, NULL, pmd, taddr);
  	}
- 	return changed;
--})
-+}
- #endif
+ 	return pte;
+ }
+diff -puN arch/sh/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix arch/sh/mm/hugetlbpage.c
+--- a/arch/sh/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/sh/mm/hugetlbpage.c
+@@ -35,7 +35,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 		if (pud) {
+ 			pmd = pmd_alloc(mm, pud, addr);
+ 			if (pmd)
+-				pte = pte_alloc_map(mm, pmd, addr);
++				pte = pte_alloc_map(mm, NULL, pmd, addr);
+ 		}
+ 	}
  
- #ifndef __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
+diff -puN arch/sparc/mm/generic_32.c~thp-pte-alloc-trans-splitting-fix arch/sparc/mm/generic_32.c
+--- a/arch/sparc/mm/generic_32.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/sparc/mm/generic_32.c
+@@ -50,7 +50,7 @@ static inline int io_remap_pmd_range(str
+ 		end = PGDIR_SIZE;
+ 	offset -= address;
+ 	do {
+-		pte_t * pte = pte_alloc_map(mm, pmd, address);
++		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+diff -puN arch/sparc/mm/generic_64.c~thp-pte-alloc-trans-splitting-fix arch/sparc/mm/generic_64.c
+--- a/arch/sparc/mm/generic_64.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/sparc/mm/generic_64.c
+@@ -92,7 +92,7 @@ static inline int io_remap_pmd_range(str
+ 		end = PGDIR_SIZE;
+ 	offset -= address;
+ 	do {
+-		pte_t * pte = pte_alloc_map(mm, pmd, address);
++		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+diff -puN arch/sparc/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -214,7 +214,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 	if (pud) {
+ 		pmd = pmd_alloc(mm, pud, addr);
+ 		if (pmd)
+-			pte = pte_alloc_map(mm, pmd, addr);
++			pte = pte_alloc_map(mm, NULL, pmd, addr);
+ 	}
+ 	return pte;
+ }
+diff -puN arch/um/kernel/skas/mmu.c~thp-pte-alloc-trans-splitting-fix arch/um/kernel/skas/mmu.c
+--- a/arch/um/kernel/skas/mmu.c~thp-pte-alloc-trans-splitting-fix
++++ a/arch/um/kernel/skas/mmu.c
+@@ -31,7 +31,7 @@ static int init_stub_pte(struct mm_struc
+ 	if (!pmd)
+ 		goto out_pmd;
+ 
+-	pte = pte_alloc_map(mm, pmd, proc);
++	pte = pte_alloc_map(mm, NULL, pmd, proc);
+ 	if (!pte)
+ 		goto out_pte;
+ 
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -140,6 +173,7 @@ thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
 thp-add-pmd-mangling-functions-to-x86.patch
 thp-bail-out-gup_fast-on-splitting-pmd.patch
 thp-pte-alloc-trans-splitting.patch
+thp-pte-alloc-trans-splitting-fix.patch
 thp-add-pmd-mmu_notifier-helpers.patch
 thp-clear-page-compound.patch
 thp-add-pmd_huge_pte-to-mm_struct.patch
