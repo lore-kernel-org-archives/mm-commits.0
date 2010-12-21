@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arm-allow-machines-to-override-__delay.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:24:17 -0800
-Message-ID: <201012212224.oBLMOHdD029493@imap1.linux-foundation.org>
+Subject: + arm-implement-a-timer-based-__delay-loop.patch added to -mm tree
+Date: Tue, 21 Dec 2010 14:24:19 -0800
+Message-ID: <201012212224.oBLMOKT6029496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753307Ab0LUWYU (ORCPT
+	by vger.kernel.org with ESMTP id S1753307Ab0LUWYV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:24:20 -0500
+	Tue, 21 Dec 2010 17:24:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sboyd@codeaurora.org, skannan@codeaurora.org
 
 
 The patch titled
-     arm: allow machines to override __delay()
+     arm: implement a timer based __delay() loop
 has been added to the -mm tree.  Its filename is
-     arm-allow-machines-to-override-__delay.patch
+     arm-implement-a-timer-based-__delay-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: allow machines to override __delay()
+Subject: arm: implement a timer based __delay() loop
 From: Stephen Boyd <sboyd@codeaurora.org>
 
-Some machines want to implement their own __delay() routine based
-on fixed rate timers. Expose functionality to set the __delay()
-routine at runtime. This should allow two machines with different
-__delay() routines to happily co-exist within the same kernel
-with minimal overhead.
+udelay() can be incorrect on SMP machines that scale their CPU frequencies
+independently of one another (as pointed out here
+http://article.gmane.org/gmane.linux.kernel/977567).  The delay loop can
+either be too fast or too slow depending on which CPU the loops_per_jiffy
+counter is calibrated on and which CPU the delay loop is running on. 
+udelay() can also be incorrect if the CPU frequency switches during the
+__delay() loop, causing the loop to either terminate too early, or too
+late.
 
-Russell expressed concern that using a timer based __delay()
-would cause problems when an iomapped device isn't mapped in
-prior to a delay call being made (see
-http://article.gmane.org/gmane.linux.ports.arm.kernel/78543 for
-more info). We can sidestep that issue with this approach since
-the __delay() routine _should_ only be pointed to a timer based
-delay once the timer has been properly mapped. Up until that
-point __delay() and udelay() will use delay_loop() which is
-always safe to call.
+Forcing udelay() to run on one CPU is unreasonable and taking the penalty
+of a rather large loops_per_jiffy in udelay() when the CPU is actually
+running slower is bad for performance.  Solve the problem by adding a
+timer based__delay() loop unaffected by CPU frequency scaling.  Machines
+should set this loop as their __delay() implementation by calling
+set_timer_fn() during their timer initialization.
 
-This patch is inspired by x86's delay.c
+The kernel is already prepared for a timer based approach (evident by the
+read_current_timer() function).  If an arch implements
+read_current_timer(), calibrate_delay() will use calibrate_delay_direct()
+to calculate loops_per_jiffy (in which case loops_per_jiffy should really
+be renamed to timer_ticks_per_jiffy).  Since the loops_per_jiffy will be
+based on timer ticks, __delay() should be implemented as a loop around
+read_current_timer().
+
+Doing this makes the expensive loops_per_jiffy calculation go away (saving
+~150ms on boot time on my machine) and fixes udelay() by making it safe in
+the face of independently scaling CPUs.  The only prerequisite is that
+read_current_timer() is monotonically increasing across calls (and doesn't
+overflow within ~2000us).
+
+There is a downside to this approach though.  BogoMIPS is no longer
+"accurate" in that it reflects the BogoMIPS of the timer and not the CPU. 
+On most SoC's the timer isn't running anywhere near as fast as the CPU so
+BogoMIPS will be ridiculously low (my timer runs at 4.8 MHz and thus my
+BogoMIPS is 9.6 compared to my CPU's 800).  This shouldn't be too much of
+a concern though since BogoMIPS are bogus anyway (hence the name).
+
+This loop is pretty much a copy of AVR's version.
 
 Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Reviewed-by: Saravana Kannan <skannan@codeaurora.org>
+Reported-and-reviewed-by: Saravana Kannan <skannan@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/delay.h |    7 +++++++
- arch/arm/lib/delay.c         |   14 +++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/delay.h |    2 ++
+ arch/arm/lib/delay.c         |   17 +++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN arch/arm/include/asm/delay.h~arm-allow-machines-to-override-__delay arch/arm/include/asm/delay.h
---- a/arch/arm/include/asm/delay.h~arm-allow-machines-to-override-__delay
+diff -puN arch/arm/include/asm/delay.h~arm-implement-a-timer-based-__delay-loop arch/arm/include/asm/delay.h
+--- a/arch/arm/include/asm/delay.h~arm-implement-a-timer-based-__delay-loop
 +++ a/arch/arm/include/asm/delay.h
-@@ -40,5 +40,12 @@ extern void __const_udelay(unsigned long
- 			__const_udelay((n) * ((2199023U*HZ)>>11))) :	\
- 	  __udelay(n))
+@@ -47,5 +47,7 @@ static inline void set_delay_fn(void (*f
+ 	delay_fn = fn;
+ }
  
-+extern void (*delay_fn)(unsigned long);
-+
-+static inline void set_delay_fn(void (*fn)(unsigned long))
-+{
-+	delay_fn = fn;
-+}
++extern void read_current_timer_delay_loop(unsigned long loops);
 +
  #endif /* defined(_ARM_DELAY_H) */
  
-diff -puN arch/arm/lib/delay.c~arm-allow-machines-to-override-__delay arch/arm/lib/delay.c
---- a/arch/arm/lib/delay.c~arm-allow-machines-to-override-__delay
+diff -puN arch/arm/lib/delay.c~arm-implement-a-timer-based-__delay-loop arch/arm/lib/delay.c
+--- a/arch/arm/lib/delay.c~arm-implement-a-timer-based-__delay-loop
 +++ a/arch/arm/lib/delay.c
-@@ -11,11 +11,9 @@
+@@ -9,6 +9,7 @@
+  */
+ #include <linux/module.h>
  #include <linux/delay.h>
++#include <linux/timex.h>
  
  /*
-- * loops = usecs * HZ * loops_per_jiffy / 1000000
-- *
   * Oh, if only we had a cycle counter...
-  */
--void __delay(unsigned long loops)
-+static void delay_loop(unsigned long loops)
- {
- 	asm volatile(
- 	"1:	subs %0, %0, #1 \n"
-@@ -24,6 +22,16 @@ void __delay(unsigned long loops)
- 	: "r" (loops)
+@@ -23,6 +24,22 @@ static void delay_loop(unsigned long loo
  	);
  }
-+
-+void (*delay_fn)(unsigned long) = delay_loop;
-+
+ 
++#ifdef ARCH_HAS_READ_CURRENT_TIMER
 +/*
-+ * loops = usecs * HZ * loops_per_jiffy / 1000000
++ * Assumes read_current_timer() is monotonically increasing
++ * across calls and wraps at most once within MAX_UDELAY_MS.
 + */
-+void __delay(unsigned long loops)
++void read_current_timer_delay_loop(unsigned long loops)
 +{
-+	delay_fn(loops);
++	unsigned long bclock, now;
++
++	read_current_timer(&bclock);
++	do {
++		read_current_timer(&now);
++	} while ((now - bclock) < loops);
 +}
- EXPORT_SYMBOL(__delay);
++#endif
++
+ void (*delay_fn)(unsigned long) = delay_loop;
  
  /*
 _
