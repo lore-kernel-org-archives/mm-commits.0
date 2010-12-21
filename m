@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:33:13 -0800
-Message-ID: <201012212233.oBLMXDuH029914@imap1.linux-foundation.org>
+Subject: + mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch added to -mm tree
+Date: Tue, 21 Dec 2010 14:36:59 -0800
+Message-ID: <201012212236.oBLMaxbp030080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753639Ab0LUWgH (ORCPT
+	by vger.kernel.org with ESMTP id S1753592Ab0LUWhE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:36:07 -0500
+	Tue, 21 Dec 2010 17:37:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, miltonm@bga.com, minchan.kim@gmail.com, nickpiggin@yahoo.com.au, stable@kernel.org
+Cc: akpm@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     mm: migration: use rcu_dereference_protected when dereferencing the radix tree slot during file page migration
+     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
 has been added to the -mm tree.  Its filename is
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: migration: use rcu_dereference_protected when dereferencing the radix tree slot during file page migration
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-migrate_pages() -> unmap_and_move() only calls rcu_read_lock() for
-anonymous pages, as introduced by git commit
-989f89c57e6361e7d16fbd9572b5da7d313b073d ("fix rcu_read_lock() in page
-migraton").  The point of the RCU protection there is part of getting a
-stable reference to anon_vma and is only held for anon pages as file pages
-are locked which is sufficient protection against freeing.
+remove unneeded casts
 
-However, while a file page's mapping is being migrated, the radix tree is
-double checked to ensure it is the expected page.  This uses
-radix_tree_deref_slot() -> rcu_dereference() without the RCU lock held
-triggering the following warning.
-
-[  173.674290] ===================================================
-[  173.676016] [ INFO: suspicious rcu_dereference_check() usage. ]
-[  173.676016] ---------------------------------------------------
-[  173.676016] include/linux/radix-tree.h:145 invoked rcu_dereference_check() without protection!
-[  173.676016]
-[  173.676016] other info that might help us debug this:
-[  173.676016]
-[  173.676016]
-[  173.676016] rcu_scheduler_active = 1, debug_locks = 0
-[  173.676016] 1 lock held by hugeadm/2899:
-[  173.676016]  #0:  (&(&inode->i_data.tree_lock)->rlock){..-.-.}, at: [<c10e3d2b>] migrate_page_move_mapping+0x40/0x1ab
-[  173.676016]
-[  173.676016] stack backtrace:
-[  173.676016] Pid: 2899, comm: hugeadm Not tainted 2.6.37-rc5-autobuild
-[  173.676016] Call Trace:
-[  173.676016]  [<c128cc01>] ? printk+0x14/0x1b
-[  173.676016]  [<c1063502>] lockdep_rcu_dereference+0x7d/0x86
-[  173.676016]  [<c10e3db5>] migrate_page_move_mapping+0xca/0x1ab
-[  173.676016]  [<c10e41ad>] migrate_page+0x23/0x39
-[  173.676016]  [<c10e491b>] buffer_migrate_page+0x22/0x107
-[  173.676016]  [<c10e48f9>] ? buffer_migrate_page+0x0/0x107
-[  173.676016]  [<c10e425d>] move_to_new_page+0x9a/0x1ae
-[  173.676016]  [<c10e47e6>] migrate_pages+0x1e7/0x2fa
-
-This patch introduces radix_tree_deref_slot_protected() which calls
-rcu_dereference_protected().  Users of it must pass in the
-mapping->tree_lock that is protecting this dereference.  Holding the tree
-lock protects against parallel updaters of the radix tree meaning that
-rcu_dereference_protected is allowable.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Milton Miller <miltonm@bga.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: <stable@kernel.org>		[2.6.37.early]
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   16 ++++++++++++++++
- mm/migrate.c               |    4 ++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/radix-tree.h~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration
-+++ a/include/linux/radix-tree.h
-@@ -146,6 +146,22 @@ static inline void *radix_tree_deref_slo
- }
- 
- /**
-+ * radix_tree_deref_slot_protected	- dereference a slot without RCU lock but with tree lock held
-+ * @pslot:	pointer to slot, returned by radix_tree_lookup_slot
-+ * Returns:	item that was stored in that slot with any direct pointer flag
-+ *		removed.
-+ *
-+ * Similar to radix_tree_deref_slot but only used during migration when a pages
-+ * mapping is being moved. The caller does not hold the RCU read lock but it
-+ * must hold the tree lock to prevent parallel updates.
-+ */
-+static inline void *radix_tree_deref_slot_protected(void **pslot,
-+							spinlock_t *treelock)
-+{
-+	return rcu_dereference_protected(*pslot, lockdep_is_held(treelock));
-+}
-+
-+/**
-  * radix_tree_deref_retry	- check radix_tree_deref_slot
-  * @arg:	pointer returned by radix_tree_deref_slot
-  * Returns:	0 if retry is not required, otherwise retry is required
-diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration mm/migrate.c
---- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration
+diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix mm/migrate.c
+--- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
 +++ a/mm/migrate.c
 @@ -248,7 +248,7 @@ static int migrate_page_move_mapping(str
  
  	expected_count = 2 + page_has_private(page);
  	if (page_count(page) != expected_count ||
--			(struct page *)radix_tree_deref_slot(pslot) != page) {
-+			(struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
+-			(struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
++		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
  		spin_unlock_irq(&mapping->tree_lock);
  		return -EAGAIN;
  	}
@@ -135,89 +62,55 @@ diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferen
  
  	expected_count = 2 + page_has_private(page);
  	if (page_count(page) != expected_count ||
--	    (struct page *)radix_tree_deref_slot(pslot) != page) {
-+	    (struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
+-	    (struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
++		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
  		spin_unlock_irq(&mapping->tree_lock);
  		return -EAGAIN;
  	}
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compactionc-avoid-double-mem_cgroup_del_lru.patch
-mm-vmscan-tracepoint-account-for-scanned-pages-similarly-for-both-ftrace-and-vmstat.patch
 linux-next.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
 mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-mm-define-madv_hugepage.patch
-thp-alter-compound-get_page-put_page.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-config_transparent_hugepage-fix.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
-thp-pte-alloc-trans-splitting.patch
-thp-pte-alloc-trans-splitting-fix.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-add-pagetranscompound.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-enable-direct-defrag.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
