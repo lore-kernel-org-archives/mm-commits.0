@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-translate-delays-into-mostly-c.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:24:15 -0800
-Message-ID: <201012212224.oBLMOFRM029490@imap1.linux-foundation.org>
+Subject: + msm-timer-migrate-to-timer-based-__delay.patch added to -mm tree
+Date: Tue, 21 Dec 2010 14:24:21 -0800
+Message-ID: <201012212224.oBLMOLpB029499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753241Ab0LUWYT (ORCPT
+	by vger.kernel.org with ESMTP id S1753307Ab0LUWYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:24:19 -0500
+	Tue, 21 Dec 2010 17:24:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sboyd@codeaurora.org, nicolas.pitre@linaro.org, skannan@codeaurora.org
+Cc: sboyd@codeaurora.org
 
 
 The patch titled
-     arm: translate delay.S into (mostly) C
+     msm: timer: migrate to timer based __delay()
 has been added to the -mm tree.  Its filename is
-     arm-translate-delays-into-mostly-c.patch
+     msm-timer-migrate-to-timer-based-__delay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,199 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: translate delay.S into (mostly) C
+Subject: msm: timer: migrate to timer based __delay()
 From: Stephen Boyd <sboyd@codeaurora.org>
 
-We want to allow machines to override the __delay() implementation at
-runtime so they can use a timer based __delay() routine.  It's easier to
-do this using C, so let's write udelay and friends in C.
-
-We lose the #if 0 code, which according to Russell is used "to make the
-delay loop more stable and predictable on older CPUs" (see
-http://article.gmane.org/gmane.linux.kernel/888867 for more info).  We
-shouldn't be too worried though, since we'll soon add functionality
-allowing a machine to set the __delay() loop themselves, thus allowing
-machines to resurrect the commented out code should they need it.
-
-Nico expressed concern that fixed lpj cmdlines will break due to compiler
-optimizations.  That doesn't seem to be the case since before and after
-this patch I get the same lpj value when running my CPU at 19.2 MHz.  That
-should be sufficiently slow enough to cover any machine running Linux.
-
-This will break builds when you switch back and forth without this patch. 
-You need to rm arch/arm/lib/.delay.o.cmd if you ever build a kernel before
-this patch after you've built with this patch.
-
- delete mode 100644 arch/arm/lib/delay.S
- create mode 100644 arch/arm/lib/delay.c
+We have to provide a dummy set_mode for the DGT since we don't want it to
+ever turn off.
 
 Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Reviewed-by: Saravana Kannan <skannan@codeaurora.org>
-Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/delay.h |    2 -
- arch/arm/kernel/armksyms.c   |    4 --
- arch/arm/lib/delay.S         |   65 ---------------------------------
- arch/arm/lib/delay.c         |   56 ++++++++++++++++++++++++++++
- 4 files changed, 57 insertions(+), 70 deletions(-)
+ arch/arm/mach-msm/include/mach/timex.h |    1 +
+ arch/arm/mach-msm/timer.c              |   16 +++++++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/delay.h~arm-translate-delays-into-mostly-c arch/arm/include/asm/delay.h
---- a/arch/arm/include/asm/delay.h~arm-translate-delays-into-mostly-c
-+++ a/arch/arm/include/asm/delay.h
-@@ -8,7 +8,7 @@
+diff -puN arch/arm/mach-msm/include/mach/timex.h~msm-timer-migrate-to-timer-based-__delay arch/arm/mach-msm/include/mach/timex.h
+--- a/arch/arm/mach-msm/include/mach/timex.h~msm-timer-migrate-to-timer-based-__delay
++++ a/arch/arm/mach-msm/include/mach/timex.h
+@@ -17,5 +17,6 @@
+ #define __ASM_ARCH_MSM_TIMEX_H
  
- #include <asm/param.h>	/* HZ */
+ #define CLOCK_TICK_RATE		1000000
++#define ARCH_HAS_READ_CURRENT_TIMER
  
--extern void __delay(int loops);
-+extern void __delay(unsigned long loops);
+ #endif
+diff -puN arch/arm/mach-msm/timer.c~msm-timer-migrate-to-timer-based-__delay arch/arm/mach-msm/timer.c
+--- a/arch/arm/mach-msm/timer.c~msm-timer-migrate-to-timer-based-__delay
++++ a/arch/arm/mach-msm/timer.c
+@@ -84,6 +84,12 @@ static cycle_t msm_dgt_read(struct clock
+ 	return readl(MSM_DGT_BASE + TIMER_COUNT_VAL) >> MSM_DGT_SHIFT;
+ }
  
- /*
-  * This function intentionally does not exist; if you see references to
-diff -puN arch/arm/kernel/armksyms.c~arm-translate-delays-into-mostly-c arch/arm/kernel/armksyms.c
---- a/arch/arm/kernel/armksyms.c~arm-translate-delays-into-mostly-c
-+++ a/arch/arm/kernel/armksyms.c
-@@ -52,10 +52,6 @@ extern void fpundefinstr(void);
- 
- EXPORT_SYMBOL(__backtrace);
- 
--	/* platform dependent support */
--EXPORT_SYMBOL(__udelay);
--EXPORT_SYMBOL(__const_udelay);
--
- 	/* networking */
- EXPORT_SYMBOL(csum_partial);
- EXPORT_SYMBOL(csum_partial_copy_from_user);
-diff -puN arch/arm/lib/delay.S~arm-translate-delays-into-mostly-c /dev/null
---- a/arch/arm/lib/delay.S
-+++ /dev/null
-@@ -1,65 +0,0 @@
--/*
-- *  linux/arch/arm/lib/delay.S
-- *
-- *  Copyright (C) 1995, 1996 Russell King
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--#include <asm/param.h>
--		.text
--
--.LC0:		.word	loops_per_jiffy
--.LC1:		.word	(2199023*HZ)>>11
--
--/*
-- * r0  <= 2000
-- * lpj <= 0x01ffffff (max. 3355 bogomips)
-- * HZ  <= 1000
-- */
--
--ENTRY(__udelay)
--		ldr	r2, .LC1
--		mul	r0, r2, r0
--ENTRY(__const_udelay)				@ 0 <= r0 <= 0x7fffff06
--		ldr	r2, .LC0
--		ldr	r2, [r2]		@ max = 0x01ffffff
--		mov	r0, r0, lsr #14		@ max = 0x0001ffff
--		mov	r2, r2, lsr #10		@ max = 0x00007fff
--		mul	r0, r2, r0		@ max = 2^32-1
--		movs	r0, r0, lsr #6
--		moveq	pc, lr
--
--/*
-- * loops = r0 * HZ * loops_per_jiffy / 1000000
-- *
-- * Oh, if only we had a cycle counter...
-- */
--
--@ Delay routine
--ENTRY(__delay)
--		subs	r0, r0, #1
--#if 0
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--		movls	pc, lr
--		subs	r0, r0, #1
--#endif
--		bhi	__delay
--		mov	pc, lr
--ENDPROC(__udelay)
--ENDPROC(__const_udelay)
--ENDPROC(__delay)
-diff -puN /dev/null arch/arm/lib/delay.c
---- /dev/null
-+++ a/arch/arm/lib/delay.c
-@@ -0,0 +1,56 @@
-+/*
-+ *  Originally from linux/arch/arm/lib/delay.S
-+ *
-+ *  Copyright (C) 1995, 1996 Russell King
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+
-+/*
-+ * loops = usecs * HZ * loops_per_jiffy / 1000000
-+ *
-+ * Oh, if only we had a cycle counter...
-+ */
-+void __delay(unsigned long loops)
++int read_current_timer(unsigned long *timer_val)
 +{
-+	asm volatile(
-+	"1:	subs %0, %0, #1 \n"
-+	"	bhi 1b		\n"
-+	: /* No output */
-+	: "r" (loops)
-+	);
++	*timer_val = readl(MSM_DGT_BASE + TIMER_COUNT_VAL);
++	return 0;
 +}
-+EXPORT_SYMBOL(__delay);
 +
-+/*
-+ * 0 <= xloops <= 0x7fffff06
-+ * loops_per_jiffy <= 0x01ffffff (max. 3355 bogomips)
-+ */
-+void __const_udelay(unsigned long xloops)
+ static int msm_timer_set_next_event(unsigned long cycles,
+ 				    struct clock_event_device *evt)
+ {
+@@ -122,6 +128,12 @@ static void msm_timer_set_mode(enum cloc
+ 	}
+ }
+ 
++static void msm_timer_set_mode_nop(enum clock_event_mode mode,
++				struct clock_event_device *evt)
 +{
-+	unsigned long lpj;
-+	unsigned long loops;
-+
-+	xloops >>= 14;			/* max = 0x01ffffff */
-+	lpj = loops_per_jiffy >> 10;	/* max = 0x0001ffff */
-+	loops = lpj * xloops;		/* max = 0x00007fff */
-+	loops >>= 6;			/* max = 2^32-1 */
-+
-+	if (likely(loops))
-+		__delay(loops);
++	/* The timer is always ticking so do nothing */
 +}
-+EXPORT_SYMBOL(__const_udelay);
 +
-+/*
-+ * usecs  <= 2000
-+ * HZ  <= 1000
-+ */
-+void __udelay(unsigned long usecs)
-+{
-+	__const_udelay(usecs * ((2199023*HZ)>>11));
-+}
-+EXPORT_SYMBOL(__udelay);
+ static struct msm_clock msm_clocks[] = {
+ 	{
+ 		.clockevent = {
+@@ -156,7 +168,7 @@ static struct msm_clock msm_clocks[] = {
+ 			.shift          = 32 + MSM_DGT_SHIFT,
+ 			.rating         = 300,
+ 			.set_next_event = msm_timer_set_next_event,
+-			.set_mode       = msm_timer_set_mode,
++			.set_mode       = msm_timer_set_mode_nop,
+ 		},
+ 		.clocksource = {
+ 			.name           = "dg_timer",
+@@ -215,6 +227,8 @@ static void __init msm_timer_init(void)
+ 
+ 		clockevents_register_device(ce);
+ 	}
++	writel(TIMER_ENABLE_EN, MSM_DGT_BASE + TIMER_ENABLE);
++	set_delay_fn(read_current_timer_delay_loop);
+ }
+ 
+ struct sys_timer msm_timer = {
 _
 
 Patches currently in -mm which might be from sboyd@codeaurora.org are
