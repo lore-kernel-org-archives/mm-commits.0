@@ -1,65 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-unaligned-packed_structh-use-__packed.patch added to -mm tree
-Date: Mon, 20 Dec 2010 21:46:39 -0800
-Message-ID: <201012210550.oBL5o4Wo021397@imap1.linux-foundation.org>
+Subject: [folded] delayacct-fix-iotop-on-x86_64-fix.patch removed from -mm tree
+Date: Mon, 20 Dec 2010 21:47:30 -0800
+Message-ID: <201012210550.oBL5otaI021422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751651Ab0LUFuH (ORCPT
+	by vger.kernel.org with ESMTP id S1751781Ab0LUFvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 00:50:07 -0500
+	Tue, 21 Dec 2010 00:51:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, will.newton@gmail.com
+To: akpm@linux-foundation.org, balbir@in.ibm.com, brian@xyzw.org, error27@gmail.com, guichaz@gmail.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/unaligned/packed_struct.h: use __packed
-has been added to the -mm tree.  Its filename is
-     include-linux-unaligned-packed_structh-use-__packed.patch
+     delayacct-fix-iotop-on-x86_64-fix
+has been removed from the -mm tree.  Its filename was
+     delayacct-fix-iotop-on-x86_64-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into delayacct-fix-iotop-on-x86_64.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/unaligned/packed_struct.h: use __packed
+Subject: delayacct-fix-iotop-on-x86_64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Will Newton <will.newton@gmail.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Brian Rogers <brian@xyzw.org>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Guillaume Chazarain <guichaz@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/unaligned/packed_struct.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/taskstats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/unaligned/packed_struct.h~include-linux-unaligned-packed_structh-use-__packed include/linux/unaligned/packed_struct.h
---- a/include/linux/unaligned/packed_struct.h~include-linux-unaligned-packed_structh-use-__packed
-+++ a/include/linux/unaligned/packed_struct.h
-@@ -3,9 +3,9 @@
- 
- #include <linux/kernel.h>
- 
--struct __una_u16 { u16 x; } __attribute__((packed));
--struct __una_u32 { u32 x; } __attribute__((packed));
--struct __una_u64 { u64 x; } __attribute__((packed));
-+struct __una_u16 { u16 x; } __packed;
-+struct __una_u32 { u32 x; } __packed;
-+struct __una_u64 { u64 x; } __packed;
- 
- static inline u16 __get_unaligned_cpu16(const void *p)
- {
+diff -puN kernel/taskstats.c~delayacct-fix-iotop-on-x86_64-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~delayacct-fix-iotop-on-x86_64-fix
++++ a/kernel/taskstats.c
+@@ -363,7 +363,7 @@ static struct taskstats *mk_reply(struct
+ 	 * IA64 can't be aligned on a 4 byte boundary.  But iotop on x86_64
+ 	 * depends on the current struct layout.  The next version of iotop
+ 	 * will fix this so maybe we can move everything to the new code in
+-	 * a couple years.
++	 * a couple years (ie: 2012).
+ 	 */
+ #if defined(CONFIG_IA64)
+ 	pid_size = ALIGN(sizeof(pid), sizeof(long));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +59,7 @@ linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-delayacct-fix-iotop-on-x86_64-fix.patch
+delayacct-fix-iotop-on-x86_64.patch
 mm-vmap-area-cache.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
