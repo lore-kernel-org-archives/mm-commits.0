@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + led_class-fix-typo-in-blink-api.patch added to -mm tree
-Date: Mon, 20 Dec 2010 21:38:59 -0800
-Message-ID: <201012210542.oBL5gOTF021164@imap1.linux-foundation.org>
+Subject: + include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field.patch added to -mm tree
+Date: Mon, 20 Dec 2010 21:45:29 -0800
+Message-ID: <201012210548.oBL5msK3021364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239Ab0LUFms (ORCPT
+	by vger.kernel.org with ESMTP id S1751525Ab0LUFtC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 00:42:48 -0500
+	Tue, 21 Dec 2010 00:49:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes.berg@intel.com, rpurdie@linux.intel.com
+Cc: will.newton@gmail.com, arnd@arndb.de, stable@kernel.org
 
 
 The patch titled
-     led_class: fix typo in blink API
+     include/linux/unaligned: pack the whole struct rather than just the field
 has been added to the -mm tree.  Its filename is
-     led_class-fix-typo-in-blink-api.patch
+     include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: led_class: fix typo in blink API
-From: Johannes Berg <johannes.berg@intel.com>
+Subject: include/linux/unaligned: pack the whole struct rather than just the field
+From: Will Newton <will.newton@gmail.com>
 
-When I added led_blink_set I had a typo: the return value of the hw
-offload is a regular error code that is zero when succesful, and in that
-case software emulation should not be used, rather than the other way
-around.
+The current packed struct implementation of unaligned access adds the
+packed attribute only to the field within the unaligned struct rather than
+to the struct as a whole.  This is not sufficient to enforce proper
+behaviour on architectures with a default struct alignment of more than
+one byte.
 
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Cc: Richard Purdie <rpurdie@linux.intel.com>
+For example, the current implementation of __get_unaligned_cpu16 when
+compiled for arm with gcc -O1 -mstructure-size-boundary=32 assumes the
+struct is on a 4 byte boundary so performs the load of the 16bit packed
+field as if it were on a 4 byte boundary:
+
+__get_unaligned_cpu16:
+        ldrh    r0, [r0, #0]
+        bx      lr
+
+Moving the packed attribute to the struct rather than the field causes the
+proper unaligned access code to be generated:
+
+__get_unaligned_cpu16:
+	ldrb	r3, [r0, #0]	@ zero_extendqisi2
+	ldrb	r0, [r0, #1]	@ zero_extendqisi2
+	orr	r0, r3, r0, asl #8
+	bx	lr
+
+Signed-off-by: Will Newton <will.newton@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/unaligned/packed_struct.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/leds/led-class.c~led_class-fix-typo-in-blink-api drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~led_class-fix-typo-in-blink-api
-+++ a/drivers/leds/led-class.c
-@@ -267,7 +267,7 @@ void led_blink_set(struct led_classdev *
- 		   unsigned long *delay_off)
- {
- 	if (led_cdev->blink_set &&
--	    led_cdev->blink_set(led_cdev, delay_on, delay_off))
-+	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
- 		return;
+diff -puN include/linux/unaligned/packed_struct.h~include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field include/linux/unaligned/packed_struct.h
+--- a/include/linux/unaligned/packed_struct.h~include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field
++++ a/include/linux/unaligned/packed_struct.h
+@@ -3,9 +3,9 @@
  
- 	/* blink with 1 Hz as default if nothing specified */
+ #include <linux/kernel.h>
+ 
+-struct __una_u16 { u16 x __attribute__((packed)); };
+-struct __una_u32 { u32 x __attribute__((packed)); };
+-struct __una_u64 { u64 x __attribute__((packed)); };
++struct __una_u16 { u16 x; } __attribute__((packed));
++struct __una_u32 { u32 x; } __attribute__((packed));
++struct __una_u64 { u64 x; } __attribute__((packed));
+ 
+ static inline u16 __get_unaligned_cpu16(const void *p)
+ {
 _
 
-Patches currently in -mm which might be from johannes.berg@intel.com are
+Patches currently in -mm which might be from will.newton@gmail.com are
 
-linux-next.patch
-led_class-fix-typo-in-blink-api.patch
+include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field.patch
+arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
 
