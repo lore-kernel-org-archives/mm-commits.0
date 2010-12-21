@@ -1,108 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch added to -mm tree
-Date: Fri, 17 Dec 2010 16:54:24 -0800
-Message-ID: <201012180054.oBI0sP29006353@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 20 Dec 2010 18:31:32 -0800
+Message-ID: <201012210234.oBL2YuFZ014100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756582Ab0LRAy5 (ORCPT
+	by vger.kernel.org with ESMTP id S933446Ab0LUCe6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Dec 2010 19:54:57 -0500
+	Mon, 20 Dec 2010 21:34:58 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oBL2YvIK027759
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 20 Dec 2010 18:34:57 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, davem@davemloft.net, drosenberg@vsecurity.com, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
-has been added to the -mm tree.  Its filename is
-     kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- check for IRQ context when !kptr_restrict
-
-- save an indent level
-
-- s/WARN/WARN_ONCE/
-
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: Kees Cook <kees.cook@canonical.com>
-Cc: Thomas Graf <tgraf@infradead.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ arch/x86/kvm/x86.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix lib/vsprintf.c
---- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix
-+++ a/lib/vsprintf.c
-@@ -1039,20 +1039,24 @@ char *pointer(const char *fmt, char *buf
- 				       ((struct va_format *)ptr)->fmt,
- 				       *(((struct va_format *)ptr)->va));
- 	case 'K':
--		if (kptr_restrict) {
--			if (in_irq() || in_serving_softirq() || in_nmi())
--				WARN(1, "%%pK used in interrupt context.\n");
-+		/*
-+		 * %pK cannot be used in IRQ context because it tests
-+		 * CAP_SYSLOG.
-+		 */
-+		if (in_irq() || in_serving_softirq() || in_nmi())
-+			WARN_ONCE(1, "%%pK used in interrupt context.\n");
+diff -puN arch/x86/kvm/x86.c~linux-next-git-rejects arch/x86/kvm/x86.c
+--- a/arch/x86/kvm/x86.c~linux-next-git-rejects
++++ a/arch/x86/kvm/x86.c
+@@ -156,8 +156,6 @@ struct kvm_stats_debugfs_item debugfs_en
  
--			else if (capable(CAP_SYSLOG))
--				break;
-+		if (!kptr_restrict)
-+			break;		/* %pK does not obscure pointers */
+ u64 __read_mostly host_xcr0;
  
--			if (spec.field_width == -1) {
--				spec.field_width = 2 * sizeof(void *);
--				spec.flags |= ZEROPAD;
--			}
--			return number(buf, end, 0, spec);
-+		if (capable(CAP_SYSLOG))
-+			break;		/* privileged apps expose pointers */
-+
-+		if (spec.field_width == -1) {
-+			spec.field_width = 2 * sizeof(void *);
-+			spec.flags |= ZEROPAD;
- 		}
--		break;
-+		return number(buf, end, 0, spec);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
+-<<<<<<< HEAD
+-=======
+ static inline void kvm_async_pf_hash_reset(struct kvm_vcpu *vcpu)
+ {
+ 	int i;
+@@ -165,7 +163,6 @@ static inline void kvm_async_pf_hash_res
+ 		vcpu->arch.apf.gfns[i] = ~0;
+ }
+ 
+->>>>>>> FETCH_HEAD
+ static void kvm_on_user_return(struct user_return_notifier *urn)
+ {
+ 	unsigned slot;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
