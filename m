@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-add-parallel-port-pps-signal-generator-v7.patch added to -mm tree
-Date: Tue, 21 Dec 2010 15:14:18 -0800
-Message-ID: <201012212314.oBLNEIqS031616@imap1.linux-foundation.org>
+Subject: + leds-leds-pca9532-cleanups.patch added to -mm tree
+Date: Tue, 21 Dec 2010 15:30:47 -0800
+Message-ID: <201012212330.oBLNUlEc032197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740Ab0LUXOZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751799Ab0LUXbb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:14:25 -0500
+	Tue, 21 Dec 2010 18:31:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
+Cc: axel.lin@gmail.com, dtor@mail.ru, rpurdie@rpsys.net
 
 
 The patch titled
-     pps: add parallel port PPS signal generator
+     leds: leds-pca9532 cleanups
 has been added to the -mm tree.  Its filename is
-     pps-add-parallel-port-pps-signal-generator-v7.patch
+     leds-leds-pca9532-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add parallel port PPS signal generator
-From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Subject: leds: leds-pca9532 cleanups
+From: Axel Lin <axel.lin@gmail.com>
 
-Add PPS signal generator which utilizes STROBE pin of a parallel port to
-send PPS signals.  It uses parport abstraction layer and hrtimers to
-precisely control the signal.
+- Remove unneeded input_free_device() after input_unregister_device().
 
-Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Rodolfo Giometti <giometti@linux.it>
+- Add pca9532_destroy_devices() function for destroy devices.
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/generators/Kconfig           |    6 +-----
- drivers/pps/generators/pps_gen_parport.c |   11 +++++++++--
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/leds/leds-pca9532.c |   66 ++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 38 deletions(-)
 
-diff -puN drivers/pps/generators/Kconfig~pps-add-parallel-port-pps-signal-generator-v7 drivers/pps/generators/Kconfig
---- a/drivers/pps/generators/Kconfig~pps-add-parallel-port-pps-signal-generator-v7
-+++ a/drivers/pps/generators/Kconfig
-@@ -2,16 +2,12 @@
- # PPS generators configuration
- #
+diff -puN drivers/leds/leds-pca9532.c~leds-leds-pca9532-cleanups drivers/leds/leds-pca9532.c
+--- a/drivers/leds/leds-pca9532.c~leds-leds-pca9532-cleanups
++++ a/drivers/leds/leds-pca9532.c
+@@ -200,6 +200,32 @@ static void pca9532_led_work(struct work
+ 	pca9532_setled(led);
+ }
  
--if PPS
++static void pca9532_destroy_devices(struct pca9532_data *data, int n_devs)
++{
++	int i = n_devs;
++
++	if (!data)
++		return;
++
++	while (--i >= 0) {
++		switch (data->leds[i].type) {
++		case PCA9532_TYPE_NONE:
++			break;
++		case PCA9532_TYPE_LED:
++			led_classdev_unregister(&data->leds[i].ldev);
++			cancel_work_sync(&data->leds[i].work);
++			break;
++		case PCA9532_TYPE_N2100_BEEP:
++			if (data->idev != NULL) {
++				input_unregister_device(data->idev);
++				cancel_work_sync(&data->work);
++				data->idev = NULL;
++			}
++			break;
++		}
++	}
++}
++
+ static int pca9532_configure(struct i2c_client *client,
+ 	struct pca9532_data *data, struct pca9532_platform_data *pdata)
+ {
+@@ -274,25 +300,7 @@ static int pca9532_configure(struct i2c_
+ 	return 0;
+ 
+ exit:
+-	if (i > 0)
+-		for (i = i - 1; i >= 0; i--)
+-			switch (data->leds[i].type) {
+-			case PCA9532_TYPE_NONE:
+-				break;
+-			case PCA9532_TYPE_LED:
+-				led_classdev_unregister(&data->leds[i].ldev);
+-				cancel_work_sync(&data->leds[i].work);
+-				break;
+-			case PCA9532_TYPE_N2100_BEEP:
+-				if (data->idev != NULL) {
+-					input_unregister_device(data->idev);
+-					input_free_device(data->idev);
+-					cancel_work_sync(&data->work);
+-					data->idev = NULL;
+-				}
+-				break;
+-			}
 -
- comment "PPS generators support"
++	pca9532_destroy_devices(data, i);
+ 	return err;
+ }
  
- config PPS_GENERATOR_PARPORT
- 	tristate "Parallel port PPS signal generator"
--	depends on PARPORT != n && GENERIC_TIME
-+	depends on PARPORT
- 	help
- 	  If you say yes here you get support for a PPS signal generator which
- 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
- 	  parport abstraction layer and hrtimers to precisely control the signal.
--
--endif
-diff -puN drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-v7 drivers/pps/generators/pps_gen_parport.c
---- a/drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-v7
-+++ a/drivers/pps/generators/pps_gen_parport.c
-@@ -76,8 +76,15 @@ static enum hrtimer_restart hrtimer_even
- 	long lim, delta;
- 	unsigned long flags;
- 
--	/* NB: approx time with blocked interrupts =
--	   send_delay + 3 * SAFETY_INTERVAL */
-+	/* We have to disable interrupts here. The idea is to prevent
-+	 * other interrupts on the same processor to introduce random
-+	 * lags while polling the clock. getnstimeofday() takes <1us on
-+	 * most machines while other interrupt handlers can take much
-+	 * more potentially.
-+	 *
-+	 * NB: approx time with blocked interrupts =
-+	 * send_delay + 3 * SAFETY_INTERVAL
-+	 */
- 	local_irq_save(flags);
- 
- 	/* first of all we get the time stamp... */
-_
-
-Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
-
-pps-trivial-fixes.patch
-pps-declare-variables-where-they-are-used-in-switch.patch
-pps-fix-race-in-pps_fetch-handler.patch
-pps-unify-timestamp-gathering.patch
-pps-access-pps-device-by-direct-pointer.patch
-pps-convert-printk-pr_-to-dev_.patch
-pps-move-idr-stuff-to-ppsc.patch
-pps-make-idr-lock-a-mutex-and-protect-idr_pre_get.patch
-pps-use-bug_on-for-kernel-api-safety-checks.patch
-pps-simplify-conditions-a-bit.patch
-pps-timestamp-is-always-passed-to-dcd_change.patch
-ntp-add-hardpps-implementation.patch
-ntp-add-hardpps-implementation-update-v7.patch
-pps-capture-monotonic_raw-timestamps-as-well.patch
-pps-capture-monotonic_raw-timestamps-as-well-v7.patch
-pps-add-kernel-consumer-support.patch
-pps-add-kernel-consumer-support-v7.patch
-pps-add-parallel-port-pps-client.patch
-pps-add-parallel-port-pps-client-v7.patch
-pps-add-parallel-port-pps-signal-generator.patch
-pps-add-parallel-port-pps-signal-generator-v7.patch
-
+@@ -329,25 +337,7 @@ static int pca9532_probe(struct i2c_clie
+ static int pca9532_remove(struct i2c_client *client)
+ {
+ 	struct pca9532_data *data = i2c_get_clientdata(client);
+-	int i;
+-	for (i = 0; i < 16; i++)
+-		switch (data->leds[i].type) {
+-		case PCA9532_TYPE_NONE:
+-			break;
+-		case PCA9532_TYPE_LED:
+-			led_classdev_unregister(&data->leds[i].ldev);
+-			cancel_work_sync(&data->leds[i].work);
+-			break;
+-		case PCA9532_TYPE_N2100_BEEP:
+-			if (data->idev != NULL) {
+-				input_unregister_device(data->idev);
+-				input_free_device(data->idev);
+-				cancel_work_sync(&data->work);
+-				data->idev = NULL;
+-			}
+-			break;
+-		}
