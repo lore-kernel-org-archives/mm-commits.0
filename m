@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pps-add-parallel-port-pps-client-v7.patch added to -mm tree
-Date: Tue, 21 Dec 2010 15:13:08 -0800
-Message-ID: <201012212313.oBLND8Dx031594@imap1.linux-foundation.org>
+Subject: + pps-add-parallel-port-pps-signal-generator-v7.patch added to -mm tree
+Date: Tue, 21 Dec 2010 15:14:18 -0800
+Message-ID: <201012212314.oBLNEIqS031616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740Ab0LUXNQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752740Ab0LUXOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:13:16 -0500
+	Tue, 21 Dec 2010 18:14:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     pps: add parallel port PPS client
+     pps: add parallel port PPS signal generator
 has been added to the -mm tree.  Its filename is
-     pps-add-parallel-port-pps-client-v7.patch
+     pps-add-parallel-port-pps-signal-generator-v7.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add parallel port PPS client
+Subject: pps: add parallel port PPS signal generator
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+
+Add PPS signal generator which utilizes STROBE pin of a parallel port to
+send PPS signals.  It uses parport abstraction layer and hrtimers to
+precisely control the signal.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps_parport.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/pps/generators/Kconfig           |    6 +-----
+ drivers/pps/generators/pps_gen_parport.c |   11 +++++++++--
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pps/clients/pps_parport.c~pps-add-parallel-port-pps-client-v7 drivers/pps/clients/pps_parport.c
---- a/drivers/pps/clients/pps_parport.c~pps-add-parallel-port-pps-client-v7
-+++ a/drivers/pps/clients/pps_parport.c
-@@ -79,6 +79,17 @@ static void parport_irq(void *handle)
- 		goto out_assert;
+diff -puN drivers/pps/generators/Kconfig~pps-add-parallel-port-pps-signal-generator-v7 drivers/pps/generators/Kconfig
+--- a/drivers/pps/generators/Kconfig~pps-add-parallel-port-pps-signal-generator-v7
++++ a/drivers/pps/generators/Kconfig
+@@ -2,16 +2,12 @@
+ # PPS generators configuration
+ #
  
- 	/* try capture the clear edge */
-+
+-if PPS
+-
+ comment "PPS generators support"
+ 
+ config PPS_GENERATOR_PARPORT
+ 	tristate "Parallel port PPS signal generator"
+-	depends on PARPORT != n && GENERIC_TIME
++	depends on PARPORT
+ 	help
+ 	  If you say yes here you get support for a PPS signal generator which
+ 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
+ 	  parport abstraction layer and hrtimers to precisely control the signal.
+-
+-endif
+diff -puN drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-v7 drivers/pps/generators/pps_gen_parport.c
+--- a/drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-v7
++++ a/drivers/pps/generators/pps_gen_parport.c
+@@ -76,8 +76,15 @@ static enum hrtimer_restart hrtimer_even
+ 	long lim, delta;
+ 	unsigned long flags;
+ 
+-	/* NB: approx time with blocked interrupts =
+-	   send_delay + 3 * SAFETY_INTERVAL */
 +	/* We have to disable interrupts here. The idea is to prevent
 +	 * other interrupts on the same processor to introduce random
-+	 * lags while polling the port. Reading from IO port is known
-+	 * to take approximately 1us while other interrupt handlers can
-+	 * take much more potentially.
++	 * lags while polling the clock. getnstimeofday() takes <1us on
++	 * most machines while other interrupt handlers can take much
++	 * more potentially.
 +	 *
-+	 * Interrupts won't be disabled for a long time because the
-+	 * number of polls is limited by clear_wait parameter which is
-+	 * kept rather low. So it should never be an issue.
++	 * NB: approx time with blocked interrupts =
++	 * send_delay + 3 * SAFETY_INTERVAL
 +	 */
  	local_irq_save(flags);
- 	/* check the signal (no signal means the pulse is lost this time) */
- 	if (!signal_is_set(port)) {
+ 
+ 	/* first of all we get the time stamp... */
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
@@ -90,4 +116,5 @@ pps-add-kernel-consumer-support-v7.patch
 pps-add-parallel-port-pps-client.patch
 pps-add-parallel-port-pps-client-v7.patch
 pps-add-parallel-port-pps-signal-generator.patch
+pps-add-parallel-port-pps-signal-generator-v7.patch
 
