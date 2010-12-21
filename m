@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:36:59 -0800
-Message-ID: <201012212236.oBLMaxbp030080@imap1.linux-foundation.org>
+Subject: + ima-fix-add-lsm-rule-bug.patch added to -mm tree
+Date: Tue, 21 Dec 2010 14:39:39 -0800
+Message-ID: <201012212239.oBLMddnr030158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753592Ab0LUWhE (ORCPT
+	by vger.kernel.org with ESMTP id S1753664Ab0LUWjt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:37:04 -0500
+	Tue, 21 Dec 2010 17:39:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie
+Cc: zohar@linux.vnet.ibm.com, jmorris@namei.org, safford@watson.ibm.com, serge.hallyn@canonical.com, stable@kernel.org, zohar@us.ibm.com
 
 
 The patch titled
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
+     ima: fix add LSM rule bug
 has been added to the -mm tree.  Its filename is
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+     ima-fix-add-lsm-rule-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ima: fix add LSM rule bug
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-remove unneeded casts
+If security_filter_rule_init() doesn't return a rule, then not everything
+is as fine as the return code implies.
 
-Cc: Mel Gorman <mel@csn.ul.ie>
+This bug only occurs when the LSM (eg. SELinux) is disabled at runtime.
+
+Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: David Safford <safford@watson.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ security/integrity/ima/ima_policy.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix mm/migrate.c
---- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
-+++ a/mm/migrate.c
-@@ -248,7 +248,7 @@ static int migrate_page_move_mapping(str
+diff -puN security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug security/integrity/ima/ima_policy.c
+--- a/security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug
++++ a/security/integrity/ima/ima_policy.c
+@@ -253,6 +253,8 @@ static int ima_lsm_rule_init(struct ima_
+ 	result = security_filter_rule_init(entry->lsm[lsm_rule].type,
+ 					   Audit_equal, args,
+ 					   &entry->lsm[lsm_rule].rule);
++	if (!entry->lsm[lsm_rule].rule)
++		return -EINVAL;
+ 	return result;
+ }
  
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--			(struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
- 	}
-@@ -320,7 +320,7 @@ int migrate_huge_page_move_mapping(struc
- 
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--	    (struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
- 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+ima-fix-add-lsm-rule-bug.patch
 
