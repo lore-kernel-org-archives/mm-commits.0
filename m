@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch added to -mm tree
-Date: Tue, 21 Dec 2010 15:34:21 -0800
-Message-ID: <201012212334.oBLNYLvg032382@imap1.linux-foundation.org>
+Subject: + arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch added to -mm tree
+Date: Tue, 21 Dec 2010 15:44:44 -0800
+Message-ID: <201012212344.oBLNiiUH000331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752684Ab0LUXey (ORCPT
+	by vger.kernel.org with ESMTP id S1752865Ab0LUXpE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:34:54 -0500
+	Tue, 21 Dec 2010 18:45:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jj@chaosbits.net, minchan.kim@gmail.com
+Cc: akpm@linux-foundation.org, atswartz@gmail.com, error27@gmail.com, mingo@elte.hu, rjw@sisk.pl, robert.richter@amd.com, stable@kernel.org
 
 
 The patch titled
-     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
+     arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+     arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
+Subject: arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use NODEMASK_FREE, per Minchan Kim
+[    7.034377] BUG: using smp_processor_id() in preemptible [00000000] code:
+modprobe/483
+[    7.034385] caller is setup_APIC_eilvt+0x155/0x180
+[    7.034389] Pid: 483, comm: modprobe Not tainted 2.6.37-rc1-20101110+ #1
+[    7.034392] Call Trace:
+[    7.034400]  [<ffffffff812a2b72>] debug_smp_processor_id+0xd2/0xf0
+[    7.034404]  [<ffffffff8101e985>] setup_APIC_eilvt+0x155/0x180
+[    7.034413]  [<ffffffffa002e168>] op_amd_init+0x88/0x2b0 [oprofile]
+[    7.034420]  [<ffffffffa0043000>] ? oprofile_init+0x0/0x42 [oprofile]
+[    7.034425]  [<ffffffffa0043315>] op_nmi_init+0x249/0x2af [oprofile]
+[    7.034431]  [<ffffffffa00430b4>] oprofile_arch_init+0x11/0x29 [oprofile]
+[    7.034437]  [<ffffffffa0043010>] oprofile_init+0x10/0x42 [oprofile]
+[    7.034441]  [<ffffffff810001e3>] do_one_initcall+0x43/0x170
+[    7.034445]  [<ffffffff8108a52a>] sys_init_module+0xba/0x200
+[    7.034449]  [<ffffffff8100285b>] system_call_fastpath+0x16/0x1b
 
-Cc: Jesper Juhl <jj@chaosbits.net>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Not sure if it fixes a real bug - presumably not, if all CPUs are the same.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=22812
+
+Reported-by: <atswartz@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Robert Richter <robert.richter@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>		[2.6.37.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/oprofile/op_model_amd.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
-+++ a/mm/hugetlb.c
-@@ -1375,7 +1375,7 @@ static ssize_t nr_hugepages_store_common
+diff -puN arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu arch/x86/oprofile/op_model_amd.c
+--- a/arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu
++++ a/arch/x86/oprofile/op_model_amd.c
+@@ -710,7 +710,13 @@ struct op_x86_model_spec op_amd_spec;
  
- 	err = strict_strtoul(buf, 10, &count);
- 	if (err) {
--		kfree(nodes_allowed);
-+		NODEMASK_FREE(nodes_allowed);
- 		return 0;
- 	}
+ static int op_amd_init(struct oprofile_operations *ops)
+ {
++	/*
++	 * init_ibs() preforms implictly cpu-local operations, so pin this
++	 * thread to its current CPU
++	 */
++	preempt_diable();
+ 	init_ibs();
++	preempt_enable();
+ 	create_arch_files = ops->create_files;
+ 	ops->create_files = setup_ibs_files;
  
 _
 
@@ -69,6 +96,7 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-vmap-area-cache.patch
+arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
