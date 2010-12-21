@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ima-fix-add-lsm-rule-bug.patch added to -mm tree
-Date: Tue, 21 Dec 2010 14:39:39 -0800
-Message-ID: <201012212239.oBLMddnr030158@imap1.linux-foundation.org>
+Subject: + pps-make-idr-lock-a-mutex-and-protect-idr_pre_get.patch added to -mm tree
+Date: Tue, 21 Dec 2010 15:04:47 -0800
+Message-ID: <201012212304.oBLN4lKd031244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753664Ab0LUWjt (ORCPT
+	by vger.kernel.org with ESMTP id S1751411Ab0LUXE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 17:39:49 -0500
+	Tue, 21 Dec 2010 18:04:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zohar@linux.vnet.ibm.com, jmorris@namei.org, safford@watson.ibm.com, serge.hallyn@canonical.com, stable@kernel.org, zohar@us.ibm.com
+Cc: lasaine@lvk.cs.msu.su, giometti@linux.it
 
 
 The patch titled
-     ima: fix add LSM rule bug
+     pps: make idr lock a mutex and protect idr_pre_get
 has been added to the -mm tree.  Its filename is
-     ima-fix-add-lsm-rule-bug.patch
+     pps-make-idr-lock-a-mutex-and-protect-idr_pre_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ima: fix add LSM rule bug
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: pps: make idr lock a mutex and protect idr_pre_get
+From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-If security_filter_rule_init() doesn't return a rule, then not everything
-is as fine as the return code implies.
+Now pps_idr_lock is never used in interrupt context so we can replace
+spin_lock_irq/spin_unlock_irq with plain spin_lock/spin_unlock. But
+there is also a potential race condition when someone can steal an id
+which was allocated by idr_pre_get before it is used. So convert spin
+lock to mutex and protect the whole id generation process.
 
-This bug only occurs when the LSM (eg. SELinux) is disabled at runtime.
-
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: David Safford <safford@watson.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_policy.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pps/pps.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug security/integrity/ima/ima_policy.c
---- a/security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug
-+++ a/security/integrity/ima/ima_policy.c
-@@ -253,6 +253,8 @@ static int ima_lsm_rule_init(struct ima_
- 	result = security_filter_rule_init(entry->lsm[lsm_rule].type,
- 					   Audit_equal, args,
- 					   &entry->lsm[lsm_rule].rule);
-+	if (!entry->lsm[lsm_rule].rule)
-+		return -EINVAL;
- 	return result;
- }
+diff -puN drivers/pps/pps.c~pps-make-idr-lock-a-mutex-and-protect-idr_pre_get drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-make-idr-lock-a-mutex-and-protect-idr_pre_get
++++ a/drivers/pps/pps.c
+@@ -27,6 +27,7 @@
+ #include <linux/sched.h>
+ #include <linux/uaccess.h>
+ #include <linux/idr.h>
++#include <linux/mutex.h>
+ #include <linux/cdev.h>
+ #include <linux/poll.h>
+ #include <linux/pps_kernel.h>
+@@ -39,7 +40,7 @@
+ static dev_t pps_devt;
+ static struct class *pps_class;
  
+-static DEFINE_SPINLOCK(pps_idr_lock);
++static DEFINE_MUTEX(pps_idr_lock);
+ static DEFINE_IDR(pps_idr);
+ 
+ /*
+@@ -239,9 +240,9 @@ static void pps_device_destruct(struct d
+ 
+ 	/* release id here to protect others from using it while it's
+ 	 * still in use */
+-	spin_lock_irq(&pps_idr_lock);
++	mutex_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	mutex_unlock(&pps_idr_lock);
+ 
+ 	kfree(dev);
+ 	kfree(pps);
+@@ -252,17 +253,19 @@ int pps_register_cdev(struct pps_device 
+ 	int err;
+ 	dev_t devt;
+ 
++	mutex_lock(&pps_idr_lock);
+ 	/* Get new ID for the new PPS source */
+-	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0)
++	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
++		mutex_unlock(&pps_idr_lock);
+ 		return -ENOMEM;
++	}
+ 
+ 	/* Now really allocate the PPS source.
+ 	 * After idr_get_new() calling the new source will be freely available
+ 	 * into the kernel.
+ 	 */
+-	spin_lock_irq(&pps_idr_lock);
+ 	err = idr_get_new(&pps_idr, pps, &pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	mutex_unlock(&pps_idr_lock);
+ 
+ 	if (err < 0)
+ 		return err;
+@@ -302,9 +305,9 @@ del_cdev:
+ 	cdev_del(&pps->cdev);
+ 
+ free_idr:
+-	spin_lock_irq(&pps_idr_lock);
++	mutex_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	mutex_unlock(&pps_idr_lock);
+ 
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
-linux-next.patch
-ima-fix-add-lsm-rule-bug.patch
+pps-trivial-fixes.patch
+pps-declare-variables-where-they-are-used-in-switch.patch
+pps-fix-race-in-pps_fetch-handler.patch
+pps-unify-timestamp-gathering.patch
+pps-access-pps-device-by-direct-pointer.patch
+pps-convert-printk-pr_-to-dev_.patch
+pps-move-idr-stuff-to-ppsc.patch
+pps-make-idr-lock-a-mutex-and-protect-idr_pre_get.patch
+pps-do-not-disable-interrupts-for-idr-operations.patch
+pps-use-bug_on-for-kernel-api-safety-checks.patch
+pps-simplify-conditions-a-bit.patch
+pps-timestamp-is-always-passed-to-dcd_change.patch
+ntp-add-hardpps-implementation.patch
+pps-capture-monotonic_raw-timestamps-as-well.patch
+pps-add-kernel-consumer-support.patch
+pps-add-parallel-port-pps-client.patch
+pps-add-parallel-port-pps-signal-generator.patch
 
