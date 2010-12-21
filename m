@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch added to -mm tree
-Date: Mon, 20 Dec 2010 22:43:45 -0800
-Message-ID: <201012210647.oBL6lBPF023547@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 21 Dec 2010 12:48:35 -0800
+Message-ID: <201012212052.oBLKq5Jb025577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956Ab0LUGrO (ORCPT
+	by vger.kernel.org with ESMTP id S1751280Ab0LUUwn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 01:47:14 -0500
+	Tue, 21 Dec 2010 15:52:43 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oBLKq7VV031383
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2010 12:52:07 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, Valdis.Kletnieks@vt.edu
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +38,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
-From: Michel Lespinasse <walken@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Sat, Dec 18, 2010 at 05:10:59AM -0500, Valdis.Kletnieks@vt.edu wrote:
-> On Thu, 16 Dec 2010 14:56:39 PST, akpm@linux-foundation.org said:
-> > The mm-of-the-moment snapshot 2010-12-16-14-56 has been uploaded to
-> >
-> >    http://userweb.kernel.org/~akpm/mmotm/
->
-> The patch mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-> causes this chunk of code from cryptsetup-luks to fail during the initramfs:
->
-> 	if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
->                         log_err(ctx, _("WARNING!!! Possibly insecure memory. Are you root?\n"));
->                         _memlock_count--;
->                         return 0;
->                 }
->
-> Bisection fingered this patch, which was added after -rc4-mmotm1202, which
-> boots without tripping this log_err() call.  I haven't tried building a
-> -rc6-mmotm1216 with this patch reverted, because reverting it causes apply
-> errors for subsequent patches.
->
-> Ideas?
-
-So I traced this down using valdis's initramfs image. This is actually
-an interesting corner case:
-
-Some VMA has the VM_MAY_(READ/WRITE/EXEC) flags, but is currently protected
-with PROT_NONE permissions (VM_READ/WRITE_EXEC flags are all cleared).
-
-When mlockall() is called, the old code would see mlock_fixup() return
-an error for that VMA, which would be ignored by do_mlockall(). The new
-code did not ignore errors from do_mlock_pages(), which broke backwards
-compatibility.
-
-So the trivial fix to make mlockall behave identically as before could be
-as follows:
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/block/cciss.c |    3 ---
+ fs/ceph/dir.c         |    5 -----
+ 2 files changed, 8 deletions(-)
 
-diff -puN mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix mm/mlock.c
---- a/mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
-+++ a/mm/mlock.c
-@@ -476,7 +476,7 @@ static int do_mlock(unsigned long start,
- 	return error;
- }
+diff -puN drivers/block/cciss.c~linux-next-git-rejects drivers/block/cciss.c
+--- a/drivers/block/cciss.c~linux-next-git-rejects
++++ a/drivers/block/cciss.c
+@@ -2834,11 +2834,8 @@ static int cciss_revalidate(struct gendi
+ 	InquiryData_struct *inq_buff = NULL;
  
--static int do_mlock_pages(unsigned long start, size_t len)
-+static int do_mlock_pages(unsigned long start, size_t len, int ignore_errors)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long end, nstart, nend;
-@@ -513,6 +513,10 @@ static int do_mlock_pages(unsigned long 
- 		 */
- 		if (vma->vm_flags & VM_LOCKED) {
- 			ret = __mlock_vma_pages_range(vma, nstart, nend);
-+			if (ret < 0 && ignore_errors) {
-+				ret = 0;
-+				continue;	/* continue at next VMA */
-+			}
- 			if (ret) {
- 				ret = __mlock_posix_error_return(ret);
- 				break;
-@@ -550,7 +554,7 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 		error = do_mlock(start, len, 1);
- 	up_write(&current->mm->mmap_sem);
- 	if (!error)
--		error = do_mlock_pages(start, len);
-+		error = do_mlock_pages(start, len, 0);
- 	return error;
- }
+ 	for (logvol = 0; logvol < CISS_MAX_LUN; logvol++) {
+-<<<<<<< HEAD
+ 		if (!h->drv[logvol])
+ 			continue;
+-=======
+->>>>>>> FETCH_HEAD
+ 		if (memcmp(h->drv[logvol]->LunID, drv->LunID,
+ 			sizeof(drv->LunID)) == 0) {
+ 			FOUND = 1;
+diff -puN fs/ceph/dir.c~linux-next-git-rejects fs/ceph/dir.c
+--- a/fs/ceph/dir.c~linux-next-git-rejects
++++ a/fs/ceph/dir.c
+@@ -40,14 +40,9 @@ int ceph_init_dentry(struct dentry *dent
+ 	if (dentry->d_fsdata)
+ 		return 0;
  
-@@ -615,8 +619,10 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	    capable(CAP_IPC_LOCK))
- 		ret = do_mlockall(flags);
- 	up_write(&current->mm->mmap_sem);
--	if (!ret && (flags & MCL_CURRENT))
--		ret = do_mlock_pages(0, TASK_SIZE);
-+	if (!ret && (flags & MCL_CURRENT)) {
-+		/* Ignore errors */
-+		do_mlock_pages(0, TASK_SIZE, 1);
-+	}
- out:
- 	return ret;
- }
+-<<<<<<< HEAD
+ 	if (dentry->d_parent == NULL ||   /* nfs fh_to_dentry */
+ 	    ceph_snap(dentry->d_parent->d_inode) == CEPH_NOSNAP)
+ 		dentry->d_op = &ceph_dentry_ops;
+-=======
+-	if (ceph_snap(dentry->d_parent->d_inode) == CEPH_NOSNAP)
+-		d_set_d_op(dentry, &ceph_dentry_ops);
+->>>>>>> FETCH_HEAD
+ 	else if (ceph_snap(dentry->d_parent->d_inode) == CEPH_SNAPDIR)
+ 		d_set_d_op(dentry, &ceph_snapdir_dentry_ops);
+ 	else
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
 mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
