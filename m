@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch added to -mm tree
-Date: Wed, 22 Dec 2010 14:07:22 -0800
-Message-ID: <201012222207.oBMM7MXL022182@imap1.linux-foundation.org>
+Subject: + pata_mpc52xx-driver-needs-bmdma.patch added to -mm tree
+Date: Wed, 22 Dec 2010 14:08:29 -0800
+Message-ID: <201012222208.oBMM8TML022205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751886Ab0LVWIH (ORCPT
+	by vger.kernel.org with ESMTP id S1751791Ab0LVWJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Dec 2010 17:08:07 -0500
+	Wed, 22 Dec 2010 17:09:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com
+Cc: w.sang@pengutronix.de, jeff@garzik.org
 
 
 The patch titled
-     thp-khugepaged-make-khugepaged-aware-of-madvise-fix
+     pata_mpc52xx: driver needs BMDMA
 has been added to the -mm tree.  Its filename is
-     thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+     pata_mpc52xx-driver-needs-bmdma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-khugepaged-make-khugepaged-aware-of-madvise-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pata_mpc52xx: driver needs BMDMA
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-tweak comment.  It's still incomprehensible though ;)
+Found by this build-error if BMDMA is disabled:
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+drivers/ata/pata_mpc52xx.c: In function 'mpc52xx_ata_init_one':
+drivers/ata/pata_mpc52xx.c:662: error: 'ata_bmdma_interrupt' undeclared (first use in this function)
+...
+
+Move the Kconfig entry to the proper location as needed since
+9a7780c9acb821fe1c2b6fc53f74cc2556ff5364 ("libata-sff: make BMDMA
+optional").
+
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/ata/Kconfig  |   20 ++++++++++----------
+ drivers/ata/Makefile |    2 +-
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix
-+++ a/mm/huge_memory.c
-@@ -1426,10 +1426,9 @@ int hugepage_madvise(struct vm_area_stru
- 		*vm_flags &= ~VM_HUGEPAGE;
- 		*vm_flags |= VM_NOHUGEPAGE;
- 		/*
--		 * Setting VM_NOHUGEPAGE will prevent khugepaged to
--		 * scan this vma even if we leave the mm registered in
--		 * khugepaged if it got registered before
--		 * VM_NOHUGEPAGE was set.
-+		 * Setting VM_NOHUGEPAGE will prevent khugepaged from scanning
-+		 * this vma even if we leave the mm registered in khugepaged if
-+		 * it got registered before VM_NOHUGEPAGE was set.
- 		 */
- 		break;
- 	}
+diff -puN drivers/ata/Kconfig~pata_mpc52xx-driver-needs-bmdma drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~pata_mpc52xx-driver-needs-bmdma
++++ a/drivers/ata/Kconfig
+@@ -136,16 +136,6 @@ config PDC_ADMA
+ 
+ 	  If unsure, say N.
+ 
+-config PATA_MPC52xx
+-	tristate "Freescale MPC52xx SoC internal IDE"
+-	depends on PPC_MPC52xx && PPC_BESTCOMM
+-	select PPC_BESTCOMM_ATA
+-	help
+-	  This option enables support for integrated IDE controller
+-	  of the Freescale MPC52xx SoC.
+-
+-	  If unsure, say N.
+-
+ config PATA_OCTEON_CF
+ 	tristate "OCTEON Boot Bus Compact Flash support"
+ 	depends on CPU_CAVIUM_OCTEON
+@@ -499,6 +489,16 @@ config PATA_MARVELL
+ 
+ 	  If unsure, say N.
+ 
++config PATA_MPC52xx
++	tristate "Freescale MPC52xx SoC internal IDE"
++	depends on PPC_MPC52xx && PPC_BESTCOMM
++	select PPC_BESTCOMM_ATA
++	help
++	  This option enables support for integrated IDE controller
++	  of the Freescale MPC52xx SoC.
++
++	  If unsure, say N.
++
+ config PATA_NETCELL
+ 	tristate "NETCELL Revolution RAID support"
+ 	depends on PCI
+diff -puN drivers/ata/Makefile~pata_mpc52xx-driver-needs-bmdma drivers/ata/Makefile
+--- a/drivers/ata/Makefile~pata_mpc52xx-driver-needs-bmdma
++++ a/drivers/ata/Makefile
+@@ -12,7 +12,6 @@ obj-$(CONFIG_SATA_DWC)		+= sata_dwc_460e
+ 
+ # SFF w/ custom DMA
+ obj-$(CONFIG_PDC_ADMA)		+= pdc_adma.o
+-obj-$(CONFIG_PATA_MPC52xx)	+= pata_mpc52xx.o
+ obj-$(CONFIG_PATA_OCTEON_CF)	+= pata_octeon_cf.o
+ obj-$(CONFIG_SATA_QSTOR)	+= sata_qstor.o
+ obj-$(CONFIG_SATA_SX4)		+= sata_sx4.o
+@@ -53,6 +52,7 @@ obj-$(CONFIG_PATA_IT821X)	+= pata_it821x
+ obj-$(CONFIG_PATA_JMICRON)	+= pata_jmicron.o
+ obj-$(CONFIG_PATA_MACIO)	+= pata_macio.o
+ obj-$(CONFIG_PATA_MARVELL)	+= pata_marvell.o
++obj-$(CONFIG_PATA_MPC52xx)	+= pata_mpc52xx.o
+ obj-$(CONFIG_PATA_NETCELL)	+= pata_netcell.o
+ obj-$(CONFIG_PATA_NINJA32)	+= pata_ninja32.o
+ obj-$(CONFIG_PATA_NS87415)	+= pata_ns87415.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
+rtc-rs5c372-fix-buffer-size.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+pata_mpc52xx-driver-needs-bmdma.patch
 
