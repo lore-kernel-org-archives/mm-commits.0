@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-compound_trans_order-fix.patch added to -mm tree
-Date: Wed, 22 Dec 2010 02:35:22 -0800
-Message-ID: <201012221038.oBMAcvBD025385@imap1.linux-foundation.org>
+Subject: + keys-dont-call-up_write-if-__key_link_begin-returns-an-error.patch added to -mm tree
+Date: Wed, 22 Dec 2010 14:04:28 -0800
+Message-ID: <201012222204.oBMM4TH7022025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290Ab0LVKj3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751593Ab0LVWEl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Dec 2010 05:39:29 -0500
+	Wed, 22 Dec 2010 17:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: dhowells@redhat.com, jlayton@redhat.com
 
 
 The patch titled
-     thp: memcg: remove unnecessary compound_trans_order
+     keys: don't call up_write() if __key_link_begin() returns an error
 has been added to the -mm tree.  Its filename is
-     thp-compound_trans_order-fix.patch
+     keys-dont-call-up_write-if-__key_link_begin-returns-an-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,154 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: memcg: remove unnecessary compound_trans_order
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: keys: don't call up_write() if __key_link_begin() returns an error
+From: David Howells <dhowells@redhat.com>
 
-In these places PageTransHuge must not go away under memcg, as the page is
-owned by the thread handling it.  Add VM_BUG_ON and remove a superflous
-page_size variable.
+In construct_alloc_key(), up_write() is called in the error path if
+__key_link_begin() fails, but this is incorrect as __key_link_begin() only
+returns with the nominated keyring locked if it returns successfully.
 
-compound_trans_order for now remains for memory-failure.c, which later has
-to be fixed to implement a safe compound_head too, that isn't safe right
-now.
+Without this patch, you might see the following in dmesg:
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+	=====================================
+	[ BUG: bad unlock balance detected! ]
+	-------------------------------------
+	mount.cifs/5769 is trying to release lock (&key->sem) at:
+	[<ffffffff81201159>] request_key_and_link+0x263/0x3fc
+	but there are no more locks to release!
+
+	other info that might help us debug this:
+	3 locks held by mount.cifs/5769:
+	 #0:  (&type->s_umount_key#41/1){+.+.+.}, at: [<ffffffff81131321>] sget+0x278/0x3e7
+	 #1:  (&ret_buf->session_mutex){+.+.+.}, at: [<ffffffffa0258e59>] cifs_get_smb_ses+0x35a/0x443 [cifs]
+	 #2:  (root_key_user.cons_lock){+.+.+.}, at: [<ffffffff81201000>] request_key_and_link+0x10a/0x3fc
+
+	stack backtrace:
+	Pid: 5769, comm: mount.cifs Not tainted 2.6.37-rc6+ #1
+	Call Trace:
+	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
+	 [<ffffffff81081601>] print_unlock_inbalance_bug+0xca/0xd5
+	 [<ffffffff81083248>] lock_release_non_nested+0xc1/0x263
+	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
+	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
+	 [<ffffffff81083567>] lock_release+0x17d/0x1a4
+	 [<ffffffff81073f45>] up_write+0x23/0x3b
+	 [<ffffffff81201159>] request_key_and_link+0x263/0x3fc
+	 [<ffffffffa026fe9e>] ? cifs_get_spnego_key+0x61/0x21f [cifs]
+	 [<ffffffff812013c5>] request_key+0x41/0x74
+	 [<ffffffffa027003d>] cifs_get_spnego_key+0x200/0x21f [cifs]
+	 [<ffffffffa026e296>] CIFS_SessSetup+0x55d/0x1273 [cifs]
+	 [<ffffffffa02589e1>] cifs_setup_session+0x90/0x1ae [cifs]
+	 [<ffffffffa0258e7e>] cifs_get_smb_ses+0x37f/0x443 [cifs]
+	 [<ffffffffa025a9e3>] cifs_mount+0x1aa1/0x23f3 [cifs]
+	 [<ffffffff8111fd94>] ? alloc_debug_processing+0xdb/0x120
+	 [<ffffffffa027002c>] ? cifs_get_spnego_key+0x1ef/0x21f [cifs]
+	 [<ffffffffa024cc71>] cifs_do_mount+0x165/0x2b3 [cifs]
+	 [<ffffffff81130e72>] vfs_kern_mount+0xaf/0x1dc
+	 [<ffffffff81131007>] do_kern_mount+0x4d/0xef
+	 [<ffffffff811483b9>] do_mount+0x6f4/0x733
+	 [<ffffffff8114861f>] sys_mount+0x88/0xc2
+	 [<ffffffff8100ac42>] system_call_fastpath+0x16/0x1b
+
+Reported-by: Jeff Layton <jlayton@redhat.com>
+Reviewed-and-Tested-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ security/keys/request_key.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~thp-compound_trans_order-fix mm/memcontrol.c
---- a/mm/memcontrol.c~thp-compound_trans_order-fix
-+++ a/mm/memcontrol.c
-@@ -1027,10 +1027,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
- {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup_per_zone *mz;
--	int page_size = PAGE_SIZE;
--
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
+diff -puN security/keys/request_key.c~keys-dont-call-up_write-if-__key_link_begin-returns-an-error security/keys/request_key.c
+--- a/security/keys/request_key.c~keys-dont-call-up_write-if-__key_link_begin-returns-an-error
++++ a/security/keys/request_key.c
+@@ -403,7 +403,6 @@ link_check_failed:
+ 	return ret;
  
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -2287,8 +2283,10 @@ static int mem_cgroup_charge_common(stru
- 	int ret;
- 	int page_size = PAGE_SIZE;
- 
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
-+	if (PageTransHuge(page)) {
-+		page_size <<= compound_order(page);
-+		VM_BUG_ON(!PageTransHuge(page));
-+	}
- 
- 	pc = lookup_page_cgroup(page);
- 	/* can happen at boot */
-@@ -2559,8 +2557,10 @@ __mem_cgroup_uncharge_common(struct page
- 	if (PageSwapCache(page))
- 		return NULL;
- 
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
-+	if (PageTransHuge(page)) {
-+		page_size <<= compound_order(page);
-+		VM_BUG_ON(!PageTransHuge(page));
-+	}
- 
- 	count = page_size >> PAGE_SHIFT;
- 	/*
+ link_prealloc_failed:
+-	up_write(&dest_keyring->sem);
+ 	mutex_unlock(&user->cons_lock);
+ 	kleave(" = %d [prelink]", ret);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-transparent-hugepage-support-documentation.patch
-thp-mm-define-madv_hugepage.patch
-thp-compound_lock.patch
-thp-alter-compound-get_page-put_page.patch
-thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-config_transparent_hugepage-fix.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
-thp-add-pmd-mangling-functions-to-x86.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
-thp-pte-alloc-trans-splitting.patch
-thp-pte-alloc-trans-splitting-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-add-pmd-mmu_notifier-helpers.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-kvm-mmu-transparent-hugepage-support.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-transparent-hugepage-core.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-madvisemadv_hugepage.patch
-thp-add-pagetranscompound.patch
-thp-pmd_trans_huge-migrate-bugcheck.patch
-thp-memcg-compound.patch
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-memcg-huge-memory.patch
-thp-transparent-hugepage-vmstat.patch
-thp-khugepaged.patch
-thp-khugepaged-vma-merge.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-remove-pg_buddy.patch
-thp-add-x86-32bit-support.patch
-thp-mincore-transparent-hugepage-support.patch
-thp-add-pmd_modify.patch
-thp-mprotect-pass-vma-down-to-page-table-walkers.patch
-thp-mprotect-transparent-huge-page-support.patch
-thp-set-recommended-min-free-kbytes.patch
-thp-enable-direct-defrag.patch
-thp-add-numa-awareness-to-hugepage-allocations.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
-thp-transparent-hugepage-config-choice.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
-thp-dont-allow-transparent-hugepage-support-without-pse.patch
-thp-mmu_notifier_test_young.patch
-thp-freeze-khugepaged-and-ksmd.patch
-thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
-thp-use-compaction-for-all-allocation-orders.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
-thp-scale-nr_rotated-to-balance-memory-pressure.patch
-thp-transparent-hugepage-sysfs-meminfo.patch
-thp-add-debug-checks-for-mapcount-related-invariants.patch
-thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
-thp-compound_trans_order.patch
-thp-compound_trans_order-fix.patch
-thp-mm-define-madv_nohugepage.patch
-thp-madvisemadv_nohugepage.patch
+linux-next.patch
+keys-dont-call-up_write-if-__key_link_begin-returns-an-error.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+mm-add-foll_mlock-follow_page-flag.patch
+mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+frv-duplicate-output_buffer-of-e03.patch
+set_rtc_mmss-show-warning-message-only-once.patch
+kernel-clean-up-use_generic_smp_helpers.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
