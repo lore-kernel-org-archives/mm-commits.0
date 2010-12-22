@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch added to -mm tree
-Date: Tue, 21 Dec 2010 18:12:37 -0800
-Message-ID: <201012220216.oBM2G9vu006347@imap1.linux-foundation.org>
+Subject: + thp-compound_trans_order-fix.patch added to -mm tree
+Date: Wed, 22 Dec 2010 02:35:22 -0800
+Message-ID: <201012221038.oBMAcvBD025385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751303Ab0LVCQw (ORCPT
+	by vger.kernel.org with ESMTP id S1751290Ab0LVKj3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 21:16:52 -0500
+	Wed, 22 Dec 2010 05:39:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben@decadent.org.uk, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     arch/alpha/include/asm/io.h: s/extern inline/static inline/
+     thp: memcg: remove unnecessary compound_trans_order
 has been added to the -mm tree.  Its filename is
-     arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+     thp-compound_trans_order-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/alpha/include/asm/io.h: s/extern inline/static inline/
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thp: memcg: remove unnecessary compound_trans_order
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-When building the kernel for alpha using gcc 4.4, many files will provoke these
-warnings:
+In these places PageTransHuge must not go away under memcg, as the page is
+owned by the thread handling it.  Add VM_BUG_ON and remove a superflous
+page_size variable.
 
-arch/alpha/include/asm/io.h: In function '__set_hae':
-arch/alpha/include/asm/io.h:41: warning: 'arch_local_irq_save' is static but
-used in inline function '__set_hae' which is not static
-arch/alpha/include/asm/io.h:49: warning: 'arch_local_irq_restore' is static but
-used in inline function '__set_hae' which is not static
+compound_trans_order for now remains for memory-failure.c, which later has
+to be fixed to implement a safe compound_head too, that isn't safe right
+now.
 
-and because the alpha makefiles include -Werror in CFLAGS, this is fatal.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25432
-
-(akpm: there are lots more extern inlines in there, but people have been
-playing games mixing them up with extern non-inlines so it needs more work).
-
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/io.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/alpha/include/asm/io.h~a arch/alpha/include/asm/io.h
---- a/arch/alpha/include/asm/io.h~a
-+++ a/arch/alpha/include/asm/io.h
-@@ -35,7 +35,7 @@
-  * register not being up-to-date with respect to the hardware
-  * value.
-  */
--extern inline void __set_hae(unsigned long new_hae)
-+static inline void __set_hae(unsigned long new_hae)
+diff -puN mm/memcontrol.c~thp-compound_trans_order-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~thp-compound_trans_order-fix
++++ a/mm/memcontrol.c
+@@ -1027,10 +1027,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
  {
- 	unsigned long flags;
- 	local_irq_save(flags);
-@@ -49,7 +49,7 @@ extern inline void __set_hae(unsigned lo
- 	local_irq_restore(flags);
- }
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
+-	int page_size = PAGE_SIZE;
+-
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
  
--extern inline void set_hae(unsigned long new_hae)
-+static inline void set_hae(unsigned long new_hae)
- {
- 	if (new_hae != alpha_mv.hae_cache)
- 		__set_hae(new_hae);
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -2287,8 +2283,10 @@ static int mem_cgroup_charge_common(stru
+ 	int ret;
+ 	int page_size = PAGE_SIZE;
+ 
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
++	if (PageTransHuge(page)) {
++		page_size <<= compound_order(page);
++		VM_BUG_ON(!PageTransHuge(page));
++	}
+ 
+ 	pc = lookup_page_cgroup(page);
+ 	/* can happen at boot */
+@@ -2559,8 +2557,10 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (PageSwapCache(page))
+ 		return NULL;
+ 
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
++	if (PageTransHuge(page)) {
++		page_size <<= compound_order(page);
++		VM_BUG_ON(!PageTransHuge(page));
++	}
+ 
+ 	count = page_size >> PAGE_SHIFT;
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
+thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
+thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
+thp-transparent-hugepage-support-documentation.patch
+thp-mm-define-madv_hugepage.patch
+thp-compound_lock.patch
+thp-alter-compound-get_page-put_page.patch
+thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
+thp-update-futex-compound-knowledge.patch
+thp-clear-compound-mapping.patch
+thp-add-native_set_pmd_at.patch
+thp-add-pmd-paravirt-ops.patch
+thp-no-paravirt-version-of-pmd-ops.patch
+thp-export-maybe_mkwrite.patch
+thp-comment-reminder-in-destroy_compound_page.patch
+thp-config_transparent_hugepage.patch
+thp-config_transparent_hugepage-fix.patch
+thp-special-pmd_trans_-functions.patch
+thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+thp-add-pmd-mangling-functions-to-x86.patch
+thp-bail-out-gup_fast-on-splitting-pmd.patch
+thp-pte-alloc-trans-splitting.patch
+thp-pte-alloc-trans-splitting-fix.patch
 thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+thp-add-pmd-mmu_notifier-helpers.patch
+thp-clear-page-compound.patch
+thp-add-pmd_huge_pte-to-mm_struct.patch
+thp-split_huge_page_mm-vma.patch
+thp-split_huge_page-paging.patch
+thp-clear_copy_huge_page.patch
+thp-kvm-mmu-transparent-hugepage-support.patch
+thp-_gfp_no_kswapd.patch
+thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
+thp-transparent-hugepage-core.patch
+thp-split_huge_page-anon_vma-ordering-dependency.patch
+thp-verify-pmd_trans_huge-isnt-leaking.patch
+thp-madvisemadv_hugepage.patch
+thp-add-pagetranscompound.patch
+thp-pmd_trans_huge-migrate-bugcheck.patch
+thp-memcg-compound.patch
+thp-transhuge-memcg-commit-tail-pages-at-charge.patch
+thp-memcg-huge-memory.patch
+thp-transparent-hugepage-vmstat.patch
+thp-khugepaged.patch
+thp-khugepaged-vma-merge.patch
+thp-skip-transhuge-pages-in-ksm-for-now.patch
+thp-remove-pg_buddy.patch
+thp-add-x86-32bit-support.patch
+thp-mincore-transparent-hugepage-support.patch
+thp-add-pmd_modify.patch
+thp-mprotect-pass-vma-down-to-page-table-walkers.patch
+thp-mprotect-transparent-huge-page-support.patch
+thp-set-recommended-min-free-kbytes.patch
+thp-enable-direct-defrag.patch
+thp-add-numa-awareness-to-hugepage-allocations.patch
+thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
+thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
+thp-transparent-hugepage-config-choice.patch
+thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+thp-transhuge-isolate_migratepages.patch
+thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
+thp-dont-allow-transparent-hugepage-support-without-pse.patch
+thp-mmu_notifier_test_young.patch
+thp-freeze-khugepaged-and-ksmd.patch
+thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
+thp-use-compaction-for-all-allocation-orders.patch
+thp-disable-transparent-hugepages-by-default-on-small-systems.patch
+thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
+thp-scale-nr_rotated-to-balance-memory-pressure.patch
+thp-transparent-hugepage-sysfs-meminfo.patch
+thp-add-debug-checks-for-mapcount-related-invariants.patch
+thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
+thp-compound_trans_order.patch
+thp-compound_trans_order-fix.patch
+thp-mm-define-madv_nohugepage.patch
+thp-madvisemadv_nohugepage.patch
 
