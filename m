@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch added to -mm tree
-Date: Tue, 21 Dec 2010 15:44:44 -0800
-Message-ID: <201012212344.oBLNiiUH000331@imap1.linux-foundation.org>
+Subject: + arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch added to -mm tree
+Date: Tue, 21 Dec 2010 18:12:37 -0800
+Message-ID: <201012220216.oBM2G9vu006347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752865Ab0LUXpE (ORCPT
+	by vger.kernel.org with ESMTP id S1751303Ab0LVCQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Dec 2010 18:45:04 -0500
+	Tue, 21 Dec 2010 21:16:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, atswartz@gmail.com, error27@gmail.com, mingo@elte.hu, rjw@sisk.pl, robert.richter@amd.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, ben@decadent.org.uk, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
+     arch/alpha/include/asm/io.h: s/extern inline/static inline/
 has been added to the -mm tree.  Its filename is
-     arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
+     arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
+Subject: arch/alpha/include/asm/io.h: s/extern inline/static inline/
 From: Andrew Morton <akpm@linux-foundation.org>
 
-[    7.034377] BUG: using smp_processor_id() in preemptible [00000000] code:
-modprobe/483
-[    7.034385] caller is setup_APIC_eilvt+0x155/0x180
-[    7.034389] Pid: 483, comm: modprobe Not tainted 2.6.37-rc1-20101110+ #1
-[    7.034392] Call Trace:
-[    7.034400]  [<ffffffff812a2b72>] debug_smp_processor_id+0xd2/0xf0
-[    7.034404]  [<ffffffff8101e985>] setup_APIC_eilvt+0x155/0x180
-[    7.034413]  [<ffffffffa002e168>] op_amd_init+0x88/0x2b0 [oprofile]
-[    7.034420]  [<ffffffffa0043000>] ? oprofile_init+0x0/0x42 [oprofile]
-[    7.034425]  [<ffffffffa0043315>] op_nmi_init+0x249/0x2af [oprofile]
-[    7.034431]  [<ffffffffa00430b4>] oprofile_arch_init+0x11/0x29 [oprofile]
-[    7.034437]  [<ffffffffa0043010>] oprofile_init+0x10/0x42 [oprofile]
-[    7.034441]  [<ffffffff810001e3>] do_one_initcall+0x43/0x170
-[    7.034445]  [<ffffffff8108a52a>] sys_init_module+0xba/0x200
-[    7.034449]  [<ffffffff8100285b>] system_call_fastpath+0x16/0x1b
+When building the kernel for alpha using gcc 4.4, many files will provoke these
+warnings:
 
-Not sure if it fixes a real bug - presumably not, if all CPUs are the same.
+arch/alpha/include/asm/io.h: In function '__set_hae':
+arch/alpha/include/asm/io.h:41: warning: 'arch_local_irq_save' is static but
+used in inline function '__set_hae' which is not static
+arch/alpha/include/asm/io.h:49: warning: 'arch_local_irq_restore' is static but
+used in inline function '__set_hae' which is not static
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=22812
+and because the alpha makefiles include -Werror in CFLAGS, this is fatal.
 
-Reported-by: <atswartz@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>		[2.6.37.x]
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25432
+
+(akpm: there are lots more extern inlines in there, but people have been
+playing games mixing them up with extern non-inlines so it needs more work).
+
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/oprofile/op_model_amd.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/alpha/include/asm/io.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu arch/x86/oprofile/op_model_amd.c
---- a/arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu
-+++ a/arch/x86/oprofile/op_model_amd.c
-@@ -710,7 +710,13 @@ struct op_x86_model_spec op_amd_spec;
- 
- static int op_amd_init(struct oprofile_operations *ops)
+diff -puN arch/alpha/include/asm/io.h~a arch/alpha/include/asm/io.h
+--- a/arch/alpha/include/asm/io.h~a
++++ a/arch/alpha/include/asm/io.h
+@@ -35,7 +35,7 @@
+  * register not being up-to-date with respect to the hardware
+  * value.
+  */
+-extern inline void __set_hae(unsigned long new_hae)
++static inline void __set_hae(unsigned long new_hae)
  {
-+	/*
-+	 * init_ibs() preforms implictly cpu-local operations, so pin this
-+	 * thread to its current CPU
-+	 */
-+	preempt_diable();
- 	init_ibs();
-+	preempt_enable();
- 	create_arch_files = ops->create_files;
- 	ops->create_files = setup_ibs_files;
+ 	unsigned long flags;
+ 	local_irq_save(flags);
+@@ -49,7 +49,7 @@ extern inline void __set_hae(unsigned lo
+ 	local_irq_restore(flags);
+ }
  
+-extern inline void set_hae(unsigned long new_hae)
++static inline void set_hae(unsigned long new_hae)
+ {
+ 	if (new_hae != alpha_mv.hae_cache)
+ 		__set_hae(new_hae);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +92,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 mm-vmap-area-cache.patch
 arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
