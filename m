@@ -1,210 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64.patch removed from -mm tree
-Date: Thu, 23 Dec 2010 14:36:51 -0800
-Message-ID: <201012232240.oBNMedo8015466@imap1.linux-foundation.org>
+Subject: [merged] rtc-rs5c372-fix-buffer-size.patch removed from -mm tree
+Date: Thu, 23 Dec 2010 14:36:36 -0800
+Message-ID: <201012232240.oBNMeOSD015449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751957Ab0LWWks (ORCPT
+	by vger.kernel.org with ESMTP id S1751662Ab0LWWky (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Dec 2010 17:40:48 -0500
+	Thu, 23 Dec 2010 17:40:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, balbir@in.ibm.com, brian@xyzw.org, guichaz@gmail.com, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, a.v.rooyen@sercom.nl, a.zummo@towertech.it, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: pad taskstats netlink response for aligment issues on ia64
+     rtc: rs5c372: fix buffer size
 has been removed from the -mm tree.  Its filename was
-     taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64.patch
+     rtc-rs5c372-fix-buffer-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: pad taskstats netlink response for aligment issues on ia64
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: rtc: rs5c372: fix buffer size
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-The taskstats structure is internally aligned on 8 byte boundaries but the
-layout of the aggregrate reply, with two NLA headers and the pid (each 4
-bytes), actually force the entire structure to be unaligned.  This causes
-the kernel to issue unaligned access warnings on some architectures like
-ia64.  Unfortunately, some software out there doesn't properly unroll the
-NLA packet and assumes that the start of the taskstats structure will
-always be 20 bytes from the start of the netlink payload.  Aligning the
-start of the taskstats structure breaks this software, which we don't
-want.  So, for now the alignment only happens on architectures that
-require it and those users will have to update to fixed versions of those
-packages.  Space is reserved in the packet only when needed.  This ifdef
-should be removed in several years e.g.  2012 once we can be confident
-that fixed versions are installed on most systems.  We add the padding
-before the aggregate since the aggregate is already a defined type.
+Match the buffer size to the amount of initialized values.  Before, it was
+one too big and thus destroyed the neighbouring register causing the clock
+to run at false speeds.
 
-Commit 85893120 ("delayacct: align to 8 byte boundary on 64-bit systems")
-previously addressed the alignment issues by padding out the pid field. 
-This was supposed to be a compatible change but the circumstances
-described above mean that it wasn't.  This patch backs out that change,
-since it was a hack, and introduces a new NULL attribute type to provide
-the padding.  Padding the response with 4 bytes avoids allocating an
-aligned taskstats structure and copying it back.  Since the structure
-weighs in at 328 bytes, it's too big to do it on the stack.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Reported-by: Brian Rogers <brian@xyzw.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Guillaume Chazarain <guichaz@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Reported-by: Andre van Rooyen <a.v.rooyen@sercom.nl>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    1 
- include/linux/taskstats.h            |    3 -
- kernel/taskstats.c                   |   57 +++++++++++++++++++------
- 3 files changed, 47 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-rs5c372.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64 Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64
-+++ a/Documentation/accounting/getdelays.c
-@@ -516,6 +516,7 @@ int main(int argc, char *argv[])
- 			default:
- 				fprintf(stderr, "Unknown nla_type %d\n",
- 					na->nla_type);
-+			case TASKSTATS_TYPE_NULL:
- 				break;
- 			}
- 			na = (struct nlattr *) (GENLMSG_DATA(&msg) + len);
-diff -puN include/linux/taskstats.h~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64 include/linux/taskstats.h
---- a/include/linux/taskstats.h~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64
-+++ a/include/linux/taskstats.h
-@@ -33,7 +33,7 @@
-  */
- 
- 
--#define TASKSTATS_VERSION	7
-+#define TASKSTATS_VERSION	8
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -188,6 +188,7 @@ enum {
- 	TASKSTATS_TYPE_STATS,		/* taskstats structure */
- 	TASKSTATS_TYPE_AGGR_PID,	/* contains pid + stats */
- 	TASKSTATS_TYPE_AGGR_TGID,	/* contains tgid + stats */
-+	TASKSTATS_TYPE_NULL,		/* contains nothing */
- 	__TASKSTATS_TYPE_MAX,
- };
- 
-diff -puN kernel/taskstats.c~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64 kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-pad-taskstats-netlink-response-for-aligment-issues-on-ia64
-+++ a/kernel/taskstats.c
-@@ -349,25 +349,47 @@ static int parse(struct nlattr *na, stru
- 	return ret;
- }
- 
-+#ifdef CONFIG_IA64
-+#define TASKSTATS_NEEDS_PADDING 1
-+#endif
-+
- static struct taskstats *mk_reply(struct sk_buff *skb, int type, u32 pid)
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-fix-buffer-size drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-fix-buffer-size
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -207,7 +207,7 @@ static int rs5c372_get_datetime(struct i
+ static int rs5c372_set_datetime(struct i2c_client *client, struct rtc_time *tm)
  {
- 	struct nlattr *na, *ret;
- 	int aggr;
+ 	struct rs5c372	*rs5c = i2c_get_clientdata(client);
+-	unsigned char	buf[8];
++	unsigned char	buf[7];
+ 	int		addr;
  
--	/* If we don't pad, we end up with alignment on a 4 byte boundary.
--	 * This causes lots of runtime warnings on systems requiring 8 byte
--	 * alignment */
--	u32 pids[2] = { pid, 0 };
--	int pid_size = ALIGN(sizeof(pid), sizeof(long));
--
- 	aggr = (type == TASKSTATS_TYPE_PID)
- 			? TASKSTATS_TYPE_AGGR_PID
- 			: TASKSTATS_TYPE_AGGR_TGID;
- 
-+	/*
-+	 * The taskstats structure is internally aligned on 8 byte
-+	 * boundaries but the layout of the aggregrate reply, with
-+	 * two NLA headers and the pid (each 4 bytes), actually
-+	 * force the entire structure to be unaligned. This causes
-+	 * the kernel to issue unaligned access warnings on some
-+	 * architectures like ia64. Unfortunately, some software out there
-+	 * doesn't properly unroll the NLA packet and assumes that the start
-+	 * of the taskstats structure will always be 20 bytes from the start
-+	 * of the netlink payload. Aligning the start of the taskstats
-+	 * structure breaks this software, which we don't want. So, for now
-+	 * the alignment only happens on architectures that require it
-+	 * and those users will have to update to fixed versions of those
-+	 * packages. Space is reserved in the packet only when needed.
-+	 * This ifdef should be removed in several years e.g. 2012 once
-+	 * we can be confident that fixed versions are installed on most
-+	 * systems. We add the padding before the aggregate since the
-+	 * aggregate is already a defined type.
-+	 */
-+#ifdef TASKSTATS_NEEDS_PADDING
-+	if (nla_put(skb, TASKSTATS_TYPE_NULL, 0, NULL) < 0)
-+		goto err;
-+#endif
- 	na = nla_nest_start(skb, aggr);
- 	if (!na)
- 		goto err;
--	if (nla_put(skb, type, pid_size, pids) < 0)
-+
-+	if (nla_put(skb, type, sizeof(pid), &pid) < 0)
- 		goto err;
- 	ret = nla_reserve(skb, TASKSTATS_TYPE_STATS, sizeof(struct taskstats));
- 	if (!ret)
-@@ -456,6 +478,18 @@ out:
- 	return rc;
- }
- 
-+static size_t taskstats_packet_size(void)
-+{
-+	size_t size;
-+
-+	size = nla_total_size(sizeof(u32)) +
-+		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
-+#ifdef TASKSTATS_NEEDS_PADDING
-+	size += nla_total_size(0); /* Padding for alignment */
-+#endif
-+	return size;
-+}
-+
- static int cmd_attr_pid(struct genl_info *info)
- {
- 	struct taskstats *stats;
-@@ -464,8 +498,7 @@ static int cmd_attr_pid(struct genl_info
- 	u32 pid;
- 	int rc;
- 
--	size = nla_total_size(sizeof(u32)) +
--		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
-+	size = taskstats_packet_size();
- 
- 	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
- 	if (rc < 0)
-@@ -494,8 +527,7 @@ static int cmd_attr_tgid(struct genl_inf
- 	u32 tgid;
- 	int rc;
- 
--	size = nla_total_size(sizeof(u32)) +
--		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
-+	size = taskstats_packet_size();
- 
- 	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
- 	if (rc < 0)
-@@ -570,8 +602,7 @@ void taskstats_exit(struct task_struct *
- 	/*
- 	 * Size includes space for nested attributes
- 	 */
--	size = nla_total_size(sizeof(u32)) +
--		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
-+	size = taskstats_packet_size();
- 
- 	is_thread_group = !!taskstats_tgid_alloc(tsk);
- 	if (is_thread_group) {
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d "
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
+linux-next.patch
+pata_mpc52xx-driver-needs-bmdma.patch
 
