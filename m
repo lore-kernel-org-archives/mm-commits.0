@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix.patch added to -mm tree
-Date: Thu, 23 Dec 2010 15:15:12 -0800
-Message-ID: <201012232348.oBNNmMoN018208@imap1.linux-foundation.org>
+Subject: [to-be-updated] numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix.patch removed from -mm tree
+Date: Thu, 23 Dec 2010 15:17:36 -0800
+Message-ID: <201012232350.oBNNojZ6018270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751481Ab0LWXun (ORCPT
+	by vger.kernel.org with ESMTP id S1751882Ab0LWXur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Dec 2010 18:50:43 -0500
+	Thu, 23 Dec 2010 18:50:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, shaohui.zheng@intel.com
+To: akpm@linux-foundation.org, shaohui.zheng@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -92,7 +82,6 @@ thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
 mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
 mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
