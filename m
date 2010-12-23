@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch added to -mm tree
-Date: Wed, 22 Dec 2010 16:28:03 -0800
-Message-ID: <201012230028.oBN0S45r027949@imap1.linux-foundation.org>
+Subject: + modpost-fix-address-calculation-in-reloc_location.patch added to -mm tree
+Date: Wed, 22 Dec 2010 16:34:10 -0800
+Message-ID: <201012230034.oBN0YAVi028184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753000Ab0LWAbF (ORCPT
+	by vger.kernel.org with ESMTP id S1751505Ab0LWAey (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Dec 2010 19:31:05 -0500
+	Wed, 22 Dec 2010 19:34:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohui.zheng@intel.com, dave@linux.vnet.ibm.com, emunson@mgebm.net, gregkh@suse.de, haicheng.li@intel.com, hpa@zytor.com, len.brown@intel.com, lethal@linux-sh.org, mingo@elte.hu, randy.dunlap@oracle.com, rientjes@google.com, sam@ravnborg.org, tglx@linutronix.de, tj@kernel.org
+Cc: olof@lixom.net, mmarek@suse.cz, raymes@google.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     NUMA hotplug emulator: implement per-node add_memory debugfs interface
+     modpost: fix address calculation in reloc_location()
 has been added to the -mm tree.  Its filename is
-     numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch
+     modpost-fix-address-calculation-in-reloc_location.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,184 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NUMA hotplug emulator: implement per-node add_memory debugfs interface
-From: Shaohui Zheng <shaohui.zheng@intel.com>
+Subject: modpost: fix address calculation in reloc_location()
+From: Olof Johansson <olof@lixom.net>
 
-Add add_memory interface to support to memory hotplug emulation for each
-online node under debugfs.  The reserved memory can be added into desired
-node with this interface.
+Fix a segfault in modpost that is observed when the gold linker is used to
+link the input objects.
 
-The layout on debugfs:
-	mem_hotplug/node0/add_memory
-	mem_hotplug/node1/add_memory
-	mem_hotplug/node2/add_memory
-	...
+The problem is that reloc_location (modpost.c) is computing the address of
+the relocation target incorrectly.  Here, elf->hdr points to the beginning
+of the ELF file in memory, sechdr points to the relocation section header,
+section is the index of the section being relocated, and
+sechdrs[section].sh_offset would be the offset of that section, relative
+to the beginning of the ELF file.  Adding elf->hdr +
+sechdrs[section].sh_offset gives you the address of the beginning of the
+section, and adding r->r_offset to that gives you the address of the
+location to be relocated.  You do not need to subtract
+sechdrs[section].sh_addr from that -- the result of this is an address
+outside the file, and causes the segfault when addend_386_rel tries to
+dereference it.
 
-Add a memory section(128M) to node 3(boots with mem=1024m)
+This bug is not observed when GNU ld is used to link the inputs.  The
+object file ubuntu/omnibook/omnibook.o is the result of an ld -r of
+several other files.  When GNU ld does an ld -r, it sets the vaddr field
+for each section to 0, but gold lays out the section addresses
+sequentially instead:
 
-	echo 0x40000000 > mem_hotplug/node3/add_memory
+Section Headers:
+ [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+ [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+ [ 1] .text             PROGBITS        00000000 000034 004794 00  AX  0   0  4
+ [ 2] .data             PROGBITS        0000b9d0 0047c8 0009c0 00  WA  0   0  4
+ [ 3] .bss              NOBITS          000162f8 005188 00013c 00  WA  0   0  4
+ [ 4] .rodata.str1.1    PROGBITS        00004f2d 0052c4 001b1a 01 AMS  0   0  1
+ [ 5] .init.text        PROGBITS        00004794 006dde 0005fa 00  AX  0   0  1
+ [ 6] .exit.text        PROGBITS        00004d8e 0073d8 00018a 00  AX  0   0  1
+  ...
 
-Signed-off-by: Haicheng Li <haicheng.li@intel.com>
-Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Len Brown <len.brown@intel.com>
+So the bug in the tool remained undiscovered because the section's vaddr
+always happened to be 0.
+
+Signed-off-by: Raymes Khoury <raymes@google.com>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Eric B Munson <emunson@mgebm.net>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   20 +++++++
- mm/memory_hotplug.c              |   77 +++++++++++++++++++++++++++++
- 2 files changed, 97 insertions(+)
+ scripts/mod/modpost.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/memory-hotplug.txt~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface
-+++ a/Documentation/memory-hotplug.txt
-@@ -19,6 +19,7 @@ be changed often.
-   4.1 Hardware(Firmware) Support
-   4.2 Notify memory hot-add event by hand
-   4.3 Node hotplug emulation
-+  4.4 Memory hotplug emulation
- 5. Logical Memory hot-add phase
-   5.1. State of memory
-   5.2. How to online memory
-@@ -239,6 +240,25 @@ Where "size" can be represented in megab
- Once the new node has been added, it is possible to online the memory by
- toggling the "state" of its memory section(s) as described in section 5.1.
+diff -puN scripts/mod/modpost.c~modpost-fix-address-calculation-in-reloc_location scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-fix-address-calculation-in-reloc_location
++++ a/scripts/mod/modpost.c
+@@ -1442,7 +1442,7 @@ static unsigned int *reloc_location(stru
+ 	int section = shndx2secindex(sechdr->sh_info);
  
-+4.4 Memory hotplug emulation
-+------------
-+With debugfs, it is possible to test memory hotplug with software method, we
-+can add memory section to desired node with add_memory interface. It is a much
-+more powerful interface than "probe" described in section 4.2.
-+
-+There is an add_memory interface for each online node at the debugfs mount
-+point.
-+	mem_hotplug/node0/add_memory
-+	mem_hotplug/node1/add_memory
-+	mem_hotplug/node2/add_memory
-+	...
-+
-+Add a memory section(128M) to node 3(boots with mem=1024m)
-+
-+	echo 0x40000000 > mem_hotplug/node3/add_memory
-+
-+Once the new memory section has been added, it is possible to online the memory
-+by toggling the "state" described in section 5.1.
- 
- ------------------------------
- 5. Logical Memory hot-add phase
-diff -puN mm/memory_hotplug.c~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface
-+++ a/mm/memory_hotplug.c
-@@ -933,6 +933,81 @@ EXPORT_SYMBOL_GPL(remove_memory);
- 
- static struct dentry *memhp_debug_root;
- 
-+#ifdef CONFIG_ARCH_MEMORY_PROBE
-+
-+static ssize_t add_memory_store(struct file *file, const char __user *buf,
-+				size_t count, loff_t *ppos)
-+{
-+	u64 phys_addr = 0;
-+	int nid = file->private_data - NULL;
-+	int ret;
-+
-+	printk(KERN_INFO "Add a memory section to node: %d.\n", nid);
-+	phys_addr = simple_strtoull(buf, NULL, 0);
-+
-+	ret = add_memory(nid, phys_addr, PAGES_PER_SECTION << PAGE_SHIFT);
-+	if (ret)
-+		count = ret;
-+
-+	return count;
-+}
-+
-+static int add_memory_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+	return 0;
-+}
-+
-+static const struct file_operations add_memory_file_ops = {
-+	.open		= add_memory_open,
-+	.write		= add_memory_store,
-+	.llseek		= generic_file_llseek,
-+};
-+
-+/*
-+ * Create add_memory debugfs entry under specified node
-+ */
-+static int debugfs_create_add_memory_entry(int nid)
-+{
-+	char buf[32];
-+	static struct dentry *node_debug_root;
-+
-+	snprintf(buf, sizeof(buf), "node%d", nid);
-+	node_debug_root = debugfs_create_dir(buf, memhp_debug_root);
-+	if (!node_debug_root)
-+		return -ENOMEM;
-+
-+	/* the nid information was represented by the offset of pointer(NULL+nid) */
-+	if (!debugfs_create_file("add_memory", S_IWUSR, node_debug_root,
-+			NULL + nid, &add_memory_file_ops))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static int __init memory_debug_init(void)
-+{
-+	int nid;
-+
-+	if (!memhp_debug_root)
-+		memhp_debug_root = debugfs_create_dir("mem_hotplug", NULL);
-+	if (!memhp_debug_root)
-+		return -ENOMEM;
-+
-+	for_each_online_node(nid)
-+		 debugfs_create_add_memory_entry(nid);
-+
-+	return 0;
-+}
-+
-+module_init(memory_debug_init);
-+#else
-+static debugfs_create_add_memory_entry(int nid)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_ARCH_MEMORY_PROBE */
-+
- static ssize_t add_node_store(struct file *file, const char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-@@ -963,6 +1038,8 @@ static ssize_t add_node_store(struct fil
- 		return -ENOMEM;
- 
- 	ret = add_memory(nid, start, size);
-+
-+	debugfs_create_add_memory_entry(nid);
- 	return ret ? ret : count;
+ 	return (void *)elf->hdr + sechdrs[section].sh_offset +
+-		r->r_offset - sechdrs[section].sh_addr;
++		r->r_offset;
  }
  
+ static int addend_386_rel(struct elf_info *elf, Elf_Shdr *sechdr, Elf_Rela *r)
 _
 
-Patches currently in -mm which might be from shaohui.zheng@intel.com are
+Patches currently in -mm which might be from olof@lixom.net are
 
-numa-hotplug-emulator-documentation.patch
-numa-hotplug-emulator-add-numa=possible-option.patch
-numa-hotplug-emulator-add-node-hotplug-emulation.patch
-numa-hotplug-emulator-abstract-cpu-register-functions.patch
-numa-hotplug-emulator-support-cpu-probe-release-in-x86_64.patch
-numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86.patch
-numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch
+linux-next.patch
+modpost-fix-address-calculation-in-reloc_location.patch
 
