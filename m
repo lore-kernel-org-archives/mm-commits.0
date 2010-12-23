@@ -1,76 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] logfs-fix-kernel-bug-at-readwritec-1193.patch removed from -mm tree
-Date: Thu, 23 Dec 2010 14:36:25 -0800
-Message-ID: <201012232240.oBNMeDvd015431@imap1.linux-foundation.org>
+Subject: [merged] include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field.patch removed from -mm tree
+Date: Thu, 23 Dec 2010 14:36:48 -0800
+Message-ID: <201012232240.oBNMeZIe015463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751980Ab0LWWkh (ORCPT
+	by vger.kernel.org with ESMTP id S1751957Ab0LWWkm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Dec 2010 17:40:37 -0500
+	Thu, 23 Dec 2010 17:40:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prasadjoshi124@gmail.com, florian@mickler.org, joern@logfs.org, maciej.rutecki@gmail.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: will.newton@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     logfs: fix "Kernel BUG at readwrite.c:1193"
+     include/linux/unaligned: pack the whole struct rather than just the field
 has been removed from the -mm tree.  Its filename was
-     logfs-fix-kernel-bug-at-readwritec-1193.patch
+     include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: logfs: fix "Kernel BUG at readwrite.c:1193"
-From: Prasad Joshi <prasadjoshi124@gmail.com>
+Subject: include/linux/unaligned: pack the whole struct rather than just the field
+From: Will Newton <will.newton@gmail.com>
 
-This happens when __logfs_create() tries to write a new inode to the disk
-which is full.
+The current packed struct implementation of unaligned access adds the
+packed attribute only to the field within the unaligned struct rather than
+to the struct as a whole.  This is not sufficient to enforce proper
+behaviour on architectures with a default struct alignment of more than
+one byte.
 
-__logfs_create() associates the transaction pointer with inode.  During
-the logfs_write_inode() function call chain this transaction pointer is
-moved from inode to page->private using function move_inode_to_page
-(do_write_inode() -> inode_to_page() -> move_inode_to_page)
+For example, the current implementation of __get_unaligned_cpu16 when
+compiled for arm with gcc -O1 -mstructure-size-boundary=32 assumes the
+struct is on a 4 byte boundary so performs the load of the 16bit packed
+field as if it were on a 4 byte boundary:
 
-When the write inode fails, the transaction is aborted and iput is called
-on the failed inode.  During delete_inode the same transaction pointer
-associated with the page is getting used.  Thus causing kernel BUG.
+__get_unaligned_cpu16:
+        ldrh    r0, [r0, #0]
+        bx      lr
 
-The patch checks for error in write_inode() and restores the page->private
-to NULL.
+Moving the packed attribute to the struct rather than the field causes the
+proper unaligned access code to be generated:
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=20162
+__get_unaligned_cpu16:
+	ldrb	r3, [r0, #0]	@ zero_extendqisi2
+	ldrb	r0, [r0, #1]	@ zero_extendqisi2
+	orr	r0, r3, r0, asl #8
+	bx	lr
 
-Signed-off-by: Prasad Joshi <prasadjoshi124@gmail.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Florian Mickler <florian@mickler.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
+Signed-off-by: Will Newton <will.newton@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/readwrite.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/unaligned/packed_struct.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/logfs/readwrite.c~logfs-fix-kernel-bug-at-readwritec-1193 fs/logfs/readwrite.c
---- a/fs/logfs/readwrite.c~logfs-fix-kernel-bug-at-readwritec-1193
-+++ a/fs/logfs/readwrite.c
-@@ -1994,6 +1994,9 @@ static int do_write_inode(struct inode *
+diff -puN include/linux/unaligned/packed_struct.h~include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field include/linux/unaligned/packed_struct.h
+--- a/include/linux/unaligned/packed_struct.h~include-linux-unaligned-pack-the-whole-struct-rather-than-just-the-field
++++ a/include/linux/unaligned/packed_struct.h
+@@ -3,9 +3,9 @@
  
- 	/* FIXME: transaction is part of logfs_block now.  Is that enough? */
- 	err = logfs_write_buf(master_inode, page, 0);
-+	if (err)
-+		move_page_to_inode(inode, page);
-+
- 	logfs_put_write_page(page);
- 	return err;
- }
+ #include <linux/kernel.h>
+ 
+-struct __una_u16 { u16 x __attribute__((packed)); };
+-struct __una_u32 { u32 x __attribute__((packed)); };
+-struct __una_u64 { u64 x __attribute__((packed)); };
++struct __una_u16 { u16 x; } __attribute__((packed));
++struct __una_u32 { u32 x; } __attribute__((packed));
++struct __una_u64 { u64 x; } __attribute__((packed));
+ 
+ static inline u16 __get_unaligned_cpu16(const void *p)
+ {
 _
 
-Patches currently in -mm which might be from prasadjoshi124@gmail.com are
+Patches currently in -mm which might be from will.newton@gmail.com are
 
 origin.patch
+arch-um-drivers-linec-safely-iterate-over-list-of-winch-handlers.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
 
