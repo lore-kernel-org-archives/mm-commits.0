@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kptr_restrict-for-hiding-kernel-pointers-v7.patch added to -mm tree
-Date: Thu, 23 Dec 2010 15:21:22 -0800
-Message-ID: <201012232321.oBNNLM1L017173@imap1.linux-foundation.org>
+Subject: + kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch added to -mm tree
+Date: Thu, 23 Dec 2010 15:22:12 -0800
+Message-ID: <201012232322.oBNNMCha017194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751656Ab0LWXVs (ORCPT
+	by vger.kernel.org with ESMTP id S1751656Ab0LWXWN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Dec 2010 18:21:48 -0500
+	Thu, 23 Dec 2010 18:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, a.p.zijlstra@chello.nl, davem@davemloft.net, eparis@parisplace.org, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
+Cc: akpm@linux-foundation.org, drosenberg@vsecurity.com
 
 
 The patch titled
-     kptr_restrict-for-hiding-kernel-pointers-v7
+     kptr_restrict-for-hiding-kernel-pointers-v7-fix
 has been added to the -mm tree.  Its filename is
-     kptr_restrict-for-hiding-kernel-pointers-v7.patch
+     kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kptr_restrict-for-hiding-kernel-pointers-v7
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: kptr_restrict-for-hiding-kernel-pointers-v7-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-v7 moves the extern to printk.h and cleans up the conditional statements
-based on the suggestions of Joe Perches.
+coding-style fixup
 
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Thomas Graf <tgraf@infradead.org>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: Kees Cook <kees.cook@canonical.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Eric Paris <eparis@parisplace.org>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 --
- include/linux/printk.h |    1 +
- lib/vsprintf.c         |   11 ++++-------
- 3 files changed, 5 insertions(+), 9 deletions(-)
+ lib/vsprintf.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-v7 include/linux/kernel.h
---- a/include/linux/kernel.h~kptr_restrict-for-hiding-kernel-pointers-v7
-+++ a/include/linux/kernel.h
-@@ -216,8 +216,6 @@ extern int sscanf(const char *, const ch
- extern int vsscanf(const char *, const char *, va_list)
- 	__attribute__ ((format (scanf, 2, 0)));
- 
--extern int kptr_restrict;	/* for sysctl */
--
- extern int get_option(char **str, int *pint);
- extern char *get_options(const char *str, int nints, int *ints);
- extern unsigned long long memparse(const char *ptr, char **retptr);
-diff -puN include/linux/printk.h~kptr_restrict-for-hiding-kernel-pointers-v7 include/linux/printk.h
---- a/include/linux/printk.h~kptr_restrict-for-hiding-kernel-pointers-v7
-+++ a/include/linux/printk.h
-@@ -83,6 +83,7 @@ extern bool printk_timed_ratelimit(unsig
- 
- extern int printk_delay_msec;
- extern int dmesg_restrict;
-+extern int kptr_restrict;
- 
- /*
-  * Print a one-time message (analogous to WARN_ONCE() et al):
-diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v7 lib/vsprintf.c
---- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v7
+diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v7-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v7-fix
 +++ a/lib/vsprintf.c
-@@ -1049,13 +1049,10 @@ char *pointer(const char *fmt, char *buf
+@@ -1047,9 +1047,7 @@ char *pointer(const char *fmt, char *buf
+ 			if (spec.field_width == -1)
+ 				spec.field_width = 2 * sizeof(void *);
  			return string(buf, end, "pK-error", spec);
- 		}
- 
--		else if (!kptr_restrict)
--			break;		/* %pK does not obscure pointers */
+-		}
+-
+-		else if ((kptr_restrict == 0) ||
++		} else if ((kptr_restrict == 0) ||
+ 			 (kptr_restrict == 1 &&
+ 			  has_capability_noaudit(current, CAP_SYSLOG)))
+ 			break;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
