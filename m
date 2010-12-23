@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kptr_restrict-for-hiding-kernel-pointers-v6.patch added to -mm tree
-Date: Wed, 22 Dec 2010 15:13:37 -0800
-Message-ID: <201012222313.oBMNDbIZ024868@imap1.linux-foundation.org>
+Subject: + numa-hotplug-emulator-abstract-cpu-register-functions.patch added to -mm tree
+Date: Wed, 22 Dec 2010 16:27:55 -0800
+Message-ID: <201012230027.oBN0RtFF027934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752709Ab0LVXOM (ORCPT
+	by vger.kernel.org with ESMTP id S1752121Ab0LWA3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Dec 2010 18:14:12 -0500
+	Wed, 22 Dec 2010 19:29:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, a.p.zijlstra@chello.nl, davem@davemloft.net, eparis@parisplace.org, eric.dumazet@gmail.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, mingo@elte.hu, tgraf@infradead.org
+Cc: shaohui.zheng@intel.com, dave@linux.vnet.ibm.com, emunson@mgebm.net, gregkh@suse.de, hpa@zytor.com, len.brown@intel.com, lethal@linux-sh.org, mingo@elte.hu, randy.dunlap@oracle.com, rientjes@google.com, sam@ravnborg.org, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     kptr_restrict-for-hiding-kernel-pointers-v6
+     NUMA hotplug emulator: abstract cpu register functions
 has been added to the -mm tree.  Its filename is
-     kptr_restrict-for-hiding-kernel-pointers-v6.patch
+     numa-hotplug-emulator-abstract-cpu-register-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kptr_restrict-for-hiding-kernel-pointers-v6
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: NUMA hotplug emulator: abstract cpu register functions
+From: Shaohui Zheng <shaohui.zheng@intel.com>
 
-v6 removes the WARN_ONCE in favor of returning "pK-error" to avoid
-breaking in certain cases, thanks to Ingo Molnar.
+Abstract cpu register functions, provide a more flexible interface
+register_cpu_node, the new interface provides convenience to add cpu to a
+specified node, we can use it to add a cpu to a fake node.
 
-v5 sets kptr_restrict to a default value of 1, and properly handles the
-case where it's incorrectly used in IRQ context.
-
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Thomas Graf <tgraf@infradead.org>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: Kees Cook <kees.cook@canonical.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
+Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Eric Paris <eparis@parisplace.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Eric B Munson <emunson@mgebm.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    4 ++--
- lib/vsprintf.c                  |   13 ++++++++-----
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/cpu.h |    1 +
+ arch/x86/kernel/topology.c |    9 +++++++++
+ drivers/base/cpu.c         |    9 +++++----
+ include/linux/cpu.h        |    8 +++++++-
+ 4 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-v6 Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~kptr_restrict-for-hiding-kernel-pointers-v6
-+++ a/Documentation/sysctl/kernel.txt
-@@ -266,8 +266,8 @@ kptr_restrict:
+diff -puN arch/x86/include/asm/cpu.h~numa-hotplug-emulator-abstract-cpu-register-functions arch/x86/include/asm/cpu.h
+--- a/arch/x86/include/asm/cpu.h~numa-hotplug-emulator-abstract-cpu-register-functions
++++ a/arch/x86/include/asm/cpu.h
+@@ -27,6 +27,7 @@ struct x86_cpu {
  
- This toggle indicates whether restrictions are placed on
- exposing kernel addresses via /proc and other interfaces.  When
--kptr_restrict is set to (0), the default, there are no
--restrictions.  When kptr_restrict is set to (1), kernel pointers
-+kptr_restrict is set to (0), there are no restrictions.  When
-+kptr_restrict is set to (1), the default, kernel pointers
- printed using the %pK format specifier will be replaced with 0's
- unless the user has CAP_SYSLOG.  When kptr_restrict is set to
- (2), kernel pointers printed using %pK will be replaced with 0's
-diff -puN lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v6 lib/vsprintf.c
---- a/lib/vsprintf.c~kptr_restrict-for-hiding-kernel-pointers-v6
-+++ a/lib/vsprintf.c
-@@ -936,7 +936,7 @@ char *uuid_string(char *buf, char *end, 
- 	return string(buf, end, uuid, spec);
+ #ifdef CONFIG_HOTPLUG_CPU
+ extern int arch_register_cpu(int num);
++extern int arch_register_cpu_node(int num, int nid);
+ extern void arch_unregister_cpu(int);
+ #endif
+ 
+diff -puN arch/x86/kernel/topology.c~numa-hotplug-emulator-abstract-cpu-register-functions arch/x86/kernel/topology.c
+--- a/arch/x86/kernel/topology.c~numa-hotplug-emulator-abstract-cpu-register-functions
++++ a/arch/x86/kernel/topology.c
+@@ -52,6 +52,15 @@ int __ref arch_register_cpu(int num)
  }
+ EXPORT_SYMBOL(arch_register_cpu);
  
--int kptr_restrict;
-+int kptr_restrict = 1;
++int __ref arch_register_cpu_node(int num, int nid)
++{
++	if (num)
++		per_cpu(cpu_devices, num).cpu.hotpluggable = 1;
++
++	return register_cpu_node(&per_cpu(cpu_devices, num).cpu, num, nid);
++}
++EXPORT_SYMBOL(arch_register_cpu_node);
++
+ void arch_unregister_cpu(int num)
+ {
+ 	unregister_cpu(&per_cpu(cpu_devices, num).cpu);
+diff -puN drivers/base/cpu.c~numa-hotplug-emulator-abstract-cpu-register-functions drivers/base/cpu.c
+--- a/drivers/base/cpu.c~numa-hotplug-emulator-abstract-cpu-register-functions
++++ a/drivers/base/cpu.c
+@@ -208,17 +208,18 @@ static ssize_t print_cpus_offline(struct
+ static SYSDEV_CLASS_ATTR(offline, 0444, print_cpus_offline, NULL);
  
  /*
-  * Show a '%p' thing.  A kernel extension is that the '%p' is followed
-@@ -1043,13 +1043,16 @@ char *pointer(const char *fmt, char *buf
- 		 * %pK cannot be used in IRQ context because its test
- 		 * for CAP_SYSLOG would be meaningless.
- 		 */
--		if (in_irq() || in_serving_softirq() || in_nmi())
--			WARN_ONCE(1, "%%pK used in interrupt context.\n");
-+		if (in_irq() || in_serving_softirq() || in_nmi()) {
-+			if (spec.field_width == -1)
-+				spec.field_width = 2 * sizeof(void *);
-+			return string(buf, end, "pK-error", spec);
-+		}
+- * register_cpu - Setup a sysfs device for a CPU.
++ * register_cpu_node - Setup a sysfs device for a CPU.
+  * @cpu - cpu->hotpluggable field set to 1 will generate a control file in
+  *	  sysfs for this CPU.
+  * @num - CPU number to use when creating the device.
++ * @nid - Node ID to use, if any.
+  *
+  * Initialize and register the CPU device.
+  */
+-int __cpuinit register_cpu(struct cpu *cpu, int num)
++int __cpuinit register_cpu_node(struct cpu *cpu, int num, int nid)
+ {
+ 	int error;
+-	cpu->node_id = cpu_to_node(num);
++	cpu->node_id = nid;
+ 	cpu->sysdev.id = num;
+ 	cpu->sysdev.cls = &cpu_sysdev_class;
  
--		if (!kptr_restrict)
-+		else if (!kptr_restrict)
- 			break;		/* %pK does not obscure pointers */
+@@ -229,7 +230,7 @@ int __cpuinit register_cpu(struct cpu *c
+ 	if (!error)
+ 		per_cpu(cpu_sys_devices, num) = &cpu->sysdev;
+ 	if (!error)
+-		register_cpu_under_node(num, cpu_to_node(num));
++		register_cpu_under_node(num, nid);
  
--		if ((kptr_restrict != 2) &&
-+		else if ((kptr_restrict != 2) &&
- 		    has_capability_noaudit(current, CAP_SYSLOG))
- 			break;		/* privileged apps expose pointers,
- 					   unless kptr_restrict is 2 */
+ #ifdef CONFIG_KEXEC
+ 	if (!error)
+diff -puN include/linux/cpu.h~numa-hotplug-emulator-abstract-cpu-register-functions include/linux/cpu.h
+--- a/include/linux/cpu.h~numa-hotplug-emulator-abstract-cpu-register-functions
++++ a/include/linux/cpu.h
+@@ -25,7 +25,13 @@ struct cpu {
+ 	struct sys_device sysdev;
+ };
+ 
+-extern int register_cpu(struct cpu *cpu, int num);
++extern int register_cpu_node(struct cpu *cpu, int num, int nid);
++
++static inline int register_cpu(struct cpu *cpu, int num)
++{
++	return register_cpu_node(cpu, num, cpu_to_node(num));
++}
++
+ extern struct sys_device *get_cpu_sysdev(unsigned cpu);
+ 
+ extern int cpu_add_sysdev_attr(struct sysdev_attribute *attr);
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-linux-next.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v4.patch
-kptr_restrict-for-hiding-kernel-pointers-v6.patch
+numa-hotplug-emulator-documentation.patch
+numa-hotplug-emulator-add-numa=possible-option.patch
+numa-hotplug-emulator-add-node-hotplug-emulation.patch
+numa-hotplug-emulator-abstract-cpu-register-functions.patch
+numa-hotplug-emulator-support-cpu-probe-release-in-x86_64.patch
+numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86.patch
+numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch
 
