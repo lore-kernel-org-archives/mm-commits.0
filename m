@@ -1,51 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch removed from -mm tree
-Date: Thu, 23 Dec 2010 15:17:38 -0800
-Message-ID: <201012232350.oBNNolU4018276@imap1.linux-foundation.org>
+Subject: [to-be-updated] numa-hotplug-emulator-documentation.patch removed from -mm tree
+Date: Thu, 23 Dec 2010 15:17:17 -0800
+Message-ID: <201012232350.oBNNoR4J018246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751882Ab0LWXvW (ORCPT
+	by vger.kernel.org with ESMTP id S1752033Ab0LWXvX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Dec 2010 18:51:22 -0500
+	Thu, 23 Dec 2010 18:51:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shaohui.zheng@intel.com, dave@linux.vnet.ibm.com, emunson@mgebm.net, gregkh@suse.de, haicheng.li@intel.com, hpa@zytor.com, len.brown@intel.com, lethal@linux-sh.org, mingo@elte.hu, ran
 
 
 The patch titled
-     NUMA hotplug emulator: implement per-node add_memory debugfs interface
+     NUMA hotplug emulator: documentation
 has been removed from the -mm tree.  Its filename was
-     numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch
+     numa-hotplug-emulator-documentation.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NUMA hotplug emulator: implement per-node add_memory debugfs interface
+Subject: NUMA hotplug emulator: documentation
 From: Shaohui Zheng <shaohui.zheng@intel.com>
 
-Add add_memory interface to support to memory hotplug emulation for each
-online node under debugfs.  The reserved memory can be added into desired
-node with this interface.
+* WHAT IS HOTPLUG EMULATOR 
 
-The layout on debugfs:
-	mem_hotplug/node0/add_memory
-	mem_hotplug/node1/add_memory
-	mem_hotplug/node2/add_memory
-	...
+NUMA hotplug emulator is collectively named for the hotplug emulation it
+is able to emulate NUMA Node Hotplug thru a pure software way.  It intends
+to help people easily debug and test node/cpu/memory hotplug related stuff
+on a none-NUMA-hotplug-support machine, even an UMA machine.
 
-Add a memory section(128M) to node 3(boots with mem=1024m)
+The emulator provides mechanism to emulate the process of physcial cpu/mem
+hotadd, it provides possibility to debug CPU and memory hotplug on the
+machines without NUMA support for kernel developers.  It offers an
+interface for cpu and memory hotplug test purpose.
 
-	echo 0x40000000 > mem_hotplug/node3/add_memory
+* WHY DO WE USE HOTPLUG EMULATOR
 
+We are focusing on the hotplug emualation for a few months.  The emualor
+helps team to reproduce all the major hotplug bugs.  It plays an important
+role to the hotplug code quality assurance.  Because of the hotplug
+emulator, we already move most of the debug working to virtual
+environment.
+
+* Principles & Usages 
+
+NUMA hotplug emulator include 3 different parts: node/CPU/memory hotplug
+emulation.
+
+1) Node hotplug emulation:
+
+Adds a numa=possible=<N> command line option to set an additional N nodes
+as being possible for memory hotplug.  This set of possible nodes control
+nr_node_ids and the sizes of several dynamically allocated node arrays.
+
+This allows memory hotplug to create new nodes for newly added memory
+rather than binding it to existing nodes.
+
+For emulation on x86, it would be possible to set aside memory for
+hotplugged nodes (say, anything above 2G) and to add an additional four
+nodes as being possible on boot with
+
+	mem=2G numa=possible=4
+
+and then creating a new 128M node at runtime:
+
+	# echo 128M@0x80000000 > /sys/kernel/debug/mem_hotplug/add_node
+	On node 1 totalpages: 0
+	init_memory_mapping: 0000000080000000-0000000088000000
+	 0080000000 - 0088000000 page 2M
+
+Once the new node has been added, its memory can be onlined.  If this
+memory represents memory section 16, for example:
+
+	# echo online > /sys/devices/system/memory/memory16/state
+	Built 2 zonelists in Node order, mobility grouping on.  Total pages: 514846
+	Policy zone: Normal
+ [ The memory section(s) mapped to a particular node are visible via
+   /sys/devices/system/mem_hotplug/node1, in this example. ]
+
+2) CPU hotplug emulation:
+
+The emulator reserve CPUs via a grub parameter, the reserved CPUs can be
+hot-add/hot-remove in software method.
+
+When hotplug a CPU with emulator, we are using a logical CPU to emulate
+the CPU hotplug process.  For a CPU which supports SMT, some logical CPUs
+are in the same socket, but it may located in different NUMA node after we
+have emulator.  We put the logical CPU into a fake CPU socket, and assign
+it an unique phys_proc_id.  For the fake socket, we put one logical CPU in
+only.
+
+ - to hide CPUs
+	- Using boot option "maxcpus=N" hide CPUs
+	  N is the number of initialize CPUs
+	- Using boot option "cpu_hpe=on" to enable cpu hotplug emulation
+      when cpu_hpe is enabled, the rest CPUs will not be initialized 
+
+ - to hot-add CPU to node
+	# echo nid > cpu/probe
+
+ - to hot-remove CPU
+	# echo nid > cpu/release
+
+3) Memory hotplug emulation:
+
+The emulator reserves memory before OS boots, the reserved memory region
+is removed from e820 table.  Each online node has an add_memory interface,
+and memory can be hot-added via the per-ndoe add_memory debugfs interface.
+ 
+
+ - reserve memory thru a kernel boot paramter
+ 	mem=1024m
+
+ - add a memory section to node 3
+    # echo 0x40000000 > mem_hotplug/node3/add_memory
+
+* ACKNOWLEDGMENTS
+
+NUMA Hotplug Emulator includes a team's efforts, thanks all of them.  They
+are: Andi Kleen, Haicheng Li, Shaohui Zheng, Fengguang Wu, David Rientjes
+and Yongkang You
+
+
+
+This patch:
+
+Add a text file Documentation/x86/x86_64/numa_hotplug_emulator.txt to
+explain the usage for the hotplug emulator.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Haicheng Li <haicheng.li@intel.com>
 Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -53,148 +144,125 @@ Cc: Greg KH <gregkh@suse.de>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Len Brown <len.brown@intel.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Eric B Munson <emunson@mgebm.net>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   20 +++++++
- mm/memory_hotplug.c              |   77 +++++++++++++++++++++++++++++
- 2 files changed, 97 insertions(+)
+ Documentation/x86/x86_64/numa_hotplug_emulator.txt |   97 +++++++++++
+ 1 file changed, 97 insertions(+)
 
-diff -puN Documentation/memory-hotplug.txt~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface
-+++ a/Documentation/memory-hotplug.txt
-@@ -19,6 +19,7 @@ be changed often.
-   4.1 Hardware(Firmware) Support
-   4.2 Notify memory hot-add event by hand
-   4.3 Node hotplug emulation
-+  4.4 Memory hotplug emulation
- 5. Logical Memory hot-add phase
-   5.1. State of memory
-   5.2. How to online memory
-@@ -239,6 +240,25 @@ Where "size" can be represented in megab
- Once the new node has been added, it is possible to online the memory by
- toggling the "state" of its memory section(s) as described in section 5.1.
- 
-+4.4 Memory hotplug emulation
-+------------
-+With debugfs, it is possible to test memory hotplug with software method, we
-+can add memory section to desired node with add_memory interface. It is a much
-+more powerful interface than "probe" described in section 4.2.
+diff -puN /dev/null Documentation/x86/x86_64/numa_hotplug_emulator.txt
+--- /dev/null
++++ a/Documentation/x86/x86_64/numa_hotplug_emulator.txt
+@@ -0,0 +1,97 @@
++NUMA Hotplug Emulator for x86_64
++---------------------------------------------------
 +
-+There is an add_memory interface for each online node at the debugfs mount
-+point.
-+	mem_hotplug/node0/add_memory
-+	mem_hotplug/node1/add_memory
-+	mem_hotplug/node2/add_memory
-+	...
++NUMA hotplug emulator is able to emulate NUMA Node Hotplug
++thru a pure software way. It intends to help people easily debug
++and test node/CPU/memory hotplug related stuff on a
++none-NUMA-hotplug-support machine, even a UMA machine and virtual
++environment.
 +
-+Add a memory section(128M) to node 3(boots with mem=1024m)
++1) Node hotplug emulation:
 +
-+	echo 0x40000000 > mem_hotplug/node3/add_memory
++Adds a numa=possible=<N> command line option to set an additional N nodes
++as being possible for memory hotplug.  This set of possible nodes
++control nr_node_ids and the sizes of several dynamically allocated node
++arrays.
 +
-+Once the new memory section has been added, it is possible to online the memory
-+by toggling the "state" described in section 5.1.
- 
- ------------------------------
- 5. Logical Memory hot-add phase
-diff -puN mm/memory_hotplug.c~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface
-+++ a/mm/memory_hotplug.c
-@@ -933,6 +933,81 @@ EXPORT_SYMBOL_GPL(remove_memory);
- 
- static struct dentry *memhp_debug_root;
- 
-+#ifdef CONFIG_ARCH_MEMORY_PROBE
++This allows memory hotplug to create new nodes for newly added memory
++rather than binding it to existing nodes.
 +
-+static ssize_t add_memory_store(struct file *file, const char __user *buf,
-+				size_t count, loff_t *ppos)
-+{
-+	u64 phys_addr = 0;
-+	int nid = file->private_data - NULL;
-+	int ret;
++For emulation on x86, it would be possible to set aside memory for hotplugged
++nodes (say, anything above 2G) and to add an additional four nodes as being
++possible on boot with
 +
-+	printk(KERN_INFO "Add a memory section to node: %d.\n", nid);
-+	phys_addr = simple_strtoull(buf, NULL, 0);
++	mem=2G numa=possible=4
 +
-+	ret = add_memory(nid, phys_addr, PAGES_PER_SECTION << PAGE_SHIFT);
-+	if (ret)
-+		count = ret;
++and then creating a new 128M node at runtime:
 +
-+	return count;
-+}
++	# echo 128M@0x80000000 > /sys/kernel/debug/mem_hotplug/add_node
++	On node 1 totalpages: 0
++	init_memory_mapping: 0000000080000000-0000000088000000
++	 0080000000 - 0088000000 page 2M
 +
-+static int add_memory_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+	return 0;
-+}
++Once the new node has been added, its memory can be onlined.  If this
++memory represents memory section 16, for example:
 +
-+static const struct file_operations add_memory_file_ops = {
-+	.open		= add_memory_open,
-+	.write		= add_memory_store,
-+	.llseek		= generic_file_llseek,
-+};
++	# echo online > /sys/devices/system/memory/memory16/state
++	Built 2 zonelists in Node order, mobility grouping on.  Total pages: 514846
++	Policy zone: Normal
++ [ The memory section(s) mapped to a particular node are visible via
++   /sys/devices/system/mem_hotplug/node1, in this example. ]
 +
-+/*
-+ * Create add_memory debugfs entry under specified node
-+ */
-+static int debugfs_create_add_memory_entry(int nid)
-+{
-+	char buf[32];
-+	static struct dentry *node_debug_root;
++2) CPU hotplug emulation:
 +
-+	snprintf(buf, sizeof(buf), "node%d", nid);
-+	node_debug_root = debugfs_create_dir(buf, memhp_debug_root);
-+	if (!node_debug_root)
-+		return -ENOMEM;
++The emulator reserves CPUs thru grub parameter, the reserved CPUs can be
++hot-add/hot-remove in software method, it emulates the process of physical
++cpu hotplug.
 +
-+	/* the nid information was represented by the offset of pointer(NULL+nid) */
-+	if (!debugfs_create_file("add_memory", S_IWUSR, node_debug_root,
-+			NULL + nid, &add_memory_file_ops))
-+		return -ENOMEM;
++When hotplugging a CPU with emulator, we are using a logical CPU to emulate the
++CPU socket hotplug process. For the CPU supported SMT, some logical CPUs are in
++the same socket, but it may located in different NUMA node after we have
++emulator. We put the logical CPU into a fake CPU socket, and assign it a
++unique phys_proc_id. For the fake socket, we put one logical CPU in only.
 +
-+	return 0;
-+}
++ - to hide CPUs
++	- Using boot option "maxcpus=N" hide CPUs
++	  N is the number of CPUs to initialize; the reset will be hidden.
++	- Using boot option "cpu_hpe=on" to enable CPU hotplug emulation
++      when cpu_hpe is enabled, the rest CPUs will not be initialized
 +
-+static int __init memory_debug_init(void)
-+{
-+	int nid;
++ - to hot-add CPU to node
++	# echo nid > cpu/probe
 +
-+	if (!memhp_debug_root)
-+		memhp_debug_root = debugfs_create_dir("mem_hotplug", NULL);
-+	if (!memhp_debug_root)
-+		return -ENOMEM;
++ - to hot-remove CPU
++	# echo nid > cpu/release
 +
-+	for_each_online_node(nid)
-+		 debugfs_create_add_memory_entry(nid);
++3) Memory hotplug emulation:
 +
-+	return 0;
-+}
++The emulator reserves memory before OS boots, the reserved memory region is
++removed from e820 table. Each online node has an add_memory interface, and
++memory can be hot-added via the per-ndoe add_memory debugfs interface.
 +
-+module_init(memory_debug_init);
-+#else
-+static debugfs_create_add_memory_entry(int nid)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_ARCH_MEMORY_PROBE */
++ - reserve memory thru a kernel boot paramter
++ 	mem=1024m
 +
- static ssize_t add_node_store(struct file *file, const char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-@@ -963,6 +1038,8 @@ static ssize_t add_node_store(struct fil
- 		return -ENOMEM;
- 
- 	ret = add_memory(nid, start, size);
++ - add a memory section to node 3
++    # echo 0x40000000 > mem_hotplug/node3/add_memory
 +
-+	debugfs_create_add_memory_entry(nid);
- 	return ret ? ret : count;
- }
- 
++4) Script for hotplug testing
++
++These scripts provides convenience when we hot-add memory/cpu in batch.
++
++- Online all memory sections:
++for m in /sys/devices/system/memory/memory*;
++do
++	echo online > $m/state;
++done
++
++- CPU Online:
++for c in /sys/devices/system/cpu/cpu*;
++do
++	echo 1 > $c/online;
++done
++
++- David Rientjes <rientjes@google.com>
++- Haicheng Li <haicheng.li@intel.com>
++- Shaohui Zheng <shaohui.zheng@intel.com>
++  Nov 2010
 _
 
 Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
+numa-hotplug-emulator-add-numa=possible-option.patch
+numa-hotplug-emulator-add-node-hotplug-emulation.patch
+numa-hotplug-emulator-abstract-cpu-register-functions.patch
+numa-hotplug-emulator-support-cpu-probe-release-in-x86_64.patch
+numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86.patch
+numa-hotplug-emulator-fake-cpu-socket-with-logical-cpu-on-x86-fix.patch
+numa-hotplug-emulator-implement-per-node-add_memory-debugfs-interface.patch
 
