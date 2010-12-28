@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 28 Dec 2010 13:16:08 -0800
-Message-ID: <201012282116.oBSLG9nw017866@imap1.linux-foundation.org>
+Subject: + memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch added to -mm tree
+Date: Tue, 28 Dec 2010 13:50:01 -0800
+Message-ID: <201012282150.oBSLo1WU019121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751161Ab0L1VQL (ORCPT
+	by vger.kernel.org with ESMTP id S1751445Ab0L1VuH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 16:16:11 -0500
+	Tue, 28 Dec 2010 16:50:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jj@chaosbits.net
+Cc: akpm@linux-foundation.org, maximlevitsky@gmail.com, oakad@yahoo.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
+     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
 has been added to the -mm tree.  Its filename is
-     gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
+     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
+Subject: memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#37: FILE: usr/gen_init_cpio.c:318:
-+	retval = fstat (file, &buf);
+drivers/memstick/core/mspro_block.c:1090: warning: format '%x' expects type 'unsigned int', but argument 7 has type 'size_t'
 
-WARNING: space prohibited between function name and open parenthesis '('
-#39: FILE: usr/gen_init_cpio.c:320:
-+		fprintf (stderr, "File %s could not be stat()'ed\n", location);
-
-total: 0 errors, 2 warnings, 24 lines checked
-
-./patches/gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Juhl <jj@chaosbits.net>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/gen_init_cpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memstick/core/mspro_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes usr/gen_init_cpio.c
---- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
-+++ a/usr/gen_init_cpio.c
-@@ -315,9 +315,9 @@ static int cpio_mkfile(const char *name,
- 		goto error;
- 	}
- 
--	retval = fstat (file, &buf);
-+	retval = fstat(file, &buf);
- 	if (retval) {
--		fprintf (stderr, "File %s could not be stat()'ed\n", location);
-+		fprintf(stderr, "File %s could not be stat()'ed\n", location);
- 		goto error;
- 	}
- 
+diff -puN drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1051,7 +1051,7 @@ static int mspro_block_read_attributes(s
+ 		addr = be32_to_cpu(attr->entries[cnt].address);
+ 		s_attr->size = be32_to_cpu(attr->entries[cnt].size);
+ 		dev_dbg(&card->dev, "adding attribute %d: id %x, address %x, "
+-			"size %x\n", cnt, attr->entries[cnt].id, addr,
++			"size %zx\n", cnt, attr->entries[cnt].id, addr,
+ 			s_attr->size);
+ 		s_attr->id = attr->entries[cnt].id;
+ 		if (mspro_block_attr_name(s_attr->id))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +109,8 @@ exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
 sysctl-remove-obsolete-comments-fix.patch
 user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
 pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+a.patch
 ramoops-fix-types-remove-typecasts.patch
 journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
