@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch added to -mm tree
-Date: Tue, 28 Dec 2010 13:50:01 -0800
-Message-ID: <201012282150.oBSLo1WU019121@imap1.linux-foundation.org>
+Subject: + arch-mn10300-kernel-irqc-fix-build.patch added to -mm tree
+Date: Tue, 28 Dec 2010 13:52:47 -0800
+Message-ID: <201012282152.oBSLqlIT019256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445Ab0L1VuH (ORCPT
+	by vger.kernel.org with ESMTP id S1752414Ab0L1VxA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 16:50:07 -0500
+	Tue, 28 Dec 2010 16:53:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, maximlevitsky@gmail.com, oakad@yahoo.com, randy.dunlap@oracle.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, ettl.martin@gmx.de
 
 
 The patch titled
-     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
+     arch/mn10300/kernel/irq.c: fix build
 has been added to the -mm tree.  Its filename is
-     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+     arch-mn10300-kernel-irqc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
+Subject: arch/mn10300/kernel/irq.c: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/memstick/core/mspro_block.c:1090: warning: format '%x' expects type 'unsigned int', but argument 7 has type 'size_t'
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25702
 
-Cc: Alex Dubov <oakad@yahoo.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Reported-by: Martin Ettl <ettl.martin@gmx.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    2 +-
+ arch/mn10300/kernel/irq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -1051,7 +1051,7 @@ static int mspro_block_read_attributes(s
- 		addr = be32_to_cpu(attr->entries[cnt].address);
- 		s_attr->size = be32_to_cpu(attr->entries[cnt].size);
- 		dev_dbg(&card->dev, "adding attribute %d: id %x, address %x, "
--			"size %x\n", cnt, attr->entries[cnt].id, addr,
-+			"size %zx\n", cnt, attr->entries[cnt].id, addr,
- 			s_attr->size);
- 		s_attr->id = attr->entries[cnt].id;
- 		if (mspro_block_attr_name(s_attr->id))
+diff -puN arch/mn10300/kernel/irq.c~arch-mn10300-kernel-irqc-fix-build arch/mn10300/kernel/irq.c
+--- a/arch/mn10300/kernel/irq.c~arch-mn10300-kernel-irqc-fix-build
++++ a/arch/mn10300/kernel/irq.c
+@@ -459,7 +459,7 @@ void migrate_irqs(void)
+ 			tmp = CROSS_GxICR(irq, new);
+ 
+ 			x &= GxICR_LEVEL | GxICR_ENABLE;
+-			if (GxICR(irq) & GxICR_REQUEST) {
++			if (GxICR(irq) & GxICR_REQUEST)
+ 				x |= GxICR_REQUEST | GxICR_DETECT;
+ 			CROSS_GxICR(irq, new) = x;
+ 			tmp = CROSS_GxICR(irq, new);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +68,7 @@ linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-mn10300-kernel-irqc-fix-build.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 mm-vmap-area-cache.patch
 arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
@@ -110,7 +110,6 @@ sysctl-remove-obsolete-comments-fix.patch
 user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
 pps-add-parallel-port-pps-signal-generator-fix.patch
 memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-a.patch
 ramoops-fix-types-remove-typecasts.patch
 journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
