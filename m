@@ -1,111 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pata_mpc52xx-driver-needs-bmdma.patch removed from -mm tree
-Date: Tue, 28 Dec 2010 12:19:40 -0800
-Message-ID: <201012282020.oBSKK9CS015704@imap1.linux-foundation.org>
+Subject: [merged] isdn-capi-make-kcapi-use-a-separate-workqueue.patch removed from -mm tree
+Date: Tue, 28 Dec 2010 12:19:45 -0800
+Message-ID: <201012282020.oBSKKE6M015711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751903Ab0L1UUl (ORCPT
+	by vger.kernel.org with ESMTP id S1751903Ab0L1UUr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 15:20:41 -0500
+	Tue, 28 Dec 2010 15:20:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, jeff@garzik.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, isdn@linux-pingi.de, jan.kiszka@web.de, mac@melware.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_mpc52xx: driver needs BMDMA
+     isdn/capi: make kcapi use a separate workqueue
 has been removed from the -mm tree.  Its filename was
-     pata_mpc52xx-driver-needs-bmdma.patch
+     isdn-capi-make-kcapi-use-a-separate-workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_mpc52xx: driver needs BMDMA
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: isdn/capi: make kcapi use a separate workqueue
+From: Tejun Heo <tj@kernel.org>
 
-Found by this build-error if BMDMA is disabled:
+flush_scheduled_work() is deprecated and will be removed.  Because kcapi
+uses fire-and-forget type works, it's impossible to flush each work
+explicitly.  Create and use a dedicated workqueue instead.
 
-drivers/ata/pata_mpc52xx.c: In function 'mpc52xx_ata_init_one':
-drivers/ata/pata_mpc52xx.c:662: error: 'ata_bmdma_interrupt' undeclared (first use in this function)
-...
+Please note that with recent workqueue changes, each workqueue doesn't
+reserve a lot of resources and using it as a flush domain is fine.
 
-Move the Kconfig entry to the proper location as needed since
-9a7780c9acb821fe1c2b6fc53f74cc2556ff5364 ("libata-sff: make BMDMA
-optional").
-
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Armin Schindler <mac@melware.de>
+Cc: Jan Kiszka <jan.kiszka@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/Kconfig  |   20 ++++++++++----------
- drivers/ata/Makefile |    2 +-
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/isdn/capi/kcapi.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ata/Kconfig~pata_mpc52xx-driver-needs-bmdma drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~pata_mpc52xx-driver-needs-bmdma
-+++ a/drivers/ata/Kconfig
-@@ -136,16 +136,6 @@ config PDC_ADMA
+diff -puN drivers/isdn/capi/kcapi.c~isdn-capi-make-kcapi-use-a-separate-workqueue drivers/isdn/capi/kcapi.c
+--- a/drivers/isdn/capi/kcapi.c~isdn-capi-make-kcapi-use-a-separate-workqueue
++++ a/drivers/isdn/capi/kcapi.c
+@@ -38,6 +38,7 @@
+ #include <linux/rcupdate.h>
  
- 	  If unsure, say N.
+ static int showcapimsgs = 0;
++static struct workqueue_struct *kcapi_wq;
  
--config PATA_MPC52xx
--	tristate "Freescale MPC52xx SoC internal IDE"
--	depends on PPC_MPC52xx && PPC_BESTCOMM
--	select PPC_BESTCOMM_ATA
--	help
--	  This option enables support for integrated IDE controller
--	  of the Freescale MPC52xx SoC.
--
--	  If unsure, say N.
--
- config PATA_OCTEON_CF
- 	tristate "OCTEON Boot Bus Compact Flash support"
- 	depends on CPU_CAVIUM_OCTEON
-@@ -499,6 +489,16 @@ config PATA_MARVELL
+ MODULE_DESCRIPTION("CAPI4Linux: kernel CAPI layer");
+ MODULE_AUTHOR("Carsten Paeth");
+@@ -291,7 +292,7 @@ static int notify_push(unsigned int even
+ 	event->type = event_type;
+ 	event->controller = controller;
  
- 	  If unsure, say N.
+-	schedule_work(&event->work);
++	queue_work(kcapi_wq, &event->work);
+ 	return 0;
+ }
  
-+config PATA_MPC52xx
-+	tristate "Freescale MPC52xx SoC internal IDE"
-+	depends on PPC_MPC52xx && PPC_BESTCOMM
-+	select PPC_BESTCOMM_ATA
-+	help
-+	  This option enables support for integrated IDE controller
-+	  of the Freescale MPC52xx SoC.
+@@ -408,7 +409,7 @@ void capi_ctr_handle_message(struct capi
+ 		goto error;
+ 	}
+ 	skb_queue_tail(&ap->recv_queue, skb);
+-	schedule_work(&ap->recv_work);
++	queue_work(kcapi_wq, &ap->recv_work);
+ 	rcu_read_unlock();
+ 
+ 	return;
+@@ -743,7 +744,7 @@ u16 capi20_release(struct capi20_appl *a
+ 
+ 	mutex_unlock(&capi_controller_lock);
+ 
+-	flush_scheduled_work();
++	flush_workqueue(kcapi_wq);
+ 	skb_queue_purge(&ap->recv_queue);
+ 
+ 	if (showcapimsgs & 1) {
+@@ -1285,21 +1286,30 @@ static int __init kcapi_init(void)
+ {
+ 	int err;
+ 
++	kcapi_wq = alloc_workqueue("kcapi", 0, 0);
++	if (!kcapi_wq)
++		return -ENOMEM;
 +
-+	  If unsure, say N.
-+
- config PATA_NETCELL
- 	tristate "NETCELL Revolution RAID support"
- 	depends on PCI
-diff -puN drivers/ata/Makefile~pata_mpc52xx-driver-needs-bmdma drivers/ata/Makefile
---- a/drivers/ata/Makefile~pata_mpc52xx-driver-needs-bmdma
-+++ a/drivers/ata/Makefile
-@@ -12,7 +12,6 @@ obj-$(CONFIG_SATA_DWC)		+= sata_dwc_460e
+ 	register_capictr_notifier(&capictr_nb);
  
- # SFF w/ custom DMA
- obj-$(CONFIG_PDC_ADMA)		+= pdc_adma.o
--obj-$(CONFIG_PATA_MPC52xx)	+= pata_mpc52xx.o
- obj-$(CONFIG_PATA_OCTEON_CF)	+= pata_octeon_cf.o
- obj-$(CONFIG_SATA_QSTOR)	+= sata_qstor.o
- obj-$(CONFIG_SATA_SX4)		+= sata_sx4.o
-@@ -53,6 +52,7 @@ obj-$(CONFIG_PATA_IT821X)	+= pata_it821x
- obj-$(CONFIG_PATA_JMICRON)	+= pata_jmicron.o
- obj-$(CONFIG_PATA_MACIO)	+= pata_macio.o
- obj-$(CONFIG_PATA_MARVELL)	+= pata_marvell.o
-+obj-$(CONFIG_PATA_MPC52xx)	+= pata_mpc52xx.o
- obj-$(CONFIG_PATA_NETCELL)	+= pata_netcell.o
- obj-$(CONFIG_PATA_NINJA32)	+= pata_ninja32.o
- obj-$(CONFIG_PATA_NS87415)	+= pata_ns87415.o
+ 	err = cdebug_init();
+-	if (!err)
+-		kcapi_proc_init();
+-	return err;
++	if (err) {
++		unregister_capictr_notifier(&capictr_nb);
++		destroy_workqueue(kcapi_wq);
++		return err;
++	}
++
++	kcapi_proc_init();
++	return 0;
+ }
+ 
+ static void __exit kcapi_exit(void)
+ {
+         kcapi_proc_exit();
+ 
+-	/* make sure all notifiers are finished */
+-	flush_scheduled_work();
++	unregister_capictr_notifier(&capictr_nb);
+ 	cdebug_exit();
++	destroy_workqueue(kcapi_wq);
+ }
+ 
+ module_init(kcapi_init);
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
+irq-use-per_cpu-kstat_irqs.patch
+drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
+mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
+include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
+percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
 
