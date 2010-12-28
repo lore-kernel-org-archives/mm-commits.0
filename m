@@ -1,117 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] keys-dont-call-up_write-if-__key_link_begin-returns-an-error.patch removed from -mm tree
-Date: Tue, 28 Dec 2010 12:19:37 -0800
-Message-ID: <201012282020.oBSKK7hR015701@imap1.linux-foundation.org>
+Subject: [merged] isdn-capi-unregister-capictr-notifier-after-init-failure.patch removed from -mm tree
+Date: Tue, 28 Dec 2010 12:19:42 -0800
+Message-ID: <201012282020.oBSKKBVI015707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751524Ab0L1UUS (ORCPT
+	by vger.kernel.org with ESMTP id S1751787Ab0L1UUW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 15:20:18 -0500
+	Tue, 28 Dec 2010 15:20:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, jlayton@redhat.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, isdn@linux-pingi.de, jan.kiszka@web.de, mac@melware.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: don't call up_write() if __key_link_begin() returns an error
+     isdn/capi: unregister capictr notifier after init failure
 has been removed from the -mm tree.  Its filename was
-     keys-dont-call-up_write-if-__key_link_begin-returns-an-error.patch
+     isdn-capi-unregister-capictr-notifier-after-init-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: don't call up_write() if __key_link_begin() returns an error
-From: David Howells <dhowells@redhat.com>
+Subject: isdn/capi: unregister capictr notifier after init failure
+From: Tejun Heo <tj@kernel.org>
 
-In construct_alloc_key(), up_write() is called in the error path if
-__key_link_begin() fails, but this is incorrect as __key_link_begin() only
-returns with the nominated keyring locked if it returns successfully.
+capidrv_init() could leave capictr notifier dangling after init failure. 
+Fix it.
 
-Without this patch, you might see the following in dmesg:
-
-	=====================================
-	[ BUG: bad unlock balance detected! ]
-	-------------------------------------
-	mount.cifs/5769 is trying to release lock (&key->sem) at:
-	[<ffffffff81201159>] request_key_and_link+0x263/0x3fc
-	but there are no more locks to release!
-
-	other info that might help us debug this:
-	3 locks held by mount.cifs/5769:
-	 #0:  (&type->s_umount_key#41/1){+.+.+.}, at: [<ffffffff81131321>] sget+0x278/0x3e7
-	 #1:  (&ret_buf->session_mutex){+.+.+.}, at: [<ffffffffa0258e59>] cifs_get_smb_ses+0x35a/0x443 [cifs]
-	 #2:  (root_key_user.cons_lock){+.+.+.}, at: [<ffffffff81201000>] request_key_and_link+0x10a/0x3fc
-
-	stack backtrace:
-	Pid: 5769, comm: mount.cifs Not tainted 2.6.37-rc6+ #1
-	Call Trace:
-	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
-	 [<ffffffff81081601>] print_unlock_inbalance_bug+0xca/0xd5
-	 [<ffffffff81083248>] lock_release_non_nested+0xc1/0x263
-	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
-	 [<ffffffff81201159>] ? request_key_and_link+0x263/0x3fc
-	 [<ffffffff81083567>] lock_release+0x17d/0x1a4
-	 [<ffffffff81073f45>] up_write+0x23/0x3b
-	 [<ffffffff81201159>] request_key_and_link+0x263/0x3fc
-	 [<ffffffffa026fe9e>] ? cifs_get_spnego_key+0x61/0x21f [cifs]
-	 [<ffffffff812013c5>] request_key+0x41/0x74
-	 [<ffffffffa027003d>] cifs_get_spnego_key+0x200/0x21f [cifs]
-	 [<ffffffffa026e296>] CIFS_SessSetup+0x55d/0x1273 [cifs]
-	 [<ffffffffa02589e1>] cifs_setup_session+0x90/0x1ae [cifs]
-	 [<ffffffffa0258e7e>] cifs_get_smb_ses+0x37f/0x443 [cifs]
-	 [<ffffffffa025a9e3>] cifs_mount+0x1aa1/0x23f3 [cifs]
-	 [<ffffffff8111fd94>] ? alloc_debug_processing+0xdb/0x120
-	 [<ffffffffa027002c>] ? cifs_get_spnego_key+0x1ef/0x21f [cifs]
-	 [<ffffffffa024cc71>] cifs_do_mount+0x165/0x2b3 [cifs]
-	 [<ffffffff81130e72>] vfs_kern_mount+0xaf/0x1dc
-	 [<ffffffff81131007>] do_kern_mount+0x4d/0xef
-	 [<ffffffff811483b9>] do_mount+0x6f4/0x733
-	 [<ffffffff8114861f>] sys_mount+0x88/0xc2
-	 [<ffffffff8100ac42>] system_call_fastpath+0x16/0x1b
-
-Reported-by: Jeff Layton <jlayton@redhat.com>
-Reviewed-and-Tested-by: Jeff Layton <jlayton@redhat.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Armin Schindler <mac@melware.de>
+Cc: Jan Kiszka <jan.kiszka@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/request_key.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/isdn/capi/capidrv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/keys/request_key.c~keys-dont-call-up_write-if-__key_link_begin-returns-an-error security/keys/request_key.c
---- a/security/keys/request_key.c~keys-dont-call-up_write-if-__key_link_begin-returns-an-error
-+++ a/security/keys/request_key.c
-@@ -403,7 +403,6 @@ link_check_failed:
- 	return ret;
+diff -puN drivers/isdn/capi/capidrv.c~isdn-capi-unregister-capictr-notifier-after-init-failure drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~isdn-capi-unregister-capictr-notifier-after-init-failure
++++ a/drivers/isdn/capi/capidrv.c
+@@ -2297,6 +2297,7 @@ static int __init capidrv_init(void)
  
- link_prealloc_failed:
--	up_write(&dest_keyring->sem);
- 	mutex_unlock(&user->cons_lock);
- 	kleave(" = %d [prelink]", ret);
- 	return ret;
+ 	errcode = capi20_get_profile(0, &profile);
+ 	if (errcode != CAPI_NOERROR) {
++		unregister_capictr_notifier(&capictr_nb);
+ 		capi20_release(&global.ap);
+ 		return -EIO;
+ 	}
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-frv-duplicate-output_buffer-of-e03.patch
-set_rtc_mmss-show-warning-message-only-once.patch
-kernel-clean-up-use_generic_smp_helpers.patch
+irq-use-per_cpu-kstat_irqs.patch
+drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
+mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
 mm-numa-aware-alloc_task_struct_node.patch
 mm-numa-aware-alloc_thread_info_node.patch
 kthread-numa-aware-kthread_create_on_cpu.patch
 kthread-use-kthread_create_on_cpu.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
+percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
 
