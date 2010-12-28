@@ -1,137 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] isdn-capi-make-kcapi-use-a-separate-workqueue.patch removed from -mm tree
-Date: Tue, 28 Dec 2010 12:19:45 -0800
-Message-ID: <201012282020.oBSKKE6M015711@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 28 Dec 2010 13:07:17 -0800
+Message-ID: <201012282107.oBSL7I9c017613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751903Ab0L1UUr (ORCPT
+	by vger.kernel.org with ESMTP id S1751744Ab0L1VHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 15:20:47 -0500
+	Tue, 28 Dec 2010 16:07:20 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oBSL7JqX012515
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 28 Dec 2010 13:07:19 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, isdn@linux-pingi.de, jan.kiszka@web.de, mac@melware.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn/capi: make kcapi use a separate workqueue
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     isdn-capi-make-kcapi-use-a-separate-workqueue.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn/capi: make kcapi use a separate workqueue
-From: Tejun Heo <tj@kernel.org>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-flush_scheduled_work() is deprecated and will be removed.  Because kcapi
-uses fire-and-forget type works, it's impossible to flush each work
-explicitly.  Create and use a dedicated workqueue instead.
-
-Please note that with recent workqueue changes, each workqueue doesn't
-reserve a lot of resources and using it as a flush domain is fine.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Karsten Keil <isdn@linux-pingi.de>
-Cc: Armin Schindler <mac@melware.de>
-Cc: Jan Kiszka <jan.kiszka@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/kcapi.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ 0 files changed
 
-diff -puN drivers/isdn/capi/kcapi.c~isdn-capi-make-kcapi-use-a-separate-workqueue drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~isdn-capi-make-kcapi-use-a-separate-workqueue
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -38,6 +38,7 @@
- #include <linux/rcupdate.h>
- 
- static int showcapimsgs = 0;
-+static struct workqueue_struct *kcapi_wq;
- 
- MODULE_DESCRIPTION("CAPI4Linux: kernel CAPI layer");
- MODULE_AUTHOR("Carsten Paeth");
-@@ -291,7 +292,7 @@ static int notify_push(unsigned int even
- 	event->type = event_type;
- 	event->controller = controller;
- 
--	schedule_work(&event->work);
-+	queue_work(kcapi_wq, &event->work);
- 	return 0;
- }
- 
-@@ -408,7 +409,7 @@ void capi_ctr_handle_message(struct capi
- 		goto error;
- 	}
- 	skb_queue_tail(&ap->recv_queue, skb);
--	schedule_work(&ap->recv_work);
-+	queue_work(kcapi_wq, &ap->recv_work);
- 	rcu_read_unlock();
- 
- 	return;
-@@ -743,7 +744,7 @@ u16 capi20_release(struct capi20_appl *a
- 
- 	mutex_unlock(&capi_controller_lock);
- 
--	flush_scheduled_work();
-+	flush_workqueue(kcapi_wq);
- 	skb_queue_purge(&ap->recv_queue);
- 
- 	if (showcapimsgs & 1) {
-@@ -1285,21 +1286,30 @@ static int __init kcapi_init(void)
- {
- 	int err;
- 
-+	kcapi_wq = alloc_workqueue("kcapi", 0, 0);
-+	if (!kcapi_wq)
-+		return -ENOMEM;
-+
- 	register_capictr_notifier(&capictr_nb);
- 
- 	err = cdebug_init();
--	if (!err)
--		kcapi_proc_init();
--	return err;
-+	if (err) {
-+		unregister_capictr_notifier(&capictr_nb);
-+		destroy_workqueue(kcapi_wq);
-+		return err;
-+	}
-+
-+	kcapi_proc_init();
-+	return 0;
- }
- 
- static void __exit kcapi_exit(void)
- {
-         kcapi_proc_exit();
- 
--	/* make sure all notifiers are finished */
--	flush_scheduled_work();
-+	unregister_capictr_notifier(&capictr_nb);
- 	cdebug_exit();
-+	destroy_workqueue(kcapi_wq);
- }
- 
- module_init(kcapi_init);
+diff -puN drivers/block/cciss.c~linux-next-git-rejects drivers/block/cciss.c
+diff -puN fs/ceph/dir.c~linux-next-git-rejects fs/ceph/dir.c
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-irq-use-per_cpu-kstat_irqs.patch
-drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
-drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
-mm-remove-gfp-mask-from-pcpu_get_vm_areas.patch
-mm-numa-aware-alloc_task_struct_node.patch
-mm-numa-aware-alloc_thread_info_node.patch
-kthread-numa-aware-kthread_create_on_cpu.patch
-kthread-use-kthread_create_on_cpu.patch
-include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
-percpu-add-new-macros-to-make-percpu-readmostly-section-correctly-align.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
