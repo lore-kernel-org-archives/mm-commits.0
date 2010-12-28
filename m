@@ -1,95 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 28 Dec 2010 13:07:17 -0800
-Message-ID: <201012282107.oBSL7I9c017613@imap1.linux-foundation.org>
+Subject: + kptr_restrict-fix-build-when-printk-not-enabled.patch added to -mm tree
+Date: Tue, 28 Dec 2010 13:12:39 -0800
+Message-ID: <201012282112.oBSLCd1O017799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751744Ab0L1VHU (ORCPT
+	by vger.kernel.org with ESMTP id S1751744Ab0L1VMo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Dec 2010 16:07:20 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id oBSL7JqX012515
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 28 Dec 2010 13:07:19 -0800
+	Tue, 28 Dec 2010 16:12:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, drosenberg@vsecurity.com
 
 
 The patch titled
-     linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     kptr_restrict: fix build when PRINTK not enabled
+has been added to the -mm tree.  Its filename is
+     kptr_restrict-fix-build-when-printk-not-enabled.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kptr_restrict: fix build when PRINTK not enabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
+#include <linux/printk.h> since that is where kptr_restrict is externed.
+
+Put kptr_restrict inside #ifdef CONFIG_PRINTK block to fix build error
+when CONFIG_PRINTK is not enabled:
+
+kernel/sysctl.c:712: error: 'kptr_restrict' undeclared here (not in a function)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ kernel/sysctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~linux-next-git-rejects drivers/block/cciss.c
-diff -puN fs/ceph/dir.c~linux-next-git-rejects fs/ceph/dir.c
+diff -puN kernel/sysctl.c~kptr_restrict-fix-build-when-printk-not-enabled kernel/sysctl.c
+--- a/kernel/sysctl.c~kptr_restrict-fix-build-when-printk-not-enabled
++++ a/kernel/sysctl.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/sysctl.h>
+ #include <linux/signal.h>
++#include <linux/printk.h>
+ #include <linux/proc_fs.h>
+ #include <linux/security.h>
+ #include <linux/ctype.h>
+@@ -710,7 +711,6 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
+-#endif
+ 	{
+ 		.procname	= "kptr_restrict",
+ 		.data		= &kptr_restrict,
+@@ -720,6 +720,7 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &two,
+ 	},
++#endif
+ 	{
+ 		.procname	= "ngroups_max",
+ 		.data		= &ngroups_max,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+uml-mmapper_kern-needs-module_license.patch
+kernel-clean-up-use_generic_smp_helpers.patch
+kptr_restrict-fix-build-when-printk-not-enabled.patch
+gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
+gpio_vx855-eliminate-kconfig-dependency-warning.patch
+w1-ds2423-counter-driver-and-documentation-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
