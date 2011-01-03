@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-delete-legacy-maintainers-entry.patch added to -mm tree
-Date: Mon, 03 Jan 2011 11:58:41 -0800
-Message-ID: <201101031958.p03JwfsI025705@imap1.linux-foundation.org>
+Subject: + regulator-missing-index-in-ptr_err-in-isl6271a_probe.patch added to -mm tree
+Date: Mon, 03 Jan 2011 12:01:51 -0800
+Message-ID: <201101032001.p03K1pNW025902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752425Ab1ACT6v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:58:51 -0500
+	by vger.kernel.org with ESMTP id S1751353Ab1ACUCZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 15:02:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paul.gortmaker@windriver.com, a.zummo@towertech.it
+Cc: roel.kluin@gmail.com, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
 
 
 The patch titled
-     rtc: delete legacy MAINTAINERS entry
+     regulator: missing index in PTR_ERR() in isl6271a_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-delete-legacy-maintainers-entry.patch
+     regulator-missing-index-in-ptr_err-in-isl6271a_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: delete legacy MAINTAINERS entry
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: regulator: missing index in PTR_ERR() in isl6271a_probe()
+From: roel kluin <roel.kluin@gmail.com>
 
-People stumble across the entry for the legacy PC specific RTC driver
-entry in MAINTAINERS when they really want the multi-arch, multi-driver
-RTC subsystem.  So just delete the old entry that is causing the
-confusion.
+The index is missing so the return is wrong.
 
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/regulator/isl6271a-regulator.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~rtc-delete-legacy-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~rtc-delete-legacy-maintainers-entry
-+++ a/MAINTAINERS
-@@ -5065,11 +5065,6 @@ F:	kernel/rcu*
- F:	kernel/srcu*
- X:	kernel/rcutorture.c
- 
--REAL TIME CLOCK DRIVER (LEGACY)
--M:	Paul Gortmaker <p_gortmaker@yahoo.com>
--S:	Maintained
--F:	drivers/char/rtc.c
+diff -puN drivers/regulator/isl6271a-regulator.c~regulator-missing-index-in-ptr_err-in-isl6271a_probe drivers/regulator/isl6271a-regulator.c
+--- a/drivers/regulator/isl6271a-regulator.c~regulator-missing-index-in-ptr_err-in-isl6271a_probe
++++ a/drivers/regulator/isl6271a-regulator.c
+@@ -173,7 +173,7 @@ static int __devinit isl6271a_probe(stru
+ 						init_data, pmic);
+ 		if (IS_ERR(pmic->rdev[i])) {
+ 			dev_err(&i2c->dev, "failed to register %s\n", id->name);
+-			err = PTR_ERR(pmic->rdev);
++			err = PTR_ERR(pmic->rdev[i]);
+ 			goto error;
+ 		}
+ 	}
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+btrfs-dont-dereference-extent_mapping-if-null.patch
+regulator-missing-index-in-ptr_err-in-isl6271a_probe.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+
