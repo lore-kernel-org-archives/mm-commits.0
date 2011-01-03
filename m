@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch added to -mm tree
-Date: Mon, 03 Jan 2011 11:33:14 -0800
-Message-ID: <201101031933.p03JXEdO024665@imap1.linux-foundation.org>
+Subject: + name_to_dev_t-must-not-call-__init-code.patch added to -mm tree
+Date: Mon, 03 Jan 2011 11:36:32 -0800
+Message-ID: <201101031936.p03JaWpG024820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40003 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751940Ab1ACTfk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:35:40 -0500
+	by vger.kernel.org with ESMTP id S1754330Ab1ACThC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:37:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, a.p.zijlstra@chello.nl, fengguang.wu@intel.com
+Cc: JBeulich@novell.com, jbeulich@novell.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     writeback: avoid unnecessary determine_dirtyable_memory call
+     init/do_mounts.c: name_to_dev_t() must not call __init code
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
+     name_to_dev_t-must-not-call-__init-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: avoid unnecessary determine_dirtyable_memory call
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: init/do_mounts.c: name_to_dev_t() must not call __init code
+From: "Jan Beulich" <JBeulich@novell.com>
 
-I think determine_dirtyable_memory() is a rather costly function since it
-need many atomic reads for gathering zone/global page state.  But when we
-use vm_dirty_bytes && dirty_background_bytes, we don't need that costly
-calculation.
+The function can't be __init itself (being called from some sysfs
+handler), and hence none of the functions it calls can be either.
 
-This patch eliminates such unnecessary overhead.
-
-NOTE : newly added if condition might add overhead in normal path.
-       But it should be _really_ small because anyway we need the
-       access both vm_dirty_bytes and dirty_background_bytes so it is
-       likely to hit the cache.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ init/do_mounts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-determine_dirtyable_memory-call mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-avoid-unnecessary-determine_dirtyable_memory-call
-+++ a/mm/page-writeback.c
-@@ -390,9 +390,12 @@ void global_dirty_limits(unsigned long *
+diff -puN init/do_mounts.c~name_to_dev_t-must-not-call-__init-code init/do_mounts.c
+--- a/init/do_mounts.c~name_to_dev_t-must-not-call-__init-code
++++ a/init/do_mounts.c
+@@ -93,7 +93,7 @@ no_match:
+  *
+  * Returns the matching dev_t on success or 0 on failure.
+  */
+-static dev_t __init devt_from_partuuid(char *uuid_str)
++static dev_t devt_from_partuuid(char *uuid_str)
  {
- 	unsigned long background;
- 	unsigned long dirty;
--	unsigned long available_memory = determine_dirtyable_memory();
-+	unsigned long available_memory;
- 	struct task_struct *tsk;
- 
-+	if (!vm_dirty_bytes || !dirty_background_bytes)
-+		available_memory = determine_dirtyable_memory();
-+
- 	if (vm_dirty_bytes)
- 		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
- 	else
+ 	dev_t res = 0;
+ 	struct device *dev = NULL;
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
+origin.patch
 linux-next.patch
-mm-vmap-area-cache.patch
-mm-find_get_pages_contig-fixlet.patch
-mm-deactivate-invalidated-pages.patch
-mm-deactivate-invalidated-pages-fix.patch
-vmalloc-remove-redundant-unlikely.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+name_to_dev_t-must-not-call-__init-code.patch
 
