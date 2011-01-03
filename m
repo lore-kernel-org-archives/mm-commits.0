@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + name_to_dev_t-must-not-call-__init-code.patch added to -mm tree
-Date: Mon, 03 Jan 2011 11:36:32 -0800
-Message-ID: <201101031936.p03JaWpG024820@imap1.linux-foundation.org>
+Subject: + drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch added to -mm tree
+Date: Mon, 03 Jan 2011 11:39:37 -0800
+Message-ID: <201101031939.p03JdbAm024901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754330Ab1ACThC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:37:02 -0500
+	by vger.kernel.org with ESMTP id S1755413Ab1ACTkf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:40:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, jbeulich@novell.com, randy.dunlap@oracle.com
+Cc: stefani@seibold.net, khali@linux-fr.org, lethal@linux-sh.org
 
 
 The patch titled
-     init/do_mounts.c: name_to_dev_t() must not call __init code
+     drivers/video/i810/i810-i2c.c: fix i2c bus handling
 has been added to the -mm tree.  Its filename is
-     name_to_dev_t-must-not-call-__init-code.patch
+     drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/do_mounts.c: name_to_dev_t() must not call __init code
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: drivers/video/i810/i810-i2c.c: fix i2c bus handling
+From: Stefani Seibold <stefani@seibold.net>
 
-The function can't be __init itself (being called from some sysfs
-handler), and hence none of the functions it calls can be either.
+Fix a longstanding bug in the i810 frame buffer driver.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+The handling of the i2c bus is wrong: A 1 bit should not written to the
+i2c, these will be done by switch the i2c to input.  Driving an 1 bit
+active is against the i2c spec.
+
+An active driven of a 1 bit will result in very strange error, depending
+which side is the more powerful one.  In my case it depends on the
+temperature of the Display-Controller-EEprom: With an cold eprom a got the
+correct EDID datas, with a warm one some of the 1 bits was 0 :-(
+
+The same bug is also in the intelfb driver in the file
+drivers/video/intelfb/intelfb_i2c.c.  The functions intelfb_gpio_setscl()
+and intelfb_gpio_setsda() do drive the 1 bit active to the i2c bus.  But
+since i have no card which is used by the intelfb driver i cannot fix it.
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/i810/i810-i2c.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN init/do_mounts.c~name_to_dev_t-must-not-call-__init-code init/do_mounts.c
---- a/init/do_mounts.c~name_to_dev_t-must-not-call-__init-code
-+++ a/init/do_mounts.c
-@@ -93,7 +93,7 @@ no_match:
-  *
-  * Returns the matching dev_t on success or 0 on failure.
-  */
--static dev_t __init devt_from_partuuid(char *uuid_str)
-+static dev_t devt_from_partuuid(char *uuid_str)
- {
- 	dev_t res = 0;
- 	struct device *dev = NULL;
+diff -puN drivers/video/i810/i810-i2c.c~drivers-video-i810-i810-i2cc-fix-i2c-bus-handling drivers/video/i810/i810-i2c.c
+--- a/drivers/video/i810/i810-i2c.c~drivers-video-i810-i810-i2cc-fix-i2c-bus-handling
++++ a/drivers/video/i810/i810-i2c.c
+@@ -45,8 +45,10 @@ static void i810i2c_setscl(void *data, i
+         struct i810fb_par         *par = chan->par;
+ 	u8                        __iomem *mmio = par->mmio_start_virtual;
+ 
+-	i810_writel(mmio, chan->ddc_base, (state ? SCL_VAL_OUT : 0) | SCL_DIR |
+-		    SCL_DIR_MASK | SCL_VAL_MASK);
++	if (state)
++		i810_writel(mmio, chan->ddc_base, SCL_DIR_MASK | SCL_VAL_MASK);
++	else
++		i810_writel(mmio, chan->ddc_base, SCL_DIR | SCL_DIR_MASK | SCL_VAL_MASK);
+ 	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
+ }
+ 
+@@ -56,8 +58,10 @@ static void i810i2c_setsda(void *data, i
+         struct i810fb_par         *par = chan->par;
+ 	u8                        __iomem *mmio = par->mmio_start_virtual;
+ 
+- 	i810_writel(mmio, chan->ddc_base, (state ? SDA_VAL_OUT : 0) | SDA_DIR |
+-		    SDA_DIR_MASK | SDA_VAL_MASK);
++	if (state)
++		i810_writel(mmio, chan->ddc_base, SDA_DIR_MASK | SDA_VAL_MASK);
++	else
++		i810_writel(mmio, chan->ddc_base, SDA_DIR | SDA_DIR_MASK | SDA_VAL_MASK);
+ 	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
+ }
+ 
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-origin.patch
-linux-next.patch
-name_to_dev_t-must-not-call-__init-code.patch
+drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch
 
