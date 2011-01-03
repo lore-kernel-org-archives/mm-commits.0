@@ -1,61 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-userc-fix-freeing-user_struct-in-user-cache.patch removed from -mm tree
-Date: Mon, 03 Jan 2011 10:52:18 -0800
-Message-ID: <201101031853.p03Irbrj023073@imap1.linux-foundation.org>
+Subject: [merged] gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open.patch removed from -mm tree
+Date: Mon, 03 Jan 2011 10:52:25 -0800
+Message-ID: <201101031853.p03IrhLw023079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146Ab1ACSxn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 13:53:43 -0500
+	by vger.kernel.org with ESMTP id S1751348Ab1ACSx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 13:53:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, serge@hallyn.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jj@chaosbits.net, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/user.c: fix freeing user_struct in user cache
+     gen_init_cpio: avoid risk of file changing between calls to stat() and open()
 has been removed from the -mm tree.  Its filename was
-     kernel-userc-fix-freeing-user_struct-in-user-cache.patch
+     gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/user.c: fix freeing user_struct in user cache
-From: Hillf Danton <dhillf@gmail.com>
+Subject: gen_init_cpio: avoid risk of file changing between calls to stat() and open()
+From: Jesper Juhl <jj@chaosbits.net>
 
-When racing on adding into user cache, the new allocated from mm slab
-is freed without putting user namespace.
+In usr/gen_init_cpio.c::cpio_mkfile() a call to stat() is made based on
+pathname, subsequently the file is open()'ed and then the value of the
+initial stat() call is used to allocate a buffer.  This is not safe since
+the file may change between the call to stat() and the call to open(). 
+Safer to just open() the file and then do fstat() using the filedescriptor
+returned by open.
 
-Since the user namespace is already operated by getting, putting has
-to be issued.
-
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Acked-by: Serge Hallyn <serge@hallyn.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Acked-by: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    1 +
- 1 file changed, 1 insertion(+)
+ usr/gen_init_cpio.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/user.c~kernel-userc-fix-freeing-user_struct-in-user-cache kernel/user.c
---- a/kernel/user.c~kernel-userc-fix-freeing-user_struct-in-user-cache
-+++ a/kernel/user.c
-@@ -158,6 +158,7 @@ struct user_struct *alloc_uid(struct use
- 		spin_lock_irq(&uidhash_lock);
- 		up = uid_hash_find(uid, hashent);
- 		if (up) {
-+			put_user_ns(ns);
- 			key_put(new->uid_keyring);
- 			key_put(new->session_keyring);
- 			kmem_cache_free(uid_cachep, new);
+diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open
++++ a/usr/gen_init_cpio.c
+@@ -309,18 +309,18 @@ static int cpio_mkfile(const char *name,
+ 
+ 	mode |= S_IFREG;
+ 
+-	retval = stat (location, &buf);
+-	if (retval) {
+-		fprintf (stderr, "File %s could not be located\n", location);
+-		goto error;
+-	}
+-
+ 	file = open (location, O_RDONLY);
+ 	if (file < 0) {
+ 		fprintf (stderr, "File %s could not be opened for reading\n", location);
+ 		goto error;
+ 	}
+ 
++	retval = fstat (file, &buf);
++	if (retval) {
++		fprintf (stderr, "File %s could not be stat()'ed\n", location);
++		goto error;
++	}
++
+ 	filebuf = malloc(buf.st_size);
+ 	if (!filebuf) {
+ 		fprintf (stderr, "out of memory\n");
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
-origin.patch
 linux-next.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
+memcg-use-zalloc-rather-than-mallocmemset.patch
 
