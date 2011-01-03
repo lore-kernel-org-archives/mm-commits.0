@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fs_posix_acl-does-not-depend-on-block.patch added to -mm tree
-Date: Mon, 03 Jan 2011 11:48:11 -0800
-Message-ID: <201101031948.p03JmBDt025276@imap1.linux-foundation.org>
+Subject: + ihex-fix-unused-return-value-compiler-warning.patch added to -mm tree
+Date: Mon, 03 Jan 2011 11:52:46 -0800
+Message-ID: <201101031952.p03Jqkxr025454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966Ab1ACTsc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:48:32 -0500
+	by vger.kernel.org with ESMTP id S1755607Ab1ACTxM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:53:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
+Cc: cmruffin@gmail.com, broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     fs: FS_POSIX_ACL does not depend on BLOCK
+     ihex: fix unused return value compiler warning
 has been added to the -mm tree.  Its filename is
-     fs-fs_posix_acl-does-not-depend-on-block.patch
+     ihex-fix-unused-return-value-compiler-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: FS_POSIX_ACL does not depend on BLOCK
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ihex: fix unused return value compiler warning
+From: Chris Ruffin <cmruffin@gmail.com>
 
-- Fix a kconfig unmet dependency warning.
-- Remove the comment that identifies which filesystems use POSIX ACL
-  utility routines.
-- Move the FS_POSIX_ACL symbol outside of the BLOCK symbol if/endif block
-  because its functions do not depend on BLOCK and some of the filesystems
-  that use it do not depend on BLOCK.
+Fix unusued return value compiler warnings due to unchecked write() calls.
 
-warning: (GENERIC_ACL && JFFS2_FS_POSIX_ACL && NFSD_V4 && NFS_ACL_SUPPORT && 9P_FS_POSIX_ACL) selects FS_POSIX_ACL which has unmet direct dependencies (BLOCK)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Chris Ruffin <cmruffin@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ firmware/ihex2fw.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/Kconfig~fs-fs_posix_acl-does-not-depend-on-block fs/Kconfig
---- a/fs/Kconfig~fs-fs_posix_acl-does-not-depend-on-block
-+++ a/fs/Kconfig
-@@ -30,15 +30,6 @@ config FS_MBCACHE
- source "fs/reiserfs/Kconfig"
- source "fs/jfs/Kconfig"
+diff -puN firmware/ihex2fw.c~ihex-fix-unused-return-value-compiler-warning firmware/ihex2fw.c
+--- a/firmware/ihex2fw.c~ihex-fix-unused-return-value-compiler-warning
++++ a/firmware/ihex2fw.c
+@@ -124,8 +124,7 @@ int main(int argc, char **argv)
+ 	if (process_ihex(data, st.st_size))
+ 		return 1;
  
--config FS_POSIX_ACL
--# Posix ACL utility routines (for now, only ext2/ext3/jfs/reiserfs/nfs4)
--#
--# NOTE: you can implement Posix ACLs without these helpers (XFS does).
--# 	Never use this symbol for ifdefs.
--#
--	bool
--	default n
--
- source "fs/xfs/Kconfig"
- source "fs/gfs2/Kconfig"
- source "fs/ocfs2/Kconfig"
-@@ -47,6 +38,14 @@ source "fs/nilfs2/Kconfig"
+-	output_records(outfd);
+-	return 0;
++	return output_records(outfd);
+ }
  
- endif # BLOCK
+ static int process_ihex(uint8_t *data, ssize_t size)
+@@ -269,11 +268,13 @@ static int output_records(int outfd)
  
-+# Posix ACL utility routines
-+#
-+# Note: Posix ACLs can be implemented without these helpers.  Never use
-+# this symbol for ifdefs in core code.
-+#
-+config FS_POSIX_ACL
-+	def_bool n
-+
- config EXPORTFS
- 	tristate
- 
+ 		p->addr = htonl(p->addr);
+ 		p->len = htons(p->len);
+-		write(outfd, &p->addr, writelen);
++		if (write(outfd, &p->addr, writelen) != writelen)
++			return errno;
+ 		p = p->next;
+ 	}
+ 	/* EOF record is zero length, since we don't bother to represent
+ 	   the type field in the binary version */
+-	write(outfd, zeroes, 6);
++	if (write(outfd, zeroes, 6) != 6)
++		return errno;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from cmruffin@gmail.com are
 
-linux-next.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-uml-mmapper_kern-needs-module_license.patch
-name_to_dev_t-must-not-call-__init-code.patch
-kernel-clean-up-use_generic_smp_helpers.patch
-kptr_restrict-fix-build-when-printk-not-enabled.patch
-fs-fs_posix_acl-does-not-depend-on-block.patch
-gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
-gpio_vx855-eliminate-kconfig-dependency-warning.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-w1-ds2423-counter-driver-and-documentation-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+ihex-fix-unused-return-value-compiler-warning.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
 
