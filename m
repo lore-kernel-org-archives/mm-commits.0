@@ -1,134 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch removed from -mm tree
-Date: Mon, 03 Jan 2011 10:52:22 -0800
-Message-ID: <201101031853.p03Irenx023076@imap1.linux-foundation.org>
+Subject: + taskstats-use-better-ifdef-for-alignment.patch added to -mm tree
+Date: Mon, 03 Jan 2011 11:09:08 -0800
+Message-ID: <201101031909.p03J99uM023744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439Ab1ACSyK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 13:54:10 -0500
+	by vger.kernel.org with ESMTP id S1753813Ab1ACTJ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jan 2011 14:09:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, atswartz@gmail.com, error27@gmail.com, mingo@elte.hu, rjw@sisk.pl, robert.richter@amd.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeffm@suse.com, balbir@in.ibm.com, davem@davemloft.net, error27@gmail.com, florian@mickler.org, guichaz@gmail.com
 
 
 The patch titled
-     arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
-has been removed from the -mm tree.  Its filename was
-     arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu.patch
+     taskstats: use better ifdef for alignment
+has been added to the -mm tree.  Its filename is
+     taskstats-use-better-ifdef-for-alignment.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/oprofile/op_model_amd.c: perform initialisation on a single CPU
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: taskstats: use better ifdef for alignment
+From: Jeff Mahoney <jeffm@suse.com>
 
-[    7.034377] BUG: using smp_processor_id() in preemptible [00000000] code:
-modprobe/483
-[    7.034385] caller is setup_APIC_eilvt+0x155/0x180
-[    7.034389] Pid: 483, comm: modprobe Not tainted 2.6.37-rc1-20101110+ #1
-[    7.034392] Call Trace:
-[    7.034400]  [<ffffffff812a2b72>] debug_smp_processor_id+0xd2/0xf0
-[    7.034404]  [<ffffffff8101e985>] setup_APIC_eilvt+0x155/0x180
-[    7.034413]  [<ffffffffa002e168>] op_amd_init+0x88/0x2b0 [oprofile]
-[    7.034420]  [<ffffffffa0043000>] ? oprofile_init+0x0/0x42 [oprofile]
-[    7.034425]  [<ffffffffa0043315>] op_nmi_init+0x249/0x2af [oprofile]
-[    7.034431]  [<ffffffffa00430b4>] oprofile_arch_init+0x11/0x29 [oprofile]
-[    7.034437]  [<ffffffffa0043010>] oprofile_init+0x10/0x42 [oprofile]
-[    7.034441]  [<ffffffff810001e3>] do_one_initcall+0x43/0x170
-[    7.034445]  [<ffffffff8108a52a>] sys_init_module+0xba/0x200
-[    7.034449]  [<ffffffff8100285b>] system_call_fastpath+0x16/0x1b
+Commit 4be2c95d ("taskstats: pad taskstats netlink response for aligment
+issues on ia64") added a null field to align the taskstats structure but
+the discussion centered around ia64.  The issue exists on other platforms
+with inefficient unaligned access and adding them piecemeal would be an
+unmaintainable mess.
 
-Not sure if it fixes a real bug - presumably not, if all CPUs are the same.
+This patch uses Dave Miller's suggestion of using a combination of
+CONFIG_64BIT && !CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS to determine
+whether alignment is needed.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=22812
+Note that this will cause breakage on those platforms with applications
+like iotop which had hard-coded offsets into the packet to access the
+taskstats structure.
 
-Reported-by: <atswartz@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+The message seen on systems without the alignment fixes looks like: kernel
+unaligned access to 0xe000023879dca9bc, ip=0xa000000100133d10
+
+The addresses may vary but resolve to locations inside __delayacct_add_tsk.
+
+
+iotop makes what I'd call unreasonable assumptions about the contents of a
+netlink genetlink packet containing generic attributes.  They're typed and
+have headers that specify value lengths, so the client can (should)
+identify and skip the ones the client doesn't understand.
+
+The kernel, as of version 2.6.36, presented a packet like so:
++--------------------------------+
+| genlmsghdr - 4 bytes           |
++--------------------------------+
+| NLA header - 4 bytes           | /* Aggregate header */
++-+------------------------------+
+| | NLA header - 4 bytes         | /* PID header */
+| +------------------------------+
+| | pid/tgid   - 4 bytes         |
+| +------------------------------+
+| | NLA header - 4 bytes         | /* stats header */
+| + -----------------------------+ <- oops. aligned on 4 byte boundary
+| | struct taskstats - 328 bytes |
++-+------------------------------+
+
+The iotop code expects that the kernel will behave as it did then,
+assuming that the packet format is set in stone.  The format is set in
+stone, but the packet offsets are not.  There's nothing in the packet
+format that guarantees that the packet will be sent in exactly the same
+way.  The attribute contents are set (or versioned) and the aggregate
+contents are set but they can be anywhere in the packet.
+
+The issue here isn't that an unaligned structure gets passed to userspace,
+it's that the NLA infrastructure has something of a weakness: The 4 byte
+attribute header may force the payload to be unaligned.  The taskstats
+structure is created at an unaligned location and then 64-bit values are
+operated on inside the kernel, so the unaligned access warnings gets
+spewed everywhere.
+
+It's possible to use the unaligned access API to operate on the structure
+in the kernel but it seems like a wasted effort to work around userspace
+code that isn't following the packet format.  Any new additions would also
+need the be worked around.  It's a maintenance nightmare.
+
+The conclusion of the earlier discussion seemed to be "ok fine, if we have
+to break it, don't break it on arches that don't have the problem." Dave
+pointed out that the unaligned access problem doesn't only exist on ia64,
+but also on other 64-bit arches that don't have efficient unaligned access
+and it should be fixed there as well.  The committed version of the patch
+and this addition keep with the conclusion of that discussion not to break
+it unnecessarily, which the pid padding and the packet padding fixes did
+do.  x86_64 and powerpc don't suffer this problem so they shouldn't suffer
+the solution.  Other 64-bit architectures do and will, though.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Reported-by: David S. Miller <davem@davemloft.net>
+Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Dan Carpenter <error27@gmail.com>
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>		[2.6.37.x]
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Florian Mickler <florian@mickler.org>
+Cc: Guillaume Chazarain <guichaz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/oprofile/op_model_amd.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/taskstats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu arch/x86/oprofile/op_model_amd.c
---- a/arch/x86/oprofile/op_model_amd.c~arch-x86-oprofile-op_model_amdc-perform-initialisation-on-a-single-cpu
-+++ a/arch/x86/oprofile/op_model_amd.c
-@@ -710,7 +710,13 @@ struct op_x86_model_spec op_amd_spec;
+diff -puN kernel/taskstats.c~taskstats-use-better-ifdef-for-alignment kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-use-better-ifdef-for-alignment
++++ a/kernel/taskstats.c
+@@ -348,7 +348,7 @@ static int parse(struct nlattr *na, stru
+ 	return ret;
+ }
  
- static int op_amd_init(struct oprofile_operations *ops)
- {
-+	/*
-+	 * init_ibs() preforms implictly cpu-local operations, so pin this
-+	 * thread to its current CPU
-+	 */
-+	preempt_disable();
- 	init_ibs();
-+	preempt_enable();
- 	create_arch_files = ops->create_files;
- 	ops->create_files = setup_ibs_files;
+-#ifdef CONFIG_IA64
++#if defined(CONFIG_64BIT) && !defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
+ #define TASKSTATS_NEEDS_PADDING 1
+ #endif
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-mn10300-kernel-irqc-fix-build.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+taskstats-use-better-ifdef-for-alignment.patch
 
