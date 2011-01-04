@@ -1,90 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ima-fix-add-lsm-rule-bug.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 11:41:24 -0800
-Message-ID: <201101041942.p04Jgpma020656__25623.1148181998$1294170215$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] arch-mn10300-kernel-irqc-fix-build.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 11:41:29 -0800
+Message-ID: <201101041942.p04JgtWZ020660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751508Ab1ADTnL (ORCPT
+	by vger.kernel.org with ESMTP id S1751429Ab1ADTnL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 14:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, jmorris@namei.org, safford@watson.ibm.com, serge.hallyn@canonical.com, stable@kernel.org, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, ettl.martin@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ima: fix add LSM rule bug
+     arch/mn10300/kernel/irq.c: fix build
 has been removed from the -mm tree.  Its filename was
-     ima-fix-add-lsm-rule-bug.patch
+     arch-mn10300-kernel-irqc-fix-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ima: fix add LSM rule bug
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: arch/mn10300/kernel/irq.c: fix build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If security_filter_rule_init() doesn't return a rule, then not everything
-is as fine as the return code implies.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25702
 
-This bug only occurs when the LSM (eg. SELinux) is disabled at runtime.
-
-Adding an empty LSM rule causes ima_match_rules() to always succeed,
-ignoring any remaining rules.  
-
- default IMA TCB policy:
-  # PROC_SUPER_MAGIC
-  dont_measure fsmagic=0x9fa0
-  # SYSFS_MAGIC
-  dont_measure fsmagic=0x62656572
-  # DEBUGFS_MAGIC
-  dont_measure fsmagic=0x64626720
-  # TMPFS_MAGIC
-  dont_measure fsmagic=0x01021994
-  # SECURITYFS_MAGIC
-  dont_measure fsmagic=0x73636673
-
-  < LSM specific rule >
-  dont_measure obj_type=var_log_t
-
-  measure func=BPRM_CHECK
-  measure func=FILE_MMAP mask=MAY_EXEC
-  measure func=FILE_CHECK mask=MAY_READ uid=0
-
-Thus without the patch, with the boot parameters 'tcb selinux=0', adding
-the above 'dont_measure obj_type=var_log_t' rule to the default IMA TCB
-measurement policy, would result in nothing being measured.  The patch
-prevents the default TCB policy from being replaced.
-
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: David Safford <safford@watson.ibm.com>
-Cc: <stable@kernel.org>
+Reported-by: Martin Ettl <ettl.martin@gmx.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_policy.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mn10300/kernel/irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug security/integrity/ima/ima_policy.c
---- a/security/integrity/ima/ima_policy.c~ima-fix-add-lsm-rule-bug
-+++ a/security/integrity/ima/ima_policy.c
-@@ -253,6 +253,8 @@ static int ima_lsm_rule_init(struct ima_
- 	result = security_filter_rule_init(entry->lsm[lsm_rule].type,
- 					   Audit_equal, args,
- 					   &entry->lsm[lsm_rule].rule);
-+	if (!entry->lsm[lsm_rule].rule)
-+		return -EINVAL;
- 	return result;
- }
+diff -puN arch/mn10300/kernel/irq.c~arch-mn10300-kernel-irqc-fix-build arch/mn10300/kernel/irq.c
+--- a/arch/mn10300/kernel/irq.c~arch-mn10300-kernel-irqc-fix-build
++++ a/arch/mn10300/kernel/irq.c
+@@ -459,7 +459,7 @@ void migrate_irqs(void)
+ 			tmp = CROSS_GxICR(irq, new);
  
+ 			x &= GxICR_LEVEL | GxICR_ENABLE;
+-			if (GxICR(irq) & GxICR_REQUEST) {
++			if (GxICR(irq) & GxICR_REQUEST)
+ 				x |= GxICR_REQUEST | GxICR_DETECT;
+ 			CROSS_GxICR(irq, new) = x;
+ 			tmp = CROSS_GxICR(irq, new);
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
