@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-entries-affecting-via-technologies.patch added to -mm tree
-Date: Tue, 04 Jan 2011 13:33:08 -0800
-Message-ID: <201101042133.p04LX84T025399@imap1.linux-foundation.org>
+Subject: + kernel-workqueuec-remove-noop-in-workqueue.patch added to -mm tree
+Date: Tue, 04 Jan 2011 13:35:37 -0800
+Message-ID: <201101042135.p04LZb3f025451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751383Ab1ADVdY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 16:33:24 -0500
+	by vger.kernel.org with ESMTP id S1750980Ab1ADVfl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 16:35:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: BruceChang@via.com.tw, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, brucechang@via.com.tw, geert@linux-m68k.org
+Cc: dhillf@gmail.com, tj@kernel.org
 
 
 The patch titled
-     MAINTAINERS: update entries affecting VIA Technologies
+     kernel/workqueue.c: remove noop in workqueue
 has been added to the -mm tree.  Its filename is
-     maintainers-update-entries-affecting-via-technologies.patch
+     kernel-workqueuec-remove-noop-in-workqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update entries affecting VIA Technologies
-From: Bruce Chang <BruceChang@via.com.tw>
+Subject: kernel/workqueue.c: remove noop in workqueue
+From: Hillf Danton <dhillf@gmail.com>
 
-Since the original maintainer-Joseph Chan (josephchan@via.com.tw) doesn't
-handle the Linux driver for VIA now, I would like to request to update the
-maintainer for the SD/MMC CARD CONTROLLER DRIVER and VIA
-UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER before we find a better one. 
+Checking WORKER_NOT_RUNNING in the flags word of worker is unnecessary if
+it is set in the flags parameter.
 
-Signed-off-by: Bruce Chang <brucechang@via.com.tw>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Harald Welte <HaraldWelte@viatech.com>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/workqueue.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-entries-affecting-via-technologies MAINTAINERS
---- a/MAINTAINERS~maintainers-update-entries-affecting-via-technologies
-+++ a/MAINTAINERS
-@@ -6506,13 +6506,12 @@ F:	Documentation/i2c/busses/i2c-viapro
- F:	drivers/i2c/busses/i2c-viapro.c
+diff -puN kernel/workqueue.c~kernel-workqueuec-remove-noop-in-workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~kernel-workqueuec-remove-noop-in-workqueue
++++ a/kernel/workqueue.c
+@@ -770,7 +770,6 @@ static inline void worker_clr_flags(stru
  
- VIA SD/MMC CARD CONTROLLER DRIVER
--M:	Joseph Chan <JosephChan@via.com.tw>
-+M:	Bruce Chang <brucechang@via.com.tw>
- M:	Harald Welte <HaraldWelte@viatech.com>
- S:	Maintained
- F:	drivers/mmc/host/via-sdmmc.c
+ 	/* if transitioning out of NOT_RUNNING, increment nr_running */
+ 	if ((flags & WORKER_NOT_RUNNING) && (oflags & WORKER_NOT_RUNNING))
+-		if (!(worker->flags & WORKER_NOT_RUNNING))
+ 			atomic_inc(get_gcwq_nr_running(gcwq->cpu));
+ }
  
- VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
--M:	Joseph Chan <JosephChan@via.com.tw>
- M:	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
 _
 
-Patches currently in -mm which might be from BruceChang@via.com.tw are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-maintainers-update-entries-affecting-via-technologies.patch
+origin.patch
+linux-next.patch
+kernel-workqueuec-remove-noop-in-workqueue.patch
 
