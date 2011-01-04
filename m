@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aio-remove-unnecessary-check.patch added to -mm tree
-Date: Tue, 04 Jan 2011 14:42:43 -0800
-Message-ID: <201101042242.p04MghfF028420@imap1.linux-foundation.org>
+Subject: + lib-fix-vscnprintf-if-size-is-==-0.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:45:43 -0800
+Message-ID: <201101042245.p04MjhbN028487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751078Ab1ADWmz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:42:55 -0500
+	by vger.kernel.org with ESMTP id S1750871Ab1ADWpz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:45:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, jmoyer@redhat.com
+Cc: aarapov@redhat.com, xiaosuo@gmail.com
 
 
 The patch titled
-     aio: remove unnecessary check
+     lib/vsprintf.c: fix vscnprintf() if @size is == 0
 has been added to the -mm tree.  Its filename is
-     aio-remove-unnecessary-check.patch
+     lib-fix-vscnprintf-if-size-is-==-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: remove unnecessary check
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: lib/vsprintf.c: fix vscnprintf() if @size is == 0
+From: Anton Arapov <aarapov@redhat.com>
 
-'nr >= min_nr >= 0' always satisfies 'nr >= 0' so the check is unnecesary.
+vscnprintf() should return 0 if @size is == 0.  Update the comment for it,
+as @size is unsigned.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+This change based on the code of commit
+b903c0b8899b46829a9b80ba55b61079b35940ec ("lib: fix scnprintf() if @size
+is == 0") moves the real fix into vscnprinf() from scnprintf() and makes
+scnprintf() call vscnprintf(), thus avoid code duplication.
+
+Signed-off-by: Anton Arapov <aarapov@redhat.com>
+Acked-by: Changli Gao <xiaosuo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/vsprintf.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/aio.c~aio-remove-unnecessary-check fs/aio.c
---- a/fs/aio.c~aio-remove-unnecessary-check
-+++ a/fs/aio.c
-@@ -1839,7 +1839,7 @@ SYSCALL_DEFINE5(io_getevents, aio_contex
- 	long ret = -EINVAL;
+diff -puN lib/vsprintf.c~lib-fix-vscnprintf-if-size-is-==-0 lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-fix-vscnprintf-if-size-is-==-0
++++ a/lib/vsprintf.c
+@@ -1473,7 +1473,7 @@ EXPORT_SYMBOL(vsnprintf);
+  * @args: Arguments for the format string
+  *
+  * The return value is the number of characters which have been written into
+- * the @buf not including the trailing '\0'. If @size is <= 0 the function
++ * the @buf not including the trailing '\0'. If @size is == 0 the function
+  * returns 0.
+  *
+  * Call this function if you are already dealing with a va_list.
+@@ -1487,7 +1487,11 @@ int vscnprintf(char *buf, size_t size, c
  
- 	if (likely(ioctx)) {
--		if (likely(min_nr <= nr && min_nr >= 0 && nr >= 0))
-+		if (likely(min_nr <= nr && min_nr >= 0))
- 			ret = read_events(ioctx, min_nr, nr, events, timeout);
- 		put_ioctx(ioctx);
- 	}
+ 	i = vsnprintf(buf, size, fmt, args);
+ 
+-	return (i >= size) ? (size - 1) : i;
++	if (likely(i < size))
++		return i;
++	if (size != 0)
++		return size - 1;
++	return 0;
+ }
+ EXPORT_SYMBOL(vscnprintf);
+ 
+@@ -1535,14 +1539,10 @@ int scnprintf(char *buf, size_t size, co
+ 	int i;
+ 
+ 	va_start(args, fmt);
+-	i = vsnprintf(buf, size, fmt, args);
++	i = vscnprintf(buf, size, fmt, args);
+ 	va_end(args);
+ 
+-	if (likely(i < size))
+-		return i;
+-	if (size != 0)
+-		return size - 1;
+-	return 0;
++	return i;
+ }
+ EXPORT_SYMBOL(scnprintf);
+ 
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from aarapov@redhat.com are
 
-linux-next.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-drivers-telephony-ixjc-fix-warning.patch
-fs-char_devc-remove-unused-cdev_index.patch
-aio-remove-unnecessary-check.patch
+lib-fix-vscnprintf-if-size-is-==-0.patch
 
