@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch added to -mm tree
-Date: Tue, 04 Jan 2011 15:37:31 -0800
-Message-ID: <201101042337.p04NbVAk030714@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-l4f00242t03c-fix-reset-sequence.patch added to -mm tree
+Date: Tue, 04 Jan 2011 15:59:31 -0800
+Message-ID: <201101042359.p04NxVBB031691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab1ADXij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 18:38:39 -0500
+	by vger.kernel.org with ESMTP id S1751249Ab1AEAAC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:00:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peterhuewe@gmx.de, anarsoul@gmail.com, ben-linux@fluff.org, linux@arm.linux.org.uk, rpurdie@rpsys.net, stable@kernel.org, support@simtec.co.uk
+Cc: maramaopercheseimorto@gmail.com, axel.lin@gmail.com, marek.vasut@gmail.com, rpurdie@rpsys.net, tj@kernel.org
 
 
 The patch titled
-     drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
+     drivers/video/backlight/l4f00242t03.c: fix reset sequence
 has been added to the -mm tree.  Its filename is
-     leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch
+     drivers-video-backlight-l4f00242t03c-fix-reset-sequence.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: drivers/video/backlight/l4f00242t03.c: fix reset sequence
+From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 
-Fix a build failure by converting leds-h1940.c to use gpiolib for latch
-access introduced by 14477095abc6 ("ARM: h1940: Use gpiolib for latch
-access").
+The reset command is part of the init sequence and it take effect
+only if the lcd is powered.
 
-drivers/leds/leds-h1940.c: In function 'h1940_greenled_set':
-drivers/leds/leds-h1940.c:33: error: implicit declaration of function 'h1940_latch_control'
-
-Unfortunately this driver was not converted back then.
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Cc: Vasily Khoruzhick <anarsoul@gmail.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Vincent Sanders <support@simtec.co.uk>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <stable@kernel.org>		[2.6.37.x]
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Axel Lin <axel.lin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-h1940.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure drivers/leds/leds-h1940.c
---- a/drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure
-+++ a/drivers/leds/leds-h1940.c
-@@ -30,17 +30,17 @@ static void h1940_greenled_set(struct le
- {
- 	switch (value) {
- 	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
- 		break;
- 	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_GREEN);
-+		gpio_set_value(H1940_LATCH_LED_GREEN, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
- 		break;
- 	default:
- 	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_GREEN, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_GREEN, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 0);
- 		break;
- 	}
-@@ -60,17 +60,17 @@ static void h1940_redled_set(struct led_
- {
- 	switch (value) {
- 	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
- 		break;
- 	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_RED);
-+		gpio_set_value(H1940_LATCH_LED_RED, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
- 		break;
- 	default:
- 	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_RED, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_RED, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 0);
- 		break;
- 	}
-@@ -91,10 +91,10 @@ static void h1940_blueled_set(struct led
- {
- 	if (value) {
- 		/* flashing Blue */
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA3, 1);
- 	} else {
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA3, 0);
+diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-fix-reset-sequence drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-fix-reset-sequence
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -62,6 +62,8 @@ static void l4f00242t03_lcd_init(struct 
+ 		regulator_enable(priv->core_reg);
  	}
  
++	l4f00242t03_reset(pdata->reset_gpio);
++
+ 	gpio_set_value(pdata->data_enable_gpio, 1);
+ 	msleep(60);
+ 	spi_write(spi, (const u8 *)cmd, ARRAY_SIZE(cmd) * sizeof(u16));
+@@ -227,7 +229,6 @@ static int __devinit l4f00242t03_probe(s
+ 	}
+ 
+ 	/* Init the LCD */
+-	l4f00242t03_reset(pdata->reset_gpio);
+ 	l4f00242t03_lcd_init(spi);
+ 	priv->lcd_state = FB_BLANK_VSYNC_SUSPEND;
+ 	l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_UNBLANK);
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from maramaopercheseimorto@gmail.com are
 
-origin.patch
 linux-next.patch
-leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch
+drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+drivers-video-backlight-l4f00242t03c-prevent-unbalanced-calls-to-regulator-enable-disable.patch
+drivers-video-backlight-l4f00242t03c-fix-reset-sequence.patch
 
