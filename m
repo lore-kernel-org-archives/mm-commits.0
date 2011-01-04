@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-fix-vscnprintf-if-size-is-==-0.patch added to -mm tree
-Date: Tue, 04 Jan 2011 14:45:43 -0800
-Message-ID: <201101042245.p04MjhbN028487@imap1.linux-foundation.org>
+Subject: + sched-remove-long-deprecated-clone_stopped-flag.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:48:44 -0800
+Message-ID: <201101042248.p04MmiqM028638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750871Ab1ADWpz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:45:55 -0500
+	by vger.kernel.org with ESMTP id S1750801Ab1ADWtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:49:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarapov@redhat.com, xiaosuo@gmail.com
+Cc: davej@redhat.com, mingo@elte.hu, peterz@infradead.org, tj@kernel.org
 
 
 The patch titled
-     lib/vsprintf.c: fix vscnprintf() if @size is == 0
+     sched: remove long deprecated CLONE_STOPPED flag
 has been added to the -mm tree.  Its filename is
-     lib-fix-vscnprintf-if-size-is-==-0.patch
+     sched-remove-long-deprecated-clone_stopped-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/vsprintf.c: fix vscnprintf() if @size is == 0
-From: Anton Arapov <aarapov@redhat.com>
+Subject: sched: remove long deprecated CLONE_STOPPED flag
+From: Dave Jones <davej@redhat.com>
 
-vscnprintf() should return 0 if @size is == 0.  Update the comment for it,
-as @size is unsigned.
+This warning was added in commit bdff746a3915 ("clone: prepare to recycle
+CLONE_STOPPED") three years ago.  2.6.26 came and went.  As far as I know,
+no-one is actually using CLONE_STOPPED.
 
-This change based on the code of commit
-b903c0b8899b46829a9b80ba55b61079b35940ec ("lib: fix scnprintf() if @size
-is == 0") moves the real fix into vscnprinf() from scnprintf() and makes
-scnprintf() call vscnprintf(), thus avoid code duplication.
-
-Signed-off-by: Anton Arapov <aarapov@redhat.com>
-Acked-by: Changli Gao <xiaosuo@gmail.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/sched.h |    3 ++-
+ kernel/fork.c         |   28 +---------------------------
+ 2 files changed, 3 insertions(+), 28 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-fix-vscnprintf-if-size-is-==-0 lib/vsprintf.c
---- a/lib/vsprintf.c~lib-fix-vscnprintf-if-size-is-==-0
-+++ a/lib/vsprintf.c
-@@ -1473,7 +1473,7 @@ EXPORT_SYMBOL(vsnprintf);
-  * @args: Arguments for the format string
-  *
-  * The return value is the number of characters which have been written into
-- * the @buf not including the trailing '\0'. If @size is <= 0 the function
-+ * the @buf not including the trailing '\0'. If @size is == 0 the function
-  * returns 0.
-  *
-  * Call this function if you are already dealing with a va_list.
-@@ -1487,7 +1487,11 @@ int vscnprintf(char *buf, size_t size, c
+diff -puN include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag include/linux/sched.h
+--- a/include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag
++++ a/include/linux/sched.h
+@@ -21,7 +21,8 @@
+ #define CLONE_DETACHED		0x00400000	/* Unused, ignored */
+ #define CLONE_UNTRACED		0x00800000	/* set if the tracing process can't force CLONE_PTRACE on this clone */
+ #define CLONE_CHILD_SETTID	0x01000000	/* set the TID in the child */
+-#define CLONE_STOPPED		0x02000000	/* Start in stopped state */
++/* 0x02000000 was previously the unused CLONE_STOPPED (Start in stopped state)
++   and is now available for re-use. */
+ #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
+ #define CLONE_NEWIPC		0x08000000	/* New ipcs */
+ #define CLONE_NEWUSER		0x10000000	/* New user namespace */
+diff -puN kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag kernel/fork.c
+--- a/kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag
++++ a/kernel/fork.c
+@@ -1411,23 +1411,6 @@ long do_fork(unsigned long clone_flags,
+ 	}
  
- 	i = vsnprintf(buf, size, fmt, args);
+ 	/*
+-	 * We hope to recycle these flags after 2.6.26
+-	 */
+-	if (unlikely(clone_flags & CLONE_STOPPED)) {
+-		static int __read_mostly count = 100;
+-
+-		if (count > 0 && printk_ratelimit()) {
+-			char comm[TASK_COMM_LEN];
+-
+-			count--;
+-			printk(KERN_INFO "fork(): process `%s' used deprecated "
+-					"clone flags 0x%lx\n",
+-				get_task_comm(comm, current),
+-				clone_flags & CLONE_STOPPED);
+-		}
+-	}
+-
+-	/*
+ 	 * When called from kernel_thread, don't do user tracing stuff.
+ 	 */
+ 	if (likely(user_mode(regs)))
+@@ -1465,16 +1448,7 @@ long do_fork(unsigned long clone_flags,
+ 		 */
+ 		p->flags &= ~PF_STARTING;
  
--	return (i >= size) ? (size - 1) : i;
-+	if (likely(i < size))
-+		return i;
-+	if (size != 0)
-+		return size - 1;
-+	return 0;
- }
- EXPORT_SYMBOL(vscnprintf);
+-		if (unlikely(clone_flags & CLONE_STOPPED)) {
+-			/*
+-			 * We'll start up with an immediate SIGSTOP.
+-			 */
+-			sigaddset(&p->pending.signal, SIGSTOP);
+-			set_tsk_thread_flag(p, TIF_SIGPENDING);
+-			__set_task_state(p, TASK_STOPPED);
+-		} else {
+-			wake_up_new_task(p, clone_flags);
+-		}
++		wake_up_new_task(p, clone_flags);
  
-@@ -1535,14 +1539,10 @@ int scnprintf(char *buf, size_t size, co
- 	int i;
- 
- 	va_start(args, fmt);
--	i = vsnprintf(buf, size, fmt, args);
-+	i = vscnprintf(buf, size, fmt, args);
- 	va_end(args);
- 
--	if (likely(i < size))
--		return i;
--	if (size != 0)
--		return size - 1;
--	return 0;
-+	return i;
- }
- EXPORT_SYMBOL(scnprintf);
- 
+ 		tracehook_report_clone_complete(trace, regs,
+ 						clone_flags, nr, p);
 _
 
-Patches currently in -mm which might be from aarapov@redhat.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
-lib-fix-vscnprintf-if-size-is-==-0.patch
+linux-next.patch
+sched-remove-long-deprecated-clone_stopped-flag.patch
+checkpatch-check-for-world-writeable-sysfs-debugfs-files.patch
 
