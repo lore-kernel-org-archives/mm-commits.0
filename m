@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch added to -mm tree
-Date: Tue, 04 Jan 2011 15:21:13 -0800
-Message-ID: <201101042321.p04NLD3q029960@imap1.linux-foundation.org>
+Subject: + fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch added to -mm tree
+Date: Tue, 04 Jan 2011 15:21:17 -0800
+Message-ID: <201101042321.p04NLIS6030052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751310Ab1ADXV2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 18:21:28 -0500
+	by vger.kernel.org with ESMTP id S1751078Ab1ADXVf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 18:21:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, j
 
 
 The patch titled
-     lib/hexdump.c: make hex2bin() return the updated `src' address
+     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
 has been added to the -mm tree.  Its filename is
-     lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/hexdump.c: make hex2bin() return the updated `src' address
+Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-As a convenience to callers.
+Use hex2bin()
 
-Not a terribly convenient convenience, as most callers will need to cast
-away the constness of the return value.  Oh well, those callers should
-have been using a `const char *' anyway.
-
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Mimi Zohar <zohar@us.ibm.com>
 Cc: Serge E. Hallyn <serge@hallyn.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -50,41 +47,23 @@ Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- lib/hexdump.c          |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/binfmt_misc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-hexdumpc-make-hex2bin-return-the-updated-src-address include/linux/kernel.h
---- a/include/linux/kernel.h~lib-hexdumpc-make-hex2bin-return-the-updated-src-address
-+++ a/include/linux/kernel.h
-@@ -278,7 +278,7 @@ static inline char *pack_hex_byte(char *
- }
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
++++ a/fs/binfmt_misc.c
+@@ -244,9 +244,7 @@ static int unquote(char *from)
  
- extern int hex_to_bin(char ch);
--extern void hex2bin(u8 *dst, const char *src, size_t count);
-+extern const char *hex2bin(u8 *dst, const char *src, size_t count);
- 
- /*
-  * General tracing related utility functions - trace_printk(),
-diff -puN lib/hexdump.c~lib-hexdumpc-make-hex2bin-return-the-updated-src-address lib/hexdump.c
---- a/lib/hexdump.c~lib-hexdumpc-make-hex2bin-return-the-updated-src-address
-+++ a/lib/hexdump.c
-@@ -39,13 +39,14 @@ EXPORT_SYMBOL(hex_to_bin);
-  * @src: ascii hexadecimal string
-  * @count: result length
-  */
--void hex2bin(u8 *dst, const char *src, size_t count)
-+const char *hex2bin(u8 *dst, const char *src, size_t count)
- {
- 	while (count--) {
- 		*dst = hex_to_bin(*src++) << 4;
- 		*dst += hex_to_bin(*src++);
- 		dst++;
- 	}
-+	return src;
- }
- EXPORT_SYMBOL(hex2bin);
- 
+ 	while ((c = *s++) != '\0') {
+ 		if (c == '\\' && *s == 'x') {
+-			s++;
+-			*p = hex_to_bin(*s++) << 4;
+-			*p++ |= hex_to_bin(*s++);
++			s = (char *)hex2bin(p, s + 1, 1);
+ 			continue;
+ 		}
+ 		*p++ = c;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
