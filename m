@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch added to -mm tree
-Date: Tue, 04 Jan 2011 15:21:17 -0800
-Message-ID: <201101042321.p04NLIS6030052@imap1.linux-foundation.org>
+Subject: + leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch added to -mm tree
+Date: Tue, 04 Jan 2011 15:37:31 -0800
+Message-ID: <201101042337.p04NbVAk030714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751078Ab1ADXVf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 18:21:35 -0500
+	by vger.kernel.org with ESMTP id S1750801Ab1ADXij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 18:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, jmorris@namei.org, serge@hallyn.com, zohar@us.ibm.com
+Cc: peterhuewe@gmx.de, anarsoul@gmail.com, ben-linux@fluff.org, linux@arm.linux.org.uk, rpurdie@rpsys.net, stable@kernel.org, support@simtec.co.uk
 
 
 The patch titled
-     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
+     drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+     leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Use hex2bin()
+Fix a build failure by converting leds-h1940.c to use gpiolib for latch
+access introduced by 14477095abc6 ("ARM: h1940: Use gpiolib for latch
+access").
 
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge E. Hallyn <serge@hallyn.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+drivers/leds/leds-h1940.c: In function 'h1940_greenled_set':
+drivers/leds/leds-h1940.c:33: error: implicit declaration of function 'h1940_latch_control'
+
+Unfortunately this driver was not converted back then.
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Cc: Vasily Khoruzhick <anarsoul@gmail.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Vincent Sanders <support@simtec.co.uk>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: <stable@kernel.org>		[2.6.37.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/leds/leds-h1940.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
-+++ a/fs/binfmt_misc.c
-@@ -244,9 +244,7 @@ static int unquote(char *from)
+diff -puN drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure drivers/leds/leds-h1940.c
+--- a/drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure
++++ a/drivers/leds/leds-h1940.c
+@@ -30,17 +30,17 @@ static void h1940_greenled_set(struct le
+ {
+ 	switch (value) {
+ 	case LED_HALF:
+-		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
+ 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
+ 		break;
+ 	case LED_FULL:
+-		h1940_latch_control(0, H1940_LATCH_LED_GREEN);
++		gpio_set_value(H1940_LATCH_LED_GREEN, 1);
+ 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
+ 		break;
+ 	default:
+ 	case LED_OFF:
+-		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
+-		h1940_latch_control(H1940_LATCH_LED_GREEN, 0);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
++		gpio_set_value(H1940_LATCH_LED_GREEN, 0);
+ 		s3c2410_gpio_setpin(S3C2410_GPA7, 0);
+ 		break;
+ 	}
+@@ -60,17 +60,17 @@ static void h1940_redled_set(struct led_
+ {
+ 	switch (value) {
+ 	case LED_HALF:
+-		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
+ 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
+ 		break;
+ 	case LED_FULL:
+-		h1940_latch_control(0, H1940_LATCH_LED_RED);
++		gpio_set_value(H1940_LATCH_LED_RED, 1);
+ 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
+ 		break;
+ 	default:
+ 	case LED_OFF:
+-		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
+-		h1940_latch_control(H1940_LATCH_LED_RED, 0);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
++		gpio_set_value(H1940_LATCH_LED_RED, 0);
+ 		s3c2410_gpio_setpin(S3C2410_GPA1, 0);
+ 		break;
+ 	}
+@@ -91,10 +91,10 @@ static void h1940_blueled_set(struct led
+ {
+ 	if (value) {
+ 		/* flashing Blue */
+-		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
+ 		s3c2410_gpio_setpin(S3C2410_GPA3, 1);
+ 	} else {
+-		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
++		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
+ 		s3c2410_gpio_setpin(S3C2410_GPA3, 0);
+ 	}
  
- 	while ((c = *s++) != '\0') {
- 		if (c == '\\' && *s == 'x') {
--			s++;
--			*p = hex_to_bin(*s++) << 4;
--			*p++ |= hex_to_bin(*s++);
-+			s = (char *)hex2bin(p, s + 1, 1);
- 			continue;
- 		}
- 		*p++ = c;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peterhuewe@gmx.de are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch
 
