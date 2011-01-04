@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch added to -mm tree
-Date: Tue, 04 Jan 2011 12:37:51 -0800
-Message-ID: <201101042037.p04KbpXF023014@imap1.linux-foundation.org>
+Subject: + maintainers-update-entries-affecting-via-technologies.patch added to -mm tree
+Date: Tue, 04 Jan 2011 13:33:08 -0800
+Message-ID: <201101042133.p04LX84T025399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751426Ab1ADUh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 15:37:58 -0500
+	by vger.kernel.org with ESMTP id S1751383Ab1ADVdY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 16:33:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eike-kernel@sf-tec.de
+Cc: BruceChang@via.com.tw, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, brucechang@via.com.tw, geert@linux-m68k.org
 
 
 The patch titled
-     mm/dmapool.c: take lock only once in dma_pool_free()
+     MAINTAINERS: update entries affecting VIA Technologies
 has been added to the -mm tree.  Its filename is
-     mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch
+     maintainers-update-entries-affecting-via-technologies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/dmapool.c: take lock only once in dma_pool_free()
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: MAINTAINERS: update entries affecting VIA Technologies
+From: Bruce Chang <BruceChang@via.com.tw>
 
-dma_pool_free() scans for the page to free in the pool list holding the
-pool lock.  Then it releases the lock basically to acquire it immediately
-again.  Modify the code to only take the lock once.
+Since the original maintainer-Joseph Chan (josephchan@via.com.tw) doesn't
+handle the Linux driver for VIA now, I would like to request to update the
+maintainer for the SD/MMC CARD CONTROLLER DRIVER and VIA
+UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER before we find a better one. 
 
-This will do some additional loops and computations with the lock held in
-if memory debugging is activated.  If it is not activated the only new
-operations with this lock is one if and one substraction.
-
-Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Signed-off-by: Bruce Chang <brucechang@via.com.tw>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Harald Welte <HaraldWelte@viatech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/dmapool.c~mm-dmapoolc-take-lock-only-once-in-dma_pool_free mm/dmapool.c
---- a/mm/dmapool.c~mm-dmapoolc-take-lock-only-once-in-dma_pool_free
-+++ a/mm/dmapool.c
-@@ -355,20 +355,15 @@ EXPORT_SYMBOL(dma_pool_alloc);
+diff -puN MAINTAINERS~maintainers-update-entries-affecting-via-technologies MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-entries-affecting-via-technologies
++++ a/MAINTAINERS
+@@ -6506,13 +6506,12 @@ F:	Documentation/i2c/busses/i2c-viapro
+ F:	drivers/i2c/busses/i2c-viapro.c
  
- static struct dma_page *pool_find_page(struct dma_pool *pool, dma_addr_t dma)
- {
--	unsigned long flags;
- 	struct dma_page *page;
+ VIA SD/MMC CARD CONTROLLER DRIVER
+-M:	Joseph Chan <JosephChan@via.com.tw>
++M:	Bruce Chang <brucechang@via.com.tw>
+ M:	Harald Welte <HaraldWelte@viatech.com>
+ S:	Maintained
+ F:	drivers/mmc/host/via-sdmmc.c
  
--	spin_lock_irqsave(&pool->lock, flags);
- 	list_for_each_entry(page, &pool->page_list, page_list) {
- 		if (dma < page->dma)
- 			continue;
- 		if (dma < (page->dma + pool->allocation))
--			goto done;
-+			return page;
- 	}
--	page = NULL;
-- done:
--	spin_unlock_irqrestore(&pool->lock, flags);
--	return page;
-+	return NULL;
- }
- 
- /**
-@@ -386,8 +381,10 @@ void dma_pool_free(struct dma_pool *pool
- 	unsigned long flags;
- 	unsigned int offset;
- 
-+	spin_lock_irqsave(&pool->lock, flags);
- 	page = pool_find_page(pool, dma);
- 	if (!page) {
-+		spin_unlock_irqrestore(&pool->lock, flags);
- 		if (pool->dev)
- 			dev_err(pool->dev,
- 				"dma_pool_free %s, %p/%lx (bad dma)\n",
-@@ -401,6 +398,7 @@ void dma_pool_free(struct dma_pool *pool
- 	offset = vaddr - page->vaddr;
- #ifdef	DMAPOOL_DEBUG
- 	if ((dma - page->dma) != offset) {
-+		spin_unlock_irqrestore(&pool->lock, flags);
- 		if (pool->dev)
- 			dev_err(pool->dev,
- 				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
-@@ -418,6 +416,7 @@ void dma_pool_free(struct dma_pool *pool
- 				chain = *(int *)(page->vaddr + chain);
- 				continue;
- 			}
-+			spin_unlock_irqrestore(&pool->lock, flags);
- 			if (pool->dev)
- 				dev_err(pool->dev, "dma_pool_free %s, dma %Lx "
- 					"already free\n", pool->name,
-@@ -432,7 +431,6 @@ void dma_pool_free(struct dma_pool *pool
- 	memset(vaddr, POOL_POISON_FREED, pool->size);
- #endif
- 
--	spin_lock_irqsave(&pool->lock, flags);
- 	page->in_use--;
- 	*(int *)vaddr = page->offset;
- 	page->offset = offset;
+ VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
+-M:	Joseph Chan <JosephChan@via.com.tw>
+ M:	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+ L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from eike-kernel@sf-tec.de are
+Patches currently in -mm which might be from BruceChang@via.com.tw are
 
-linux-next.patch
-mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+maintainers-update-entries-affecting-via-technologies.patch
 
