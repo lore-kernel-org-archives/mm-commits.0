@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatchpl-add-prefer-__packed-check.patch added to -mm tree
-Date: Tue, 04 Jan 2011 13:55:33 -0800
-Message-ID: <201101042155.p04LtXu8026339@imap1.linux-foundation.org>
+Subject: + kpagecount-added-slab-page-checking-because-of-_mapcount-in-union.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:01:17 -0800
+Message-ID: <201101042201.p04M1HbN026658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751249Ab1ADV4P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 16:56:15 -0500
+	by vger.kernel.org with ESMTP id S1750875Ab1ADWCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:02:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@shadowen.org
+Cc: pholasek@redhat.com, fengguang.wu@intel.com, mpm@selenic.com
 
 
 The patch titled
-     checkpatch.pl: add "prefer __packed" check
+     kpagecount: add slab page checking because _mapcount is in a union
 has been added to the -mm tree.  Its filename is
-     checkpatchpl-add-prefer-__packed-check.patch
+     kpagecount-added-slab-page-checking-because-of-_mapcount-in-union.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: add "prefer __packed" check
-From: Joe Perches <joe@perches.com>
+Subject: kpagecount: add slab page checking because _mapcount is in a union
+From: Petr Holasek <pholasek@redhat.com>
 
-There's a __packed #define for __attribute__((packed)).  Add a checkpatch
-to tell people about it.
+Add a PageSlab() check before adding the _mapcount value to /kpagecount. 
+page->_mapcount is in a union with the SLAB structure so for pages
+controlled by SLAB, page_mapcount() returns nonsense.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Petr Holasek <pholasek@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/proc/page.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-prefer-__packed-check scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-prefer-__packed-check
-+++ a/scripts/checkpatch.pl
-@@ -2743,6 +2743,11 @@ sub process {
- 			WARN("plain inline is preferred over $1\n" . $herecurr);
- 		}
- 
-+# Check for __attribute__ packed, prefer __packed
-+		if ($line =~ /\b__attribute__\s*\(\s*\(.*\bpacked\b/) {
-+			WARN("__packed is preferred over __attribute__((packed))\n" . $herecurr);
-+		}
-+
- # check for sizeof(&)
- 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
- 			WARN("sizeof(& should be avoided\n" . $herecurr);
+diff -puN fs/proc/page.c~kpagecount-added-slab-page-checking-because-of-_mapcount-in-union fs/proc/page.c
+--- a/fs/proc/page.c~kpagecount-added-slab-page-checking-because-of-_mapcount-in-union
++++ a/fs/proc/page.c
+@@ -40,7 +40,7 @@ static ssize_t kpagecount_read(struct fi
+ 			ppage = pfn_to_page(pfn);
+ 		else
+ 			ppage = NULL;
+-		if (!ppage)
++		if (!ppage || PageSlab(ppage))
+ 			pcount = 0;
+ 		else
+ 			pcount = page_mapcount(ppage);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from pholasek@redhat.com are
 
-linux-next.patch
-mm-convert-sprintf_symbol-to-%ps.patch
-include-linux-printkh-move-console-functions-and-variables-together.patch
-include-linux-printkh-use-space-after-define.patch
-include-linux-printkh-use-and-neaten-no_printk.patch
-include-linux-printkh-add-pr_level_once-macros.patch
-include-linux-printkh-lib-hexdumpc-neatening-and-add-config_printk-guard.patch
-include-linux-printkh-organize-printk_ratelimited-macros.patch
-include-linux-printkh-use-tab-not-spaces-for-indent.patch
-scripts-get_maintainerpl-make-rolestats-the-default.patch
-scripts-get_maintainerpl-use-git-fallback-more-often.patch
-scripts-checkpatchpl-add-check-for-multiple-terminating-semicolons-and-casts-of-vmalloc.patch
-checkpatchpl-add-prefer-__packed-check.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+kpagecount-added-slab-page-checking-because-of-_mapcount-in-union.patch
 
