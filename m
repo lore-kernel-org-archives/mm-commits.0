@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sched-remove-long-deprecated-clone_stopped-flag.patch added to -mm tree
-Date: Tue, 04 Jan 2011 14:48:44 -0800
-Message-ID: <201101042248.p04MmiqM028638@imap1.linux-foundation.org>
+Subject: + leds-lp5521-modify-the-way-of-setting-led-device-name.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:57:24 -0800
+Message-ID: <201101042257.p04MvOTt028979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab1ADWtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:49:15 -0500
+	by vger.kernel.org with ESMTP id S1750871Ab1ADW5o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:57:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, mingo@elte.hu, peterz@infradead.org, tj@kernel.org
+Cc: arun.murthy@stericsson.com, ilkka.koskinen@nokia.com, rpurdie@rpsys.net, samu.p.onkalo@nokia.com
 
 
 The patch titled
-     sched: remove long deprecated CLONE_STOPPED flag
+     leds-lp5521: modify the way of setting led device name
 has been added to the -mm tree.  Its filename is
-     sched-remove-long-deprecated-clone_stopped-flag.patch
+     leds-lp5521-modify-the-way-of-setting-led-device-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: remove long deprecated CLONE_STOPPED flag
-From: Dave Jones <davej@redhat.com>
+Subject: leds-lp5521: modify the way of setting led device name
+From: Arun Murthy <arun.murthy@stericsson.com>
 
-This warning was added in commit bdff746a3915 ("clone: prepare to recycle
-CLONE_STOPPED") three years ago.  2.6.26 came and went.  As far as I know,
-no-one is actually using CLONE_STOPPED.
+Currently the led device name is fetched from the device_type in
+I2C_BOARD_INFO which comes from the platform data.  This name is in turn
+used to create an entry in sysfs.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Tejun Heo <tj@kernel.org>
+If there exists two or more lp5521 on a particular platform, the
+device_type in I2C_BOARD_INFO has to be the same, else lp5521 driver probe
+wont be called and if used so, results in run time warning "cannot create
+sysfs with same name" and hence a failure.
+
+The name that is used to create sysfs entry is to be passed by the struct
+led_platform_data.  Hence adding an element of type const char * and
+change in lp5521 driver to use this name in creating the led device if
+present else use the name obtained by I2C_BOARD_INFO.
+
+Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
+Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ++-
- kernel/fork.c         |   28 +---------------------------
- 2 files changed, 3 insertions(+), 28 deletions(-)
+ drivers/leds/leds-lp5521.c  |    3 ++-
+ include/linux/leds-lp5521.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag include/linux/sched.h
---- a/include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag
-+++ a/include/linux/sched.h
-@@ -21,7 +21,8 @@
- #define CLONE_DETACHED		0x00400000	/* Unused, ignored */
- #define CLONE_UNTRACED		0x00800000	/* set if the tracing process can't force CLONE_PTRACE on this clone */
- #define CLONE_CHILD_SETTID	0x01000000	/* set the TID in the child */
--#define CLONE_STOPPED		0x02000000	/* Start in stopped state */
-+/* 0x02000000 was previously the unused CLONE_STOPPED (Start in stopped state)
-+   and is now available for re-use. */
- #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
- #define CLONE_NEWIPC		0x08000000	/* New ipcs */
- #define CLONE_NEWUSER		0x10000000	/* New user namespace */
-diff -puN kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag kernel/fork.c
---- a/kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag
-+++ a/kernel/fork.c
-@@ -1411,23 +1411,6 @@ long do_fork(unsigned long clone_flags,
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name
++++ a/drivers/leds/leds-lp5521.c
+@@ -617,7 +617,8 @@ static int __init lp5521_init_led(struct
+ 		return -EINVAL;
  	}
  
- 	/*
--	 * We hope to recycle these flags after 2.6.26
--	 */
--	if (unlikely(clone_flags & CLONE_STOPPED)) {
--		static int __read_mostly count = 100;
--
--		if (count > 0 && printk_ratelimit()) {
--			char comm[TASK_COMM_LEN];
--
--			count--;
--			printk(KERN_INFO "fork(): process `%s' used deprecated "
--					"clone flags 0x%lx\n",
--				get_task_comm(comm, current),
--				clone_flags & CLONE_STOPPED);
--		}
--	}
--
--	/*
- 	 * When called from kernel_thread, don't do user tracing stuff.
- 	 */
- 	if (likely(user_mode(regs)))
-@@ -1465,16 +1448,7 @@ long do_fork(unsigned long clone_flags,
- 		 */
- 		p->flags &= ~PF_STARTING;
+-	snprintf(name, sizeof(name), "%s:channel%d", client->name, chan);
++	snprintf(name, sizeof(name), "%s:channel%d",
++			pdata->label ?: client->name, chan);
+ 	led->cdev.brightness_set = lp5521_set_brightness;
+ 	led->cdev.name = name;
+ 	res = led_classdev_register(dev, &led->cdev);
+diff -puN include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name include/linux/leds-lp5521.h
+--- a/include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name
++++ a/include/linux/leds-lp5521.h
+@@ -42,6 +42,7 @@ struct lp5521_platform_data {
+ 	int	(*setup_resources)(void);
+ 	void	(*release_resources)(void);
+ 	void	(*enable)(bool state);
++	const char *label;
+ };
  
--		if (unlikely(clone_flags & CLONE_STOPPED)) {
--			/*
--			 * We'll start up with an immediate SIGSTOP.
--			 */
--			sigaddset(&p->pending.signal, SIGSTOP);
--			set_tsk_thread_flag(p, TIF_SIGPENDING);
--			__set_task_state(p, TASK_STOPPED);
--		} else {
--			wake_up_new_task(p, clone_flags);
--		}
-+		wake_up_new_task(p, clone_flags);
- 
- 		tracehook_report_clone_complete(trace, regs,
- 						clone_flags, nr, p);
+ #endif /* __LINUX_LP5521_H */
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from arun.murthy@stericsson.com are
 
-linux-next.patch
-sched-remove-long-deprecated-clone_stopped-flag.patch
-checkpatch-check-for-world-writeable-sysfs-debugfs-files.patch
+leds-leds-lp5523-modify-the-way-of-setting-led-device-name.patch
+leds-lp5523-fix-circular-locking.patch
+leds-lp5521-fix-circular-locking.patch
+leds-lp5521-modify-the-way-of-setting-led-device-name.patch
 
