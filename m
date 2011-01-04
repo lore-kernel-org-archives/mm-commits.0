@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 04 Jan 2011 14:05:48 -0800
-Message-ID: <201101042205.p04M5mLl026800@imap1.linux-foundation.org>
+Subject: + mbp_nvidia_bl-rename-to-apple_bl.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:37:24 -0800
+Message-ID: <201101042237.p04MbO5X028182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750854Ab1ADWGB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:06:01 -0500
+	by vger.kernel.org with ESMTP id S1751238Ab1ADWi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:38:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, stefani@seibold.net
+Cc: mjg@redhat.com, mourad@aquazul.com, rpurdie@linux.intel.com
 
 
 The patch titled
-     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
+     mbp_nvidia_bl: rename to apple_bl
 has been added to the -mm tree.  Its filename is
-     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+     mbp_nvidia_bl-rename-to-apple_bl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,535 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mbp_nvidia_bl: rename to apple_bl
+From: Matthew Garrett <mjg@redhat.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#44: FILE: fs/cramfs/inode.c:40:
-+static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
+It works on hardware other than Macbook Pros, and it works on GPUs other
+than Nvidia.  It should even work on iMacs, so change the name to match
+reality more precisely and include an alias so existing users don't get
+confused.
 
-ERROR: "foo * bar" should be "foo *bar"
-#68: FILE: fs/cramfs/inode.c:64:
-+	struct cramfs_inode * cramfs_inode, unsigned int offset)
-
-WARNING: line over 80 characters
-#157: FILE: fs/cramfs/inode.c:293:
-+	super.root.mode |= (S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-
-WARNING: line over 80 characters
-#187: FILE: fs/cramfs/inode.c:436:
-+		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de)+CRAMFS_MAXPATHLEN);
-
-WARNING: line over 80 characters
-#196: FILE: fs/cramfs/inode.c:467:
-+			d_add(dentry, get_cramfs_inode(dir->i_sb, &entry, dir_off));
-
-total: 2 errors, 3 warnings, 161 lines checked
-
-./patches/cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Mourad De Clerck <mourad@aquazul.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/Kconfig         |    6 
+ drivers/video/backlight/Makefile        |    2 
+ drivers/video/backlight/apple_bl.c      |  240 ++++++++++++++++++++++
+ drivers/video/backlight/mbp_nvidia_bl.c |  239 ---------------------
+ 4 files changed, 244 insertions(+), 243 deletions(-)
 
-diff -puN fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
-+++ a/fs/cramfs/inode.c
-@@ -37,7 +37,7 @@ static DEFINE_MUTEX(read_mutex);
- /* These macros may change in future, to provide better st_ino semantics. */
- #define OFFSET(x)	((x)->i_ino)
+diff -puN drivers/video/backlight/Kconfig~mbp_nvidia_bl-rename-to-apple_bl drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~mbp_nvidia_bl-rename-to-apple_bl
++++ a/drivers/video/backlight/Kconfig
+@@ -236,11 +236,11 @@ config BACKLIGHT_MAX8925
+ 	  If you have a LCD backlight connected to the WLED output of MAX8925
+ 	  WLED output, say Y here to enable this driver.
  
--static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
-+static unsigned long cramino(struct cramfs_inode *cino, unsigned int offset)
- {
- 	if (!cino->offset)
- 		return offset + 1;
-@@ -61,7 +61,7 @@ static unsigned long cramino(struct cram
- }
+-config BACKLIGHT_MACBOOK
+-       tristate "MacBook Backlight Driver"
++config BACKLIGHT_APPLE
++       tristate "Apple Backlight Driver"
+        depends on X86
+        help
+-         If you have an Apple Macbook say Y to enable a driver for its
++         If you have an Intel-based Apple say Y to enable a driver for its
+ 	 backlight
  
- static struct inode *get_cramfs_inode(struct super_block *sb,
--	struct cramfs_inode * cramfs_inode, unsigned int offset)
-+	struct cramfs_inode *cramfs_inode, unsigned int offset)
- {
- 	struct inode *inode;
- 	static struct timespec zerotime;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+ config BACKLIGHT_TOSA
+diff -puN drivers/video/backlight/Makefile~mbp_nvidia_bl-rename-to-apple_bl drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~mbp_nvidia_bl-rename-to-apple_bl
++++ a/drivers/video/backlight/Makefile
+@@ -26,7 +26,7 @@ obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH) +=
+ obj-$(CONFIG_BACKLIGHT_PWM)	+= pwm_bl.o
+ obj-$(CONFIG_BACKLIGHT_DA903X)	+= da903x_bl.o
+ obj-$(CONFIG_BACKLIGHT_MAX8925)	+= max8925_bl.o
+-obj-$(CONFIG_BACKLIGHT_MACBOOK)	+= mbp_nvidia_bl.o
++obj-$(CONFIG_BACKLIGHT_APPLE)	+= apple_bl.o
+ obj-$(CONFIG_BACKLIGHT_TOSA)	+= tosa_bl.o
+ obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886_bl.o
+ obj-$(CONFIG_BACKLIGHT_WM831X)	+= wm831x_bl.o
+diff -puN /dev/null drivers/video/backlight/apple_bl.c
+--- /dev/null
++++ a/drivers/video/backlight/apple_bl.c
+@@ -0,0 +1,240 @@
++/*
++ *  Backlight Driver for Intel-based Apples
++ *
++ *  Copyright (c) Red Hat <mjg@redhat.com>
++ *  Based on code from Pommed:
++ *  Copyright (C) 2006 Nicolas Boichat <nicolas @boichat.ch>
++ *  Copyright (C) 2006 Felipe Alfaro Solana <felipe_alfaro @linuxmail.org>
++ *  Copyright (C) 2007 Julien BLACHE <jb@jblache.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This driver triggers SMIs which cause the firmware to change the
++ *  backlight brightness. This is icky in many ways, but it's impractical to
++ *  get at the firmware code in order to figure out what it's actually doing.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/backlight.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/pci.h>
++#include <linux/acpi.h>
++
++static struct backlight_device *apple_backlight_device;
++
++struct hw_data {
++	/* I/O resource to allocate. */
++	unsigned long iostart;
++	unsigned long iolen;
++	/* Backlight operations structure. */
++	const struct backlight_ops backlight_ops;
++	void (*set_brightness)(int);
++};
++
++static const struct hw_data *hw_data;
++
++#define DRIVER "apple_backlight: "
++
++/* Module parameters. */
++static int debug;
++module_param_named(debug, debug, int, 0644);
++MODULE_PARM_DESC(debug, "Set to one to enable debugging messages.");
++
++/*
++ * Implementation for machines with Intel chipset.
++ */
++static void intel_chipset_set_brightness(int intensity)
++{
++	outb(0x04 | (intensity << 4), 0xb3);
++	outb(0xbf, 0xb2);
++}
++
++static int intel_chipset_send_intensity(struct backlight_device *bd)
++{
++	int intensity = bd->props.brightness;
++
++	if (debug)
++		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
++		       intensity);
++
++	intel_chipset_set_brightness(intensity);
++	return 0;
++}
++
++static int intel_chipset_get_intensity(struct backlight_device *bd)
++{
++	int intensity;
++
++	outb(0x03, 0xb3);
++	outb(0xbf, 0xb2);
++	intensity = inb(0xb3) >> 4;
++
++	if (debug)
++		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
++		       intensity);
++
++	return intensity;
++}
++
++static const struct hw_data intel_chipset_data = {
++	.iostart = 0xb2,
++	.iolen = 2,
++	.backlight_ops	= {
++		.options	= BL_CORE_SUSPENDRESUME,
++		.get_brightness	= intel_chipset_get_intensity,
++		.update_status	= intel_chipset_send_intensity,
++	},
++	.set_brightness = intel_chipset_set_brightness,
++};
++
++/*
++ * Implementation for machines with Nvidia chipset.
++ */
++static void nvidia_chipset_set_brightness(int intensity)
++{
++	outb(0x04 | (intensity << 4), 0x52f);
++	outb(0xbf, 0x52e);
++}
++
++static int nvidia_chipset_send_intensity(struct backlight_device *bd)
++{
++	int intensity = bd->props.brightness;
++
++	if (debug)
++		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
++		       intensity);
++
++	nvidia_chipset_set_brightness(intensity);
++	return 0;
++}
++
++static int nvidia_chipset_get_intensity(struct backlight_device *bd)
++{
++	int intensity;
++
++	outb(0x03, 0x52f);
++	outb(0xbf, 0x52e);
++	intensity = inb(0x52f) >> 4;
++
++	if (debug)
++		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
++		       intensity);
++
++	return intensity;
++}
++
++static const struct hw_data nvidia_chipset_data = {
++	.iostart = 0x52e,
++	.iolen = 2,
++	.backlight_ops		= {
++		.options	= BL_CORE_SUSPENDRESUME,
++		.get_brightness	= nvidia_chipset_get_intensity,
++		.update_status	= nvidia_chipset_send_intensity
++	},
++	.set_brightness = nvidia_chipset_set_brightness,
++};
++
++static int __devinit apple_bl_add(struct acpi_device *dev)
++{
++	struct backlight_properties props;
++	struct pci_dev *host;
++	int intensity;
++
++	host = pci_get_bus_and_slot(0, 0);
++
++	if (!host) {
++		printk(KERN_ERR DRIVER "unable to find PCI host\n");
++		return -ENODEV;
++	}
++
++	if (host->vendor == PCI_VENDOR_ID_INTEL)
++		hw_data = &intel_chipset_data;
++	else if (host->vendor == PCI_VENDOR_ID_NVIDIA)
++		hw_data = &nvidia_chipset_data;
++
++	pci_dev_put(host);
++
++	if (!hw_data) {
++		printk(KERN_ERR DRIVER "unknown hardware\n");
++		return -ENODEV;
++	}
++
++	/* Check that the hardware responds - this may not work under EFI */
++
++	intensity = hw_data->backlight_ops.get_brightness(NULL);
++
++	if (!intensity) {
++		hw_data->set_brightness(1);
++		if (!hw_data->backlight_ops.get_brightness(NULL))
++			return -ENODEV;
++
++		hw_data->set_brightness(0);
++	}
++
++	if (!request_region(hw_data->iostart, hw_data->iolen,
++			    "Apple backlight"))
++		return -ENXIO;
++
++	memset(&props, 0, sizeof(struct backlight_properties));
++	props.max_brightness = 15;
++	apple_backlight_device = backlight_device_register("apple_backlight",
++				  NULL, NULL, &hw_data->backlight_ops, &props);
++
++	if (IS_ERR(apple_backlight_device)) {
++		release_region(hw_data->iostart, hw_data->iolen);
++		return PTR_ERR(apple_backlight_device);
++	}
++
++	apple_backlight_device->props.brightness =
++		hw_data->backlight_ops.get_brightness(apple_backlight_device);
++	backlight_update_status(apple_backlight_device);
++
++	return 0;
++}
++
++static int __devexit apple_bl_remove(struct acpi_device *dev, int type)
++{
++	backlight_device_unregister(apple_backlight_device);
++
++	release_region(hw_data->iostart, hw_data->iolen);
++	hw_data = NULL;
++	return 0;
++}
++
++static const struct acpi_device_id apple_bl_ids[] = {
++	{"APP0002", 0},
++	{"", 0},
++};
++
++static struct acpi_driver apple_bl_driver = {
++	.name = "Apple backlight",
++	.ids = apple_bl_ids,
++	.ops = {
++		.add = apple_bl_add,
++		.remove = apple_bl_remove,
++	},
++};
++
++static int __init apple_bl_init(void)
++{
++	return acpi_bus_register_driver(&apple_bl_driver);
++}
++
++static void __exit apple_bl_exit(void)
++{
++	acpi_bus_unregister_driver(&apple_bl_driver);
++}
++
++module_init(apple_bl_init);
++module_exit(apple_bl_exit);
++
++MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
++MODULE_DESCRIPTION("Apple Backlight Driver");
++MODULE_LICENSE("GPL");
++MODULE_DEVICE_TABLE(acpi, apple_bl_ids);
++MODULE_ALIAS("mbp_nvidia_bl");
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~mbp_nvidia_bl-rename-to-apple_bl /dev/null
+--- a/drivers/video/backlight/mbp_nvidia_bl.c
++++ /dev/null
+@@ -1,239 +0,0 @@
+-/*
+- *  Backlight Driver for Macbooks
+- *
+- *  Copyright (c) Red Hat <mjg@redhat.com>
+- *  Based on code from Pommed:
+- *  Copyright (C) 2006 Nicolas Boichat <nicolas @boichat.ch>
+- *  Copyright (C) 2006 Felipe Alfaro Solana <felipe_alfaro @linuxmail.org>
+- *  Copyright (C) 2007 Julien BLACHE <jb@jblache.org>
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as
+- *  published by the Free Software Foundation.
+- *
+- *  This driver triggers SMIs which cause the firmware to change the
+- *  backlight brightness. This is icky in many ways, but it's impractical to
+- *  get at the firmware code in order to figure out what it's actually doing.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/backlight.h>
+-#include <linux/err.h>
+-#include <linux/io.h>
+-#include <linux/pci.h>
+-#include <linux/acpi.h>
+-
+-static struct backlight_device *mb_backlight_device;
+-
+-struct hw_data {
+-	/* I/O resource to allocate. */
+-	unsigned long iostart;
+-	unsigned long iolen;
+-	/* Backlight operations structure. */
+-	const struct backlight_ops backlight_ops;
+-	void (*set_brightness)(int);
+-};
+-
+-static const struct hw_data *hw_data;
+-
+-#define DRIVER "mb_backlight: "
+-
+-/* Module parameters. */
+-static int debug;
+-module_param_named(debug, debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Set to one to enable debugging messages.");
+-
+-/*
+- * Implementation for MacBooks with Intel chipset.
+- */
+-static void intel_chipset_set_brightness(int intensity)
+-{
+-	outb(0x04 | (intensity << 4), 0xb3);
+-	outb(0xbf, 0xb2);
+-}
+-
+-static int intel_chipset_send_intensity(struct backlight_device *bd)
+-{
+-	int intensity = bd->props.brightness;
+-
+-	if (debug)
+-		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
+-		       intensity);
+-
+-	intel_chipset_set_brightness(intensity);
+-	return 0;
+-}
+-
+-static int intel_chipset_get_intensity(struct backlight_device *bd)
+-{
+-	int intensity;
+-
+-	outb(0x03, 0xb3);
+-	outb(0xbf, 0xb2);
+-	intensity = inb(0xb3) >> 4;
+-
+-	if (debug)
+-		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
+-		       intensity);
+-
+-	return intensity;
+-}
+-
+-static const struct hw_data intel_chipset_data = {
+-	.iostart = 0xb2,
+-	.iolen = 2,
+-	.backlight_ops	= {
+-		.options	= BL_CORE_SUSPENDRESUME,
+-		.get_brightness	= intel_chipset_get_intensity,
+-		.update_status	= intel_chipset_send_intensity,
+-	},
+-	.set_brightness = intel_chipset_set_brightness,
+-};
+-
+-/*
+- * Implementation for MacBooks with Nvidia chipset.
+- */
+-static void nvidia_chipset_set_brightness(int intensity)
+-{
+-	outb(0x04 | (intensity << 4), 0x52f);
+-	outb(0xbf, 0x52e);
+-}
+-
+-static int nvidia_chipset_send_intensity(struct backlight_device *bd)
+-{
+-	int intensity = bd->props.brightness;
+-
+-	if (debug)
+-		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
+-		       intensity);
+-
+-	nvidia_chipset_set_brightness(intensity);
+-	return 0;
+-}
+-
+-static int nvidia_chipset_get_intensity(struct backlight_device *bd)
+-{
+-	int intensity;
+-
+-	outb(0x03, 0x52f);
+-	outb(0xbf, 0x52e);
+-	intensity = inb(0x52f) >> 4;
+-
+-	if (debug)
+-		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
+-		       intensity);
+-
+-	return intensity;
+-}
+-
+-static const struct hw_data nvidia_chipset_data = {
+-	.iostart = 0x52e,
+-	.iolen = 2,
+-	.backlight_ops		= {
+-		.options	= BL_CORE_SUSPENDRESUME,
+-		.get_brightness	= nvidia_chipset_get_intensity,
+-		.update_status	= nvidia_chipset_send_intensity
+-	},
+-	.set_brightness = nvidia_chipset_set_brightness,
+-};
+-
+-static int __devinit mb_bl_add(struct acpi_device *dev)
+-{
+-	struct backlight_properties props;
+-	struct pci_dev *host;
+-	int intensity;
+-
+-	host = pci_get_bus_and_slot(0, 0);
+-
+-	if (!host) {
+-		printk(KERN_ERR DRIVER "unable to find PCI host\n");
+-		return -ENODEV;
+-	}
+-
+-	if (host->vendor == PCI_VENDOR_ID_INTEL)
+-		hw_data = &intel_chipset_data;
+-	else if (host->vendor == PCI_VENDOR_ID_NVIDIA)
+-		hw_data = &nvidia_chipset_data;
+-
+-	pci_dev_put(host);
+-
+-	if (!hw_data) {
+-		printk(KERN_ERR DRIVER "unknown hardware\n");
+-		return -ENODEV;
+-	}
+-
+-	/* Check that the hardware responds - this may not work under EFI */
+-
+-	intensity = hw_data->backlight_ops.get_brightness(NULL);
+-
+-	if (!intensity) {
+-		hw_data->set_brightness(1);
+-		if (!hw_data->backlight_ops.get_brightness(NULL))
+-			return -ENODEV;
+-
+-		hw_data->set_brightness(0);
+-	}
+-
+-	if (!request_region(hw_data->iostart, hw_data->iolen,
+-			    "Macbook backlight"))
+-		return -ENXIO;
+-
+-	memset(&props, 0, sizeof(struct backlight_properties));
+-	props.max_brightness = 15;
+-	mb_backlight_device = backlight_device_register("mb_backlight", NULL,
+-				    NULL, &hw_data->backlight_ops, &props);
+-
+-	if (IS_ERR(mb_backlight_device)) {
+-		release_region(hw_data->iostart, hw_data->iolen);
+-		return PTR_ERR(mb_backlight_device);
+-	}
+-
+-	mb_backlight_device->props.brightness =
+-		hw_data->backlight_ops.get_brightness(mb_backlight_device);
+-	backlight_update_status(mb_backlight_device);
+-
+-	return 0;
+-}
+-
+-static int __devexit mb_bl_remove(struct acpi_device *dev, int type)
+-{
+-	backlight_device_unregister(mb_backlight_device);
+-
+-	release_region(hw_data->iostart, hw_data->iolen);
+-	hw_data = NULL;
+-	return 0;
+-}
+-
+-static const struct acpi_device_id mb_bl_ids[] = {
+-	{"APP0002", 0},
+-	{"", 0},
+-};
+-
+-static struct acpi_driver mb_bl_driver = {
+-	.name = "Macbook backlight",
+-	.ids = mb_bl_ids,
+-	.ops = {
+-		.add = mb_bl_add,
+-		.remove = mb_bl_remove,
+-	},
+-};
+-
+-static int __init mb_init(void)
+-{
+-	return acpi_bus_register_driver(&mb_bl_driver);
+-}
+-
+-static void __exit mb_exit(void)
+-{
+-	acpi_bus_unregister_driver(&mb_bl_driver);
+-}
+-
+-module_init(mb_init);
+-module_exit(mb_exit);
