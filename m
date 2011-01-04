@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch added to -mm tree
-Date: Tue, 04 Jan 2011 14:04:57 -0800
-Message-ID: <201101042204.p04M4vWQ026767@imap1.linux-foundation.org>
+Subject: + cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 04 Jan 2011 14:05:48 -0800
+Message-ID: <201101042205.p04M5mLl026800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795Ab1ADWFb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:05:31 -0500
+	by vger.kernel.org with ESMTP id S1750854Ab1ADWGB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 17:06:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, penberg@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, stefani@seibold.net
 
 
 The patch titled
-     cramfs: generate unique inode number for better inode cache usage
+     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
+     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,211 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs: generate unique inode number for better inode cache usage
-From: Stefani Seibold <stefani@seibold.net>
+Subject: cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Generate a unique inode numbers for any entries in the cram file system. 
-For files which did not contain data's (device nodes, fifos and sockets)
-the offset of the directory entry inside the cramfs plus 1 will be used as
-inode number.
+ERROR: "foo * bar" should be "foo *bar"
+#44: FILE: fs/cramfs/inode.c:40:
++static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
 
-The + 1 for the inode will it make possible to distinguish between a file
-which contains no data and files which has data, the later one has a inode
-value where the lower two bits are always 0.
+ERROR: "foo * bar" should be "foo *bar"
+#68: FILE: fs/cramfs/inode.c:64:
++	struct cramfs_inode * cramfs_inode, unsigned int offset)
 
-It also reimplements the behavior to set the size and the number of block
-to 0 for special file, which is the right value for empty files, devices,
-fifos and sockets
+WARNING: line over 80 characters
+#157: FILE: fs/cramfs/inode.c:293:
++	super.root.mode |= (S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 
-As a little benefit it will be also more compatible which older mkcramfs,
-because it will never use the cramfs_inode->offset for creating a inode
-number for special files.
+WARNING: line over 80 characters
+#187: FILE: fs/cramfs/inode.c:436:
++		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de)+CRAMFS_MAXPATHLEN);
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
+WARNING: line over 80 characters
+#196: FILE: fs/cramfs/inode.c:467:
++			d_add(dentry, get_cramfs_inode(dir->i_sb, &entry, dir_off));
+
+total: 2 errors, 3 warnings, 161 lines checked
+
+./patches/cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |  110 +++++++++++++++++++++++++++-----------------
- 1 file changed, 69 insertions(+), 41 deletions(-)
+ fs/cramfs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage
+diff -puN fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
 +++ a/fs/cramfs/inode.c
-@@ -34,57 +34,81 @@ static const struct address_space_operat
- static DEFINE_MUTEX(read_mutex);
- 
- 
--/* These two macros may change in future, to provide better st_ino
--   semantics. */
--#define CRAMINO(x)	(((x)->offset && (x)->size)?(x)->offset<<2:1)
-+/* These macros may change in future, to provide better st_ino semantics. */
+@@ -37,7 +37,7 @@ static DEFINE_MUTEX(read_mutex);
+ /* These macros may change in future, to provide better st_ino semantics. */
  #define OFFSET(x)	((x)->i_ino)
  
--static void setup_inode(struct inode *inode, struct cramfs_inode * cramfs_inode)
-+static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
+-static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
++static unsigned long cramino(struct cramfs_inode *cino, unsigned int offset)
  {
-+	if (!cino->offset)
-+		return offset + 1;
-+	if (!cino->size)
-+		return offset + 1;
-+
-+	/*
-+	 * The file mode test fix buggy mkcramfs implementations where
-+	 * cramfs_inode->offset is set to a non zero value for entries
-+	 * which did not contain data, like devices node and fifos.
-+	 */
-+	switch (cino->mode & S_IFMT) {
-+	case S_IFREG:
-+	case S_IFDIR:
-+	case S_IFLNK:
-+		return cino->offset << 2;
-+	default:
-+		break;
-+	}
-+	return offset + 1;
-+}
-+
-+static struct inode *get_cramfs_inode(struct super_block *sb,
-+	struct cramfs_inode * cramfs_inode, unsigned int offset)
-+{
-+	struct inode *inode;
- 	static struct timespec zerotime;
-+
-+	inode = iget_locked(sb, cramino(cramfs_inode, offset));
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
-+
-+	switch (cramfs_inode->mode & S_IFMT) {
-+	case S_IFREG:
-+		inode->i_fop = &generic_ro_fops;
-+		inode->i_data.a_ops = &cramfs_aops;
-+		break;
-+	case S_IFDIR:
-+		inode->i_op = &cramfs_dir_inode_operations;
-+		inode->i_fop = &cramfs_directory_operations;
-+		break;
-+	case S_IFLNK:
-+		inode->i_op = &page_symlink_inode_operations;
-+		inode->i_data.a_ops = &cramfs_aops;
-+		break;
-+	default:
-+		init_special_inode(inode, cramfs_inode->mode,
-+				old_decode_dev(cramfs_inode->size));
-+	}
-+
- 	inode->i_mode = cramfs_inode->mode;
- 	inode->i_uid = cramfs_inode->uid;
--	inode->i_size = cramfs_inode->size;
--	inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
- 	inode->i_gid = cramfs_inode->gid;
-+
-+	/* if the lower 2 bits are zero, the inode contains data */
-+	if (!(inode->i_ino & 3)) {
-+		inode->i_size = cramfs_inode->size;
-+		inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
-+	}
-+
- 	/* Struct copy intentional */
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = zerotime;
- 	/* inode->i_nlink is left 1 - arguably wrong for directories,
- 	   but it's the best we can do without reading the directory
- 	   contents.  1 yields the right result in GNU find, even
- 	   without -noleaf option. */
--	if (S_ISREG(inode->i_mode)) {
--		inode->i_fop = &generic_ro_fops;
--		inode->i_data.a_ops = &cramfs_aops;
--	} else if (S_ISDIR(inode->i_mode)) {
--		inode->i_op = &cramfs_dir_inode_operations;
--		inode->i_fop = &cramfs_directory_operations;
--	} else if (S_ISLNK(inode->i_mode)) {
--		inode->i_op = &page_symlink_inode_operations;
--		inode->i_data.a_ops = &cramfs_aops;
--	} else {
--		init_special_inode(inode, inode->i_mode,
--			old_decode_dev(cramfs_inode->size));
--	}
--}
- 
--static struct inode *get_cramfs_inode(struct super_block *sb,
--				struct cramfs_inode * cramfs_inode)
--{
--	struct inode *inode;
--	if (CRAMINO(cramfs_inode) == 1) {
--		inode = new_inode(sb);
--		if (inode) {
--			inode->i_ino = 1;
--			setup_inode(inode, cramfs_inode);
--		}
--	} else {
--		inode = iget_locked(sb, CRAMINO(cramfs_inode));
--		if (inode && (inode->i_state & I_NEW)) {
--			setup_inode(inode, cramfs_inode);
--			unlock_new_inode(inode);
--		}
--	}
-+	unlock_new_inode(inode);
-+
- 	return inode;
+ 	if (!cino->offset)
+ 		return offset + 1;
+@@ -61,7 +61,7 @@ static unsigned long cramino(struct cram
  }
  
-@@ -265,6 +289,9 @@ static int cramfs_fill_super(struct supe
- 		printk(KERN_ERR "cramfs: root is not a directory\n");
- 		goto out;
- 	}
-+	/* correct strange, hard-coded permissions of mkcramfs */
-+	super.root.mode |= (S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-+
- 	root_offset = super.root.offset << 2;
- 	if (super.flags & CRAMFS_FLAG_FSID_VERSION_2) {
- 		sbi->size=super.size;
-@@ -289,7 +316,7 @@ static int cramfs_fill_super(struct supe
- 
- 	/* Set it all up.. */
- 	sb->s_op = &cramfs_ops;
--	root = get_cramfs_inode(sb, &super.root);
-+	root = get_cramfs_inode(sb, &super.root, 0);
- 	if (!root)
- 		goto out;
- 	sb->s_root = d_alloc_root(root);
-@@ -365,7 +392,7 @@ static int cramfs_readdir(struct file *f
- 		 */
- 		namelen = de->namelen << 2;
- 		memcpy(buf, name, namelen);
--		ino = CRAMINO(de);
-+		ino = cramino(de, OFFSET(inode) + offset);
- 		mode = de->mode;
- 		mutex_unlock(&read_mutex);
- 		nextoffset = offset + sizeof(*de) + namelen;
-@@ -404,8 +431,9 @@ static struct dentry * cramfs_lookup(str
- 		struct cramfs_inode *de;
- 		char *name;
- 		int namelen, retval;
-+		int dir_off = OFFSET(dir) + offset;
- 
--		de = cramfs_read(dir->i_sb, OFFSET(dir) + offset, sizeof(*de)+CRAMFS_MAXPATHLEN);
-+		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de)+CRAMFS_MAXPATHLEN);
- 		name = (char *)(de+1);
- 
- 		/* Try to take advantage of sorted directories */
-@@ -436,7 +464,7 @@ static struct dentry * cramfs_lookup(str
- 		if (!retval) {
- 			struct cramfs_inode entry = *de;
- 			mutex_unlock(&read_mutex);
--			d_add(dentry, get_cramfs_inode(dir->i_sb, &entry));
-+			d_add(dentry, get_cramfs_inode(dir->i_sb, &entry, dir_off));
- 			return NULL;
- 		}
- 		/* else (retval < 0) */
+ static struct inode *get_cramfs_inode(struct super_block *sb,
+-	struct cramfs_inode * cramfs_inode, unsigned int offset)
++	struct cramfs_inode *cramfs_inode, unsigned int offset)
+ {
+ 	struct inode *inode;
+ 	static struct timespec zerotime;
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
