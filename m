@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-annotate-gpio-intialization-with-__must_check.patch added to -mm tree
-Date: Tue, 04 Jan 2011 12:02:00 -0800
-Message-ID: <201101042002.p04K21Yn021468@imap1.linux-foundation.org>
+Subject: + mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch added to -mm tree
+Date: Tue, 04 Jan 2011 12:37:51 -0800
+Message-ID: <201101042037.p04KbpXF023014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750980Ab1ADUCw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 15:02:52 -0500
+	by vger.kernel.org with ESMTP id S1751426Ab1ADUh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 15:37:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: w.sang@pengutronix.de, dbrownell@users.sourceforge.net, gregkh@suse.de
+Cc: eike-kernel@sf-tec.de
 
 
 The patch titled
-     gpiolib: annotate gpio-intialization with __must_check
+     mm/dmapool.c: take lock only once in dma_pool_free()
 has been added to the -mm tree.  Its filename is
-     gpiolib-annotate-gpio-intialization-with-__must_check.patch
+     mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: annotate gpio-intialization with __must_check
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: mm/dmapool.c: take lock only once in dma_pool_free()
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
 
-Because GPIOs can have crucial functions especially in embedded systems,
-we are better safe than sorry regarding their configuration.  For
-gpio_request, the documentation is simply enforced: <quote>"The return
-value of gpio_request() must be checked."</quote> For gpio_direction_* and
-gpio_request_*, we now act accordingly.
+dma_pool_free() scans for the page to free in the pool list holding the
+pool lock.  Then it releases the lock basically to acquire it immediately
+again.  Modify the code to only take the lock once.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <gregkh@suse.de>
+This will do some additional loops and computations with the lock held in
+if memory debugging is activated.  If it is not activated the only new
+operations with this lock is one if and one substraction.
+
+Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |    2 +-
- include/asm-generic/gpio.h |   10 +++++-----
- include/linux/gpio.h       |    6 +++---
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ mm/dmapool.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpiolib-annotate-gpio-intialization-with-__must_check Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-annotate-gpio-intialization-with-__must_check
-+++ a/Documentation/gpio.txt
-@@ -135,7 +135,7 @@ setting up a platform_device using the G
- 	int gpio_direction_input(unsigned gpio);
- 	int gpio_direction_output(unsigned gpio, int value);
+diff -puN mm/dmapool.c~mm-dmapoolc-take-lock-only-once-in-dma_pool_free mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapoolc-take-lock-only-once-in-dma_pool_free
++++ a/mm/dmapool.c
+@@ -355,20 +355,15 @@ EXPORT_SYMBOL(dma_pool_alloc);
  
--The return value is zero for success, else a negative errno.  It should
-+The return value is zero for success, else a negative errno.  It must
- be checked, since the get/set calls don't have error returns and since
- misconfiguration is possible.  You should normally issue these calls from
- a task context.  However, for spinlock-safe GPIOs it's OK to use them
-diff -puN include/asm-generic/gpio.h~gpiolib-annotate-gpio-intialization-with-__must_check include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-annotate-gpio-intialization-with-__must_check
-+++ a/include/asm-generic/gpio.h
-@@ -147,11 +147,11 @@ extern struct gpio_chip *gpiochip_find(v
- /* Always use the library code for GPIO management calls,
-  * or when sleeping may be involved.
-  */
--extern int gpio_request(unsigned gpio, const char *label);
-+extern int __must_check gpio_request(unsigned gpio, const char *label);
- extern void gpio_free(unsigned gpio);
- 
--extern int gpio_direction_input(unsigned gpio);
--extern int gpio_direction_output(unsigned gpio, int value);
-+extern int __must_check gpio_direction_input(unsigned gpio);
-+extern int __must_check gpio_direction_output(unsigned gpio, int value);
- 
- extern int gpio_set_debounce(unsigned gpio, unsigned debounce);
- 
-@@ -192,8 +192,8 @@ struct gpio {
- 	const char	*label;
- };
- 
--extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
--extern int gpio_request_array(struct gpio *array, size_t num);
-+extern int __must_check gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
-+extern int __must_check gpio_request_array(struct gpio *array, size_t num);
- extern void gpio_free_array(struct gpio *array, size_t num);
- 
- #ifdef CONFIG_GPIO_SYSFS
-diff -puN include/linux/gpio.h~gpiolib-annotate-gpio-intialization-with-__must_check include/linux/gpio.h
---- a/include/linux/gpio.h~gpiolib-annotate-gpio-intialization-with-__must_check
-+++ a/include/linux/gpio.h
-@@ -29,7 +29,7 @@ static inline int gpio_is_valid(int numb
- 	return 0;
- }
- 
--static inline int gpio_request(unsigned gpio, const char *label)
-+static inline int __must_check gpio_request(unsigned gpio, const char *label)
+ static struct dma_page *pool_find_page(struct dma_pool *pool, dma_addr_t dma)
  {
- 	return -ENOSYS;
- }
-@@ -42,12 +42,12 @@ static inline void gpio_free(unsigned gp
- 	WARN_ON(1);
+-	unsigned long flags;
+ 	struct dma_page *page;
+ 
+-	spin_lock_irqsave(&pool->lock, flags);
+ 	list_for_each_entry(page, &pool->page_list, page_list) {
+ 		if (dma < page->dma)
+ 			continue;
+ 		if (dma < (page->dma + pool->allocation))
+-			goto done;
++			return page;
+ 	}
+-	page = NULL;
+- done:
+-	spin_unlock_irqrestore(&pool->lock, flags);
+-	return page;
++	return NULL;
  }
  
--static inline int gpio_direction_input(unsigned gpio)
-+static inline int __must_check gpio_direction_input(unsigned gpio)
- {
- 	return -ENOSYS;
- }
+ /**
+@@ -386,8 +381,10 @@ void dma_pool_free(struct dma_pool *pool
+ 	unsigned long flags;
+ 	unsigned int offset;
  
--static inline int gpio_direction_output(unsigned gpio, int value)
-+static inline int __must_check gpio_direction_output(unsigned gpio, int value)
- {
- 	return -ENOSYS;
- }
++	spin_lock_irqsave(&pool->lock, flags);
+ 	page = pool_find_page(pool, dma);
+ 	if (!page) {
++		spin_unlock_irqrestore(&pool->lock, flags);
+ 		if (pool->dev)
+ 			dev_err(pool->dev,
+ 				"dma_pool_free %s, %p/%lx (bad dma)\n",
+@@ -401,6 +398,7 @@ void dma_pool_free(struct dma_pool *pool
+ 	offset = vaddr - page->vaddr;
+ #ifdef	DMAPOOL_DEBUG
+ 	if ((dma - page->dma) != offset) {
++		spin_unlock_irqrestore(&pool->lock, flags);
+ 		if (pool->dev)
+ 			dev_err(pool->dev,
+ 				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+@@ -418,6 +416,7 @@ void dma_pool_free(struct dma_pool *pool
+ 				chain = *(int *)(page->vaddr + chain);
+ 				continue;
+ 			}
++			spin_unlock_irqrestore(&pool->lock, flags);
+ 			if (pool->dev)
+ 				dev_err(pool->dev, "dma_pool_free %s, dma %Lx "
+ 					"already free\n", pool->name,
+@@ -432,7 +431,6 @@ void dma_pool_free(struct dma_pool *pool
+ 	memset(vaddr, POOL_POISON_FREED, pool->size);
+ #endif
+ 
+-	spin_lock_irqsave(&pool->lock, flags);
+ 	page->in_use--;
+ 	*(int *)vaddr = page->offset;
+ 	page->offset = offset;
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from eike-kernel@sf-tec.de are
 
 linux-next.patch
-gpiolib-annotate-gpio-intialization-with-__must_check.patch
-gpiolib-add-missing-functions-to-generic-fallback.patch
+mm-dmapoolc-take-lock-only-once-in-dma_pool_free.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
 
