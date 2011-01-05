@@ -1,69 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-fixups.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:36:20 -0800
-Message-ID: <201101050036.p050aK8k000815@imap1.linux-foundation.org>
+Subject: [folded] vfs-add-super-operation-writeback_inodes-fix.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 16:36:33 -0800
+Message-ID: <201101050036.p050aY78000819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751626Ab1AEAgX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:23 -0500
+	by vger.kernel.org with ESMTP id S1751342Ab1AEAgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4 fixups
+     vfs-add-super-operation-writeback_inodes-fix
 has been removed from the -mm tree.  Its filename was
-     reiser4-fixups.patch
+     vfs-add-super-operation-writeback_inodes-fix.patch
 
-This patch was dropped because it was folded into reiser4.patch
+This patch was dropped because it was folded into vfs-add-super-operation-writeback_inodes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4 fixups
+Subject: vfs-add-super-operation-writeback_inodes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-INIT_RCU_HEAD went away.
-
-kernel.h got a round_up().  I didn't check to see if it's the same :(
+writeback_inodes_wbc() got removed.
 
 Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/forward.h |    4 ----
- fs/reiser4/jnode.c   |    2 --
- 2 files changed, 6 deletions(-)
+ fs/fs-writeback.c  |    2 +-
+ include/linux/fs.h |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/forward.h~reiser4-fixups fs/reiser4/forward.h
---- a/fs/reiser4/forward.h~reiser4-fixups
-+++ a/fs/reiser4/forward.h
-@@ -156,10 +156,6 @@ typedef enum {
- 	RIGHT_SIDE
- } sideof;
+diff -puN fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix
++++ a/fs/fs-writeback.c
+@@ -623,6 +623,7 @@ void writeback_inodes_wb(struct bdi_writ
+ 	spin_unlock(&inode_lock);
+ 	/* Leave any unwritten inodes on b_io */
+ }
++EXPORT_SYMBOL(writeback_inodes_wb);
  
--#define round_up(value, order)						\
--	((typeof(value))(((long) (value) + (order) - 1U) &	\
--			     ~((order) - 1)))
--
- /* values returned by squalloc_right_neighbor and its auxiliary functions */
- typedef enum {
- 	/* unit of internal item is moved */
-diff -puN fs/reiser4/jnode.c~reiser4-fixups fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~reiser4-fixups
-+++ a/fs/reiser4/jnode.c
-@@ -247,8 +247,6 @@ void jnode_init(jnode * node, reiser4_tr
+ static void __writeback_inodes_sb(struct super_block *sb,
+ 		struct bdi_writeback *wb, struct writeback_control *wbc)
+@@ -635,7 +636,6 @@ static void __writeback_inodes_sb(struct
+ 	do_writeback_sb_inodes(sb, wb, wbc, true);
+ 	spin_unlock(&inode_lock);
+ }
+-EXPORT_SYMBOL(writeback_inodes_wbc);
  
- 	ASSIGN_NODE_LIST(node, NOT_CAPTURED);
- 
--	INIT_RCU_HEAD(&node->rcu);
--
- #if REISER4_DEBUG
- 	{
- 		reiser4_super_info_data *sbinfo;
+ /*
+  * The maximum number of pages to writeout in a single bdi flush/kupdate
+diff -puN include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix
++++ a/include/linux/fs.h
+@@ -2158,7 +2158,8 @@ extern int invalidate_inode_pages2_range
+ extern int write_inode_now(struct inode *, int);
+ extern void writeback_skip_sb_inodes(struct super_block *sb,
+ 				     struct bdi_writeback *wb);
+-extern void writeback_inodes_wbc(struct writeback_control *wbc);
++extern void writeback_inodes_wb(struct bdi_writeback *wb,
++				struct writeback_control *wbc);
+ extern int generic_writeback_sb_inodes(struct super_block *sb,
+ 				       struct bdi_writeback *wb,
+ 				       struct writeback_control *wbc,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,7 +128,7 @@ memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
 ramoops-fix-types-remove-typecasts.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
+vfs-add-super-operation-writeback_inodes.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4-export-find_get_pages.patch
 reiser4.patch
