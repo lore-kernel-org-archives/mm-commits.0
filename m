@@ -1,99 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:36:09 -0800
-Message-ID: <201101050036.p050a94p000720@imap1.linux-foundation.org>
+Subject: [folded] reiser4-fixup-checkin-checkout-jnodes-for-entd.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 16:36:15 -0800
+Message-ID: <201101050036.p050aFXD000812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116Ab1AEAgL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:11 -0500
+	by vger.kernel.org with ESMTP id S1751116Ab1AEAgR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: adjust to writeback changes
+     reiser4: fixup checkin-checkout jnodes for entd
 has been removed from the -mm tree.  Its filename was
-     reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
+     reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: adjust to writeback changes
+Subject: reiser4: fixup checkin-checkout jnodes for entd
 From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Adjust reiser4 to the latest vfs changes:
-. Change reiser4_writeback_inodes();
-. Use writeback_inodes_wb() instead of writeback_inodes_wbc().
+The bug: reiser4_writeout() calls jput for jnode
+which is already destroyed:
+
+Fix up: take  the reference earler (at the point where the
+jnode is attached for entd work).
 
 Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/entd.c       |    5 ++---
- fs/reiser4/page_cache.c |    3 ---
- fs/reiser4/super_ops.c  |    5 +++--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ fs/reiser4/plugin/file/file.c |    6 ++++--
+ fs/reiser4/vfs_ops.c          |    4 +++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/entd.c
---- a/fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/entd.c
-@@ -237,14 +237,13 @@ static void entd_flush(struct super_bloc
- 		(ENTD_CAPTURE_APAGE_BURST << PAGE_CACHE_SHIFT);
- 	tmp = rq->wbc->nr_to_write;
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
++++ a/fs/reiser4/plugin/file/file.c
+@@ -824,14 +824,16 @@ int find_or_create_extent(struct page *p
  
--	assert("edward-1561", super == rq->wbc->sb);
--
- 	rq->mapping->a_ops->writepages(rq->mapping, rq->wbc);
+ 	BUG_ON(node->atom == NULL);
+ 	JF_CLR(node, JNODE_WRITE_PREPARED);
+-	jput(node);
  
- 	if (rq->wbc->nr_to_write > 0) {
- 		rq->wbc->range_start = 0;
- 		rq->wbc->range_end = LLONG_MAX;
--		writeback_inodes_wbc(rq->wbc);
-+		writeback_inodes_wb(&rq->mapping->backing_dev_info->wb,
-+				    rq->wbc);
+ 	if (get_current_context()->entd) {
+ 		entd_context *ent = get_entd_context(node->tree->super);
+ 
+ 		if (ent->cur_request->page == page)
+-			ent->cur_request->node = node;
++			/* the following reference will be
++			   dropped in reiser4_writeout */
++			ent->cur_request->node = jref(node);
  	}
- 	rq->wbc->nr_to_write = ENTD_CAPTURE_APAGE_BURST;
- 
-diff -puN fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/page_cache.c
---- a/fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/page_cache.c
-@@ -492,9 +492,6 @@ int reiser4_writepage(struct page *page,
- 	 */
- 	assert("vs-828", PageLocked(page));
- 
--	wbc->sb = page->mapping->host->i_sb;
--	wbc->bdi = page->mapping->backing_dev_info;
--
- 	return write_page_by_ent(page, wbc);
++	jput(node);
+ 	return 0;
  }
  
-diff -puN fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/super_ops.c
-@@ -391,7 +391,8 @@ static void reiser4_clear_inode(struct i
-  */
- static int reiser4_writeback_inodes(struct super_block *super,
- 				    struct bdi_writeback *wb,
--				    struct writeback_control *wbc)
-+				    struct writeback_control *wbc,
-+				    bool only_this_sb)
- {
- 	int ret;
- 	long to_write;
-@@ -415,7 +416,7 @@ static int reiser4_writeback_inodes(stru
- 	 * dirty pages into transactions if they were not yet.
- 	 */
- 	spin_lock(&inode_lock);
--	ret = generic_writeback_sb_inodes(super, wb, wbc);
-+	ret = generic_writeback_sb_inodes(super, wb, wbc, only_this_sb);
- 	spin_unlock(&inode_lock);
+diff -puN fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/vfs_ops.c
+--- a/fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
++++ a/fs/reiser4/vfs_ops.c
+@@ -184,7 +184,7 @@ void reiser4_writeout(struct super_block
+ 				 * requested page itself - start flush from
+ 				 * that page
+ 				 */
+-				node = jref(ent->cur_request->node);
++				node = ent->cur_request->node;
+ 		}
  
- 	wbc->nr_to_write = to_write;
+ 		result = flush_some_atom(node, &nr_submitted, wbc,
+@@ -192,6 +192,8 @@ void reiser4_writeout(struct super_block
+ 		if (result != 0)
+ 			warning("nikita-31001", "Flush failed: %i", result);
+ 		if (node)
++			/* drop the reference aquired
++			   in find_or_create_extent() */
+ 			jput(node);
+ 		if (!nr_submitted)
+ 			break;
 _
 
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
@@ -105,7 +94,6 @@ vfs-add-super-operation-writeback_inodes-fix.patch
 vfs-take-2add-set_page_dirty_notag.patch
 vfs-change-writeback_inodes-signature.patch
 reiser4.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 reiser4-fixups.patch
 reiser4-broke.patch
 
