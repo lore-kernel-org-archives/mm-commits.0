@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch added to -mm tree
-Date: Wed, 05 Jan 2011 13:45:33 -0800
-Message-ID: <201101052145.p05LjXfo020155@imap1.linux-foundation.org>
+Subject: + fix-miscompiling-with-gcc-45-finline-functions-fix.patch added to -mm tree
+Date: Wed, 05 Jan 2011 15:02:39 -0800
+Message-ID: <201101052302.p05N2dGt023321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34265 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751296Ab1AEVqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2011 16:46:00 -0500
+	by vger.kernel.org with ESMTP id S1751392Ab1AEXD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2011 18:03:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomoya-linux@dsn.okisemi.com, akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, linus.walleij@stericsson.com, maz@misterjones.org, rabin.vincent@stericsson.com, sameo@linux.intel.com
+Cc: akpm@linux-foundation.org, avi@redhat.com, hverkuil@xs4all.nl, mahatma@bspu.unibel.by, mahatma@eu.by, mchehab@infradead.org, mtosatti@redhat.com
 
 
 The patch titled
-     drivers/gpio/ml_ioh_gpio.c: fix resource leak
+     fix-miscompiling-with-gcc-45-finline-functions-fix
 has been added to the -mm tree.  Its filename is
-     gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
+     fix-miscompiling-with-gcc-45-finline-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/ml_ioh_gpio.c: fix resource leak
-From: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Subject: fix-miscompiling-with-gcc-45-finline-functions-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- add gpiochip_remove processing in case gpiochip_add fails.
-
-- for readability, move variable initialization to outside for-condition.
-
-Signed-off-by: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Rabin Vincent <rabin.vincent@stericsson.com>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Dzianis Kahanovich <mahatma@bspu.unibel.by>
+Cc: Dzianis Kahanovich <mahatma@eu.by>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/ml_ioh_gpio.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/x86/kvm/vmx.c                  |    1 +
+ drivers/media/radio/radio-aimslab.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/gpio/ml_ioh_gpio.c~gpio-ml_ioh_gpio-ml7213-gpio-driver-fix drivers/gpio/ml_ioh_gpio.c
---- a/drivers/gpio/ml_ioh_gpio.c~gpio-ml_ioh_gpio-ml7213-gpio-driver-fix
-+++ a/drivers/gpio/ml_ioh_gpio.c
-@@ -208,7 +208,8 @@ static int __devinit ioh_gpio_probe(stru
- 		goto err_kzalloc;
+diff -puN arch/x86/kvm/vmx.c~fix-miscompiling-with-gcc-45-finline-functions-fix arch/x86/kvm/vmx.c
+--- a/arch/x86/kvm/vmx.c~fix-miscompiling-with-gcc-45-finline-functions-fix
++++ a/arch/x86/kvm/vmx.c
+@@ -569,6 +569,7 @@ static inline void ept_sync_individual_a
  	}
+ }
  
--	for (i = 0, chip = chip_save; i < 8; i++, chip++) {
-+	chip = chip_save;
-+	for (i = 0; i < 8; i++, chip++) {
- 		chip->dev = &pdev->dev;
- 		chip->base = base;
- 		chip->reg = chip->base;
-@@ -228,6 +229,12 @@ static int __devinit ioh_gpio_probe(stru
- 	return 0;
++/* noinline works around gcc-4.5+ build error with -finline-functions */
+ static noinline unsigned long vmcs_readl(unsigned long field)
+ {
+ 	unsigned long value = 0;
+diff -puN drivers/media/radio/radio-aimslab.c~fix-miscompiling-with-gcc-45-finline-functions-fix drivers/media/radio/radio-aimslab.c
+--- a/drivers/media/radio/radio-aimslab.c~fix-miscompiling-with-gcc-45-finline-functions-fix
++++ a/drivers/media/radio/radio-aimslab.c
+@@ -71,6 +71,7 @@ static struct rtrack rtrack_card;
  
- err_gpiochip_add:
-+	for (; i != 0; i--) {
-+		chip--;
-+		ret = gpiochip_remove(&chip->gpio);
-+		if (ret)
-+			dev_err(&pdev->dev, "Failed gpiochip_remove(%d)\n", i);
-+	}
- 	kfree(chip_save);
+ /* local things */
  
- err_kzalloc:
++/* noinline works around gcc-4.5+ build error with -finline-functions */
+ static noinline void sleep_delay(long n)
+ {
+ 	/* Sleep nicely for 'n' uS */
 _
 
-Patches currently in -mm which might be from tomoya-linux@dsn.okisemi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-gpio-ml_ioh_gpio-ml7213-gpio-driver.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+fix-miscompiling-with-gcc-45-finline-functions-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
