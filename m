@@ -1,70 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:11:16 -0800
-Message-ID: <201101050011.p050BGOj032264@imap1.linux-foundation.org>
+Subject: + fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch added to -mm tree
+Date: Tue, 04 Jan 2011 16:14:50 -0800
+Message-ID: <201101050014.p050EopG032334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750919Ab1AEAL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:11:28 -0500
+	by vger.kernel.org with ESMTP id S1751547Ab1AEAPE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:15:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jj@chaosbits.net, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, jmorris@namei.org, serge@hallyn.com, zohar@us.ibm.com
 
 
 The patch titled
-     gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes.patch
+     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
+has been added to the -mm tree.  Its filename is
+     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
+Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#37: FILE: usr/gen_init_cpio.c:318:
-+	retval = fstat (file, &buf);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#39: FILE: usr/gen_init_cpio.c:320:
-+		fprintf (stderr, "File %s could not be stat()'ed\n", location);
-
-total: 0 errors, 2 warnings, 24 lines checked
-
-./patches/gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Juhl <jj@chaosbits.net>
-Cc: Michal Marek <mmarek@suse.cz>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/gen_init_cpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_misc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes usr/gen_init_cpio.c
---- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-risk-of-file-changing-between-calls-to-stat-and-open-checkpatch-fixes
-+++ a/usr/gen_init_cpio.c
-@@ -315,9 +315,9 @@ static int cpio_mkfile(const char *name,
- 		goto error;
- 	}
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
++++ a/fs/binfmt_misc.c
+@@ -243,11 +243,10 @@ static int unquote(char *from)
+ 	char c = 0, *s = from, *p = from;
  
--	retval = fstat (file, &buf);
-+	retval = fstat(file, &buf);
- 	if (retval) {
--		fprintf (stderr, "File %s could not be stat()'ed\n", location);
-+		fprintf(stderr, "File %s could not be stat()'ed\n", location);
- 		goto error;
+ 	while ((c = *s++) != '\0') {
+-		if (c == '\\' && *s == 'x') {
+-			s = (char *)hex2bin(p, s + 1, 1);
+-			continue;
+-		}
+-		*p++ = c;
++		if (c == '\\' && *s == 'x')
++			s = (char *)hex2bin(p++, s + 1, 1);
++		else
++			*p++ = c;
  	}
- 
+ 	return p - from;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +114,7 @@ kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
 fs-select-fix-information-leak-to-userspace-fix.patch
 lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 drivers-telephony-ixjc-fix-warning.patch
 memcg-document-cgroup-dirty-memory-interfaces-fix.patch
 fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
