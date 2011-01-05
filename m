@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch added to -mm tree
-Date: Tue, 04 Jan 2011 16:14:50 -0800
-Message-ID: <201101050014.p050EopG032334@imap1.linux-foundation.org>
+Subject: + mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch added to -mm tree
+Date: Tue, 04 Jan 2011 16:33:31 -0800
+Message-ID: <201101050033.p050XVvR000653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751547Ab1AEAPE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:15:04 -0500
+	by vger.kernel.org with ESMTP id S1751559Ab1AEAdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:33:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, jmorris@namei.org, serge@hallyn.com, zohar@us.ibm.com
+Cc: akpm@linux-foundation.org, eike-kernel@sf-tec.de
 
 
 The patch titled
-     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
+     mm/dmapool.c: use TASK_UNINTERRUPTIBLE in dma_pool_alloc()
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+     mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
+Subject: mm/dmapool.c: use TASK_UNINTERRUPTIBLE in dma_pool_alloc()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge E. Hallyn <serge@hallyn.com>
+As it stands this code will degenerate into a busy-wait if the calling task
+has signal_pending().
+
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/dmapool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
-+++ a/fs/binfmt_misc.c
-@@ -243,11 +243,10 @@ static int unquote(char *from)
- 	char c = 0, *s = from, *p = from;
+diff -puN mm/dmapool.c~mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc
++++ a/mm/dmapool.c
+@@ -324,7 +324,7 @@ void *dma_pool_alloc(struct dma_pool *po
+ 		if (mem_flags & __GFP_WAIT) {
+ 			DECLARE_WAITQUEUE(wait, current);
  
- 	while ((c = *s++) != '\0') {
--		if (c == '\\' && *s == 'x') {
--			s = (char *)hex2bin(p, s + 1, 1);
--			continue;
--		}
--		*p++ = c;
-+		if (c == '\\' && *s == 'x')
-+			s = (char *)hex2bin(p++, s + 1, 1);
-+		else
-+			*p++ = c;
- 	}
- 	return p - from;
- }
+-			__set_current_state(TASK_INTERRUPTIBLE);
++			__set_current_state(TASK_UNINTERRUPTIBLE);
+ 			__add_wait_queue(&pool->waitq, &wait);
+ 			spin_unlock_irqrestore(&pool->lock, flags);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
