@@ -1,120 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-writeback_inodes-implementation-fix.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:36:06 -0800
-Message-ID: <201101050036.p050a6VM000716@imap1.linux-foundation.org>
+Subject: [folded] reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 16:36:09 -0800
+Message-ID: <201101050036.p050a94p000720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486Ab1AEAgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:09 -0500
+	by vger.kernel.org with ESMTP id S1751116Ab1AEAgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-writeback_inodes-implementation-fix
+     reiser4: adjust to writeback changes
 has been removed from the -mm tree.  Its filename was
-     reiser4-writeback_inodes-implementation-fix.patch
+     reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-writeback_inodes-implementation-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: adjust to writeback changes
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-ERROR: "inode_lock" [fs/reiser4/reiser4.ko] undefined!
+Adjust reiser4 to the latest vfs changes:
+. Change reiser4_writeback_inodes();
+. Use writeback_inodes_wb() instead of writeback_inodes_wbc().
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiser4/entd.c       |    5 ++---
+ fs/reiser4/page_cache.c |    3 ---
+ fs/reiser4/super_ops.c  |    5 +++--
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/inode.c~reiser4-writeback_inodes-implementation-fix fs/inode.c
---- a/fs/inode.c~reiser4-writeback_inodes-implementation-fix
-+++ a/fs/inode.c
-@@ -83,6 +83,7 @@ static struct hlist_head *inode_hashtabl
-  * the i_state of an inode while it is in use..
-  */
- DEFINE_SPINLOCK(inode_lock);
-+EXPORT_SYMBOL_GPL(inode_lock);
+diff -puN fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/entd.c
+--- a/fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
++++ a/fs/reiser4/entd.c
+@@ -237,14 +237,13 @@ static void entd_flush(struct super_bloc
+ 		(ENTD_CAPTURE_APAGE_BURST << PAGE_CACHE_SHIFT);
+ 	tmp = rq->wbc->nr_to_write;
  
- /*
-  * iprune_sem provides exclusion between the kswapd or try_to_free_pages
+-	assert("edward-1561", super == rq->wbc->sb);
+-
+ 	rq->mapping->a_ops->writepages(rq->mapping, rq->wbc);
+ 
+ 	if (rq->wbc->nr_to_write > 0) {
+ 		rq->wbc->range_start = 0;
+ 		rq->wbc->range_end = LLONG_MAX;
+-		writeback_inodes_wbc(rq->wbc);
++		writeback_inodes_wb(&rq->mapping->backing_dev_info->wb,
++				    rq->wbc);
+ 	}
+ 	rq->wbc->nr_to_write = ENTD_CAPTURE_APAGE_BURST;
+ 
+diff -puN fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
++++ a/fs/reiser4/page_cache.c
+@@ -492,9 +492,6 @@ int reiser4_writepage(struct page *page,
+ 	 */
+ 	assert("vs-828", PageLocked(page));
+ 
+-	wbc->sb = page->mapping->host->i_sb;
+-	wbc->bdi = page->mapping->backing_dev_info;
+-
+ 	return write_page_by_ent(page, wbc);
+ }
+ 
+diff -puN fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
++++ a/fs/reiser4/super_ops.c
+@@ -391,7 +391,8 @@ static void reiser4_clear_inode(struct i
+  */
+ static int reiser4_writeback_inodes(struct super_block *super,
+ 				    struct bdi_writeback *wb,
+-				    struct writeback_control *wbc)
++				    struct writeback_control *wbc,
++				    bool only_this_sb)
+ {
+ 	int ret;
+ 	long to_write;
+@@ -415,7 +416,7 @@ static int reiser4_writeback_inodes(stru
+ 	 * dirty pages into transactions if they were not yet.
+ 	 */
+ 	spin_lock(&inode_lock);
+-	ret = generic_writeback_sb_inodes(super, wb, wbc);
++	ret = generic_writeback_sb_inodes(super, wb, wbc, only_this_sb);
+ 	spin_unlock(&inode_lock);
+ 
+ 	wbc->nr_to_write = to_write;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
+reiserfs-make-sure-va_end-is-always-called-after-va_start.patch
+vfs-add-super-operation-writeback_inodes.patch
 vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
+vfs-take-2add-set_page_dirty_notag.patch
+vfs-change-writeback_inodes-signature.patch
 reiser4.patch
+reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 reiser4-fixups.patch
 reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
