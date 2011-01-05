@@ -1,99 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-fixup-checkin-checkout-jnodes-for-entd.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:36:15 -0800
-Message-ID: <201101050036.p050aFXD000812@imap1.linux-foundation.org>
+Subject: [folded] reiser4-fixups.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 16:36:20 -0800
+Message-ID: <201101050036.p050aK8k000815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33642 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116Ab1AEAgR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:17 -0500
+	by vger.kernel.org with ESMTP id S1751626Ab1AEAgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: fixup checkin-checkout jnodes for entd
+     reiser4 fixups
 has been removed from the -mm tree.  Its filename was
-     reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
+     reiser4-fixups.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: fixup checkin-checkout jnodes for entd
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: reiser4 fixups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The bug: reiser4_writeout() calls jput for jnode
-which is already destroyed:
+INIT_RCU_HEAD went away.
 
-Fix up: take  the reference earler (at the point where the
-jnode is attached for entd work).
+kernel.h got a round_up().  I didn't check to see if it's the same :(
 
-Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c |    6 ++++--
- fs/reiser4/vfs_ops.c          |    4 +++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/reiser4/forward.h |    4 ----
+ fs/reiser4/jnode.c   |    2 --
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -824,14 +824,16 @@ int find_or_create_extent(struct page *p
+diff -puN fs/reiser4/forward.h~reiser4-fixups fs/reiser4/forward.h
+--- a/fs/reiser4/forward.h~reiser4-fixups
++++ a/fs/reiser4/forward.h
+@@ -156,10 +156,6 @@ typedef enum {
+ 	RIGHT_SIDE
+ } sideof;
  
- 	BUG_ON(node->atom == NULL);
- 	JF_CLR(node, JNODE_WRITE_PREPARED);
--	jput(node);
+-#define round_up(value, order)						\
+-	((typeof(value))(((long) (value) + (order) - 1U) &	\
+-			     ~((order) - 1)))
+-
+ /* values returned by squalloc_right_neighbor and its auxiliary functions */
+ typedef enum {
+ 	/* unit of internal item is moved */
+diff -puN fs/reiser4/jnode.c~reiser4-fixups fs/reiser4/jnode.c
+--- a/fs/reiser4/jnode.c~reiser4-fixups
++++ a/fs/reiser4/jnode.c
+@@ -247,8 +247,6 @@ void jnode_init(jnode * node, reiser4_tr
  
- 	if (get_current_context()->entd) {
- 		entd_context *ent = get_entd_context(node->tree->super);
+ 	ASSIGN_NODE_LIST(node, NOT_CAPTURED);
  
- 		if (ent->cur_request->page == page)
--			ent->cur_request->node = node;
-+			/* the following reference will be
-+			   dropped in reiser4_writeout */
-+			ent->cur_request->node = jref(node);
- 	}
-+	jput(node);
- 	return 0;
- }
- 
-diff -puN fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/vfs_ops.c
---- a/fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
-+++ a/fs/reiser4/vfs_ops.c
-@@ -184,7 +184,7 @@ void reiser4_writeout(struct super_block
- 				 * requested page itself - start flush from
- 				 * that page
- 				 */
--				node = jref(ent->cur_request->node);
-+				node = ent->cur_request->node;
- 		}
- 
- 		result = flush_some_atom(node, &nr_submitted, wbc,
-@@ -192,6 +192,8 @@ void reiser4_writeout(struct super_block
- 		if (result != 0)
- 			warning("nikita-31001", "Flush failed: %i", result);
- 		if (node)
-+			/* drop the reference aquired
-+			   in find_or_create_extent() */
- 			jput(node);
- 		if (!nr_submitted)
- 			break;
+-	INIT_RCU_HEAD(&node->rcu);
+-
+ #if REISER4_DEBUG
+ 	{
+ 		reiser4_super_info_data *sbinfo;
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-reiserfs-make-sure-va_end-is-always-called-after-va_start.patch
-vfs-add-super-operation-writeback_inodes.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
 vfs-add-super-operation-writeback_inodes-fix.patch
-vfs-take-2add-set_page_dirty_notag.patch
-vfs-change-writeback_inodes-signature.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
-reiser4-fixups.patch
 reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
