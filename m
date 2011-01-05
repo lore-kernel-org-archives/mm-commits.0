@@ -1,73 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vfs-add-super-operation-writeback_inodes-fix.patch removed from -mm tree
-Date: Tue, 04 Jan 2011 16:36:33 -0800
-Message-ID: <201101050036.p050aY78000819@imap1.linux-foundation.org>
+Subject: [folded] reiser4-export-remove_from_page_cache-fix.patch removed from -mm tree
+Date: Tue, 04 Jan 2011 16:36:48 -0800
+Message-ID: <201101050036.p050amge000826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751342Ab1AEAgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:36 -0500
+	by vger.kernel.org with ESMTP id S1751400Ab1AEAgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jan 2011 19:36:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs-add-super-operation-writeback_inodes-fix
+     reiser4-export-remove_from_page_cache-fix
 has been removed from the -mm tree.  Its filename was
-     vfs-add-super-operation-writeback_inodes-fix.patch
+     reiser4-export-remove_from_page_cache-fix.patch
 
-This patch was dropped because it was folded into vfs-add-super-operation-writeback_inodes.patch
+This patch was dropped because it was folded into reiser4-export-remove_from_page_cache.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-add-super-operation-writeback_inodes-fix
+Subject: reiser4-export-remove_from_page_cache-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-writeback_inodes_wbc() got removed.
+merge glitch
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |    2 +-
- include/linux/fs.h |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/filemap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix
-+++ a/fs/fs-writeback.c
-@@ -623,6 +623,7 @@ void writeback_inodes_wb(struct bdi_writ
- 	spin_unlock(&inode_lock);
- 	/* Leave any unwritten inodes on b_io */
+diff -puN mm/filemap.c~reiser4-export-remove_from_page_cache-fix mm/filemap.c
+--- a/mm/filemap.c~reiser4-export-remove_from_page_cache-fix
++++ a/mm/filemap.c
+@@ -814,7 +814,6 @@ repeat:
+ 	rcu_read_unlock();
+ 	return ret;
  }
-+EXPORT_SYMBOL(writeback_inodes_wb);
+-EXPORT_SYMBOL(add_to_page_cache_lru);
  
- static void __writeback_inodes_sb(struct super_block *sb,
- 		struct bdi_writeback *wb, struct writeback_control *wbc)
-@@ -635,7 +636,6 @@ static void __writeback_inodes_sb(struct
- 	do_writeback_sb_inodes(sb, wb, wbc, true);
- 	spin_unlock(&inode_lock);
- }
--EXPORT_SYMBOL(writeback_inodes_wbc);
- 
- /*
-  * The maximum number of pages to writeout in a single bdi flush/kupdate
-diff -puN include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix include/linux/fs.h
---- a/include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix
-+++ a/include/linux/fs.h
-@@ -2158,7 +2158,8 @@ extern int invalidate_inode_pages2_range
- extern int write_inode_now(struct inode *, int);
- extern void writeback_skip_sb_inodes(struct super_block *sb,
- 				     struct bdi_writeback *wb);
--extern void writeback_inodes_wbc(struct writeback_control *wbc);
-+extern void writeback_inodes_wb(struct bdi_writeback *wb,
-+				struct writeback_control *wbc);
- extern int generic_writeback_sb_inodes(struct super_block *sb,
- 				       struct bdi_writeback *wb,
- 				       struct writeback_control *wbc,
+ /**
+  * find_get_pages_contig - gang contiguous pagecache lookup
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,8 +106,7 @@ memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
 ramoops-fix-types-remove-typecasts.patch
-vfs-add-super-operation-writeback_inodes.patch
-reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4-export-find_get_pages.patch
 reiser4.patch
 reiser4-broke.patch
