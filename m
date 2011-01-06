@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-dont-use-pr_warning_ratelimited.patch added to -mm tree
-Date: Thu, 06 Jan 2011 14:46:21 -0800
-Message-ID: <201101062319.p06NJpYh021477@imap1.linux-foundation.org>
+Subject: + fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch added to -mm tree
+Date: Thu, 06 Jan 2011 14:57:42 -0800
+Message-ID: <201101062331.p06NVAjJ021943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751581Ab1AFXT4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jan 2011 18:19:56 -0500
+	by vger.kernel.org with ESMTP id S1752543Ab1AFXbw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jan 2011 18:31:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tytso@mit.edu
+Cc: akpm@linux-foundation.org, lczerner@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     ext4: don't use pr_warning_ratelimited()
+     fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
 has been added to the -mm tree.  Its filename is
-     ext4-dont-use-pr_warning_ratelimited.patch
+     fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: don't use pr_warning_ratelimited()
+Subject: fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext4/inode.c: In function 'ext4_set_bh_endio':
-fs/ext4/inode.c:3733: error: implicit declaration of function 'pr_warning_ratelimited'                                                                          
+fs/ext4/super.c: In function 'ext4_register_li_request':
+fs/ext4/super.c:2936: warning: 'ret' may be used uninitialized in this function
 
-Don't use printk_ratelimit(), either.  It shares state with all other
-printk_ratelimit() sites, which can lead to bogus message suppression.  
+It looks buggy to me, too.
 
-Fix it by using printk_ratelimited().
-
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ext4/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/inode.c~ext4-dont-use-pr_warning_ratelimited fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-dont-use-pr_warning_ratelimited
-+++ a/fs/ext4/inode.c
-@@ -3730,7 +3730,8 @@ static int ext4_set_bh_endio(struct buff
- retry:
- 	io_end = ext4_init_io_end(inode, GFP_ATOMIC);
- 	if (!io_end) {
--		pr_warning_ratelimited("%s: allocation fail\n", __func__);
-+		printk_ratelimited(KERN_WARNING "%s: allocation fail\n",
-+				   __func__);
- 		schedule();
- 		goto retry;
- 	}
+diff -puN fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised fs/ext4/super.c
+--- a/fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised
++++ a/fs/ext4/super.c
+@@ -2933,7 +2933,7 @@ static int ext4_register_li_request(stru
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+ 	struct ext4_li_request *elr;
+ 	ext4_group_t ngroups = EXT4_SB(sb)->s_groups_count;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (sbi->s_li_request != NULL)
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +75,7 @@ drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-add-output-inversion-option-to-backlight-trigger-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 ext4-dont-use-pr_warning_ratelimited.patch
+fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
 mm.patch
