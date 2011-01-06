@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmap-area-cache-fix.patch added to -mm tree
-Date: Thu, 06 Jan 2011 14:34:58 -0800
-Message-ID: <201101062234.p06MYwtF019489@imap1.linux-foundation.org>
+Subject: + ext4-dont-use-pr_warning_ratelimited.patch added to -mm tree
+Date: Thu, 06 Jan 2011 14:46:21 -0800
+Message-ID: <201101062319.p06NJpYh021477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752484Ab1AFWfo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jan 2011 17:35:44 -0500
+	by vger.kernel.org with ESMTP id S1751581Ab1AFXT4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jan 2011 18:19:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, avi@redhat.com, bmarson@redhat.com, minchan.kim@gmail.com, prarit@redhat.com, swhiteho@redhat.com
+Cc: akpm@linux-foundation.org, tytso@mit.edu
 
 
 The patch titled
-     mm: vmap area cache fix
+     ext4: don't use pr_warning_ratelimited()
 has been added to the -mm tree.  Its filename is
-     mm-vmap-area-cache-fix.patch
+     ext4-dont-use-pr_warning_ratelimited.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,250 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmap area cache fix
-From: Hugh Dickins <hughd@google.com>
+Subject: ext4: don't use pr_warning_ratelimited()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I tried out the recent mmotm, and on one machine was fortunate to hit
-the BUG_ON(first->va_start < addr) which seems to have been stalling
-your vmap area cache patch ever since May.
+fs/ext4/inode.c: In function 'ext4_set_bh_endio':
+fs/ext4/inode.c:3733: error: implicit declaration of function 'pr_warning_ratelimited'                                                                          
 
-I can get you addresses etc, I did dump a few out; but once I stared
-at them, it was easier just to look at the code: and I cannot see how
-you would be so sure that first->va_start < addr, once you've done
-that addr = ALIGN(max(...), align) above, if align is over 0x1000
-(align was 0x8000 or 0x4000 in the cases I hit: ioremaps like Steve).
+Don't use printk_ratelimit(), either.  It shares state with all other
+printk_ratelimit() sites, which can lead to bogus message suppression.  
 
-I originally got around it by just changing the
-		if (first->va_start < addr) {
-to
-		while (first->va_start < addr) {
-without thinking about it any further; but that seemed unsatisfactory,
-why would we want to loop here when we've got another very similar
-loop just below it?
+Fix it by using printk_ratelimited().
 
-I am never going to admit how long I've spent trying to grasp your
-"while (n)" rbtree loop just above this, the one with the peculiar
-		if (!first && tmp->va_start < addr + size)
-in.  That's unfamiliar to me, I'm guessing it's designed to save a
-subsequent rb_next() in a few circumstances (at risk of then setting
-a wrong cached_hole_size?); but they did appear few to me, and I didn't
-feel I could sign off something with that in when I don't grasp it,
-and it seems responsible for extra code and mistaken BUG_ON below it.
-
-I've reverted to the familiar rbtree loop that find_vma() does (but
-with va_end >= addr as you had, to respect the additional guard page):
-and then (given that cached_hole_size starts out 0) I don't see the
-need for any complications below it.  If you do want to keep that loop
-as you had it, please add a comment to explain what it's trying to do,
-and where addr is relative to first when you emerge from it.
-
-Aren't your tests "size <= cached_hole_size" and
-"addr + size > first->va_start" forgetting the guard page we want
-before the next area?  I've changed those.
-
-I have not changed your many "addr + size - 1 < addr" overflow tests,
-but have since come to wonder, shouldn't they be "addr + size < addr"
-tests - won't the vend checks go wrong if addr + size is 0?
-
-I have added a few comments - Wolfgang Wander's 2.6.13 description of
-1363c3cd8603a913a27e2995dccbd70d5312d8e6 Avoiding mmap fragmentation
-helped me a lot, perhaps a pointer to that would be good too.  And I found
-it easier to understand when I renamed cached_start slightly and moved the
-overflow label down.
-
-This patch would go after your mm-vmap-area-cache.patch in mmotm. 
-Trivially, nobody is going to get that BUG_ON with this patch, and it
-appears to work fine on my machines; but I have not given it anything like
-the testing you did on your original, and may have broken all the
-performance you were aiming for.  Please take a look and test it out
-integrate with yours if you're satisfied - thanks.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: "Barry J. Marson" <bmarson@redhat.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   89 +++++++++++++++++++++++--------------------------
- 1 file changed, 42 insertions(+), 47 deletions(-)
+ fs/ext4/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmap-area-cache-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmap-area-cache-fix
-+++ a/mm/vmalloc.c
-@@ -267,7 +267,7 @@ static struct rb_root vmap_area_root = R
- /* The vmap cache globals are protected by vmap_area_lock */
- static struct rb_node *free_vmap_cache;
- static unsigned long cached_hole_size;
--static unsigned long cached_start;
-+static unsigned long cached_vstart;
- static unsigned long cached_align;
- 
- static unsigned long vmap_area_pcpu_hole;
-@@ -351,17 +351,25 @@ static struct vmap_area *alloc_vmap_area
- 
+diff -puN fs/ext4/inode.c~ext4-dont-use-pr_warning_ratelimited fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-dont-use-pr_warning_ratelimited
++++ a/fs/ext4/inode.c
+@@ -3730,7 +3730,8 @@ static int ext4_set_bh_endio(struct buff
  retry:
- 	spin_lock(&vmap_area_lock);
--	/* invalidate cache if we have more permissive parameters */
-+	/*
-+	 * Invalidate cache if we have more permissive parameters.
-+	 * cached_hole_size notes the largest hole noticed _below_
-+	 * the vmap_area cached in free_vmap_cache: if size fits
-+	 * into that hole, we want to scan from vstart to reuse
-+	 * the hole instead of allocating above free_vmap_cache.
-+	 * Note that __free_vmap_area may update free_vmap_cache
-+	 * without updating cached_hole_size or cached_align.
-+	 */
- 	if (!free_vmap_cache ||
--			size <= cached_hole_size ||
--			vstart < cached_start ||
-+			size < cached_hole_size ||
-+			vstart < cached_vstart ||
- 			align < cached_align) {
- nocache:
- 		cached_hole_size = 0;
- 		free_vmap_cache = NULL;
- 	}
- 	/* record if we encounter less permissive parameters */
--	cached_start = vstart;
-+	cached_vstart = vstart;
- 	cached_align = align;
- 
- 	/* find starting point for our search */
-@@ -379,43 +387,26 @@ nocache:
- 			goto overflow;
- 
- 		n = vmap_area_root.rb_node;
--		if (!n)
--			goto found;
--
- 		first = NULL;
--		do {
-+
-+		while (n) {
- 			struct vmap_area *tmp;
- 			tmp = rb_entry(n, struct vmap_area, rb_node);
- 			if (tmp->va_end >= addr) {
--				if (!first && tmp->va_start < addr + size)
--					first = tmp;
--				n = n->rb_left;
--			} else {
- 				first = tmp;
-+				if (tmp->va_start <= addr)
-+					break;
-+				n = n->rb_left;
-+			} else
- 				n = n->rb_right;
--			}
--		} while (n);
-+		}
- 
- 		if (!first)
- 			goto found;
--
--		if (first->va_start < addr) {
--			addr = ALIGN(max(first->va_end + PAGE_SIZE, addr), align);
--			if (addr + size - 1 < addr)
--				goto overflow;
--			n = rb_next(&first->rb_node);
--			if (n)
--				first = rb_entry(n, struct vmap_area, rb_node);
--			else
--				goto found;
--		}
--		BUG_ON(first->va_start < addr);
--		if (addr + cached_hole_size < first->va_start)
--			cached_hole_size = first->va_start - addr;
- 	}
- 
- 	/* from the starting point, walk areas until a suitable hole is found */
--	while (addr + size > first->va_start && addr + size <= vend) {
-+	while (addr + size >= first->va_start && addr + size <= vend) {
- 		if (addr + cached_hole_size < first->va_start)
- 			cached_hole_size = first->va_start - addr;
- 		addr = ALIGN(first->va_end + PAGE_SIZE, align);
-@@ -430,21 +421,8 @@ nocache:
- 	}
- 
- found:
--	if (addr + size > vend) {
--overflow:
--		spin_unlock(&vmap_area_lock);
--		if (!purged) {
--			purge_vmap_area_lazy();
--			purged = 1;
--			goto retry;
--		}
--		if (printk_ratelimit())
--			printk(KERN_WARNING
--				"vmap allocation for size %lu failed: "
--				"use vmalloc=<size> to increase size.\n", size);
--		kfree(va);
--		return ERR_PTR(-EBUSY);
--	}
-+	if (addr + size > vend)
-+		goto overflow;
- 
- 	va->va_start = addr;
- 	va->va_end = addr + size;
-@@ -458,6 +436,20 @@ overflow:
- 	BUG_ON(va->va_end > vend);
- 
- 	return va;
-+
-+overflow:
-+	spin_unlock(&vmap_area_lock);
-+	if (!purged) {
-+		purge_vmap_area_lazy();
-+		purged = 1;
-+		goto retry;
-+	}
-+	if (printk_ratelimit())
-+		printk(KERN_WARNING
-+			"vmap allocation for size %lu failed: "
-+			"use vmalloc=<size> to increase size.\n", size);
-+	kfree(va);
-+	return ERR_PTR(-EBUSY);
- }
- 
- static void rcu_free_va(struct rcu_head *head)
-@@ -472,14 +464,17 @@ static void __free_vmap_area(struct vmap
- 	BUG_ON(RB_EMPTY_NODE(&va->rb_node));
- 
- 	if (free_vmap_cache) {
--		if (va->va_end < cached_start) {
-+		if (va->va_end < cached_vstart) {
- 			free_vmap_cache = NULL;
- 		} else {
- 			struct vmap_area *cache;
- 			cache = rb_entry(free_vmap_cache, struct vmap_area, rb_node);
- 			if (va->va_start <= cache->va_start) {
- 				free_vmap_cache = rb_prev(&va->rb_node);
--				cache = rb_entry(free_vmap_cache, struct vmap_area, rb_node);
-+				/*
-+				 * We don't try to update cached_hole_size or
-+				 * cached_align, but it won't go very wrong.
-+				 */
- 			}
- 		}
+ 	io_end = ext4_init_io_end(inode, GFP_ATOMIC);
+ 	if (!io_end) {
+-		pr_warning_ratelimited("%s: allocation fail\n", __func__);
++		printk_ratelimited(KERN_WARNING "%s: allocation fail\n",
++				   __func__);
+ 		schedule();
+ 		goto retry;
  	}
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-vmap-area-cache-fix.patch
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-add-output-inversion-option-to-backlight-trigger-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ext4-dont-use-pr_warning_ratelimited.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-memcg-fix-memory-migration-of-shmem-swapcache.patch
-prio_tree-debugging-patch.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
