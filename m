@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_idle-open-broadcast-clock-event-resend.patch added to -mm tree
-Date: Mon, 10 Jan 2011 15:19:00 -0800
-Message-ID: <201101102319.p0ANJ0bs017347@imap1.linux-foundation.org>
+Subject: + mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch added to -mm tree
+Date: Mon, 10 Jan 2011 15:12:41 -0800
+Message-ID: <201101102312.p0ANCfh5017126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751628Ab1AJXTC (ORCPT
+	by vger.kernel.org with ESMTP id S1751011Ab1AJXXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Jan 2011 18:19:02 -0500
+	Mon, 10 Jan 2011 18:23:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, zheng.z.yan@intel.com
+Cc: mel@csn.ul.ie, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     intel_idle: open broadcast clock event - resend
+     mm: compaction: avoid potential deadlock for readahead pages and direct compaction
 has been added to the -mm tree.  Its filename is
-     intel_idle-open-broadcast-clock-event-resend.patch
+     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_idle: open broadcast clock event - resend
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: mm: compaction: avoid potential deadlock for readahead pages and direct compaction
+From: Mel Gorman <mel@csn.ul.ie>
 
-The Intel_idle driver uses
-CLOCK_EVT_NOTIFY_BROADCAST_ENTER/CLOCK_EVT_NOTIFY_BROADCAST_EXIT for
-broadcast clock events.  The _ENTER/_EXIT doesn't really open broadcast
-clock events, please see processor_idle.c for an example.  In some
-situation, this will cause boot hang, because some CPUs enters idle but
-local APIC timer stalls.
+Hugh Dickins reported that two instances of cp were locking up when
+running on ppc64 in a memory constrained environment.  The deadlock
+appears to apply to readahead pages.  When reading ahead, the pages are
+added locked to the LRU and queued for IO.  The process is also inserting
+pages into the page cache and so is calling radix_preload and entering the
+page allocator.  When SLUB is used, this can result in direct compaction
+finding the page that was just added to the LRU but still locked by the
+current process leading to deadlock.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Reported-and-tested-by: Yan Zheng <zheng.z.yan@intel.com>
+This patch avoids locking pages for migration that might already be locked
+by the current process.  Ideally it would only apply for direct compaction
+but compaction does not set PF_MEMALLOC so there is no way currently of
+identifying a process in direct compaction.  A process-flag could be added
+but is likely to be overkill.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/idle/intel_idle.c |   47 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 46 insertions(+), 1 deletion(-)
+ mm/migrate.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/idle/intel_idle.c~intel_idle-open-broadcast-clock-event-resend drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~intel_idle-open-broadcast-clock-event-resend
-+++ a/drivers/idle/intel_idle.c
-@@ -59,6 +59,8 @@
- #include <linux/hrtimer.h>	/* ktime_get_real() */
- #include <trace/events/power.h>
- #include <linux/sched.h>
-+#include <linux/notifier.h>
-+#include <linux/cpu.h>
- #include <asm/mwait.h>
- 
- #define INTEL_IDLE_VERSION "0.4"
-@@ -73,6 +75,7 @@ static int max_cstate = MWAIT_MAX_NUM_CS
- 
- static unsigned int mwait_substates;
- 
-+#define LAPIC_TIMER_ALWAYS_RELIABLE 0xFFFFFFFF
- /* Reliable LAPIC Timer States, bit 1 for C1 etc.  */
- static unsigned int lapic_timer_reliable_states = (1 << 1);	 /* Default to only C1 */
- 
-@@ -243,6 +246,39 @@ static int intel_idle(struct cpuidle_dev
- 	return usec_delta;
- }
- 
-+static void __setup_broadcast_timer(void *arg)
-+{
-+	unsigned long reason = (unsigned long)arg;
-+	int cpu = smp_processor_id();
+diff -puN mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction
++++ a/mm/migrate.c
+@@ -639,6 +639,19 @@ static int unmap_and_move(new_page_t get
+ 	if (!trylock_page(page)) {
+ 		if (!force)
+ 			goto move_newpage;
 +
-+	reason = reason ?
-+		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
++		/*
++		 * During page readahead, pages are added locked to the LRU
++		 * and marked up to date when the IO completes. As part of
++		 * readahead, a process can reload the radix tree, enter
++		 * page reclamation, direct compaction and migrate page.
++		 * Hence, during readahead, a process can end up trying to
++		 * lock the same page twice leading to deadlock. Avoid this
++		 * situation.
++		 */
++		if (PageMappedToDisk(page) && !PageUptodate(page))
++			goto move_newpage;
 +
-+	clockevents_notify(reason, &cpu);
-+}
-+
-+static int __cpuinit setup_broadcast_cpuhp_notify(struct notifier_block *n,
-+		unsigned long action, void *hcpu)
-+{
-+	int hotcpu = (unsigned long)hcpu;
-+
-+	switch (action & 0xf) {
-+	case CPU_ONLINE:
-+		smp_call_function_single(hotcpu, __setup_broadcast_timer,
-+			(void *)true, 1);
-+		break;
-+	case CPU_DOWN_PREPARE:
-+		smp_call_function_single(hotcpu, __setup_broadcast_timer,
-+			(void *)false, 1);
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __cpuinitdata setup_broadcast_notifier = {
-+	.notifier_call = setup_broadcast_cpuhp_notify,
-+};
-+
- /*
-  * intel_idle_probe()
-  */
-@@ -305,7 +341,11 @@ static int intel_idle_probe(void)
+ 		lock_page(page);
  	}
- 
- 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
--		lapic_timer_reliable_states = 0xFFFFFFFF;
-+		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
-+	else {
-+		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
-+		register_cpu_notifier(&setup_broadcast_notifier);
-+	}
- 
- 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
- 		" model 0x%X\n", boot_cpu_data.x86_model);
-@@ -428,6 +468,11 @@ static void __exit intel_idle_exit(void)
- 	intel_idle_cpuidle_devices_uninit();
- 	cpuidle_unregister_driver(&intel_idle_driver);
- 
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-+		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
-+		unregister_cpu_notifier(&setup_broadcast_notifier);
-+	}
-+
- 	return;
- }
  
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
-intel_idle-open-broadcast-clock-event-resend.patch
 mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
@@ -160,11 +115,58 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
+vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
 mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
 mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
 mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
 mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
 mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
 mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
+thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
+thp-mm-define-madv_hugepage.patch
+thp-alter-compound-get_page-put_page.patch
+thp-update-futex-compound-knowledge.patch
+thp-clear-compound-mapping.patch
+thp-add-native_set_pmd_at.patch
+thp-add-pmd-paravirt-ops.patch
+thp-no-paravirt-version-of-pmd-ops.patch
+thp-export-maybe_mkwrite.patch
+thp-comment-reminder-in-destroy_compound_page.patch
+thp-config_transparent_hugepage.patch
+thp-config_transparent_hugepage-fix.patch
+thp-special-pmd_trans_-functions.patch
+thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+thp-bail-out-gup_fast-on-splitting-pmd.patch
+thp-pte-alloc-trans-splitting.patch
+thp-pte-alloc-trans-splitting-fix.patch
+thp-clear-page-compound.patch
+thp-add-pmd_huge_pte-to-mm_struct.patch
+thp-split_huge_page_mm-vma.patch
+thp-split_huge_page-paging.patch
+thp-clear_copy_huge_page.patch
+thp-_gfp_no_kswapd.patch
+thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
+thp-split_huge_page-anon_vma-ordering-dependency.patch
+thp-verify-pmd_trans_huge-isnt-leaking.patch
+thp-add-pagetranscompound.patch
+thp-skip-transhuge-pages-in-ksm-for-now.patch
+thp-enable-direct-defrag.patch
+thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+thp-transhuge-isolate_migratepages.patch
+thp-disable-transparent-hugepages-by-default-on-small-systems.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
