@@ -1,109 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext2-speed-up-file-creates-by-optimizing-rec_len-functions.patch removed from -mm tree
-Date: Mon, 10 Jan 2011 13:30:25 -0800
-Message-ID: <201101102132.p0ALWf14012815@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch removed from -mm tree
+Date: Mon, 10 Jan 2011 13:30:20 -0800
+Message-ID: <201101102132.p0ALWbsB012806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754780Ab1AJVcz (ORCPT
+	by vger.kernel.org with ESMTP id S1754923Ab1AJVdD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Jan 2011 16:32:55 -0500
+	Mon, 10 Jan 2011 16:33:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: stefani@seibold.net, khali@linux-fr.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: speed up file creates by optimizing rec_len functions
+     drivers/video/i810/i810-i2c.c: fix i2c bus handling
 has been removed from the -mm tree.  Its filename was
-     ext2-speed-up-file-creates-by-optimizing-rec_len-functions.patch
+     drivers-video-i810-i810-i2cc-fix-i2c-bus-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: speed up file creates by optimizing rec_len functions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: drivers/video/i810/i810-i2c.c: fix i2c bus handling
+From: Stefani Seibold <stefani@seibold.net>
 
-The addition of 64k block capability in the rec_len_from_disk and
-rec_len_to_disk functions added a bit of math overhead which slows down
-file create workloads needlessly when the architecture cannot even support
-64k blocks, thanks to page size limits.
+Fix a longstanding bug in the i810 frame buffer driver.
 
-The directory entry checking can also be optimized a bit by sprinkling in
-some unlikely() conditions to move the error handling out of line.
+The handling of the i2c bus is wrong: A 1 bit should not written to the
+i2c, these will be done by switch the i2c to input.  Driving an 1 bit
+active is against the i2c spec.
 
-bonnie++ sequential file creates on a 512MB ramdisk speeds up
-from about 2200/s to about 2500/s, about a 14% improvement.
+An active driven of a 1 bit will result in very strange error, depending
+which side is the more powerful one.  In my case it depends on the
+temperature of the Display-Controller-EEprom: With an cold eprom a got the
+correct EDID datas, with a warm one some of the 1 bits was 0 :-(
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
+The same bug is also in the intelfb driver in the file
+drivers/video/intelfb/intelfb_i2c.c.  The functions intelfb_gpio_setscl()
+and intelfb_gpio_setsda() do drive the 1 bit active to the i2c bus.  But
+since i have no card which is used by the intelfb driver i cannot fix it.
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/video/i810/i810-i2c.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext2/dir.c~ext2-speed-up-file-creates-by-optimizing-rec_len-functions fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-speed-up-file-creates-by-optimizing-rec_len-functions
-+++ a/fs/ext2/dir.c
-@@ -28,21 +28,30 @@
+diff -puN drivers/video/i810/i810-i2c.c~drivers-video-i810-i810-i2cc-fix-i2c-bus-handling drivers/video/i810/i810-i2c.c
+--- a/drivers/video/i810/i810-i2c.c~drivers-video-i810-i810-i2cc-fix-i2c-bus-handling
++++ a/drivers/video/i810/i810-i2c.c
+@@ -45,8 +45,10 @@ static void i810i2c_setscl(void *data, i
+         struct i810fb_par         *par = chan->par;
+ 	u8                        __iomem *mmio = par->mmio_start_virtual;
  
- typedef struct ext2_dir_entry_2 ext2_dirent;
- 
-+/*
-+ * Tests against MAX_REC_LEN etc were put in place for 64k block
-+ * sizes; if that is not possible on this arch, we can skip
-+ * those tests and speed things up.
-+ */
- static inline unsigned ext2_rec_len_from_disk(__le16 dlen)
- {
- 	unsigned len = le16_to_cpu(dlen);
- 
-+#if (PAGE_CACHE_SIZE >= 65536)
- 	if (len == EXT2_MAX_REC_LEN)
- 		return 1 << 16;
-+#endif
- 	return len;
+-	i810_writel(mmio, chan->ddc_base, (state ? SCL_VAL_OUT : 0) | SCL_DIR |
+-		    SCL_DIR_MASK | SCL_VAL_MASK);
++	if (state)
++		i810_writel(mmio, chan->ddc_base, SCL_DIR_MASK | SCL_VAL_MASK);
++	else
++		i810_writel(mmio, chan->ddc_base, SCL_DIR | SCL_DIR_MASK | SCL_VAL_MASK);
+ 	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
  }
  
- static inline __le16 ext2_rec_len_to_disk(unsigned len)
- {
-+#if (PAGE_CACHE_SIZE >= 65536)
- 	if (len == (1 << 16))
- 		return cpu_to_le16(EXT2_MAX_REC_LEN);
- 	else
- 		BUG_ON(len > (1 << 16));
-+#endif
- 	return cpu_to_le16(len);
+@@ -56,8 +58,10 @@ static void i810i2c_setsda(void *data, i
+         struct i810fb_par         *par = chan->par;
+ 	u8                        __iomem *mmio = par->mmio_start_virtual;
+ 
+- 	i810_writel(mmio, chan->ddc_base, (state ? SDA_VAL_OUT : 0) | SDA_DIR |
+-		    SDA_DIR_MASK | SDA_VAL_MASK);
++	if (state)
++		i810_writel(mmio, chan->ddc_base, SDA_DIR_MASK | SDA_VAL_MASK);
++	else
++		i810_writel(mmio, chan->ddc_base, SDA_DIR | SDA_DIR_MASK | SDA_VAL_MASK);
+ 	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
  }
  
-@@ -129,15 +138,15 @@ static void ext2_check_page(struct page 
- 		p = (ext2_dirent *)(kaddr + offs);
- 		rec_len = ext2_rec_len_from_disk(p->rec_len);
- 
--		if (rec_len < EXT2_DIR_REC_LEN(1))
-+		if (unlikely(rec_len < EXT2_DIR_REC_LEN(1)))
- 			goto Eshort;
--		if (rec_len & 3)
-+		if (unlikely(rec_len & 3))
- 			goto Ealign;
--		if (rec_len < EXT2_DIR_REC_LEN(p->name_len))
-+		if (unlikely(rec_len < EXT2_DIR_REC_LEN(p->name_len)))
- 			goto Enamelen;
--		if (((offs + rec_len - 1) ^ offs) & ~(chunk_size-1))
-+		if (unlikely(((offs + rec_len - 1) ^ offs) & ~(chunk_size-1)))
- 			goto Espan;
--		if (le32_to_cpu(p->inode) > max_inumber)
-+		if (unlikely(le32_to_cpu(p->inode) > max_inumber))
- 			goto Einumber;
- 	}
- 	if (offs != limit)
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-linux-next.patch
+origin.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
 
