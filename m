@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch added to -mm tree
-Date: Mon, 10 Jan 2011 15:12:41 -0800
-Message-ID: <201101102312.p0ANCfh5017126@imap1.linux-foundation.org>
+Subject: + proc-move-proc_consolec-to-fs-proc-consolesc.patch added to -mm tree
+Date: Mon, 10 Jan 2011 15:33:07 -0800
+Message-ID: <201101102333.p0ANX7Oj017954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751011Ab1AJXXi (ORCPT
+	by vger.kernel.org with ESMTP id S1751797Ab1AJXdK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Jan 2011 18:23:38 -0500
+	Mon, 10 Jan 2011 18:33:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     mm: compaction: avoid potential deadlock for readahead pages and direct compaction
+     proc: move proc_console.c to fs/proc/consoles.c
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch
+     proc-move-proc_consolec-to-fs-proc-consolesc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: avoid potential deadlock for readahead pages and direct compaction
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: proc: move proc_console.c to fs/proc/consoles.c
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Hugh Dickins reported that two instances of cp were locking up when
-running on ppc64 in a memory constrained environment.  The deadlock
-appears to apply to readahead pages.  When reading ahead, the pages are
-added locked to the LRU and queued for IO.  The process is also inserting
-pages into the page cache and so is calling radix_preload and entering the
-page allocator.  When SLUB is used, this can result in direct compaction
-finding the page that was just added to the LRU but still locked by the
-current process leading to deadlock.
+Filename is supposed to match procfile name for random junk.
 
-This patch avoids locking pages for migration that might already be locked
-by the current process.  Ideally it would only apply for direct compaction
-but compaction does not set PF_MEMALLOC so there is no way currently of
-identifying a process in direct compaction.  A process-flag could be added
-but is likely to be overkill.
+Add __init while I'm at it.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reported-by: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/proc/Makefile       |    2 
+ fs/proc/consoles.c     |  114 +++++++++++++++++++++++++++++++++++++++
+ fs/proc/proc_console.c |  114 ---------------------------------------
+ 3 files changed, 115 insertions(+), 115 deletions(-)
 
-diff -puN mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction mm/migrate.c
---- a/mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction
-+++ a/mm/migrate.c
-@@ -639,6 +639,19 @@ static int unmap_and_move(new_page_t get
- 	if (!trylock_page(page)) {
- 		if (!force)
- 			goto move_newpage;
+diff -puN fs/proc/Makefile~proc-move-proc_consolec-to-fs-proc-consolesc fs/proc/Makefile
+--- a/fs/proc/Makefile~proc-move-proc_consolec-to-fs-proc-consolesc
++++ a/fs/proc/Makefile
+@@ -10,12 +10,12 @@ proc-$(CONFIG_MMU)	:= mmu.o task_mmu.o
+ proc-y       += inode.o root.o base.o generic.o array.o \
+ 		proc_tty.o
+ proc-y	+= cmdline.o
++proc-y	+= consoles.o
+ proc-y	+= cpuinfo.o
+ proc-y	+= devices.o
+ proc-y	+= interrupts.o
+ proc-y	+= loadavg.o
+ proc-y	+= meminfo.o
+-proc-y	+= proc_console.o
+ proc-y	+= stat.o
+ proc-y	+= uptime.o
+ proc-y	+= version.o
+diff -puN /dev/null fs/proc/consoles.c
+--- /dev/null
++++ a/fs/proc/consoles.c
+@@ -0,0 +1,114 @@
++/*
++ * Copyright (c) 2010 Werner Fink, Jiri Slaby
++ *
++ * Licensed under GPLv2
++ */
 +
-+		/*
-+		 * During page readahead, pages are added locked to the LRU
-+		 * and marked up to date when the IO completes. As part of
-+		 * readahead, a process can reload the radix tree, enter
-+		 * page reclamation, direct compaction and migrate page.
-+		 * Hence, during readahead, a process can end up trying to
-+		 * lock the same page twice leading to deadlock. Avoid this
-+		 * situation.
-+		 */
-+		if (PageMappedToDisk(page) && !PageUptodate(page))
-+			goto move_newpage;
++#include <linux/console.h>
++#include <linux/kernel.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <linux/tty_driver.h>
 +
- 		lock_page(page);
- 	}
- 
-_
-
-Patches currently in -mm which might be from mel@csn.ul.ie are
-
-linux-next.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-mm-define-madv_hugepage.patch
-thp-alter-compound-get_page-put_page.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-config_transparent_hugepage-fix.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
-thp-pte-alloc-trans-splitting.patch
-thp-pte-alloc-trans-splitting-fix.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-add-pagetranscompound.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-enable-direct-defrag.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-
++/*
++ * This is handler for /proc/consoles
++ */
++static int show_console_dev(struct seq_file *m, void *v)
++{
++	static const struct {
++		short flag;
++		char name;
++	} con_flags[] = {
++		{ CON_ENABLED,		'E' },
++		{ CON_CONSDEV,		'C' },
++		{ CON_BOOT,		'B' },
++		{ CON_PRINTBUFFER,	'p' },
++		{ CON_BRL,		'b' },
++		{ CON_ANYTIME,		'a' },
++	};
++	char flags[ARRAY_SIZE(con_flags) + 1];
++	struct console *con = v;
++	unsigned int a;
++	int len;
++	dev_t dev = 0;
++
++	if (con->device) {
++		const struct tty_driver *driver;
++		int index;
++		driver = con->device(con, &index);
++		if (driver) {
++			dev = MKDEV(driver->major, driver->minor_start);
++			dev += index;
++		}
++	}
++
++	for (a = 0; a < ARRAY_SIZE(con_flags); a++)
++		flags[a] = (con->flags & con_flags[a].flag) ?
++			con_flags[a].name : ' ';
++	flags[a] = 0;
++
++	seq_printf(m, "%s%d%n", con->name, con->index, &len);
++	len = 21 - len;
++	if (len < 1)
++		len = 1;
++	seq_printf(m, "%*c%c%c%c (%s)", len, ' ', con->read ? 'R' : '-',
++			con->write ? 'W' : '-', con->unblank ? 'U' : '-',
++			flags);
++	if (dev)
++		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
++
++	seq_printf(m, "\n");
++
++	return 0;
++}
++
++static void *c_start(struct seq_file *m, loff_t *pos)
++{
++	struct console *con;
++	loff_t off = 0;
++
++	acquire_console_sem();
++	for_each_console(con)
++		if (off++ == *pos)
++			break;
++
++	return con;
++}
++
++static void *c_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	struct console *con = v;
++	++*pos;
++	return con->next;
++}
++
++static void c_stop(struct seq_file *m, void *v)
++{
++	release_console_sem();
++}
++
++static const struct seq_operations consoles_op = {
++	.start	= c_start,
++	.next	= c_next,
++	.stop	= c_stop,
++	.show	= show_console_dev
++};
++
++static int consoles_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &consoles_op);
++}
++
++static const struct file_operations proc_consoles_operations = {
++	.open		= consoles_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
++static int __init proc_consoles_init(void)
++{
++	proc_create("consoles", 0, NULL, &proc_consoles_operations);
++	return 0;
++}
++module_init(proc_consoles_init);
+diff -puN fs/proc/proc_console.c~proc-move-proc_consolec-to-fs-proc-consolesc /dev/null
+--- a/fs/proc/proc_console.c
++++ /dev/null
+@@ -1,114 +0,0 @@
+-/*
+- * Copyright (c) 2010 Werner Fink, Jiri Slaby
+- *
+- * Licensed under GPLv2
+- */
+-
+-#include <linux/console.h>
+-#include <linux/kernel.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/tty_driver.h>
+-
+-/*
+- * This is handler for /proc/consoles
+- */
+-static int show_console_dev(struct seq_file *m, void *v)
+-{
+-	static const struct {
+-		short flag;
+-		char name;
+-	} con_flags[] = {
+-		{ CON_ENABLED,		'E' },
+-		{ CON_CONSDEV,		'C' },
+-		{ CON_BOOT,		'B' },
+-		{ CON_PRINTBUFFER,	'p' },
+-		{ CON_BRL,		'b' },
+-		{ CON_ANYTIME,		'a' },
+-	};
+-	char flags[ARRAY_SIZE(con_flags) + 1];
+-	struct console *con = v;
+-	unsigned int a;
+-	int len;
+-	dev_t dev = 0;
+-
+-	if (con->device) {
+-		const struct tty_driver *driver;
+-		int index;
+-		driver = con->device(con, &index);
+-		if (driver) {
+-			dev = MKDEV(driver->major, driver->minor_start);
+-			dev += index;
+-		}
+-	}
+-
+-	for (a = 0; a < ARRAY_SIZE(con_flags); a++)
+-		flags[a] = (con->flags & con_flags[a].flag) ?
+-			con_flags[a].name : ' ';
+-	flags[a] = 0;
+-
+-	seq_printf(m, "%s%d%n", con->name, con->index, &len);
+-	len = 21 - len;
+-	if (len < 1)
+-		len = 1;
+-	seq_printf(m, "%*c%c%c%c (%s)", len, ' ', con->read ? 'R' : '-',
+-			con->write ? 'W' : '-', con->unblank ? 'U' : '-',
+-			flags);
+-	if (dev)
+-		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
+-
+-	seq_printf(m, "\n");
+-
+-	return 0;
+-}
+-
+-static void *c_start(struct seq_file *m, loff_t *pos)
+-{
+-	struct console *con;
+-	loff_t off = 0;
+-
+-	acquire_console_sem();
+-	for_each_console(con)
+-		if (off++ == *pos)
+-			break;
+-
+-	return con;
+-}
+-
+-static void *c_next(struct seq_file *m, void *v, loff_t *pos)
+-{
+-	struct console *con = v;
+-	++*pos;
+-	return con->next;
+-}
+-
+-static void c_stop(struct seq_file *m, void *v)
+-{
+-	release_console_sem();
+-}
+-
+-static const struct seq_operations consoles_op = {
+-	.start	= c_start,
+-	.next	= c_next,
+-	.stop	= c_stop,
+-	.show	= show_console_dev
+-};
+-
+-static int consoles_open(struct inode *inode, struct file *file)
+-{
+-	return seq_open(file, &consoles_op);
+-}
+-
+-static const struct file_operations proc_consoles_operations = {
+-	.open		= consoles_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= seq_release,
+-};
