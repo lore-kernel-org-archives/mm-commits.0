@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 10 Jan 2011 13:28:55 -0800
-Message-ID: <201101102131.p0ALVBI3012664@imap1.linux-foundation.org>
+Subject: [merged] fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch removed from -mm tree
+Date: Mon, 10 Jan 2011 13:30:23 -0800
+Message-ID: <201101102132.p0ALWdfG012812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754929Ab1AJVbP (ORCPT
+	by vger.kernel.org with ESMTP id S1754771Ab1AJVcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Jan 2011 16:31:15 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0ALVDgm001343
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 10 Jan 2011 13:31:13 -0800
+	Mon, 10 Jan 2011 16:32:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, lczerner@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
+has been removed from the -mm tree.  Its filename was
+     fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
 From: Andrew Morton <akpm@linux-foundation.org>
 
+fs/ext4/super.c: In function 'ext4_register_li_request':
+fs/ext4/super.c:2936: warning: 'ret' may be used uninitialized in this function
+
+It looks buggy to me, too.
+
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/events.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/ext4/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/xen/events.c~linux-next-git-rejects drivers/xen/events.c
---- a/drivers/xen/events.c~linux-next-git-rejects
-+++ a/drivers/xen/events.c
-@@ -170,11 +170,7 @@ static struct irq_info *info_for_irq(uns
+diff -puN fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised fs/ext4/super.c
+--- a/fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised
++++ a/fs/ext4/super.c
+@@ -2933,7 +2933,7 @@ static int ext4_register_li_request(stru
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+ 	struct ext4_li_request *elr;
+ 	ext4_group_t ngroups = EXT4_SB(sb)->s_groups_count;
+-	int ret;
++	int ret = 0;
  
- static unsigned int evtchn_from_irq(unsigned irq)
- {
--<<<<<<< HEAD
--	if (unlikely(WARN(irq < 0 || irq >= nr_irqs, "Invalid irq %d!\n", irq)))
--=======
- 	if (WARN(irq < 0 || irq >= nr_irqs, "Invalid irq %d!\n", irq))
-->>>>>>> FETCH_HEAD
+ 	if (sbi->s_li_request != NULL)
  		return 0;
- 
- 	return info_for_irq(irq)->evtchn;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +68,6 @@ drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-add-output-inversion-option-to-backlight-trigger-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 ext4-dont-use-pr_warning_ratelimited.patch
-fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
 mm.patch
