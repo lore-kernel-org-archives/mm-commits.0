@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-add-compound_trans_head-helper.patch added to -mm tree
-Date: Mon, 10 Jan 2011 14:55:26 -0800
-Message-ID: <201101102255.p0AMtRWW016295@imap1.linux-foundation.org>
+Subject: + intel_idle-open-broadcast-clock-event-resend.patch added to -mm tree
+Date: Mon, 10 Jan 2011 15:19:00 -0800
+Message-ID: <201101102319.p0ANJ0bs017347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755111Ab1AJW4I (ORCPT
+	by vger.kernel.org with ESMTP id S1751628Ab1AJXTC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Jan 2011 17:56:08 -0500
+	Mon, 10 Jan 2011 18:19:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, avi@redhat.com, hughd@google.com, jweiner@redhat.com, mtosatti@redhat.com
+Cc: shaohua.li@intel.com, zheng.z.yan@intel.com
 
 
 The patch titled
-     thp: add compound_trans_head() helper
+     intel_idle: open broadcast clock event - resend
 has been added to the -mm tree.  Its filename is
-     thp-add-compound_trans_head-helper.patch
+     intel_idle-open-broadcast-clock-event-resend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,239 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: add compound_trans_head() helper
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: intel_idle: open broadcast clock event - resend
+From: Shaohua Li <shaohua.li@intel.com>
 
-Cleanup some code with common compound_trans_head helper.
+The Intel_idle driver uses
+CLOCK_EVT_NOTIFY_BROADCAST_ENTER/CLOCK_EVT_NOTIFY_BROADCAST_EXIT for
+broadcast clock events.  The _ENTER/_EXIT doesn't really open broadcast
+clock events, please see processor_idle.c for an example.  In some
+situation, this will cause boot hang, because some CPUs enters idle but
+local APIC timer stalls.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Avi Kivity <avi@redhat.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Reported-and-tested-by: Yan Zheng <zheng.z.yan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   18 ++++++++++++++++++
- mm/ksm.c                |   15 +++------------
- virt/kvm/kvm_main.c     |   38 ++++++++++++++------------------------
- 3 files changed, 35 insertions(+), 36 deletions(-)
+ drivers/idle/intel_idle.c |   47 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~thp-add-compound_trans_head-helper include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-add-compound_trans_head-helper
-+++ a/include/linux/huge_mm.h
-@@ -126,6 +126,23 @@ static inline int hpage_nr_pages(struct 
- 		return HPAGE_PMD_NR;
- 	return 1;
+diff -puN drivers/idle/intel_idle.c~intel_idle-open-broadcast-clock-event-resend drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~intel_idle-open-broadcast-clock-event-resend
++++ a/drivers/idle/intel_idle.c
+@@ -59,6 +59,8 @@
+ #include <linux/hrtimer.h>	/* ktime_get_real() */
+ #include <trace/events/power.h>
+ #include <linux/sched.h>
++#include <linux/notifier.h>
++#include <linux/cpu.h>
+ #include <asm/mwait.h>
+ 
+ #define INTEL_IDLE_VERSION "0.4"
+@@ -73,6 +75,7 @@ static int max_cstate = MWAIT_MAX_NUM_CS
+ 
+ static unsigned int mwait_substates;
+ 
++#define LAPIC_TIMER_ALWAYS_RELIABLE 0xFFFFFFFF
+ /* Reliable LAPIC Timer States, bit 1 for C1 etc.  */
+ static unsigned int lapic_timer_reliable_states = (1 << 1);	 /* Default to only C1 */
+ 
+@@ -243,6 +246,39 @@ static int intel_idle(struct cpuidle_dev
+ 	return usec_delta;
  }
-+static inline struct page *compound_trans_head(struct page *page)
+ 
++static void __setup_broadcast_timer(void *arg)
 +{
-+	if (PageTail(page)) {
-+		struct page *head;
-+		head = page->first_page;
-+		smp_rmb();
-+		/*
-+		 * head may be a dangling pointer.
-+		 * __split_huge_page_refcount clears PageTail before
-+		 * overwriting first_page, so if PageTail is still
-+		 * there it means the head pointer isn't dangling.
-+		 */
-+		if (PageTail(page))
-+			return head;
-+	}
-+	return page;
++	unsigned long reason = (unsigned long)arg;
++	int cpu = smp_processor_id();
++
++	reason = reason ?
++		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
++
++	clockevents_notify(reason, &cpu);
 +}
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUG(); 0; })
-@@ -144,6 +161,7 @@ static inline int split_huge_page(struct
- 	do { } while (0)
- #define wait_split_huge_page(__anon_vma, __pmd)	\
- 	do { } while (0)
-+#define compound_trans_head(page) compound_head(page)
- static inline int hugepage_madvise(struct vm_area_struct *vma,
- 				   unsigned long *vm_flags, int advice)
- {
-diff -puN mm/ksm.c~thp-add-compound_trans_head-helper mm/ksm.c
---- a/mm/ksm.c~thp-add-compound_trans_head-helper
-+++ a/mm/ksm.c
-@@ -415,20 +415,11 @@ out:
- static struct page *page_trans_compound_anon(struct page *page)
- {
- 	if (PageTransCompound(page)) {
--		struct page *head;
--		head = compound_head(page);
-+		struct page *head = compound_trans_head(page);
- 		/*
--		 * head may be a dangling pointer.
--		 * __split_huge_page_refcount clears PageTail
--		 * before overwriting first_page, so if
--		 * PageTail is still there it means the head
--		 * pointer isn't dangling.
-+		 * head may actually be splitted and freed from under
-+		 * us but it's ok here.
- 		 */
--		if (head != page) {
--			smp_rmb();
--			if (!PageTransCompound(page))
--				return NULL;
--		}
- 		if (PageAnon(head))
- 			return head;
++
++static int __cpuinit setup_broadcast_cpuhp_notify(struct notifier_block *n,
++		unsigned long action, void *hcpu)
++{
++	int hotcpu = (unsigned long)hcpu;
++
++	switch (action & 0xf) {
++	case CPU_ONLINE:
++		smp_call_function_single(hotcpu, __setup_broadcast_timer,
++			(void *)true, 1);
++		break;
++	case CPU_DOWN_PREPARE:
++		smp_call_function_single(hotcpu, __setup_broadcast_timer,
++			(void *)false, 1);
++		break;
++	}
++	return NOTIFY_OK;
++}
++
++static struct notifier_block __cpuinitdata setup_broadcast_notifier = {
++	.notifier_call = setup_broadcast_cpuhp_notify,
++};
++
+ /*
+  * intel_idle_probe()
+  */
+@@ -305,7 +341,11 @@ static int intel_idle_probe(void)
  	}
-diff -puN virt/kvm/kvm_main.c~thp-add-compound_trans_head-helper virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~thp-add-compound_trans_head-helper
-+++ a/virt/kvm/kvm_main.c
-@@ -104,34 +104,24 @@ static pfn_t fault_pfn;
- inline int kvm_is_mmio_pfn(pfn_t pfn)
- {
- 	if (pfn_valid(pfn)) {
--		struct page *head;
-+		int reserved;
- 		struct page *tail = pfn_to_page(pfn);
--		head = compound_head(tail);
-+		struct page *head = compound_trans_head(tail);
-+		reserved = PageReserved(head);
- 		if (head != tail) {
--			smp_rmb();
- 			/*
--			 * head may be a dangling pointer.
--			 * __split_huge_page_refcount clears PageTail
--			 * before overwriting first_page, so if
--			 * PageTail is still there it means the head
--			 * pointer isn't dangling.
-+			 * "head" is not a dangling pointer
-+			 * (compound_trans_head takes care of that)
-+			 * but the hugepage may have been splitted
-+			 * from under us (and we may not hold a
-+			 * reference count on the head page so it can
-+			 * be reused before we run PageReferenced), so
-+			 * we've to check PageTail before returning
-+			 * what we just read.
- 			 */
--			if (PageTail(tail)) {
--				/*
--				 * the "head" is not a dangling
--				 * pointer but the hugepage may have
--				 * been splitted from under us (and we
--				 * may not hold a reference count on
--				 * the head page so it can be reused
--				 * before we run PageReferenced), so
--				 * we've to recheck PageTail before
--				 * returning what we just read.
--				 */
--				int reserved = PageReserved(head);
--				smp_rmb();
--				if (PageTail(tail))
--					return reserved;
--			}
-+			smp_rmb();
-+			if (PageTail(tail))
-+				return reserved;
- 		}
- 		return PageReserved(tail);
- 	}
+ 
+ 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
+-		lapic_timer_reliable_states = 0xFFFFFFFF;
++		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
++	else {
++		smp_call_function(__setup_broadcast_timer, (void *)true, 1);
++		register_cpu_notifier(&setup_broadcast_notifier);
++	}
+ 
+ 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
+ 		" model 0x%X\n", boot_cpu_data.x86_model);
+@@ -428,6 +468,11 @@ static void __exit intel_idle_exit(void)
+ 	intel_idle_cpuidle_devices_uninit();
+ 	cpuidle_unregister_driver(&intel_idle_driver);
+ 
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
++		smp_call_function(__setup_broadcast_timer, (void *)false, 1);
++		unregister_cpu_notifier(&setup_broadcast_notifier);
++	}
++
+ 	return;
+ }
+ 
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-transparent-hugepage-support-documentation.patch
-thp-mm-define-madv_hugepage.patch
-thp-compound_lock.patch
-thp-alter-compound-get_page-put_page.patch
-thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-config_transparent_hugepage-fix.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
-thp-add-pmd-mangling-functions-to-x86.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
-thp-pte-alloc-trans-splitting.patch
-thp-pte-alloc-trans-splitting-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-add-pmd-mmu_notifier-helpers.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-kvm-mmu-transparent-hugepage-support.patch
-thp-kvm-mmu-transparent-hugepage-support-fix.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-transparent-hugepage-core.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-madvisemadv_hugepage.patch
-thp-add-pagetranscompound.patch
-thp-pmd_trans_huge-migrate-bugcheck.patch
-thp-memcg-compound.patch
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-memcg-huge-memory.patch
-thp-transparent-hugepage-vmstat.patch
-thp-khugepaged.patch
-thp-khugepaged-vma-merge.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-remove-pg_buddy.patch
-thp-add-x86-32bit-support.patch
-thp-mincore-transparent-hugepage-support.patch
-thp-add-pmd_modify.patch
-thp-mprotect-pass-vma-down-to-page-table-walkers.patch
-thp-mprotect-transparent-huge-page-support.patch
-thp-set-recommended-min-free-kbytes.patch
-thp-enable-direct-defrag.patch
-thp-add-numa-awareness-to-hugepage-allocations.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
-thp-transparent-hugepage-config-choice.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
-thp-dont-allow-transparent-hugepage-support-without-pse.patch
-thp-mmu_notifier_test_young.patch
-thp-freeze-khugepaged-and-ksmd.patch
-thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
-thp-use-compaction-for-all-allocation-orders.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
-thp-scale-nr_rotated-to-balance-memory-pressure.patch
-thp-transparent-hugepage-sysfs-meminfo.patch
-thp-add-debug-checks-for-mapcount-related-invariants.patch
-thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
-thp-compound_trans_order.patch
-thp-compound_trans_order-fix.patch
-thp-mm-define-madv_nohugepage.patch
-thp-madvisemadv_nohugepage.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-thp-ksm-on-thp.patch
-thp-add-compound_trans_head-helper.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix-fix.patch
-hugetlb-fix-handling-of-parse-errors-in-sysfs.patch
+linux-next.patch
+intel_idle-open-broadcast-clock-event-resend.patch
+mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
+mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
+mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
+mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
+mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
 
