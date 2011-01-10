@@ -1,127 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch removed from -mm tree
-Date: Mon, 10 Jan 2011 13:30:23 -0800
-Message-ID: <201101102132.p0ALWdfG012812@imap1.linux-foundation.org>
+Subject: [merged] ext3-remove-redundant-unlikely.patch removed from -mm tree
+Date: Mon, 10 Jan 2011 13:30:29 -0800
+Message-ID: <201101102132.p0ALWjML012821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754771Ab1AJVcw (ORCPT
+	by vger.kernel.org with ESMTP id S1754780Ab1AJVcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Jan 2011 16:32:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lczerner@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: tklauser@distanz.ch, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
+     ext3: remove redundant unlikely()
 has been removed from the -mm tree.  Its filename was
-     fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised.patch
+     ext3-remove-redundant-unlikely.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ext4/super.c:ext4_register_li_request(): fix use-uninitialised
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext3: remove redundant unlikely()
+From: Tobias Klauser <tklauser@distanz.ch>
 
-fs/ext4/super.c: In function 'ext4_register_li_request':
-fs/ext4/super.c:2936: warning: 'ret' may be used uninitialized in this function
+IS_ERR() already implies unlikely(), so it can be omitted here.
 
-It looks buggy to me, too.
-
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    2 +-
+ fs/ext3/namei.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised fs/ext4/super.c
---- a/fs/ext4/super.c~fs-ext4-superc-ext4_register_li_request-fix-use-uninitialised
-+++ a/fs/ext4/super.c
-@@ -2933,7 +2933,7 @@ static int ext4_register_li_request(stru
- 	struct ext4_sb_info *sbi = EXT4_SB(sb);
- 	struct ext4_li_request *elr;
- 	ext4_group_t ngroups = EXT4_SB(sb)->s_groups_count;
--	int ret;
-+	int ret = 0;
- 
- 	if (sbi->s_li_request != NULL)
- 		return 0;
+diff -puN fs/ext3/namei.c~ext3-remove-redundant-unlikely fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-remove-redundant-unlikely
++++ a/fs/ext3/namei.c
+@@ -1047,7 +1047,7 @@ static struct dentry *ext3_lookup(struct
+ 			return ERR_PTR(-EIO);
+ 		}
+ 		inode = ext3_iget(dir->i_sb, ino);
+-		if (unlikely(IS_ERR(inode))) {
++		if (IS_ERR(inode)) {
+ 			if (PTR_ERR(inode) == -ESTALE) {
+ 				ext3_error(dir->i_sb, __func__,
+ 						"deleted inode referenced: %lu",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-add-output-inversion-option-to-backlight-trigger-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ext4-dont-use-pr_warning_ratelimited.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+vmalloc-remove-redundant-unlikely.patch
 
