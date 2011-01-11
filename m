@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 11 Jan 2011 13:43:45 -0800
-Message-ID: <201101112143.p0BLhjX9008557@imap1.linux-foundation.org>
+Subject: + mm-page_allocc-dont-cache-current-in-a-local.patch added to -mm tree
+Date: Tue, 11 Jan 2011 13:55:59 -0800
+Message-ID: <201101112155.p0BLtx3v009004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902Ab1AKVnt (ORCPT
+	by vger.kernel.org with ESMTP id S1752112Ab1AKV4z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 16:43:49 -0500
+	Tue, 11 Jan 2011 16:56:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com
+Cc: akpm@linux-foundation.org, hughd@google.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes
+     mm/page_alloc.c: don't cache `current' in a local
 has been added to the -mm tree.  Its filename is
-     mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+     mm-page_allocc-dont-cache-current-in-a-local.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes
+Subject: mm/page_alloc.c: don't cache `current' in a local
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: else should follow close brace '}'
-#77: FILE: mm/migrate.c:716:
-+		}
-+		else if (PageSwapCache(page)) {
+It's old-fashioned and unneeded.
 
-total: 1 errors, 0 warnings, 90 lines checked
+akpm:/usr/src/25> size mm/page_alloc.o
+   text    data     bss     dec     hex filename
+  39884 1241317   18808 1300009  13d629 mm/page_alloc.o (before)
+  39838 1241317   18808 1299963  13d5fb mm/page_alloc.o (after)
 
-./patches/mm-fix-migration-hangs-on-anon_vma-lock.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN mm/migrate.c~mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes mm/migrate.c
---- a/mm/migrate.c~mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes
-+++ a/mm/migrate.c
-@@ -712,8 +712,7 @@ static int unmap_and_move(new_page_t get
- 			 */
- 			get_anon_vma(anon_vma);
- 			page_unlock_anon_vma(anon_vma);
--		}
--		else if (PageSwapCache(page)) {
-+		} else if (PageSwapCache(page)) {
- 			/*
- 			 * We cannot be sure that the anon_vma of an unmapped
- 			 * swapcache page is safe to use because we don't
+diff -puN mm/page_alloc.c~mm-page_allocc-dont-cache-current-in-a-local mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-dont-cache-current-in-a-local
++++ a/mm/page_alloc.c
+@@ -1809,15 +1809,14 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	bool sync_migration)
+ {
+ 	struct page *page;
+-	struct task_struct *tsk = current;
+ 
+ 	if (!order || compaction_deferred(preferred_zone))
+ 		return NULL;
+ 
+-	tsk->flags |= PF_MEMALLOC;
++	current->flags |= PF_MEMALLOC;
+ 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
+ 						nodemask, sync_migration);
+-	tsk->flags &= ~PF_MEMALLOC;
++	current->flags &= ~PF_MEMALLOC;
+ 	if (*did_some_progress != COMPACT_SKIPPED) {
+ 
+ 		/* Page migration frees to the PCP lists but we want merging */
+@@ -1869,23 +1868,22 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ {
+ 	struct page *page = NULL;
+ 	struct reclaim_state reclaim_state;
+-	struct task_struct *p = current;
+ 	bool drained = false;
+ 
+ 	cond_resched();
+ 
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
+-	p->flags |= PF_MEMALLOC;
++	current->flags |= PF_MEMALLOC;
+ 	lockdep_set_current_reclaim_state(gfp_mask);
+ 	reclaim_state.reclaimed_slab = 0;
+-	p->reclaim_state = &reclaim_state;
++	current->reclaim_state = &reclaim_state;
+ 
+ 	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
+ 
+-	p->reclaim_state = NULL;
++	current->reclaim_state = NULL;
+ 	lockdep_clear_current_reclaim_state();
+-	p->flags &= ~PF_MEMALLOC;
++	current->flags &= ~PF_MEMALLOC;
+ 
+ 	cond_resched();
+ 
+@@ -1950,7 +1948,6 @@ void wake_all_kswapd(unsigned int order,
+ static inline int
+ gfp_to_alloc_flags(gfp_t gfp_mask)
+ {
+-	struct task_struct *p = current;
+ 	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ 	const gfp_t wait = gfp_mask & __GFP_WAIT;
+ 
+@@ -1977,12 +1974,12 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
+ 		 */
+ 		alloc_flags &= ~ALLOC_CPUSET;
+-	} else if (unlikely(rt_task(p)) && !in_interrupt())
++	} else if (unlikely(rt_task(current)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
+ 
+ 	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
+ 		if (!in_interrupt() &&
+-		    ((p->flags & PF_MEMALLOC) ||
++		    ((current->flags & PF_MEMALLOC) ||
+ 		     unlikely(test_thread_flag(TIF_MEMDIE))))
+ 			alloc_flags |= ALLOC_NO_WATERMARKS;
+ 	}
+@@ -2001,7 +1998,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	int alloc_flags;
+ 	unsigned long pages_reclaimed = 0;
+ 	unsigned long did_some_progress;
+-	struct task_struct *p = current;
+ 	bool sync_migration = false;
+ 
+ 	/*
+@@ -2060,7 +2056,7 @@ rebalance:
+ 		goto nopage;
+ 
+ 	/* Avoid recursion of direct reclaim */
+-	if (p->flags & PF_MEMALLOC)
++	if (current->flags & PF_MEMALLOC)
+ 		goto nopage;
+ 
+ 	/* Avoid allocations with no watermarks from looping endlessly */
+@@ -2153,7 +2149,7 @@ nopage:
+ 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit()) {
+ 		printk(KERN_WARNING "%s: page allocation failure."
+ 			" order:%d, mode:0x%x\n",
+-			p->comm, order, gfp_mask);
++			current->comm, order, gfp_mask);
+ 		dump_stack();
+ 		show_mem();
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +195,7 @@ mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
 hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
 hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
 mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
