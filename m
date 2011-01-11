@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch added to -mm tree
-Date: Tue, 11 Jan 2011 12:46:02 -0800
-Message-ID: <201101112046.p0BKk2Js005902@imap1.linux-foundation.org>
+Subject: + mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction.patch added to -mm tree
+Date: Tue, 11 Jan 2011 12:40:30 -0800
+Message-ID: <201101112040.p0BKeUJK005681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751437Ab1AKUqx (ORCPT
+	by vger.kernel.org with ESMTP id S1753995Ab1AKUvZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:46:53 -0500
+	Tue, 11 Jan 2011 15:51:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, mel@csn.ul.ie
+Cc: mel@csn.ul.ie, hughd@google.com
 
 
 The patch titled
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
+     mm: compaction: avoid a potential deadlock due to lock_page() during direct compaction
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: compaction: avoid a potential deadlock due to lock_page() during direct compaction
+From: Mel Gorman <mel@csn.ul.ie>
 
-use conventional task_struct naming
+Hugh Dickins reported that two instances of cp were locking up when
+running on ppc64 in a memory constrained environment.  It also affects
+x86-64 but was harder to reproduce.  The deadlock was related to readahead
+pages.  When reading ahead, the pages are added locked to the LRU and
+queued for IO.  The process is also inserting pages into the page cache
+and so is calling radix_preload and entering the page allocator.  When
+SLUB is used, this can result in direct compaction finding the page that
+was just added to the LRU but still locked by the current process leading
+to deadlock.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This patch avoids locking pages in the direct compaction patch because we
+cannot be certain the current process is not holding the lock.  To do
+this, PF_MEMALLOC is set for compaction.  Compaction should not be
+re-entering the page allocator and so will not breach watermarks through
+the use of ALLOC_NO_WATERMARKS.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Hugh Dickins <hughd@google.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/migrate.c    |   17 +++++++++++++++++
+ mm/page_alloc.c |    3 +++
+ 2 files changed, 20 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
+diff -puN mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction
++++ a/mm/migrate.c
+@@ -639,6 +639,23 @@ static int unmap_and_move(new_page_t get
+ 	if (!trylock_page(page)) {
+ 		if (!force)
+ 			goto move_newpage;
++
++		/*
++		 * It's not safe for direct compaction to call lock_page.
++		 * For example, during page readahead pages are added locked
++		 * to the LRU. Later, when the IO completes the pages are
++		 * marked uptodate and unlocked. However, the queueing
++		 * could be merging multiple pages for one bio (e.g.
++		 * mpage_readpages). If an allocation happens for the
++		 * second or third page, the process can end up locking
++		 * the same page twice and deadlocking. Rather than
++		 * trying to be clever about what pages can be locked,
++		 * avoid the use of lock_page for direct compaction
++		 * altogether.
++		 */
++		if (current->flags & PF_MEMALLOC)
++			goto move_newpage;
++
+ 		lock_page(page);
+ 	}
+ 
+diff -puN mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction
 +++ a/mm/page_alloc.c
-@@ -1815,15 +1815,15 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -1815,12 +1815,15 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	int migratetype, unsigned long *did_some_progress)
  {
  	struct page *page;
--	struct task_struct *p = current;
-+	struct task_struct *tsk = current;
++	struct task_struct *p = current;
  
  	if (!order || compaction_deferred(preferred_zone))
  		return NULL;
  
--	p->flags |= PF_MEMALLOC;
-+	tsk->flags |= PF_MEMALLOC;
++	p->flags |= PF_MEMALLOC;
  	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
  								nodemask);
--	p->flags &= ~PF_MEMALLOC;
-+	tsk->flags &= ~PF_MEMALLOC;
++	p->flags &= ~PF_MEMALLOC;
  	if (*did_some_progress != COMPACT_SKIPPED) {
  
  		/* Page migration frees to the PCP lists but we want merging */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-add-output-inversion-option-to-backlight-trigger.patch
-leds-add-output-inversion-option-to-backlight-trigger-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ext4-dont-use-pr_warning_ratelimited.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
+mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
+vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
+mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
+mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
+mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
+mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
+mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
+thp-mm-define-madv_hugepage.patch
+thp-alter-compound-get_page-put_page.patch
+thp-update-futex-compound-knowledge.patch
+thp-clear-compound-mapping.patch
+thp-add-native_set_pmd_at.patch
+thp-add-pmd-paravirt-ops.patch
+thp-no-paravirt-version-of-pmd-ops.patch
+thp-export-maybe_mkwrite.patch
+thp-comment-reminder-in-destroy_compound_page.patch
+thp-config_transparent_hugepage.patch
+thp-config_transparent_hugepage-fix.patch
+thp-special-pmd_trans_-functions.patch
+thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+thp-bail-out-gup_fast-on-splitting-pmd.patch
+thp-pte-alloc-trans-splitting.patch
+thp-pte-alloc-trans-splitting-fix.patch
+thp-clear-page-compound.patch
+thp-add-pmd_huge_pte-to-mm_struct.patch
+thp-split_huge_page_mm-vma.patch
+thp-split_huge_page-paging.patch
+thp-clear_copy_huge_page.patch
+thp-_gfp_no_kswapd.patch
+thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
+thp-split_huge_page-anon_vma-ordering-dependency.patch
+thp-verify-pmd_trans_huge-isnt-leaking.patch
+thp-add-pagetranscompound.patch
+thp-skip-transhuge-pages-in-ksm-for-now.patch
+thp-enable-direct-defrag.patch
+thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+thp-transhuge-isolate_migratepages.patch
+thp-disable-transparent-hugepages-by-default-on-small-systems.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
 mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
