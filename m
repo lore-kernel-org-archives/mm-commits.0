@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-thunderbird-docs-with-wordwrap-plugin.patch added to -mm tree
-Date: Tue, 11 Jan 2011 14:52:53 -0800
-Message-ID: <201101112252.p0BMqrwF011460@imap1.linux-foundation.org>
+Subject: + proc-kcore-fix-seeking.patch added to -mm tree
+Date: Tue, 11 Jan 2011 14:55:28 -0800
+Message-ID: <201101112255.p0BMtSuD011511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754686Ab1AKWx3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754686Ab1AKW4l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 17:53:29 -0500
+	Tue, 11 Jan 2011 17:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rlandley@parallels.com, randy.dunlap@oracle.com
+Cc: anderson@redhat.com, fweisbec@gmail.com, stable@kernel.org
 
 
 The patch titled
-     Documentation/email-clients.txt: update Thunderbird docs with wordwrap plugin
+     /proc/kcore: fix seeking
 has been added to the -mm tree.  Its filename is
-     update-thunderbird-docs-with-wordwrap-plugin.patch
+     proc-kcore-fix-seeking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/email-clients.txt: update Thunderbird docs with wordwrap plugin
-From: Rob Landley <rlandley@parallels.com>
+Subject: /proc/kcore: fix seeking
+From: Dave Anderson <anderson@redhat.com>
 
-Show how to install the "toggle wordwrap" extension in thunderbird.
+Commit 34aacb2920 ("procfs: Use generic_file_llseek in /proc/kcore") broke
+seeking on /proc/kcore.  This changes it back to use default_llseek in
+order to restore the original behavior.
 
-Signed-off-by: Rob Landley <rlandley@parallels.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+The problem with generic_file_llseek is that it only allows seeks up to
+inode->i_sb->s_maxbytes, which is 2GB-1 on procfs, where the memory file
+offset values in the /proc/kcore PT_LOAD segments may exceed or start
+beyond that offset value.
+
+A similar revert was made for /proc/vmcore.
+
+Signed-off-by: Dave Anderson <anderson@redhat.com>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/email-clients.txt |   43 ++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 20 deletions(-)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/email-clients.txt~update-thunderbird-docs-with-wordwrap-plugin Documentation/email-clients.txt
---- a/Documentation/email-clients.txt~update-thunderbird-docs-with-wordwrap-plugin
-+++ a/Documentation/email-clients.txt
-@@ -186,26 +186,8 @@ Sylpheed (GUI)
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Thunderbird (GUI)
+diff -puN fs/proc/kcore.c~proc-kcore-fix-seeking fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-fix-seeking
++++ a/fs/proc/kcore.c
+@@ -558,7 +558,7 @@ static int open_kcore(struct inode *inod
+ static const struct file_operations proc_kcore_operations = {
+ 	.read		= read_kcore,
+ 	.open		= open_kcore,
+-	.llseek		= generic_file_llseek,
++	.llseek		= default_llseek,
+ };
  
--By default, thunderbird likes to mangle text, but there are ways to
--coerce it into being nice.
--
--- Under account settings, composition and addressing, uncheck "Compose
--  messages in HTML format".
--
--- Edit your Thunderbird config settings to tell it not to wrap lines:
--      user_pref("mailnews.wraplength", 0);
--
--- Edit your Thunderbird config settings so that it won't use format=flowed:
--      user_pref("mailnews.send_plaintext_flowed", false);
--
--- You need to get Thunderbird into preformat mode:
--. If you compose HTML messages by default, it's not too hard. Just select
--  "Preformat" from the drop-down box just under the subject line.
--. If you compose in text by default, you have to tell it to compose a new
--  message in HTML (just as a one-off), and then force it from there back to
--  text, else it will wrap lines. To do this, use shift-click on the Write
--  icon to compose to get HTML compose mode, then select "Preformat" from
--  the drop-down box just under the subject line.
-+Thunderbird is an Outlook clone that likes to mangle text, but there are ways
-+to coerce it into behaving.
- 
- - Allows use of an external editor:
-   The easiest thing to do with Thunderbird and patches is to use an
-@@ -215,6 +197,27 @@ coerce it into being nice.
-   View->Toolbars->Customize... and finally just click on it when in the
-   Compose dialog.
- 
-+To beat some sense out of the internal editor, do this:
-+
-+- Under account settings, composition and addressing, uncheck "Compose
-+  messages in HTML format".
-+
-+- Edit your Thunderbird config settings so that it won't use format=flowed.
-+  Go to "edit->preferences->advanced->config editor" to bring up the
-+  thunderbird's registry editor, and set "mailnews.send_plaintext_flowed" to
-+  "false".
-+
-+- Enable "preformat" mode: Shft-click on the Write icon to bring up the HTML
-+  composer, select "Preformat" from the drop-down box just under the subject
-+  line, then close the message without saving.  (This setting also applies to
-+  the text composer, but the only control for it is in the HTML composer.)
-+
-+- Install the "toggle wordwrap" extension.  Download the file from:
-+    https://addons.mozilla.org/thunderbird/addon/2351/
-+  Then go to "tools->add ons", select "install" at the bottom of the screen,
-+  and browse to where you saved the .xul file.  This adds an "Enable
-+  Wordwrap" entry under the Options menu of the message composer.
-+
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- TkRat (GUI)
- 
+ #ifdef CONFIG_MEMORY_HOTPLUG
 _
 
-Patches currently in -mm which might be from rlandley@parallels.com are
+Patches currently in -mm which might be from anderson@redhat.com are
 
-update-thunderbird-docs-with-wordwrap-plugin.patch
+proc-kcore-fix-seeking.patch
 
