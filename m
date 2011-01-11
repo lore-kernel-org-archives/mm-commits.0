@@ -1,99 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch removed from -mm tree
-Date: Tue, 11 Jan 2011 12:19:21 -0800
-Message-ID: <201101112021.p0BKLkc6004899@imap1.linux-foundation.org>
+Subject: [alternative-merged] cpuidle-make-cpuidle_enable_device-call-poll_idle_init.patch removed from -mm tree
+Date: Tue, 11 Jan 2011 12:20:02 -0800
+Message-ID: <201101112022.p0BKMRBE004924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753413Ab1AKUWE (ORCPT
+	by vger.kernel.org with ESMTP id S1753737Ab1AKUWo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:22:04 -0500
+	Tue, 11 Jan 2011 15:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, axboe@kernel.dk, stable@kernel.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, len.brown@intel.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix botched tag masking for scsi tape commands
+     cpuidle: make cpuidle_enable_device() call poll_idle_init()
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
+     cpuidle-make-cpuidle_enable_device-call-poll_idle_init.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix botched tag masking for scsi tape commands
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: cpuidle: make cpuidle_enable_device() call poll_idle_init()
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-In process_non_indexed_cmd() we were only masking off the low two bits
-when comparing tags vs.  busaddr, and not taking into account the fact
-that in "performant" mode, three bits of block fetch table indexes were
-stuffed into the tag, and needed to be masked out for the comparison to
-work.
+The following scenario is possible with the current cpuidle code and
+the ACPI cpuidle driver:
+(1) acpi_processor_cst_has_changed() is called,
+(2) cpuidle_disable_device() is called,
+(3) cpuidle_remove_state_sysfs() is called to remove the (presumably
+    outdated) states info from sysfs,
+(3) acpi_processor_get_power_info() is called, the first entry in the
+    pr->power.states[] table is filled with zeros,
+(4) acpi_processor_setup_cpuidle() is called and it doesn't fill the
+    first entry in pr->power.states[],
+(5) cpuidle_enable_device() is called,
+(6) __cpuidle_register_device() is _not_ called, since the device has
+    already been registered,
+(7) Consequently, poll_idle_init() is _not_ called either,
+(8) cpuidle_add_state_sysfs() is called to create the sysfs attributes
+    for the new states and it uses the bogus first table entry from
+    acpi_processor_get_power_info() for creating state0.
 
-This resulted in spurious "bad tag" messages, and command completions
-getting ignored for any scsi tape i/o and any i/o coming through
-CCISS_BIG_PASSTHRU which required more than one scatter gather entry
-(fewer than two worked because in such cases the 3 bits we failed to mask
-off happened to be zero anyway.)
+This problem will be avoided if cpuidle_enable_device() calls
+poll_idle_init() for dev->registered different from zero.
 
-I also noticed we were repeatedly masking the bits off the tag in a loop
-when doing it once at the top of the loop would have sufficed, so I fixed
-that as well.
-
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@kernel.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/cpuidle/cpuidle.c |   80 ++++++++++++++++++------------------
+ 1 file changed, 41 insertions(+), 39 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands
-+++ a/drivers/block/cciss.c
-@@ -3136,10 +3136,13 @@ static inline u32 cciss_tag_to_index(u32
- 	return tag >> DIRECT_LOOKUP_SHIFT;
- }
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-make-cpuidle_enable_device-call-poll_idle_init drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-make-cpuidle_enable_device-call-poll_idle_init
++++ a/drivers/cpuidle/cpuidle.c
+@@ -155,6 +155,45 @@ void cpuidle_resume_and_unlock(void)
  
--static inline u32 cciss_tag_discard_error_bits(u32 tag)
-+static inline u32 cciss_tag_discard_error_bits(ctlr_info_t *h, u32 tag)
- {
--#define CCISS_ERROR_BITS 0x03
--	return tag & ~CCISS_ERROR_BITS;
-+#define CCISS_PERF_ERROR_BITS ((1 << DIRECT_LOOKUP_SHIFT) - 1)
-+#define CCISS_SIMPLE_ERROR_BITS 0x03
-+	if (likely(h->transMethod == CFGTBL_Trans_Performant))
-+		return tag & ~CCISS_PERF_ERROR_BITS;
-+	return tag & ~CCISS_SIMPLE_ERROR_BITS;
- }
+ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
  
- static inline void cciss_mark_tag_indexed(u32 *tag)
-@@ -3400,15 +3403,13 @@ static inline u32 process_indexed_cmd(ct
- /* process completion of a non-indexed command */
- static inline u32 process_nonindexed_cmd(ctlr_info_t *h, u32 raw_tag)
- {
--	u32 tag;
- 	CommandList_struct *c = NULL;
- 	struct hlist_node *tmp;
- 	__u32 busaddr_masked, tag_masked;
++#ifdef CONFIG_ARCH_HAS_CPU_RELAX
++static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
++{
++	ktime_t	t1, t2;
++	s64 diff;
++	int ret;
++
++	t1 = ktime_get();
++	local_irq_enable();
++	while (!need_resched())
++		cpu_relax();
++
++	t2 = ktime_get();
++	diff = ktime_to_us(ktime_sub(t2, t1));
++	if (diff > INT_MAX)
++		diff = INT_MAX;
++
++	ret = (int) diff;
++	return ret;
++}
++
++static void poll_idle_init(struct cpuidle_device *dev)
++{
++	struct cpuidle_state *state = &dev->states[0];
++
++	cpuidle_set_statedata(state, NULL);
++
++	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
++	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
++	state->exit_latency = 0;
++	state->target_residency = 0;
++	state->power_usage = -1;
++	state->flags = CPUIDLE_FLAG_POLL;
++	state->enter = poll_idle;
++}
++#else
++static void poll_idle_init(struct cpuidle_device *dev) {}
++#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
++
+ /**
+  * cpuidle_enable_device - enables idle PM for a CPU
+  * @dev: the CPU
+@@ -177,6 +216,8 @@ int cpuidle_enable_device(struct cpuidle
+ 		ret = __cpuidle_register_device(dev);
+ 		if (ret)
+ 			return ret;
++	} else {
++		poll_idle_init(dev);
+ 	}
  
--	tag = cciss_tag_discard_error_bits(raw_tag);
-+	tag_masked = cciss_tag_discard_error_bits(h, raw_tag);
- 	hlist_for_each_entry(c, tmp, &h->cmpQ, list) {
--		busaddr_masked = cciss_tag_discard_error_bits(c->busaddr);
--		tag_masked = cciss_tag_discard_error_bits(tag);
-+		busaddr_masked = cciss_tag_discard_error_bits(h, c->busaddr);
- 		if (busaddr_masked == tag_masked) {
- 			finish_cmd(h, c, raw_tag);
- 			return next_command(h);
-_
-
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
-
-origin.patch
-cciss-make-cciss_revalidate-not-loop-through-ciss_max_luns-volumes-unnecessarily.patch
-
+ 	if ((ret = cpuidle_add_state_sysfs(dev)))
+@@ -233,45 +274,6 @@ void cpuidle_disable_device(struct cpuid
+ 
+ EXPORT_SYMBOL_GPL(cpuidle_disable_device);
+ 
+-#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
+-{
+-	ktime_t	t1, t2;
+-	s64 diff;
+-	int ret;
+-
+-	t1 = ktime_get();
+-	local_irq_enable();
+-	while (!need_resched())
+-		cpu_relax();
+-
+-	t2 = ktime_get();
+-	diff = ktime_to_us(ktime_sub(t2, t1));
+-	if (diff > INT_MAX)
+-		diff = INT_MAX;
+-
+-	ret = (int) diff;
+-	return ret;
+-}
+-
+-static void poll_idle_init(struct cpuidle_device *dev)
+-{
+-	struct cpuidle_state *state = &dev->states[0];
+-
+-	cpuidle_set_statedata(state, NULL);
+-
+-	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
+-	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
+-	state->exit_latency = 0;
+-	state->target_residency = 0;
+-	state->power_usage = -1;
+-	state->flags = CPUIDLE_FLAG_POLL;
+-	state->enter = poll_idle;
+-}
+-#else
+-static void poll_idle_init(struct cpuidle_device *dev) {}
+-#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
