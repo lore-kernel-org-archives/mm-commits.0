@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-hugepage-migration.patch added to -mm tree
-Date: Tue, 11 Jan 2011 13:36:09 -0800
-Message-ID: <201101112136.p0BLaAfJ008152@imap1.linux-foundation.org>
+Subject: + mm-fix-migration-hangs-on-anon_vma-lock.patch added to -mm tree
+Date: Tue, 11 Jan 2011 13:36:06 -0800
+Message-ID: <201101112136.p0BLa61e008149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902Ab1AKVgl (ORCPT
+	by vger.kernel.org with ESMTP id S1753902Ab1AKVgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 16:36:41 -0500
+	Tue, 11 Jan 2011 16:36:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hughd@google.com, ak@linux.intel.com, j-nomura@ce.jp.nec.com, mel@csn.ul.ie,
 
 
 The patch titled
-     mm: fix hugepage migration
+     mm: fix migration hangs on anon_vma lock
 has been added to the -mm tree.  Its filename is
-     mm-fix-hugepage-migration.patch
+     mm-fix-migration-hangs-on-anon_vma-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix hugepage migration
+Subject: mm: fix migration hangs on anon_vma lock
 From: Hugh Dickins <hughd@google.com>
 
-2.6.37 added an unmap_and_move_huge_page() for memory failure recovery,
-but its anon_vma handling was still based around the 2.6.35 conventions.
-Update it to use page_lock_anon_vma, get_anon_vma, page_unlock_anon_vma,
-drop_anon_vma in the same way as we're now changing unmap_and_move().
+Increased usage of page migration in mmotm reveals that the anon_vma
+locking in unmap_and_move() has been deficient since 2.6.36 (or even
+earlier).  Review at the time of f18194275c39835cb84563500995e0d503a32d9a
+("mm: fix hang on anon_vma->root->lock") missed the issue here: the
+anon_vma to which we get a reference may already have been freed back to
+its slab (it is in use when we check page_mapped, but that can change),
+and so its anon_vma->root may be switched at any moment by reuse in
+anon_vma_prepare.
 
-I don't particularly like to propose this for stable when I've not seen
-its problems in practice nor tested the solution: but it's clearly out of
-synch at present.
+Perhaps we could fix that with a get_anon_vma_unless_zero(), but let's
+not: just rely on page_lock_anon_vma() to do all the hard thinking for us,
+then we don't need any rcu read locking over here.
+
+In removing the rcu_unlock label: since PageAnon is a bit in
+page->mapping, it's impossible for a !page->mapping page to be anon; but
+insert VM_BUG_ON in case the implementation ever changes.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
@@ -56,56 +64,107 @@ Cc: <stable@kernel.org> [2.6.37, 2.6.36]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   23 ++++++-----------------
- 1 file changed, 6 insertions(+), 17 deletions(-)
+ mm/migrate.c |   49 ++++++++++++++++++++-----------------------------
+ 1 file changed, 20 insertions(+), 29 deletions(-)
 
-diff -puN mm/migrate.c~mm-fix-hugepage-migration mm/migrate.c
---- a/mm/migrate.c~mm-fix-hugepage-migration
+diff -puN mm/migrate.c~mm-fix-migration-hangs-on-anon_vma-lock mm/migrate.c
+--- a/mm/migrate.c~mm-fix-migration-hangs-on-anon_vma-lock
 +++ a/mm/migrate.c
-@@ -828,7 +828,6 @@ static int unmap_and_move_huge_page(new_
- 	int rc = 0;
+@@ -622,7 +622,6 @@ static int unmap_and_move(new_page_t get
  	int *result = NULL;
- 	struct page *new_hpage = get_new_page(hpage, private, &result);
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int remap_swapcache = 1;
 -	int rcu_locked = 0;
+ 	int charge = 0;
+ 	struct mem_cgroup *mem = NULL;
  	struct anon_vma *anon_vma = NULL;
- 
- 	if (!new_hpage)
-@@ -843,12 +842,10 @@ static int unmap_and_move_huge_page(new_
- 	}
- 
- 	if (PageAnon(hpage)) {
+@@ -694,20 +693,27 @@ static int unmap_and_move(new_page_t get
+ 	/*
+ 	 * By try_to_unmap(), page->mapcount goes down to 0 here. In this case,
+ 	 * we cannot notice that anon_vma is freed while we migrates a page.
+-	 * This rcu_read_lock() delays freeing anon_vma pointer until the end
++	 * This get_anon_vma() delays freeing anon_vma pointer until the end
+ 	 * of migration. File cache pages are no problem because of page_lock()
+ 	 * File Caches may use write_page() or lock_page() in migration, then,
+ 	 * just care Anon page here.
+ 	 */
+ 	if (PageAnon(page)) {
 -		rcu_read_lock();
 -		rcu_locked = 1;
 -
--		if (page_mapped(hpage)) {
--			anon_vma = page_anon_vma(hpage);
--			atomic_inc(&anon_vma->external_refcount);
-+		anon_vma = page_lock_anon_vma(hpage);
+-		/* Determine how to safely use anon_vma */
+-		if (!page_mapped(page)) {
+-			if (!PageSwapCache(page))
+-				goto rcu_unlock;
+-
++		/*
++		 * Only page_lock_anon_vma() understands the subtleties of
++		 * getting a hold on an anon_vma from outside one of its mms.
++		 */
++		anon_vma = page_lock_anon_vma(page);
 +		if (anon_vma) {
++			/*
++			 * Take a reference count on the anon_vma if the
++			 * page is mapped so that it is guaranteed to
++			 * exist when the page is remapped later
++			 */
 +			get_anon_vma(anon_vma);
 +			page_unlock_anon_vma(anon_vma);
++		}
++		else if (PageSwapCache(page)) {
+ 			/*
+ 			 * We cannot be sure that the anon_vma of an unmapped
+ 			 * swapcache page is safe to use because we don't
+@@ -722,13 +728,7 @@ static int unmap_and_move(new_page_t get
+ 			 */
+ 			remap_swapcache = 0;
+ 		} else {
+-			/*
+-			 * Take a reference count on the anon_vma if the
+-			 * page is mapped so that it is guaranteed to
+-			 * exist when the page is remapped later
+-			 */
+-			anon_vma = page_anon_vma(page);
+-			get_anon_vma(anon_vma);
++			goto uncharge;
  		}
  	}
  
-@@ -860,16 +857,8 @@ static int unmap_and_move_huge_page(new_
- 	if (rc)
- 		remove_migration_ptes(hpage, hpage);
+@@ -745,16 +745,10 @@ static int unmap_and_move(new_page_t get
+ 	 * free the metadata, so the page can be freed.
+ 	 */
+ 	if (!page->mapping) {
+-		if (!PageAnon(page) && page_has_private(page)) {
+-			/*
+-			 * Go direct to try_to_free_buffers() here because
+-			 * a) that's what try_to_release_page() would do anyway
+-			 * b) we may be under rcu_read_lock() here, so we can't
+-			 *    use GFP_KERNEL which is what try_to_release_page()
+-			 *    needs to be effective.
+-			 */
++		VM_BUG_ON(PageAnon(page));
++		if (page_has_private(page)) {
+ 			try_to_free_buffers(page);
+-			goto rcu_unlock;
++			goto uncharge;
+ 		}
+ 		goto skip_unmap;
+ 	}
+@@ -768,14 +762,11 @@ skip_unmap:
  
--	if (anon_vma && atomic_dec_and_lock(&anon_vma->external_refcount,
--					    &anon_vma->lock)) {
--		int empty = list_empty(&anon_vma->head);
--		spin_unlock(&anon_vma->lock);
--		if (empty)
--			anon_vma_free(anon_vma);
--	}
--
+ 	if (rc && remap_swapcache)
+ 		remove_migration_ptes(page, page);
+-rcu_unlock:
+ 
+ 	/* Drop an anon_vma reference if we took one */
+ 	if (anon_vma)
+ 		drop_anon_vma(anon_vma);
+ 
 -	if (rcu_locked)
 -		rcu_read_unlock();
-+	if (anon_vma)
-+		drop_anon_vma(anon_vma);
- out:
- 	unlock_page(hpage);
- 
+ uncharge:
+ 	if (!charge)
+ 		mem_cgroup_end_migration(mem, page, newpage);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
