@@ -1,240 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memstick-a-few-changes-to-core.patch removed from -mm tree
-Date: Tue, 11 Jan 2011 14:17:46 -0800
-Message-ID: <201101112217.p0BMHkjv010009@imap1.linux-foundation.org>
+Subject: [to-be-updated] memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch removed from -mm tree
+Date: Tue, 11 Jan 2011 14:17:52 -0800
+Message-ID: <201101112217.p0BMHqtX010019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932328Ab1AKWST (ORCPT
+	by vger.kernel.org with ESMTP id S932328Ab1AKWSm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 17:18:19 -0500
+	Tue, 11 Jan 2011 17:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maximlevitsky@gmail.com, maximlevisky@gmail.com, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, maximlevitsky@gmail.com, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: a few changes to core
+     memstick-add-driver-for-ricoh-r5c592-card-reader-fix
 has been removed from the -mm tree.  Its filename was
-     memstick-a-few-changes-to-core.patch
+     memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: a few changes to core
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: memstick-add-driver-for-ricoh-r5c592-card-reader-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I add here few helpers that should make memstick block driver a bit
-simplier.  Currently only my forthcoming ms_block.c will use them, but I
-plan to make mspro_blk use them too.
+powerpc:
 
-- Bump the buffer in TPC request from 15 to 32 bytes This allows to read
-  all regs from device in easy manner
+In file included from drivers/memstick/host/r592.c:23:
+drivers/memstick/host/r592.h:177:7: warning: no newline at end of file
+drivers/memstick/host/r592.c:25: error: 'enable_dma' redeclared as different kind of symbol
+arch/powerpc/include/asm/dma.h:190: error: previous definition of 'enable_dma' was here
 
-- Add 6 bytes to ms_registers.  Last 6 registers are readable but
-  reserved.  Unfortunelly some drivers/hardware have problem transferring
-  non-power of two data packets.  That really just papers over a bug in
-  jmicron driver, but temporarly untill that is fixed.
-
-Signed-off-by: Maxim Levitsky <maximlevisky@gmail.com>
-Acked-by: Alex Dubov <oakad@yahoo.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c |  109 +++++++++++++++++++++++++++++
- include/linux/memstick.h         |   23 +++++-
- 2 files changed, 131 insertions(+), 1 deletion(-)
+ drivers/memstick/host/r592.c |    8 ++++----
+ drivers/memstick/host/r592.h |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-a-few-changes-to-core drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-a-few-changes-to-core
-+++ a/drivers/memstick/core/memstick.c
-@@ -362,6 +362,13 @@ static int h_memstick_set_rw_addr(struct
- 	}
- }
+diff -puN drivers/memstick/host/r592.c~memstick-add-driver-for-ricoh-r5c592-card-reader-fix drivers/memstick/host/r592.c
+--- a/drivers/memstick/host/r592.c~memstick-add-driver-for-ricoh-r5c592-card-reader-fix
++++ a/drivers/memstick/host/r592.c
+@@ -22,7 +22,7 @@
+ #include <asm/byteorder.h>
+ #include "r592.h"
  
-+
-+static int h_mspro_block_default_bad(struct memstick_dev *card,
-+				     struct memstick_request **mrq)
-+{
-+	return -ENXIO;
-+}
-+
- /**
-  * memstick_set_rw_addr - issue SET_RW_REG_ADDR request and wait for it to
-  *                        complete
-@@ -377,6 +384,108 @@ int memstick_set_rw_addr(struct memstick
- }
- EXPORT_SYMBOL(memstick_set_rw_addr);
+-static int enable_dma = 1;
++static int dma = 1;
+ static int debug;
  
-+
-+/**
-+ * memstick_fetch_request - initialize new request to use by request handler
-+ * @card - card to use
-+ * @mrq - request to initialize
-+ */
-+void memstick_fetch_request(struct memstick_dev *card,
-+					struct memstick_request **mrq)
-+{
-+	if (*mrq == NULL) {
-+		*mrq = &card->current_mrq;
-+		(*mrq)->error = 0;
-+		card->state = 0;
-+	}
-+}
-+EXPORT_SYMBOL(memstick_fetch_request);
-+
-+/**
-+ * memstick_complete_req - signal that request is completed
-+ * @card - card to use
-+ * @mrq - request to use
-+ * @error - result of the request
-+ *
-+ * Card drivers can use that function to signal end of request
-+ */
-+int memstick_complete_request(struct memstick_dev *card,
-+			struct memstick_request *req, int error)
-+{
-+	if (error)
-+		req->error = error;
-+
-+	card->state = -1;
-+	card->next_request = h_mspro_block_default_bad;
-+	complete(&card->mrq_complete);
-+	return -EAGAIN;
-+}
-+EXPORT_SYMBOL(memstick_complete_request);
-+
-+/**
-+ * ms_send_int_request - optionaly init new MS_TPC_GET_INT.
-+ * if last request already contains the int flags, reuse them
-+ * returns 1 if new request was initialized
-+ * Will artifictially return MEMSTICK_INT_CMDNAK if this function was
-+ * called more that once in 300 msecs without memstick_finish_int_request
-+ * in between
-+ * @card - card to use
-+ * @mrq - request to use
-+ */
-+
-+int memstick_send_int_request(struct memstick_dev *card,
-+					struct memstick_request *req)
-+{
-+	if (!card->int_polling) {
-+		card->int_poll_start_time = jiffies;
-+		card->int_polling = true;
-+	} else if (time_after(jiffies,
-+			card->int_poll_start_time + msecs_to_jiffies(300))) {
-+		req->data[0] |= MEMSTICK_INT_CMDNAK;
-+		return 0;
-+	}
-+
-+	if ((card->caps & MEMSTICK_CAP_AUTO_GET_INT) && req->need_card_int) {
-+		BUG_ON(req->error);
-+		req->data[0] = req->int_reg;
-+		req->need_card_int = 0;
-+		return 0;
-+	} else {
-+		memstick_init_req(req, MS_TPC_GET_INT, NULL, 1);
-+		return 1;
-+	}
-+}
-+EXPORT_SYMBOL(memstick_send_int_request);
-+
-+/**
-+ * Signal success of int polling, and cancel timeout
-+ * Use this if you use memstick_send_int_request
-+ * @card - card to use
-+ */
-+void memstick_finish_int_request(struct memstick_dev *card)
-+{
-+	card->int_polling = false;
-+}
-+EXPORT_SYMBOL(memstick_finish_int_request);
-+
-+/**
-+ * memstick_do_request_handler - runs state machine untill it finishes
-+ * helper to be used in card drivers
-+ * @card - card to use
-+ * next_request - the state machine
-+ */
-+int memstick_do_request_handler(struct memstick_dev *card,
-+	int   (*next_request)(struct memstick_dev *card,
-+					struct memstick_request **mrq))
-+{
-+	card->next_request = next_request;
-+	memstick_new_req(card->host);
-+	wait_for_completion(&card->mrq_complete);
-+	return card->current_mrq.error;
-+}
-+EXPORT_SYMBOL(memstick_do_request_handler);
-+
-+
- static struct memstick_dev *memstick_alloc_card(struct memstick_host *host)
+ static const char *tpc_names[] = {
+@@ -257,7 +257,7 @@ static void r592_stop_dma(struct r592_de
+ /* Test if hardware supports DMA */
+ static void r592_check_dma(struct r592_device *dev)
  {
- 	struct memstick_dev *card = kzalloc(sizeof(struct memstick_dev),
-diff -puN include/linux/memstick.h~memstick-a-few-changes-to-core include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-a-few-changes-to-core
-+++ a/include/linux/memstick.h
-@@ -92,6 +92,7 @@ struct ms_register {
- 	unsigned char                 reserved[8];
- 	struct ms_param_register      param;
- 	struct ms_extra_data_register extra_data;
-+	unsigned char                 reserved2[6];
- } __attribute__((packed));
+-	dev->dma_capable = enable_dma &&
++	dev->dma_capable = dma &&
+ 		(r592_read_reg(dev, R592_FIFO_DMA_SETTINGS) &
+ 			R592_FIFO_DMA_SETTINGS_CAP);
+ }
+@@ -883,8 +883,8 @@ static void __exit r592_module_exit(void
+ module_init(r592_module_init);
+ module_exit(r592_module_exit);
  
- struct mspro_param_register {
-@@ -247,7 +248,7 @@ struct memstick_request {
- 		struct scatterlist sg;
- 		struct {
- 			unsigned char data_len;
--			unsigned char data[15];
-+			unsigned char data[32];
- 		};
- 	};
- };
-@@ -270,6 +271,12 @@ struct memstick_dev {
- 	void                     (*start)(struct memstick_dev *card);
+-module_param(enable_dma, bool, S_IRUGO);
+-MODULE_PARM_DESC(enable_dma, "Enable usage of the DMA (default)");
++module_param(dma, bool, S_IRUGO);
++MODULE_PARM_DESC(dma, "Enable usage of the DMA (default)");
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Debug level (0-3)");
  
- 	struct device            dev;
-+
-+	/* Private area for request processing */
-+	bool			 int_polling;
-+	unsigned long		 int_poll_start_time;
-+	int			 state;
-+	int			 caps;
- };
+diff -puN drivers/memstick/host/r592.h~memstick-add-driver-for-ricoh-r5c592-card-reader-fix drivers/memstick/host/r592.h
+--- a/drivers/memstick/host/r592.h~memstick-add-driver-for-ricoh-r5c592-card-reader-fix
++++ a/drivers/memstick/host/r592.h
+@@ -174,4 +174,4 @@ struct dword_buffer {
+ #define dbg_verbose(format, ...)	__dbg(2, format, ## __VA_ARGS__)
+ #define dbg_reg(format, ...)		__dbg(3, format, ## __VA_ARGS__)
  
- struct memstick_host {
-@@ -329,6 +336,20 @@ void memstick_new_req(struct memstick_ho
- 
- int memstick_set_rw_addr(struct memstick_dev *card);
- 
-+void memstick_fetch_request(struct memstick_dev *card,
-+					struct memstick_request **mrq);
-+int memstick_complete_request(struct memstick_dev *card,
-+			struct memstick_request *req, int error);
-+
-+int memstick_send_int_request(struct memstick_dev *card,
-+					struct memstick_request *req);
-+
-+void memstick_finish_int_request(struct memstick_dev *card);
-+
-+int memstick_do_request_handler(struct memstick_dev *card,
-+	int   (*next_request)(struct memstick_dev *card,
-+				struct memstick_request **mrq));
-+
- static inline void *memstick_priv(struct memstick_host *host)
- {
- 	return (void *)host->private;
+-#endif
+\ No newline at end of file
++#endif
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memstick-core-fix-device_register-error-handling.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-add-output-inversion-option-to-backlight-trigger.patch
+leds-add-output-inversion-option-to-backlight-trigger-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ext4-dont-use-pr_warning_ratelimited.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-kvm-mmu-transparent-hugepage-support-bisection.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
 memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-memstick-add-support-for-mspro-specific-data-transfer-method.patch
+aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
