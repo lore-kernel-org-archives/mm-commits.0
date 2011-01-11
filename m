@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-code-of-swapc.patch added to -mm tree
-Date: Tue, 11 Jan 2011 15:22:04 -0800
-Message-ID: <201101112322.p0BNM48a012650@imap1.linux-foundation.org>
+Subject: + mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 11 Jan 2011 15:23:02 -0800
+Message-ID: <201101112323.p0BNN28H012760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755712Ab1AKXWx (ORCPT
+	by vger.kernel.org with ESMTP id S1752876Ab1AKXXc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:22:53 -0500
+	Tue, 11 Jan 2011 18:23:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, shaohua.li@intel.com
 
 
 The patch titled
-     mm: simplify code of swap.c
+     mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-simplify-code-of-swapc.patch
+     mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,201 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: simplify code of swap.c
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Clean up code and remove duplicate code.  Next patch will use
-pagevec_lru_move_fn introduced here too.
+ERROR: inline keyword should sit between storage class and type
+#181: FILE: mm/swap.c:350:
++static void inline activate_page_drain(int cpu)
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+total: 1 errors, 0 warnings, 145 lines checked
+
+./patches/mm-batch-activate_page-to-reduce-lock-contention.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |  101 +++++++++++++++++++++++++++-------------------------
- 1 file changed, 54 insertions(+), 47 deletions(-)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-simplify-code-of-swapc mm/swap.c
---- a/mm/swap.c~mm-simplify-code-of-swapc
+diff -puN mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes mm/swap.c
+--- a/mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes
 +++ a/mm/swap.c
-@@ -180,15 +180,13 @@ void put_pages_list(struct list_head *pa
+@@ -347,7 +347,7 @@ int putback_active_lru_page(struct zone 
  }
- EXPORT_SYMBOL(put_pages_list);
  
--/*
-- * pagevec_move_tail() must be called with IRQ disabled.
-- * Otherwise this may cause nasty races.
-- */
--static void pagevec_move_tail(struct pagevec *pvec)
-+static void pagevec_lru_move_fn(struct pagevec *pvec,
-+				void (*move_fn)(struct page *page, void *arg),
-+				void *arg)
+ #else
+-static void inline activate_page_drain(int cpu)
++static inline void activate_page_drain(int cpu)
  {
- 	int i;
--	int pgmoved = 0;
- 	struct zone *zone = NULL;
-+	unsigned long flags = 0;
- 
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
-@@ -196,29 +194,49 @@ static void pagevec_move_tail(struct pag
- 
- 		if (pagezone != zone) {
- 			if (zone)
--				spin_unlock(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			zone = pagezone;
--			spin_lock(&zone->lru_lock);
--		}
--		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--			int lru = page_lru_base_type(page);
--			list_move_tail(&page->lru, &zone->lru[lru].list);
--			pgmoved++;
-+			spin_lock_irqsave(&zone->lru_lock, flags);
- 		}
-+
-+		(*move_fn)(page, arg);
- 	}
- 	if (zone)
--		spin_unlock(&zone->lru_lock);
--	__count_vm_events(PGROTATED, pgmoved);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
-+	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
- 	pagevec_reinit(pvec);
  }
  
-+static void pagevec_move_tail_fn(struct page *page, void *arg)
-+{
-+	int *pgmoved = arg;
-+	struct zone *zone = page_zone(page);
-+
-+	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
-+		int lru = page_lru_base_type(page);
-+		list_move_tail(&page->lru, &zone->lru[lru].list);
-+		(*pgmoved)++;
-+	}
-+}
-+
-+/*
-+ * pagevec_move_tail() must be called with IRQ disabled.
-+ * Otherwise this may cause nasty races.
-+ */
-+static void pagevec_move_tail(struct pagevec *pvec)
-+{
-+	int pgmoved = 0;
-+
-+	pagevec_lru_move_fn(pvec, pagevec_move_tail_fn, &pgmoved);
-+	__count_vm_events(PGROTATED, pgmoved);
-+}
-+
- /*
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-  * inactive list.
-  */
--void  rotate_reclaimable_page(struct page *page)
-+void rotate_reclaimable_page(struct page *page)
- {
- 	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
- 	    !PageUnevictable(page) && PageLRU(page)) {
-@@ -576,44 +594,33 @@ void lru_add_page_tail(struct zone* zone
- 	}
- }
- 
-+static void ____pagevec_lru_add_fn(struct page *page, void *arg)
-+{
-+	enum lru_list lru = (enum lru_list)arg;
-+	struct zone *zone = page_zone(page);
-+	int file = is_file_lru(lru);
-+	int active = is_active_lru(lru);
-+
-+	VM_BUG_ON(PageActive(page));
-+	VM_BUG_ON(PageUnevictable(page));
-+	VM_BUG_ON(PageLRU(page));
-+
-+	SetPageLRU(page);
-+	if (active)
-+		SetPageActive(page);
-+	update_page_reclaim_stat(zone, page, file, active);
-+	add_page_to_lru_list(zone, page, lru);
-+}
-+
- /*
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
-  */
- void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
- {
--	int i;
--	struct zone *zone = NULL;
--
- 	VM_BUG_ON(is_unevictable_lru(lru));
- 
--	for (i = 0; i < pagevec_count(pvec); i++) {
--		struct page *page = pvec->pages[i];
--		struct zone *pagezone = page_zone(page);
--		int file;
--		int active;
--
--		if (pagezone != zone) {
--			if (zone)
--				spin_unlock_irq(&zone->lru_lock);
--			zone = pagezone;
--			spin_lock_irq(&zone->lru_lock);
--		}
--		VM_BUG_ON(PageActive(page));
--		VM_BUG_ON(PageUnevictable(page));
--		VM_BUG_ON(PageLRU(page));
--		SetPageLRU(page);
--		active = is_active_lru(lru);
--		file = is_file_lru(lru);
--		if (active)
--			SetPageActive(page);
--		update_page_reclaim_stat(zone, page, file, active);
--		add_page_to_lru_list(zone, page, lru);
--	}
--	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
--	pagevec_reinit(pvec);
-+	pagevec_lru_move_fn(pvec, ____pagevec_lru_add_fn, (void *)lru);
- }
- 
- EXPORT_SYMBOL(____pagevec_lru_add);
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-intel_idle-open-broadcast-clock-event-resend.patch
-mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-add-output-inversion-option-to-backlight-trigger.patch
+leds-add-output-inversion-option-to-backlight-trigger-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ext4-dont-use-pr_warning_ratelimited.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-mm-simplify-code-of-swapc.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-kvm-mmu-transparent-hugepage-support-bisection.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
+kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
+kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
+fs-select-fix-information-leak-to-userspace-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
+drivers-telephony-ixjc-fix-warning.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+sysctl-remove-obsolete-comments-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+pps-add-parallel-port-pps-signal-generator-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+scatterlist-new-helper-functions-fix.patch
+aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
