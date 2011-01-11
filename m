@@ -1,128 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 11 Jan 2011 12:16:43 -0800
-Message-ID: <201101112019.p0BKJ89O004811@imap1.linux-foundation.org>
+Subject: [wrecked] cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch removed from -mm tree
+Date: Tue, 11 Jan 2011 12:19:21 -0800
+Message-ID: <201101112021.p0BKLkc6004899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752569Ab1AKUT3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753413Ab1AKUWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:19:29 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0BKJ98S007127
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 11 Jan 2011 12:19:09 -0800
+	Tue, 11 Jan 2011 15:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: scameron@beardog.cce.hp.com, axboe@kernel.dk, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     cciss: fix botched tag masking for scsi tape commands
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cciss: fix botched tag masking for scsi tape commands
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 
+In process_non_indexed_cmd() we were only masking off the low two bits
+when comparing tags vs.  busaddr, and not taking into account the fact
+that in "performant" mode, three bits of block fetch table indexes were
+stuffed into the tag, and needed to be masked out for the comparison to
+work.
+
+This resulted in spurious "bad tag" messages, and command completions
+getting ignored for any scsi tape i/o and any i/o coming through
+CCISS_BIG_PASSTHRU which required more than one scatter gather entry
+(fewer than two worked because in such cases the 3 bits we failed to mask
+off happened to be zero anyway.)
+
+I also noticed we were repeatedly masking the bits off the tag in a loop
+when doing it once at the top of the loop would have sufficed, so I fixed
+that as well.
+
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/events.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/block/cciss.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/xen/events.c~linux-next-git-rejects drivers/xen/events.c
---- a/drivers/xen/events.c~linux-next-git-rejects
-+++ a/drivers/xen/events.c
-@@ -170,11 +170,7 @@ static struct irq_info *info_for_irq(uns
+diff -puN drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands
++++ a/drivers/block/cciss.c
+@@ -3136,10 +3136,13 @@ static inline u32 cciss_tag_to_index(u32
+ 	return tag >> DIRECT_LOOKUP_SHIFT;
+ }
  
- static unsigned int evtchn_from_irq(unsigned irq)
+-static inline u32 cciss_tag_discard_error_bits(u32 tag)
++static inline u32 cciss_tag_discard_error_bits(ctlr_info_t *h, u32 tag)
  {
--<<<<<<< HEAD
--	if (unlikely(WARN(irq < 0 || irq >= nr_irqs, "Invalid irq %d!\n", irq)))
--=======
- 	if (WARN(irq < 0 || irq >= nr_irqs, "Invalid irq %d!\n", irq))
-->>>>>>> FETCH_HEAD
- 		return 0;
+-#define CCISS_ERROR_BITS 0x03
+-	return tag & ~CCISS_ERROR_BITS;
++#define CCISS_PERF_ERROR_BITS ((1 << DIRECT_LOOKUP_SHIFT) - 1)
++#define CCISS_SIMPLE_ERROR_BITS 0x03
++	if (likely(h->transMethod == CFGTBL_Trans_Performant))
++		return tag & ~CCISS_PERF_ERROR_BITS;
++	return tag & ~CCISS_SIMPLE_ERROR_BITS;
+ }
  
- 	return info_for_irq(irq)->evtchn;
+ static inline void cciss_mark_tag_indexed(u32 *tag)
+@@ -3400,15 +3403,13 @@ static inline u32 process_indexed_cmd(ct
+ /* process completion of a non-indexed command */
+ static inline u32 process_nonindexed_cmd(ctlr_info_t *h, u32 raw_tag)
+ {
+-	u32 tag;
+ 	CommandList_struct *c = NULL;
+ 	struct hlist_node *tmp;
+ 	__u32 busaddr_masked, tag_masked;
+ 
+-	tag = cciss_tag_discard_error_bits(raw_tag);
++	tag_masked = cciss_tag_discard_error_bits(h, raw_tag);
+ 	hlist_for_each_entry(c, tmp, &h->cmpQ, list) {
+-		busaddr_masked = cciss_tag_discard_error_bits(c->busaddr);
+-		tag_masked = cciss_tag_discard_error_bits(tag);
++		busaddr_masked = cciss_tag_discard_error_bits(h, c->busaddr);
+ 		if (busaddr_masked == tag_masked) {
+ 			finish_cmd(h, c, raw_tag);
+ 			return next_command(h);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-add-output-inversion-option-to-backlight-trigger.patch
-leds-add-output-inversion-option-to-backlight-trigger-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ext4-dont-use-pr_warning_ratelimited.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
-kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
-fs-select-fix-information-leak-to-userspace-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-gpio-ml_ioh_gpio-ml7213-gpio-driver-fix.patch
-drivers-telephony-ixjc-fix-warning.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps-checkpatch-fixes.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-sysctl-remove-obsolete-comments-fix.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
-pps-add-parallel-port-pps-signal-generator-fix.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
-aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
-ramoops-fix-types-remove-typecasts.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+cciss-make-cciss_revalidate-not-loop-through-ciss_max_luns-volumes-unnecessarily.patch
 
