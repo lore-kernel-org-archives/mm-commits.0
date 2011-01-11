@@ -1,159 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] cpuidle-make-cpuidle_enable_device-call-poll_idle_init.patch removed from -mm tree
-Date: Tue, 11 Jan 2011 12:20:02 -0800
-Message-ID: <201101112022.p0BKMRBE004924@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch removed from -mm tree
+Date: Tue, 11 Jan 2011 12:35:50 -0800
+Message-ID: <201101112035.p0BKZpxc005444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753737Ab1AKUWo (ORCPT
+	by vger.kernel.org with ESMTP id S1753816Ab1AKUhR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:22:44 -0500
+	Tue, 11 Jan 2011 15:37:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, len.brown@intel.com, trenn@suse.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle: make cpuidle_enable_device() call poll_idle_init()
+     mm: compaction: avoid potential deadlock for readahead pages and direct compaction
 has been removed from the -mm tree.  Its filename was
-     cpuidle-make-cpuidle_enable_device-call-poll_idle_init.patch
+     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle: make cpuidle_enable_device() call poll_idle_init()
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: mm: compaction: avoid potential deadlock for readahead pages and direct compaction
+From: Mel Gorman <mel@csn.ul.ie>
 
-The following scenario is possible with the current cpuidle code and
-the ACPI cpuidle driver:
-(1) acpi_processor_cst_has_changed() is called,
-(2) cpuidle_disable_device() is called,
-(3) cpuidle_remove_state_sysfs() is called to remove the (presumably
-    outdated) states info from sysfs,
-(3) acpi_processor_get_power_info() is called, the first entry in the
-    pr->power.states[] table is filled with zeros,
-(4) acpi_processor_setup_cpuidle() is called and it doesn't fill the
-    first entry in pr->power.states[],
-(5) cpuidle_enable_device() is called,
-(6) __cpuidle_register_device() is _not_ called, since the device has
-    already been registered,
-(7) Consequently, poll_idle_init() is _not_ called either,
-(8) cpuidle_add_state_sysfs() is called to create the sysfs attributes
-    for the new states and it uses the bogus first table entry from
-    acpi_processor_get_power_info() for creating state0.
+Hugh Dickins reported that two instances of cp were locking up when
+running on ppc64 in a memory constrained environment.  The deadlock
+appears to apply to readahead pages.  When reading ahead, the pages are
+added locked to the LRU and queued for IO.  The process is also inserting
+pages into the page cache and so is calling radix_preload and entering the
+page allocator.  When SLUB is used, this can result in direct compaction
+finding the page that was just added to the LRU but still locked by the
+current process leading to deadlock.
 
-This problem will be avoided if cpuidle_enable_device() calls
-poll_idle_init() for dev->registered different from zero.
+This patch avoids locking pages for migration that might already be locked
+by the current process.  Ideally it would only apply for direct compaction
+but compaction does not set PF_MEMALLOC so there is no way currently of
+identifying a process in direct compaction.  A process-flag could be added
+but is likely to be overkill.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Len Brown <len.brown@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |   80 ++++++++++++++++++------------------
- 1 file changed, 41 insertions(+), 39 deletions(-)
+ mm/migrate.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-make-cpuidle_enable_device-call-poll_idle_init drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-make-cpuidle_enable_device-call-poll_idle_init
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -155,6 +155,45 @@ void cpuidle_resume_and_unlock(void)
- 
- EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
- 
-+#ifdef CONFIG_ARCH_HAS_CPU_RELAX
-+static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
-+{
-+	ktime_t	t1, t2;
-+	s64 diff;
-+	int ret;
+diff -puN mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-potential-deadlock-for-readahead-pages-and-direct-compaction
++++ a/mm/migrate.c
+@@ -639,6 +639,19 @@ static int unmap_and_move(new_page_t get
+ 	if (!trylock_page(page)) {
+ 		if (!force)
+ 			goto move_newpage;
 +
-+	t1 = ktime_get();
-+	local_irq_enable();
-+	while (!need_resched())
-+		cpu_relax();
++		/*
++		 * During page readahead, pages are added locked to the LRU
++		 * and marked up to date when the IO completes. As part of
++		 * readahead, a process can reload the radix tree, enter
++		 * page reclamation, direct compaction and migrate page.
++		 * Hence, during readahead, a process can end up trying to
++		 * lock the same page twice leading to deadlock. Avoid this
++		 * situation.
++		 */
++		if (PageMappedToDisk(page) && !PageUptodate(page))
++			goto move_newpage;
 +
-+	t2 = ktime_get();
-+	diff = ktime_to_us(ktime_sub(t2, t1));
-+	if (diff > INT_MAX)
-+		diff = INT_MAX;
-+
-+	ret = (int) diff;
-+	return ret;
-+}
-+
-+static void poll_idle_init(struct cpuidle_device *dev)
-+{
-+	struct cpuidle_state *state = &dev->states[0];
-+
-+	cpuidle_set_statedata(state, NULL);
-+
-+	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
-+	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
-+	state->exit_latency = 0;
-+	state->target_residency = 0;
-+	state->power_usage = -1;
-+	state->flags = CPUIDLE_FLAG_POLL;
-+	state->enter = poll_idle;
-+}
-+#else
-+static void poll_idle_init(struct cpuidle_device *dev) {}
-+#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
-+
- /**
-  * cpuidle_enable_device - enables idle PM for a CPU
-  * @dev: the CPU
-@@ -177,6 +216,8 @@ int cpuidle_enable_device(struct cpuidle
- 		ret = __cpuidle_register_device(dev);
- 		if (ret)
- 			return ret;
-+	} else {
-+		poll_idle_init(dev);
+ 		lock_page(page);
  	}
  
- 	if ((ret = cpuidle_add_state_sysfs(dev)))
-@@ -233,45 +274,6 @@ void cpuidle_disable_device(struct cpuid
- 
- EXPORT_SYMBOL_GPL(cpuidle_disable_device);
- 
--#ifdef CONFIG_ARCH_HAS_CPU_RELAX
--static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
--{
--	ktime_t	t1, t2;
--	s64 diff;
--	int ret;
--
--	t1 = ktime_get();
--	local_irq_enable();
--	while (!need_resched())
--		cpu_relax();
--
--	t2 = ktime_get();
--	diff = ktime_to_us(ktime_sub(t2, t1));
--	if (diff > INT_MAX)
--		diff = INT_MAX;
--
--	ret = (int) diff;
--	return ret;
--}
--
--static void poll_idle_init(struct cpuidle_device *dev)
--{
--	struct cpuidle_state *state = &dev->states[0];
--
--	cpuidle_set_statedata(state, NULL);
--
--	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
--	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
--	state->exit_latency = 0;
--	state->target_residency = 0;
--	state->power_usage = -1;
--	state->flags = CPUIDLE_FLAG_POLL;
--	state->enter = poll_idle;
--}
--#else
--static void poll_idle_init(struct cpuidle_device *dev) {}
--#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
+_
+
+Patches currently in -mm which might be from mel@csn.ul.ie are
+
+linux-next.patch
+mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
+mm-compaction-add-trace-events-for-memory-compaction-activity.patch
+mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
+mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
+mm-vmscan-rename-lumpy_mode-to-reclaim_mode-fix.patch
+mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
+mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
+mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
+mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
+mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
+thp-mm-define-madv_hugepage.patch
+thp-alter-compound-get_page-put_page.patch
+thp-update-futex-compound-knowledge.patch
+thp-clear-compound-mapping.patch
+thp-add-native_set_pmd_at.patch
+thp-add-pmd-paravirt-ops.patch
+thp-no-paravirt-version-of-pmd-ops.patch
+thp-export-maybe_mkwrite.patch
+thp-comment-reminder-in-destroy_compound_page.patch
+thp-config_transparent_hugepage.patch
+thp-config_transparent_hugepage-fix.patch
+thp-special-pmd_trans_-functions.patch
+thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+thp-bail-out-gup_fast-on-splitting-pmd.patch
+thp-pte-alloc-trans-splitting.patch
+thp-pte-alloc-trans-splitting-fix.patch
+thp-clear-page-compound.patch
+thp-add-pmd_huge_pte-to-mm_struct.patch
+thp-split_huge_page_mm-vma.patch
+thp-split_huge_page-paging.patch
+thp-clear_copy_huge_page.patch
+thp-_gfp_no_kswapd.patch
+thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
+thp-split_huge_page-anon_vma-ordering-dependency.patch
+thp-verify-pmd_trans_huge-isnt-leaking.patch
+thp-add-pagetranscompound.patch
+thp-skip-transhuge-pages-in-ksm-for-now.patch
+thp-enable-direct-defrag.patch
+thp-select-config_compaction-if-transparent_hugepage-enabled.patch
+thp-transhuge-isolate_migratepages.patch
+thp-disable-transparent-hugepages-by-default-on-small-systems.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+
