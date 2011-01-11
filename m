@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplugc-online_pages-add-memory-hotplug-locking.patch added to -mm tree
-Date: Tue, 11 Jan 2011 13:08:44 -0800
-Message-ID: <201101112108.p0BL8jeX006951@imap1.linux-foundation.org>
+Subject: + ksm-drain-pagevecs-to-lru.patch added to -mm tree
+Date: Tue, 11 Jan 2011 13:33:11 -0800
+Message-ID: <201101112133.p0BLXBpP008081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551Ab1AKVI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752904Ab1AKVdZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Jan 2011 16:08:57 -0500
+	Tue, 11 Jan 2011 16:33:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, bvanassche@acm.org, cl@linux.com, penberg@kernel.org, rientjes@google.com
+Cc: hughd@google.com, aarcange@redhat.com, caiqian@redhat.com
 
 
 The patch titled
-     mm/memory_hotplug.c:online_pages(): add memory-hotplug locking
+     ksm: drain pagevecs to lru
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplugc-online_pages-add-memory-hotplug-locking.patch
+     ksm-drain-pagevecs-to-lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory_hotplug.c:online_pages(): add memory-hotplug locking
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ksm: drain pagevecs to lru
+From: Hugh Dickins <hughd@google.com>
 
-memory_hotplug_(un)lock() is used for add/remove/offline pages for
-avoiding races with hibernation.  But this should be held in
-online_pages(), too.  It seems asymmetric.
+It was hard to explain the page counts which were causing new LTP tests
+of KSM to fail: we need to drain the per-cpu pagevecs to LRU occasionally.
 
-There are cases where one has to avoid a race with memory hotplug notifier
-and his own local code, and hotplug v.s.  hotplug.  This will add a
-generic solution for avoiding races.  In other view, having lock here has
-no big impacts.  online pages is tend to be done by udev script at el
-against each memory section one by one.
-
-Then, it's better to have lock here, too.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: CAI Qian <caiqian@redhat.com>
+Cc:Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    6 ++++++
- mm/memory_hotplug.c            |    4 ++++
- 2 files changed, 10 insertions(+)
+ mm/ksm.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking
-+++ a/include/linux/memory_hotplug.h
-@@ -165,6 +165,12 @@ extern void register_page_bootmem_info_n
- extern void put_page_bootmem(struct page *page);
- #endif
+diff -puN mm/ksm.c~ksm-drain-pagevecs-to-lru mm/ksm.c
+--- a/mm/ksm.c~ksm-drain-pagevecs-to-lru
++++ a/mm/ksm.c
+@@ -1296,6 +1296,18 @@ static struct rmap_item *scan_get_next_r
  
-+/*
-+ * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
-+ * notifier will be called under this. 2) offline/online/add/remove memory
-+ * will not run simultaneously.
-+ */
+ 	slot = ksm_scan.mm_slot;
+ 	if (slot == &ksm_mm_head) {
++		/*
++		 * A number of pages can hang around indefinitely on per-cpu
++		 * pagevecs, raised page count preventing write_protect_page
++		 * from merging them.  Though it doesn't really matter much,
++		 * it is puzzling to see some stuck in pages_volatile until
++		 * other activity jostles them out, and they also prevented
++		 * LTP's KSM test from succeeding deterministically; so drain
++		 * them here (here rather than on entry to ksm_do_scan(),
++		 * so we don't IPI too often when pages_to_scan is set low).
++		 */
++		lru_add_drain_all();
 +
- void lock_memory_hotplug(void);
- void unlock_memory_hotplug(void);
+ 		root_unstable_tree = RB_ROOT;
  
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking
-+++ a/mm/memory_hotplug.c
-@@ -409,6 +409,7 @@ int online_pages(unsigned long pfn, unsi
- 	int ret;
- 	struct memory_notify arg;
- 
-+	lock_memory_hotplug();
- 	arg.start_pfn = pfn;
- 	arg.nr_pages = nr_pages;
- 	arg.status_change_nid = -1;
-@@ -421,6 +422,7 @@ int online_pages(unsigned long pfn, unsi
- 	ret = notifier_to_errno(ret);
- 	if (ret) {
- 		memory_notify(MEM_CANCEL_ONLINE, &arg);
-+		unlock_memory_hotplug();
- 		return ret;
- 	}
- 	/*
-@@ -445,6 +447,7 @@ int online_pages(unsigned long pfn, unsi
- 		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
- 			nr_pages, pfn);
- 		memory_notify(MEM_CANCEL_ONLINE, &arg);
-+		unlock_memory_hotplug();
- 		return ret;
- 	}
- 
-@@ -467,6 +470,7 @@ int online_pages(unsigned long pfn, unsi
- 
- 	if (onlined_pages)
- 		memory_notify(MEM_ONLINE, &arg);
-+	unlock_memory_hotplug();
- 
- 	return 0;
- }
+ 		spin_lock(&ksm_mmlist_lock);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
-oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
-mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
-mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
-mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
-mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
-mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
-mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
-mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line.patch
-thp-compound_trans_order-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-mm-memory_hotplugc-online_pages-add-memory-hotplug-locking.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch
-memcg-use-zalloc-rather-than-mallocmemset.patch
+origin.patch
+mm-vmap-area-cache-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+do_wp_page-remove-the-reuse-flag.patch
+do_wp_page-clarify-dirty_page-handling.patch
+mlock-avoid-dirtying-pages-and-triggering-writeback.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+mm-add-foll_mlock-follow_page-flag.patch
+mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
+thp-transparent-hugepage-core-fixlet.patch
+thp-ksm-on-thp.patch
+thp-add-compound_trans_head-helper.patch
+ksm-drain-pagevecs-to-lru.patch
 memcg-fix-memory-migration-of-shmem-swapcache.patch
+prio_tree-debugging-patch.patch
 
