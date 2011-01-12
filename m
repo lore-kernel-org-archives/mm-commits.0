@@ -1,129 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] arm-implement-a-timer-based-__delay-loop.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 13:42:44 -0800
-Message-ID: <201101122145.p0CLjILe005410@imap1.linux-foundation.org>
+Subject: [merged] mm-memory_hotplugc-online_pages-add-memory-hotplug-locking.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 13:43:50 -0800
+Message-ID: <201101122146.p0CLkNX1005457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756182Ab1ALVpU (ORCPT
+	by vger.kernel.org with ESMTP id S1755601Ab1ALVqf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 16:45:20 -0500
+	Wed, 12 Jan 2011 16:46:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, skannan@codeaurora.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, bvanassche@acm.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: implement a timer based __delay() loop
+     mm/memory_hotplug.c:online_pages(): add memory-hotplug locking
 has been removed from the -mm tree.  Its filename was
-     arm-implement-a-timer-based-__delay-loop.patch
+     mm-memory_hotplugc-online_pages-add-memory-hotplug-locking.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: implement a timer based __delay() loop
-From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: mm/memory_hotplug.c:online_pages(): add memory-hotplug locking
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-udelay() can be incorrect on SMP machines that scale their CPU frequencies
-independently of one another (as pointed out here
-http://article.gmane.org/gmane.linux.kernel/977567).  The delay loop can
-either be too fast or too slow depending on which CPU the loops_per_jiffy
-counter is calibrated on and which CPU the delay loop is running on. 
-udelay() can also be incorrect if the CPU frequency switches during the
-__delay() loop, causing the loop to either terminate too early, or too
-late.
+memory_hotplug_(un)lock() is used for add/remove/offline pages for
+avoiding races with hibernation.  But this should be held in
+online_pages(), too.  It seems asymmetric.
 
-Forcing udelay() to run on one CPU is unreasonable and taking the penalty
-of a rather large loops_per_jiffy in udelay() when the CPU is actually
-running slower is bad for performance.  Solve the problem by adding a
-timer based__delay() loop unaffected by CPU frequency scaling.  Machines
-should set this loop as their __delay() implementation by calling
-set_timer_fn() during their timer initialization.
+There are cases where one has to avoid a race with memory hotplug notifier
+and his own local code, and hotplug v.s.  hotplug.  This will add a
+generic solution for avoiding races.  In other view, having lock here has
+no big impacts.  online pages is tend to be done by udev script at el
+against each memory section one by one.
 
-The kernel is already prepared for a timer based approach (evident by the
-read_current_timer() function).  If an arch implements
-read_current_timer(), calibrate_delay() will use calibrate_delay_direct()
-to calculate loops_per_jiffy (in which case loops_per_jiffy should really
-be renamed to timer_ticks_per_jiffy).  Since the loops_per_jiffy will be
-based on timer ticks, __delay() should be implemented as a loop around
-read_current_timer().
+Then, it's better to have lock here, too.
 
-Doing this makes the expensive loops_per_jiffy calculation go away (saving
-~150ms on boot time on my machine) and fixes udelay() by making it safe in
-the face of independently scaling CPUs.  The only prerequisite is that
-read_current_timer() is monotonically increasing across calls (and doesn't
-overflow within ~2000us).
-
-There is a downside to this approach though.  BogoMIPS is no longer
-"accurate" in that it reflects the BogoMIPS of the timer and not the CPU. 
-On most SoC's the timer isn't running anywhere near as fast as the CPU so
-BogoMIPS will be ridiculously low (my timer runs at 4.8 MHz and thus my
-BogoMIPS is 9.6 compared to my CPU's 800).  This shouldn't be too much of
-a concern though since BogoMIPS are bogus anyway (hence the name).
-
-This loop is pretty much a copy of AVR's version.
-
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Reported-and-reviewed-by: Saravana Kannan <skannan@codeaurora.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Bart Van Assche <bvanassche@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/delay.h |    2 ++
- arch/arm/lib/delay.c         |   17 +++++++++++++++++
- 2 files changed, 19 insertions(+)
+ include/linux/memory_hotplug.h |    6 ++++++
+ mm/memory_hotplug.c            |    4 ++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN arch/arm/include/asm/delay.h~arm-implement-a-timer-based-__delay-loop arch/arm/include/asm/delay.h
---- a/arch/arm/include/asm/delay.h~arm-implement-a-timer-based-__delay-loop
-+++ a/arch/arm/include/asm/delay.h
-@@ -47,5 +47,7 @@ static inline void set_delay_fn(void (*f
- 	delay_fn = fn;
- }
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking
++++ a/include/linux/memory_hotplug.h
+@@ -165,6 +165,12 @@ extern void register_page_bootmem_info_n
+ extern void put_page_bootmem(struct page *page);
+ #endif
  
-+extern void read_current_timer_delay_loop(unsigned long loops);
-+
- #endif /* defined(_ARM_DELAY_H) */
- 
-diff -puN arch/arm/lib/delay.c~arm-implement-a-timer-based-__delay-loop arch/arm/lib/delay.c
---- a/arch/arm/lib/delay.c~arm-implement-a-timer-based-__delay-loop
-+++ a/arch/arm/lib/delay.c
-@@ -9,6 +9,7 @@
-  */
- #include <linux/module.h>
- #include <linux/delay.h>
-+#include <linux/timex.h>
- 
- /*
-  * Oh, if only we had a cycle counter...
-@@ -23,6 +24,22 @@ static void delay_loop(unsigned long loo
- 	);
- }
- 
-+#ifdef ARCH_HAS_READ_CURRENT_TIMER
 +/*
-+ * Assumes read_current_timer() is monotonically increasing
-+ * across calls and wraps at most once within MAX_UDELAY_MS.
++ * Lock for memory hotplug guarantees 1) all callbacks for memory hotplug
++ * notifier will be called under this. 2) offline/online/add/remove memory
++ * will not run simultaneously.
 + */
-+void read_current_timer_delay_loop(unsigned long loops)
-+{
-+	unsigned long bclock, now;
 +
-+	read_current_timer(&bclock);
-+	do {
-+		read_current_timer(&now);
-+	} while ((now - bclock) < loops);
-+}
-+#endif
-+
- void (*delay_fn)(unsigned long) = delay_loop;
+ void lock_memory_hotplug(void);
+ void unlock_memory_hotplug(void);
  
- /*
+diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplugc-online_pages-add-memory-hotplug-locking
++++ a/mm/memory_hotplug.c
+@@ -409,6 +409,7 @@ int online_pages(unsigned long pfn, unsi
+ 	int ret;
+ 	struct memory_notify arg;
+ 
++	lock_memory_hotplug();
+ 	arg.start_pfn = pfn;
+ 	arg.nr_pages = nr_pages;
+ 	arg.status_change_nid = -1;
+@@ -421,6 +422,7 @@ int online_pages(unsigned long pfn, unsi
+ 	ret = notifier_to_errno(ret);
+ 	if (ret) {
+ 		memory_notify(MEM_CANCEL_ONLINE, &arg);
++		unlock_memory_hotplug();
+ 		return ret;
+ 	}
+ 	/*
+@@ -445,6 +447,7 @@ int online_pages(unsigned long pfn, unsi
+ 		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
+ 			nr_pages, pfn);
+ 		memory_notify(MEM_CANCEL_ONLINE, &arg);
++		unlock_memory_hotplug();
+ 		return ret;
+ 	}
+ 
+@@ -467,6 +470,7 @@ int online_pages(unsigned long pfn, unsi
+ 
+ 	if (onlined_pages)
+ 		memory_notify(MEM_ONLINE, &arg);
++	unlock_memory_hotplug();
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-msm-timer-migrate-to-timer-based-__delay.patch
+linux-next.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-update.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix-set_pgdat_percpu_threshold-dont-use-for_each_online_cpu.patch
+oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
+mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
+mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
+mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
+mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
+mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+mm-set-correct-numa_zonelist_order-string-when-configured-on-the-kernel-command-line.patch
+thp-compound_trans_order-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
+memcg-remove-unnecessary-return-from-void-returning-mem_cgroup_del_lru_list.patch
+memcg-use-zalloc-rather-than-mallocmemset.patch
+memcg-fix-memory-migration-of-shmem-swapcache.patch
 
