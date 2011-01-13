@@ -1,131 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:28:36 -0800
-Message-ID: <201101132328.p0DNSaYj007089@imap1.linux-foundation.org>
+Subject: [folded] mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:29:02 -0800
+Message-ID: <201101132329.p0DNT3rm007102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757104Ab1AMX2j (ORCPT
+	by vger.kernel.org with ESMTP id S1757142Ab1AMX3h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:28:39 -0500
+	Thu, 13 Jan 2011 18:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, Valdis.Kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com
 
 
 The patch titled
-     mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
 has been removed from the -mm tree.  Its filename was
-     mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
 
-This patch was dropped because it was folded into mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+This patch was dropped because it was folded into mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
-From: Michel Lespinasse <walken@google.com>
+Subject: mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Sat, Dec 18, 2010 at 05:10:59AM -0500, Valdis.Kletnieks@vt.edu wrote:
-> On Thu, 16 Dec 2010 14:56:39 PST, akpm@linux-foundation.org said:
-> > The mm-of-the-moment snapshot 2010-12-16-14-56 has been uploaded to
-> >
-> >    http://userweb.kernel.org/~akpm/mmotm/
->
-> The patch mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-> causes this chunk of code from cryptsetup-luks to fail during the initramfs:
->
-> 	if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
->                         log_err(ctx, _("WARNING!!! Possibly insecure memory. Are you root?\n"));
->                         _memlock_count--;
->                         return 0;
->                 }
->
-> Bisection fingered this patch, which was added after -rc4-mmotm1202, which
-> boots without tripping this log_err() call.  I haven't tried building a
-> -rc6-mmotm1216 with this patch reverted, because reverting it causes apply
-> errors for subsequent patches.
->
-> Ideas?
+remove ref to rwsem_is_contended()
 
-So I traced this down using valdis's initramfs image. This is actually
-an interesting corner case:
-
-Some VMA has the VM_MAY_(READ/WRITE/EXEC) flags, but is currently protected
-with PROT_NONE permissions (VM_READ/WRITE_EXEC flags are all cleared).
-
-When mlockall() is called, the old code would see mlock_fixup() return
-an error for that VMA, which would be ignored by do_mlockall(). The new
-code did not ignore errors from do_mlock_pages(), which broke backwards
-compatibility.
-
-So the trivial fix to make mlockall behave identically as before could be
-as follows:
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Tested-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix mm/mlock.c
---- a/mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix
-+++ a/mm/mlock.c
-@@ -476,7 +476,7 @@ static int do_mlock(unsigned long start,
- 	return error;
- }
- 
--static int do_mlock_pages(unsigned long start, size_t len)
-+static int do_mlock_pages(unsigned long start, size_t len, int ignore_errors)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long end, nstart, nend;
-@@ -513,6 +513,10 @@ static int do_mlock_pages(unsigned long 
- 		 */
- 		if (vma->vm_flags & VM_LOCKED) {
- 			ret = __mlock_vma_pages_range(vma, nstart, nend);
-+			if (ret < 0 && ignore_errors) {
-+				ret = 0;
-+				continue;	/* continue at next VMA */
-+			}
- 			if (ret) {
- 				ret = __mlock_posix_error_return(ret);
- 				break;
-@@ -550,7 +554,7 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 		error = do_mlock(start, len, 1);
- 	up_write(&current->mm->mmap_sem);
- 	if (!error)
--		error = do_mlock_pages(start, len);
-+		error = do_mlock_pages(start, len, 0);
- 	return error;
- }
- 
-@@ -615,8 +619,10 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	    capable(CAP_IPC_LOCK))
- 		ret = do_mlockall(flags);
- 	up_write(&current->mm->mmap_sem);
--	if (!ret && (flags & MCL_CURRENT))
--		ret = do_mlock_pages(0, TASK_SIZE);
-+	if (!ret && (flags & MCL_CURRENT)) {
-+		/* Ignore errors */
-+		do_mlock_pages(0, TASK_SIZE, 1);
-+	}
- out:
- 	return ret;
- }
+diff -puN mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix mm/memory.c
+--- a/mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix
++++ a/mm/memory.c
+@@ -1528,11 +1528,6 @@ int __get_user_pages(struct task_struct 
+ 			i++;
+ 			start += PAGE_SIZE;
+ 			nr_pages--;
+-			if (nonblocking && rwsem_is_contended(&mm->mmap_sem)) {
+-				up_read(&mm->mmap_sem);
+-				*nonblocking = 0;
+-				return i;
+-			}
+ 		} while (nr_pages && start < vma->vm_end);
+ 	} while (nr_pages);
+ 	return i;
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-do_wp_page-remove-the-reuse-flag.patch
-do_wp_page-clarify-dirty_page-handling.patch
-mlock-avoid-dirtying-pages-and-triggering-writeback.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
-mm-add-foll_mlock-follow_page-flag.patch
-mm-move-vm_locked-check-to-__mlock_vma_pages_range.patch
+origin.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-kvm-mmu-transparent-hugepage-support-bisection.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
 
