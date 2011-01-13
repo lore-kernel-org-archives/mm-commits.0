@@ -1,102 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded] decompressors-add-boot-time-xz-support-update.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:31:32 -0800
-Message-ID: <201101130031.p0D0VWiK012670@imap1.linux-foundation.org>
+Subject: [folded] m68knommu-introduce-little-endian-bitops-build-fix.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:32:02 -0800
+Message-ID: <201101130032.p0D0W2oj012682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542Ab1AMAcL (ORCPT
+	by vger.kernel.org with ESMTP id S1755961Ab1AMAcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 12 Jan 2011 19:32:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     decompressors-add-boot-time-xz-support-update
+     "m68knommu: introduce little-endian bitops" build fix
 has been removed from the -mm tree.  Its filename was
-     decompressors-add-boot-time-xz-support-update.patch
+     m68knommu-introduce-little-endian-bitops-build-fix.patch
 
-This patch was dropped because it was folded into decompressors-add-boot-time-xz-support.patch
+This patch was dropped because it was folded into m68knommu-introduce-little-endian-bitops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: decompressors-add-boot-time-xz-support-update
-From: Lasse Collin <lasse.collin@tukaani.org>
+Subject: "m68knommu: introduce little-endian bitops" build fix
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Compared to the previous version of this patch, this makes the
-XZ-compressed initramfs Kconfig option behave the same way as
-the other compression methods. Now the option isn't hidden if
-the xz_dec module hasn't been enabled separately. Support for
-XZ-compressed initramfs is now enabled by default if !EMBEDDED.
+The little-endian bitops patch series broke the build on m68knommu.
 
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+lib/find_next_bit.c:190: error: conflicting types for 'find_next_zero_le_bit'
+arch/m68k/include/asm/bitops_no.h:286: error: previous
+definition of 'find_next_zero_le_bit' was here
+
+Because m68knommu selects CONFIG_GENERIC_FIND_NEXT_BIT, it redefines
+find_next_zero_le_bit() in lib/find_next_bit.c.
+
+Previous patch introduced CONFIG_GENERIC_FIND_LE_BIT to tell whether to
+use generic implementation of find_*_le_bit() in lib/find_next_bit.c or not.
+
+Don't select CONFIG_GENERIC_FIND_LE_BIT to fix build failure on m68knommu.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig |    1 +
- usr/Kconfig |    9 +++------
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ arch/m68knommu/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN lib/Kconfig~decompressors-add-boot-time-xz-support-update lib/Kconfig
---- a/lib/Kconfig~decompressors-add-boot-time-xz-support-update
-+++ a/lib/Kconfig
-@@ -123,6 +123,7 @@ config DECOMPRESS_LZMA
- 	tristate
+diff -puN arch/m68knommu/Kconfig~m68knommu-introduce-little-endian-bitops-build-fix arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~m68knommu-introduce-little-endian-bitops-build-fix
++++ a/arch/m68knommu/Kconfig
+@@ -40,10 +40,6 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
  
- config DECOMPRESS_XZ
-+	select XZ_DEC
- 	tristate
- 
- config DECOMPRESS_LZO
-diff -puN usr/Kconfig~decompressors-add-boot-time-xz-support-update usr/Kconfig
---- a/usr/Kconfig~decompressors-add-boot-time-xz-support-update
-+++ a/usr/Kconfig
-@@ -73,15 +73,12 @@ config RD_LZMA
- 	  If unsure, say N.
- 
- config RD_XZ
--	bool "Support initial ramdisks compressed using XZ"
--	depends on BLK_DEV_INITRD && XZ_DEC=y
-+	bool "Support initial ramdisks compressed using XZ" if EMBEDDED
-+	default !EMBEDDED
-+	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_XZ
- 	help
- 	  Support loading of a XZ encoded initial ramdisk or cpio buffer.
+-config GENERIC_FIND_LE_BIT
+-	bool
+-	default y
 -
--	  If this option is inactive, say Y to "XZ decompression support"
--	  under "Library routines" first.
--
- 	  If unsure, say N.
- 
- config RD_LZO
+ config GENERIC_GPIO
+ 	bool
+ 	default n
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-documentation-email-clientstxt-warn-about-word-wrap-bug-in-kmail.patch
-decompressors-add-missing-init-ie-__init.patch
-decompressors-get-rid-of-set_error_fn-macro.patch
-decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
-decompressors-remove-unused-function-from-lib-decompress_unlzmac.patch
-decompressors-fix-header-validation-in-decompress_unlzmac.patch
-decompressors-check-for-read-errors-in-decompress_unlzmac.patch
-decompressors-check-for-write-errors-in-decompress_unlzmac.patch
-decompressors-validate-match-distance-in-decompress_unlzmac.patch
-decompressors-check-for-write-errors-in-decompress_unlzoc.patch
-decompressors-check-input-size-in-decompress_unlzoc.patch
-decompressors-fix-callback-to-callback-mode-in-decompress_unlzoc.patch
-decompressors-add-xz-decompressor-module.patch
-decompressors-add-boot-time-xz-support.patch
-x86-support-xz-compressed-kernel.patch
-decompressors-check-input-size-in-decompress_inflatec.patch
-decompressors-remove-unused-constant-from-inflateh.patch
+origin.patch
+uml-use-simple_write_to_buffer.patch
+bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
+bitops-rename-generic-little-endian-bitops-functions.patch
+s390-introduce-little-endian-bitops.patch
+arm-introduce-little-endian-bitops.patch
+m68k-introduce-little-endian-bitops.patch
+bitops-introduce-config_generic_find_le_bit.patch
+m68knommu-introduce-little-endian-bitops.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+rds-stop-including-asm-generic-bitops-leh.patch
+kvm-stop-including-asm-generic-bitops-leh.patch
+asm-generic-use-little-endian-bitops.patch
+ext3-use-little-endian-bitops.patch
+ext4-use-little-endian-bitops.patch
+ocfs2-use-little-endian-bitops.patch
+nilfs2-use-little-endian-bitops.patch
+reiserfs-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+ufs-use-little-endian-bitops.patch
+md-use-little-endian-bit-operations.patch
+dm-use-little-endian-bit-operations.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
+bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
 
