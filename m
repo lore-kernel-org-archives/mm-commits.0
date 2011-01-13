@@ -1,85 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-printkh-move-console-functions-and-variables-together.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:04:18 -0800
-Message-ID: <201101132006.p0DK6xmT029789@imap1.linux-foundation.org>
+Subject: [merged] include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:04:02 -0800
+Message-ID: <201101132006.p0DK6hdF029769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933628Ab1AMUHh (ORCPT
+	by vger.kernel.org with ESMTP id S933628Ab1AMUHf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:07:37 -0500
+	Thu, 13 Jan 2011 15:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, eric.dumazet@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/printk.h: move console functions and variables together
+     include/asm-generic/vmlinux.lds.h: make readmostly section correctly align
 has been removed from the -mm tree.  Its filename was
-     include-linux-printkh-move-console-functions-and-variables-together.patch
+     include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/printk.h: move console functions and variables together
-From: Joe Perches <joe@perches.com>
+Subject: include/asm-generic/vmlinux.lds.h: make readmostly section correctly align
+From: Shaohua Li <shaohua.li@intel.com>
 
-There are many uses of printk_once(KERN_<level>, so add pr_<level>_once
-macros to avoid printk_once(KERN_<level> pr_fmt(fmt).
+The readmostly section should end at a cacheline aligned address,
+otherwise the last several data might share cachline with other data and
+make the readmostly data still have cache bounce.
 
-Add an #ifdef CONFIG_PRINTK for print_hex_dump and static inline void
-functions for the #else cases to reduce embedded code size.  Neaten and
-organize the rest of the code.
+For example, in ia64, secpath_cachep is the last readmostly data, and it
+shares cacheline with init_uts_ns.
 
+a000000100e80480 d secpath_cachep
+a000000100e80488 D init_uts_ns
 
-This patch:
-
-Move console functions and variables together.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together include/linux/printk.h
---- a/include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together
-+++ a/include/linux/printk.h
-@@ -29,6 +29,17 @@ extern int console_printk[];
- #define minimum_console_loglevel (console_printk[2])
- #define default_console_loglevel (console_printk[3])
+diff -puN include/asm-generic/vmlinux.lds.h~include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~include-asm-generic-vmlinuxldsh-make-readmostly-section-correctly-align
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -200,7 +200,8 @@
  
-+static inline void console_silent(void)
-+{
-+	console_loglevel = 0;
-+}
-+
-+static inline void console_verbose(void)
-+{
-+	if (console_loglevel)
-+		console_loglevel = 15;
-+}
-+
- struct va_format {
- 	const char *fmt;
- 	va_list *va;
-@@ -131,17 +142,6 @@ extern void printk_tick(void);
- extern void asmlinkage __attribute__((format(printf, 1, 2)))
- 	early_printk(const char *fmt, ...);
+ #define READ_MOSTLY_DATA(align)						\
+ 	. = ALIGN(align);						\
+-	*(.data..read_mostly)
++	*(.data..read_mostly)						\
++	. = ALIGN(align);
  
--static inline void console_silent(void)
--{
--	console_loglevel = 0;
--}
--
--static inline void console_verbose(void)
--{
--	if (console_loglevel)
--		console_loglevel = 15;
--}
+ #define CACHELINE_ALIGNED_DATA(align)					\
+ 	. = ALIGN(align);						\
+_
+
+Patches currently in -mm which might be from shaohua.li@intel.com are
+
+origin.patch
+linux-next.patch
+mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-kswapd-stop-high-order-balancing-when-any-suitable-zone-is-balanced.patch
+mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+mm-kswapd-use-the-order-that-kswapd-was-reclaiming-at-for-sleeping_prematurely.patch
+mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
+mm-kswapd-treat-zone-all_unreclaimable-in-sleeping_prematurely-similar-to-balance_pgdat.patch
+mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+mm-simplify-code-of-swapc.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+
