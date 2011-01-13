@@ -1,72 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-printkh-use-tab-not-spaces-for-indent.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:05:10 -0800
-Message-ID: <201101132007.p0DK7pqu029827@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-make-rolestats-the-default.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:05:27 -0800
+Message-ID: <201101132008.p0DK88Lf029843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933642Ab1AMUIb (ORCPT
+	by vger.kernel.org with ESMTP id S933642Ab1AMUIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:08:31 -0500
+	Thu, 13 Jan 2011 15:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/printk.h: use tab not spaces for indent
+     scripts/get_maintainer.pl: make --rolestats the default
 has been removed from the -mm tree.  Its filename was
-     include-linux-printkh-use-tab-not-spaces-for-indent.patch
+     scripts-get_maintainerpl-make-rolestats-the-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/printk.h: use tab not spaces for indent
+Subject: scripts/get_maintainer.pl: make --rolestats the default
 From: Joe Perches <joe@perches.com>
 
+This script now requires a user to add --norolestats to the command line
+so it's harder to feed the output of this script to programs that send
+mass emails.
+
+Update --help to correct command line defaults.
+
+Change version to 0.26.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ scripts/get_maintainer.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/printk.h~include-linux-printkh-use-tab-not-spaces-for-indent include/linux/printk.h
---- a/include/linux/printk.h~include-linux-printkh-use-tab-not-spaces-for-indent
-+++ a/include/linux/printk.h
-@@ -146,20 +146,20 @@ extern void dump_stack(void) __cold;
- #endif
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default
++++ a/scripts/get_maintainer.pl
+@@ -13,7 +13,7 @@
+ use strict;
  
- #define pr_emerg(fmt, ...) \
--        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert(fmt, ...) \
--        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_crit(fmt, ...) \
--        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_err(fmt, ...) \
--        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warning(fmt, ...) \
--        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warn pr_warning
- #define pr_notice(fmt, ...) \
--        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_info(fmt, ...) \
--        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_cont(fmt, ...) \
- 	printk(KERN_CONT fmt, ##__VA_ARGS__)
+ my $P = $0;
+-my $V = '0.26-beta6';
++my $V = '0.26';
  
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
+@@ -40,7 +40,7 @@ my $email_use_mailmap = 1;
+ my $output_multiline = 1;
+ my $output_separator = ", ";
+ my $output_roles = 0;
+-my $output_rolestats = 0;
++my $output_rolestats = 1;
+ my $scm = 0;
+ my $web = 0;
+ my $subsystem = 0;
+@@ -720,7 +720,8 @@ Other options:
+   --help => show this help information
+ 
+ Default options:
+-  [--email --git --m --n --l --multiline --pattern-depth=0 --remove-duplicates]
++  [--email --nogit --git-fallback --m --n --l --multiline -pattern-depth=0
++   --remove-duplicates --rolestats]
+ 
+ Notes:
+   Using "-f directory" may give unexpected results:
 _
 
 Patches currently in -mm which might be from joe@perches.com are
