@@ -1,101 +1,441 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memstick-add-support-for-jmicron-jmb-385-and-390-controllers.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:45 -0800
-Message-ID: <201101132012.p0DKCQWg030293@imap1.linux-foundation.org>
+Subject: [merged] pps-add-parallel-port-pps-signal-generator.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:36 -0800
+Message-ID: <201101132012.p0DKCHcG030278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933710Ab1AMUNB (ORCPT
+	by vger.kernel.org with ESMTP id S933707Ab1AMUM7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:13:01 -0500
+	Thu, 13 Jan 2011 15:12:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, arieslee@jmicron.com, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: add support for JMicron JMB 385 and 390 controllers
+     pps: add parallel port PPS signal generator
 has been removed from the -mm tree.  Its filename was
-     memstick-add-support-for-jmicron-jmb-385-and-390-controllers.patch
+     pps-add-parallel-port-pps-signal-generator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: add support for JMicron JMB 385 and 390 controllers
-From: Takashi Iwai <tiwai@suse.de>
+Subject: pps: add parallel port PPS signal generator
+From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Signed-off-by: Aries Lee <arieslee@jmicron.com>
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Cc: Alex Dubov <oakad@yahoo.com>
+Add PPS signal generator which utilizes STROBE pin of a parallel port to
+send PPS signals.  It uses parport abstraction layer and hrtimers to
+precisely control the signal.
+
+[akpm@linux-foundation.org: fix build]
+Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Acked-by: Rodolfo Giometti <giometti@linux.it>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |   17 +++++++++++++++--
- include/linux/pci_ids.h           |    2 ++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ Documentation/pps/pps.txt                |   46 +++
+ drivers/pps/Kconfig                      |    2 
+ drivers/pps/Makefile                     |    2 
+ drivers/pps/generators/Kconfig           |   17 +
+ drivers/pps/generators/Makefile          |    9 
+ drivers/pps/generators/pps_gen_parport.c |  275 +++++++++++++++++++++
+ 6 files changed, 350 insertions(+), 1 deletion(-)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-add-support-for-jmicron-jmb-385-and-390-controllers drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-add-support-for-jmicron-jmb-385-and-390-controllers
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -765,6 +765,8 @@ static int jmb38x_ms_set_param(struct me
- #define  PMOS0_SW_LED_POLARITY_ENABLE	0x80
- #define  PMOS0_ACTIVE_BITS (PMOS0_ENABLE | PMOS0_EN_OVERCURRENT_DEBOUNCE | \
- 			    PMOS0_OVERCURRENT_LEVEL_2_4V)
-+#define PCI_PMOS1_CONTROL		0xbd
-+#define  PMOS1_ACTIVE_BITS		0x4a
- #define PCI_CLOCK_CTL			0xb9
+diff -puN Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator Documentation/pps/pps.txt
+--- a/Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator
++++ a/Documentation/pps/pps.txt
+@@ -170,3 +170,49 @@ and the run ppstest as follow:
  
- static int jmb38x_ms_pmos(struct pci_dev *pdev, int flag)
-@@ -779,6 +781,16 @@ static int jmb38x_ms_pmos(struct pci_dev
- 	pci_write_config_byte(pdev, PCI_PMOS0_CONTROL, val);
- 	dev_dbg(&pdev->dev, "JMB38x: set PMOS0 val 0x%x\n", val);
+ Please, note that to compile userland programs you need the file timepps.h
+ (see Documentation/pps/).
++
++
++Generators
++----------
++
++Sometimes one needs to be able not only to catch PPS signals but to produce
++them also. For example, running a distributed simulation, which requires
++computers' clock to be synchronized very tightly. One way to do this is to
++invent some complicated hardware solutions but it may be neither necessary
++nor affordable. The cheap way is to load a PPS generator on one of the
++computers (master) and PPS clients on others (slaves), and use very simple
++cables to deliver signals using parallel ports, for example.
++
++Parallel port cable pinout:
++pin	name	master      slave
++1	STROBE	  *------     *
++2	D0	  *     |     *
++3	D1	  *     |     *
++4	D2	  *     |     *
++5	D3	  *     |     *
++6	D4	  *     |     *
++7	D5	  *     |     *
++8	D6	  *     |     *
++9	D7	  *     |     *
++10	ACK	  *     ------*
++11	BUSY	  *           *
++12	PE	  *           *
++13	SEL	  *           *
++14	AUTOFD	  *           *
++15	ERROR	  *           *
++16	INIT	  *           *
++17	SELIN	  *           *
++18-25	GND	  *-----------*
++
++Please note that parallel port interrupt occurs only on high->low transition,
++so it is used for PPS assert edge. PPS clear edge can be determined only
++using polling in the interrupt handler which actually can be done way more
++precisely because interrupt handling delays can be quite big and random. So
++current parport PPS generator implementation (pps_gen_parport module) is
++geared towards using the clear edge for time synchronization.
++
++Clear edge polling is done with disabled interrupts so it's better to select
++delay between assert and clear edge as small as possible to reduce system
++latencies. But if it is too small slave won't be able to capture clear edge
++transition. The default of 30us should be good enough in most situations.
++The delay can be selected using 'delay' pps_gen_parport module parameter.
+diff -puN drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator
++++ a/drivers/pps/Kconfig
+@@ -41,4 +41,6 @@ config NTP_PPS
  
-+	if (pci_resource_flags(pdev, 1)) {
-+		pci_read_config_byte(pdev, PCI_PMOS1_CONTROL, &val);
-+		if (flag)
-+			val |= PMOS1_ACTIVE_BITS;
-+		else
-+			val &= ~PMOS1_ACTIVE_BITS;
-+		pci_write_config_byte(pdev, PCI_PMOS1_CONTROL, val);
-+		dev_dbg(&pdev->dev, "JMB38x: set PMOS1 val 0x%x\n", val);
+ source drivers/pps/clients/Kconfig
+ 
++source drivers/pps/generators/Kconfig
++
+ endmenu
+diff -puN drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator drivers/pps/Makefile
+--- a/drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator
++++ a/drivers/pps/Makefile
+@@ -5,6 +5,6 @@
+ pps_core-y			:= pps.o kapi.o sysfs.o
+ pps_core-$(CONFIG_NTP_PPS)	+= kc.o
+ obj-$(CONFIG_PPS)		:= pps_core.o
+-obj-y				+= clients/
++obj-y				+= clients/ generators/
+ 
+ ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
+diff -puN /dev/null drivers/pps/generators/Kconfig
+--- /dev/null
++++ a/drivers/pps/generators/Kconfig
+@@ -0,0 +1,17 @@
++#
++# PPS generators configuration
++#
++
++if PPS
++
++comment "PPS generators support"
++
++config PPS_GENERATOR_PARPORT
++	tristate "Parallel port PPS signal generator"
++	depends on PARPORT != n && GENERIC_TIME
++	help
++	  If you say yes here you get support for a PPS signal generator which
++	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
++	  parport abstraction layer and hrtimers to precisely control the signal.
++
++endif
+diff -puN /dev/null drivers/pps/generators/Makefile
+--- /dev/null
++++ a/drivers/pps/generators/Makefile
+@@ -0,0 +1,9 @@
++#
++# Makefile for PPS generators.
++#
++
++obj-$(CONFIG_PPS_GENERATOR_PARPORT) += pps_gen_parport.o
++
++ifeq ($(CONFIG_PPS_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+diff -puN /dev/null drivers/pps/generators/pps_gen_parport.c
+--- /dev/null
++++ a/drivers/pps/generators/pps_gen_parport.c
+@@ -0,0 +1,275 @@
++/*
++ * pps_gen_parport.c -- kernel parallel port PPS signal generator
++ *
++ *
++ * Copyright (C) 2009   Alexander Gordeev <lasaine@lvk.cs.msu.su>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++
++/*
++ * TODO:
++ * fix issues when realtime clock is adjusted in a leap
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/time.h>
++#include <linux/hrtimer.h>
++#include <linux/parport.h>
++
++#define DRVDESC "parallel port PPS signal generator"
++
++#define SIGNAL		0
++#define NO_SIGNAL	PARPORT_CONTROL_STROBE
++
++/* module parameters */
++
++#define SEND_DELAY_MAX		100000
++
++static unsigned int send_delay = 30000;
++MODULE_PARM_DESC(delay,
++	"Delay between setting and dropping the signal (ns)");
++module_param_named(delay, send_delay, uint, 0);
++
++
++#define SAFETY_INTERVAL	3000	/* set the hrtimer earlier for safety (ns) */
++
++/* internal per port structure */
++struct pps_generator_pp {
++	struct pardevice *pardev;	/* parport device */
++	struct hrtimer timer;
++	long port_write_time;		/* calibrated port write time (ns) */
++};
++
++static struct pps_generator_pp device = {
++	.pardev = NULL,
++};
++
++static int attached;
++
++/* calibrated time between a hrtimer event and the reaction */
++static long hrtimer_error = SAFETY_INTERVAL;
++
++/* the kernel hrtimer event */
++static enum hrtimer_restart hrtimer_event(struct hrtimer *timer)
++{
++	struct timespec expire_time, ts1, ts2, ts3, dts;
++	struct pps_generator_pp *dev;
++	struct parport *port;
++	long lim, delta;
++	unsigned long flags;
++
++	/* NB: approx time with blocked interrupts =
++	   send_delay + 3 * SAFETY_INTERVAL */
++	local_irq_save(flags);
++
++	/* first of all we get the time stamp... */
++	getnstimeofday(&ts1);
++	expire_time = ktime_to_timespec(hrtimer_get_softexpires(timer));
++	dev = container_of(timer, struct pps_generator_pp, timer);
++	lim = NSEC_PER_SEC - send_delay - dev->port_write_time;
++
++	/* check if we are late */
++	if (expire_time.tv_sec != ts1.tv_sec || ts1.tv_nsec > lim) {
++		local_irq_restore(flags);
++		pr_err("we are late this time %ld.%09ld\n",
++				ts1.tv_sec, ts1.tv_nsec);
++		goto done;
 +	}
 +
- 	pci_read_config_byte(pdev, PCI_CLOCK_CTL, &val);
- 	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val & ~0x0f);
- 	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val | 0x01);
-@@ -1018,8 +1030,9 @@ static void jmb38x_ms_remove(struct pci_
- }
- 
- static struct pci_device_id jmb38x_ms_id_tbl [] = {
--	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB38X_MS, PCI_ANY_ID,
--	  PCI_ANY_ID, 0, 0, 0 },
-+	{ PCI_VDEVICE(JMICRON, PCI_DEVICE_ID_JMICRON_JMB38X_MS) },
-+	{ PCI_VDEVICE(JMICRON, PCI_DEVICE_ID_JMICRON_JMB385_MS) },
-+	{ PCI_VDEVICE(JMICRON, PCI_DEVICE_ID_JMICRON_JMB390_MS) },
- 	{ }
- };
- 
-diff -puN include/linux/pci_ids.h~memstick-add-support-for-jmicron-jmb-385-and-390-controllers include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~memstick-add-support-for-jmicron-jmb-385-and-390-controllers
-+++ a/include/linux/pci_ids.h
-@@ -2369,8 +2369,10 @@
- #define PCI_DEVICE_ID_JMICRON_JMB38X_SD	0x2381
- #define PCI_DEVICE_ID_JMICRON_JMB38X_MMC 0x2382
- #define PCI_DEVICE_ID_JMICRON_JMB38X_MS	0x2383
-+#define PCI_DEVICE_ID_JMICRON_JMB385_MS	0x2388
- #define PCI_DEVICE_ID_JMICRON_JMB388_SD	0x2391
- #define PCI_DEVICE_ID_JMICRON_JMB388_ESD 0x2392
-+#define PCI_DEVICE_ID_JMICRON_JMB390_MS	0x2393
- 
- #define PCI_VENDOR_ID_KORENIX		0x1982
- #define PCI_DEVICE_ID_KORENIX_JETCARDF0	0x1600
++	/* busy loop until the time is right for an assert edge */
++	do {
++		getnstimeofday(&ts2);
++	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
++
++	/* set the signal */
++	port = dev->pardev->port;
++	port->ops->write_control(port, SIGNAL);
++
++	/* busy loop until the time is right for a clear edge */
++	lim = NSEC_PER_SEC - dev->port_write_time;
++	do {
++		getnstimeofday(&ts2);
++	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
++
++	/* unset the signal */
++	port->ops->write_control(port, NO_SIGNAL);
++
++	getnstimeofday(&ts3);
++
++	local_irq_restore(flags);
++
++	/* update calibrated port write time */
++	dts = timespec_sub(ts3, ts2);
++	dev->port_write_time =
++		(dev->port_write_time + timespec_to_ns(&dts)) >> 1;
++
++done:
++	/* update calibrated hrtimer error */
++	dts = timespec_sub(ts1, expire_time);
++	delta = timespec_to_ns(&dts);
++	/* If the new error value is bigger then the old, use the new
++	 * value, if not then slowly move towards the new value. This
++	 * way it should be safe in bad conditions and efficient in
++	 * good conditions.
++	 */
++	if (delta >= hrtimer_error)
++		hrtimer_error = delta;
++	else
++		hrtimer_error = (3 * hrtimer_error + delta) >> 2;
++
++	/* update the hrtimer expire time */
++	hrtimer_set_expires(timer,
++			ktime_set(expire_time.tv_sec + 1,
++				NSEC_PER_SEC - (send_delay +
++				dev->port_write_time + SAFETY_INTERVAL +
++				2 * hrtimer_error)));
++
++	return HRTIMER_RESTART;
++}
++
++/* calibrate port write time */
++#define PORT_NTESTS_SHIFT	5
++static void calibrate_port(struct pps_generator_pp *dev)
++{
++	struct parport *port = dev->pardev->port;
++	int i;
++	long acc = 0;
++
++	for (i = 0; i < (1 << PORT_NTESTS_SHIFT); i++) {
++		struct timespec a, b;
++		unsigned long irq_flags;
++
++		local_irq_save(irq_flags);
++		getnstimeofday(&a);
++		port->ops->write_control(port, NO_SIGNAL);
++		getnstimeofday(&b);
++		local_irq_restore(irq_flags);
++
++		b = timespec_sub(b, a);
++		acc += timespec_to_ns(&b);
++	}
++
++	dev->port_write_time = acc >> PORT_NTESTS_SHIFT;
++	pr_info("port write takes %ldns\n", dev->port_write_time);
++}
++
++static inline ktime_t next_intr_time(struct pps_generator_pp *dev)
++{
++	struct timespec ts;
++
++	getnstimeofday(&ts);
++
++	return ktime_set(ts.tv_sec +
++			((ts.tv_nsec > 990 * NSEC_PER_MSEC) ? 1 : 0),
++			NSEC_PER_SEC - (send_delay +
++			dev->port_write_time + 3 * SAFETY_INTERVAL));
++}
++
++static void parport_attach(struct parport *port)
++{
++	if (attached) {
++		/* we already have a port */
++		return;
++	}
++
++	device.pardev = parport_register_device(port, KBUILD_MODNAME,
++			NULL, NULL, NULL, 0, &device);
++	if (!device.pardev) {
++		pr_err("couldn't register with %s\n", port->name);
++		return;
++	}
++
++	if (parport_claim_or_block(device.pardev) < 0) {
++		pr_err("couldn't claim %s\n", port->name);
++		goto err_unregister_dev;
++	}
++
++	pr_info("attached to %s\n", port->name);
++	attached = 1;
++
++	calibrate_port(&device);
++
++	hrtimer_init(&device.timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
++	device.timer.function = hrtimer_event;
++#ifdef CONFIG_PREEMPT_RT
++	/* hrtimer interrupt will run in the interrupt context with this */
++	device.timer.irqsafe = 1;
++#endif
++
++	hrtimer_start(&device.timer, next_intr_time(&device), HRTIMER_MODE_ABS);
++
++	return;
++
++err_unregister_dev:
++	parport_unregister_device(device.pardev);
++}
++
++static void parport_detach(struct parport *port)
++{
++	if (port->cad != device.pardev)
++		return;	/* not our port */
++
++	hrtimer_cancel(&device.timer);
++	parport_release(device.pardev);
++	parport_unregister_device(device.pardev);
++}
++
++static struct parport_driver pps_gen_parport_driver = {
++	.name = KBUILD_MODNAME,
++	.attach = parport_attach,
++	.detach = parport_detach,
++};
++
++/* module staff */
++
++static int __init pps_gen_parport_init(void)
++{
++	int ret;
++
++	pr_info(DRVDESC "\n");
++
++	if (send_delay > SEND_DELAY_MAX) {
++		pr_err("delay value should be not greater"
++				" then %d\n", SEND_DELAY_MAX);
++		return -EINVAL;
++	}
++
++	ret = parport_register_driver(&pps_gen_parport_driver);
++	if (ret) {
++		pr_err("unable to register with parport\n");
++		return ret;
++	}
++
++	return  0;
++}
++
++static void __exit pps_gen_parport_exit(void)
++{
++	parport_unregister_driver(&pps_gen_parport_driver);
++	pr_info("hrtimer avg error is %ldns\n", hrtimer_error);
++}
++
++module_init(pps_gen_parport_init);
++module_exit(pps_gen_parport_exit);
++
++MODULE_AUTHOR("Alexander Gordeev <lasaine@lvk.cs.msu.su>");
++MODULE_DESCRIPTION(DRVDESC);
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
 origin.patch
-linux-next.patch
 
