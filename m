@@ -1,127 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:04:16 -0800
-Message-ID: <201101132006.p0DK6vFT029786@imap1.linux-foundation.org>
+Subject: [merged] include-linux-printkh-add-pr_level_once-macros.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:04:35 -0800
+Message-ID: <201101132007.p0DK7GEY029811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933639Ab1AMUHo (ORCPT
+	by vger.kernel.org with ESMTP id S933639Ab1AMUHx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:07:44 -0500
+	Thu, 13 Jan 2011 15:07:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk: use RCU to prevent potential lock contention in kmsg_dump
+     include/linux/printk.h: add pr_<level>_once macros
 has been removed from the -mm tree.  Its filename was
-     printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump.patch
+     include-linux-printkh-add-pr_level_once-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: use RCU to prevent potential lock contention in kmsg_dump
-From: Huang Ying <ying.huang@intel.com>
+Subject: include/linux/printk.h: add pr_<level>_once macros
+From: Joe Perches <joe@perches.com>
 
-dump_list_lock is used to protect dump_list in kmsg_dumper implementation,
-kmsg_dump() uses it to traverse dump_list too.  But if there is contention
-on the lock, kmsg_dump() will fail, and the valuable kernel message may be
-lost.
+- Move printk_once definitions and add an #ifdef CONFIG_PRINTK
 
-This patch solves this issue with RCU.  Because kmsg_dump() only read the
-list, no lock is needed in kmsg_dump().  So that kmsg_dump() will never
-fail because of lock contention.
+- Add pr_<level>_once so printks can use pr_fmt
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   34 +++++++---------------------------
- 1 file changed, 7 insertions(+), 27 deletions(-)
+ include/linux/printk.h |   59 +++++++++++++++++++++++++++++----------
+ 1 file changed, 44 insertions(+), 15 deletions(-)
 
-diff -puN kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump kernel/printk.c
---- a/kernel/printk.c~printk-use-rcu-to-prevent-potential-lock-contention-in-kmsg_dump
-+++ a/kernel/printk.c
-@@ -39,6 +39,7 @@
- #include <linux/syslog.h>
- #include <linux/cpu.h>
- #include <linux/notifier.h>
-+#include <linux/rculist.h>
+diff -puN include/linux/printk.h~include-linux-printkh-add-pr_level_once-macros include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-add-pr_level_once-macros
++++ a/include/linux/printk.h
+@@ -112,18 +112,6 @@ extern int printk_delay_msec;
+ extern int dmesg_restrict;
+ extern int kptr_restrict;
  
- #include <asm/uaccess.h>
- 
-@@ -1502,7 +1503,7 @@ int kmsg_dump_register(struct kmsg_dumpe
- 	/* Don't allow registering multiple times */
- 	if (!dumper->registered) {
- 		dumper->registered = 1;
--		list_add_tail(&dumper->list, &dump_list);
-+		list_add_tail_rcu(&dumper->list, &dump_list);
- 		err = 0;
- 	}
- 	spin_unlock_irqrestore(&dump_list_lock, flags);
-@@ -1526,33 +1527,16 @@ int kmsg_dump_unregister(struct kmsg_dum
- 	spin_lock_irqsave(&dump_list_lock, flags);
- 	if (dumper->registered) {
- 		dumper->registered = 0;
--		list_del(&dumper->list);
-+		list_del_rcu(&dumper->list);
- 		err = 0;
- 	}
- 	spin_unlock_irqrestore(&dump_list_lock, flags);
-+	synchronize_rcu();
- 
- 	return err;
+-/*
+- * Print a one-time message (analogous to WARN_ONCE() et al):
+- */
+-#define printk_once(x...) ({			\
+-	static bool __print_once;		\
+-						\
+-	if (!__print_once) {			\
+-		__print_once = true;		\
+-		printk(x);			\
+-	}					\
+-})
+-
+ void log_buf_kexec_setup(void);
+ #else
+ static inline __attribute__ ((format (printf, 1, 0)))
+@@ -146,9 +134,6 @@ static inline bool printk_timed_ratelimi
+ 	return false;
  }
- EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
  
--static const char * const kmsg_reasons[] = {
--	[KMSG_DUMP_OOPS]	= "oops",
--	[KMSG_DUMP_PANIC]	= "panic",
--	[KMSG_DUMP_KEXEC]	= "kexec",
--	[KMSG_DUMP_RESTART]	= "restart",
--	[KMSG_DUMP_HALT]	= "halt",
--	[KMSG_DUMP_POWEROFF]	= "poweroff",
--	[KMSG_DUMP_EMERG]	= "emergency_restart",
--};
+-/* No effect, but we still get type checking even in the !PRINTK case: */
+-#define printk_once(fmt, ...) no_printk(fmt, ##__VA_ARGS__)
 -
--static const char *kmsg_to_str(enum kmsg_dump_reason reason)
--{
--	if (reason >= ARRAY_SIZE(kmsg_reasons) || reason < 0)
--		return "unknown";
--
--	return kmsg_reasons[reason];
--}
--
- /**
-  * kmsg_dump - dump kernel log to kernel message dumpers.
-  * @reason: the reason (oops, panic etc) for dumping
-@@ -1591,13 +1575,9 @@ void kmsg_dump(enum kmsg_dump_reason rea
- 		l2 = chars;
- 	}
- 
--	if (!spin_trylock_irqsave(&dump_list_lock, flags)) {
--		printk(KERN_ERR "dump_kmsg: dump list lock is held during %s, skipping dump\n",
--				kmsg_to_str(reason));
--		return;
--	}
--	list_for_each_entry(dumper, &dump_list, list)
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(dumper, &dump_list, list)
- 		dumper->dump(dumper, reason, s1, l1, s2, l2);
--	spin_unlock_irqrestore(&dump_list_lock, flags);
-+	rcu_read_unlock();
+ static inline void log_buf_kexec_setup(void)
+ {
  }
+@@ -215,6 +200,50 @@ extern void print_hex_dump_bytes(const c
  #endif
+ 
+ /*
++ * Print a one-time message (analogous to WARN_ONCE() et al):
++ */
++
++#ifdef CONFIG_PRINTK
++#define printk_once(fmt, ...)			\
++({						\
++	static bool __print_once;		\
++						\
++	if (!__print_once) {			\
++		__print_once = true;		\
++		printk(fmt, ##__VA_ARGS__);	\
++	}					\
++})
++#else
++#define printk_once(fmt, ...)			\
++	no_printk(fmt, ##__VA_ARGS__)
++#endif
++
++#define pr_emerg_once(fmt, ...)					\
++	printk_once(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_alert_once(fmt, ...)					\
++	printk_once(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_crit_once(fmt, ...)					\
++	printk_once(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_err_once(fmt, ...)					\
++	printk_once(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_warn_once(fmt, ...)					\
++	printk_once(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_notice_once(fmt, ...)				\
++	printk_once(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_info_once(fmt, ...)					\
++	printk_once(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_cont_once(fmt, ...)					\
++	printk_once(KERN_CONT pr_fmt(fmt), ##__VA_ARGS__)
++/* If you are writing a driver, please use dev_dbg instead */
++#if defined(DEBUG)
++#define pr_debug_once(fmt, ...)					\
++	printk_once(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#else
++#define pr_debug_once(fmt, ...)					\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#endif
++
++/*
+  * ratelimited messages with local ratelimit_state,
+  * no local ratelimit_state used in the !PRINTK case
+  */
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+mm-convert-sprintf_symbol-to-%ps.patch
 
