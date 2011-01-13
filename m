@@ -1,54 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:30:42 -0800
-Message-ID: <201101132330.p0DNUgbl007161@imap1.linux-foundation.org>
+Subject: [folded] thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:30:40 -0800
+Message-ID: <201101132330.p0DNUeav007154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757320Ab1AMXa4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757320Ab1AMXay (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:30:56 -0500
+	Thu, 13 Jan 2011 18:30:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2
+     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
 has been removed from the -mm tree.  Its filename was
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
+     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
 
 This patch was dropped because it was folded into thp-add-pmd-mangling-generic-functions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2
+Subject: thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-__pmd should return a valid pmd_t for every arch.
+Hi everyone,
+
+On Fri, Dec 17, 2010 at 04:58:34PM -0800, Andrew Morton wrote:
+> The first one millionth:
+>
+> include/asm-generic/pgtable.h: In function 'ptep_get_and_clear':
+> include/asm-generic/pgtable.h:77: error: expected statement before ')' token
+> include/asm-generic/pgtable.h:94: error: invalid storage class for function 'pmdp_get_and_clear'
+>
+> Due to thp-add-pmd-mangling-generic-functions.patch
+
+Here two fixes for the um build.
+
+This is thp-add-pmd-mangling-generic-functions-fix.patch. I hope I'm
+not asking for more build troubles down the road insisting on inline
+and returning (pmd_t) { 0 } instead of converting it back to a
+preprocessor macro.
+
+========
+Subject: thp: fix pgtable.h build for um
+
+
+make ARCH=um failed because of some typo error in newly written code to cleanup
+asm-generic/pgtable.h but that was never compiled in on x86/x64 without um.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/pgtable.h |    4 ++--
+ mm/pgtable-generic.c          |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch
+diff -puN include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
 +++ a/include/asm-generic/pgtable.h
+@@ -74,7 +74,7 @@ static inline pte_t ptep_get_and_clear(s
+ 	pte_t pte = *ptep;
+ 	pte_clear(mm, address, ptep);
+ 	return pte;
+-)
++}
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_GET_AND_CLEAR
 @@ -93,7 +93,7 @@ static inline pmd_t pmdp_get_and_clear(s
  				       pmd_t *pmdp)
  {
  	BUG();
--	return (pmd_t){ 0 };
-+	return __pmd(0);
+-	return 0;
++	return (pmd_t){ 0 };
  }
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  #endif
+diff -puN mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
++++ a/mm/pgtable-generic.c
+@@ -29,7 +29,7 @@ int ptep_set_access_flags(struct vm_area
+ 		flush_tlb_page(vma, address);
+ 	}
+ 	return changed;
+-})
++}
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -77,6 +123,7 @@ thp-comment-reminder-in-destroy_compound_page.patch
 thp-config_transparent_hugepage.patch
 thp-special-pmd_trans_-functions.patch
 thp-add-pmd-mangling-generic-functions.patch
+thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
 thp-add-pmd-mangling-functions-to-x86.patch
 thp-bail-out-gup_fast-on-splitting-pmd.patch
 thp-pte-alloc-trans-splitting.patch
