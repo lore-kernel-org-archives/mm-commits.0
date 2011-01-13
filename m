@@ -1,116 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memstick-set-pmos-values-propery-for-jmicron-38x-controllers.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:43 -0800
-Message-ID: <201101132012.p0DKCOhk030290@imap1.linux-foundation.org>
+Subject: [merged] user_ns-improve-the-user_ns-on-the-slab-packaging.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:09 -0800
+Message-ID: <201101132011.p0DKBobf030207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933778Ab1AMUVT (ORCPT
+	by vger.kernel.org with ESMTP id S1756629Ab1AMUVs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:21:19 -0500
+	Thu, 13 Jan 2011 15:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, arieslee@jmicron.com, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: xemul@parallels.com, serge@hallyn.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: set PMOS values propery for JMicron 38x controllers
+     user_ns: improve the user_ns on-the-slab packaging
 has been removed from the -mm tree.  Its filename was
-     memstick-set-pmos-values-propery-for-jmicron-38x-controllers.patch
+     user_ns-improve-the-user_ns-on-the-slab-packaging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: set PMOS values propery for JMicron 38x controllers
-From: Takashi Iwai <tiwai@suse.de>
+Subject: user_ns: improve the user_ns on-the-slab packaging
+From: Pavel Emelyanov <xemul@parallels.com>
 
-Add a function jmb38x_ms_pmos() to enable / disable PMOS setups for
-JMicron 38x controllers.
+Currently on 64-bit arch the user_namespace is 2096 and when being
+kmalloc-ed it resides on a 4k slab wasting 2003 bytes.
 
-Signed-off-by: Aries Lee <arieslee@jmicron.com>
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Cc: Alex Dubov <oakad@yahoo.com>
+If we allocate a separate cache for it and reduce the hash size from 128
+to 64 chains the packaging becomes *much* better - the struct is 1072
+bytes and the hole between is 98 bytes.
+
+[akpm@linux-foundation.org: s/__initcall/module_init/]
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge E. Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |   37 ++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ include/linux/user_namespace.h |    2 +-
+ kernel/user_namespace.c        |   15 ++++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-set-pmos-values-propery-for-jmicron-38x-controllers drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-set-pmos-values-propery-for-jmicron-38x-controllers
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -758,6 +758,35 @@ static int jmb38x_ms_set_param(struct me
- 	return 0;
+diff -puN include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging
++++ a/include/linux/user_namespace.h
+@@ -6,7 +6,7 @@
+ #include <linux/sched.h>
+ #include <linux/err.h>
+ 
+-#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
++#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 7)
+ #define UIDHASH_SZ	(1 << UIDHASH_BITS)
+ 
+ struct user_namespace {
+diff -puN kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging
++++ a/kernel/user_namespace.c
+@@ -12,6 +12,8 @@
+ #include <linux/highuid.h>
+ #include <linux/cred.h>
+ 
++static struct kmem_cache *user_ns_cachep __read_mostly;
++
+ /*
+  * Create a new user namespace, deriving the creator from the user in the
+  * passed credentials, and replacing that user with the new root user for the
+@@ -26,7 +28,7 @@ int create_user_ns(struct cred *new)
+ 	struct user_struct *root_user;
+ 	int n;
+ 
+-	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
++	ns = kmem_cache_alloc(user_ns_cachep, GFP_KERNEL);
+ 	if (!ns)
+ 		return -ENOMEM;
+ 
+@@ -38,7 +40,7 @@ int create_user_ns(struct cred *new)
+ 	/* Alloc new root user.  */
+ 	root_user = alloc_uid(ns, 0);
+ 	if (!root_user) {
+-		kfree(ns);
++		kmem_cache_free(user_ns_cachep, ns);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -71,7 +73,7 @@ static void free_user_ns_work(struct wor
+ 	struct user_namespace *ns =
+ 		container_of(work, struct user_namespace, destroyer);
+ 	free_uid(ns->creator);
+-	kfree(ns);
++	kmem_cache_free(user_ns_cachep, ns);
  }
  
-+#define PCI_PMOS0_CONTROL		0xae
-+#define  PMOS0_ENABLE			0x01
-+#define  PMOS0_OVERCURRENT_LEVEL_2_4V	0x06
-+#define  PMOS0_EN_OVERCURRENT_DEBOUNCE	0x40
-+#define  PMOS0_SW_LED_POLARITY_ENABLE	0x80
-+#define  PMOS0_ACTIVE_BITS (PMOS0_ENABLE | PMOS0_EN_OVERCURRENT_DEBOUNCE | \
-+			    PMOS0_OVERCURRENT_LEVEL_2_4V)
-+#define PCI_CLOCK_CTL			0xb9
+ void free_user_ns(struct kref *kref)
+@@ -126,3 +128,10 @@ gid_t user_ns_map_gid(struct user_namesp
+ 	/* No useful relationship so no mapping */
+ 	return overflowgid;
+ }
 +
-+static int jmb38x_ms_pmos(struct pci_dev *pdev, int flag)
++static __init int user_namespaces_init(void)
 +{
-+	unsigned char val;
-+
-+	pci_read_config_byte(pdev, PCI_PMOS0_CONTROL, &val);
-+	if (flag)
-+		val |= PMOS0_ACTIVE_BITS;
-+	else
-+		val &= ~PMOS0_ACTIVE_BITS;
-+	pci_write_config_byte(pdev, PCI_PMOS0_CONTROL, val);
-+	dev_dbg(&pdev->dev, "JMB38x: set PMOS0 val 0x%x\n", val);
-+
-+	pci_read_config_byte(pdev, PCI_CLOCK_CTL, &val);
-+	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val & ~0x0f);
-+	pci_write_config_byte(pdev, PCI_CLOCK_CTL, val | 0x01);
-+	dev_dbg(&pdev->dev, "Clock Control by PCI config is disabled!\n");
-+
-+        return 0;
++	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
++	return 0;
 +}
-+
- #ifdef CONFIG_PM
- 
- static int jmb38x_ms_suspend(struct pci_dev *dev, pm_message_t state)
-@@ -790,8 +819,7 @@ static int jmb38x_ms_resume(struct pci_d
- 		return rc;
- 	pci_set_master(dev);
- 
--	pci_read_config_dword(dev, 0xac, &rc);
--	pci_write_config_dword(dev, 0xac, rc | 0x00470000);
-+	jmb38x_ms_pmos(dev, 1);
- 
- 	for (rc = 0; rc < jm->host_cnt; ++rc) {
- 		if (!jm->hosts[rc])
-@@ -900,8 +928,7 @@ static int jmb38x_ms_probe(struct pci_de
- 		goto err_out;
- 	}
- 
--	pci_read_config_dword(pdev, 0xac, &rc);
--	pci_write_config_dword(pdev, 0xac, rc | 0x00470000);
-+	jmb38x_ms_pmos(pdev, 1);
- 
- 	cnt = jmb38x_ms_count_slots(pdev);
- 	if (!cnt) {
-@@ -982,6 +1009,8 @@ static void jmb38x_ms_remove(struct pci_
- 		jmb38x_ms_free_host(jm->hosts[cnt]);
- 	}
- 
-+	jmb38x_ms_pmos(dev, 0);
-+
- 	pci_set_drvdata(dev, NULL);
- 	pci_release_regions(dev);
- 	pci_disable_device(dev);
++module_init(user_namespaces_init);
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from xemul@parallels.com are
 
 origin.patch
-linux-next.patch
 
