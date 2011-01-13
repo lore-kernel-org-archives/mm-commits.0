@@ -1,345 +1,579 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-add-parallel-port-pps-client.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:35 -0800
-Message-ID: <201101132012.p0DKCGdr030275@imap1.linux-foundation.org>
+Subject: [merged] pps-access-pps-device-by-direct-pointer.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:21 -0800
+Message-ID: <201101132012.p0DKC2sQ030236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933768Ab1AMUUz (ORCPT
+	by vger.kernel.org with ESMTP id S933769Ab1AMUU4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:20:55 -0500
+	Thu, 13 Jan 2011 15:20:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lasaine@lvk.cs.msu.su, giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: add parallel port PPS client
+     pps: access pps device by direct pointer
 has been removed from the -mm tree.  Its filename was
-     pps-add-parallel-port-pps-client.patch
+     pps-access-pps-device-by-direct-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add parallel port PPS client
+Subject: pps: access pps device by direct pointer
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Add parallel port PPS client.  It uses a standard method for capturing
-timestamps for assert edge transitions: getting a timestamp soon after an
-interrupt has happened.
-
-This is not a very precise source of time information due to interrupt
-handling delays.  However, timestamps for clear edge transitions are much
-more precise because the interrupt handler continuously polls hardware
-port until the transition is done.
-
-Hardware port operations require only about 1us so the maximum error
-should not exceed this value.  This was my primary goal when developing
-this client.
-
-Clear edge capture could be disabled using clear_wait parameter.
+Using device index as a pointer needs some unnecessary work to be done
+every time the pointer is needed (in irq handler for example).  Using a
+direct pointer is much more easy (and safe as well).
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/Kconfig       |    7 
- drivers/pps/clients/Makefile      |    1 
- drivers/pps/clients/pps_parport.c |  258 ++++++++++++++++++++++++++++
- 3 files changed, 266 insertions(+)
+ drivers/pps/clients/pps-ktimer.c |   30 +++----
+ drivers/pps/clients/pps-ldisc.c  |   41 ++++++---
+ drivers/pps/kapi.c               |  124 ++++++-----------------------
+ drivers/pps/pps.c                |   22 +----
+ include/linux/pps_kernel.h       |   23 ++---
+ 5 files changed, 82 insertions(+), 158 deletions(-)
 
-diff -puN drivers/pps/clients/Kconfig~pps-add-parallel-port-pps-client drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-add-parallel-port-pps-client
-+++ a/drivers/pps/clients/Kconfig
-@@ -22,4 +22,11 @@ config PPS_CLIENT_LDISC
- 	  If you say yes here you get support for a PPS source connected
- 	  with the CD (Carrier Detect) pin of your serial port.
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-access-pps-device-by-direct-pointer drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-access-pps-device-by-direct-pointer
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -31,7 +31,7 @@
+  * Global variables
+  */
  
-+config PPS_CLIENT_PARPORT
-+	tristate "Parallel port PPS client"
-+	depends on PPS && PARPORT
-+	help
-+	  If you say yes here you get support for a PPS source connected
-+	  with the interrupt pin of your parallel port.
-+
- endif
-diff -puN drivers/pps/clients/Makefile~pps-add-parallel-port-pps-client drivers/pps/clients/Makefile
---- a/drivers/pps/clients/Makefile~pps-add-parallel-port-pps-client
-+++ a/drivers/pps/clients/Makefile
-@@ -4,6 +4,7 @@
+-static int source;
++static struct pps_device *pps;
+ static struct timer_list ktimer;
  
- obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= pps-ktimer.o
- obj-$(CONFIG_PPS_CLIENT_LDISC)	+= pps-ldisc.o
-+obj-$(CONFIG_PPS_CLIENT_PARPORT) += pps_parport.o
+ /*
+@@ -47,7 +47,7 @@ static void pps_ktimer_event(unsigned lo
  
- ifeq ($(CONFIG_PPS_DEBUG),y)
- EXTRA_CFLAGS += -DDEBUG
-diff -puN /dev/null drivers/pps/clients/pps_parport.c
---- /dev/null
-+++ a/drivers/pps/clients/pps_parport.c
-@@ -0,0 +1,258 @@
-+/*
-+ * pps_parport.c -- kernel parallel port PPS client
-+ *
-+ *
-+ * Copyright (C) 2009   Alexander Gordeev <lasaine@lvk.cs.msu.su>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+
-+/*
-+ * TODO:
-+ * implement echo over SEL pin
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/irqnr.h>
-+#include <linux/time.h>
-+#include <linux/parport.h>
-+#include <linux/pps_kernel.h>
-+
-+#define DRVDESC "parallel port PPS client"
-+
-+/* module parameters */
-+
-+#define CLEAR_WAIT_MAX		100
-+#define CLEAR_WAIT_MAX_ERRORS	5
-+
-+static unsigned int clear_wait = 100;
-+MODULE_PARM_DESC(clear_wait,
-+	"Maximum number of port reads when polling for signal clear,"
-+	" zero turns clear edge capture off entirely");
-+module_param(clear_wait, uint, 0);
-+
-+
-+/* internal per port structure */
-+struct pps_client_pp {
-+	struct pardevice *pardev;	/* parport device */
-+	struct pps_device *pps;		/* PPS device */
-+	unsigned int cw;		/* port clear timeout */
-+	unsigned int cw_err;		/* number of timeouts */
-+};
-+
-+static inline int signal_is_set(struct parport *port)
-+{
-+	return (port->ops->read_status(port) & PARPORT_STATUS_ACK) != 0;
-+}
-+
-+/* parport interrupt handler */
-+static void parport_irq(void *handle)
-+{
-+	struct pps_event_time ts_assert, ts_clear;
-+	struct pps_client_pp *dev = handle;
-+	struct parport *port = dev->pardev->port;
-+	unsigned int i;
-+	unsigned long flags;
-+
-+	/* first of all we get the time stamp... */
-+	pps_get_ts(&ts_assert);
-+
-+	if (dev->cw == 0)
-+		/* clear edge capture disabled */
-+		goto out_assert;
-+
-+	/* try capture the clear edge */
-+
-+	/* We have to disable interrupts here. The idea is to prevent
-+	 * other interrupts on the same processor to introduce random
-+	 * lags while polling the port. Reading from IO port is known
-+	 * to take approximately 1us while other interrupt handlers can
-+	 * take much more potentially.
-+	 *
-+	 * Interrupts won't be disabled for a long time because the
-+	 * number of polls is limited by clear_wait parameter which is
-+	 * kept rather low. So it should never be an issue.
-+	 */
-+	local_irq_save(flags);
-+	/* check the signal (no signal means the pulse is lost this time) */
-+	if (!signal_is_set(port)) {
-+		local_irq_restore(flags);
-+		dev_err(dev->pps->dev, "lost the signal\n");
-+		goto out_assert;
-+	}
-+
-+	/* poll the port until the signal is unset */
-+	for (i = dev->cw; i; i--)
-+		if (!signal_is_set(port)) {
-+			pps_get_ts(&ts_clear);
-+			local_irq_restore(flags);
-+			dev->cw_err = 0;
-+			goto out_both;
-+		}
-+	local_irq_restore(flags);
-+
-+	/* timeout */
-+	dev->cw_err++;
-+	if (dev->cw_err >= CLEAR_WAIT_MAX_ERRORS) {
-+		dev_err(dev->pps->dev, "disabled clear edge capture after %d"
-+				" timeouts\n", dev->cw_err);
-+		dev->cw = 0;
-+		dev->cw_err = 0;
-+	}
-+
-+out_assert:
-+	/* fire assert event */
-+	pps_event(dev->pps, &ts_assert,
-+			PPS_CAPTUREASSERT, NULL);
-+	return;
-+
-+out_both:
-+	/* fire assert event */
-+	pps_event(dev->pps, &ts_assert,
-+			PPS_CAPTUREASSERT, NULL);
-+	/* fire clear event */
-+	pps_event(dev->pps, &ts_clear,
-+			PPS_CAPTURECLEAR, NULL);
-+	return;
-+}
-+
-+/* the PPS echo function */
-+static void pps_echo(struct pps_device *pps, int event, void *data)
-+{
+ 	pr_info("PPS event at %lu\n", jiffies);
+ 
+-	pps_event(source, &ts, PPS_CAPTUREASSERT, NULL);
++	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ 
+ 	mod_timer(&ktimer, jiffies + HZ);
+ }
+@@ -56,12 +56,11 @@ static void pps_ktimer_event(unsigned lo
+  * The echo function
+  */
+ 
+-static void pps_ktimer_echo(int source, int event, void *data)
++static void pps_ktimer_echo(struct pps_device *pps, int event, void *data)
+ {
+-	pr_info("echo %s %s for source %d\n",
 +	dev_info(pps->dev, "echo %s %s\n",
-+		event & PPS_CAPTUREASSERT ? "assert" : "",
+ 		event & PPS_CAPTUREASSERT ? "assert" : "",
+-		event & PPS_CAPTURECLEAR ? "clear" : "",
+-		source);
 +		event & PPS_CAPTURECLEAR ? "clear" : "");
-+}
+ }
+ 
+ /*
+@@ -84,30 +83,27 @@ static struct pps_source_info pps_ktimer
+ 
+ static void __exit pps_ktimer_exit(void)
+ {
+-	del_timer_sync(&ktimer);
+-	pps_unregister_source(source);
++	dev_info(pps->dev, "ktimer PPS source unregistered\n");
+ 
+-	pr_info("ktimer PPS source unregistered\n");
++	del_timer_sync(&ktimer);
++	pps_unregister_source(pps);
+ }
+ 
+ static int __init pps_ktimer_init(void)
+ {
+-	int ret;
+-
+-	ret = pps_register_source(&pps_ktimer_info,
++	pps = pps_register_source(&pps_ktimer_info,
+ 				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
+-	if (ret < 0) {
++	if (pps == NULL) {
+ 		printk(KERN_ERR "cannot register ktimer source\n");
+-		return ret;
++		return -ENOMEM;
+ 	}
+-	source = ret;
+ 
+ 	setup_timer(&ktimer, pps_ktimer_event, 0);
+ 	mod_timer(&ktimer, jiffies + HZ);
+ 
+-	pr_info("ktimer PPS source registered at %d\n", source);
++	dev_info(pps->dev, "ktimer PPS source registered\n");
+ 
+-	return  0;
++	return 0;
+ }
+ 
+ module_init(pps_ktimer_init);
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-access-pps-device-by-direct-pointer drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-access-pps-device-by-direct-pointer
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -29,7 +29,7 @@
+ static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status,
+ 				struct pps_event_time *ts)
+ {
+-	int id = (long)tty->disc_data;
++	struct pps_device *pps = (struct pps_device *)tty->disc_data;
+ 	struct pps_event_time __ts;
+ 
+ 	/* First of all we get the time stamp... */
+@@ -39,12 +39,14 @@ static void pps_tty_dcd_change(struct tt
+ 	if (!ts)	/* No. Do it ourself! */
+ 		ts = &__ts;
+ 
++	BUG_ON(pps == NULL);
 +
-+static void parport_attach(struct parport *port)
-+{
-+	struct pps_client_pp *device;
-+	struct pps_source_info info = {
-+		.name		= KBUILD_MODNAME,
-+		.path		= "",
-+		.mode		= PPS_CAPTUREBOTH | \
-+				  PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
-+				  PPS_ECHOASSERT | PPS_ECHOCLEAR | \
-+				  PPS_CANWAIT | PPS_TSFMT_TSPEC,
-+		.echo		= pps_echo,
-+		.owner		= THIS_MODULE,
-+		.dev		= NULL
-+	};
-+
-+	device = kzalloc(sizeof(struct pps_client_pp), GFP_KERNEL);
-+	if (!device) {
-+		pr_err("memory allocation failed, not attaching\n");
-+		return;
+ 	/* Now do the PPS event report */
+-	pps_event(id, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
+-			NULL);
++	pps_event(pps, ts, status ? PPS_CAPTUREASSERT :
++			PPS_CAPTURECLEAR, NULL);
+ 
+-	pr_debug("PPS %s at %lu on source #%d\n",
+-			status ? "assert" : "clear", jiffies, id);
++	dev_dbg(pps->dev, "PPS %s at %lu\n",
++			status ? "assert" : "clear", jiffies);
+ }
+ 
+ static int (*alias_n_tty_open)(struct tty_struct *tty);
+@@ -54,6 +56,7 @@ static int pps_tty_open(struct tty_struc
+ 	struct pps_source_info info;
+ 	struct tty_driver *drv = tty->driver;
+ 	int index = tty->index + drv->name_base;
++	struct pps_device *pps;
+ 	int ret;
+ 
+ 	info.owner = THIS_MODULE;
+@@ -64,34 +67,42 @@ static int pps_tty_open(struct tty_struc
+ 			PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
+ 			PPS_CANWAIT | PPS_TSFMT_TSPEC;
+ 
+-	ret = pps_register_source(&info, PPS_CAPTUREBOTH | \
++	pps = pps_register_source(&info, PPS_CAPTUREBOTH | \
+ 				PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
+-	if (ret < 0) {
++	if (pps == NULL) {
+ 		pr_err("cannot register PPS source \"%s\"\n", info.path);
+-		return ret;
++		return -ENOMEM;
+ 	}
+-	tty->disc_data = (void *)(long)ret;
++	tty->disc_data = pps;
+ 
+ 	/* Should open N_TTY ldisc too */
+ 	ret = alias_n_tty_open(tty);
+-	if (ret < 0)
+-		pps_unregister_source((long)tty->disc_data);
++	if (ret < 0) {
++		pr_err("cannot open tty ldisc \"%s\"\n", info.path);
++		goto err_unregister;
 +	}
+ 
+-	pr_info("PPS source #%d \"%s\" added\n", ret, info.path);
++	dev_info(pps->dev, "source \"%s\" added\n", info.path);
+ 
+ 	return 0;
 +
-+	device->pardev = parport_register_device(port, KBUILD_MODNAME,
-+			NULL, NULL, parport_irq, 0, device);
-+	if (!device->pardev) {
-+		pr_err("couldn't register with %s\n", port->name);
-+		goto err_free;
-+	}
++err_unregister:
++	tty->disc_data = NULL;
++	pps_unregister_source(pps);
++	return ret;
+ }
+ 
+ static void (*alias_n_tty_close)(struct tty_struct *tty);
+ 
+ static void pps_tty_close(struct tty_struct *tty)
+ {
+-	int id = (long)tty->disc_data;
++	struct pps_device *pps = (struct pps_device *)tty->disc_data;
+ 
+-	pps_unregister_source(id);
+ 	alias_n_tty_close(tty);
+ 
+-	pr_info("PPS source #%d removed\n", id);
++	tty->disc_data = NULL;
++	dev_info(pps->dev, "removed\n");
++	pps_unregister_source(pps);
+ }
+ 
+ static struct tty_ldisc_ops pps_ldisc_ops;
+diff -puN drivers/pps/kapi.c~pps-access-pps-device-by-direct-pointer drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-access-pps-device-by-direct-pointer
++++ a/drivers/pps/kapi.c
+@@ -32,11 +32,11 @@
+ #include <linux/slab.h>
+ 
+ /*
+- * Global variables
++ * Local variables
+  */
+ 
+-DEFINE_SPINLOCK(pps_idr_lock);
+-DEFINE_IDR(pps_idr);
++static DEFINE_SPINLOCK(pps_idr_lock);
++static DEFINE_IDR(pps_idr);
+ 
+ /*
+  * Local functions
+@@ -60,60 +60,6 @@ static void pps_add_offset(struct pps_kt
+  * Exported functions
+  */
+ 
+-/* pps_get_source - find a PPS source
+- * @source: the PPS source ID.
+- *
+- * This function is used to find an already registered PPS source into the
+- * system.
+- *
+- * The function returns NULL if found nothing, otherwise it returns a pointer
+- * to the PPS source data struct (the refcounter is incremented by 1).
+- */
+-
+-struct pps_device *pps_get_source(int source)
+-{
+-	struct pps_device *pps;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&pps_idr_lock, flags);
+-
+-	pps = idr_find(&pps_idr, source);
+-	if (pps != NULL)
+-		atomic_inc(&pps->usage);
+-
+-	spin_unlock_irqrestore(&pps_idr_lock, flags);
+-
+-	return pps;
+-}
+-
+-/* pps_put_source - free the PPS source data
+- * @pps: a pointer to the PPS source.
+- *
+- * This function is used to free a PPS data struct if its refcount is 0.
+- */
+-
+-void pps_put_source(struct pps_device *pps)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&pps_idr_lock, flags);
+-	BUG_ON(atomic_read(&pps->usage) == 0);
+-
+-	if (!atomic_dec_and_test(&pps->usage)) {
+-		pps = NULL;
+-		goto exit;
+-	}
+-
+-	/* No more reference to the PPS source. We can safely remove the
+-	 * PPS data struct.
+-	 */
+-	idr_remove(&pps_idr, pps->id);
+-
+-exit:
+-	spin_unlock_irqrestore(&pps_idr_lock, flags);
+-	kfree(pps);
+-}
+-
+ /* pps_register_source - add a PPS source in the system
+  * @info: the PPS info struct
+  * @default_params: the default PPS parameters of the new source
+@@ -122,10 +68,11 @@ exit:
+  * source is described by info's fields and it will have, as default PPS
+  * parameters, the ones specified into default_params.
+  *
+- * The function returns, in case of success, the PPS source ID.
++ * The function returns, in case of success, the PPS device. Otherwise NULL.
+  */
+ 
+-int pps_register_source(struct pps_source_info *info, int default_params)
++struct pps_device *pps_register_source(struct pps_source_info *info,
++		int default_params)
+ {
+ 	struct pps_device *pps;
+ 	int id;
+@@ -168,7 +115,6 @@ int pps_register_source(struct pps_sourc
+ 
+ 	init_waitqueue_head(&pps->queue);
+ 	spin_lock_init(&pps->lock);
+-	atomic_set(&pps->usage, 1);
+ 
+ 	/* Get new ID for the new PPS source */
+ 	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
+@@ -211,7 +157,7 @@ int pps_register_source(struct pps_sourc
+ 
+ 	pr_info("new PPS source %s at ID %d\n", info->name, id);
+ 
+-	return id;
++	return pps;
+ 
+ free_idr:
+ 	spin_lock_irq(&pps_idr_lock);
+@@ -224,38 +170,33 @@ kfree_pps:
+ pps_register_source_exit:
+ 	printk(KERN_ERR "pps: %s: unable to register source\n", info->name);
+ 
+-	return err;
++	return NULL;
+ }
+ EXPORT_SYMBOL(pps_register_source);
+ 
+ /* pps_unregister_source - remove a PPS source from the system
+- * @source: the PPS source ID
++ * @pps: the PPS source
+  *
+  * This function is used to remove a previously registered PPS source from
+  * the system.
+  */
+ 
+-void pps_unregister_source(int source)
++void pps_unregister_source(struct pps_device *pps)
+ {
+-	struct pps_device *pps;
++	unsigned int id = pps->id;
+ 
+-	spin_lock_irq(&pps_idr_lock);
+-	pps = idr_find(&pps_idr, source);
++	pps_unregister_cdev(pps);
+ 
+-	if (!pps) {
+-		BUG();
+-		spin_unlock_irq(&pps_idr_lock);
+-		return;
+-	}
++	spin_lock_irq(&pps_idr_lock);
++	idr_remove(&pps_idr, pps->id);
+ 	spin_unlock_irq(&pps_idr_lock);
+ 
+-	pps_unregister_cdev(pps);
+-	pps_put_source(pps);
++	kfree(pps);
+ }
+ EXPORT_SYMBOL(pps_unregister_source);
+ 
+ /* pps_event - register a PPS event into the system
+- * @source: the PPS source ID
++ * @pps: the PPS device
+  * @ts: the event timestamp
+  * @event: the event type
+  * @data: userdef pointer
+@@ -263,30 +204,24 @@ EXPORT_SYMBOL(pps_unregister_source);
+  * This function is used by each PPS client in order to register a new
+  * PPS event into the system (it's usually called inside an IRQ handler).
+  *
+- * If an echo function is associated with the PPS source it will be called
++ * If an echo function is associated with the PPS device it will be called
+  * as:
+- *	pps->info.echo(source, event, data);
++ *	pps->info.echo(pps, event, data);
+  */
+-
+-void pps_event(int source, struct pps_event_time *ts, int event, void *data)
++void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
++		void *data)
+ {
+-	struct pps_device *pps;
+ 	unsigned long flags;
+ 	int captured = 0;
+ 	struct pps_ktime ts_real;
+ 
+ 	if ((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0) {
+-		printk(KERN_ERR "pps: unknown event (%x) for source %d\n",
+-			event, source);
++		dev_err(pps->dev, "unknown event (%x)\n", event);
+ 		return;
+ 	}
+ 
+-	pps = pps_get_source(source);
+-	if (!pps)
+-		return;
+-
+-	pr_debug("PPS event on source %d at %ld.%09ld\n",
+-			pps->id, ts->ts_real.tv_sec, ts->ts_real.tv_nsec);
++	dev_dbg(pps->dev, "PPS event at %ld.%09ld\n",
++			ts->ts_real.tv_sec, ts->ts_real.tv_nsec);
+ 
+ 	timespec_to_pps_ktime(&ts_real, ts->ts_real);
+ 
+@@ -294,7 +229,7 @@ void pps_event(int source, struct pps_ev
+ 
+ 	/* Must call the echo function? */
+ 	if ((pps->params.mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)))
+-		pps->info.echo(source, event, data);
++		pps->info.echo(pps, event, data);
+ 
+ 	/* Check the event */
+ 	pps->current_mode = pps->params.mode;
+@@ -308,8 +243,8 @@ void pps_event(int source, struct pps_ev
+ 		/* Save the time stamp */
+ 		pps->assert_tu = ts_real;
+ 		pps->assert_sequence++;
+-		pr_debug("capture assert seq #%u for source %d\n",
+-			pps->assert_sequence, source);
++		dev_dbg(pps->dev, "capture assert seq #%u\n",
++			pps->assert_sequence);
+ 
+ 		captured = ~0;
+ 	}
+@@ -323,8 +258,8 @@ void pps_event(int source, struct pps_ev
+ 		/* Save the time stamp */
+ 		pps->clear_tu = ts_real;
+ 		pps->clear_sequence++;
+-		pr_debug("capture clear seq #%u for source %d\n",
+-			pps->clear_sequence, source);
++		dev_dbg(pps->dev, "capture clear seq #%u\n",
++			pps->clear_sequence);
+ 
+ 		captured = ~0;
+ 	}
+@@ -338,8 +273,5 @@ void pps_event(int source, struct pps_ev
+ 	}
+ 
+ 	spin_unlock_irqrestore(&pps->lock, flags);
+-
+-	/* Now we can release the PPS source for (possible) deregistration */
+-	pps_put_source(pps);
+ }
+ EXPORT_SYMBOL(pps_event);
+diff -puN drivers/pps/pps.c~pps-access-pps-device-by-direct-pointer drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-access-pps-device-by-direct-pointer
++++ a/drivers/pps/pps.c
+@@ -204,12 +204,6 @@ static int pps_cdev_open(struct inode *i
+ {
+ 	struct pps_device *pps = container_of(inode->i_cdev,
+ 						struct pps_device, cdev);
+-	int found;
+-
+-	found = pps_get_source(pps->id) != 0;
+-	if (!found)
+-		return -ENODEV;
+-
+ 	file->private_data = pps;
+ 
+ 	return 0;
+@@ -217,11 +211,6 @@ static int pps_cdev_open(struct inode *i
+ 
+ static int pps_cdev_release(struct inode *inode, struct file *file)
+ {
+-	struct pps_device *pps = file->private_data;
+-
+-	/* Free the PPS source and wake up (possible) deregistration */
+-	pps_put_source(pps);
+-
+ 	return 0;
+ }
+ 
+@@ -242,22 +231,23 @@ static const struct file_operations pps_
+ int pps_register_cdev(struct pps_device *pps)
+ {
+ 	int err;
++	dev_t devt;
 +
-+	if (parport_claim_or_block(device->pardev) < 0) {
-+		pr_err("couldn't claim %s\n", port->name);
-+		goto err_unregister_dev;
-+	}
++	devt = MKDEV(MAJOR(pps_devt), pps->id);
+ 
+-	pps->devno = MKDEV(MAJOR(pps_devt), pps->id);
+ 	cdev_init(&pps->cdev, &pps_cdev_fops);
+ 	pps->cdev.owner = pps->info.owner;
+ 
+-	err = cdev_add(&pps->cdev, pps->devno, 1);
++	err = cdev_add(&pps->cdev, devt, 1);
+ 	if (err) {
+ 		printk(KERN_ERR "pps: %s: failed to add char device %d:%d\n",
+ 				pps->info.name, MAJOR(pps_devt), pps->id);
+ 		return err;
+ 	}
+-	pps->dev = device_create(pps_class, pps->info.dev, pps->devno, NULL,
++	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
+ 							"pps%d", pps->id);
+ 	if (IS_ERR(pps->dev))
+ 		goto del_cdev;
+-	dev_set_drvdata(pps->dev, pps);
+ 
+ 	pr_debug("source %s got cdev (%d:%d)\n", pps->info.name,
+ 			MAJOR(pps_devt), pps->id);
+@@ -272,7 +262,7 @@ del_cdev:
+ 
+ void pps_unregister_cdev(struct pps_device *pps)
+ {
+-	device_destroy(pps_class, pps->devno);
++	device_destroy(pps_class, pps->dev->devt);
+ 	cdev_del(&pps->cdev);
+ }
+ 
+diff -puN include/linux/pps_kernel.h~pps-access-pps-device-by-direct-pointer include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-access-pps-device-by-direct-pointer
++++ a/include/linux/pps_kernel.h
+@@ -31,13 +31,16 @@
+  * Global defines
+  */
+ 
++struct pps_device;
 +
-+	device->pps = pps_register_source(&info,
-+			PPS_CAPTUREBOTH | PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
-+	if (device->pps == NULL) {
-+		pr_err("couldn't register PPS source\n");
-+		goto err_release_dev;
-+	}
-+
-+	device->cw = clear_wait;
-+
-+	port->ops->enable_irq(port);
-+
-+	pr_info("attached to %s\n", port->name);
-+
-+	return;
-+
-+err_release_dev:
-+	parport_release(device->pardev);
-+err_unregister_dev:
-+	parport_unregister_device(device->pardev);
-+err_free:
-+	kfree(device);
-+}
-+
-+static void parport_detach(struct parport *port)
-+{
-+	struct pardevice *pardev = port->cad;
-+	struct pps_client_pp *device;
-+
-+	/* FIXME: oooh, this is ugly! */
-+	if (strcmp(pardev->name, KBUILD_MODNAME))
-+		/* not our port */
-+		return;
-+
-+	device = pardev->private;
-+
-+	port->ops->disable_irq(port);
-+	pps_unregister_source(device->pps);
-+	parport_release(pardev);
-+	parport_unregister_device(pardev);
-+	kfree(device);
-+}
-+
-+static struct parport_driver pps_parport_driver = {
-+	.name = KBUILD_MODNAME,
-+	.attach = parport_attach,
-+	.detach = parport_detach,
-+};
-+
-+/* module staff */
-+
-+static int __init pps_parport_init(void)
-+{
-+	int ret;
-+
-+	pr_info(DRVDESC "\n");
-+
-+	if (clear_wait > CLEAR_WAIT_MAX) {
-+		pr_err("clear_wait value should be not greater"
-+				" then %d\n", CLEAR_WAIT_MAX);
-+		return -EINVAL;
-+	}
-+
-+	ret = parport_register_driver(&pps_parport_driver);
-+	if (ret) {
-+		pr_err("unable to register with parport\n");
-+		return ret;
-+	}
-+
-+	return  0;
-+}
-+
-+static void __exit pps_parport_exit(void)
-+{
-+	parport_unregister_driver(&pps_parport_driver);
-+}
-+
-+module_init(pps_parport_init);
-+module_exit(pps_parport_exit);
-+
-+MODULE_AUTHOR("Alexander Gordeev <lasaine@lvk.cs.msu.su>");
-+MODULE_DESCRIPTION(DRVDESC);
-+MODULE_LICENSE("GPL");
+ /* The specific PPS source info */
+ struct pps_source_info {
+ 	char name[PPS_MAX_NAME_LEN];		/* simbolic name */
+ 	char path[PPS_MAX_NAME_LEN];		/* path of connected device */
+ 	int mode;				/* PPS's allowed mode */
+ 
+-	void (*echo)(int source, int event, void *data); /* PPS echo function */
++	void (*echo)(struct pps_device *pps,
++			int event, void *data);	/* PPS echo function */
+ 
+ 	struct module *owner;
+ 	struct device *dev;
+@@ -65,35 +68,27 @@ struct pps_device {
+ 	unsigned int id;			/* PPS source unique ID */
+ 	struct cdev cdev;
+ 	struct device *dev;
+-	int devno;
+ 	struct fasync_struct *async_queue;	/* fasync method */
+ 	spinlock_t lock;
+-
+-	atomic_t usage;				/* usage count */
+ };
+ 
+ /*
+  * Global variables
+  */
+ 
+-extern spinlock_t pps_idr_lock;
+-extern struct idr pps_idr;
+-
+ extern struct device_attribute pps_attrs[];
+ 
+ /*
+  * Exported functions
+  */
+ 
+-struct pps_device *pps_get_source(int source);
+-extern void pps_put_source(struct pps_device *pps);
+-extern int pps_register_source(struct pps_source_info *info,
+-				int default_params);
+-extern void pps_unregister_source(int source);
++extern struct pps_device *pps_register_source(
++		struct pps_source_info *info, int default_params);
++extern void pps_unregister_source(struct pps_device *pps);
+ extern int pps_register_cdev(struct pps_device *pps);
+ extern void pps_unregister_cdev(struct pps_device *pps);
+-extern void pps_event(int source, struct pps_event_time *ts, int event,
+-		void *data);
++extern void pps_event(struct pps_device *pps,
++		struct pps_event_time *ts, int event, void *data);
+ 
+ static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
+ 		struct timespec ts)
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
