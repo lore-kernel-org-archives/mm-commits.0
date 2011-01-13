@@ -1,172 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-lp5521-fix-circular-locking.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:24 -0800
-Message-ID: <201101132006.p0DK65Li029696@imap1.linux-foundation.org>
+Subject: [merged] leds-lp5521-modify-the-way-of-setting-led-device-name.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:03:26 -0800
+Message-ID: <201101132006.p0DK677o029699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933543Ab1AMUGy (ORCPT
+	by vger.kernel.org with ESMTP id S933543Ab1AMUGx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:06:54 -0500
+	Thu, 13 Jan 2011 15:06:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, arun.murthy@stericsson.com, ilkka.koskinen@nokia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: arun.murthy@stericsson.com, ilkka.koskinen@nokia.com, rpurdie@rpsys.net, samu.p.onkalo@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: lp5521: fix circular locking
+     leds-lp5521: modify the way of setting led device name
 has been removed from the -mm tree.  Its filename was
-     leds-lp5521-fix-circular-locking.patch
+     leds-lp5521-modify-the-way-of-setting-led-device-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: lp5521: fix circular locking
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: leds-lp5521: modify the way of setting led device name
+From: Arun Murthy <arun.murthy@stericsson.com>
 
-Driver contained possibility for circular locking.
+Currently the led device name is fetched from the device_type in
+I2C_BOARD_INFO which comes from the platform data.  This name is in turn
+used to create an entry in sysfs.
 
-One lock is held by sysfs-core and another one by the driver itself.  This
-happened when the driver created or removed sysfs entries dynamically. 
-There is no real need to do those operations.  Now all the sysfs entries
-are created at probe and removed at removal.  Engine load sysfs entries
-are now visible all the time.  However, access to the entries fails if the
-engine is disabled or running.
+If there exists two or more lp5521 on a particular platform, the
+device_type in I2C_BOARD_INFO has to be the same, else lp5521 driver probe
+wont be called and if used so, results in run time warning "cannot create
+sysfs with same name" and hence a failure.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: Arun Murthy <arun.murthy@stericsson.com>
-Reviewed-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+The name that is used to create sysfs entry is to be passed by the struct
+led_platform_data.  Hence adding an element of type const char * and
+change in lp5521 driver to use this name in creating the led device if
+present else use the name obtained by I2C_BOARD_INFO.
+
+Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
+Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   52 +++++------------------------------
- 1 file changed, 8 insertions(+), 44 deletions(-)
+ drivers/leds/leds-lp5521.c  |    3 ++-
+ include/linux/leds-lp5521.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-fix-circular-locking drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-lp5521-fix-circular-locking
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name
 +++ a/drivers/leds/leds-lp5521.c
-@@ -98,7 +98,6 @@
- #define LP5521_EXT_CLK_USED		0x08
- 
- struct lp5521_engine {
--	const struct attribute_group *attributes;
- 	int		id;
- 	u8		mode;
- 	u8		prog_page;
-@@ -225,25 +224,22 @@ static int lp5521_set_led_current(struct
- 		    curr);
- }
- 
--static void lp5521_init_engine(struct lp5521_chip *chip,
--			const struct attribute_group *attr_group)
-+static void lp5521_init_engine(struct lp5521_chip *chip)
- {
- 	int i;
- 	for (i = 0; i < ARRAY_SIZE(chip->engines); i++) {
- 		chip->engines[i].id = i + 1;
- 		chip->engines[i].engine_mask = LP5521_ENG_MASK_BASE >> (i * 2);
- 		chip->engines[i].prog_page = i;
--		chip->engines[i].attributes = &attr_group[i];
- 	}
- }
- 
--static int lp5521_configure(struct i2c_client *client,
--			const struct attribute_group *attr_group)
-+static int lp5521_configure(struct i2c_client *client)
- {
- 	struct lp5521_chip *chip = i2c_get_clientdata(client);
- 	int ret;
- 
--	lp5521_init_engine(chip, attr_group);
-+	lp5521_init_engine(chip);
- 
- 	/* Set all PWMs to direct control mode */
- 	ret = lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
-@@ -329,9 +325,6 @@ static int lp5521_detect(struct i2c_clie
- /* Set engine mode and create appropriate sysfs attributes, if required. */
- static int lp5521_set_mode(struct lp5521_engine *engine, u8 mode)
- {
--	struct lp5521_chip *chip = engine_to_lp5521(engine);
--	struct i2c_client *client = chip->client;
--	struct device *dev = &client->dev;
- 	int ret = 0;
- 
- 	/* if in that mode already do nothing, except for run */
-@@ -343,18 +336,10 @@ static int lp5521_set_mode(struct lp5521
- 	} else if (mode == LP5521_CMD_LOAD) {
- 		lp5521_set_engine_mode(engine, LP5521_CMD_DISABLED);
- 		lp5521_set_engine_mode(engine, LP5521_CMD_LOAD);
--
--		ret = sysfs_create_group(&dev->kobj, engine->attributes);
--		if (ret)
--			return ret;
- 	} else if (mode == LP5521_CMD_DISABLED) {
- 		lp5521_set_engine_mode(engine, LP5521_CMD_DISABLED);
+@@ -617,7 +617,8 @@ static int __init lp5521_init_led(struct
+ 		return -EINVAL;
  	}
  
--	/* remove load attribute from sysfs if not in load mode */
--	if (engine->mode == LP5521_CMD_LOAD && mode != LP5521_CMD_LOAD)
--		sysfs_remove_group(&dev->kobj, engine->attributes);
--
- 	engine->mode = mode;
- 
- 	return ret;
-@@ -389,7 +374,10 @@ static int lp5521_do_store_load(struct l
- 		goto fail;
- 
- 	mutex_lock(&chip->lock);
--	ret = lp5521_load_program(engine, pattern);
-+	if (engine->mode == LP5521_CMD_LOAD)
-+		ret = lp5521_load_program(engine, pattern);
-+	else
-+		ret = -EINVAL;
- 	mutex_unlock(&chip->lock);
- 
- 	if (ret) {
-@@ -576,20 +564,8 @@ static struct attribute *lp5521_attribut
- 	&dev_attr_engine2_mode.attr,
- 	&dev_attr_engine3_mode.attr,
- 	&dev_attr_selftest.attr,
--	NULL
--};
--
--static struct attribute *lp5521_engine1_attributes[] = {
- 	&dev_attr_engine1_load.attr,
--	NULL
--};
--
--static struct attribute *lp5521_engine2_attributes[] = {
- 	&dev_attr_engine2_load.attr,
--	NULL
--};
--
--static struct attribute *lp5521_engine3_attributes[] = {
- 	&dev_attr_engine3_load.attr,
- 	NULL
- };
-@@ -598,12 +574,6 @@ static const struct attribute_group lp55
- 	.attrs = lp5521_attributes,
+-	snprintf(name, sizeof(name), "%s:channel%d", client->name, chan);
++	snprintf(name, sizeof(name), "%s:channel%d",
++			pdata->label ?: client->name, chan);
+ 	led->cdev.brightness_set = lp5521_set_brightness;
+ 	led->cdev.name = name;
+ 	res = led_classdev_register(dev, &led->cdev);
+diff -puN include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name include/linux/leds-lp5521.h
+--- a/include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name
++++ a/include/linux/leds-lp5521.h
+@@ -42,6 +42,7 @@ struct lp5521_platform_data {
+ 	int	(*setup_resources)(void);
+ 	void	(*release_resources)(void);
+ 	void	(*enable)(bool state);
++	const char *label;
  };
  
--static const struct attribute_group lp5521_engine_group[] = {
--	{.attrs = lp5521_engine1_attributes },
--	{.attrs = lp5521_engine2_attributes },
--	{.attrs = lp5521_engine3_attributes },
--};
--
- static int lp5521_register_sysfs(struct i2c_client *client)
- {
- 	struct device *dev = &client->dev;
-@@ -618,12 +588,6 @@ static void lp5521_unregister_sysfs(stru
- 
- 	sysfs_remove_group(&dev->kobj, &lp5521_group);
- 
--	for (i = 0; i <  ARRAY_SIZE(chip->engines); i++) {
--		if (chip->engines[i].mode == LP5521_CMD_LOAD)
--			sysfs_remove_group(&dev->kobj,
--					chip->engines[i].attributes);
--	}
+ #endif /* __LINUX_LP5521_H */
+_
+
+Patches currently in -mm which might be from arun.murthy@stericsson.com are
+
+origin.patch
+
