@@ -1,54 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:35:23 -0800
-Message-ID: <201101132335.p0DNZNCD007371@imap1.linux-foundation.org>
+Subject: [folded] brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:35:56 -0800
+Message-ID: <201101132335.p0DNZu0K007378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757169Ab1AMXf2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757169Ab1AMXgU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:35:28 -0500
+	Thu, 13 Jan 2011 18:36:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jj@chaosbits.net, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, jkosina@suse.cz, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
+     brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+     brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
+This patch was dropped because it was folded into brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
+Subject: brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use NODEMASK_FREE, per Minchan Kim
+fix comment
 
-Cc: Jesper Juhl <jj@chaosbits.net>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/mmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
-+++ a/mm/hugetlb.c
-@@ -1375,7 +1375,7 @@ static ssize_t nr_hugepages_store_common
- 
- 	err = strict_strtoul(buf, 10, &count);
- 	if (err) {
--		kfree(nodes_allowed);
-+		NODEMASK_FREE(nodes_allowed);
- 		return 0;
- 	}
- 
+diff -puN mm/mmap.c~brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix mm/mmap.c
+--- a/mm/mmap.c~brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix
++++ a/mm/mmap.c
+@@ -256,7 +256,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ #ifdef CONFIG_COMPAT_BRK
+ 	/*
+ 	 * CONFIG_COMPAT_BRK can still be overridden by setting
+-	 * randomize_va_space to 2, which will still make mm->start_brk
++	 * randomize_va_space to 2, which will still cause mm->start_brk
+ 	 * to be arbitrarily shifted
+ 	 */
+ 	if (mm->start_brk > PAGE_ALIGN(mm->end_data))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +68,7 @@ thp-kvm-mmu-transparent-hugepage-support.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise.patch
 mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
 mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
 mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
