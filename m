@@ -1,441 +1,335 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-add-parallel-port-pps-signal-generator.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:36 -0800
-Message-ID: <201101132012.p0DKCHcG030278@imap1.linux-foundation.org>
+Subject: [merged] rapidio-integrate-rio_switch-into-rio_dev.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:08:52 -0800
+Message-ID: <201101132011.p0DKBXNP030183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933707Ab1AMUM7 (ORCPT
+	by vger.kernel.org with ESMTP id S933708Ab1AMUNA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:12:59 -0500
+	Thu, 13 Jan 2011 15:13:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: add parallel port PPS signal generator
+     rapidio: integrate rio_switch into rio_dev
 has been removed from the -mm tree.  Its filename was
-     pps-add-parallel-port-pps-signal-generator.patch
+     rapidio-integrate-rio_switch-into-rio_dev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add parallel port PPS signal generator
-From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Subject: rapidio: integrate rio_switch into rio_dev
+From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Add PPS signal generator which utilizes STROBE pin of a parallel port to
-send PPS signals.  It uses parport abstraction layer and hrtimers to
-precisely control the signal.
+Convert RIO switches device structures (rio_dev + rio_switch) into a
+single allocation unit.
 
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Acked-by: Rodolfo Giometti <giometti@linux.it>
-Cc: john stultz <johnstul@us.ibm.com>
+This change is based on the fact that RIO switches are using common RIO
+device objects anyway.  Allocating RIO switch objects as RIO devices with
+added space for switch information simplifies handling of RIO switch
+devices.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Thomas Moll <thomas.moll@sysgo.com>
+Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/pps/pps.txt                |   46 +++
- drivers/pps/Kconfig                      |    2 
- drivers/pps/Makefile                     |    2 
- drivers/pps/generators/Kconfig           |   17 +
- drivers/pps/generators/Makefile          |    9 
- drivers/pps/generators/pps_gen_parport.c |  275 +++++++++++++++++++++
- 6 files changed, 350 insertions(+), 1 deletion(-)
+ drivers/rapidio/rio-scan.c  |   59 +++++++++++++-----------
+ drivers/rapidio/rio-sysfs.c |    4 -
+ include/linux/rio.h         |   82 +++++++++++++++++-----------------
+ 3 files changed, 75 insertions(+), 70 deletions(-)
 
-diff -puN Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator Documentation/pps/pps.txt
---- a/Documentation/pps/pps.txt~pps-add-parallel-port-pps-signal-generator
-+++ a/Documentation/pps/pps.txt
-@@ -170,3 +170,49 @@ and the run ppstest as follow:
+diff -puN drivers/rapidio/rio-scan.c~rapidio-integrate-rio_switch-into-rio_dev drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-integrate-rio_switch-into-rio_dev
++++ a/drivers/rapidio/rio-scan.c
+@@ -378,12 +378,30 @@ static struct rio_dev __devinit *rio_set
+ 	struct rio_dev *rdev;
+ 	struct rio_switch *rswitch = NULL;
+ 	int result, rdid;
++	size_t size;
++	u32 swpinfo = 0;
  
- Please, note that to compile userland programs you need the file timepps.h
- (see Documentation/pps/).
+-	rdev = kzalloc(sizeof(struct rio_dev), GFP_KERNEL);
++	size = sizeof(struct rio_dev);
++	if (rio_mport_read_config_32(port, destid, hopcount,
++				     RIO_PEF_CAR, &result))
++		return NULL;
 +
++	if (result & (RIO_PEF_SWITCH | RIO_PEF_MULTIPORT)) {
++		rio_mport_read_config_32(port, destid, hopcount,
++					 RIO_SWP_INFO_CAR, &swpinfo);
++		if (result & RIO_PEF_SWITCH) {
++			size += (RIO_GET_TOTAL_PORTS(swpinfo) *
++				sizeof(rswitch->nextdev[0])) + sizeof(*rswitch);
++		}
++	}
 +
-+Generators
-+----------
-+
-+Sometimes one needs to be able not only to catch PPS signals but to produce
-+them also. For example, running a distributed simulation, which requires
-+computers' clock to be synchronized very tightly. One way to do this is to
-+invent some complicated hardware solutions but it may be neither necessary
-+nor affordable. The cheap way is to load a PPS generator on one of the
-+computers (master) and PPS clients on others (slaves), and use very simple
-+cables to deliver signals using parallel ports, for example.
-+
-+Parallel port cable pinout:
-+pin	name	master      slave
-+1	STROBE	  *------     *
-+2	D0	  *     |     *
-+3	D1	  *     |     *
-+4	D2	  *     |     *
-+5	D3	  *     |     *
-+6	D4	  *     |     *
-+7	D5	  *     |     *
-+8	D6	  *     |     *
-+9	D7	  *     |     *
-+10	ACK	  *     ------*
-+11	BUSY	  *           *
-+12	PE	  *           *
-+13	SEL	  *           *
-+14	AUTOFD	  *           *
-+15	ERROR	  *           *
-+16	INIT	  *           *
-+17	SELIN	  *           *
-+18-25	GND	  *-----------*
-+
-+Please note that parallel port interrupt occurs only on high->low transition,
-+so it is used for PPS assert edge. PPS clear edge can be determined only
-+using polling in the interrupt handler which actually can be done way more
-+precisely because interrupt handling delays can be quite big and random. So
-+current parport PPS generator implementation (pps_gen_parport module) is
-+geared towards using the clear edge for time synchronization.
-+
-+Clear edge polling is done with disabled interrupts so it's better to select
-+delay between assert and clear edge as small as possible to reduce system
-+latencies. But if it is too small slave won't be able to capture clear edge
-+transition. The default of 30us should be good enough in most situations.
-+The delay can be selected using 'delay' pps_gen_parport module parameter.
-diff -puN drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-add-parallel-port-pps-signal-generator
-+++ a/drivers/pps/Kconfig
-@@ -41,4 +41,6 @@ config NTP_PPS
++	rdev = kzalloc(size, GFP_KERNEL);
+ 	if (!rdev)
+ 		return NULL;
  
- source drivers/pps/clients/Kconfig
+ 	rdev->net = net;
++	rdev->pef = result;
++	rdev->swpinfo = swpinfo;
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_DEV_ID_CAR,
+ 				 &result);
+ 	rdev->did = result >> 16;
+@@ -397,8 +415,6 @@ static struct rio_dev __devinit *rio_set
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_ASM_INFO_CAR,
+ 				 &result);
+ 	rdev->asm_rev = result >> 16;
+-	rio_mport_read_config_32(port, destid, hopcount, RIO_PEF_CAR,
+-				 &rdev->pef);
+ 	if (rdev->pef & RIO_PEF_EXT_FEATURES) {
+ 		rdev->efptr = result & 0xffff;
+ 		rdev->phys_efptr = rio_mport_get_physefb(port, 0, destid,
+@@ -408,11 +424,6 @@ static struct rio_dev __devinit *rio_set
+ 						hopcount, RIO_EFB_ERR_MGMNT);
+ 	}
  
-+source drivers/pps/generators/Kconfig
-+
- endmenu
-diff -puN drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator drivers/pps/Makefile
---- a/drivers/pps/Makefile~pps-add-parallel-port-pps-signal-generator
-+++ a/drivers/pps/Makefile
-@@ -5,6 +5,6 @@
- pps_core-y			:= pps.o kapi.o sysfs.o
- pps_core-$(CONFIG_NTP_PPS)	+= kc.o
- obj-$(CONFIG_PPS)		:= pps_core.o
--obj-y				+= clients/
-+obj-y				+= clients/ generators/
+-	if (rdev->pef & (RIO_PEF_SWITCH | RIO_PEF_MULTIPORT)) {
+-		rio_mport_read_config_32(port, destid, hopcount,
+-					 RIO_SWP_INFO_CAR, &rdev->swpinfo);
+-	}
+-
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_SRC_OPS_CAR,
+ 				 &rdev->src_ops);
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_DST_OPS_CAR,
+@@ -449,12 +460,7 @@ static struct rio_dev __devinit *rio_set
  
- ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
-diff -puN /dev/null drivers/pps/generators/Kconfig
---- /dev/null
-+++ a/drivers/pps/generators/Kconfig
-@@ -0,0 +1,17 @@
-+#
-+# PPS generators configuration
-+#
+ 	/* If a PE has both switch and other functions, show it as a switch */
+ 	if (rio_is_switch(rdev)) {
+-		rswitch = kzalloc(sizeof(*rswitch) +
+-				  RIO_GET_TOTAL_PORTS(rdev->swpinfo) *
+-				  sizeof(rswitch->nextdev[0]),
+-				  GFP_KERNEL);
+-		if (!rswitch)
+-			goto cleanup;
++		rswitch = rdev->rswitch;
+ 		rswitch->switchid = next_switchid;
+ 		rswitch->port_ok = 0;
+ 		rswitch->route_table = kzalloc(sizeof(u8)*
+@@ -466,15 +472,13 @@ static struct rio_dev __devinit *rio_set
+ 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES(port->sys_size);
+ 				rdid++)
+ 			rswitch->route_table[rdid] = RIO_INVALID_ROUTE;
+-		rdev->rswitch = rswitch;
+-		rswitch->rdev = rdev;
+ 		dev_set_name(&rdev->dev, "%02x:s:%04x", rdev->net->id,
+-			     rdev->rswitch->switchid);
++			     rswitch->switchid);
+ 		rio_switch_init(rdev, do_enum);
+ 
+-		if (do_enum && rdev->rswitch->clr_table)
+-			rdev->rswitch->clr_table(port, destid, hopcount,
+-						 RIO_GLOBAL_TABLE);
++		if (do_enum && rswitch->clr_table)
++			rswitch->clr_table(port, destid, hopcount,
++					   RIO_GLOBAL_TABLE);
+ 
+ 		list_add_tail(&rswitch->node, &rio_switches);
+ 
+@@ -510,10 +514,9 @@ static struct rio_dev __devinit *rio_set
+ 	return rdev;
+ 
+ cleanup:
+-	if (rswitch) {
++	if (rswitch->route_table)
+ 		kfree(rswitch->route_table);
+-		kfree(rswitch);
+-	}
 +
-+if PPS
+ 	kfree(rdev);
+ 	return NULL;
+ }
+@@ -1072,7 +1075,7 @@ static struct rio_net __devinit *rio_all
+  */
+ static void rio_update_route_tables(struct rio_mport *port)
+ {
+-	struct rio_dev *rdev;
++	struct rio_dev *rdev, *swrdev;
+ 	struct rio_switch *rswitch;
+ 	u8 sport;
+ 	u16 destid;
+@@ -1087,14 +1090,16 @@ static void rio_update_route_tables(stru
+ 				continue;
+ 
+ 			if (RIO_INVALID_ROUTE == rswitch->route_table[destid]) {
++				swrdev = sw_to_rio_dev(rswitch);
 +
-+comment "PPS generators support"
-+
-+config PPS_GENERATOR_PARPORT
-+	tristate "Parallel port PPS signal generator"
-+	depends on PARPORT != n && GENERIC_TIME
-+	help
-+	  If you say yes here you get support for a PPS signal generator which
-+	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
-+	  parport abstraction layer and hrtimers to precisely control the signal.
-+
-+endif
-diff -puN /dev/null drivers/pps/generators/Makefile
---- /dev/null
-+++ a/drivers/pps/generators/Makefile
-@@ -0,0 +1,9 @@
-+#
-+# Makefile for PPS generators.
-+#
-+
-+obj-$(CONFIG_PPS_GENERATOR_PARPORT) += pps_gen_parport.o
-+
-+ifeq ($(CONFIG_PPS_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-diff -puN /dev/null drivers/pps/generators/pps_gen_parport.c
---- /dev/null
-+++ a/drivers/pps/generators/pps_gen_parport.c
-@@ -0,0 +1,275 @@
-+/*
-+ * pps_gen_parport.c -- kernel parallel port PPS signal generator
-+ *
-+ *
-+ * Copyright (C) 2009   Alexander Gordeev <lasaine@lvk.cs.msu.su>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ 				/* Skip if destid ends in empty switch*/
+-				if (rswitch->rdev->destid == destid)
++				if (swrdev->destid == destid)
+ 					continue;
+ 
+-				sport = RIO_GET_PORT_NUM(rswitch->rdev->swpinfo);
++				sport = RIO_GET_PORT_NUM(swrdev->swpinfo);
+ 
+ 				if (rswitch->add_entry)	{
+-					rio_route_add_entry(rswitch->rdev,
++					rio_route_add_entry(swrdev,
+ 						RIO_GLOBAL_TABLE, destid,
+ 						sport, 0);
+ 					rswitch->route_table[destid] = sport;
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-integrate-rio_switch-into-rio_dev drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-integrate-rio_switch-into-rio_dev
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -217,7 +217,7 @@ int rio_create_sysfs_dev_files(struct ri
+ 
+ 	err = device_create_bin_file(&rdev->dev, &rio_config_attr);
+ 
+-	if (!err && rdev->rswitch) {
++	if (!err && (rdev->pef & RIO_PEF_SWITCH)) {
+ 		err = device_create_file(&rdev->dev, &dev_attr_routes);
+ 		if (!err && rdev->rswitch->sw_sysfs)
+ 			err = rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_CREATE);
+@@ -239,7 +239,7 @@ int rio_create_sysfs_dev_files(struct ri
+ void rio_remove_sysfs_dev_files(struct rio_dev *rdev)
+ {
+ 	device_remove_bin_file(&rdev->dev, &rio_config_attr);
+-	if (rdev->rswitch) {
++	if (rdev->pef & RIO_PEF_SWITCH) {
+ 		device_remove_file(&rdev->dev, &dev_attr_routes);
+ 		if (rdev->rswitch->sw_sysfs)
+ 			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
+diff -puN include/linux/rio.h~rapidio-integrate-rio_switch-into-rio_dev include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-integrate-rio_switch-into-rio_dev
++++ a/include/linux/rio.h
+@@ -71,9 +71,47 @@ extern struct device rio_bus;
+ extern struct list_head rio_devices;	/* list of all devices */
+ 
+ struct rio_mport;
++struct rio_dev;
+ union rio_pw_msg;
+ 
+ /**
++ * struct rio_switch - RIO switch info
++ * @node: Node in global list of switches
++ * @switchid: Switch ID that is unique across a network
++ * @route_table: Copy of switch routing table
++ * @port_ok: Status of each port (one bit per port) - OK=1 or UNINIT=0
++ * @add_entry: Callback for switch-specific route add function
++ * @get_entry: Callback for switch-specific route get function
++ * @clr_table: Callback for switch-specific clear route table function
++ * @set_domain: Callback for switch-specific domain setting function
++ * @get_domain: Callback for switch-specific domain get function
++ * @em_init: Callback for switch-specific error management init function
++ * @em_handle: Callback for switch-specific error management handler function
++ * @sw_sysfs: Callback that initializes switch-specific sysfs attributes
++ * @nextdev: Array of per-port pointers to the next attached device
 + */
-+
-+
-+/*
-+ * TODO:
-+ * fix issues when realtime clock is adjusted in a leap
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/time.h>
-+#include <linux/hrtimer.h>
-+#include <linux/parport.h>
-+
-+#define DRVDESC "parallel port PPS signal generator"
-+
-+#define SIGNAL		0
-+#define NO_SIGNAL	PARPORT_CONTROL_STROBE
-+
-+/* module parameters */
-+
-+#define SEND_DELAY_MAX		100000
-+
-+static unsigned int send_delay = 30000;
-+MODULE_PARM_DESC(delay,
-+	"Delay between setting and dropping the signal (ns)");
-+module_param_named(delay, send_delay, uint, 0);
-+
-+
-+#define SAFETY_INTERVAL	3000	/* set the hrtimer earlier for safety (ns) */
-+
-+/* internal per port structure */
-+struct pps_generator_pp {
-+	struct pardevice *pardev;	/* parport device */
-+	struct hrtimer timer;
-+	long port_write_time;		/* calibrated port write time (ns) */
++struct rio_switch {
++	struct list_head node;
++	u16 switchid;
++	u8 *route_table;
++	u32 port_ok;
++	int (*add_entry) (struct rio_mport *mport, u16 destid, u8 hopcount,
++			  u16 table, u16 route_destid, u8 route_port);
++	int (*get_entry) (struct rio_mport *mport, u16 destid, u8 hopcount,
++			  u16 table, u16 route_destid, u8 *route_port);
++	int (*clr_table) (struct rio_mport *mport, u16 destid, u8 hopcount,
++			  u16 table);
++	int (*set_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
++			   u8 sw_domain);
++	int (*get_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
++			   u8 *sw_domain);
++	int (*em_init) (struct rio_dev *dev);
++	int (*em_handle) (struct rio_dev *dev, u8 swport);
++	int (*sw_sysfs) (struct rio_dev *dev, int create);
++	struct rio_dev *nextdev[0];
 +};
 +
-+static struct pps_generator_pp device = {
-+	.pardev = NULL,
-+};
-+
-+static int attached;
-+
-+/* calibrated time between a hrtimer event and the reaction */
-+static long hrtimer_error = SAFETY_INTERVAL;
-+
-+/* the kernel hrtimer event */
-+static enum hrtimer_restart hrtimer_event(struct hrtimer *timer)
-+{
-+	struct timespec expire_time, ts1, ts2, ts3, dts;
-+	struct pps_generator_pp *dev;
-+	struct parport *port;
-+	long lim, delta;
-+	unsigned long flags;
-+
-+	/* NB: approx time with blocked interrupts =
-+	   send_delay + 3 * SAFETY_INTERVAL */
-+	local_irq_save(flags);
-+
-+	/* first of all we get the time stamp... */
-+	getnstimeofday(&ts1);
-+	expire_time = ktime_to_timespec(hrtimer_get_softexpires(timer));
-+	dev = container_of(timer, struct pps_generator_pp, timer);
-+	lim = NSEC_PER_SEC - send_delay - dev->port_write_time;
-+
-+	/* check if we are late */
-+	if (expire_time.tv_sec != ts1.tv_sec || ts1.tv_nsec > lim) {
-+		local_irq_restore(flags);
-+		pr_err("we are late this time %ld.%09ld\n",
-+				ts1.tv_sec, ts1.tv_nsec);
-+		goto done;
-+	}
-+
-+	/* busy loop until the time is right for an assert edge */
-+	do {
-+		getnstimeofday(&ts2);
-+	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
-+
-+	/* set the signal */
-+	port = dev->pardev->port;
-+	port->ops->write_control(port, SIGNAL);
-+
-+	/* busy loop until the time is right for a clear edge */
-+	lim = NSEC_PER_SEC - dev->port_write_time;
-+	do {
-+		getnstimeofday(&ts2);
-+	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
-+
-+	/* unset the signal */
-+	port->ops->write_control(port, NO_SIGNAL);
-+
-+	getnstimeofday(&ts3);
-+
-+	local_irq_restore(flags);
-+
-+	/* update calibrated port write time */
-+	dts = timespec_sub(ts3, ts2);
-+	dev->port_write_time =
-+		(dev->port_write_time + timespec_to_ns(&dts)) >> 1;
-+
-+done:
-+	/* update calibrated hrtimer error */
-+	dts = timespec_sub(ts1, expire_time);
-+	delta = timespec_to_ns(&dts);
-+	/* If the new error value is bigger then the old, use the new
-+	 * value, if not then slowly move towards the new value. This
-+	 * way it should be safe in bad conditions and efficient in
-+	 * good conditions.
-+	 */
-+	if (delta >= hrtimer_error)
-+		hrtimer_error = delta;
-+	else
-+		hrtimer_error = (3 * hrtimer_error + delta) >> 2;
-+
-+	/* update the hrtimer expire time */
-+	hrtimer_set_expires(timer,
-+			ktime_set(expire_time.tv_sec + 1,
-+				NSEC_PER_SEC - (send_delay +
-+				dev->port_write_time + SAFETY_INTERVAL +
-+				2 * hrtimer_error)));
-+
-+	return HRTIMER_RESTART;
-+}
-+
-+/* calibrate port write time */
-+#define PORT_NTESTS_SHIFT	5
-+static void calibrate_port(struct pps_generator_pp *dev)
-+{
-+	struct parport *port = dev->pardev->port;
-+	int i;
-+	long acc = 0;
-+
-+	for (i = 0; i < (1 << PORT_NTESTS_SHIFT); i++) {
-+		struct timespec a, b;
-+		unsigned long irq_flags;
-+
-+		local_irq_save(irq_flags);
-+		getnstimeofday(&a);
-+		port->ops->write_control(port, NO_SIGNAL);
-+		getnstimeofday(&b);
-+		local_irq_restore(irq_flags);
-+
-+		b = timespec_sub(b, a);
-+		acc += timespec_to_ns(&b);
-+	}
-+
-+	dev->port_write_time = acc >> PORT_NTESTS_SHIFT;
-+	pr_info("port write takes %ldns\n", dev->port_write_time);
-+}
-+
-+static inline ktime_t next_intr_time(struct pps_generator_pp *dev)
-+{
-+	struct timespec ts;
-+
-+	getnstimeofday(&ts);
-+
-+	return ktime_set(ts.tv_sec +
-+			((ts.tv_nsec > 990 * NSEC_PER_MSEC) ? 1 : 0),
-+			NSEC_PER_SEC - (send_delay +
-+			dev->port_write_time + 3 * SAFETY_INTERVAL));
-+}
-+
-+static void parport_attach(struct parport *port)
-+{
-+	if (attached) {
-+		/* we already have a port */
-+		return;
-+	}
-+
-+	device.pardev = parport_register_device(port, KBUILD_MODNAME,
-+			NULL, NULL, NULL, 0, &device);
-+	if (!device.pardev) {
-+		pr_err("couldn't register with %s\n", port->name);
-+		return;
-+	}
-+
-+	if (parport_claim_or_block(device.pardev) < 0) {
-+		pr_err("couldn't claim %s\n", port->name);
-+		goto err_unregister_dev;
-+	}
-+
-+	pr_info("attached to %s\n", port->name);
-+	attached = 1;
-+
-+	calibrate_port(&device);
-+
-+	hrtimer_init(&device.timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
-+	device.timer.function = hrtimer_event;
-+#ifdef CONFIG_PREEMPT_RT
-+	/* hrtimer interrupt will run in the interrupt context with this */
-+	device.timer.irqsafe = 1;
-+#endif
-+
-+	hrtimer_start(&device.timer, next_intr_time(&device), HRTIMER_MODE_ABS);
-+
-+	return;
-+
-+err_unregister_dev:
-+	parport_unregister_device(device.pardev);
-+}
-+
-+static void parport_detach(struct parport *port)
-+{
-+	if (port->cad != device.pardev)
-+		return;	/* not our port */
-+
-+	hrtimer_cancel(&device.timer);
-+	parport_release(device.pardev);
-+	parport_unregister_device(device.pardev);
-+}
-+
-+static struct parport_driver pps_gen_parport_driver = {
-+	.name = KBUILD_MODNAME,
-+	.attach = parport_attach,
-+	.detach = parport_detach,
-+};
-+
-+/* module staff */
-+
-+static int __init pps_gen_parport_init(void)
-+{
-+	int ret;
-+
-+	pr_info(DRVDESC "\n");
-+
-+	if (send_delay > SEND_DELAY_MAX) {
-+		pr_err("delay value should be not greater"
-+				" then %d\n", SEND_DELAY_MAX);
-+		return -EINVAL;
-+	}
-+
-+	ret = parport_register_driver(&pps_gen_parport_driver);
-+	if (ret) {
-+		pr_err("unable to register with parport\n");
-+		return ret;
-+	}
-+
-+	return  0;
-+}
-+
-+static void __exit pps_gen_parport_exit(void)
-+{
-+	parport_unregister_driver(&pps_gen_parport_driver);
-+	pr_info("hrtimer avg error is %ldns\n", hrtimer_error);
-+}
-+
-+module_init(pps_gen_parport_init);
-+module_exit(pps_gen_parport_exit);
-+
-+MODULE_AUTHOR("Alexander Gordeev <lasaine@lvk.cs.msu.su>");
-+MODULE_DESCRIPTION(DRVDESC);
-+MODULE_LICENSE("GPL");
-_
-
-Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
-
-origin.patch
-
++/**
+  * struct rio_dev - RIO device info
+  * @global_list: Node in list of all RIO devices
+  * @net_list: Node in list of RIO devices in a network
+@@ -93,7 +131,6 @@ union rio_pw_msg;
+  * @phys_efptr: RIO device extended features pointer
+  * @em_efptr: RIO Error Management features pointer
+  * @dma_mask: Mask of bits of RIO address this device implements
+- * @rswitch: Pointer to &struct rio_switch if valid for this device
+  * @driver: Driver claiming this device
+  * @dev: Device model device
+  * @riores: RIO resources this device owns
+@@ -101,6 +138,7 @@ union rio_pw_msg;
+  * @destid: Network destination ID (or associated destid for switch)
+  * @hopcount: Hopcount to this device
+  * @prev: Previous RIO device connected to the current one
++ * @rswitch: struct rio_switch (if valid for this device)
+  */
+ struct rio_dev {
+ 	struct list_head global_list;	/* node in list of all RIO devices */
+@@ -121,7 +159,6 @@ struct rio_dev {
+ 	u32 phys_efptr;
+ 	u32 em_efptr;
+ 	u64 dma_mask;
+-	struct rio_switch *rswitch;	/* RIO switch info */
+ 	struct rio_driver *driver;	/* RIO driver claiming this device */
+ 	struct device dev;	/* LDM device structure */
+ 	struct resource riores[RIO_MAX_DEV_RESOURCES];
+@@ -129,11 +166,13 @@ struct rio_dev {
+ 	u16 destid;
+ 	u8 hopcount;
+ 	struct rio_dev *prev;
++	struct rio_switch rswitch[0];	/* RIO switch info */
+ };
+ 
+ #define rio_dev_g(n) list_entry(n, struct rio_dev, global_list)
+ #define rio_dev_f(n) list_entry(n, struct rio_dev, net_list)
+ #define	to_rio_dev(n) container_of(n, struct rio_dev, dev)
++#define sw_to_rio_dev(n) container_of(n, struct rio_dev, rswitch[0])
+ 
+ /**
+  * struct rio_msg - RIO message event
+@@ -226,45 +265,6 @@ struct rio_net {
+ #define RIO_SW_SYSFS_CREATE	1	/* Create switch attributes */
+ #define RIO_SW_SYSFS_REMOVE	0	/* Remove switch attributes */
+ 
+-/**
+- * struct rio_switch - RIO switch info
+- * @node: Node in global list of switches
+- * @rdev: Associated RIO device structure
+- * @switchid: Switch ID that is unique across a network
+- * @route_table: Copy of switch routing table
+- * @port_ok: Status of each port (one bit per port) - OK=1 or UNINIT=0
+- * @add_entry: Callback for switch-specific route add function
+- * @get_entry: Callback for switch-specific route get function
+- * @clr_table: Callback for switch-specific clear route table function
+- * @set_domain: Callback for switch-specific domain setting function
+- * @get_domain: Callback for switch-specific domain get function
+- * @em_init: Callback for switch-specific error management initialization function
+- * @em_handle: Callback for switch-specific error management handler function
+- * @sw_sysfs: Callback that initializes switch-specific sysfs attributes
+- * @nextdev: Array of per-port pointers to the next attached device
+- */
+-struct rio_switch {
+-	struct list_head node;
+-	struct rio_dev *rdev;
+-	u16 switchid;
+-	u8 *route_table;
+-	u32 port_ok;
+-	int (*add_entry) (struct rio_mport * mport, u16 destid, u8 hopcount,
+-			  u16 table, u16 route_destid, u8 route_port);
+-	int (*get_entry) (struct rio_mport * mport, u16 destid, u8 hopcount,
+-			  u16 table, u16 route_destid, u8 * route_port);
+-	int (*clr_table) (struct rio_mport *mport, u16 destid, u8 hopcount,
+-			  u16 table);
+-	int (*set_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
+-			   u8 sw_domain);
+-	int (*get_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
+-			   u8 *sw_domain);
+-	int (*em_init) (struct rio_dev *dev);
+-	int (*em_handle) (struct rio_dev *dev, u8 swport);
+-	int (*sw_sysfs) (struct rio_dev *dev, int create);
+-	struct rio_dev *nextdev[0];
+-};
