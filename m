@@ -1,63 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatchpl-add-prefer-__packed-check.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:04 -0800
-Message-ID: <201101132009.p0DK9jHO029978@imap1.linux-foundation.org>
+Subject: [merged] binfmt_elf-cleanups.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:13 -0800
+Message-ID: <201101132009.p0DK9sJ7029989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933352Ab1AMUKY (ORCPT
+	by vger.kernel.org with ESMTP id S933352Ab1AMUK2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:10:24 -0500
+	Thu, 13 Jan 2011 15:10:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch.pl: add "prefer __packed" check
+     binfmt_elf: cleanups
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-add-prefer-__packed-check.patch
+     binfmt_elf-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: add "prefer __packed" check
-From: Joe Perches <joe@perches.com>
+Subject: binfmt_elf: cleanups
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-There's a __packed #define for __attribute__((packed)).  Add a checkpatch
-to tell people about it.
+This cleans up a few bits in binfmt_elf.c and binfmts.h:
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+- the hasvdso field in struct linux_binfmt is unused, so remove it and
+  the only initialization of it
+
+- the elf_map CPP symbol is not defined anywhere in the kernel, so
+  remove an unnecessary #ifndef elf_map
+
+- reduce excessive indentation in elf_format's initializer
+
+- add missing spaces, remove extraneous spaces
+
+No functional changes, but tested on x86 (32 and 64 bit), powerpc (32 and
+64 bit), sparc64, arm, and alpha.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/binfmt_elf.c         |   23 +++++++++--------------
+ include/linux/binfmts.h |    5 ++---
+ 2 files changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-prefer-__packed-check scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-prefer-__packed-check
-+++ a/scripts/checkpatch.pl
-@@ -2743,6 +2743,11 @@ sub process {
- 			WARN("plain inline is preferred over $1\n" . $herecurr);
- 		}
+diff -puN fs/binfmt_elf.c~binfmt_elf-cleanups fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-cleanups
++++ a/fs/binfmt_elf.c
+@@ -66,12 +66,11 @@ static int elf_core_dump(struct coredump
+ #define ELF_PAGEALIGN(_v) (((_v) + ELF_MIN_ALIGN - 1) & ~(ELF_MIN_ALIGN - 1))
  
-+# Check for __attribute__ packed, prefer __packed
-+		if ($line =~ /\b__attribute__\s*\(\s*\(.*\bpacked\b/) {
-+			WARN("__packed is preferred over __attribute__((packed))\n" . $herecurr);
-+		}
-+
- # check for sizeof(&)
- 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
- 			WARN("sizeof(& should be avoided\n" . $herecurr);
+ static struct linux_binfmt elf_format = {
+-		.module		= THIS_MODULE,
+-		.load_binary	= load_elf_binary,
+-		.load_shlib	= load_elf_library,
+-		.core_dump	= elf_core_dump,
+-		.min_coredump	= ELF_EXEC_PAGESIZE,
+-		.hasvdso	= 1
++	.module		= THIS_MODULE,
++	.load_binary	= load_elf_binary,
++	.load_shlib	= load_elf_library,
++	.core_dump	= elf_core_dump,
++	.min_coredump	= ELF_EXEC_PAGESIZE,
+ };
+ 
+ #define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
+@@ -316,8 +315,6 @@ create_elf_tables(struct linux_binprm *b
+ 	return 0;
+ }
+ 
+-#ifndef elf_map
+-
+ static unsigned long elf_map(struct file *filep, unsigned long addr,
+ 		struct elf_phdr *eppnt, int prot, int type,
+ 		unsigned long total_size)
+@@ -354,8 +351,6 @@ static unsigned long elf_map(struct file
+ 	return(map_addr);
+ }
+ 
+-#endif /* !elf_map */
+-
+ static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
+ {
+ 	int i, first_idx = -1, last_idx = -1;
+@@ -421,7 +416,7 @@ static unsigned long load_elf_interp(str
+ 		goto out;
+ 
+ 	retval = kernel_read(interpreter, interp_elf_ex->e_phoff,
+-			     (char *)elf_phdata,size);
++			     (char *)elf_phdata, size);
+ 	error = -EIO;
+ 	if (retval != size) {
+ 		if (retval < 0)
+@@ -601,7 +596,7 @@ static int load_elf_binary(struct linux_
+ 		goto out;
+ 	if (!elf_check_arch(&loc->elf_ex))
+ 		goto out;
+-	if (!bprm->file->f_op||!bprm->file->f_op->mmap)
++	if (!bprm->file->f_op || !bprm->file->f_op->mmap)
+ 		goto out;
+ 
+ 	/* Now read in all of the header information */
+@@ -761,8 +756,8 @@ static int load_elf_binary(struct linux_
+ 			/* There was a PT_LOAD segment with p_memsz > p_filesz
+ 			   before this one. Map anonymous pages, if needed,
+ 			   and clear the area.  */
+-			retval = set_brk (elf_bss + load_bias,
+-					  elf_brk + load_bias);
++			retval = set_brk(elf_bss + load_bias,
++					 elf_brk + load_bias);
+ 			if (retval) {
+ 				send_sig(SIGKILL, current, 0);
+ 				goto out_free_dentry;
+diff -puN include/linux/binfmts.h~binfmt_elf-cleanups include/linux/binfmts.h
+--- a/include/linux/binfmts.h~binfmt_elf-cleanups
++++ a/include/linux/binfmts.h
+@@ -25,7 +25,7 @@ struct pt_regs;
+ /*
+  * This structure is used to hold the arguments that are used when loading binaries.
+  */
+-struct linux_binprm{
++struct linux_binprm {
+ 	char buf[BINPRM_BUF_SIZE];
+ #ifdef CONFIG_MMU
+ 	struct vm_area_struct *vma;
+@@ -93,7 +93,6 @@ struct linux_binfmt {
+ 	int (*load_shlib)(struct file *);
+ 	int (*core_dump)(struct coredump_params *cprm);
+ 	unsigned long min_coredump;	/* minimal dump size */
+-	int hasvdso;
+ };
+ 
+ extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
+@@ -113,7 +112,7 @@ extern void unregister_binfmt(struct lin
+ 
+ extern int prepare_binprm(struct linux_binprm *);
+ extern int __must_check remove_arg_zero(struct linux_binprm *);
+-extern int search_binary_handler(struct linux_binprm *,struct pt_regs *);
++extern int search_binary_handler(struct linux_binprm *, struct pt_regs *);
+ extern int flush_old_exec(struct linux_binprm * bprm);
+ extern void setup_new_exec(struct linux_binprm * bprm);
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
 origin.patch
-linux-next.patch
-mm-convert-sprintf_symbol-to-%ps.patch
 
