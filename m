@@ -1,35 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] decompressors-check-input-size-in-decompress_unlzoc.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:10:32 -0800
-Message-ID: <201101132013.p0DKDDqF030370@imap1.linux-foundation.org>
+Subject: [merged] x86-support-xz-compressed-kernel.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:10:41 -0800
+Message-ID: <201101132013.p0DKDMxA030450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757412Ab1AMUOP (ORCPT
+	by vger.kernel.org with ESMTP id S1757412Ab1AMUOY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:14:15 -0500
+	Thu, 13 Jan 2011 15:14:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Decompressors: check input size in decompress_unlzo.c
+     x86: support XZ-compressed kernel
 has been removed from the -mm tree.  Its filename was
-     decompressors-check-input-size-in-decompress_unlzoc.patch
+     x86-support-xz-compressed-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Decompressors: check input size in decompress_unlzo.c
+Subject: x86: support XZ-compressed kernel
 From: Lasse Collin <lasse.collin@tukaani.org>
 
-The code assumes that the input is valid and not truncated.  Add checks to
-avoid reading past the end of the input buffer.  Change the type of "skip"
-from u8 to int to fix a possible integer overflow.
+This integrates the XZ decompression code to the x86 pre-boot code.
+
+mkpiggy.c is updated to reserve about 32 KiB more buffer safety margin for
+kernel decompression.  It is done unconditionally for all decompressors to
+keep the code simpler.
+
+The XZ decompressor needs around 30 KiB of heap, so the heap size is
+increased to 32 KiB on both x86-32 and x86-64.
+
+Documentation/x86/boot.txt is updated to list the XZ magic number.
+
+With the x86 BCJ filter in XZ, XZ-compressed x86 kernel tends to be a few
+percent smaller than the equivalent LZMA-compressed kernel.
 
 Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -39,130 +49,111 @@ Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlzo.c |   46 ++++++++++++++++++++++++++++++++++-----
- 1 file changed, 41 insertions(+), 5 deletions(-)
+ Documentation/x86/boot.txt         |    6 +++---
+ arch/x86/Kconfig                   |    1 +
+ arch/x86/boot/compressed/Makefile  |    5 ++++-
+ arch/x86/boot/compressed/misc.c    |    4 ++++
+ arch/x86/boot/compressed/mkpiggy.c |    2 +-
+ arch/x86/include/asm/boot.h        |    6 +-----
+ 6 files changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN lib/decompress_unlzo.c~decompressors-check-input-size-in-decompress_unlzoc lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~decompressors-check-input-size-in-decompress_unlzoc
-+++ a/lib/decompress_unlzo.c
-@@ -48,14 +48,25 @@ static const unsigned char lzop_magic[] 
+diff -puN Documentation/x86/boot.txt~x86-support-xz-compressed-kernel Documentation/x86/boot.txt
+--- a/Documentation/x86/boot.txt~x86-support-xz-compressed-kernel
++++ a/Documentation/x86/boot.txt
+@@ -622,9 +622,9 @@ Protocol:	2.08+
+   The payload may be compressed. The format of both the compressed and
+   uncompressed data should be determined using the standard magic
+   numbers.  The currently supported compression formats are gzip
+-  (magic numbers 1F 8B or 1F 9E), bzip2 (magic number 42 5A) and LZMA
+-  (magic number 5D 00).  The uncompressed payload is currently always ELF
+-  (magic number 7F 45 4C 46).
++  (magic numbers 1F 8B or 1F 9E), bzip2 (magic number 42 5A), LZMA
++  (magic number 5D 00), and XZ (magic number FD 37).  The uncompressed
++  payload is currently always ELF (magic number 7F 45 4C 46).
+   
+ Field name:	payload_length
+ Type:		read
+diff -puN arch/x86/Kconfig~x86-support-xz-compressed-kernel arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-support-xz-compressed-kernel
++++ a/arch/x86/Kconfig
+@@ -51,6 +51,7 @@ config X86
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
+ 	select HAVE_KERNEL_LZMA
++	select HAVE_KERNEL_XZ
+ 	select HAVE_KERNEL_LZO
+ 	select HAVE_HW_BREAKPOINT
+ 	select HAVE_MIXED_BREAKPOINTS_REGS
+diff -puN arch/x86/boot/compressed/Makefile~x86-support-xz-compressed-kernel arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~x86-support-xz-compressed-kernel
++++ a/arch/x86/boot/compressed/Makefile
+@@ -4,7 +4,7 @@
+ # create a compressed vmlinux image from the original vmlinux
+ #
  
- #define LZO_BLOCK_SIZE        (256*1024l)
- #define HEADER_HAS_FILTER      0x00000800L
-+#define HEADER_SIZE_MIN       (9 + 7     + 4 + 8     + 1       + 4)
-+#define HEADER_SIZE_MAX       (9 + 7 + 1 + 8 + 8 + 4 + 1 + 255 + 4)
+-targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.lzo head_$(BITS).o misc.o string.o cmdline.o early_serial_console.o piggy.o
++targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.xz vmlinux.bin.lzo head_$(BITS).o misc.o string.o cmdline.o early_serial_console.o piggy.o
  
--STATIC inline int INIT parse_header(u8 *input, u8 *skip)
-+STATIC inline int INIT parse_header(u8 *input, int *skip, int in_len)
- {
- 	int l;
- 	u8 *parse = input;
-+	u8 *end = input + in_len;
- 	u8 level = 0;
- 	u16 version;
+ KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O2
+ KBUILD_CFLAGS += -fno-strict-aliasing -fPIC
+@@ -49,12 +49,15 @@ $(obj)/vmlinux.bin.bz2: $(vmlinux.bin.al
+ 	$(call if_changed,bzip2)
+ $(obj)/vmlinux.bin.lzma: $(vmlinux.bin.all-y) FORCE
+ 	$(call if_changed,lzma)
++$(obj)/vmlinux.bin.xz: $(vmlinux.bin.all-y) FORCE
++	$(call if_changed,xzkern)
+ $(obj)/vmlinux.bin.lzo: $(vmlinux.bin.all-y) FORCE
+ 	$(call if_changed,lzo)
  
-+	/*
-+	 * Check that there's enough input to possibly have a valid header.
-+	 * Then it is possible to parse several fields until the minimum
-+	 * size may have been used.
-+	 */
-+	if (in_len < HEADER_SIZE_MIN)
-+		return 0;
+ suffix-$(CONFIG_KERNEL_GZIP)	:= gz
+ suffix-$(CONFIG_KERNEL_BZIP2)	:= bz2
+ suffix-$(CONFIG_KERNEL_LZMA)	:= lzma
++suffix-$(CONFIG_KERNEL_XZ)	:= xz
+ suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
+ 
+ quiet_cmd_mkpiggy = MKPIGGY $@
+diff -puN arch/x86/boot/compressed/misc.c~x86-support-xz-compressed-kernel arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~x86-support-xz-compressed-kernel
++++ a/arch/x86/boot/compressed/misc.c
+@@ -139,6 +139,10 @@ static int lines, cols;
+ #include "../../../../lib/decompress_unlzma.c"
+ #endif
+ 
++#ifdef CONFIG_KERNEL_XZ
++#include "../../../../lib/decompress_unxz.c"
++#endif
 +
- 	/* read magic: 9 first bits */
- 	for (l = 0; l < 9; l++) {
- 		if (*parse++ != lzop_magic[l])
-@@ -73,6 +84,15 @@ STATIC inline int INIT parse_header(u8 *
- 	else
- 		parse += 4; /* flags */
+ #ifdef CONFIG_KERNEL_LZO
+ #include "../../../../lib/decompress_unlzo.c"
+ #endif
+diff -puN arch/x86/boot/compressed/mkpiggy.c~x86-support-xz-compressed-kernel arch/x86/boot/compressed/mkpiggy.c
+--- a/arch/x86/boot/compressed/mkpiggy.c~x86-support-xz-compressed-kernel
++++ a/arch/x86/boot/compressed/mkpiggy.c
+@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
  
-+	/*
-+	 * At least mode, mtime_low, filename length, and checksum must
-+	 * be left to be parsed. If also mtime_high is present, it's OK
-+	 * because the next input buffer check is after reading the
-+	 * filename length.
-+	 */
-+	if (end - parse < 8 + 1 + 4)
-+		return 0;
-+
- 	/* skip mode and mtime_low */
- 	parse += 8;
- 	if (version >= 0x0940)
-@@ -80,6 +100,8 @@ STATIC inline int INIT parse_header(u8 *
+ 	offs = (olen > ilen) ? olen - ilen : 0;
+ 	offs += olen >> 12;	/* Add 8 bytes for each 32K block */
+-	offs += 32*1024 + 18;	/* Add 32K + 18 bytes slack */
++	offs += 64*1024 + 128;	/* Add 64K + 128 bytes slack */
+ 	offs = (offs+4095) & ~4095; /* Round to a 4K boundary */
  
- 	l = *parse++;
- 	/* don't care about the file name, and skip checksum */
-+	if (end - parse < l + 4)
-+		return 0;
- 	parse += l + 4;
+ 	printf(".section \".rodata..compressed\",\"a\",@progbits\n");
+diff -puN arch/x86/include/asm/boot.h~x86-support-xz-compressed-kernel arch/x86/include/asm/boot.h
+--- a/arch/x86/include/asm/boot.h~x86-support-xz-compressed-kernel
++++ a/arch/x86/include/asm/boot.h
+@@ -32,11 +32,7 @@
+ #define BOOT_HEAP_SIZE             0x400000
+ #else /* !CONFIG_KERNEL_BZIP2 */
  
- 	*skip = parse - input;
-@@ -92,7 +114,8 @@ STATIC inline int INIT unlzo(u8 *input, 
- 				u8 *output, int *posp,
- 				void (*error) (char *x))
- {
--	u8 skip = 0, r = 0;
-+	u8 r = 0;
-+	int skip = 0;
- 	u32 src_len, dst_len;
- 	size_t tmp;
- 	u8 *in_buf, *in_buf_save, *out_buf;
-@@ -134,19 +157,25 @@ STATIC inline int INIT unlzo(u8 *input, 
- 	if (fill)
- 		fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
+-#ifdef CONFIG_X86_64
+-#define BOOT_HEAP_SIZE	0x7000
+-#else
+-#define BOOT_HEAP_SIZE	0x4000
+-#endif
++#define BOOT_HEAP_SIZE	0x8000
  
--	if (!parse_header(input, &skip)) {
-+	if (!parse_header(input, &skip, in_len)) {
- 		error("invalid header");
- 		goto exit_2;
- 	}
- 	in_buf += skip;
-+	in_len -= skip;
+ #endif /* !CONFIG_KERNEL_BZIP2 */
  
- 	if (posp)
- 		*posp = skip;
- 
- 	for (;;) {
- 		/* read uncompressed block size */
-+		if (in_len < 4) {
-+			error("file corrupted");
-+			goto exit_2;
-+		}
- 		dst_len = get_unaligned_be32(in_buf);
- 		in_buf += 4;
-+		in_len -= 4;
- 
- 		/* exit if last block */
- 		if (dst_len == 0) {
-@@ -161,10 +190,15 @@ STATIC inline int INIT unlzo(u8 *input, 
- 		}
- 
- 		/* read compressed block size, and skip block checksum info */
-+		if (in_len < 8) {
-+			error("file corrupted");
-+			goto exit_2;
-+		}
- 		src_len = get_unaligned_be32(in_buf);
- 		in_buf += 8;
-+		in_len -= 8;
- 
--		if (src_len <= 0 || src_len > dst_len) {
-+		if (src_len <= 0 || src_len > dst_len || src_len > in_len) {
- 			error("file corrupted");
- 			goto exit_2;
- 		}
-@@ -196,8 +230,10 @@ STATIC inline int INIT unlzo(u8 *input, 
- 		if (fill) {
- 			in_buf = in_buf_save;
- 			fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
--		} else
-+		} else {
- 			in_buf += src_len;
-+			in_len -= src_len;
-+		}
- 	}
- 
- 	ret = 0;
 _
 
 Patches currently in -mm which might be from lasse.collin@tukaani.org are
