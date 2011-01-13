@@ -1,166 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] m68knommu-introduce-little-endian-bitops.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 11:43:52 -0800
-Message-ID: <201101131946.p0DJkXaA028768@imap1.linux-foundation.org>
+Subject: [to-be-updated] ext3-use-little-endian-bitops.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 11:44:06 -0800
+Message-ID: <201101131946.p0DJkkvJ028788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756825Ab1AMTqw (ORCPT
+	by vger.kernel.org with ESMTP id S1756875Ab1AMTq5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 14:46:52 -0500
+	Thu, 13 Jan 2011 14:46:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, arnd@arndb.de, geert@linux-m68k.org, gerg@uclinux.org, schwab@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: introduce little-endian bitops
+     ext3: use little-endian bitops
 has been removed from the -mm tree.  Its filename was
-     m68knommu-introduce-little-endian-bitops.patch
+     ext3-use-little-endian-bitops.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: introduce little-endian bitops
+Subject: ext3: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Introduce little-endian bit operations by renaming native ext2 bit
-operations.  The ext2 bit operations are kept as wrapper macros using
-little-endian bit operations to maintain bisectability until the
-conversions are finished.
+As a preparation for removing ext2 non-atomic bit operations from
+asm/bitops.h.  This converts ext2 non-atomic bit operations to
+little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops_no.h |   40 ++++++++++++++++++++++------
- arch/m68knommu/Kconfig            |    4 --
- 2 files changed, 32 insertions(+), 12 deletions(-)
+ include/linux/ext3_fs.h |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops arch/m68k/include/asm/bitops_no.h
---- a/arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops
-+++ a/arch/m68k/include/asm/bitops_no.h
-@@ -196,7 +196,15 @@ static __inline__ int __test_bit(int nr,
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
+diff -puN include/linux/ext3_fs.h~ext3-use-little-endian-bitops include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-use-little-endian-bitops
++++ a/include/linux/ext3_fs.h
+@@ -418,13 +418,18 @@ struct ext3_inode {
+ #define EXT2_MOUNT_DATA_FLAGS		EXT3_MOUNT_DATA_FLAGS
+ #endif
  
--static __inline__ int ext2_set_bit(int nr, volatile void * addr)
-+#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
-+
-+#define __set_le_bit(nr, addr) \
-+	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
-+
-+#define __clear_le_bit(nr, addr) \
-+	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
-+
-+static inline int __test_and_set_le_bit(int nr, volatile void *addr)
- {
- 	char retval;
+-#define ext3_set_bit			ext2_set_bit
++#define ext3_set_bit(nr, addr)	\
++	__test_and_set_le_bit((nr), (unsigned long *)(addr))
+ #define ext3_set_bit_atomic		ext2_set_bit_atomic
+-#define ext3_clear_bit			ext2_clear_bit
++#define ext3_clear_bit(nr, addr)	\
++	__test_and_clear_le_bit((nr), (unsigned long *)(addr))
+ #define ext3_clear_bit_atomic		ext2_clear_bit_atomic
+-#define ext3_test_bit			ext2_test_bit
+-#define ext3_find_first_zero_bit	ext2_find_first_zero_bit
+-#define ext3_find_next_zero_bit		ext2_find_next_zero_bit
++#define ext3_test_bit(nr, addr)	\
++	test_le_bit((nr), (unsigned long *)(addr))
++#define ext3_find_first_zero_bit(addr, size)	\
++	find_first_zero_le_bit((unsigned long *)(addr), (size))
++#define ext3_find_next_zero_bit(addr, size, off)	\
++	find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
  
-@@ -215,7 +223,7 @@ static __inline__ int ext2_set_bit(int n
- 	return retval;
- }
- 
--static __inline__ int ext2_clear_bit(int nr, volatile void * addr)
-+static inline int __test_and_clear_le_bit(int nr, volatile void *addr)
- {
- 	char retval;
- 
-@@ -238,7 +246,7 @@ static __inline__ int ext2_clear_bit(int
- 	({						\
- 		int ret;				\
- 		spin_lock(lock);			\
--		ret = ext2_set_bit((nr), (addr));	\
-+		ret = __test_and_set_le_bit((nr), (addr));	\
- 		spin_unlock(lock);			\
- 		ret;					\
- 	})
-@@ -247,12 +255,12 @@ static __inline__ int ext2_clear_bit(int
- 	({						\
- 		int ret;				\
- 		spin_lock(lock);			\
--		ret = ext2_clear_bit((nr), (addr));	\
-+		ret = __test_and_clear_le_bit((nr), (addr));	\
- 		spin_unlock(lock);			\
- 		ret;					\
- 	})
- 
--static __inline__ int ext2_test_bit(int nr, const volatile void * addr)
-+static inline int test_le_bit(int nr, const volatile void *addr)
- {
- 	char retval;
- 
-@@ -271,10 +279,10 @@ static __inline__ int ext2_test_bit(int 
- 	return retval;
- }
- 
--#define ext2_find_first_zero_bit(addr, size) \
--        ext2_find_next_zero_bit((addr), (size), 0)
-+#define find_first_zero_le_bit(addr, size)	\
-+	find_next_zero_le_bit((addr), (size), 0)
- 
--static __inline__ unsigned long ext2_find_next_zero_bit(void *addr, unsigned long size, unsigned long offset)
-+static inline unsigned long find_next_zero_le_bit(void *addr, unsigned long size, unsigned long offset)
- {
- 	unsigned long *p = ((unsigned long *) addr) + (offset >> 5);
- 	unsigned long result = offset & ~31UL;
-@@ -324,8 +332,24 @@ found_middle:
- 	return result + ffz(__swab32(tmp));
- }
- 
-+#define ext2_set_bit(nr, addr)	\
-+	__test_and_set_le_bit(nr, addr)
-+
-+#define ext2_clear_bit(nr, addr)	\
-+	test_and_clear_le_bit(nr, addr)
-+
-+#define ext2_test_bit(nr, addr)	\
-+	test_le_bit(nr, addr)
-+
-+#define ext2_find_first_zero_bit(addr, size) \
-+	find_first_zero_le_bit(addr, size)
-+
-+#define ext2_find_next_zero_bit(addr, size, offset)	\
-+	find_next_zero_le_bit(addr, size, offset)
-+
- #define ext2_find_next_bit(addr, size, off) \
- 	find_next_le_bit((unsigned long *)(addr), (size), (off))
-+
- #include <asm-generic/bitops/minix.h>
- 
- #endif /* __KERNEL__ */
-diff -puN arch/m68knommu/Kconfig~m68knommu-introduce-little-endian-bitops arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~m68knommu-introduce-little-endian-bitops
-+++ a/arch/m68knommu/Kconfig
-@@ -40,10 +40,6 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
- 
--config GENERIC_FIND_LE_BIT
--	bool
--	default y
--
- config GENERIC_GPIO
- 	bool
- 	default n
+ /*
+  * Maximal mount counts between two filesystem checks
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-rds-stop-including-asm-generic-bitops-leh.patch
-kvm-stop-including-asm-generic-bitops-leh.patch
-asm-generic-use-little-endian-bitops.patch
-ext3-use-little-endian-bitops.patch
 ext4-use-little-endian-bitops.patch
 ocfs2-use-little-endian-bitops.patch
 nilfs2-use-little-endian-bitops.patch
