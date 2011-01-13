@@ -1,66 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:32:42 -0800
-Message-ID: <201101132332.p0DNWgeD007248@imap1.linux-foundation.org>
+Subject: [folded] thp-compound_trans_order-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:33:06 -0800
+Message-ID: <201101132333.p0DNX6k3007259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab1AMXcy (ORCPT
+	by vger.kernel.org with ESMTP id S1752480Ab1AMXdP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:32:54 -0500
+	Thu, 13 Jan 2011 18:33:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: mm: khugepaged: pass vma to collapse_huge_page
+     thp: memcg: remove unnecessary compound_trans_order
 has been removed from the -mm tree.  Its filename was
-     thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
+     thp-compound_trans_order-fix.patch
 
-This patch was dropped because it was folded into thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
+This patch was dropped because it was folded into thp-compound_trans_order.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: mm: khugepaged: pass vma to collapse_huge_page
+Subject: thp: memcg: remove unnecessary compound_trans_order
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-A local variable declaration hidden the fact the vma wasn't passed to
-collapse_huge_page.
+In these places PageTransHuge must not go away under memcg, as the page is
+owned by the thread handling it.  Add VM_BUG_ON and remove a superflous
+page_size variable.
+
+compound_trans_order for now remains for memory-failure.c, which later has
+to be fixed to implement a safe compound_head too, that isn't safe right
+now.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix
-+++ a/mm/huge_memory.c
-@@ -1664,9 +1664,9 @@ static void __collapse_huge_page_copy(pt
- 
- static void collapse_huge_page(struct mm_struct *mm,
- 			       unsigned long address,
--			       struct page **hpage)
-+			       struct page **hpage,
-+			       struct vm_area_struct *vma)
+diff -puN mm/memcontrol.c~thp-compound_trans_order-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~thp-compound_trans_order-fix
++++ a/mm/memcontrol.c
+@@ -1027,10 +1027,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
  {
--	struct vm_area_struct *vma;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd, _pmd;
-@@ -1880,7 +1880,7 @@ out_unmap:
- 	pte_unmap_unlock(pte, ptl);
- 	if (ret)
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage);
-+		collapse_huge_page(mm, address, hpage, vma);
- out:
- 	return ret;
- }
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
+-	int page_size = PAGE_SIZE;
+-
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
+ 
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -2286,8 +2282,10 @@ static int mem_cgroup_charge_common(stru
+ 	int ret;
+ 	int page_size = PAGE_SIZE;
+ 
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
++	if (PageTransHuge(page)) {
++		page_size <<= compound_order(page);
++		VM_BUG_ON(!PageTransHuge(page));
++	}
+ 
+ 	pc = lookup_page_cgroup(page);
+ 	/* can happen at boot */
+@@ -2558,8 +2556,10 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (PageSwapCache(page))
+ 		return NULL;
+ 
+-	if (PageTransHuge(page))
+-		page_size <<= compound_trans_order(page);
++	if (PageTransHuge(page)) {
++		page_size <<= compound_order(page);
++		VM_BUG_ON(!PageTransHuge(page));
++	}
+ 
+ 	count = page_size >> PAGE_SHIFT;
+ 	/*
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -140,7 +163,6 @@ thp-transparent-hugepage-sysfs-meminfo.patch
 thp-add-debug-checks-for-mapcount-related-invariants.patch
 thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
 thp-compound_trans_order.patch
-thp-compound_trans_order-fix.patch
 thp-mm-define-madv_nohugepage.patch
 thp-madvisemadv_nohugepage.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise.patch
