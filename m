@@ -1,56 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-add-parallel-port-pps-signal-generator-fix.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:27:22 -0800
-Message-ID: <201101130027.p0D0RMGT012464@imap1.linux-foundation.org>
+Subject: [folded] memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:28:00 -0800
+Message-ID: <201101130028.p0D0S0RC012540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755961Ab1AMA1h (ORCPT
+	by vger.kernel.org with ESMTP id S1756402Ab1AMA2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:27:37 -0500
+	Wed, 12 Jan 2011 19:28:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, giometti@linux.it, johnstul@us.ibm.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, maximlevitsky@gmail.com, oakad@yahoo.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-add-parallel-port-pps-signal-generator-fix
+     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
 has been removed from the -mm tree.  Its filename was
-     pps-add-parallel-port-pps-signal-generator-fix.patch
+     memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 
-This patch was dropped because it was folded into pps-add-parallel-port-pps-signal-generator.patch
+This patch was dropped because it was folded into memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-add-parallel-port-pps-signal-generator-fix
+Subject: memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pps/generators/pps_gen_parport.c: In function 'hrtimer_event':
-drivers/pps/generators/pps_gen_parport.c:92: error: 'struct hrtimer' has no member named '_expires'
+drivers/memstick/core/mspro_block.c:1090: warning: format '%x' expects type 'unsigned int', but argument 7 has type 'size_t'
 
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/generators/pps_gen_parport.c |    2 +-
+ drivers/memstick/core/mspro_block.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-fix drivers/pps/generators/pps_gen_parport.c
---- a/drivers/pps/generators/pps_gen_parport.c~pps-add-parallel-port-pps-signal-generator-fix
-+++ a/drivers/pps/generators/pps_gen_parport.c
-@@ -82,7 +82,7 @@ static enum hrtimer_restart hrtimer_even
- 
- 	/* first of all we get the time stamp... */
- 	getnstimeofday(&ts1);
--	expire_time = ktime_to_timespec(timer->_expires);
-+	expire_time = ktime_to_timespec(hrtimer_get_softexpires(timer));
- 	dev = container_of(timer, struct pps_generator_pp, timer);
- 	lim = NSEC_PER_SEC - send_delay - dev->port_write_time;
- 
+diff -puN drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1051,7 +1051,7 @@ static int mspro_block_read_attributes(s
+ 		addr = be32_to_cpu(attr->entries[cnt].address);
+ 		s_attr->size = be32_to_cpu(attr->entries[cnt].size);
+ 		dev_dbg(&card->dev, "adding attribute %d: id %x, address %x, "
+-			"size %x\n", cnt, attr->entries[cnt].id, addr,
++			"size %zx\n", cnt, attr->entries[cnt].id, addr,
+ 			s_attr->size);
+ 		s_attr->id = attr->entries[cnt].id;
+ 		if (mspro_block_attr_name(s_attr->id))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +66,7 @@ fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
 sysctl-remove-obsolete-comments.patch
 user_ns-improve-the-user_ns-on-the-slab-packaging.patch
 pps-add-parallel-port-pps-signal-generator.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
 scatterlist-new-helper-functions-fix.patch
 aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
 cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
