@@ -1,155 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] binfmt_elf-cleanups.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:13 -0800
-Message-ID: <201101132009.p0DK9sJ7029989@imap1.linux-foundation.org>
+Subject: [merged] rtc-delete-legacy-maintainers-entry.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:24 -0800
+Message-ID: <201101132010.p0DKA5QA030024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933352Ab1AMUK2 (ORCPT
+	by vger.kernel.org with ESMTP id S933663Ab1AMUKn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:10:28 -0500
+	Thu, 13 Jan 2011 15:10:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, mm-commits@vger.kernel.org
+To: paul.gortmaker@windriver.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_elf: cleanups
+     rtc: delete legacy MAINTAINERS entry
 has been removed from the -mm tree.  Its filename was
-     binfmt_elf-cleanups.patch
+     rtc-delete-legacy-maintainers-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf: cleanups
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: rtc: delete legacy MAINTAINERS entry
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-This cleans up a few bits in binfmt_elf.c and binfmts.h:
+People stumble across the entry for the legacy PC specific RTC driver
+entry in MAINTAINERS when they really want the multi-arch, multi-driver
+RTC subsystem.  So just delete the old entry that is causing the
+confusion.
 
-- the hasvdso field in struct linux_binfmt is unused, so remove it and
-  the only initialization of it
-
-- the elf_map CPP symbol is not defined anywhere in the kernel, so
-  remove an unnecessary #ifndef elf_map
-
-- reduce excessive indentation in elf_format's initializer
-
-- add missing spaces, remove extraneous spaces
-
-No functional changes, but tested on x86 (32 and 64 bit), powerpc (32 and
-64 bit), sparc64, arm, and alpha.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c         |   23 +++++++++--------------
- include/linux/binfmts.h |    5 ++---
- 2 files changed, 11 insertions(+), 17 deletions(-)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-cleanups fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-cleanups
-+++ a/fs/binfmt_elf.c
-@@ -66,12 +66,11 @@ static int elf_core_dump(struct coredump
- #define ELF_PAGEALIGN(_v) (((_v) + ELF_MIN_ALIGN - 1) & ~(ELF_MIN_ALIGN - 1))
+diff -puN MAINTAINERS~rtc-delete-legacy-maintainers-entry MAINTAINERS
+--- a/MAINTAINERS~rtc-delete-legacy-maintainers-entry
++++ a/MAINTAINERS
+@@ -5131,11 +5131,6 @@ F:	kernel/rcu*
+ F:	kernel/srcu*
+ X:	kernel/rcutorture.c
  
- static struct linux_binfmt elf_format = {
--		.module		= THIS_MODULE,
--		.load_binary	= load_elf_binary,
--		.load_shlib	= load_elf_library,
--		.core_dump	= elf_core_dump,
--		.min_coredump	= ELF_EXEC_PAGESIZE,
--		.hasvdso	= 1
-+	.module		= THIS_MODULE,
-+	.load_binary	= load_elf_binary,
-+	.load_shlib	= load_elf_library,
-+	.core_dump	= elf_core_dump,
-+	.min_coredump	= ELF_EXEC_PAGESIZE,
- };
- 
- #define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
-@@ -316,8 +315,6 @@ create_elf_tables(struct linux_binprm *b
- 	return 0;
- }
- 
--#ifndef elf_map
--
- static unsigned long elf_map(struct file *filep, unsigned long addr,
- 		struct elf_phdr *eppnt, int prot, int type,
- 		unsigned long total_size)
-@@ -354,8 +351,6 @@ static unsigned long elf_map(struct file
- 	return(map_addr);
- }
- 
--#endif /* !elf_map */
--
- static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
- {
- 	int i, first_idx = -1, last_idx = -1;
-@@ -421,7 +416,7 @@ static unsigned long load_elf_interp(str
- 		goto out;
- 
- 	retval = kernel_read(interpreter, interp_elf_ex->e_phoff,
--			     (char *)elf_phdata,size);
-+			     (char *)elf_phdata, size);
- 	error = -EIO;
- 	if (retval != size) {
- 		if (retval < 0)
-@@ -601,7 +596,7 @@ static int load_elf_binary(struct linux_
- 		goto out;
- 	if (!elf_check_arch(&loc->elf_ex))
- 		goto out;
--	if (!bprm->file->f_op||!bprm->file->f_op->mmap)
-+	if (!bprm->file->f_op || !bprm->file->f_op->mmap)
- 		goto out;
- 
- 	/* Now read in all of the header information */
-@@ -761,8 +756,8 @@ static int load_elf_binary(struct linux_
- 			/* There was a PT_LOAD segment with p_memsz > p_filesz
- 			   before this one. Map anonymous pages, if needed,
- 			   and clear the area.  */
--			retval = set_brk (elf_bss + load_bias,
--					  elf_brk + load_bias);
-+			retval = set_brk(elf_bss + load_bias,
-+					 elf_brk + load_bias);
- 			if (retval) {
- 				send_sig(SIGKILL, current, 0);
- 				goto out_free_dentry;
-diff -puN include/linux/binfmts.h~binfmt_elf-cleanups include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmt_elf-cleanups
-+++ a/include/linux/binfmts.h
-@@ -25,7 +25,7 @@ struct pt_regs;
- /*
-  * This structure is used to hold the arguments that are used when loading binaries.
-  */
--struct linux_binprm{
-+struct linux_binprm {
- 	char buf[BINPRM_BUF_SIZE];
- #ifdef CONFIG_MMU
- 	struct vm_area_struct *vma;
-@@ -93,7 +93,6 @@ struct linux_binfmt {
- 	int (*load_shlib)(struct file *);
- 	int (*core_dump)(struct coredump_params *cprm);
- 	unsigned long min_coredump;	/* minimal dump size */
--	int hasvdso;
- };
- 
- extern int __register_binfmt(struct linux_binfmt *fmt, int insert);
-@@ -113,7 +112,7 @@ extern void unregister_binfmt(struct lin
- 
- extern int prepare_binprm(struct linux_binprm *);
- extern int __must_check remove_arg_zero(struct linux_binprm *);
--extern int search_binary_handler(struct linux_binprm *,struct pt_regs *);
-+extern int search_binary_handler(struct linux_binprm *, struct pt_regs *);
- extern int flush_old_exec(struct linux_binprm * bprm);
- extern void setup_new_exec(struct linux_binprm * bprm);
- 
-_
-
-Patches currently in -mm which might be from mikpe@it.uu.se are
-
-origin.patch
-
+-REAL TIME CLOCK DRIVER (LEGACY)
+-M:	Paul Gortmaker <p_gortmaker@yahoo.com>
+-S:	Maintained
+-F:	drivers/char/rtc.c
