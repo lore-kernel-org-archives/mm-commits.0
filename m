@@ -1,123 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-low_ino-cleanup.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:35 -0800
-Message-ID: <201101132011.p0DKBG5h030159@imap1.linux-foundation.org>
+Subject: [merged] update-thunderbird-docs-with-wordwrap-plugin.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:08:24 -0800
+Message-ID: <201101132011.p0DKB56K030124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933690Ab1AMULq (ORCPT
+	by vger.kernel.org with ESMTP id S933690Ab1AMULn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:11:46 -0500
+	Thu, 13 Jan 2011 15:11:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: rlandley@parallels.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: ->low_ino cleanup
+     Documentation/email-clients.txt: update Thunderbird docs with wordwrap plugin
 has been removed from the -mm tree.  Its filename was
-     proc-low_ino-cleanup.patch
+     update-thunderbird-docs-with-wordwrap-plugin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: ->low_ino cleanup
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Documentation/email-clients.txt: update Thunderbird docs with wordwrap plugin
+From: Rob Landley <rlandley@parallels.com>
 
-- ->low_ino is write-once field -- reading it under locks is unnecessary.
+Show how to install the "toggle wordwrap" extension in thunderbird.
 
-- /proc/$PID stuff never reaches pde_put()/free_proc_entry() --
-   PROC_DYNAMIC_FIRST check never triggers.
-
-- in proc_get_inode(), inode number always matches proc dir entry, so
-  save one parameter.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Rob Landley <rlandley@parallels.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   12 ++----------
- fs/proc/inode.c    |    7 +++----
- fs/proc/internal.h |    2 +-
- 3 files changed, 6 insertions(+), 15 deletions(-)
+ Documentation/email-clients.txt |   43 ++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-low_ino-cleanup fs/proc/generic.c
---- a/fs/proc/generic.c~proc-low_ino-cleanup
-+++ a/fs/proc/generic.c
-@@ -425,13 +425,10 @@ struct dentry *proc_lookup_de(struct pro
- 		if (de->namelen != dentry->d_name.len)
- 			continue;
- 		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
--			unsigned int ino;
+diff -puN Documentation/email-clients.txt~update-thunderbird-docs-with-wordwrap-plugin Documentation/email-clients.txt
+--- a/Documentation/email-clients.txt~update-thunderbird-docs-with-wordwrap-plugin
++++ a/Documentation/email-clients.txt
+@@ -186,26 +186,8 @@ Sylpheed (GUI)
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Thunderbird (GUI)
+ 
+-By default, thunderbird likes to mangle text, but there are ways to
+-coerce it into being nice.
 -
--			ino = de->low_ino;
- 			pde_get(de);
- 			spin_unlock(&proc_subdir_lock);
- 			error = -EINVAL;
--			inode = proc_get_inode(dir->i_sb, ino, de);
-+			inode = proc_get_inode(dir->i_sb, de);
- 			goto out_unlock;
- 		}
- 	}
-@@ -768,12 +765,7 @@ EXPORT_SYMBOL(proc_create_data);
- 
- static void free_proc_entry(struct proc_dir_entry *de)
- {
--	unsigned int ino = de->low_ino;
+-- Under account settings, composition and addressing, uncheck "Compose
+-  messages in HTML format".
 -
--	if (ino < PROC_DYNAMIC_FIRST)
--		return;
+-- Edit your Thunderbird config settings to tell it not to wrap lines:
+-      user_pref("mailnews.wraplength", 0);
 -
--	release_inode_number(ino);
-+	release_inode_number(de->low_ino);
+-- Edit your Thunderbird config settings so that it won't use format=flowed:
+-      user_pref("mailnews.send_plaintext_flowed", false);
+-
+-- You need to get Thunderbird into preformat mode:
+-. If you compose HTML messages by default, it's not too hard. Just select
+-  "Preformat" from the drop-down box just under the subject line.
+-. If you compose in text by default, you have to tell it to compose a new
+-  message in HTML (just as a one-off), and then force it from there back to
+-  text, else it will wrap lines. To do this, use shift-click on the Write
+-  icon to compose to get HTML compose mode, then select "Preformat" from
+-  the drop-down box just under the subject line.
++Thunderbird is an Outlook clone that likes to mangle text, but there are ways
++to coerce it into behaving.
  
- 	if (S_ISLNK(de->mode))
- 		kfree(de->data);
-diff -puN fs/proc/inode.c~proc-low_ino-cleanup fs/proc/inode.c
---- a/fs/proc/inode.c~proc-low_ino-cleanup
-+++ a/fs/proc/inode.c
-@@ -416,12 +416,11 @@ static const struct file_operations proc
- };
- #endif
+ - Allows use of an external editor:
+   The easiest thing to do with Thunderbird and patches is to use an
+@@ -215,6 +197,27 @@ coerce it into being nice.
+   View->Toolbars->Customize... and finally just click on it when in the
+   Compose dialog.
  
--struct inode *proc_get_inode(struct super_block *sb, unsigned int ino,
--				struct proc_dir_entry *de)
-+struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
- {
- 	struct inode * inode;
++To beat some sense out of the internal editor, do this:
++
++- Under account settings, composition and addressing, uncheck "Compose
++  messages in HTML format".
++
++- Edit your Thunderbird config settings so that it won't use format=flowed.
++  Go to "edit->preferences->advanced->config editor" to bring up the
++  thunderbird's registry editor, and set "mailnews.send_plaintext_flowed" to
++  "false".
++
++- Enable "preformat" mode: Shft-click on the Write icon to bring up the HTML
++  composer, select "Preformat" from the drop-down box just under the subject
++  line, then close the message without saving.  (This setting also applies to
++  the text composer, but the only control for it is in the HTML composer.)
++
++- Install the "toggle wordwrap" extension.  Download the file from:
++    https://addons.mozilla.org/thunderbird/addon/2351/
++  Then go to "tools->add ons", select "install" at the bottom of the screen,
++  and browse to where you saved the .xul file.  This adds an "Enable
++  Wordwrap" entry under the Options menu of the message composer.
++
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ TkRat (GUI)
  
--	inode = iget_locked(sb, ino);
-+	inode = iget_locked(sb, de->low_ino);
- 	if (!inode)
- 		return NULL;
- 	if (inode->i_state & I_NEW) {
-@@ -471,7 +470,7 @@ int proc_fill_super(struct super_block *
- 	s->s_time_gran = 1;
- 	
- 	pde_get(&proc_root);
--	root_inode = proc_get_inode(s, PROC_ROOT_INO, &proc_root);
-+	root_inode = proc_get_inode(s, &proc_root);
- 	if (!root_inode)
- 		goto out_no_root;
- 	root_inode->i_uid = 0;
-diff -puN fs/proc/internal.h~proc-low_ino-cleanup fs/proc/internal.h
---- a/fs/proc/internal.h~proc-low_ino-cleanup
-+++ a/fs/proc/internal.h
-@@ -109,7 +109,7 @@ void pde_put(struct proc_dir_entry *pde)
- 
- extern struct vfsmount *proc_mnt;
- int proc_fill_super(struct super_block *);
--struct inode *proc_get_inode(struct super_block *, unsigned int, struct proc_dir_entry *);
-+struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
- 
- /*
-  * These are generic /proc routines that use the internal
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rlandley@parallels.com are
 
 origin.patch
 
