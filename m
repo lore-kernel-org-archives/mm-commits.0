@@ -1,211 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:32 -0800
-Message-ID: <201101132006.p0DK6D5q029709@imap1.linux-foundation.org>
+Subject: [merged] kernel-clean-up-use_generic_smp_helpers.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:04:07 -0800
+Message-ID: <201101132006.p0DK6mTc029775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933646Ab1AMUTm (ORCPT
+	by vger.kernel.org with ESMTP id S933646Ab1AMUUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:19:42 -0500
+	Thu, 13 Jan 2011 15:20:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maramaopercheseimorto@gmail.com, axel.lin@gmail.com, marek.vasut@gmail.com, rpurdie@rpsys.net, tj@kernel.org, mm-commits@vger.kernel.org
+To: amwang@redhat.com, a.p.zijlstra@chello.nl, dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/l4f00242t03.c: full implement fb power states for this lcd
+     kernel: clean up USE_GENERIC_SMP_HELPERS
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd.patch
+     kernel-clean-up-use_generic_smp_helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/l4f00242t03.c: full implement fb power states for this lcd
-From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Subject: kernel: clean up USE_GENERIC_SMP_HELPERS
+From: Amerigo Wang <amwang@redhat.com>
 
-Complete the support of fb power states managing correctly the regulators
-bound to this driver.
+For arch which needs USE_GENERIC_SMP_HELPERS, it has to select
+USE_GENERIC_SMP_HELPERS, rather than leaving a choice to user, since they
+don't provide their own implementions.
 
-Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Marek Vasut <marek.vasut@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Axel Lin <axel.lin@gmail.com>
+Also, move on_each_cpu() to kernel/smp.c, it is strange to put it in
+kernel/softirq.c.
+
+For arch which doesn't use USE_GENERIC_SMP_HELPERS, e.g.  blackfin, only
+on_each_cpu() is compiled.
+
+Signed-off-by: Amerigo Wang <amwang@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/l4f00242t03.c |   97 ++++++++++++++++++------
- 1 file changed, 75 insertions(+), 22 deletions(-)
+ arch/mn10300/Kconfig |    6 +-----
+ arch/x86/Kconfig     |    5 +----
+ kernel/Makefile      |    2 +-
+ kernel/smp.c         |   20 ++++++++++++++++++++
+ kernel/softirq.c     |   19 -------------------
+ 5 files changed, 23 insertions(+), 29 deletions(-)
 
-diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd drivers/video/backlight/l4f00242t03.c
---- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-full-implement-fb-power-states-for-this-lcd
-+++ a/drivers/video/backlight/l4f00242t03.c
-@@ -25,7 +25,7 @@
- struct l4f00242t03_priv {
- 	struct spi_device	*spi;
- 	struct lcd_device	*ld;
--	unsigned int lcd_on:1;
-+	int lcd_state;
- 	struct regulator *io_reg;
- 	struct regulator *core_reg;
- };
-@@ -67,6 +67,29 @@ static void l4f00242t03_lcd_init(struct 
- 	spi_write(spi, (const u8 *)cmd, ARRAY_SIZE(cmd) * sizeof(u16));
- }
+diff -puN arch/mn10300/Kconfig~kernel-clean-up-use_generic_smp_helpers arch/mn10300/Kconfig
+--- a/arch/mn10300/Kconfig~kernel-clean-up-use_generic_smp_helpers
++++ a/arch/mn10300/Kconfig
+@@ -203,6 +203,7 @@ endmenu
+ config SMP
+ 	bool "Symmetric multi-processing support"
+ 	default y
++	select USE_GENERIC_SMP_HELPERS
+ 	depends on MN10300_PROC_MN2WS0038 || MN10300_PROC_MN2WS0050
+ 	---help---
+ 	  This enables support for systems with more than one CPU. If you have
+@@ -226,11 +227,6 @@ config NR_CPUS
+ 	depends on SMP
+ 	default "2"
  
-+static void l4f00242t03_lcd_powerdown(struct spi_device *spi)
-+{
-+	struct l4f00242t03_pdata *pdata = spi->dev.platform_data;
-+	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
-+
-+	dev_dbg(&spi->dev, "Powering down LCD\n");
-+
-+	gpio_set_value(pdata->data_enable_gpio, 0);
-+
-+	if (priv->io_reg)
-+		regulator_disable(priv->io_reg);
-+
-+	if (priv->core_reg)
-+		regulator_disable(priv->core_reg);
-+}
-+
-+static int l4f00242t03_lcd_power_get(struct lcd_device *ld)
-+{
-+	struct l4f00242t03_priv *priv = lcd_get_data(ld);
-+
-+	return priv->lcd_state;
-+}
-+
- static int l4f00242t03_lcd_power_set(struct lcd_device *ld, int power)
+-config USE_GENERIC_SMP_HELPERS
+-	bool
+-	depends on SMP
+-	default y
+-
+ source "kernel/Kconfig.preempt"
+ 
+ config MN10300_CURRENT_IN_E2
+diff -puN arch/x86/Kconfig~kernel-clean-up-use_generic_smp_helpers arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kernel-clean-up-use_generic_smp_helpers
++++ a/arch/x86/Kconfig
+@@ -65,6 +65,7 @@ config X86
+ 	select HAVE_SPARSE_IRQ
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PENDING_IRQ if SMP
++	select USE_GENERIC_SMP_HELPERS if SMP
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool (KPROBES || PERF_EVENTS)
+@@ -203,10 +204,6 @@ config HAVE_INTEL_TXT
+ 	def_bool y
+ 	depends on EXPERIMENTAL && DMAR && ACPI
+ 
+-config USE_GENERIC_SMP_HELPERS
+-	def_bool y
+-	depends on SMP
+-
+ config X86_32_SMP
+ 	def_bool y
+ 	depends on X86_32 && SMP
+diff -puN kernel/Makefile~kernel-clean-up-use_generic_smp_helpers kernel/Makefile
+--- a/kernel/Makefile~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/Makefile
+@@ -43,7 +43,7 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
+ obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
+ obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
+ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+-obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
++obj-$(CONFIG_SMP) += smp.o
+ ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
+diff -puN kernel/smp.c~kernel-clean-up-use_generic_smp_helpers kernel/smp.c
+--- a/kernel/smp.c~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/smp.c
+@@ -13,6 +13,7 @@
+ #include <linux/smp.h>
+ #include <linux/cpu.h>
+ 
++#ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+ static struct {
+ 	struct list_head	queue;
+ 	raw_spinlock_t		lock;
+@@ -529,3 +530,22 @@ void ipi_call_unlock_irq(void)
  {
- 	struct l4f00242t03_priv *priv = lcd_get_data(ld);
-@@ -79,35 +102,52 @@ static int l4f00242t03_lcd_power_set(str
- 	const u16 disoff = 0x28;
- 
- 	if (power <= FB_BLANK_NORMAL) {
--		if (priv->lcd_on)
--			return 0;
--
--		dev_dbg(&spi->dev, "turning on LCD\n");
--
--		spi_write(spi, (const u8 *)&slpout, sizeof(u16));
--		msleep(60);
--		spi_write(spi, (const u8 *)&dison, sizeof(u16));
--
--		priv->lcd_on = 1;
-+		if (priv->lcd_state <= FB_BLANK_NORMAL) {
-+			/* Do nothing, the LCD is running */
-+		} else if (priv->lcd_state < FB_BLANK_POWERDOWN) {
-+			dev_dbg(&spi->dev, "Resuming LCD\n");
-+
-+			spi_write(spi, (const u8 *)&slpout, sizeof(u16));
-+			msleep(60);
-+			spi_write(spi, (const u8 *)&dison, sizeof(u16));
-+		} else {
-+			/* priv->lcd_state == FB_BLANK_POWERDOWN */
-+			l4f00242t03_lcd_init(spi);
-+			priv->lcd_state = FB_BLANK_VSYNC_SUSPEND;
-+			l4f00242t03_lcd_power_set(priv->ld, power);
-+		}
-+	} else if (power < FB_BLANK_POWERDOWN) {
-+		if (priv->lcd_state <= FB_BLANK_NORMAL) {
-+			/* Send the display in standby */
-+			dev_dbg(&spi->dev, "Standby the LCD\n");
-+
-+			spi_write(spi, (const u8 *)&disoff, sizeof(u16));
-+			msleep(60);
-+			spi_write(spi, (const u8 *)&slpin, sizeof(u16));
-+		} else if (priv->lcd_state < FB_BLANK_POWERDOWN) {
-+			/* Do nothing, the LCD is already in standby */
-+		} else {
-+			/* priv->lcd_state == FB_BLANK_POWERDOWN */
-+			l4f00242t03_lcd_init(spi);
-+			priv->lcd_state = FB_BLANK_UNBLANK;
-+			l4f00242t03_lcd_power_set(ld, power);
-+		}
- 	} else {
--		if (!priv->lcd_on)
--			return 0;
--
--		dev_dbg(&spi->dev, "turning off LCD\n");
--
-+		/* power == FB_BLANK_POWERDOWN */
-+		/* Clear the screen before shutting down */
- 		spi_write(spi, (const u8 *)&disoff, sizeof(u16));
- 		msleep(60);
--		spi_write(spi, (const u8 *)&slpin, sizeof(u16));
--
--		priv->lcd_on = 0;
-+		l4f00242t03_lcd_powerdown(spi);
- 	}
- 
-+	priv->lcd_state = power;
-+
- 	return 0;
+ 	raw_spin_unlock_irq(&call_function.lock);
  }
- 
- static struct lcd_ops l4f_ops = {
- 	.set_power	= l4f00242t03_lcd_power_set,
--	.get_power	= NULL,
-+	.get_power	= l4f00242t03_lcd_power_get,
- };
- 
- static int __devinit l4f00242t03_probe(struct spi_device *spi)
-@@ -187,7 +227,8 @@ static int __devinit l4f00242t03_probe(s
- 	/* Init the LCD */
- 	l4f00242t03_reset(pdata->reset_gpio);
- 	l4f00242t03_lcd_init(spi);
--	l4f00242t03_lcd_power_set(priv->ld, 1);
-+	priv->lcd_state = FB_BLANK_VSYNC_SUSPEND;
-+	l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_UNBLANK);
- 
- 	dev_info(&spi->dev, "Epson l4f00242t03 lcd probed.\n");
- 
-@@ -214,9 +255,11 @@ static int __devexit l4f00242t03_remove(
- 	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
- 	struct l4f00242t03_pdata *pdata = priv->spi->dev.platform_data;
- 
--	l4f00242t03_lcd_power_set(priv->ld, 0);
-+	l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
- 	lcd_device_unregister(priv->ld);
- 
-+	dev_set_drvdata(&spi->dev, NULL);
++#endif /* USE_GENERIC_SMP_HELPERS */
 +
- 	gpio_free(pdata->data_enable_gpio);
- 	gpio_free(pdata->reset_gpio);
- 
-@@ -230,6 +273,15 @@ static int __devexit l4f00242t03_remove(
- 	return 0;
- }
- 
-+static void l4f00242t03_shutdown(struct spi_device *spi)
++/*
++ * Call a function on all processors
++ */
++int on_each_cpu(void (*func) (void *info), void *info, int wait)
 +{
-+	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
++	int ret = 0;
 +
-+	if (priv)
-+		l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
-+
++	preempt_disable();
++	ret = smp_call_function(func, info, wait);
++	local_irq_disable();
++	func(info);
++	local_irq_enable();
++	preempt_enable();
++	return ret;
 +}
++EXPORT_SYMBOL(on_each_cpu);
 +
- static struct spi_driver l4f00242t03_driver = {
- 	.driver = {
- 		.name	= "l4f00242t03",
-@@ -237,6 +289,7 @@ static struct spi_driver l4f00242t03_dri
- 	},
- 	.probe		= l4f00242t03_probe,
- 	.remove		= __devexit_p(l4f00242t03_remove),
-+	.shutdown	= l4f00242t03_shutdown,
- };
+diff -puN kernel/softirq.c~kernel-clean-up-use_generic_smp_helpers kernel/softirq.c
+--- a/kernel/softirq.c~kernel-clean-up-use_generic_smp_helpers
++++ a/kernel/softirq.c
+@@ -885,25 +885,6 @@ static __init int spawn_ksoftirqd(void)
+ }
+ early_initcall(spawn_ksoftirqd);
  
- static __init int l4f00242t03_init(void)
-_
-
-Patches currently in -mm which might be from maramaopercheseimorto@gmail.com are
-
-origin.patch
-linux-next.patch
-
+-#ifdef CONFIG_SMP
+-/*
+- * Call a function on all processors
+- */
+-int on_each_cpu(void (*func) (void *info), void *info, int wait)
+-{
+-	int ret = 0;
+-
+-	preempt_disable();
+-	ret = smp_call_function(func, info, wait);
+-	local_irq_disable();
+-	func(info);
+-	local_irq_enable();
+-	preempt_enable();
+-	return ret;
+-}
+-EXPORT_SYMBOL(on_each_cpu);
+-#endif
