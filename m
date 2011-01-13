@@ -1,64 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatchpl-fix-cast-detection.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:06:41 -0800
-Message-ID: <201101132009.p0DK9MUs029966@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-check-for-world-writeable-sysfs-debugfs-files.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:06:54 -0800
+Message-ID: <201101132009.p0DK9Z6W029970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933677Ab1AMUKF (ORCPT
+	by vger.kernel.org with ESMTP id S933680Ab1AMUKQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:10:05 -0500
+	Thu, 13 Jan 2011 15:10:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: florian@mickler.org, apw@shadowen.org, audun.hoem@gmail.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch.pl: fix CAST detection
+     checkpatch: check for world-writeable sysfs/debugfs files
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-fix-cast-detection.patch
+     checkpatch-check-for-world-writeable-sysfs-debugfs-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: fix CAST detection
-From: Florian Mickler <florian@mickler.org>
+Subject: checkpatch: check for world-writeable sysfs/debugfs files
+From: Dave Jones <davej@redhat.com>
 
-We should only claim that something is a cast if we did not encouter a
-token before, that did set av_pending.
+Exporting world writable sysfs/debugfs files is usually a bad thing.  Warn
+about it.
 
-This fixes the operator * in the line below to be detected as binary (vs
-unary).
-
-kmalloc(sizeof(struct alphatrack_ocmd) * true_size, GFP_KERNEL);
-
-Reported-by: Audun Hoem <audun.hoem@gmail.com>
-Signed-off-by: Florian Mickler <florian@mickler.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-fix-cast-detection scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-fix-cast-detection
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-world-writeable-sysfs-debugfs-files scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-world-writeable-sysfs-debugfs-files
 +++ a/scripts/checkpatch.pl
-@@ -859,7 +859,7 @@ sub annotate_values {
- 				$av_preprocessor = 0;
+@@ -2897,6 +2897,11 @@ sub process {
+ 				ERROR("lockdep_no_validate class is reserved for device->mutex.\n" . $herecurr);
  			}
+ 		}
++
++		if ($line =~ /debugfs_create_file.*S_IWUGO/ ||
++		    $line =~ /DEVICE_ATTR.*S_IWUGO/ ) {
++			WARN("Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
++		}
+ 	}
  
--		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/) {
-+		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/ && $av_pending eq '_') {
- 			print "CAST($1)\n" if ($dbg_values > 1);
- 			push(@av_paren_type, $type);
- 			$type = 'C';
+ 	# If we have no input at all, then there is nothing to report on
 _
 
-Patches currently in -mm which might be from florian@mickler.org are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
+linux-next.patch
+sched-remove-long-deprecated-clone_stopped-flag.patch
 
