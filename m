@@ -1,107 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:30:47 -0800
-Message-ID: <201101130030.p0D0UlER012631@imap1.linux-foundation.org>
+Subject: [folded] decompressors-add-boot-time-xz-support-update.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:31:32 -0800
+Message-ID: <201101130031.p0D0VWiK012670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542Ab1AMAa6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755542Ab1AMAcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:30:58 -0500
+	Wed, 12 Jan 2011 19:32:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, stefani@seibold.net, mm-commits@vger.kernel.org
+To: lasse.collin@tukaani.org, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
+     decompressors-add-boot-time-xz-support-update
 has been removed from the -mm tree.  Its filename was
-     cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+     decompressors-add-boot-time-xz-support-update.patch
 
-This patch was dropped because it was folded into cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
+This patch was dropped because it was folded into decompressors-add-boot-time-xz-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: decompressors-add-boot-time-xz-support-update
+From: Lasse Collin <lasse.collin@tukaani.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#44: FILE: fs/cramfs/inode.c:40:
-+static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
+Compared to the previous version of this patch, this makes the
+XZ-compressed initramfs Kconfig option behave the same way as
+the other compression methods. Now the option isn't hidden if
+the xz_dec module hasn't been enabled separately. Support for
+XZ-compressed initramfs is now enabled by default if !EMBEDDED.
 
-ERROR: "foo * bar" should be "foo *bar"
-#68: FILE: fs/cramfs/inode.c:64:
-+	struct cramfs_inode * cramfs_inode, unsigned int offset)
-
-WARNING: line over 80 characters
-#157: FILE: fs/cramfs/inode.c:293:
-+	super.root.mode |= (S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-
-WARNING: line over 80 characters
-#187: FILE: fs/cramfs/inode.c:436:
-+		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de)+CRAMFS_MAXPATHLEN);
-
-WARNING: line over 80 characters
-#196: FILE: fs/cramfs/inode.c:467:
-+			d_add(dentry, get_cramfs_inode(dir->i_sb, &entry, dir_off));
-
-total: 2 errors, 3 warnings, 161 lines checked
-
-./patches/cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig |    1 +
+ usr/Kconfig |    9 +++------
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes
-+++ a/fs/cramfs/inode.c
-@@ -37,7 +37,7 @@ static DEFINE_MUTEX(read_mutex);
- /* These macros may change in future, to provide better st_ino semantics. */
- #define OFFSET(x)	((x)->i_ino)
+diff -puN lib/Kconfig~decompressors-add-boot-time-xz-support-update lib/Kconfig
+--- a/lib/Kconfig~decompressors-add-boot-time-xz-support-update
++++ a/lib/Kconfig
+@@ -123,6 +123,7 @@ config DECOMPRESS_LZMA
+ 	tristate
  
--static unsigned long cramino(struct cramfs_inode * cino, unsigned int offset)
-+static unsigned long cramino(struct cramfs_inode *cino, unsigned int offset)
- {
- 	if (!cino->offset)
- 		return offset + 1;
-@@ -61,7 +61,7 @@ static unsigned long cramino(struct cram
- }
+ config DECOMPRESS_XZ
++	select XZ_DEC
+ 	tristate
  
- static struct inode *get_cramfs_inode(struct super_block *sb,
--	struct cramfs_inode * cramfs_inode, unsigned int offset)
-+	struct cramfs_inode *cramfs_inode, unsigned int offset)
- {
- 	struct inode *inode;
- 	static struct timespec zerotime;
+ config DECOMPRESS_LZO
+diff -puN usr/Kconfig~decompressors-add-boot-time-xz-support-update usr/Kconfig
+--- a/usr/Kconfig~decompressors-add-boot-time-xz-support-update
++++ a/usr/Kconfig
+@@ -73,15 +73,12 @@ config RD_LZMA
+ 	  If unsure, say N.
+ 
+ config RD_XZ
+-	bool "Support initial ramdisks compressed using XZ"
+-	depends on BLK_DEV_INITRD && XZ_DEC=y
++	bool "Support initial ramdisks compressed using XZ" if EMBEDDED
++	default !EMBEDDED
++	depends on BLK_DEV_INITRD
+ 	select DECOMPRESS_XZ
+ 	help
+ 	  Support loading of a XZ encoded initial ramdisk or cpio buffer.
+-
+-	  If this option is inactive, say Y to "XZ decompression support"
+-	  under "Library routines" first.
+-
+ 	  If unsure, say N.
+ 
+ config RD_LZO
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lasse.collin@tukaani.org are
 
-origin.patch
-leds-add-output-inversion-option-to-backlight-trigger.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-fs-select-fix-information-leak-to-userspace.patch
-drivers-telephony-ixjc-fix-warning.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
-sysctl-remove-obsolete-comments.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging.patch
-pps-add-parallel-port-pps-signal-generator.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
-aio-remove-unused-aio_run_iocbs.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
-ramoops-fix-types-remove-typecasts.patch
-fs-ext4-inodec-use-pr_warn_ratelimited.patch
+documentation-email-clientstxt-warn-about-word-wrap-bug-in-kmail.patch
+decompressors-add-missing-init-ie-__init.patch
+decompressors-get-rid-of-set_error_fn-macro.patch
+decompressors-include-linux-slabh-in-linux-decompress-mmh.patch
+decompressors-remove-unused-function-from-lib-decompress_unlzmac.patch
+decompressors-fix-header-validation-in-decompress_unlzmac.patch
+decompressors-check-for-read-errors-in-decompress_unlzmac.patch
+decompressors-check-for-write-errors-in-decompress_unlzmac.patch
+decompressors-validate-match-distance-in-decompress_unlzmac.patch
+decompressors-check-for-write-errors-in-decompress_unlzoc.patch
+decompressors-check-input-size-in-decompress_unlzoc.patch
+decompressors-fix-callback-to-callback-mode-in-decompress_unlzoc.patch
+decompressors-add-xz-decompressor-module.patch
+decompressors-add-boot-time-xz-support.patch
+x86-support-xz-compressed-kernel.patch
+decompressors-check-input-size-in-decompress_inflatec.patch
+decompressors-remove-unused-constant-from-inflateh.patch
 
