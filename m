@@ -1,128 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 13 Jan 2011 11:54:32 -0800
-Message-ID: <201101131957.p0DJvC23029233@imap1.linux-foundation.org>
+Subject: [obsolete] mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:02:03 -0800
+Message-ID: <201101132004.p0DK4ixw029655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616Ab1AMT5W (ORCPT
+	by vger.kernel.org with ESMTP id S933608Ab1AMUFR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 14:57:22 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0DJvD3D031863
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2011 11:57:13 -0800
+	Thu, 13 Jan 2011 15:05:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
+has been removed from the -mm tree.  Its filename was
+     mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |   46 -------------------------------------------
- include/linux/fs.h |    3 --
- 2 files changed, 49 deletions(-)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/main.c~linux-next-git-rejects fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~linux-next-git-rejects
-+++ a/fs/ecryptfs/main.c
-@@ -501,52 +501,6 @@ struct kmem_cache *ecryptfs_sb_info_cach
- static struct file_system_type ecryptfs_fs_type;
+diff -puN mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2 mm/memory.c
+--- a/mm/memory.c~mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2
++++ a/mm/memory.c
+@@ -1614,7 +1614,8 @@ int get_user_pages_noio(struct task_stru
+ 	if (force)
+ 		flags |= FOLL_FORCE;
  
- /**
--<<<<<<< HEAD
--=======
-- * ecryptfs_read_super
-- * @sb: The ecryptfs super block
-- * @dev_name: The path to mount over
-- *
-- * Read the super block of the lower filesystem, and use
-- * ecryptfs_interpose to create our initial inode and super block
-- * struct.
-- */
--static int ecryptfs_read_super(struct super_block *sb, const char *dev_name)
--{
--	struct path path;
--	int rc;
--
--	rc = kern_path(dev_name, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &path);
--	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "path_lookup() failed\n");
--		goto out;
--	}
--	if (path.dentry->d_sb->s_type == &ecryptfs_fs_type) {
--		rc = -EINVAL;
--		printk(KERN_ERR "Mount on filesystem of type "
--			"eCryptfs explicitly disallowed due to "
--			"known incompatibilities\n");
--		goto out_free;
--	}
--	ecryptfs_set_superblock_lower(sb, path.dentry->d_sb);
--	sb->s_maxbytes = path.dentry->d_sb->s_maxbytes;
--	sb->s_blocksize = path.dentry->d_sb->s_blocksize;
--	sb->s_magic = ECRYPTFS_SUPER_MAGIC;
--	ecryptfs_set_dentry_lower(sb->s_root, path.dentry);
--	ecryptfs_set_dentry_lower_mnt(sb->s_root, path.mnt);
--	rc = ecryptfs_interpose(path.dentry, sb->s_root, sb, 0);
--	if (rc)
--		goto out_free;
--	rc = 0;
--	goto out;
--out_free:
--	path_put(&path);
--out:
--	return rc;
--}
--
--/**
-->>>>>>> FETCH_HEAD
-  * ecryptfs_get_sb
-  * @fs_type
-  * @flags
-diff -puN include/linux/fs.h~linux-next-git-rejects include/linux/fs.h
---- a/include/linux/fs.h~linux-next-git-rejects
-+++ a/include/linux/fs.h
-@@ -1423,15 +1423,12 @@ struct super_block {
- 	 * generic_show_options()
- 	 */
- 	char __rcu *s_options;
--<<<<<<< HEAD
- 	const struct dentry_operations *s_d_op; /* default d_op for dentries */
--=======
+-	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
++	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas,
++				NULL);
+ }
+ EXPORT_SYMBOL(get_user_pages_noio);
  
- 	/*
- 	 * Saved pool identifier for cleancache (-1 means none)
- 	 */
- 	int cleancache_poolid;
-->>>>>>> FETCH_HEAD
- };
- 
- extern struct timespec current_fs_time(struct super_block *sb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -151,7 +75,6 @@ mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-com
 mm-deactivate-invalidated-pages-fix.patch
 mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
 writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
 thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
 thp-kvm-mmu-transparent-hugepage-support-bisection.patch
