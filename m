@@ -1,69 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:22:53 -0800
-Message-ID: <201101132322.p0DNMrGC006752@imap1.linux-foundation.org>
+Subject: [folded] mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:23:10 -0800
+Message-ID: <201101132323.p0DNNAR6006769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756887Ab1AMXXD (ORCPT
+	by vger.kernel.org with ESMTP id S1752480Ab1AMXXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:23:03 -0500
+	Thu, 13 Jan 2011 18:23:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arkadiusz.bubala@gmail.com, claudio@evidence.eu.com, greg@kroah.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
+     mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+     mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
 
-This patch was dropped because it was folded into atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+This patch was dropped because it was folded into mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
+Subject: mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-simplify code
+readability tweak
 
-Cc: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
-Cc: Claudio Scordino <claudio@evidence.eu.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix
-+++ a/drivers/serial/atmel_serial.c
-@@ -1733,12 +1733,8 @@ static int __devinit atmel_serial_probe(
- 	platform_set_drvdata(pdev, port);
+diff -puN mm/vmstat.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix
++++ a/mm/vmstat.c
+@@ -199,7 +199,7 @@ void set_pgdat_percpu_threshold(pg_data_
+ 		if (!zone->percpu_drift_mark)
+ 			continue;
  
- 	if (port->rs485.flags & SER_RS485_ENABLED) {
--		unsigned int control = 0;
--		unsigned int mode = 0;
--		control |= ATMEL_US_RTSEN;
--		mode |= ATMEL_US_USMODE_NORMAL;
--		UART_PUT_MR(&port->uart, mode);
--		UART_PUT_CR(&port->uart, control);
-+		UART_PUT_MR(&port->uart, ATMEL_US_USMODE_NORMAL);
-+		UART_PUT_CR(&port->uart, ATMEL_US_RTSEN);
- 	}
- 
- 	return 0;
+-		threshold = calculate_pressure(zone);
++		threshold = (*calculate_pressure)(zone);
+ 		for_each_online_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 sync_inode_metadata-fix-comment.patch
 fs-mpagec-consolidate-code-checkpatch-fixes.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
