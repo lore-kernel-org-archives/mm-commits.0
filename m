@@ -1,56 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:36:24 -0800
-Message-ID: <201101132336.p0DNaOPD007417@imap1.linux-foundation.org>
+Subject: [folded] hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:37:27 -0800
+Message-ID: <201101132337.p0DNbRxF007442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757169Ab1AMXg2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757120Ab1AMXh5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:36:28 -0500
+	Thu, 13 Jan 2011 18:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pullip.cho@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, caiqian@redhat.com, mhocko@suse.cz, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
+     hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+     hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
 
-This patch was dropped because it was folded into mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
+This patch was dropped because it was folded into hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
+Subject: hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-with older gcc:
+correctly propagate proc_doulongvec_minmax return code
 
-mm/page_alloc.c: In function '__free_one_page':
-mm/page_alloc.c:495: warning: 'buddy_idx' may be used uninitialized in this function
-
-Cc: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: CAI Qian <caiqian@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
-+++ a/mm/page_alloc.c
-@@ -492,7 +492,7 @@ static inline void __free_one_page(struc
+diff -puN mm/hugetlb.c~hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix
++++ a/mm/hugetlb.c
+@@ -1859,14 +1859,16 @@ static int hugetlb_sysctl_handler_common
  {
- 	unsigned long page_idx;
- 	unsigned long combined_idx;
--	unsigned long buddy_idx;
-+	unsigned long uninitialized_var(buddy_idx);
- 	struct page *buddy;
+ 	struct hstate *h = &default_hstate;
+ 	unsigned long tmp;
++	int ret;
  
- 	if (unlikely(PageCompound(page)))
+ 	if (!write)
+ 		tmp = h->max_huge_pages;
+ 
+ 	table->data = &tmp;
+ 	table->maxlen = sizeof(unsigned long);
+-	if (proc_doulongvec_minmax(table, write, buffer, length, ppos))
+-		return -EINVAL;
++	ret = proc_doulongvec_minmax(table, write, buffer, length, ppos);
++	if (ret)
++		goto out;
+ 
+ 	if (write) {
+ 		NODEMASK_ALLOC(nodemask_t, nodes_allowed,
+@@ -1881,8 +1883,8 @@ static int hugetlb_sysctl_handler_common
+ 		if (nodes_allowed != &node_states[N_HIGH_MEMORY])
+ 			NODEMASK_FREE(nodes_allowed);
+ 	}
+-
+-	return 0;
++out:
++	return ret;
+ }
+ 
+ int hugetlb_sysctl_handler(struct ctl_table *table, int write,
+@@ -1920,22 +1922,24 @@ int hugetlb_overcommit_handler(struct ct
+ {
+ 	struct hstate *h = &default_hstate;
+ 	unsigned long tmp;
++	int ret;
+ 
+ 	if (!write)
+ 		tmp = h->nr_overcommit_huge_pages;
+ 
+ 	table->data = &tmp;
+ 	table->maxlen = sizeof(unsigned long);
+-	if (proc_doulongvec_minmax(table, write, buffer, length, ppos))
+-		return -EINVAL;
++	ret = proc_doulongvec_minmax(table, write, buffer, length, ppos);
++	if (ret)
++		goto out;
+ 
+ 	if (write) {
+ 		spin_lock(&hugetlb_lock);
+ 		h->nr_overcommit_huge_pages = tmp;
+ 		spin_unlock(&hugetlb_lock);
+ 	}
+-
+-	return 0;
++out:
++	return ret;
+ }
+ 
+ #endif /* CONFIG_SYSCTL */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +122,7 @@ mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
 brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
 mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
 hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
 mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
 mm-page_allocc-dont-cache-current-in-a-local.patch
