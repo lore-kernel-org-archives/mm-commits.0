@@ -1,129 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: [merged] taskstats-use-better-ifdef-for-alignment.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:13 -0800
-Message-ID: <201101132011.p0DKBsaW030213@imap1.linux-foundation.org>
+Subject: [merged] pps-move-idr-stuff-to-ppsc.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:23 -0800
+Message-ID: <201101132012.p0DKC4fp030243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933405Ab1AMUMk (ORCPT
+	by vger.kernel.org with ESMTP id S933405Ab1AMUMq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:12:40 -0500
+	Thu, 13 Jan 2011 15:12:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, balbir@in.ibm.com, davem@davemloft.net, error27@gmail.com, florian@mickler.org, guichaz@gmail.com, mm-commits@vger.kernel.org
+To: lasaine@lvk.cs.msu.su, giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: use better ifdef for alignment
+     pps: move idr stuff to pps.c
 has been removed from the -mm tree.  Its filename was
-     taskstats-use-better-ifdef-for-alignment.patch
+     pps-move-idr-stuff-to-ppsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: use better ifdef for alignment
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: pps: move idr stuff to pps.c
+From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Commit 4be2c95d ("taskstats: pad taskstats netlink response for aligment
-issues on ia64") added a null field to align the taskstats structure but
-the discussion centered around ia64.  The issue exists on other platforms
-with inefficient unaligned access and adding them piecemeal would be an
-unmaintainable mess.
+Since now idr is only used to manage char device id's and not used in
+kernel API anymore it should be moved to pps.c.  This also makes it
+possible to release id only at actual device freeing so nobody can
+register a pps device with the same id while our device is not freed yet.
 
-This patch uses Dave Miller's suggestion of using a combination of
-CONFIG_64BIT && !CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS to determine
-whether alignment is needed.
-
-Note that this will cause breakage on those platforms with applications
-like iotop which had hard-coded offsets into the packet to access the
-taskstats structure.
-
-The message seen on systems without the alignment fixes looks like: kernel
-unaligned access to 0xe000023879dca9bc, ip=0xa000000100133d10
-
-The addresses may vary but resolve to locations inside __delayacct_add_tsk.
-
-
-iotop makes what I'd call unreasonable assumptions about the contents of a
-netlink genetlink packet containing generic attributes.  They're typed and
-have headers that specify value lengths, so the client can (should)
-identify and skip the ones the client doesn't understand.
-
-The kernel, as of version 2.6.36, presented a packet like so:
-+--------------------------------+
-| genlmsghdr - 4 bytes           |
-+--------------------------------+
-| NLA header - 4 bytes           | /* Aggregate header */
-+-+------------------------------+
-| | NLA header - 4 bytes         | /* PID header */
-| +------------------------------+
-| | pid/tgid   - 4 bytes         |
-| +------------------------------+
-| | NLA header - 4 bytes         | /* stats header */
-| + -----------------------------+ <- oops. aligned on 4 byte boundary
-| | struct taskstats - 328 bytes |
-+-+------------------------------+
-
-The iotop code expects that the kernel will behave as it did then,
-assuming that the packet format is set in stone.  The format is set in
-stone, but the packet offsets are not.  There's nothing in the packet
-format that guarantees that the packet will be sent in exactly the same
-way.  The attribute contents are set (or versioned) and the aggregate
-contents are set but they can be anywhere in the packet.
-
-The issue here isn't that an unaligned structure gets passed to userspace,
-it's that the NLA infrastructure has something of a weakness: The 4 byte
-attribute header may force the payload to be unaligned.  The taskstats
-structure is created at an unaligned location and then 64-bit values are
-operated on inside the kernel, so the unaligned access warnings gets
-spewed everywhere.
-
-It's possible to use the unaligned access API to operate on the structure
-in the kernel but it seems like a wasted effort to work around userspace
-code that isn't following the packet format.  Any new additions would also
-need the be worked around.  It's a maintenance nightmare.
-
-The conclusion of the earlier discussion seemed to be "ok fine, if we have
-to break it, don't break it on arches that don't have the problem." Dave
-pointed out that the unaligned access problem doesn't only exist on ia64,
-but also on other 64-bit arches that don't have efficient unaligned access
-and it should be fixed there as well.  The committed version of the patch
-and this addition keep with the conclusion of that discussion not to break
-it unnecessarily, which the pid padding and the packet padding fixes did
-do.  x86_64 and powerpc don't suffer this problem so they shouldn't suffer
-the solution.  Other 64-bit architectures do and will, though.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Reported-by: David S. Miller <davem@davemloft.net>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Florian Mickler <florian@mickler.org>
-Cc: Guillaume Chazarain <guichaz@gmail.com>
+Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pps/kapi.c |   56 ++-----------------------------------------
+ drivers/pps/pps.c  |   50 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 52 insertions(+), 54 deletions(-)
 
-diff -puN kernel/taskstats.c~taskstats-use-better-ifdef-for-alignment kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-use-better-ifdef-for-alignment
-+++ a/kernel/taskstats.c
-@@ -348,7 +348,7 @@ static int parse(struct nlattr *na, stru
- 	return ret;
- }
+diff -puN drivers/pps/kapi.c~pps-move-idr-stuff-to-ppsc drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-move-idr-stuff-to-ppsc
++++ a/drivers/pps/kapi.c
+@@ -27,19 +27,11 @@
+ #include <linux/sched.h>
+ #include <linux/time.h>
+ #include <linux/spinlock.h>
+-#include <linux/idr.h>
+ #include <linux/fs.h>
+ #include <linux/pps_kernel.h>
+ #include <linux/slab.h>
  
--#ifdef CONFIG_IA64
-+#if defined(CONFIG_64BIT) && !defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
- #define TASKSTATS_NEEDS_PADDING 1
- #endif
+ /*
+- * Local variables
+- */
+-
+-static DEFINE_SPINLOCK(pps_idr_lock);
+-static DEFINE_IDR(pps_idr);
+-
+-/*
+  * Local functions
+  */
+ 
+@@ -76,7 +68,6 @@ struct pps_device *pps_register_source(s
+ 		int default_params)
+ {
+ 	struct pps_device *pps;
+-	int id;
+ 	int err;
+ 
+ 	/* Sanity checks */
+@@ -117,54 +108,18 @@ struct pps_device *pps_register_source(s
+ 	init_waitqueue_head(&pps->queue);
+ 	spin_lock_init(&pps->lock);
+ 
+-	/* Get new ID for the new PPS source */
+-	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
+-		err = -ENOMEM;
+-		goto kfree_pps;
+-	}
+-
+-	spin_lock_irq(&pps_idr_lock);
+-
+-	/* Now really allocate the PPS source.
+-	 * After idr_get_new() calling the new source will be freely available
+-	 * into the kernel.
+-	 */
+-	err = idr_get_new(&pps_idr, pps, &id);
+-	if (err < 0) {
+-		spin_unlock_irq(&pps_idr_lock);
+-		goto kfree_pps;
+-	}
+-
+-	id = id & MAX_ID_MASK;
+-	if (id >= PPS_MAX_SOURCES) {
+-		spin_unlock_irq(&pps_idr_lock);
+-
+-		pr_err("%s: too many PPS sources in the system\n",
+-					info->name);
+-		err = -EBUSY;
+-		goto free_idr;
+-	}
+-	pps->id = id;
+-
+-	spin_unlock_irq(&pps_idr_lock);
+-
+ 	/* Create the char device */
+ 	err = pps_register_cdev(pps);
+ 	if (err < 0) {
+ 		pr_err("%s: unable to create char device\n",
+ 					info->name);
+-		goto free_idr;
++		goto kfree_pps;
+ 	}
+ 
+ 	dev_info(pps->dev, "new PPS source %s\n", info->name);
+ 
+ 	return pps;
+ 
+-free_idr:
+-	spin_lock_irq(&pps_idr_lock);
+-	idr_remove(&pps_idr, id);
+-	spin_unlock_irq(&pps_idr_lock);
+-
+ kfree_pps:
+ 	kfree(pps);
+ 
+@@ -184,15 +139,10 @@ EXPORT_SYMBOL(pps_register_source);
+ 
+ void pps_unregister_source(struct pps_device *pps)
+ {
+-	unsigned int id = pps->id;
+-
+ 	pps_unregister_cdev(pps);
+ 
+-	spin_lock_irq(&pps_idr_lock);
+-	idr_remove(&pps_idr, pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
+-
+-	kfree(pps);
++	/* don't have to kfree(pps) here because it will be done on
++	 * device destruction */
+ }
+ EXPORT_SYMBOL(pps_unregister_source);
+ 
+diff -puN drivers/pps/pps.c~pps-move-idr-stuff-to-ppsc drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-move-idr-stuff-to-ppsc
++++ a/drivers/pps/pps.c
+@@ -30,6 +30,7 @@
+ #include <linux/cdev.h>
+ #include <linux/poll.h>
+ #include <linux/pps_kernel.h>
++#include <linux/slab.h>
+ 
+ /*
+  * Local variables
+@@ -38,6 +39,9 @@
+ static dev_t pps_devt;
+ static struct class *pps_class;
+ 
++static DEFINE_SPINLOCK(pps_idr_lock);
++static DEFINE_IDR(pps_idr);
++
+ /*
+  * Char device methods
+  */
+@@ -229,11 +233,48 @@ static const struct file_operations pps_
+ 	.release	= pps_cdev_release,
+ };
+ 
++static void pps_device_destruct(struct device *dev)
++{
++	struct pps_device *pps = dev_get_drvdata(dev);
++
++	/* release id here to protect others from using it while it's
++	 * still in use */
++	spin_lock_irq(&pps_idr_lock);
++	idr_remove(&pps_idr, pps->id);
++	spin_unlock_irq(&pps_idr_lock);
++
++	kfree(dev);
++	kfree(pps);
++}
++
+ int pps_register_cdev(struct pps_device *pps)
+ {
+ 	int err;
+ 	dev_t devt;
+ 
++	/* Get new ID for the new PPS source */
++	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0)
++		return -ENOMEM;
++
++	/* Now really allocate the PPS source.
++	 * After idr_get_new() calling the new source will be freely available
++	 * into the kernel.
++	 */
++	spin_lock_irq(&pps_idr_lock);
++	err = idr_get_new(&pps_idr, pps, &pps->id);
++	spin_unlock_irq(&pps_idr_lock);
++
++	if (err < 0)
++		return err;
++
++	pps->id &= MAX_ID_MASK;
++	if (pps->id >= PPS_MAX_SOURCES) {
++		pr_err("%s: too many PPS sources in the system\n",
++					pps->info.name);
++		err = -EBUSY;
++		goto free_idr;
++	}
++
+ 	devt = MKDEV(MAJOR(pps_devt), pps->id);
+ 
+ 	cdev_init(&pps->cdev, &pps_cdev_fops);
+@@ -243,13 +284,15 @@ int pps_register_cdev(struct pps_device 
+ 	if (err) {
+ 		pr_err("%s: failed to add char device %d:%d\n",
+ 				pps->info.name, MAJOR(pps_devt), pps->id);
+-		return err;
++		goto free_idr;
+ 	}
+ 	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
+ 							"pps%d", pps->id);
+ 	if (IS_ERR(pps->dev))
+ 		goto del_cdev;
+ 
++	pps->dev->release = pps_device_destruct;
++
+ 	pr_debug("source %s got cdev (%d:%d)\n", pps->info.name,
+ 			MAJOR(pps_devt), pps->id);
+ 
+@@ -258,6 +301,11 @@ int pps_register_cdev(struct pps_device 
+ del_cdev:
+ 	cdev_del(&pps->cdev);
+ 
++free_idr:
++	spin_lock_irq(&pps_idr_lock);
++	idr_remove(&pps_idr, pps->id);
++	spin_unlock_irq(&pps_idr_lock);
++
+ 	return err;
+ }
  
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
 origin.patch
 
