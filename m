@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-add-kernel-consumer-support.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:34 -0800
-Message-ID: <201101132012.p0DKCFkf030272@imap1.linux-foundation.org>
+Subject: [merged] pps-convert-printk-pr_-to-dev_.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:22 -0800
+Message-ID: <201101132012.p0DKC3Oe030240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933767Ab1AMUUz (ORCPT
+	by vger.kernel.org with ESMTP id S933765Ab1AMUUz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 13 Jan 2011 15:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,350 +15,259 @@ To: lasaine@lvk.cs.msu.su, giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: add kernel consumer support
+     pps: convert printk/pr_* to dev_*
 has been removed from the -mm tree.  Its filename was
-     pps-add-kernel-consumer-support.patch
+     pps-convert-printk-pr_-to-dev_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add kernel consumer support
+Subject: pps: convert printk/pr_* to dev_*
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Add an optional feature of PPSAPI, kernel consumer support, which uses the
-added hardpps() function.
+Since we now have direct pointers to struct pps_device everywhere it's
+easy to use dev_* functions to print messages instead of plain printks. 
+Where dev_* cannot be used printks are converted to pr_*.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Acked-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    2 
- drivers/pps/Makefile                 |    1 
- drivers/pps/kapi.c                   |    6 +
- drivers/pps/kc.c                     |  123 +++++++++++++++++++++++++
- drivers/pps/kc.h                     |   47 +++++++++
- drivers/pps/pps.c                    |   38 +++++++
- include/linux/pps.h                  |    7 +
- 7 files changed, 222 insertions(+), 2 deletions(-)
+ drivers/pps/clients/pps-ktimer.c |    5 +++--
+ drivers/pps/clients/pps-ldisc.c  |    2 ++
+ drivers/pps/kapi.c               |   15 ++++++++-------
+ drivers/pps/pps.c                |   25 +++++++++++++------------
+ 4 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~pps-add-kernel-consumer-support
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -247,7 +247,7 @@ Code  Seq#(hex)	Include File		Comments
- 'p'	40-7F	linux/nvram.h
- 'p'	80-9F	linux/ppdev.h		user-space parport
- 					<mailto:tim@cyberelk.net>
--'p'	A1-A4	linux/pps.h		LinuxPPS
-+'p'	A1-A5	linux/pps.h		LinuxPPS
- 					<mailto:giometti@linux.it>
- 'q'	00-1F	linux/serio.h
- 'q'	80-FF	linux/telephony.h	Internet PhoneJACK, Internet LineJACK
-diff -puN drivers/pps/Makefile~pps-add-kernel-consumer-support drivers/pps/Makefile
---- a/drivers/pps/Makefile~pps-add-kernel-consumer-support
-+++ a/drivers/pps/Makefile
-@@ -3,6 +3,7 @@
- #
- 
- pps_core-y			:= pps.o kapi.o sysfs.o
-+pps_core-$(CONFIG_NTP_PPS)	+= kc.o
- obj-$(CONFIG_PPS)		:= pps_core.o
- obj-y				+= clients/
- 
-diff -puN drivers/pps/kapi.c~pps-add-kernel-consumer-support drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/kapi.c
-@@ -26,11 +26,14 @@
- #include <linux/init.h>
- #include <linux/sched.h>
- #include <linux/time.h>
-+#include <linux/timex.h>
- #include <linux/spinlock.h>
- #include <linux/fs.h>
- #include <linux/pps_kernel.h>
- #include <linux/slab.h>
- 
-+#include "kc.h"
-+
- /*
-  * Local functions
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_ drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   */
-@@ -139,6 +142,7 @@ EXPORT_SYMBOL(pps_register_source);
  
- void pps_unregister_source(struct pps_device *pps)
- {
-+	pps_kc_remove(pps);
- 	pps_unregister_cdev(pps);
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 	/* don't have to kfree(pps) here because it will be done on
-@@ -211,6 +215,8 @@ void pps_event(struct pps_device *pps, s
- 		captured = ~0;
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -45,7 +46,7 @@ static void pps_ktimer_event(unsigned lo
+ 	/* First of all we get the time stamp... */
+ 	pps_get_ts(&ts);
+ 
+-	pr_info("PPS event at %lu\n", jiffies);
++	dev_info(pps->dev, "PPS event at %lu\n", jiffies);
+ 
+ 	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ 
+@@ -94,7 +95,7 @@ static int __init pps_ktimer_init(void)
+ 	pps = pps_register_source(&pps_ktimer_info,
+ 				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
+ 	if (pps == NULL) {
+-		printk(KERN_ERR "cannot register ktimer source\n");
++		pr_err("cannot register PPS source\n");
+ 		return -ENOMEM;
  	}
  
-+	pps_kc_event(pps, ts, event);
-+
- 	/* Wake up if captured something */
- 	if (captured) {
- 		pps->last_ev++;
-diff -puN /dev/null drivers/pps/kc.c
---- /dev/null
-+++ a/drivers/pps/kc.c
-@@ -0,0 +1,123 @@
-+/*
-+ * PPS kernel consumer API
-+ *
-+ * Copyright (C) 2009-2010   Alexander Gordeev <lasaine@lvk.cs.msu.su>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-convert-printk-pr_-to-dev_ drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -19,6 +19,8 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/spinlock.h>
-+#include <linux/pps_kernel.h>
-+
-+#include "kc.h"
-+
-+/*
-+ * Global variables
-+ */
-+
-+/* state variables to bind kernel consumer */
-+DEFINE_SPINLOCK(pps_kc_hardpps_lock);
-+/* PPS API (RFC 2783): current source and mode for kernel consumer */
-+struct pps_device *pps_kc_hardpps_dev;	/* unique pointer to device */
-+int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
-+
-+/* pps_kc_bind - control PPS kernel consumer binding
-+ * @pps: the PPS source
-+ * @bind_args: kernel consumer bind parameters
-+ *
-+ * This function is used to bind or unbind PPS kernel consumer according to
-+ * supplied parameters. Should not be called in interrupt context.
-+ */
-+int pps_kc_bind(struct pps_device *pps, struct pps_bind_args *bind_args)
-+{
-+	/* Check if another consumer is already bound */
-+	spin_lock_irq(&pps_kc_hardpps_lock);
-+
-+	if (bind_args->edge == 0)
-+		if (pps_kc_hardpps_dev == pps) {
-+			pps_kc_hardpps_mode = 0;
-+			pps_kc_hardpps_dev = NULL;
-+			spin_unlock_irq(&pps_kc_hardpps_lock);
-+			dev_info(pps->dev, "unbound kernel"
-+					" consumer\n");
-+		} else {
-+			spin_unlock_irq(&pps_kc_hardpps_lock);
-+			dev_err(pps->dev, "selected kernel consumer"
-+					" is not bound\n");
-+			return -EINVAL;
-+		}
-+	else
-+		if (pps_kc_hardpps_dev == NULL ||
-+				pps_kc_hardpps_dev == pps) {
-+			pps_kc_hardpps_mode = bind_args->edge;
-+			pps_kc_hardpps_dev = pps;
-+			spin_unlock_irq(&pps_kc_hardpps_lock);
-+			dev_info(pps->dev, "bound kernel consumer: "
-+				"edge=0x%x\n", bind_args->edge);
-+		} else {
-+			spin_unlock_irq(&pps_kc_hardpps_lock);
-+			dev_err(pps->dev, "another kernel consumer"
-+					" is already bound\n");
-+			return -EINVAL;
-+		}
-+
-+	return 0;
-+}
-+
-+/* pps_kc_remove - unbind kernel consumer on PPS source removal
-+ * @pps: the PPS source
-+ *
-+ * This function is used to disable kernel consumer on PPS source removal
-+ * if this source was bound to PPS kernel consumer. Can be called on any
-+ * source safely. Should not be called in interrupt context.
-+ */
-+void pps_kc_remove(struct pps_device *pps)
-+{
-+	spin_lock_irq(&pps_kc_hardpps_lock);
-+	if (pps == pps_kc_hardpps_dev) {
-+		pps_kc_hardpps_mode = 0;
-+		pps_kc_hardpps_dev = NULL;
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+		dev_info(pps->dev, "unbound kernel consumer"
-+				" on device removal\n");
-+	} else
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+}
-+
-+/* pps_kc_event - call hardpps() on PPS event
-+ * @pps: the PPS source
-+ * @ts: PPS event timestamp
-+ * @event: PPS event edge
-+ *
-+ * This function calls hardpps() when an event from bound PPS source occurs.
-+ */
-+void pps_kc_event(struct pps_device *pps, struct pps_event_time *ts,
-+		int event)
-+{
-+	unsigned long flags;
-+
-+	/* Pass some events to kernel consumer if activated */
-+	spin_lock_irqsave(&pps_kc_hardpps_lock, flags);
-+	if (pps == pps_kc_hardpps_dev && event & pps_kc_hardpps_mode)
-+		hardpps(&ts->ts_real, &ts->ts_raw);
-+	spin_unlock_irqrestore(&pps_kc_hardpps_lock, flags);
-+}
-+
-diff -puN /dev/null drivers/pps/kc.h
---- /dev/null
-+++ a/drivers/pps/kc.h
-@@ -0,0 +1,47 @@
-+/*
-+ * PPS kernel consumer API header
-+ *
-+ * Copyright (C) 2009-2010   Alexander Gordeev <lasaine@lvk.cs.msu.su>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef LINUX_PPS_KC_H
-+#define LINUX_PPS_KC_H
-+
-+#include <linux/errno.h>
-+#include <linux/pps_kernel.h>
-+
-+#ifdef CONFIG_NTP_PPS
-+
-+extern int pps_kc_bind(struct pps_device *pps,
-+		struct pps_bind_args *bind_args);
-+extern void pps_kc_remove(struct pps_device *pps);
-+extern void pps_kc_event(struct pps_device *pps,
-+		struct pps_event_time *ts, int event);
-+
-+
-+#else /* CONFIG_NTP_PPS */
-+
-+static inline int pps_kc_bind(struct pps_device *pps,
-+		struct pps_bind_args *bind_args) { return -EOPNOTSUPP; }
-+static inline void pps_kc_remove(struct pps_device *pps) {}
-+static inline void pps_kc_event(struct pps_device *pps,
-+		struct pps_event_time *ts, int event) {}
-+
-+#endif /* CONFIG_NTP_PPS */
-+
-+#endif /* LINUX_PPS_KC_H */
-+
-diff -puN drivers/pps/pps.c~pps-add-kernel-consumer-support drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-kernel-consumer-support
-+++ a/drivers/pps/pps.c
-@@ -33,6 +33,8 @@
- #include <linux/pps_kernel.h>
- #include <linux/slab.h>
- 
-+#include "kc.h"
-+
- /*
-  * Local variables
+ #include <linux/module.h>
+ #include <linux/serial_core.h>
+ #include <linux/tty.h>
+diff -puN drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_ drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/kapi.c
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   */
-@@ -198,9 +200,43 @@ static long pps_cdev_ioctl(struct file *
  
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -80,20 +81,20 @@ struct pps_device *pps_register_source(s
+ 
+ 	/* Sanity checks */
+ 	if ((info->mode & default_params) != default_params) {
+-		printk(KERN_ERR "pps: %s: unsupported default parameters\n",
++		pr_err("%s: unsupported default parameters\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
+ 			info->echo == NULL) {
+-		printk(KERN_ERR "pps: %s: echo function is not defined\n",
++		pr_err("%s: echo function is not defined\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+-		printk(KERN_ERR "pps: %s: unspecified time format\n",
++		pr_err("%s: unspecified time format\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+@@ -138,7 +139,7 @@ struct pps_device *pps_register_source(s
+ 	if (id >= PPS_MAX_SOURCES) {
+ 		spin_unlock_irq(&pps_idr_lock);
+ 
+-		printk(KERN_ERR "pps: %s: too many PPS sources in the system\n",
++		pr_err("%s: too many PPS sources in the system\n",
+ 					info->name);
+ 		err = -EBUSY;
+ 		goto free_idr;
+@@ -150,12 +151,12 @@ struct pps_device *pps_register_source(s
+ 	/* Create the char device */
+ 	err = pps_register_cdev(pps);
+ 	if (err < 0) {
+-		printk(KERN_ERR "pps: %s: unable to create char device\n",
++		pr_err("%s: unable to create char device\n",
+ 					info->name);
+ 		goto free_idr;
+ 	}
+ 
+-	pr_info("new PPS source %s at ID %d\n", info->name, id);
++	dev_info(pps->dev, "new PPS source %s\n", info->name);
+ 
+ 	return pps;
+ 
+@@ -168,7 +169,7 @@ kfree_pps:
+ 	kfree(pps);
+ 
+ pps_register_source_exit:
+-	printk(KERN_ERR "pps: %s: unable to register source\n", info->name);
++	pr_err("%s: unable to register source\n", info->name);
+ 
+ 	return NULL;
+ }
+diff -puN drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_ drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/pps.c
+@@ -19,6 +19,7 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -67,7 +68,7 @@ static long pps_cdev_ioctl(struct file *
+ 
+ 	switch (cmd) {
+ 	case PPS_GETPARAMS:
+-		pr_debug("PPS_GETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETPARAMS\n");
+ 
+ 		spin_lock_irq(&pps->lock);
+ 
+@@ -83,7 +84,7 @@ static long pps_cdev_ioctl(struct file *
  		break;
+ 
+ 	case PPS_SETPARAMS:
+-		pr_debug("PPS_SETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_SETPARAMS\n");
+ 
+ 		/* Check the capabilities */
+ 		if (!capable(CAP_SYS_TIME))
+@@ -93,14 +94,14 @@ static long pps_cdev_ioctl(struct file *
+ 		if (err)
+ 			return -EFAULT;
+ 		if (!(params.mode & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR))) {
+-			pr_debug("capture mode unspecified (%x)\n",
++			dev_dbg(pps->dev, "capture mode unspecified (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
+ 
+ 		/* Check for supported capabilities */
+ 		if ((params.mode & ~pps->info.mode) != 0) {
+-			pr_debug("unsupported capabilities (%x)\n",
++			dev_dbg(pps->dev, "unsupported capabilities (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
+@@ -113,7 +114,7 @@ static long pps_cdev_ioctl(struct file *
+ 		/* Restore the read only parameters */
+ 		if ((params.mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+ 			/* section 3.3 of RFC 2783 interpreted */
+-			pr_debug("time format unspecified (%x)\n",
++			dev_dbg(pps->dev, "time format unspecified (%x)\n",
+ 								params.mode);
+ 			pps->params.mode |= PPS_TSFMT_TSPEC;
+ 		}
+@@ -126,7 +127,7 @@ static long pps_cdev_ioctl(struct file *
+ 		break;
+ 
+ 	case PPS_GETCAP:
+-		pr_debug("PPS_GETCAP: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETCAP\n");
+ 
+ 		err = put_user(pps->info.mode, iuarg);
+ 		if (err)
+@@ -138,7 +139,7 @@ static long pps_cdev_ioctl(struct file *
+ 		struct pps_fdata fdata;
+ 		unsigned int ev;
+ 
+-		pr_debug("PPS_FETCH: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_FETCH\n");
+ 
+ 		err = copy_from_user(&fdata, uarg, sizeof(struct pps_fdata));
+ 		if (err)
+@@ -153,7 +154,7 @@ static long pps_cdev_ioctl(struct file *
+ 		else {
+ 			unsigned long ticks;
+ 
+-			pr_debug("timeout %lld.%09d\n",
++			dev_dbg(pps->dev, "timeout %lld.%09d\n",
+ 					(long long) fdata.timeout.sec,
+ 					fdata.timeout.nsec);
+ 			ticks = fdata.timeout.sec * HZ;
+@@ -171,7 +172,7 @@ static long pps_cdev_ioctl(struct file *
+ 
+ 		/* Check for pending signals */
+ 		if (err == -ERESTARTSYS) {
+-			pr_debug("pending signal caught\n");
++			dev_dbg(pps->dev, "pending signal caught\n");
+ 			return -EINTR;
+ 		}
+ 
+@@ -240,7 +241,7 @@ int pps_register_cdev(struct pps_device 
+ 
+ 	err = cdev_add(&pps->cdev, devt, 1);
+ 	if (err) {
+-		printk(KERN_ERR "pps: %s: failed to add char device %d:%d\n",
++		pr_err("%s: failed to add char device %d:%d\n",
+ 				pps->info.name, MAJOR(pps_devt), pps->id);
+ 		return err;
  	}
-+	case PPS_KC_BIND: {
-+		struct pps_bind_args bind_args;
-+
-+		dev_dbg(pps->dev, "PPS_KC_BIND\n");
-+
-+		/* Check the capabilities */
-+		if (!capable(CAP_SYS_TIME))
-+			return -EPERM;
-+
-+		if (copy_from_user(&bind_args, uarg,
-+					sizeof(struct pps_bind_args)))
-+			return -EFAULT;
-+
-+		/* Check for supported capabilities */
-+		if ((bind_args.edge & ~pps->info.mode) != 0) {
-+			dev_err(pps->dev, "unsupported capabilities (%x)\n",
-+					bind_args.edge);
-+			return -EINVAL;
-+		}
-+
-+		/* Validate parameters roughly */
-+		if (bind_args.tsformat != PPS_TSFMT_TSPEC ||
-+				(bind_args.edge & ~PPS_CAPTUREBOTH) != 0 ||
-+				bind_args.consumer != PPS_KC_HARDPPS) {
-+			dev_err(pps->dev, "invalid kernel consumer bind"
-+					" parameters (%x)\n", bind_args.edge);
-+			return -EINVAL;
-+		}
-+
-+		err = pps_kc_bind(pps, &bind_args);
-+		if (err < 0)
-+			return err;
-+
-+		break;
-+	}
- 	default:
- 		return -ENOTTY;
--		break;
+@@ -282,14 +283,14 @@ static int __init pps_init(void)
+ 
+ 	pps_class = class_create(THIS_MODULE, "pps");
+ 	if (!pps_class) {
+-		printk(KERN_ERR "pps: failed to allocate class\n");
++		pr_err("failed to allocate class\n");
+ 		return -ENOMEM;
+ 	}
+ 	pps_class->dev_attrs = pps_attrs;
+ 
+ 	err = alloc_chrdev_region(&pps_devt, 0, PPS_MAX_SOURCES, "pps");
+ 	if (err < 0) {
+-		printk(KERN_ERR "pps: failed to allocate char device region\n");
++		pr_err("failed to allocate char device region\n");
+ 		goto remove_class;
  	}
  
- 	return 0;
-diff -puN include/linux/pps.h~pps-add-kernel-consumer-support include/linux/pps.h
---- a/include/linux/pps.h~pps-add-kernel-consumer-support
-+++ a/include/linux/pps.h
-@@ -114,11 +114,18 @@ struct pps_fdata {
- 	struct pps_ktime timeout;
- };
- 
-+struct pps_bind_args {
-+	int tsformat;	/* format of time stamps */
-+	int edge;	/* selected event type */
-+	int consumer;	/* selected kernel consumer */
-+};
-+
- #include <linux/ioctl.h>
- 
- #define PPS_GETPARAMS		_IOR('p', 0xa1, struct pps_kparams *)
- #define PPS_SETPARAMS		_IOW('p', 0xa2, struct pps_kparams *)
- #define PPS_GETCAP		_IOR('p', 0xa3, int *)
- #define PPS_FETCH		_IOWR('p', 0xa4, struct pps_fdata *)
-+#define PPS_KC_BIND		_IOW('p', 0xa5, struct pps_bind_args *)
- 
- #endif /* _PPS_H_ */
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
