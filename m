@@ -1,130 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-max732x-irq_data-conversion.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:39 -0800
-Message-ID: <201101132010.p0DKAKZB030056@imap1.linux-foundation.org>
+Subject: [merged] drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:28 -0800
+Message-ID: <201101132010.p0DKA9bP030039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933703Ab1AMUQv (ORCPT
+	by vger.kernel.org with ESMTP id S933703Ab1AMURa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:16:51 -0500
+	Thu, 13 Jan 2011 15:17:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: buytenh@wantstofly.org, buytenh@secretlab.ca, eric.y.miao@gmail.com, maz@misterjones.org, mm-commits@vger.kernel.org
+To: dilinger@queued.net, dsd@laptop.org, grant.likely@secretlab.ca, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: max732x: irq_data conversion
+     drivers/gpio/cs5535-gpio.c: add some additional cs5535-specific GPIO functionality
 has been removed from the -mm tree.  Its filename was
-     gpio-max732x-irq_data-conversion.patch
+     drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: max732x: irq_data conversion
-From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: drivers/gpio/cs5535-gpio.c: add some additional cs5535-specific GPIO functionality
+From: Andres Salomon <dilinger@queued.net>
 
-Converts irq_chips and flow handlers over to the new struct irq_data based
-irq_chip functions.
+This adds (well, re-adds actually) handling for events/IRQs through cs5535
+GPIOs.  In the wild and wooly world of CS5535, setup_event() is for
+assigning an IRQ to a GPIO filter/event pair, and set_irq() sets up the
+pair to trigger IRQs.
 
-Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Acked-by: Marc Zyngier <maz@misterjones.org>
-Cc: Eric Miao <eric.y.miao@gmail.com>
+These should really only be used in highly platform-specific drivers (such
+as OLPC's DCON driver).  Sadly, because set_irq() uses MSRs, this causes
+the driver to become X86-specific.
+
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max732x.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/gpio/Kconfig       |    2 -
+ drivers/gpio/cs5535-gpio.c |   52 +++++++++++++++++++++++++++++++++++
+ include/linux/cs5535.h     |    2 +
+ 3 files changed, 55 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/max732x.c~gpio-max732x-irq_data-conversion drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~gpio-max732x-irq_data-conversion
-+++ a/drivers/gpio/max732x.c
-@@ -327,40 +327,40 @@ static int max732x_gpio_to_irq(struct gp
- 	return chip->irq_base + off;
+diff -puN drivers/gpio/Kconfig~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality
++++ a/drivers/gpio/Kconfig
+@@ -295,7 +295,7 @@ comment "PCI GPIO expanders:"
+ 
+ config GPIO_CS5535
+ 	tristate "AMD CS5535/CS5536 GPIO support"
+-	depends on PCI && !CS5535_GPIO
++	depends on PCI && X86 && !CS5535_GPIO
+ 	help
+ 	  The AMD CS5535 and CS5536 southbridges support 28 GPIO pins that
+ 	  can be used for quite a number of things.  The CS5535/6 is found on
+diff -puN drivers/gpio/cs5535-gpio.c~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality drivers/gpio/cs5535-gpio.c
+--- a/drivers/gpio/cs5535-gpio.c~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality
++++ a/drivers/gpio/cs5535-gpio.c
+@@ -15,6 +15,7 @@
+ #include <linux/gpio.h>
+ #include <linux/io.h>
+ #include <linux/cs5535.h>
++#include <asm/msr.h>
+ 
+ #define DRV_NAME "cs5535-gpio"
+ #define GPIO_BAR 1
+@@ -144,6 +145,57 @@ int cs5535_gpio_isset(unsigned offset, u
  }
+ EXPORT_SYMBOL_GPL(cs5535_gpio_isset);
  
--static void max732x_irq_mask(unsigned int irq)
-+static void max732x_irq_mask(struct irq_data *d)
- {
--	struct max732x_chip *chip = get_irq_chip_data(irq);
-+	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
++int cs5535_gpio_set_irq(unsigned group, unsigned irq)
++{
++	uint32_t lo, hi;
++
++	if (group > 7 || irq > 15)
++		return -EINVAL;
++
++	rdmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
++
++	lo &= ~(0xF << (group * 4));
++	lo |= (irq & 0xF) << (group * 4);
++
++	wrmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cs5535_gpio_set_irq);
++
++void cs5535_gpio_setup_event(unsigned offset, int pair, int pme)
++{
++	struct cs5535_gpio_chip *chip = &cs5535_gpio_chip;
++	uint32_t shift = (offset % 8) * 4;
++	unsigned long flags;
++	uint32_t val;
++
++	if (offset >= 24)
++		offset = GPIO_MAP_W;
++	else if (offset >= 16)
++		offset = GPIO_MAP_Z;
++	else if (offset >= 8)
++		offset = GPIO_MAP_Y;
++	else
++		offset = GPIO_MAP_X;
++
++	spin_lock_irqsave(&chip->lock, flags);
++	val = inl(chip->base + offset);
++
++	/* Clear whatever was there before */
++	val &= ~(0xF << shift);
++
++	/* Set the new value */
++	val |= ((pair & 7) << shift);
++
++	/* Set the PME bit if this is a PME event */
++	if (pme)
++		val |= (1 << (shift + 3));
++
++	outl(val, chip->base + offset);
++	spin_unlock_irqrestore(&chip->lock, flags);
++}
++EXPORT_SYMBOL_GPL(cs5535_gpio_setup_event);
++
+ /*
+  * Generic gpio_chip API support.
+  */
+diff -puN include/linux/cs5535.h~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality include/linux/cs5535.h
+--- a/include/linux/cs5535.h~drivers-gpio-cs5535-gpioc-add-some-additional-cs5535-specific-gpio-functionality
++++ a/include/linux/cs5535.h
+@@ -111,6 +111,8 @@ static inline int cs5535_has_vsa2(void)
+ void cs5535_gpio_set(unsigned offset, unsigned int reg);
+ void cs5535_gpio_clear(unsigned offset, unsigned int reg);
+ int cs5535_gpio_isset(unsigned offset, unsigned int reg);
++int cs5535_gpio_set_irq(unsigned group, unsigned irq);
++void cs5535_gpio_setup_event(unsigned offset, int pair, int pme);
  
--	chip->irq_mask_cur &= ~(1 << (irq - chip->irq_base));
-+	chip->irq_mask_cur &= ~(1 << (d->irq - chip->irq_base));
- }
+ /* MFGPTs */
  
--static void max732x_irq_unmask(unsigned int irq)
-+static void max732x_irq_unmask(struct irq_data *d)
- {
--	struct max732x_chip *chip = get_irq_chip_data(irq);
-+	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
- 
--	chip->irq_mask_cur |= 1 << (irq - chip->irq_base);
-+	chip->irq_mask_cur |= 1 << (d->irq - chip->irq_base);
- }
- 
--static void max732x_irq_bus_lock(unsigned int irq)
-+static void max732x_irq_bus_lock(struct irq_data *d)
- {
--	struct max732x_chip *chip = get_irq_chip_data(irq);
-+	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
- 
- 	mutex_lock(&chip->irq_lock);
- 	chip->irq_mask_cur = chip->irq_mask;
- }
- 
--static void max732x_irq_bus_sync_unlock(unsigned int irq)
-+static void max732x_irq_bus_sync_unlock(struct irq_data *d)
- {
--	struct max732x_chip *chip = get_irq_chip_data(irq);
-+	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
- 
- 	max732x_irq_update_mask(chip);
- 	mutex_unlock(&chip->irq_lock);
- }
- 
--static int max732x_irq_set_type(unsigned int irq, unsigned int type)
-+static int max732x_irq_set_type(struct irq_data *d, unsigned int type)
- {
--	struct max732x_chip *chip = get_irq_chip_data(irq);
--	uint16_t off = irq - chip->irq_base;
-+	struct max732x_chip *chip = irq_data_get_irq_chip_data(d);
-+	uint16_t off = d->irq - chip->irq_base;
- 	uint16_t mask = 1 << off;
- 
- 	if (!(mask & chip->dir_input)) {
-@@ -371,7 +371,7 @@ static int max732x_irq_set_type(unsigned
- 
- 	if (!(type & IRQ_TYPE_EDGE_BOTH)) {
- 		dev_err(&chip->client->dev, "irq %d: unsupported type %d\n",
--			irq, type);
-+			d->irq, type);
- 		return -EINVAL;
- 	}
- 
-@@ -390,11 +390,11 @@ static int max732x_irq_set_type(unsigned
- 
- static struct irq_chip max732x_irq_chip = {
- 	.name			= "max732x",
--	.mask			= max732x_irq_mask,
--	.unmask			= max732x_irq_unmask,
--	.bus_lock		= max732x_irq_bus_lock,
--	.bus_sync_unlock	= max732x_irq_bus_sync_unlock,
--	.set_type		= max732x_irq_set_type,
-+	.irq_mask		= max732x_irq_mask,
-+	.irq_unmask		= max732x_irq_unmask,
-+	.irq_bus_lock		= max732x_irq_bus_lock,
-+	.irq_bus_sync_unlock	= max732x_irq_bus_sync_unlock,
-+	.irq_set_type		= max732x_irq_set_type,
- };
- 
- static uint8_t max732x_irq_pending(struct max732x_chip *chip)
 _
 
-Patches currently in -mm which might be from buytenh@wantstofly.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
 linux-next.patch
