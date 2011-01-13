@@ -1,73 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vgacon-check-for-efi-machine.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:16 -0800
-Message-ID: <201101132009.p0DK9vsx029993@imap1.linux-foundation.org>
+Subject: [merged] rtc-cmos-fix-suspend-resume.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:22 -0800
+Message-ID: <201101132010.p0DKA3ST030019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756629Ab1AMUPO (ORCPT
+	by vger.kernel.org with ESMTP id S933703Ab1AMUP7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:15:14 -0500
+	Thu, 13 Jan 2011 15:15:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yannick_heneault@matrox.com, airlied@linux.ie, hpa@zytor.com, yheneaul@matrox.com, mm-commits@vger.kernel.org
+To: pgf@laptop.org, dsd@laptop.org, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vgacon: check for efi machine
+     rtc-cmos: fix suspend/resume
 has been removed from the -mm tree.  Its filename was
-     vgacon-check-for-efi-machine.patch
+     rtc-cmos-fix-suspend-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vgacon: check for efi machine
-From: Yannick Heneault <yannick_heneault@matrox.com>
+Subject: rtc-cmos: fix suspend/resume
+From: Paul Fox <pgf@laptop.org>
 
-It seems there is a small problem of VGA palette corruption on EFI
-machine.  When the kernel initializes the architecture, it checks if the
-machine is a EFI machine and assumes that a VGA console can exist.
+rtc-cmos was setting suspend/resume hooks at the device_driver level. 
+However, the platform bus code (drivers/base/platform.c) only looks for
+resume hooks at the dev_pm_ops level, or within the platform_driver.
 
-When it initializes the console in vgacon_startup it checks if it can
-really use the VGA console.  I think this is where a check is missing. 
-Currently, the function can fail if a VESA boot mode is detected but not if
-a EFI boot mode was used.
+Switch rtc_cmos to use dev_pm_ops so that suspend/resume code is executed
+again.
 
-Thus vgacon_startup() doesn't fail and initialize the video card for a real
-VGA mode.  This function changes the first 16entries of the VGA palette. 
+Paul said:
 
-When the efifb driver kicks in, the palette is not restored to default
-ramp value, thus the 16 first entry remain in a modified state.  The
-following patch prevent this corruption.
+: The user visible symptom in our (XO laptop) case was that rtcwake would
+: fail to wake the laptop.  The RTC alarm would expire, but the wakeup
+: wasn't unmasked.
+: 
+: As for severity, the impact may have been reduced because if I recall
+: correctly, the bug only affected platforms with CONFIG_PNP disabled.
 
-Signed-off-by: Yannick Heneault <yheneaul@matrox.com>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Paul Fox <pgf@laptop.org>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: <stable@kernel.org>		[2.6.37.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~vgacon-check-for-efi-machine drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vgacon-check-for-efi-machine
-+++ a/drivers/video/console/vgacon.c
-@@ -375,7 +375,8 @@ static const char *vgacon_startup(void)
- 	u16 saved1, saved2;
- 	volatile u16 *p;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-suspend-resume drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-suspend-resume
++++ a/drivers/rtc/rtc-cmos.c
+@@ -36,6 +36,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/log2.h>
++#include <linux/pm.h>
  
--	if (screen_info.orig_video_isVGA == VIDEO_TYPE_VLFB) {
-+	if (screen_info.orig_video_isVGA == VIDEO_TYPE_VLFB ||
-+	    screen_info.orig_video_isVGA == VIDEO_TYPE_EFI) {
- 	      no_vga:
- #ifdef CONFIG_DUMMY_CONSOLE
- 		conswitchp = &dummy_con;
+ /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
+ #include <asm-generic/rtc.h>
+@@ -851,7 +852,7 @@ static void __exit cmos_do_remove(struct
+ 
+ #ifdef	CONFIG_PM
+ 
+-static int cmos_suspend(struct device *dev, pm_message_t mesg)
++static int cmos_suspend(struct device *dev)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+ 	unsigned char	tmp;
+@@ -899,7 +900,7 @@ static int cmos_suspend(struct device *d
+  */
+ static inline int cmos_poweroff(struct device *dev)
+ {
+-	return cmos_suspend(dev, PMSG_HIBERNATE);
++	return cmos_suspend(dev);
+ }
+ 
+ static int cmos_resume(struct device *dev)
+@@ -946,9 +947,9 @@ static int cmos_resume(struct device *de
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(cmos_pm_ops, cmos_suspend, cmos_resume);
++
+ #else
+-#define	cmos_suspend	NULL
+-#define	cmos_resume	NULL
+ 
+ static inline int cmos_poweroff(struct device *dev)
+ {
+@@ -1078,7 +1079,7 @@ static void __exit cmos_pnp_remove(struc
+ 
+ static int cmos_pnp_suspend(struct pnp_dev *pnp, pm_message_t mesg)
+ {
+-	return cmos_suspend(&pnp->dev, mesg);
++	return cmos_suspend(&pnp->dev);
+ }
+ 
+ static int cmos_pnp_resume(struct pnp_dev *pnp)
+@@ -1158,8 +1159,9 @@ static struct platform_driver cmos_platf
+ 	.shutdown	= cmos_platform_shutdown,
+ 	.driver = {
+ 		.name		= (char *) driver_name,
+-		.suspend	= cmos_suspend,
+-		.resume		= cmos_resume,
++#ifdef CONFIG_PM
++		.pm		= &cmos_pm_ops,
++#endif
+ 	}
+ };
+ 
 _
 
-Patches currently in -mm which might be from yannick_heneault@matrox.com are
+Patches currently in -mm which might be from pgf@laptop.org are
 
 origin.patch
+linux-next.patch
 
