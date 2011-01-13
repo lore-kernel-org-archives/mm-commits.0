@@ -1,197 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:30:40 -0800
-Message-ID: <201101132330.p0DNUeav007154@imap1.linux-foundation.org>
+Subject: [folded] thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:31:08 -0800
+Message-ID: <201101132331.p0DNV9Dw007184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757320Ab1AMXay (ORCPT
+	by vger.kernel.org with ESMTP id S1757320Ab1AMXbU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:30:54 -0500
+	Thu, 13 Jan 2011 18:31:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
+     thp-pte-alloc-trans-splitting-fix-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
+     thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into thp-add-pmd-mangling-generic-functions.patch
+This patch was dropped because it was folded into thp-pte-alloc-trans-splitting.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp-pte-alloc-trans-splitting-fix-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Hi everyone,
+ERROR: "foo * bar" should be "foo *bar"
+#64: FILE: arch/sparc/mm/generic_32.c:53:
++		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
 
-On Fri, Dec 17, 2010 at 04:58:34PM -0800, Andrew Morton wrote:
-> The first one millionth:
->
-> include/asm-generic/pgtable.h: In function 'ptep_get_and_clear':
-> include/asm-generic/pgtable.h:77: error: expected statement before ')' token
-> include/asm-generic/pgtable.h:94: error: invalid storage class for function 'pmdp_get_and_clear'
->
-> Due to thp-add-pmd-mangling-generic-functions.patch
+ERROR: "foo * bar" should be "foo *bar"
+#76: FILE: arch/sparc/mm/generic_64.c:95:
++		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
 
-Here two fixes for the um build.
+total: 2 errors, 0 warnings, 56 lines checked
 
-This is thp-add-pmd-mangling-generic-functions-fix.patch. I hope I'm
-not asking for more build troubles down the road insisting on inline
-and returning (pmd_t) { 0 } instead of converting it back to a
-preprocessor macro.
+./patches/thp-pte-alloc-trans-splitting-fix.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-========
-Subject: thp: fix pgtable.h build for um
+Please run checkpatch prior to sending patches
 
-
-make ARCH=um failed because of some typo error in newly written code to cleanup
-asm-generic/pgtable.h but that was never compiled in on x86/x64 without um.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    4 ++--
- mm/pgtable-generic.c          |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc/mm/generic_32.c |    2 +-
+ arch/sparc/mm/generic_64.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
-+++ a/include/asm-generic/pgtable.h
-@@ -74,7 +74,7 @@ static inline pte_t ptep_get_and_clear(s
- 	pte_t pte = *ptep;
- 	pte_clear(mm, address, ptep);
- 	return pte;
--)
-+}
- #endif
- 
- #ifndef __HAVE_ARCH_PMDP_GET_AND_CLEAR
-@@ -93,7 +93,7 @@ static inline pmd_t pmdp_get_and_clear(s
- 				       pmd_t *pmdp)
- {
- 	BUG();
--	return 0;
-+	return (pmd_t){ 0 };
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
-diff -puN mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um
-+++ a/mm/pgtable-generic.c
-@@ -29,7 +29,7 @@ int ptep_set_access_flags(struct vm_area
- 		flush_tlb_page(vma, address);
- 	}
- 	return changed;
--})
-+}
- #endif
- 
- #ifndef __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
+diff -puN arch/sparc/mm/generic_32.c~thp-pte-alloc-trans-splitting-fix-checkpatch-fixes arch/sparc/mm/generic_32.c
+--- a/arch/sparc/mm/generic_32.c~thp-pte-alloc-trans-splitting-fix-checkpatch-fixes
++++ a/arch/sparc/mm/generic_32.c
+@@ -50,7 +50,7 @@ static inline int io_remap_pmd_range(str
+ 		end = PGDIR_SIZE;
+ 	offset -= address;
+ 	do {
+-		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
++		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+diff -puN arch/sparc/mm/generic_64.c~thp-pte-alloc-trans-splitting-fix-checkpatch-fixes arch/sparc/mm/generic_64.c
+--- a/arch/sparc/mm/generic_64.c~thp-pte-alloc-trans-splitting-fix-checkpatch-fixes
++++ a/arch/sparc/mm/generic_64.c
+@@ -92,7 +92,7 @@ static inline int io_remap_pmd_range(str
+ 		end = PGDIR_SIZE;
+ 	offset -= address;
+ 	do {
+-		pte_t * pte = pte_alloc_map(mm, NULL, pmd, address);
++		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+origin.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-transparent-hugepage-support-documentation.patch
-thp-mm-define-madv_hugepage.patch
-thp-compound_lock.patch
-thp-alter-compound-get_page-put_page.patch
-thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
-thp-add-pmd-mangling-functions-to-x86.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
 thp-pte-alloc-trans-splitting.patch
-thp-pte-alloc-trans-splitting-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-add-pmd-mmu_notifier-helpers.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
-thp-kvm-mmu-transparent-hugepage-support.patch
-thp-kvm-mmu-transparent-hugepage-support-fix.patch
 thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-transparent-hugepage-core.patch
-thp-transparent-hugepage-core-fixlet.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-madvisemadv_hugepage.patch
-thp-pmd_trans_huge-migrate-bugcheck.patch
-thp-memcg-compound.patch
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-memcg-huge-memory.patch
-thp-transparent-hugepage-vmstat.patch
-thp-khugepaged.patch
-thp-khugepaged-vma-merge.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-remove-pg_buddy.patch
-thp-add-x86-32bit-support.patch
-thp-mincore-transparent-hugepage-support.patch
-thp-add-pmd_modify.patch
-thp-mprotect-pass-vma-down-to-page-table-walkers.patch
-thp-mprotect-transparent-huge-page-support.patch
-thp-set-recommended-min-free-kbytes.patch
-thp-enable-direct-defrag.patch
-thp-add-numa-awareness-to-hugepage-allocations.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode-fix.patch
-thp-transparent-hugepage-config-choice.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
-thp-dont-allow-transparent-hugepage-support-without-pse.patch
-thp-mmu_notifier_test_young.patch
-thp-freeze-khugepaged-and-ksmd.patch
-thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
-thp-use-compaction-for-all-allocation-orders.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
-thp-scale-nr_rotated-to-balance-memory-pressure.patch
-thp-transparent-hugepage-sysfs-meminfo.patch
-thp-add-debug-checks-for-mapcount-related-invariants.patch
-thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
-thp-compound_trans_order.patch
-thp-compound_trans_order-fix.patch
-thp-mm-define-madv_nohugepage.patch
-thp-madvisemadv_nohugepage.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-thp-ksm-on-thp.patch
-thp-add-compound_trans_head-helper.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
 hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment.patch
 hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix-fix.patch
-hugetlb-fix-handling-of-parse-errors-in-sysfs.patch
-ksm-drain-pagevecs-to-lru.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
 
