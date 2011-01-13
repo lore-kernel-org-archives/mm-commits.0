@@ -1,117 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ext4-inodec-use-pr_warn_ratelimited.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:12 -0800
-Message-ID: <201101132005.p0DK5r80029673@imap1.linux-foundation.org>
+Subject: [merged] leds-lp5521-fix-circular-locking.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:03:24 -0800
+Message-ID: <201101132006.p0DK65Li029696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933607Ab1AMUGX (ORCPT
+	by vger.kernel.org with ESMTP id S933543Ab1AMUGy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:06:23 -0500
+	Thu, 13 Jan 2011 15:06:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, arun.murthy@stericsson.com, ilkka.koskinen@nokia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ext4/inode.c: use pr_warn_ratelimited()
+     leds: lp5521: fix circular locking
 has been removed from the -mm tree.  Its filename was
-     fs-ext4-inodec-use-pr_warn_ratelimited.patch
+     leds-lp5521-fix-circular-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ext4/inode.c: use pr_warn_ratelimited()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: lp5521: fix circular locking
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-pr_warning_ratelimited() doesn't exist.
+Driver contained possibility for circular locking.
 
-Also include printk.h, which defines these things.
+One lock is held by sysfs-core and another one by the driver itself.  This
+happened when the driver created or removed sysfs entries dynamically. 
+There is no real need to do those operations.  Now all the sysfs entries
+are created at probe and removed at removal.  Engine load sysfs entries
+are now visible all the time.  However, access to the entries fails if the
+engine is disabled or running.
 
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Arun Murthy <arun.murthy@stericsson.com>
+Reviewed-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/leds/leds-lp5521.c |   52 +++++------------------------------
+ 1 file changed, 8 insertions(+), 44 deletions(-)
 
-diff -puN fs/ext4/inode.c~fs-ext4-inodec-use-pr_warn_ratelimited fs/ext4/inode.c
---- a/fs/ext4/inode.c~fs-ext4-inodec-use-pr_warn_ratelimited
-+++ a/fs/ext4/inode.c
-@@ -39,6 +39,7 @@
- #include <linux/bio.h>
- #include <linux/workqueue.h>
- #include <linux/kernel.h>
-+#include <linux/printk.h>
- #include <linux/slab.h>
- #include <linux/ratelimit.h>
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-fix-circular-locking drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-fix-circular-locking
++++ a/drivers/leds/leds-lp5521.c
+@@ -98,7 +98,6 @@
+ #define LP5521_EXT_CLK_USED		0x08
  
-@@ -3737,7 +3738,7 @@ static int ext4_set_bh_endio(struct buff
- retry:
- 	io_end = ext4_init_io_end(inode, GFP_ATOMIC);
- 	if (!io_end) {
--		pr_warning_ratelimited("%s: allocation fail\n", __func__);
-+		pr_warn_ratelimited("%s: allocation fail\n", __func__);
- 		schedule();
- 		goto retry;
+ struct lp5521_engine {
+-	const struct attribute_group *attributes;
+ 	int		id;
+ 	u8		mode;
+ 	u8		prog_page;
+@@ -225,25 +224,22 @@ static int lp5521_set_led_current(struct
+ 		    curr);
+ }
+ 
+-static void lp5521_init_engine(struct lp5521_chip *chip,
+-			const struct attribute_group *attr_group)
++static void lp5521_init_engine(struct lp5521_chip *chip)
+ {
+ 	int i;
+ 	for (i = 0; i < ARRAY_SIZE(chip->engines); i++) {
+ 		chip->engines[i].id = i + 1;
+ 		chip->engines[i].engine_mask = LP5521_ENG_MASK_BASE >> (i * 2);
+ 		chip->engines[i].prog_page = i;
+-		chip->engines[i].attributes = &attr_group[i];
  	}
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
-mm-page_allocc-dont-cache-current-in-a-local.patch
-mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+ }
+ 
+-static int lp5521_configure(struct i2c_client *client,
+-			const struct attribute_group *attr_group)
++static int lp5521_configure(struct i2c_client *client)
+ {
+ 	struct lp5521_chip *chip = i2c_get_clientdata(client);
+ 	int ret;
+ 
+-	lp5521_init_engine(chip, attr_group);
++	lp5521_init_engine(chip);
+ 
+ 	/* Set all PWMs to direct control mode */
+ 	ret = lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
+@@ -329,9 +325,6 @@ static int lp5521_detect(struct i2c_clie
+ /* Set engine mode and create appropriate sysfs attributes, if required. */
+ static int lp5521_set_mode(struct lp5521_engine *engine, u8 mode)
+ {
+-	struct lp5521_chip *chip = engine_to_lp5521(engine);
+-	struct i2c_client *client = chip->client;
+-	struct device *dev = &client->dev;
+ 	int ret = 0;
+ 
+ 	/* if in that mode already do nothing, except for run */
+@@ -343,18 +336,10 @@ static int lp5521_set_mode(struct lp5521
+ 	} else if (mode == LP5521_CMD_LOAD) {
+ 		lp5521_set_engine_mode(engine, LP5521_CMD_DISABLED);
+ 		lp5521_set_engine_mode(engine, LP5521_CMD_LOAD);
+-
+-		ret = sysfs_create_group(&dev->kobj, engine->attributes);
+-		if (ret)
+-			return ret;
+ 	} else if (mode == LP5521_CMD_DISABLED) {
+ 		lp5521_set_engine_mode(engine, LP5521_CMD_DISABLED);
+ 	}
+ 
+-	/* remove load attribute from sysfs if not in load mode */
+-	if (engine->mode == LP5521_CMD_LOAD && mode != LP5521_CMD_LOAD)
+-		sysfs_remove_group(&dev->kobj, engine->attributes);
+-
+ 	engine->mode = mode;
+ 
+ 	return ret;
+@@ -389,7 +374,10 @@ static int lp5521_do_store_load(struct l
+ 		goto fail;
+ 
+ 	mutex_lock(&chip->lock);
+-	ret = lp5521_load_program(engine, pattern);
++	if (engine->mode == LP5521_CMD_LOAD)
++		ret = lp5521_load_program(engine, pattern);
++	else
++		ret = -EINVAL;
+ 	mutex_unlock(&chip->lock);
+ 
+ 	if (ret) {
+@@ -576,20 +564,8 @@ static struct attribute *lp5521_attribut
+ 	&dev_attr_engine2_mode.attr,
+ 	&dev_attr_engine3_mode.attr,
+ 	&dev_attr_selftest.attr,
+-	NULL
+-};
+-
+-static struct attribute *lp5521_engine1_attributes[] = {
+ 	&dev_attr_engine1_load.attr,
+-	NULL
+-};
+-
+-static struct attribute *lp5521_engine2_attributes[] = {
+ 	&dev_attr_engine2_load.attr,
+-	NULL
+-};
+-
+-static struct attribute *lp5521_engine3_attributes[] = {
+ 	&dev_attr_engine3_load.attr,
+ 	NULL
+ };
+@@ -598,12 +574,6 @@ static const struct attribute_group lp55
+ 	.attrs = lp5521_attributes,
+ };
+ 
+-static const struct attribute_group lp5521_engine_group[] = {
+-	{.attrs = lp5521_engine1_attributes },
+-	{.attrs = lp5521_engine2_attributes },
+-	{.attrs = lp5521_engine3_attributes },
+-};
+-
+ static int lp5521_register_sysfs(struct i2c_client *client)
+ {
+ 	struct device *dev = &client->dev;
+@@ -618,12 +588,6 @@ static void lp5521_unregister_sysfs(stru
+ 
+ 	sysfs_remove_group(&dev->kobj, &lp5521_group);
+ 
+-	for (i = 0; i <  ARRAY_SIZE(chip->engines); i++) {
+-		if (chip->engines[i].mode == LP5521_CMD_LOAD)
+-			sysfs_remove_group(&dev->kobj,
+-					chip->engines[i].attributes);
+-	}
