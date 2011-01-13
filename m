@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] toshibah-hide-a-function-prototypes-behind-__kernel__-macro.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:57 -0800
-Message-ID: <201101132006.p0DK6caB029763@imap1.linux-foundation.org>
+Subject: [merged] dca-remove-unneeded-null-check.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:04:13 -0800
+Message-ID: <201101132006.p0DK6s1d029783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933405Ab1AMUHU (ORCPT
+	by vger.kernel.org with ESMTP id S933614Ab1AMUHZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:07:20 -0500
+	Thu, 13 Jan 2011 15:07:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: virtuoso@slind.org, jonathan@buzzard.org.uk, mm-commits@vger.kernel.org
+To: error27@gmail.com, davem@davemloft.net, maciej.sosnowski@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     toshiba.h: hide a function prototypes behind __KERNEL__ macro
+     dca: remove unneeded NULL check
 has been removed from the -mm tree.  Its filename was
-     toshibah-hide-a-function-prototypes-behind-__kernel__-macro.patch
+     dca-remove-unneeded-null-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba.h: hide a function prototypes behind __KERNEL__ macro
-From: Alexander Shishkin <virtuoso@slind.org>
+Subject: dca: remove unneeded NULL check
+From: Dan Carpenter <error27@gmail.com>
 
-Currently, tosh_smm() prototype is present in a header file exported to
-userland.  This patch fixes it.
+The return here doesn't release the locks or re-enable IRQs.  But as
+Andrew Morton points out, domain is never NULL.  list_first_entry()
+essentially never returns NULL and also we already verified that the list
+is not empty.
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Cc: Jonathan Buzzard <jonathan@buzzard.org.uk>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Acked-by: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/toshiba.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/dca/dca-core.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/toshiba.h~toshibah-hide-a-function-prototypes-behind-__kernel__-macro include/linux/toshiba.h
---- a/include/linux/toshiba.h~toshibah-hide-a-function-prototypes-behind-__kernel__-macro
-+++ a/include/linux/toshiba.h
-@@ -33,6 +33,8 @@ typedef struct {
- 	unsigned int edi __attribute__ ((packed));
- } SMMRegisters;
+diff -puN drivers/dca/dca-core.c~dca-remove-unneeded-null-check drivers/dca/dca-core.c
+--- a/drivers/dca/dca-core.c~dca-remove-unneeded-null-check
++++ a/drivers/dca/dca-core.c
+@@ -110,8 +110,6 @@ static void unregister_dca_providers(voi
  
-+#ifdef __KERNEL__
- int tosh_smm(SMMRegisters *regs);
-+#endif /* __KERNEL__ */
+ 	/* at this point only one domain in the list is expected */
+ 	domain = list_first_entry(&dca_domains, struct dca_domain, node);
+-	if (!domain)
+-		return;
  
- #endif
+ 	list_for_each_entry_safe(dca, _dca, &domain->dca_providers, node) {
+ 		list_del(&dca->node);
 _
 
-Patches currently in -mm which might be from virtuoso@slind.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
-scsi-fix-a-header-to-include-linux-typesh.patch
+linux-next.patch
 
