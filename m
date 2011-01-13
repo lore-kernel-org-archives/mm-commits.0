@@ -1,335 +1,585 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-integrate-rio_switch-into-rio_dev.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:52 -0800
-Message-ID: <201101132011.p0DKBXNP030183@imap1.linux-foundation.org>
+Subject: [merged] ntp-add-hardpps-implementation.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:30 -0800
+Message-ID: <201101132012.p0DKCBsX030263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933708Ab1AMUNA (ORCPT
+	by vger.kernel.org with ESMTP id S933710Ab1AMUNG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:13:00 -0500
+	Thu, 13 Jan 2011 15:13:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
+To: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: integrate rio_switch into rio_dev
+     ntp: add hardpps implementation
 has been removed from the -mm tree.  Its filename was
-     rapidio-integrate-rio_switch-into-rio_dev.patch
+     ntp-add-hardpps-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: integrate rio_switch into rio_dev
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: ntp: add hardpps implementation
+From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Convert RIO switches device structures (rio_dev + rio_switch) into a
-single allocation unit.
+This commit adds hardpps() implementation based upon the original one from
+the NTPv4 reference kernel code from David Mills.  However, it is highly
+optimized towards very fast syncronization and maximum stickness to PPS
+signal.  The typical error is less then a microsecond.
 
-This change is based on the fact that RIO switches are using common RIO
-device objects anyway.  Allocating RIO switch objects as RIO devices with
-added space for switch information simplifies handling of RIO switch
-devices.
+To make it sync faster I had to throw away exponential phase filter so
+that the full phase offset is corrected immediately.  Then I also had to
+throw away median phase filter because it gives a bigger error itself if
+used without exponential filter.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+Maybe we will find an appropriate filtering scheme in the future but it's
+not necessary if the signal quality is ok.
+
+Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c  |   59 +++++++++++++-----------
- drivers/rapidio/rio-sysfs.c |    4 -
- include/linux/rio.h         |   82 +++++++++++++++++-----------------
- 3 files changed, 75 insertions(+), 70 deletions(-)
+ drivers/pps/Kconfig   |    9 
+ include/linux/timex.h |    1 
+ kernel/time/ntp.c     |  425 ++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 420 insertions(+), 15 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-integrate-rio_switch-into-rio_dev drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-integrate-rio_switch-into-rio_dev
-+++ a/drivers/rapidio/rio-scan.c
-@@ -378,12 +378,30 @@ static struct rio_dev __devinit *rio_set
- 	struct rio_dev *rdev;
- 	struct rio_switch *rswitch = NULL;
- 	int result, rdid;
-+	size_t size;
-+	u32 swpinfo = 0;
+diff -puN drivers/pps/Kconfig~ntp-add-hardpps-implementation drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~ntp-add-hardpps-implementation
++++ a/drivers/pps/Kconfig
+@@ -30,6 +30,15 @@ config PPS_DEBUG
+ 	  messages to the system log.  Select this if you are having a
+ 	  problem with PPS support and want to see more of what is going on.
  
--	rdev = kzalloc(sizeof(struct rio_dev), GFP_KERNEL);
-+	size = sizeof(struct rio_dev);
-+	if (rio_mport_read_config_32(port, destid, hopcount,
-+				     RIO_PEF_CAR, &result))
-+		return NULL;
++config NTP_PPS
++	bool "PPS kernel consumer support"
++	depends on PPS && !NO_HZ
++	help
++	  This option adds support for direct in-kernel time
++	  syncronization using an external PPS signal.
 +
-+	if (result & (RIO_PEF_SWITCH | RIO_PEF_MULTIPORT)) {
-+		rio_mport_read_config_32(port, destid, hopcount,
-+					 RIO_SWP_INFO_CAR, &swpinfo);
-+		if (result & RIO_PEF_SWITCH) {
-+			size += (RIO_GET_TOTAL_PORTS(swpinfo) *
-+				sizeof(rswitch->nextdev[0])) + sizeof(*rswitch);
-+		}
-+	}
++	  It doesn't work on tickless systems at the moment.
 +
-+	rdev = kzalloc(size, GFP_KERNEL);
- 	if (!rdev)
- 		return NULL;
+ source drivers/pps/clients/Kconfig
  
- 	rdev->net = net;
-+	rdev->pef = result;
-+	rdev->swpinfo = swpinfo;
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_DEV_ID_CAR,
- 				 &result);
- 	rdev->did = result >> 16;
-@@ -397,8 +415,6 @@ static struct rio_dev __devinit *rio_set
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_ASM_INFO_CAR,
- 				 &result);
- 	rdev->asm_rev = result >> 16;
--	rio_mport_read_config_32(port, destid, hopcount, RIO_PEF_CAR,
--				 &rdev->pef);
- 	if (rdev->pef & RIO_PEF_EXT_FEATURES) {
- 		rdev->efptr = result & 0xffff;
- 		rdev->phys_efptr = rio_mport_get_physefb(port, 0, destid,
-@@ -408,11 +424,6 @@ static struct rio_dev __devinit *rio_set
- 						hopcount, RIO_EFB_ERR_MGMNT);
- 	}
+ endmenu
+diff -puN include/linux/timex.h~ntp-add-hardpps-implementation include/linux/timex.h
+--- a/include/linux/timex.h~ntp-add-hardpps-implementation
++++ a/include/linux/timex.h
+@@ -268,6 +268,7 @@ extern u64 tick_length;
+ extern void second_overflow(void);
+ extern void update_ntp_one_tick(void);
+ extern int do_adjtimex(struct timex *);
++extern void hardpps(const struct timespec *, const struct timespec *);
  
--	if (rdev->pef & (RIO_PEF_SWITCH | RIO_PEF_MULTIPORT)) {
--		rio_mport_read_config_32(port, destid, hopcount,
--					 RIO_SWP_INFO_CAR, &rdev->swpinfo);
--	}
--
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_SRC_OPS_CAR,
- 				 &rdev->src_ops);
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_DST_OPS_CAR,
-@@ -449,12 +460,7 @@ static struct rio_dev __devinit *rio_set
+ int read_current_timer(unsigned long *timer_val);
  
- 	/* If a PE has both switch and other functions, show it as a switch */
- 	if (rio_is_switch(rdev)) {
--		rswitch = kzalloc(sizeof(*rswitch) +
--				  RIO_GET_TOTAL_PORTS(rdev->swpinfo) *
--				  sizeof(rswitch->nextdev[0]),
--				  GFP_KERNEL);
--		if (!rswitch)
--			goto cleanup;
-+		rswitch = rdev->rswitch;
- 		rswitch->switchid = next_switchid;
- 		rswitch->port_ok = 0;
- 		rswitch->route_table = kzalloc(sizeof(u8)*
-@@ -466,15 +472,13 @@ static struct rio_dev __devinit *rio_set
- 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES(port->sys_size);
- 				rdid++)
- 			rswitch->route_table[rdid] = RIO_INVALID_ROUTE;
--		rdev->rswitch = rswitch;
--		rswitch->rdev = rdev;
- 		dev_set_name(&rdev->dev, "%02x:s:%04x", rdev->net->id,
--			     rdev->rswitch->switchid);
-+			     rswitch->switchid);
- 		rio_switch_init(rdev, do_enum);
+diff -puN kernel/time/ntp.c~ntp-add-hardpps-implementation kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-add-hardpps-implementation
++++ a/kernel/time/ntp.c
+@@ -14,6 +14,7 @@
+ #include <linux/timex.h>
+ #include <linux/time.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
  
--		if (do_enum && rdev->rswitch->clr_table)
--			rdev->rswitch->clr_table(port, destid, hopcount,
--						 RIO_GLOBAL_TABLE);
-+		if (do_enum && rswitch->clr_table)
-+			rswitch->clr_table(port, destid, hopcount,
-+					   RIO_GLOBAL_TABLE);
+ /*
+  * NTP timekeeping variables:
+@@ -74,6 +75,162 @@ static long			time_adjust;
+ /* constant (boot-param configurable) NTP tick adjustment (upscaled)	*/
+ static s64			ntp_tick_adj;
  
- 		list_add_tail(&rswitch->node, &rio_switches);
- 
-@@ -510,10 +514,9 @@ static struct rio_dev __devinit *rio_set
- 	return rdev;
- 
- cleanup:
--	if (rswitch) {
-+	if (rswitch->route_table)
- 		kfree(rswitch->route_table);
--		kfree(rswitch);
--	}
++#ifdef CONFIG_NTP_PPS
 +
- 	kfree(rdev);
- 	return NULL;
- }
-@@ -1072,7 +1075,7 @@ static struct rio_net __devinit *rio_all
-  */
- static void rio_update_route_tables(struct rio_mport *port)
- {
--	struct rio_dev *rdev;
-+	struct rio_dev *rdev, *swrdev;
- 	struct rio_switch *rswitch;
- 	u8 sport;
- 	u16 destid;
-@@ -1087,14 +1090,16 @@ static void rio_update_route_tables(stru
- 				continue;
- 
- 			if (RIO_INVALID_ROUTE == rswitch->route_table[destid]) {
-+				swrdev = sw_to_rio_dev(rswitch);
-+
- 				/* Skip if destid ends in empty switch*/
--				if (rswitch->rdev->destid == destid)
-+				if (swrdev->destid == destid)
- 					continue;
- 
--				sport = RIO_GET_PORT_NUM(rswitch->rdev->swpinfo);
-+				sport = RIO_GET_PORT_NUM(swrdev->swpinfo);
- 
- 				if (rswitch->add_entry)	{
--					rio_route_add_entry(rswitch->rdev,
-+					rio_route_add_entry(swrdev,
- 						RIO_GLOBAL_TABLE, destid,
- 						sport, 0);
- 					rswitch->route_table[destid] = sport;
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-integrate-rio_switch-into-rio_dev drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-integrate-rio_switch-into-rio_dev
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -217,7 +217,7 @@ int rio_create_sysfs_dev_files(struct ri
- 
- 	err = device_create_bin_file(&rdev->dev, &rio_config_attr);
- 
--	if (!err && rdev->rswitch) {
-+	if (!err && (rdev->pef & RIO_PEF_SWITCH)) {
- 		err = device_create_file(&rdev->dev, &dev_attr_routes);
- 		if (!err && rdev->rswitch->sw_sysfs)
- 			err = rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_CREATE);
-@@ -239,7 +239,7 @@ int rio_create_sysfs_dev_files(struct ri
- void rio_remove_sysfs_dev_files(struct rio_dev *rdev)
- {
- 	device_remove_bin_file(&rdev->dev, &rio_config_attr);
--	if (rdev->rswitch) {
-+	if (rdev->pef & RIO_PEF_SWITCH) {
- 		device_remove_file(&rdev->dev, &dev_attr_routes);
- 		if (rdev->rswitch->sw_sysfs)
- 			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
-diff -puN include/linux/rio.h~rapidio-integrate-rio_switch-into-rio_dev include/linux/rio.h
---- a/include/linux/rio.h~rapidio-integrate-rio_switch-into-rio_dev
-+++ a/include/linux/rio.h
-@@ -71,9 +71,47 @@ extern struct device rio_bus;
- extern struct list_head rio_devices;	/* list of all devices */
- 
- struct rio_mport;
-+struct rio_dev;
- union rio_pw_msg;
- 
- /**
-+ * struct rio_switch - RIO switch info
-+ * @node: Node in global list of switches
-+ * @switchid: Switch ID that is unique across a network
-+ * @route_table: Copy of switch routing table
-+ * @port_ok: Status of each port (one bit per port) - OK=1 or UNINIT=0
-+ * @add_entry: Callback for switch-specific route add function
-+ * @get_entry: Callback for switch-specific route get function
-+ * @clr_table: Callback for switch-specific clear route table function
-+ * @set_domain: Callback for switch-specific domain setting function
-+ * @get_domain: Callback for switch-specific domain get function
-+ * @em_init: Callback for switch-specific error management init function
-+ * @em_handle: Callback for switch-specific error management handler function
-+ * @sw_sysfs: Callback that initializes switch-specific sysfs attributes
-+ * @nextdev: Array of per-port pointers to the next attached device
++/*
++ * The following variables are used when a pulse-per-second (PPS) signal
++ * is available. They establish the engineering parameters of the clock
++ * discipline loop when controlled by the PPS signal.
 + */
-+struct rio_switch {
-+	struct list_head node;
-+	u16 switchid;
-+	u8 *route_table;
-+	u32 port_ok;
-+	int (*add_entry) (struct rio_mport *mport, u16 destid, u8 hopcount,
-+			  u16 table, u16 route_destid, u8 route_port);
-+	int (*get_entry) (struct rio_mport *mport, u16 destid, u8 hopcount,
-+			  u16 table, u16 route_destid, u8 *route_port);
-+	int (*clr_table) (struct rio_mport *mport, u16 destid, u8 hopcount,
-+			  u16 table);
-+	int (*set_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
-+			   u8 sw_domain);
-+	int (*get_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
-+			   u8 *sw_domain);
-+	int (*em_init) (struct rio_dev *dev);
-+	int (*em_handle) (struct rio_dev *dev, u8 swport);
-+	int (*sw_sysfs) (struct rio_dev *dev, int create);
-+	struct rio_dev *nextdev[0];
-+};
++#define PPS_VALID	10	/* PPS signal watchdog max (s) */
++#define PPS_POPCORN	4	/* popcorn spike threshold (shift) */
++#define PPS_INTMIN	2	/* min freq interval (s) (shift) */
++#define PPS_INTMAX	8	/* max freq interval (s) (shift) */
++#define PPS_INTCOUNT	4	/* number of consecutive good intervals to
++				   increase pps_shift or consecutive bad
++				   intervals to decrease it */
++#define PPS_MAXWANDER	100000	/* max PPS freq wander (ns/s) */
++
++static int pps_valid;		/* signal watchdog counter */
++static long pps_tf[3];		/* phase median filter */
++static long pps_jitter;		/* current jitter (ns) */
++static struct timespec pps_fbase; /* beginning of the last freq interval */
++static int pps_shift;		/* current interval duration (s) (shift) */
++static int pps_intcnt;		/* interval counter */
++static s64 pps_freq;		/* frequency offset (scaled ns/s) */
++static long pps_stabil;		/* current stability (scaled ns/s) */
++
++/*
++ * PPS signal quality monitors
++ */
++static long pps_calcnt;		/* calibration intervals */
++static long pps_jitcnt;		/* jitter limit exceeded */
++static long pps_stbcnt;		/* stability limit exceeded */
++static long pps_errcnt;		/* calibration errors */
++
++
++/* PPS kernel consumer compensates the whole phase error immediately.
++ * Otherwise, reduce the offset by a fixed factor times the time constant.
++ */
++static inline s64 ntp_offset_chunk(s64 offset)
++{
++	if (time_status & STA_PPSTIME && time_status & STA_PPSSIGNAL)
++		return offset;
++	else
++		return shift_right(offset, SHIFT_PLL + time_constant);
++}
++
++static inline void pps_reset_freq_interval(void)
++{
++	/* the PPS calibration interval may end
++	   surprisingly early */
++	pps_shift = PPS_INTMIN;
++	pps_intcnt = 0;
++}
 +
 +/**
-  * struct rio_dev - RIO device info
-  * @global_list: Node in list of all RIO devices
-  * @net_list: Node in list of RIO devices in a network
-@@ -93,7 +131,6 @@ union rio_pw_msg;
-  * @phys_efptr: RIO device extended features pointer
-  * @em_efptr: RIO Error Management features pointer
-  * @dma_mask: Mask of bits of RIO address this device implements
-- * @rswitch: Pointer to &struct rio_switch if valid for this device
-  * @driver: Driver claiming this device
-  * @dev: Device model device
-  * @riores: RIO resources this device owns
-@@ -101,6 +138,7 @@ union rio_pw_msg;
-  * @destid: Network destination ID (or associated destid for switch)
-  * @hopcount: Hopcount to this device
-  * @prev: Previous RIO device connected to the current one
-+ * @rswitch: struct rio_switch (if valid for this device)
++ * pps_clear - Clears the PPS state variables
++ *
++ * Must be called while holding a write on the xtime_lock
++ */
++static inline void pps_clear(void)
++{
++	pps_reset_freq_interval();
++	pps_tf[0] = 0;
++	pps_tf[1] = 0;
++	pps_tf[2] = 0;
++	pps_fbase.tv_sec = pps_fbase.tv_nsec = 0;
++	pps_freq = 0;
++}
++
++/* Decrease pps_valid to indicate that another second has passed since
++ * the last PPS signal. When it reaches 0, indicate that PPS signal is
++ * missing.
++ *
++ * Must be called while holding a write on the xtime_lock
++ */
++static inline void pps_dec_valid(void)
++{
++	if (pps_valid > 0)
++		pps_valid--;
++	else {
++		time_status &= ~(STA_PPSSIGNAL | STA_PPSJITTER |
++				 STA_PPSWANDER | STA_PPSERROR);
++		pps_clear();
++	}
++}
++
++static inline void pps_set_freq(s64 freq)
++{
++	pps_freq = freq;
++}
++
++static inline int is_error_status(int status)
++{
++	return (time_status & (STA_UNSYNC|STA_CLOCKERR))
++		/* PPS signal lost when either PPS time or
++		 * PPS frequency synchronization requested
++		 */
++		|| ((time_status & (STA_PPSFREQ|STA_PPSTIME))
++			&& !(time_status & STA_PPSSIGNAL))
++		/* PPS jitter exceeded when
++		 * PPS time synchronization requested */
++		|| ((time_status & (STA_PPSTIME|STA_PPSJITTER))
++			== (STA_PPSTIME|STA_PPSJITTER))
++		/* PPS wander exceeded or calibration error when
++		 * PPS frequency synchronization requested
++		 */
++		|| ((time_status & STA_PPSFREQ)
++			&& (time_status & (STA_PPSWANDER|STA_PPSERROR)));
++}
++
++static inline void pps_fill_timex(struct timex *txc)
++{
++	txc->ppsfreq	   = shift_right((pps_freq >> PPM_SCALE_INV_SHIFT) *
++					 PPM_SCALE_INV, NTP_SCALE_SHIFT);
++	txc->jitter	   = pps_jitter;
++	if (!(time_status & STA_NANO))
++		txc->jitter /= NSEC_PER_USEC;
++	txc->shift	   = pps_shift;
++	txc->stabil	   = pps_stabil;
++	txc->jitcnt	   = pps_jitcnt;
++	txc->calcnt	   = pps_calcnt;
++	txc->errcnt	   = pps_errcnt;
++	txc->stbcnt	   = pps_stbcnt;
++}
++
++#else /* !CONFIG_NTP_PPS */
++
++static inline s64 ntp_offset_chunk(s64 offset)
++{
++	return shift_right(offset, SHIFT_PLL + time_constant);
++}
++
++static inline void pps_reset_freq_interval(void) {}
++static inline void pps_clear(void) {}
++static inline void pps_dec_valid(void) {}
++static inline void pps_set_freq(s64 freq) {}
++
++static inline int is_error_status(int status)
++{
++	return status & (STA_UNSYNC|STA_CLOCKERR);
++}
++
++static inline void pps_fill_timex(struct timex *txc)
++{
++	/* PPS is not implemented, so these are zero */
++	txc->ppsfreq	   = 0;
++	txc->jitter	   = 0;
++	txc->shift	   = 0;
++	txc->stabil	   = 0;
++	txc->jitcnt	   = 0;
++	txc->calcnt	   = 0;
++	txc->errcnt	   = 0;
++	txc->stbcnt	   = 0;
++}
++
++#endif /* CONFIG_NTP_PPS */
++
+ /*
+  * NTP methods:
   */
- struct rio_dev {
- 	struct list_head global_list;	/* node in list of all RIO devices */
-@@ -121,7 +159,6 @@ struct rio_dev {
- 	u32 phys_efptr;
- 	u32 em_efptr;
- 	u64 dma_mask;
--	struct rio_switch *rswitch;	/* RIO switch info */
- 	struct rio_driver *driver;	/* RIO driver claiming this device */
- 	struct device dev;	/* LDM device structure */
- 	struct resource riores[RIO_MAX_DEV_RESOURCES];
-@@ -129,11 +166,13 @@ struct rio_dev {
- 	u16 destid;
- 	u8 hopcount;
- 	struct rio_dev *prev;
-+	struct rio_switch rswitch[0];	/* RIO switch info */
- };
+@@ -185,6 +342,9 @@ void ntp_clear(void)
  
- #define rio_dev_g(n) list_entry(n, struct rio_dev, global_list)
- #define rio_dev_f(n) list_entry(n, struct rio_dev, net_list)
- #define	to_rio_dev(n) container_of(n, struct rio_dev, dev)
-+#define sw_to_rio_dev(n) container_of(n, struct rio_dev, rswitch[0])
+ 	tick_length	= tick_length_base;
+ 	time_offset	= 0;
++
++	/* Clear PPS state variables */
++	pps_clear();
+ }
  
- /**
-  * struct rio_msg - RIO message event
-@@ -226,45 +265,6 @@ struct rio_net {
- #define RIO_SW_SYSFS_CREATE	1	/* Create switch attributes */
- #define RIO_SW_SYSFS_REMOVE	0	/* Remove switch attributes */
+ /*
+@@ -250,16 +410,16 @@ void second_overflow(void)
+ 		time_status |= STA_UNSYNC;
+ 	}
  
--/**
-- * struct rio_switch - RIO switch info
-- * @node: Node in global list of switches
-- * @rdev: Associated RIO device structure
-- * @switchid: Switch ID that is unique across a network
-- * @route_table: Copy of switch routing table
-- * @port_ok: Status of each port (one bit per port) - OK=1 or UNINIT=0
-- * @add_entry: Callback for switch-specific route add function
-- * @get_entry: Callback for switch-specific route get function
-- * @clr_table: Callback for switch-specific clear route table function
-- * @set_domain: Callback for switch-specific domain setting function
-- * @get_domain: Callback for switch-specific domain get function
-- * @em_init: Callback for switch-specific error management initialization function
-- * @em_handle: Callback for switch-specific error management handler function
-- * @sw_sysfs: Callback that initializes switch-specific sysfs attributes
-- * @nextdev: Array of per-port pointers to the next attached device
-- */
--struct rio_switch {
--	struct list_head node;
--	struct rio_dev *rdev;
--	u16 switchid;
--	u8 *route_table;
--	u32 port_ok;
--	int (*add_entry) (struct rio_mport * mport, u16 destid, u8 hopcount,
--			  u16 table, u16 route_destid, u8 route_port);
--	int (*get_entry) (struct rio_mport * mport, u16 destid, u8 hopcount,
--			  u16 table, u16 route_destid, u8 * route_port);
--	int (*clr_table) (struct rio_mport *mport, u16 destid, u8 hopcount,
--			  u16 table);
--	int (*set_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
--			   u8 sw_domain);
--	int (*get_domain) (struct rio_mport *mport, u16 destid, u8 hopcount,
--			   u8 *sw_domain);
--	int (*em_init) (struct rio_dev *dev);
--	int (*em_handle) (struct rio_dev *dev, u8 swport);
--	int (*sw_sysfs) (struct rio_dev *dev, int create);
--	struct rio_dev *nextdev[0];
--};
+-	/*
+-	 * Compute the phase adjustment for the next second. The offset is
+-	 * reduced by a fixed factor times the time constant.
+-	 */
++	/* Compute the phase adjustment for the next second */
+ 	tick_length	 = tick_length_base;
+ 
+-	delta		 = shift_right(time_offset, SHIFT_PLL + time_constant);
++	delta		 = ntp_offset_chunk(time_offset);
+ 	time_offset	-= delta;
+ 	tick_length	+= delta;
+ 
++	/* Check PPS signal */
++	pps_dec_valid();
++
+ 	if (!time_adjust)
+ 		return;
+ 
+@@ -369,6 +529,8 @@ static inline void process_adj_status(st
+ 	if ((time_status & STA_PLL) && !(txc->status & STA_PLL)) {
+ 		time_state = TIME_OK;
+ 		time_status = STA_UNSYNC;
++		/* restart PPS frequency calibration */
++		pps_reset_freq_interval();
+ 	}
+ 
+ 	/*
+@@ -418,6 +580,8 @@ static inline void process_adjtimex_mode
+ 		time_freq = txc->freq * PPM_SCALE;
+ 		time_freq = min(time_freq, MAXFREQ_SCALED);
+ 		time_freq = max(time_freq, -MAXFREQ_SCALED);
++		/* update pps_freq */
++		pps_set_freq(time_freq);
+ 	}
+ 
+ 	if (txc->modes & ADJ_MAXERROR)
+@@ -508,7 +672,8 @@ int do_adjtimex(struct timex *txc)
+ 	}
+ 
+ 	result = time_state;	/* mostly `TIME_OK' */
+-	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
++	/* check for errors */
++	if (is_error_status(time_status))
+ 		result = TIME_ERROR;
+ 
+ 	txc->freq	   = shift_right((time_freq >> PPM_SCALE_INV_SHIFT) *
+@@ -522,15 +687,8 @@ int do_adjtimex(struct timex *txc)
+ 	txc->tick	   = tick_usec;
+ 	txc->tai	   = time_tai;
+ 
+-	/* PPS is not implemented, so these are zero */
+-	txc->ppsfreq	   = 0;
+-	txc->jitter	   = 0;
+-	txc->shift	   = 0;
+-	txc->stabil	   = 0;
+-	txc->jitcnt	   = 0;
+-	txc->calcnt	   = 0;
+-	txc->errcnt	   = 0;
+-	txc->stbcnt	   = 0;
++	/* fill PPS status fields */
++	pps_fill_timex(txc);
+ 
+ 	write_sequnlock_irq(&xtime_lock);
+ 
+@@ -544,6 +702,243 @@ int do_adjtimex(struct timex *txc)
+ 	return result;
+ }
+ 
++#ifdef	CONFIG_NTP_PPS
++
++/* actually struct pps_normtime is good old struct timespec, but it is
++ * semantically different (and it is the reason why it was invented):
++ * pps_normtime.nsec has a range of ( -NSEC_PER_SEC / 2, NSEC_PER_SEC / 2 ]
++ * while timespec.tv_nsec has a range of [0, NSEC_PER_SEC) */
++struct pps_normtime {
++	__kernel_time_t	sec;	/* seconds */
++	long		nsec;	/* nanoseconds */
++};
++
++/* normalize the timestamp so that nsec is in the
++   ( -NSEC_PER_SEC / 2, NSEC_PER_SEC / 2 ] interval */
++static inline struct pps_normtime pps_normalize_ts(struct timespec ts)
++{
++	struct pps_normtime norm = {
++		.sec = ts.tv_sec,
++		.nsec = ts.tv_nsec
++	};
++
++	if (norm.nsec > (NSEC_PER_SEC >> 1)) {
++		norm.nsec -= NSEC_PER_SEC;
++		norm.sec++;
++	}
++
++	return norm;
++}
++
++/* get current phase correction and jitter */
++static inline long pps_phase_filter_get(long *jitter)
++{
++	*jitter = pps_tf[0] - pps_tf[1];
++	if (*jitter < 0)
++		*jitter = -*jitter;
++
++	/* TODO: test various filters */
++	return pps_tf[0];
++}
++
++/* add the sample to the phase filter */
++static inline void pps_phase_filter_add(long err)
++{
++	pps_tf[2] = pps_tf[1];
++	pps_tf[1] = pps_tf[0];
++	pps_tf[0] = err;
++}
++
++/* decrease frequency calibration interval length.
++ * It is halved after four consecutive unstable intervals.
++ */
++static inline void pps_dec_freq_interval(void)
++{
++	if (--pps_intcnt <= -PPS_INTCOUNT) {
++		pps_intcnt = -PPS_INTCOUNT;
++		if (pps_shift > PPS_INTMIN) {
++			pps_shift--;
++			pps_intcnt = 0;
++		}
++	}
++}
++
++/* increase frequency calibration interval length.
++ * It is doubled after four consecutive stable intervals.
++ */
++static inline void pps_inc_freq_interval(void)
++{
++	if (++pps_intcnt >= PPS_INTCOUNT) {
++		pps_intcnt = PPS_INTCOUNT;
++		if (pps_shift < PPS_INTMAX) {
++			pps_shift++;
++			pps_intcnt = 0;
++		}
++	}
++}
++
++/* update clock frequency based on MONOTONIC_RAW clock PPS signal
++ * timestamps
++ *
++ * At the end of the calibration interval the difference between the
++ * first and last MONOTONIC_RAW clock timestamps divided by the length
++ * of the interval becomes the frequency update. If the interval was
++ * too long, the data are discarded.
++ * Returns the difference between old and new frequency values.
++ */
++static long hardpps_update_freq(struct pps_normtime freq_norm)
++{
++	long delta, delta_mod;
++	s64 ftemp;
++
++	/* check if the frequency interval was too long */
++	if (freq_norm.sec > (2 << pps_shift)) {
++		time_status |= STA_PPSERROR;
++		pps_errcnt++;
++		pps_dec_freq_interval();
++		pr_err("hardpps: PPSERROR: interval too long - %ld s\n",
++				freq_norm.sec);
++		return 0;
++	}
++
++	/* here the raw frequency offset and wander (stability) is
++	 * calculated. If the wander is less than the wander threshold
++	 * the interval is increased; otherwise it is decreased.
++	 */
++	ftemp = div_s64(((s64)(-freq_norm.nsec)) << NTP_SCALE_SHIFT,
++			freq_norm.sec);
++	delta = shift_right(ftemp - pps_freq, NTP_SCALE_SHIFT);
++	pps_freq = ftemp;
++	if (delta > PPS_MAXWANDER || delta < -PPS_MAXWANDER) {
++		pr_warning("hardpps: PPSWANDER: change=%ld\n", delta);
++		time_status |= STA_PPSWANDER;
++		pps_stbcnt++;
++		pps_dec_freq_interval();
++	} else {	/* good sample */
++		pps_inc_freq_interval();
++	}
++
++	/* the stability metric is calculated as the average of recent
++	 * frequency changes, but is used only for performance
++	 * monitoring
++	 */
++	delta_mod = delta;
++	if (delta_mod < 0)
++		delta_mod = -delta_mod;
++	pps_stabil += (div_s64(((s64)delta_mod) <<
++				(NTP_SCALE_SHIFT - SHIFT_USEC),
++				NSEC_PER_USEC) - pps_stabil) >> PPS_INTMIN;
++
++	/* if enabled, the system clock frequency is updated */
++	if ((time_status & STA_PPSFREQ) != 0 &&
++	    (time_status & STA_FREQHOLD) == 0) {
++		time_freq = pps_freq;
++		ntp_update_frequency();
++	}
++
++	return delta;
++}
++
++/* correct REALTIME clock phase error against PPS signal */
++static void hardpps_update_phase(long error)
++{
++	long correction = -error;
++	long jitter;
++
++	/* add the sample to the median filter */
++	pps_phase_filter_add(correction);
++	correction = pps_phase_filter_get(&jitter);
++
++	/* Nominal jitter is due to PPS signal noise. If it exceeds the
++	 * threshold, the sample is discarded; otherwise, if so enabled,
++	 * the time offset is updated.
++	 */
++	if (jitter > (pps_jitter << PPS_POPCORN)) {
++		pr_warning("hardpps: PPSJITTER: jitter=%ld, limit=%ld\n",
++		       jitter, (pps_jitter << PPS_POPCORN));
++		time_status |= STA_PPSJITTER;
++		pps_jitcnt++;
++	} else if (time_status & STA_PPSTIME) {
++		/* correct the time using the phase offset */
++		time_offset = div_s64(((s64)correction) << NTP_SCALE_SHIFT,
++				NTP_INTERVAL_FREQ);
++		/* cancel running adjtime() */
++		time_adjust = 0;
++	}
++	/* update jitter */
++	pps_jitter += (jitter - pps_jitter) >> PPS_INTMIN;
++}
++
++/*
++ * hardpps() - discipline CPU clock oscillator to external PPS signal
++ *
++ * This routine is called at each PPS signal arrival in order to
++ * discipline the CPU clock oscillator to the PPS signal. It takes two
++ * parameters: REALTIME and MONOTONIC_RAW clock timestamps. The former
++ * is used to correct clock phase error and the latter is used to
++ * correct the frequency.
++ *
++ * This code is based on David Mills's reference nanokernel
++ * implementation. It was mostly rewritten but keeps the same idea.
++ */
++void hardpps(const struct timespec *phase_ts, const struct timespec *raw_ts)
++{
++	struct pps_normtime pts_norm, freq_norm;
++	unsigned long flags;
++
++	pts_norm = pps_normalize_ts(*phase_ts);
++
++	write_seqlock_irqsave(&xtime_lock, flags);
++
++	/* clear the error bits, they will be set again if needed */
++	time_status &= ~(STA_PPSJITTER | STA_PPSWANDER | STA_PPSERROR);
++
++	/* indicate signal presence */
++	time_status |= STA_PPSSIGNAL;
++	pps_valid = PPS_VALID;
++
++	/* when called for the first time,
++	 * just start the frequency interval */
++	if (unlikely(pps_fbase.tv_sec == 0)) {
++		pps_fbase = *raw_ts;
++		write_sequnlock_irqrestore(&xtime_lock, flags);
++		return;
++	}
++
++	/* ok, now we have a base for frequency calculation */
++	freq_norm = pps_normalize_ts(timespec_sub(*raw_ts, pps_fbase));
++
++	/* check that the signal is in the range
++	 * [1s - MAXFREQ us, 1s + MAXFREQ us], otherwise reject it */
++	if ((freq_norm.sec == 0) ||
++			(freq_norm.nsec > MAXFREQ * freq_norm.sec) ||
++			(freq_norm.nsec < -MAXFREQ * freq_norm.sec)) {
++		time_status |= STA_PPSJITTER;
++		/* restart the frequency calibration interval */
++		pps_fbase = *raw_ts;
++		write_sequnlock_irqrestore(&xtime_lock, flags);
++		pr_err("hardpps: PPSJITTER: bad pulse\n");
++		return;
++	}
++
++	/* signal is ok */
++
++	/* check if the current frequency interval is finished */
++	if (freq_norm.sec >= (1 << pps_shift)) {
++		pps_calcnt++;
++		/* restart the frequency calibration interval */
++		pps_fbase = *raw_ts;
++		hardpps_update_freq(freq_norm);
++	}
++
++	hardpps_update_phase(pts_norm.nsec);
++
++	write_sequnlock_irqrestore(&xtime_lock, flags);
++}
++EXPORT_SYMBOL(hardpps);
++
++#endif	/* CONFIG_NTP_PPS */
++
+ static int __init ntp_tick_adj_setup(char *str)
+ {
+ 	ntp_tick_adj = simple_strtol(str, NULL, 0);
+_
+
+Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
+
+origin.patch
+
