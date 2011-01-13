@@ -1,55 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sysctl-remove-obsolete-comments-fix.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:25:10 -0800
-Message-ID: <201101130025.p0D0PAOY012378@imap1.linux-foundation.org>
+Subject: [folded] user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:25:35 -0800
+Message-ID: <201101130025.p0D0PZL9012390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756437Ab1AMAZM (ORCPT
+	by vger.kernel.org with ESMTP id S1756434Ab1AMAZk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:25:12 -0500
+	Wed, 12 Jan 2011 19:25:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bookjovi@gmail.com, hidave.darkstar@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, serge@hallyn.com, xemul@openvz.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-remove-obsolete-comments-fix
+     user_ns-improve-the-user_ns-on-the-slab-packaging-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-obsolete-comments-fix.patch
+     user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
 
-This patch was dropped because it was folded into sysctl-remove-obsolete-comments.patch
+This patch was dropped because it was folded into user_ns-improve-the-user_ns-on-the-slab-packaging.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-remove-obsolete-comments-fix
+Subject: user_ns-improve-the-user_ns-on-the-slab-packaging-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix Documentation/sysctl/00-INDEX, per Dave
+s/__initcall/module_init/
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Jovi Zhang <bookjovi@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/00-INDEX |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/user_namespace.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/00-INDEX~sysctl-remove-obsolete-comments-fix Documentation/sysctl/00-INDEX
---- a/Documentation/sysctl/00-INDEX~sysctl-remove-obsolete-comments-fix
-+++ a/Documentation/sysctl/00-INDEX
-@@ -4,8 +4,6 @@ README
- 	- general information about /proc/sys/ sysctl files.
- abi.txt
- 	- documentation for /proc/sys/abi/*.
--ctl_unnumbered.txt
--	- explanation of why one should not add new binary sysctl numbers.
- fs.txt
- 	- documentation for /proc/sys/fs/*.
- kernel.txt
+diff -puN kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging-fix kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging-fix
++++ a/kernel/user_namespace.c
+@@ -134,5 +134,4 @@ static __init int user_namespaces_init(v
+ 	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
+ 	return 0;
+ }
+-
+-__initcall(user_namespaces_init);
++module_init(user_namespaces_init);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +62,7 @@ fs-select-fix-information-leak-to-userspace.patch
 drivers-telephony-ixjc-fix-warning.patch
 fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
 sysctl-remove-obsolete-comments.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging-fix.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging.patch
 pps-add-parallel-port-pps-signal-generator-fix.patch
 memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc-fix.patch
 scatterlist-new-helper-functions-fix.patch
