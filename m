@@ -1,123 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-cmos-fix-suspend-resume.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:22 -0800
-Message-ID: <201101132010.p0DKA3ST030019@imap1.linux-foundation.org>
+Subject: [merged] gpio-pca953x-irq_data-conversion.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:42 -0800
+Message-ID: <201101132010.p0DKANK2030059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933703Ab1AMUP7 (ORCPT
+	by vger.kernel.org with ESMTP id S933703Ab1AMUQO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:15:59 -0500
+	Thu, 13 Jan 2011 15:16:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pgf@laptop.org, dsd@laptop.org, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, alan@linux.intel.com, alek.du@intel.com, buytenh@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-cmos: fix suspend/resume
+     gpio: pca953x: irq_data conversion
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-fix-suspend-resume.patch
+     gpio-pca953x-irq_data-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: fix suspend/resume
-From: Paul Fox <pgf@laptop.org>
+Subject: gpio: pca953x: irq_data conversion
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-rtc-cmos was setting suspend/resume hooks at the device_driver level. 
-However, the platform bus code (drivers/base/platform.c) only looks for
-resume hooks at the dev_pm_ops level, or within the platform_driver.
+Converts irq_chips and flow handlers over to the new struct irq_data based
+irq_chip functions.
 
-Switch rtc_cmos to use dev_pm_ops so that suspend/resume code is executed
-again.
-
-Paul said:
-
-: The user visible symptom in our (XO laptop) case was that rtcwake would
-: fail to wake the laptop.  The RTC alarm would expire, but the wakeup
-: wasn't unmasked.
-: 
-: As for severity, the impact may have been reduced because if I recall
-: correctly, the bug only affected platforms with CONFIG_PNP disabled.
-
-Signed-off-by: Paul Fox <pgf@laptop.org>
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <stable@kernel.org>		[2.6.37.x]
+Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
+Cc: Alek Du <alek.du@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/gpio/pca953x.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-suspend-resume drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-suspend-resume
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -36,6 +36,7 @@
- #include <linux/platform_device.h>
- #include <linux/mod_devicetable.h>
- #include <linux/log2.h>
-+#include <linux/pm.h>
- 
- /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
- #include <asm-generic/rtc.h>
-@@ -851,7 +852,7 @@ static void __exit cmos_do_remove(struct
- 
- #ifdef	CONFIG_PM
- 
--static int cmos_suspend(struct device *dev, pm_message_t mesg)
-+static int cmos_suspend(struct device *dev)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
- 	unsigned char	tmp;
-@@ -899,7 +900,7 @@ static int cmos_suspend(struct device *d
-  */
- static inline int cmos_poweroff(struct device *dev)
- {
--	return cmos_suspend(dev, PMSG_HIBERNATE);
-+	return cmos_suspend(dev);
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-irq_data-conversion drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-irq_data-conversion
++++ a/drivers/gpio/pca953x.c
+@@ -228,30 +228,30 @@ static int pca953x_gpio_to_irq(struct gp
+ 	return chip->irq_base + off;
  }
  
- static int cmos_resume(struct device *dev)
-@@ -946,9 +947,9 @@ static int cmos_resume(struct device *de
- 	return 0;
+-static void pca953x_irq_mask(unsigned int irq)
++static void pca953x_irq_mask(struct irq_data *d)
+ {
+-	struct pca953x_chip *chip = get_irq_chip_data(irq);
++	struct pca953x_chip *chip = irq_data_get_irq_chip_data(d);
+ 
+-	chip->irq_mask &= ~(1 << (irq - chip->irq_base));
++	chip->irq_mask &= ~(1 << (d->irq - chip->irq_base));
  }
  
-+static SIMPLE_DEV_PM_OPS(cmos_pm_ops, cmos_suspend, cmos_resume);
-+
- #else
--#define	cmos_suspend	NULL
--#define	cmos_resume	NULL
- 
- static inline int cmos_poweroff(struct device *dev)
+-static void pca953x_irq_unmask(unsigned int irq)
++static void pca953x_irq_unmask(struct irq_data *d)
  {
-@@ -1078,7 +1079,7 @@ static void __exit cmos_pnp_remove(struc
+-	struct pca953x_chip *chip = get_irq_chip_data(irq);
++	struct pca953x_chip *chip = irq_data_get_irq_chip_data(d);
  
- static int cmos_pnp_suspend(struct pnp_dev *pnp, pm_message_t mesg)
- {
--	return cmos_suspend(&pnp->dev, mesg);
-+	return cmos_suspend(&pnp->dev);
+-	chip->irq_mask |= 1 << (irq - chip->irq_base);
++	chip->irq_mask |= 1 << (d->irq - chip->irq_base);
  }
  
- static int cmos_pnp_resume(struct pnp_dev *pnp)
-@@ -1158,8 +1159,9 @@ static struct platform_driver cmos_platf
- 	.shutdown	= cmos_platform_shutdown,
- 	.driver = {
- 		.name		= (char *) driver_name,
--		.suspend	= cmos_suspend,
--		.resume		= cmos_resume,
-+#ifdef CONFIG_PM
-+		.pm		= &cmos_pm_ops,
-+#endif
+-static void pca953x_irq_bus_lock(unsigned int irq)
++static void pca953x_irq_bus_lock(struct irq_data *d)
+ {
+-	struct pca953x_chip *chip = get_irq_chip_data(irq);
++	struct pca953x_chip *chip = irq_data_get_irq_chip_data(d);
+ 
+ 	mutex_lock(&chip->irq_lock);
+ }
+ 
+-static void pca953x_irq_bus_sync_unlock(unsigned int irq)
++static void pca953x_irq_bus_sync_unlock(struct irq_data *d)
+ {
+-	struct pca953x_chip *chip = get_irq_chip_data(irq);
++	struct pca953x_chip *chip = irq_data_get_irq_chip_data(d);
+ 	uint16_t new_irqs;
+ 	uint16_t level;
+ 
+@@ -268,15 +268,15 @@ static void pca953x_irq_bus_sync_unlock(
+ 	mutex_unlock(&chip->irq_lock);
+ }
+ 
+-static int pca953x_irq_set_type(unsigned int irq, unsigned int type)
++static int pca953x_irq_set_type(struct irq_data *d, unsigned int type)
+ {
+-	struct pca953x_chip *chip = get_irq_chip_data(irq);
+-	uint16_t level = irq - chip->irq_base;
++	struct pca953x_chip *chip = irq_data_get_irq_chip_data(d);
++	uint16_t level = d->irq - chip->irq_base;
+ 	uint16_t mask = 1 << level;
+ 
+ 	if (!(type & IRQ_TYPE_EDGE_BOTH)) {
+ 		dev_err(&chip->client->dev, "irq %d: unsupported type %d\n",
+-			irq, type);
++			d->irq, type);
+ 		return -EINVAL;
  	}
+ 
+@@ -295,11 +295,11 @@ static int pca953x_irq_set_type(unsigned
+ 
+ static struct irq_chip pca953x_irq_chip = {
+ 	.name			= "pca953x",
+-	.mask			= pca953x_irq_mask,
+-	.unmask			= pca953x_irq_unmask,
+-	.bus_lock		= pca953x_irq_bus_lock,
+-	.bus_sync_unlock	= pca953x_irq_bus_sync_unlock,
+-	.set_type		= pca953x_irq_set_type,
++	.irq_mask		= pca953x_irq_mask,
++	.irq_unmask		= pca953x_irq_unmask,
++	.irq_bus_lock		= pca953x_irq_bus_lock,
++	.irq_bus_sync_unlock	= pca953x_irq_bus_sync_unlock,
++	.irq_set_type		= pca953x_irq_set_type,
  };
  
+ static uint16_t pca953x_irq_pending(struct pca953x_chip *chip)
 _
 
-Patches currently in -mm which might be from pgf@laptop.org are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
 linux-next.patch
