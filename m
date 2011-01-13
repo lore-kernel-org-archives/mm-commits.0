@@ -1,60 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-remove-unnecessary-check.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:59 -0800
-Message-ID: <201101132012.p0DKCeBw030316@imap1.linux-foundation.org>
+Subject: [merged] aio-remove-unused-aio_run_iocbs.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:10:01 -0800
+Message-ID: <201101132012.p0DKCgwv030319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756697Ab1AMUNU (ORCPT
+	by vger.kernel.org with ESMTP id S1756782Ab1AMUNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:13:20 -0500
+	Thu, 13 Jan 2011 15:13:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namhyung@gmail.com, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: remove unnecessary check
+     aio: remove unused aio_run_iocbs()
 has been removed from the -mm tree.  Its filename was
-     aio-remove-unnecessary-check.patch
+     aio-remove-unused-aio_run_iocbs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: remove unnecessary check
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: aio: remove unused aio_run_iocbs()
+From: Jeff Moyer <jmoyer@redhat.com>
 
-'nr >= min_nr >= 0' always satisfies 'nr >= 0' so the check is unnecesary.
+aio_run_iocbs() is not used at all, so get rid of it.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |   27 +++++----------------------
+ 1 file changed, 5 insertions(+), 22 deletions(-)
 
-diff -puN fs/aio.c~aio-remove-unnecessary-check fs/aio.c
---- a/fs/aio.c~aio-remove-unnecessary-check
+diff -puN fs/aio.c~aio-remove-unused-aio_run_iocbs fs/aio.c
+--- a/fs/aio.c~aio-remove-unused-aio_run_iocbs
 +++ a/fs/aio.c
-@@ -1839,7 +1839,7 @@ SYSCALL_DEFINE5(io_getevents, aio_contex
- 	long ret = -EINVAL;
+@@ -798,29 +798,12 @@ static void aio_queue_work(struct kioctx
+ 	queue_delayed_work(aio_wq, &ctx->wq, timeout);
+ }
  
- 	if (likely(ioctx)) {
--		if (likely(min_nr <= nr && min_nr >= 0 && nr >= 0))
-+		if (likely(min_nr <= nr && min_nr >= 0))
- 			ret = read_events(ioctx, min_nr, nr, events, timeout);
- 		put_ioctx(ioctx);
- 	}
-_
-
-Patches currently in -mm which might be from namhyung@gmail.com are
-
-origin.patch
-linux-next.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-
+-
+-/*
+- * aio_run_iocbs:
+- * 	Process all pending retries queued on the ioctx
+- * 	run list.
+- * Assumes it is operating within the aio issuer's mm
+- * context.
+- */
+-static inline void aio_run_iocbs(struct kioctx *ctx)
+-{
+-	int requeue;
+-
+-	spin_lock_irq(&ctx->ctx_lock);
+-
+-	requeue = __aio_run_iocbs(ctx);
+-	spin_unlock_irq(&ctx->ctx_lock);
+-	if (requeue)
+-		aio_queue_work(ctx);
+-}
