@@ -1,43 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:36:21 -0800
-Message-ID: <201101132336.p0DNaLHg007414@imap1.linux-foundation.org>
+Subject: [folded] mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:36:24 -0800
+Message-ID: <201101132336.p0DNaOPD007417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757169Ab1AMXgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757169Ab1AMXg2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:36:25 -0500
+	Thu, 13 Jan 2011 18:36:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, pullip.cho@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes
+     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
 
 This patch was dropped because it was folded into mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes
+Subject: mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: return is not a function, parentheses are not required
-#40: FILE: mm/page_alloc.c:433:
-+	return (page_idx ^ (1 << order));
+with older gcc:
 
-total: 1 errors, 0 warnings, 57 lines checked
-
-./patches/mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+mm/page_alloc.c: In function '__free_one_page':
+mm/page_alloc.c:495: warning: 'buddy_idx' may be used uninitialized in this function
 
 Cc: KyongHo Cho <pullip.cho@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -46,18 +39,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes
+diff -puN mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix
 +++ a/mm/page_alloc.c
-@@ -430,7 +430,7 @@ static inline void rmv_page_order(struct
- static inline unsigned long
- __find_buddy_index(unsigned long page_idx, unsigned int order)
+@@ -492,7 +492,7 @@ static inline void __free_one_page(struc
  {
--	return (page_idx ^ (1 << order));
-+	return page_idx ^ (1 << order);
- }
+ 	unsigned long page_idx;
+ 	unsigned long combined_idx;
+-	unsigned long buddy_idx;
++	unsigned long uninitialized_var(buddy_idx);
+ 	struct page *buddy;
  
- /*
+ 	if (unlikely(PageCompound(page)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +71,6 @@ mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slo
 mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
 brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
 mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
 hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
 hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
