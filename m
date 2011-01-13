@@ -1,62 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:34:57 -0800
-Message-ID: <201101132334.p0DNYvY9007353@imap1.linux-foundation.org>
+Subject: [folded] mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:35:23 -0800
+Message-ID: <201101132335.p0DNZNCD007371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757120Ab1AMXfC (ORCPT
+	by vger.kernel.org with ESMTP id S1757169Ab1AMXf2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:35:02 -0500
+	Thu, 13 Jan 2011 18:35:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jj@chaosbits.net, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
+     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
 has been removed from the -mm tree.  Its filename was
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
 
-This patch was dropped because it was folded into mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+This patch was dropped because it was folded into mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
+Subject: mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove unneeded casts
+use NODEMASK_FREE, per Minchan Kim
 
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jesper Juhl <jj@chaosbits.net>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix mm/migrate.c
---- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
-+++ a/mm/migrate.c
-@@ -248,7 +248,7 @@ static int migrate_page_move_mapping(str
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix
++++ a/mm/hugetlb.c
+@@ -1375,7 +1375,7 @@ static ssize_t nr_hugepages_store_common
  
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--			(struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
+ 	err = strict_strtoul(buf, 10, &count);
+ 	if (err) {
+-		kfree(nodes_allowed);
++		NODEMASK_FREE(nodes_allowed);
+ 		return 0;
  	}
-@@ -320,7 +320,7 @@ int migrate_huge_page_move_mapping(struc
  
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--	    (struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +66,7 @@ thp-pte-alloc-trans-splitting.patch
 thp-kvm-mmu-transparent-hugepage-support.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise.patch
 mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
 brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
