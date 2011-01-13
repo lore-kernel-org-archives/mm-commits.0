@@ -1,185 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:55 -0800
-Message-ID: <201101132006.p0DK6ak2029760@imap1.linux-foundation.org>
+Subject: [merged] include-linux-printkh-move-console-functions-and-variables-together.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:04:18 -0800
+Message-ID: <201101132006.p0DK6xmT029789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933614Ab1AMUHe (ORCPT
+	by vger.kernel.org with ESMTP id S933628Ab1AMUHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:07:34 -0500
+	Thu, 13 Jan 2011 15:07:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eike-kernel@sf-tec.de, geert@linux-m68k.org, michalj@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/kernel.h: abs(): fix handling of 32-bit unsigneds on 64-bit
+     include/linux/printk.h: move console functions and variables together
 has been removed from the -mm tree.  Its filename was
-     include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+     include-linux-printkh-move-console-functions-and-variables-together.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kernel.h: abs(): fix handling of 32-bit unsigneds on 64-bit
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/printk.h: move console functions and variables together
+From: Joe Perches <joe@perches.com>
 
-Michal reports:
+There are many uses of printk_once(KERN_<level>, so add pr_<level>_once
+macros to avoid printk_once(KERN_<level> pr_fmt(fmt).
 
-In the framebuffer subsystem the abs() macro is often used as a part of
-the calculation of a Manhattan metric, which in turn is used as a measure
-of similarity between video modes.  The arguments of abs() are sometimes
-unsigned numbers.  This worked fine until commit a49c59c0 ("Make sure the
-value in abs() does not get truncated if it is greater than 2^32:) , which
-changed the definition of abs() to prevent truncation.  As a result of
-this change, in the following piece of code:
+Add an #ifdef CONFIG_PRINTK for print_hex_dump and static inline void
+functions for the #else cases to reduce embedded code size.  Neaten and
+organize the rest of the code.
 
-u32 a = 0, b = 1;
-u32 c = abs(a - b);
 
-'c' will end up with a value of 0xffffffff instead of the expected 0x1.
+This patch:
 
-A problem caused by this change and visible by the end user is that
-framebuffer drivers relying on functions from modedb.c will fail to find
-high resolution video modes similar to that explicitly requested by the
-user if an exact match cannot be found (see e.g.
+Move console functions and variables together.
 
-Fix this by special-casing `long' types within abs().  
-
-This patch reduces x86_64 code size a bit - drivers/video/uvesafb.o shrunk
-by 15 bytes, presumably because it is doing abs() on 4-byte quantities,
-and expanding those to 8-byte longs adds code.
-
-testcase:
-
-#define oldabs(x) ({				\
-		long __x = (x);			\
-		(__x < 0) ? -__x : __x;		\
-	})
-
-#define newabs(x) ({						\
-		long ret;					\
-		if (sizeof(x) == sizeof(long)) {		\
-			long __x = (x);				\
-			ret = (__x < 0) ? -__x : __x;		\
-		} else {					\
-			int __x = (x);				\
-			ret = (__x < 0) ? -__x : __x;		\
-		}						\
-		ret;						\
-	})
-
-typedef unsigned int u32;
-
-main()
-{
-	u32 a = 0;
-	u32 b = 1;
-	u32 oldc = oldabs(a - b);
-	u32 newc = newabs(a - b);
-
-	printf("%u %u\n", oldc, newc);
-}
-
-akpm:/home/akpm> gcc t.c
-akpm:/home/akpm> ./a.out
-4294967295 1
-
-Reported-by: Michal Januszewski <michalj@gmail.com>
-Cc: Rolf Eike Beer <eike-kernel@sf-tec.de
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ include/linux/printk.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit
-+++ a/include/linux/kernel.h
-@@ -143,9 +143,22 @@ extern int _cond_resched(void);
+diff -puN include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-move-console-functions-and-variables-together
++++ a/include/linux/printk.h
+@@ -29,6 +29,17 @@ extern int console_printk[];
+ #define minimum_console_loglevel (console_printk[2])
+ #define default_console_loglevel (console_printk[3])
  
- #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
++static inline void console_silent(void)
++{
++	console_loglevel = 0;
++}
++
++static inline void console_verbose(void)
++{
++	if (console_loglevel)
++		console_loglevel = 15;
++}
++
+ struct va_format {
+ 	const char *fmt;
+ 	va_list *va;
+@@ -131,17 +142,6 @@ extern void printk_tick(void);
+ extern void asmlinkage __attribute__((format(printf, 1, 2)))
+ 	early_printk(const char *fmt, ...);
  
--#define abs(x) ({				\
--		long __x = (x);			\
--		(__x < 0) ? -__x : __x;		\
-+/*
-+ * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
-+ * input types abs() returns a signed long.
-+ * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
-+ * for those.
-+ */
-+#define abs(x) ({						\
-+		long ret;					\
-+		if (sizeof(x) == sizeof(long)) {		\
-+			long __x = (x);				\
-+			ret = (__x < 0) ? -__x : __x;		\
-+		} else {					\
-+			int __x = (x);				\
-+			ret = (__x < 0) ? -__x : __x;		\
-+		}						\
-+		ret;						\
- 	})
- 
- #define abs64(x) ({				\
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
-mm-page_allocc-dont-cache-current-in-a-local.patch
-mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+-static inline void console_silent(void)
+-{
+-	console_loglevel = 0;
+-}
+-
+-static inline void console_verbose(void)
+-{
+-	if (console_loglevel)
+-		console_loglevel = 15;
+-}
