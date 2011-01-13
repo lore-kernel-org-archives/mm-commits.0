@@ -1,125 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-use-git-fallback-more-often.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:05:39 -0800
-Message-ID: <201101132008.p0DK8KPN029919@imap1.linux-foundation.org>
+Subject: [merged] maintainers-openwrt-devel-is-subscribers-only.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:05:48 -0800
+Message-ID: <201101132008.p0DK8THW029922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933472Ab1AMUIu (ORCPT
+	by vger.kernel.org with ESMTP id S933472Ab1AMUJB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:08:50 -0500
+	Thu, 13 Jan 2011 15:09:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, florian@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl:  use --git-fallback more often
+     MAINTAINERS: openwrt-devel@ is subscribers-only
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-use-git-fallback-more-often.patch
+     maintainers-openwrt-devel-is-subscribers-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl:  use --git-fallback more often
-From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: openwrt-devel@ is subscribers-only
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-On Fri, 2010-11-05 at 13:50 -0700, Andrew Morton wrote:
-> z:/usr/src/git26> perl scripts/get_maintainer.pl -file mm/mempolicy.c
-> linux-mm@kvack.org
-> linux-kernel@vger.kernel.org
-
-Turns out this is an arguable defect in the script.
-
-The MAINTAINERS entry for mm is:
-
-MEMORY MANAGEMENT
-L:	linux-mm@kvack.org
-W:	http://www.linux-mm.org
-S:	Maintained
-F:	include/linux/mm.h
-F:	mm/
-
-There's a maintainer entry, but no named individual, so the script doesn't
-use git history via --git-fallback.
-
-This is also a defect for MAINTAINERS with status entries marked "Orphan"
-or "Odd fixes".
-
-The script now checks a section for any "M:" entry and that an "S:" entry
-is supported or maintained.  If both those conditions are not satisified,
-use --git-fallback as appropriate.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Lennert Buytenhek <buytenh@wantstofly.org>
+Cc: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   38 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-use-git-fallback-more-often scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-use-git-fallback-more-often
-+++ a/scripts/get_maintainer.pl
-@@ -494,6 +494,40 @@ if ($web) {
+diff -puN MAINTAINERS~maintainers-openwrt-devel-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~maintainers-openwrt-devel-is-subscribers-only
++++ a/MAINTAINERS
+@@ -6587,7 +6587,7 @@ F:	net/8021q/
  
- exit($exit);
- 
-+sub range_is_maintained {
-+    my ($start, $end) = @_;
-+
-+    for (my $i = $start; $i < $end; $i++) {
-+	my $line = $typevalue[$i];
-+	if ($line =~ m/^(\C):\s*(.*)/) {
-+	    my $type = $1;
-+	    my $value = $2;
-+	    if ($type eq 'S') {
-+		if ($value =~ /(maintain|support)/i) {
-+		    return 1;
-+		}
-+	    }
-+	}
-+    }
-+    return 0;
-+}
-+
-+sub range_has_maintainer {
-+    my ($start, $end) = @_;
-+
-+    for (my $i = $start; $i < $end; $i++) {
-+	my $line = $typevalue[$i];
-+	if ($line =~ m/^(\C):\s*(.*)/) {
-+	    my $type = $1;
-+	    my $value = $2;
-+	    if ($type eq 'M') {
-+		return 1;
-+	    }
-+	}
-+    }
-+    return 0;
-+}
-+
- sub get_maintainers {
-     %email_hash_name = ();
-     %email_hash_address = ();
-@@ -556,7 +590,9 @@ sub get_maintainers {
- 				my $file_pd = ($file  =~ tr@/@@);
- 				$value_pd++ if (substr($value,-1,1) ne "/");
- 				$value_pd = -1 if ($value =~ /^\.\*/);
--				if ($value_pd >= $file_pd) {
-+				if ($value_pd >= $file_pd &&
-+				    range_is_maintained($start, $end) &&
-+				    range_has_maintainer($start, $end)) {
- 				    $exact_pattern_match_hash{$file} = 1;
- 				}
- 				if ($pattern_depth == 0 ||
+ VLYNQ BUS
+ M:	Florian Fainelli <florian@openwrt.org>
+-L:	openwrt-devel@lists.openwrt.org
++L:	openwrt-devel@lists.openwrt.org (subscribers-only)
+ S:	Maintained
+ F:	drivers/vlynq/vlynq.c
+ F:	include/linux/vlynq.h
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
 linux-next.patch
-mm-convert-sprintf_symbol-to-%ps.patch
 
