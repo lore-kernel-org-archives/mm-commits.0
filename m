@@ -1,79 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-add-output-inversion-option-to-backlight-trigger-fix.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:17:22 -0800
-Message-ID: <201101130017.p0D0HNZh011982@imap1.linux-foundation.org>
+Subject: [folded] include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:18:10 -0800
+Message-ID: <201101130018.p0D0IBKO012079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756428Ab1AMASC (ORCPT
+	by vger.kernel.org with ESMTP id S1756294Ab1AMASf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:18:02 -0500
+	Wed, 12 Jan 2011 19:18:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jkrzyszt@tis.icnet.pl, lethal@linux-sh.org, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eike-kernel@sf-tec.de, geert@linux-m68k.org, michalj@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds-add-output-inversion-option-to-backlight-trigger-fix
+     include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
 has been removed from the -mm tree.  Its filename was
-     leds-add-output-inversion-option-to-backlight-trigger-fix.patch
+     include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
 
-This patch was dropped because it was folded into leds-add-output-inversion-option-to-backlight-trigger.patch
+This patch was dropped because it was folded into include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-add-output-inversion-option-to-backlight-trigger-fix
+Subject: include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make output match input, tighten input checking
-
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Januszewski <michalj@gmail.com>
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-backlight.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/kernel.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/leds/ledtrig-backlight.c~leds-add-output-inversion-option-to-backlight-trigger-fix drivers/leds/ledtrig-backlight.c
---- a/drivers/leds/ledtrig-backlight.c~leds-add-output-inversion-option-to-backlight-trigger-fix
-+++ a/drivers/leds/ledtrig-backlight.c
-@@ -65,7 +65,7 @@ static ssize_t bl_trig_invert_show(struc
- 	struct led_classdev *led = dev_get_drvdata(dev);
- 	struct bl_trig_notifier *n = led->trigger_data;
+diff -puN include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
++++ a/include/linux/kernel.h
+@@ -143,6 +143,12 @@ extern int _cond_resched(void);
  
--	return sprintf(buf, "%s\n", n->invert ? "yes" : "no");
-+	return sprintf(buf, "%u\n", n->invert);
- }
+ #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
  
- static ssize_t bl_trig_invert_store(struct device *dev,
-@@ -73,16 +73,17 @@ static ssize_t bl_trig_invert_store(stru
- {
- 	struct led_classdev *led = dev_get_drvdata(dev);
- 	struct bl_trig_notifier *n = led->trigger_data;
--	unsigned invert;
-+	unsigned long invert;
- 	int ret;
- 
--	ret = sscanf(buf, "%u", &invert);
--	if (ret < 1) {
--		dev_err(dev, "invalid value\n");
-+	ret = strict_strtoul(buf, 10, &invert);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (invert > 1)
- 		return -EINVAL;
--	}
- 
--	n->invert = !!invert;
-+	n->invert = invert;
- 
- 	/* After inverting, we need to update the LED. */
- 	if ((n->old_status == BLANK) ^ n->invert)
++/*
++ * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
++ * input types abs() returns a signed long.
++ * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
++ * for those.
++ */
+ #define abs(x) ({						\
+ 		long ret;					\
+ 		if (sizeof(x) == sizeof(long)) {		\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +59,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 leds-add-output-inversion-option-to-backlight-trigger.patch
 include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
 include-linux-unaligned-packed_structh-use-__packed.patch
 ihex-fix-unused-return-value-compiler-warning-fix.patch
 kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
