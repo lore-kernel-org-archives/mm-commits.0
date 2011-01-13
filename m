@@ -1,39 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-add-definitions-of-component-tag-fields.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:54 -0800
-Message-ID: <201101132011.p0DKBZj5030186@imap1.linux-foundation.org>
+Subject: [merged] rapidio-add-new-idt-srio-switches.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:09:00 -0800
+Message-ID: <201101132011.p0DKBfQa030195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933405Ab1AMUMh (ORCPT
+	by vger.kernel.org with ESMTP id S933405Ab1AMUMi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:12:37 -0500
+	Thu, 13 Jan 2011 15:12:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: add definitions of Component Tag fields
+     rapidio: add new idt sRIO switches
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-definitions-of-component-tag-fields.patch
+     rapidio-add-new-idt-srio-switches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add definitions of Component Tag fields
+Subject: rapidio: add new idt sRIO switches
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Add definition of the unique device identifier field in the component tag.
- RIO_CTAG_UDEVID does not take all 32 bits of the component tag value to
-allow future extensions to the component tag use.
-
-Selected size of the RIO_CTAG_UDEVID field (17 bits) is sufficient to
-accommodate maximum number of endpoints in large RIO network (16-bit id)
-plus switches.
+Add new sRIO switch device IDs and enable a basic support for them.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
@@ -44,42 +38,30 @@ Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    2 +-
- include/linux/rio.h   |   10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/rapidio/switches/idt_gen2.c |    2 ++
+ include/linux/rio_ids.h             |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-definitions-of-component-tag-fields drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-definitions-of-component-tag-fields
-+++ a/drivers/rapidio/rio.c
-@@ -710,7 +710,7 @@ int rio_inb_pwrite_handler(union rio_pw_
- 	u32 err_status, em_perrdet, em_ltlerrdet;
- 	int rc, portnum;
+diff -puN drivers/rapidio/switches/idt_gen2.c~rapidio-add-new-idt-srio-switches drivers/rapidio/switches/idt_gen2.c
+--- a/drivers/rapidio/switches/idt_gen2.c~rapidio-add-new-idt-srio-switches
++++ a/drivers/rapidio/switches/idt_gen2.c
+@@ -416,3 +416,5 @@ static int idtg2_switch_init(struct rio_
  
--	rdev = rio_get_comptag(pw_msg->em.comptag, NULL);
-+	rdev = rio_get_comptag((pw_msg->em.comptag & RIO_CTAG_UDEVID), NULL);
- 	if (rdev == NULL) {
- 		/* Device removed or enumeration error */
- 		pr_debug("RIO: %s No matching device for CTag 0x%08x\n",
-diff -puN include/linux/rio.h~rapidio-add-definitions-of-component-tag-fields include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-definitions-of-component-tag-fields
-+++ a/include/linux/rio.h
-@@ -66,6 +66,16 @@
+ DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1848, idtg2_switch_init);
+ DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1616, idtg2_switch_init);
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTVPS1616, idtg2_switch_init);
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTSPS1616, idtg2_switch_init);
+diff -puN include/linux/rio_ids.h~rapidio-add-new-idt-srio-switches include/linux/rio_ids.h
+--- a/include/linux/rio_ids.h~rapidio-add-new-idt-srio-switches
++++ a/include/linux/rio_ids.h
+@@ -36,5 +36,7 @@
+ #define RIO_DID_IDTCPS10Q		0x035e
+ #define RIO_DID_IDTCPS1848		0x0374
+ #define RIO_DID_IDTCPS1616		0x0379
++#define RIO_DID_IDTVPS1616		0x0377
++#define RIO_DID_IDTSPS1616		0x0378
  
- #define RIO_PW_MSG_SIZE		64
- 
-+/*
-+ * A component tag value (stored in the component tag CSR) is used as device's
-+ * unique identifier assigned during enumeration. Besides being used for
-+ * identifying switches (which do not have device ID register), it also is used
-+ * by error management notification and therefore has to be assigned
-+ * to endpoints as well.
-+ */
-+#define RIO_CTAG_RESRVD	0xfffe0000 /* Reserved */
-+#define RIO_CTAG_UDEVID	0x0001ffff /* Unique device identifier */
-+
- extern struct bus_type rio_bus_type;
- extern struct device rio_bus;
- extern struct list_head rio_devices;	/* list of all devices */
+ #endif				/* LINUX_RIO_IDS_H */
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
