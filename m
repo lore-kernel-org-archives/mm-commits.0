@@ -1,179 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-compound_trans_order-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:33:06 -0800
-Message-ID: <201101132333.p0DNX6k3007259@imap1.linux-foundation.org>
+Subject: [folded] thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:34:26 -0800
+Message-ID: <201101132334.p0DNYQIP007347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab1AMXdP (ORCPT
+	by vger.kernel.org with ESMTP id S1752480Ab1AMXeh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:33:15 -0500
+	Thu, 13 Jan 2011 18:34:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: memcg: remove unnecessary compound_trans_order
+     thp-khugepaged-make-khugepaged-aware-of-madvise-fix
 has been removed from the -mm tree.  Its filename was
-     thp-compound_trans_order-fix.patch
+     thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
 
-This patch was dropped because it was folded into thp-compound_trans_order.patch
+This patch was dropped because it was folded into thp-khugepaged-make-khugepaged-aware-of-madvise.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: memcg: remove unnecessary compound_trans_order
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp-khugepaged-make-khugepaged-aware-of-madvise-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In these places PageTransHuge must not go away under memcg, as the page is
-owned by the thread handling it.  Add VM_BUG_ON and remove a superflous
-page_size variable.
+tweak comment.  It's still incomprehensible though ;)
 
-compound_trans_order for now remains for memory-failure.c, which later has
-to be fixed to implement a safe compound_head too, that isn't safe right
-now.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~thp-compound_trans_order-fix mm/memcontrol.c
---- a/mm/memcontrol.c~thp-compound_trans_order-fix
-+++ a/mm/memcontrol.c
-@@ -1027,10 +1027,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
- {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup_per_zone *mz;
--	int page_size = PAGE_SIZE;
--
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
- 
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -2286,8 +2282,10 @@ static int mem_cgroup_charge_common(stru
- 	int ret;
- 	int page_size = PAGE_SIZE;
- 
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
-+	if (PageTransHuge(page)) {
-+		page_size <<= compound_order(page);
-+		VM_BUG_ON(!PageTransHuge(page));
-+	}
- 
- 	pc = lookup_page_cgroup(page);
- 	/* can happen at boot */
-@@ -2558,8 +2556,10 @@ __mem_cgroup_uncharge_common(struct page
- 	if (PageSwapCache(page))
- 		return NULL;
- 
--	if (PageTransHuge(page))
--		page_size <<= compound_trans_order(page);
-+	if (PageTransHuge(page)) {
-+		page_size <<= compound_order(page);
-+		VM_BUG_ON(!PageTransHuge(page));
-+	}
- 
- 	count = page_size >> PAGE_SHIFT;
- 	/*
+diff -puN mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix
++++ a/mm/huge_memory.c
+@@ -1426,10 +1426,9 @@ int hugepage_madvise(struct vm_area_stru
+ 		*vm_flags &= ~VM_HUGEPAGE;
+ 		*vm_flags |= VM_NOHUGEPAGE;
+ 		/*
+-		 * Setting VM_NOHUGEPAGE will prevent khugepaged to
+-		 * scan this vma even if we leave the mm registered in
+-		 * khugepaged if it got registered before
+-		 * VM_NOHUGEPAGE was set.
++		 * Setting VM_NOHUGEPAGE will prevent khugepaged from scanning
++		 * this vma even if we leave the mm registered in khugepaged if
++		 * it got registered before VM_NOHUGEPAGE was set.
+ 		 */
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-add-trace-events-for-memory-compaction-activity.patch
-mm-vmscan-convert-lumpy_mode-into-a-bitmask.patch
+origin.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
 mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mm-migration-cleanup-migrate_pages-api-by-matching-types-for-offlining-and-sync.patch
-mm-compaction-perform-a-faster-migration-scan-when-migrating-asynchronously.patch
-mm-vmscan-rename-lumpy_mode-to-reclaim_mode.patch
-thp-ksm-free-swap-when-swapcache-page-is-replaced.patch
-thp-fix-bad_page-to-show-the-real-reason-the-page-is-bad.patch
-thp-transparent-hugepage-support-documentation.patch
-thp-mm-define-madv_hugepage.patch
-thp-compound_lock.patch
-thp-alter-compound-get_page-put_page.patch
-thp-put_page-recheck-pagehead-after-releasing-the-compound_lock.patch
-thp-update-futex-compound-knowledge.patch
-thp-clear-compound-mapping.patch
-thp-add-native_set_pmd_at.patch
-thp-add-pmd-paravirt-ops.patch
-thp-no-paravirt-version-of-pmd-ops.patch
-thp-export-maybe_mkwrite.patch
-thp-comment-reminder-in-destroy_compound_page.patch
-thp-config_transparent_hugepage.patch
-thp-special-pmd_trans_-functions.patch
-thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-functions-to-x86.patch
-thp-bail-out-gup_fast-on-splitting-pmd.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
 thp-pte-alloc-trans-splitting.patch
-thp-add-pmd-mmu_notifier-helpers.patch
-thp-clear-page-compound.patch
-thp-add-pmd_huge_pte-to-mm_struct.patch
-thp-split_huge_page_mm-vma.patch
-thp-split_huge_page-paging.patch
-thp-clear_copy_huge_page.patch
 thp-kvm-mmu-transparent-hugepage-support.patch
-thp-_gfp_no_kswapd.patch
-thp-dont-alloc-harder-for-gfp-nomemalloc-even-if-nowait.patch
-thp-transparent-hugepage-core.patch
-thp-transparent-hugepage-core-fixlet.patch
-thp-split_huge_page-anon_vma-ordering-dependency.patch
-thp-verify-pmd_trans_huge-isnt-leaking.patch
-thp-madvisemadv_hugepage.patch
-thp-pmd_trans_huge-migrate-bugcheck.patch
-thp-memcg-compound.patch
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-memcg-huge-memory.patch
-thp-transparent-hugepage-vmstat.patch
-thp-khugepaged.patch
-thp-khugepaged-vma-merge.patch
-thp-skip-transhuge-pages-in-ksm-for-now.patch
-thp-remove-pg_buddy.patch
-thp-add-x86-32bit-support.patch
-thp-mincore-transparent-hugepage-support.patch
-thp-add-pmd_modify.patch
-thp-mprotect-pass-vma-down-to-page-table-walkers.patch
-thp-mprotect-transparent-huge-page-support.patch
-thp-set-recommended-min-free-kbytes.patch
-thp-enable-direct-defrag.patch
-thp-add-numa-awareness-to-hugepage-allocations.patch
-thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
-thp-transparent-hugepage-config-choice.patch
-thp-select-config_compaction-if-transparent_hugepage-enabled.patch
-thp-transhuge-isolate_migratepages.patch
-thp-avoid-breaking-huge-pmd-invariants-in-case-of-vma_adjust-failures.patch
-thp-dont-allow-transparent-hugepage-support-without-pse.patch
-thp-mmu_notifier_test_young.patch
-thp-freeze-khugepaged-and-ksmd.patch
-thp-use-compaction-in-kswapd-for-gfp_atomic-order-0.patch
-thp-use-compaction-for-all-allocation-orders.patch
-thp-disable-transparent-hugepages-by-default-on-small-systems.patch
-thp-fix-anon-memory-statistics-with-transparent-hugepages.patch
-thp-scale-nr_rotated-to-balance-memory-pressure.patch
-thp-transparent-hugepage-sysfs-meminfo.patch
-thp-add-debug-checks-for-mapcount-related-invariants.patch
-thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
-thp-compound_trans_order.patch
-thp-mm-define-madv_nohugepage.patch
-thp-madvisemadv_nohugepage.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-thp-ksm-on-thp.patch
-thp-add-compound_trans_head-helper.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
 hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment.patch
 hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix-fix.patch
-hugetlb-fix-handling-of-parse-errors-in-sysfs.patch
-ksm-drain-pagevecs-to-lru.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
 
