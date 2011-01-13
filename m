@@ -1,84 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-omapc-fix-a-memory-leak.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:07:18 -0800
-Message-ID: <201101132009.p0DK9xC3029998@imap1.linux-foundation.org>
+Subject: [merged] gpio-sx150x-irq_data-conversion.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:50 -0800
+Message-ID: <201101132010.p0DKAVZP030069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933683Ab1AMUKz (ORCPT
+	by vger.kernel.org with ESMTP id S933682Ab1AMULE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:10:55 -0500
+	Thu, 13 Jan 2011 15:11:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, a.zummo@towertech.it, khilman@deeprootsystems.com, mgreer@mvista.com, nsekhar@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, buytenh@secretlab.ca, gbean@codeaurora.org, rvaswani@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-omap.c: fix a memory leak
+     gpio: sx150x: irq_data conversion
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-omapc-fix-a-memory-leak.patch
+     gpio-sx150x-irq_data-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-omap.c: fix a memory leak
-From: Axel Lin <axel.lin@gmail.com>
+Subject: gpio: sx150x: irq_data conversion
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-request_mem_region() will call kzalloc to allocate memory for struct
-resource.  release_resource() unregisters the resource but does not free
-the allocated memory, thus use release_mem_region() instead to fix the
-memory leak.
+Converts irq_chips and flow handlers over to the new struct irq_data based
+irq_chip functions.
 
-Also add a missing iounmap() in omap_rtc_remove().
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Acked-by: Mark A. Greer <mgreer@mvista.com>
+Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
+Cc: Gregory Bean <gbean@codeaurora.org>
+Tested-by: Rohit Vaswani <rvaswani@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpio/sx150x.c |   46 ++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-fix-a-memory-leak drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-fix-a-memory-leak
-+++ a/drivers/rtc/rtc-omap.c
-@@ -429,13 +429,14 @@ fail1:
- fail0:
- 	iounmap(rtc_base);
- fail:
--	release_resource(mem);
-+	release_mem_region(mem->start, resource_size(mem));
- 	return -EIO;
+diff -puN drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion drivers/gpio/sx150x.c
+--- a/drivers/gpio/sx150x.c~gpio-sx150x-irq_data-conversion
++++ a/drivers/gpio/sx150x.c
+@@ -304,36 +304,36 @@ static int sx150x_gpio_to_irq(struct gpi
+ 	return chip->irq_base + offset;
  }
  
- static int __exit omap_rtc_remove(struct platform_device *pdev)
+-static void sx150x_irq_mask(unsigned int irq)
++static void sx150x_irq_mask(struct irq_data *d)
  {
- 	struct rtc_device	*rtc = platform_get_drvdata(pdev);
-+	struct resource		*mem = dev_get_drvdata(&rtc->dev);
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
  
- 	device_init_wakeup(&pdev->dev, 0);
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
  
-@@ -447,8 +448,9 @@ static int __exit omap_rtc_remove(struct
- 	if (omap_rtc_timer != omap_rtc_alarm)
- 		free_irq(omap_rtc_alarm, rtc);
- 
--	release_resource(dev_get_drvdata(&rtc->dev));
- 	rtc_device_unregister(rtc);
-+	iounmap(rtc_base);
-+	release_mem_region(mem->start, resource_size(mem));
- 	return 0;
+ 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 1);
+ 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense, 0);
  }
  
+-static void sx150x_irq_unmask(unsigned int irq)
++static void sx150x_irq_unmask(struct irq_data *d)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
+ 
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
+ 
+ 	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 0);
+ 	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense,
+ 			 chip->irq_sense >> (n * 2));
+ }
+ 
+-static int sx150x_irq_set_type(unsigned int irq, unsigned int flow_type)
++static int sx150x_irq_set_type(struct irq_data *d, unsigned int flow_type)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n, val = 0;
+ 
+@@ -341,7 +341,7 @@ static int sx150x_irq_set_type(unsigned 
+ 		return -EINVAL;
+ 
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+-	n = irq - chip->irq_base;
++	n = d->irq - chip->irq_base;
+ 
+ 	if (flow_type & IRQ_TYPE_EDGE_RISING)
+ 		val |= 0x1;
+@@ -386,9 +386,9 @@ static irqreturn_t sx150x_irq_thread_fn(
+ 	return (nhandled > 0 ? IRQ_HANDLED : IRQ_NONE);
+ }
+ 
+-static void sx150x_irq_bus_lock(unsigned int irq)
++static void sx150x_irq_bus_lock(struct irq_data *d)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 
+ 	chip = container_of(ic, struct sx150x_chip, irq_chip);
+@@ -396,9 +396,9 @@ static void sx150x_irq_bus_lock(unsigned
+ 	mutex_lock(&chip->lock);
+ }
+ 
+-static void sx150x_irq_bus_sync_unlock(unsigned int irq)
++static void sx150x_irq_bus_sync_unlock(struct irq_data *d)
+ {
+-	struct irq_chip *ic = get_irq_chip(irq);
++	struct irq_chip *ic = irq_data_get_irq_chip(d);
+ 	struct sx150x_chip *chip;
+ 	unsigned n;
+ 
+@@ -437,16 +437,16 @@ static void sx150x_init_chip(struct sx15
+ 	if (pdata->oscio_is_gpo)
+ 		++chip->gpio_chip.ngpio;
+ 
+-	chip->irq_chip.name            = client->name;
+-	chip->irq_chip.mask            = sx150x_irq_mask;
+-	chip->irq_chip.unmask          = sx150x_irq_unmask;
+-	chip->irq_chip.set_type        = sx150x_irq_set_type;
+-	chip->irq_chip.bus_lock        = sx150x_irq_bus_lock;
+-	chip->irq_chip.bus_sync_unlock = sx150x_irq_bus_sync_unlock;
+-	chip->irq_summary              = -1;
+-	chip->irq_base                 = -1;
+-	chip->irq_sense                = 0;
+-	chip->irq_set_type_pending     = 0;
++	chip->irq_chip.name                = client->name;
++	chip->irq_chip.irq_mask            = sx150x_irq_mask;
++	chip->irq_chip.irq_unmask          = sx150x_irq_unmask;
++	chip->irq_chip.irq_set_type        = sx150x_irq_set_type;
++	chip->irq_chip.irq_bus_lock        = sx150x_irq_bus_lock;
++	chip->irq_chip.irq_bus_sync_unlock = sx150x_irq_bus_sync_unlock;
++	chip->irq_summary                  = -1;
++	chip->irq_base                     = -1;
++	chip->irq_sense                    = 0;
++	chip->irq_set_type_pending         = 0;
+ }
+ 
+ static int sx150x_init_io(struct sx150x_chip *chip, u8 base, u16 cfg)
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
 linux-next.patch
