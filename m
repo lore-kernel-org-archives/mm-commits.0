@@ -1,142 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 12 Jan 2011 17:20:26 -0800
-Message-ID: <201101130120.p0D1KQHm015312@imap1.linux-foundation.org>
+Subject: [to-be-updated] bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 11:43:37 -0800
+Message-ID: <201101131946.p0DJkIdl028750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932392Ab1AMBU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756632Ab1AMTqZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 20:20:27 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0D1KQSE018086
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 12 Jan 2011 17:20:26 -0800
+	Thu, 13 Jan 2011 14:46:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     bitops: merge little and big endian definisions in asm-generic/bitops/le.h
+has been removed from the -mm tree.  Its filename was
+     bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bitops: merge little and big endian definisions in asm-generic/bitops/le.h
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
+This patch series introduces little-endian bit operations in asm/bitops.h
+for all architectures and converts all ext2 non-atomic and minix bit
+operations to use little-endian bit operations.  It enables us to remove
+ext2 non-atomic and minix bit operations from asm/bitops.h.  The reason
+they should be removed from asm/bitops.h is as follows:
+
+For ext2 non-atomic bit operations, they are used for little-endian byte
+order bitmap access by some filesystems and modules.  But using ext2_*()
+functions on a module other than ext2 filesystem makes some feel strange.
+
+For minix bit operations, they are only used by minix filesystem and are
+useless by other modules.  Because byte order of inode and block bitmap is
+different on each architecture.
+
+
+
+This patch:
+
+In order to make the forthcoming changes smaller, this merges macro
+definisions in asm-generic/bitops/le.h for big-endian and little-endian as
+much as possible.
+
+This also removes unused BITOP_WORD macro.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/cs5535-gpio.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/bitops/le.h |   38 +++++++++++-------------------
+ 1 file changed, 15 insertions(+), 23 deletions(-)
 
-diff -puN drivers/gpio/cs5535-gpio.c~linux-next-rejects drivers/gpio/cs5535-gpio.c
---- a/drivers/gpio/cs5535-gpio.c~linux-next-rejects
-+++ a/drivers/gpio/cs5535-gpio.c
-@@ -11,14 +11,13 @@
- #include <linux/kernel.h>
- #include <linux/spinlock.h>
- #include <linux/module.h>
--#include <linux/pci.h>
-+#include <linux/platform_device.h>
- #include <linux/gpio.h>
- #include <linux/io.h>
- #include <linux/cs5535.h>
- #include <asm/msr.h>
+diff -puN include/asm-generic/bitops/le.h~bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh
++++ a/include/asm-generic/bitops/le.h
+@@ -4,27 +4,28 @@
+ #include <asm/types.h>
+ #include <asm/byteorder.h>
  
- #define DRV_NAME "cs5535-gpio"
--#define GPIO_BAR 1
+-#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+-#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+-
+ #if defined(__LITTLE_ENDIAN)
  
- /*
-  * Some GPIO pins
+-#define generic_test_le_bit(nr, addr) test_bit(nr, addr)
+-#define generic___set_le_bit(nr, addr) __set_bit(nr, addr)
+-#define generic___clear_le_bit(nr, addr) __clear_bit(nr, addr)
+-
+-#define generic_test_and_set_le_bit(nr, addr) test_and_set_bit(nr, addr)
+-#define generic_test_and_clear_le_bit(nr, addr) test_and_clear_bit(nr, addr)
++#define BITOP_LE_SWIZZLE	0
+ 
+-#define generic___test_and_set_le_bit(nr, addr) __test_and_set_bit(nr, addr)
+-#define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
+-
+-#define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++#define generic_find_next_zero_le_bit(addr, size, offset) \
++	find_next_zero_bit(addr, size, offset)
+ #define generic_find_next_le_bit(addr, size, offset) \
+-			find_next_bit(addr, size, offset)
++	find_next_bit(addr, size, offset)
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
++#define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
++
++extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
++extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
++
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
++
+ #define generic_test_le_bit(nr, addr) \
+ 	test_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ #define generic___set_le_bit(nr, addr) \
+@@ -42,15 +43,6 @@
+ #define generic___test_and_clear_le_bit(nr, addr) \
+ 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ 
+-extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+-		unsigned long size, unsigned long offset);
+-extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
+-		unsigned long size, unsigned long offset);
+-
+-#else
+-#error "Please fix <asm/byteorder.h>"
+-#endif
+-
+ #define generic_find_first_zero_le_bit(addr, size) \
+         generic_find_next_zero_le_bit((addr), (size), 0)
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-fs-ext4-inodec-use-pr_warn_ratelimited.patch
-leds-add-output-inversion-option-to-backlight-trigger.patch
-include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
-include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning.patch
-kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-fs-select-fix-information-leak-to-userspace.patch
-drivers-telephony-ixjc-fix-warning.patch
-fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
-sysctl-remove-obsolete-comments.patch
-user_ns-improve-the-user_ns-on-the-slab-packaging.patch
-pps-add-parallel-port-pps-signal-generator.patch
-memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
-aio-remove-unused-aio_run_iocbs.patch
-cramfs-generate-unique-inode-number-for-better-inode-cache-usage.patch
-ramoops-fix-types-remove-typecasts.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
-mm-page_allocc-dont-cache-current-in-a-local.patch
-mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+bitops-rename-generic-little-endian-bitops-functions.patch
+s390-introduce-little-endian-bitops.patch
+arm-introduce-little-endian-bitops.patch
+m68k-introduce-little-endian-bitops.patch
+bitops-introduce-config_generic_find_le_bit.patch
+m68knommu-introduce-little-endian-bitops.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+rds-stop-including-asm-generic-bitops-leh.patch
+kvm-stop-including-asm-generic-bitops-leh.patch
+asm-generic-use-little-endian-bitops.patch
+ext3-use-little-endian-bitops.patch
+ext4-use-little-endian-bitops.patch
+ocfs2-use-little-endian-bitops.patch
+nilfs2-use-little-endian-bitops.patch
+reiserfs-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+ufs-use-little-endian-bitops.patch
+md-use-little-endian-bit-operations.patch
+dm-use-little-endian-bit-operations.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
+bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
+spufs-use-simple_write_to_buffer.patch
 
