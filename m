@@ -1,81 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-printkh-use-space-after-define.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:04:21 -0800
-Message-ID: <201101132007.p0DK72tV029798@imap1.linux-foundation.org>
+Subject: [merged] kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:03:50 -0800
+Message-ID: <201101132006.p0DK6Vjx029754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933638Ab1AMUHo (ORCPT
+	by vger.kernel.org with ESMTP id S933639Ab1AMUHq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:07:44 -0500
+	Thu, 13 Jan 2011 15:07:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: seiji.aguchi@hds.com, Artem.Bityutskiy@nokia.com, dwmw2@infradead.org, kosaki.motohiro@jp.fujitsu.com, marco.stornelli@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/printk.h: use space after #define
+     kmsg_dump: add kmsg_dump() calls to the reboot, halt, poweroff and emergency_restart paths
 has been removed from the -mm tree.  Its filename was
-     include-linux-printkh-use-space-after-define.patch
+     kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/printk.h: use space after #define
-From: Joe Perches <joe@perches.com>
+Subject: kmsg_dump: add kmsg_dump() calls to the reboot, halt, poweroff and emergency_restart paths
+From: Seiji Aguchi <seiji.aguchi@hds.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+We need to know the reason why system rebooted in support service. 
+However, we can't inform our customers of the reason because final
+messages are lost on current Linux kernel.
+
+This patch improves the situation above because the final messages are
+saved by adding kmsg_dump() to reboot, halt, poweroff and
+emergency_restart path.
+
+Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
+Reviewed-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/kmsg_dump.h |    4 ++++
+ kernel/printk.c           |    4 ++++
+ kernel/sys.c              |    6 ++++++
+ 3 files changed, 14 insertions(+)
 
-diff -puN include/linux/printk.h~include-linux-printkh-use-space-after-define include/linux/printk.h
---- a/include/linux/printk.h~include-linux-printkh-use-space-after-define
-+++ a/include/linux/printk.h
-@@ -4,14 +4,14 @@
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
+diff -puN include/linux/kmsg_dump.h~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths include/linux/kmsg_dump.h
+--- a/include/linux/kmsg_dump.h~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths
++++ a/include/linux/kmsg_dump.h
+@@ -18,6 +18,10 @@ enum kmsg_dump_reason {
+ 	KMSG_DUMP_OOPS,
+ 	KMSG_DUMP_PANIC,
+ 	KMSG_DUMP_KEXEC,
++	KMSG_DUMP_RESTART,
++	KMSG_DUMP_HALT,
++	KMSG_DUMP_POWEROFF,
++	KMSG_DUMP_EMERG,
+ };
  
--#define	KERN_EMERG	"<0>"	/* system is unusable			*/
--#define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
--#define	KERN_CRIT	"<2>"	/* critical conditions			*/
--#define	KERN_ERR	"<3>"	/* error conditions			*/
--#define	KERN_WARNING	"<4>"	/* warning conditions			*/
--#define	KERN_NOTICE	"<5>"	/* normal but significant condition	*/
--#define	KERN_INFO	"<6>"	/* informational			*/
--#define	KERN_DEBUG	"<7>"	/* debug-level messages			*/
-+#define KERN_EMERG	"<0>"	/* system is unusable			*/
-+#define KERN_ALERT	"<1>"	/* action must be taken immediately	*/
-+#define KERN_CRIT	"<2>"	/* critical conditions			*/
-+#define KERN_ERR	"<3>"	/* error conditions			*/
-+#define KERN_WARNING	"<4>"	/* warning conditions			*/
-+#define KERN_NOTICE	"<5>"	/* normal but significant condition	*/
-+#define KERN_INFO	"<6>"	/* informational			*/
-+#define KERN_DEBUG	"<7>"	/* debug-level messages			*/
+ /**
+diff -puN kernel/printk.c~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths kernel/printk.c
+--- a/kernel/printk.c~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths
++++ a/kernel/printk.c
+@@ -1539,6 +1539,10 @@ static const char * const kmsg_reasons[]
+ 	[KMSG_DUMP_OOPS]	= "oops",
+ 	[KMSG_DUMP_PANIC]	= "panic",
+ 	[KMSG_DUMP_KEXEC]	= "kexec",
++	[KMSG_DUMP_RESTART]	= "restart",
++	[KMSG_DUMP_HALT]	= "halt",
++	[KMSG_DUMP_POWEROFF]	= "poweroff",
++	[KMSG_DUMP_EMERG]	= "emergency_restart",
+ };
  
- /* Use the default kernel loglevel */
- #define KERN_DEFAULT	"<d>"
-@@ -20,7 +20,7 @@ extern const char linux_proc_banner[];
-  * line that had no enclosing \n). Only to be used by core/arch code
-  * during early bootup (a continued line is not SMP-safe otherwise).
+ static const char *kmsg_to_str(enum kmsg_dump_reason reason)
+diff -puN kernel/sys.c~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths kernel/sys.c
+--- a/kernel/sys.c~kmsg_dump-add-kmsg_dump-calls-to-the-reboot-halt-poweroff-and-emergency_restart-paths
++++ a/kernel/sys.c
+@@ -43,6 +43,8 @@
+ #include <linux/kprobes.h>
+ #include <linux/user_namespace.h>
+ 
++#include <linux/kmsg_dump.h>
++
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ #include <asm/unistd.h>
+@@ -285,6 +287,7 @@ out_unlock:
   */
--#define	KERN_CONT	"<c>"
-+#define KERN_CONT	"<c>"
+ void emergency_restart(void)
+ {
++	kmsg_dump(KMSG_DUMP_EMERG);
+ 	machine_emergency_restart();
+ }
+ EXPORT_SYMBOL_GPL(emergency_restart);
+@@ -312,6 +315,7 @@ void kernel_restart(char *cmd)
+ 		printk(KERN_EMERG "Restarting system.\n");
+ 	else
+ 		printk(KERN_EMERG "Restarting system with command '%s'.\n", cmd);
++	kmsg_dump(KMSG_DUMP_RESTART);
+ 	machine_restart(cmd);
+ }
+ EXPORT_SYMBOL_GPL(kernel_restart);
+@@ -333,6 +337,7 @@ void kernel_halt(void)
+ 	kernel_shutdown_prepare(SYSTEM_HALT);
+ 	sysdev_shutdown();
+ 	printk(KERN_EMERG "System halted.\n");
++	kmsg_dump(KMSG_DUMP_HALT);
+ 	machine_halt();
+ }
  
- extern int console_printk[];
- 
+@@ -351,6 +356,7 @@ void kernel_power_off(void)
+ 	disable_nonboot_cpus();
+ 	sysdev_shutdown();
+ 	printk(KERN_EMERG "Power down.\n");
++	kmsg_dump(KMSG_DUMP_POWEROFF);
+ 	machine_power_off();
+ }
+ EXPORT_SYMBOL_GPL(kernel_power_off);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from seiji.aguchi@hds.com are
 
 origin.patch
-linux-next.patch
-mm-convert-sprintf_symbol-to-%ps.patch
 
