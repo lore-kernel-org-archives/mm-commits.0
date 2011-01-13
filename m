@@ -1,57 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:34:26 -0800
-Message-ID: <201101132334.p0DNYQIP007347@imap1.linux-foundation.org>
+Subject: [folded] mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:34:57 -0800
+Message-ID: <201101132334.p0DNYvY9007353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab1AMXeh (ORCPT
+	by vger.kernel.org with ESMTP id S1757120Ab1AMXfC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:34:37 -0500
+	Thu, 13 Jan 2011 18:35:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-khugepaged-make-khugepaged-aware-of-madvise-fix
+     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
 has been removed from the -mm tree.  Its filename was
-     thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
 
-This patch was dropped because it was folded into thp-khugepaged-make-khugepaged-aware-of-madvise.patch
+This patch was dropped because it was folded into mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-khugepaged-make-khugepaged-aware-of-madvise-fix
+Subject: mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-tweak comment.  It's still incomprehensible though ;)
+remove unneeded casts
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-khugepaged-make-khugepaged-aware-of-madvise-fix
-+++ a/mm/huge_memory.c
-@@ -1426,10 +1426,9 @@ int hugepage_madvise(struct vm_area_stru
- 		*vm_flags &= ~VM_HUGEPAGE;
- 		*vm_flags |= VM_NOHUGEPAGE;
- 		/*
--		 * Setting VM_NOHUGEPAGE will prevent khugepaged to
--		 * scan this vma even if we leave the mm registered in
--		 * khugepaged if it got registered before
--		 * VM_NOHUGEPAGE was set.
-+		 * Setting VM_NOHUGEPAGE will prevent khugepaged from scanning
-+		 * this vma even if we leave the mm registered in khugepaged if
-+		 * it got registered before VM_NOHUGEPAGE was set.
- 		 */
- 		break;
+diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix mm/migrate.c
+--- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix
++++ a/mm/migrate.c
+@@ -248,7 +248,7 @@ static int migrate_page_move_mapping(str
+ 
+ 	expected_count = 2 + page_has_private(page);
+ 	if (page_count(page) != expected_count ||
+-			(struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
++		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
+ 		spin_unlock_irq(&mapping->tree_lock);
+ 		return -EAGAIN;
+ 	}
+@@ -320,7 +320,7 @@ int migrate_huge_page_move_mapping(struc
+ 
+ 	expected_count = 2 + page_has_private(page);
+ 	if (page_count(page) != expected_count ||
+-	    (struct page *)radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
++		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
+ 		spin_unlock_irq(&mapping->tree_lock);
+ 		return -EAGAIN;
  	}
 _
 
@@ -69,7 +73,7 @@ writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
 thp-pte-alloc-trans-splitting.patch
 thp-kvm-mmu-transparent-hugepage-support.patch
 thp-khugepaged-make-khugepaged-aware-of-madvise.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
 mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
 brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
 mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
