@@ -1,327 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] bitops-introduce-little-endian-bitops-for-most-architectures.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 11:43:54 -0800
-Message-ID: <201101131946.p0DJkZ9d028771@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 11:53:13 -0800
+Message-ID: <201101131955.p0DJtsk4029179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755699Ab1AMTsd (ORCPT
+	by vger.kernel.org with ESMTP id S1751616Ab1AMT4Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 14:48:33 -0500
+	Thu, 13 Jan 2011 14:56:24 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0DJtsx2031798
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2011 11:55:54 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, bryan.wu@analog.com, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, grundler@parisc-linux.org, hans-christian.egtvedt@atmel.com, hpa@zytor.comin
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: introduce little-endian bitops for most architectures
+     linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     bitops-introduce-little-endian-bitops-for-most-architectures.patch
+     linux-next-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: introduce little-endian bitops for most architectures
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce little-endian bit operations to the architectures which do not
-have native little-endian bit operations.  (alpha, avr32, blackfin, cris,
-frv, h8300, ia64, m32r, mips, mn10300, parisc, sh, sparc, tile, x86,
-xtensa)
-
-These architectures can just include generic implementation
-(asm-generic/bitops/le.h).
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bitops.h              |    1 +
- arch/avr32/include/asm/bitops.h              |    1 +
- arch/blackfin/include/asm/bitops.h           |    1 +
- arch/cris/include/asm/bitops.h               |    1 +
- arch/frv/include/asm/bitops.h                |    1 +
- arch/h8300/include/asm/bitops.h              |    1 +
- arch/ia64/include/asm/bitops.h               |    1 +
- arch/m32r/include/asm/bitops.h               |    1 +
- arch/mips/include/asm/bitops.h               |    1 +
- arch/mn10300/include/asm/bitops.h            |    1 +
- arch/parisc/include/asm/bitops.h             |    1 +
- arch/sh/include/asm/bitops.h                 |    1 +
- arch/sparc/include/asm/bitops_32.h           |    1 +
- arch/sparc/include/asm/bitops_64.h           |    1 +
- arch/tile/include/asm/bitops.h               |    1 +
- arch/x86/include/asm/bitops.h                |    1 +
- arch/xtensa/include/asm/bitops.h             |    1 +
- include/asm-generic/bitops.h                 |    1 +
- include/asm-generic/bitops/ext2-non-atomic.h |    2 --
- include/asm-generic/bitops/minix-le.h        |    2 --
- 20 files changed, 18 insertions(+), 4 deletions(-)
+ drivers/gpio/cs5535-gpio.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/alpha/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/alpha/include/asm/bitops.h
---- a/arch/alpha/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/alpha/include/asm/bitops.h
-@@ -454,6 +454,7 @@ sched_find_first_bit(const unsigned long
- 	return __ffs(tmp) + ofs;
- }
+diff -puN drivers/gpio/cs5535-gpio.c~linux-next-rejects drivers/gpio/cs5535-gpio.c
+--- a/drivers/gpio/cs5535-gpio.c~linux-next-rejects
++++ a/drivers/gpio/cs5535-gpio.c
+@@ -11,14 +11,13 @@
+ #include <linux/kernel.h>
+ #include <linux/spinlock.h>
+ #include <linux/module.h>
+-#include <linux/pci.h>
++#include <linux/platform_device.h>
+ #include <linux/gpio.h>
+ #include <linux/io.h>
+ #include <linux/cs5535.h>
+ #include <asm/msr.h>
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
+ #define DRV_NAME "cs5535-gpio"
+-#define GPIO_BAR 1
  
- #define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
-diff -puN arch/avr32/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/avr32/include/asm/bitops.h
---- a/arch/avr32/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/avr32/include/asm/bitops.h
-@@ -299,6 +299,7 @@ static inline int ffs(unsigned long word
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix-le.h>
-diff -puN arch/blackfin/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/blackfin/include/asm/bitops.h
---- a/arch/blackfin/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/blackfin/include/asm/bitops.h
-@@ -25,6 +25,7 @@
- #include <asm-generic/bitops/const_hweight.h>
- #include <asm-generic/bitops/lock.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/cris/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/cris/include/asm/bitops.h
---- a/arch/cris/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/cris/include/asm/bitops.h
-@@ -154,6 +154,7 @@ static inline int test_and_change_bit(in
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/lock.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
-diff -puN arch/frv/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/frv/include/asm/bitops.h
---- a/arch/frv/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/frv/include/asm/bitops.h
-@@ -401,6 +401,7 @@ int __ilog2_u64(u64 n)
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(lock,nr,addr)	test_and_set_bit  ((nr) ^ 0x18, (addr))
-diff -puN arch/h8300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/h8300/include/asm/bitops.h
---- a/arch/h8300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/h8300/include/asm/bitops.h
-@@ -200,6 +200,7 @@ static __inline__ unsigned long __ffs(un
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/ia64/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/ia64/include/asm/bitops.h
---- a/arch/ia64/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/ia64/include/asm/bitops.h
-@@ -456,6 +456,7 @@ static __inline__ unsigned long __arch_h
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(l,n,a)	test_and_set_bit(n,a)
-diff -puN arch/m32r/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/m32r/include/asm/bitops.h
---- a/arch/m32r/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/m32r/include/asm/bitops.h
-@@ -266,6 +266,7 @@ static __inline__ int test_and_change_bi
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/mips/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/mips/include/asm/bitops.h
---- a/arch/mips/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/mips/include/asm/bitops.h
-@@ -676,6 +676,7 @@ static inline int ffs(int word)
- #include <asm/arch_hweight.h>
- #include <asm-generic/bitops/const_hweight.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/mn10300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/mn10300/include/asm/bitops.h
---- a/arch/mn10300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/mn10300/include/asm/bitops.h
-@@ -233,6 +233,7 @@ int ffs(int x)
- #define ext2_clear_bit_atomic(lock, nr, addr) \
- 	test_and_clear_bit((nr), (addr))
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/minix-le.h>
- 
-diff -puN arch/parisc/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/parisc/include/asm/bitops.h
---- a/arch/parisc/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/parisc/include/asm/bitops.h
-@@ -222,6 +222,7 @@ static __inline__ int fls(int x)
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- /* '3' is bits per byte */
-diff -puN arch/sh/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sh/include/asm/bitops.h
---- a/arch/sh/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sh/include/asm/bitops.h
-@@ -94,6 +94,7 @@ static inline unsigned long ffz(unsigned
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/sparc/include/asm/bitops_32.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sparc/include/asm/bitops_32.h
---- a/arch/sparc/include/asm/bitops_32.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sparc/include/asm/bitops_32.h
-@@ -103,6 +103,7 @@ static inline void change_bit(unsigned l
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/sparc/include/asm/bitops_64.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sparc/include/asm/bitops_64.h
---- a/arch/sparc/include/asm/bitops_64.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sparc/include/asm/bitops_64.h
-@@ -89,6 +89,7 @@ static inline unsigned int __arch_hweigh
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(lock,nr,addr) \
-diff -puN arch/tile/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/tile/include/asm/bitops.h
---- a/arch/tile/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/tile/include/asm/bitops.h
-@@ -122,6 +122,7 @@ static inline unsigned long __arch_hweig
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/sched.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/minix.h>
- 
-diff -puN arch/x86/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/x86/include/asm/bitops.h
-@@ -456,6 +456,7 @@ static inline int fls(int x)
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(lock, nr, addr)			\
-diff -puN arch/xtensa/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/xtensa/include/asm/bitops.h
---- a/arch/xtensa/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/xtensa/include/asm/bitops.h
-@@ -106,6 +106,7 @@ static inline unsigned long __fls(unsign
- 
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/find.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #ifdef __XTENSA_EL__
-diff -puN include/asm-generic/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops.h
---- a/include/asm-generic/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops.h
-@@ -38,6 +38,7 @@
- 
- #include <asm-generic/bitops/atomic.h>
- #include <asm-generic/bitops/non-atomic.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN include/asm-generic/bitops/ext2-non-atomic.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops/ext2-non-atomic.h
---- a/include/asm-generic/bitops/ext2-non-atomic.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops/ext2-non-atomic.h
-@@ -1,8 +1,6 @@
- #ifndef _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
- #define _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
- 
--#include <asm-generic/bitops/le.h>
--
- #define ext2_set_bit(nr,addr)	\
- 	__test_and_set_le_bit((nr), (unsigned long *)(addr))
- #define ext2_clear_bit(nr,addr)	\
-diff -puN include/asm-generic/bitops/minix-le.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops/minix-le.h
---- a/include/asm-generic/bitops/minix-le.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops/minix-le.h
-@@ -1,8 +1,6 @@
- #ifndef _ASM_GENERIC_BITOPS_MINIX_LE_H_
- #define _ASM_GENERIC_BITOPS_MINIX_LE_H_
- 
--#include <asm-generic/bitops/le.h>
--
- #define minix_test_and_set_bit(nr,addr)	\
- 	__test_and_set_le_bit((nr), (unsigned long *)(addr))
- #define minix_set_bit(nr,addr)		\
+ /*
+  * Some GPIO pins
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rds-stop-including-asm-generic-bitops-leh.patch
-kvm-stop-including-asm-generic-bitops-leh.patch
-asm-generic-use-little-endian-bitops.patch
-ext3-use-little-endian-bitops.patch
-ext4-use-little-endian-bitops.patch
-ocfs2-use-little-endian-bitops.patch
-nilfs2-use-little-endian-bitops.patch
-reiserfs-use-little-endian-bitops.patch
-udf-use-little-endian-bitops.patch
-ufs-use-little-endian-bitops.patch
-md-use-little-endian-bit-operations.patch
-dm-use-little-endian-bit-operations.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
-m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
-bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
-spufs-use-simple_write_to_buffer.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix2.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-kvm-mmu-transparent-hugepage-support-bisection.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
