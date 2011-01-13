@@ -1,67 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 11:53:13 -0800
-Message-ID: <201101131955.p0DJtsk4029179@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 13 Jan 2011 11:54:32 -0800
+Message-ID: <201101131957.p0DJvC23029233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616Ab1AMT4Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751616Ab1AMT5W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 14:56:24 -0500
+	Thu, 13 Jan 2011 14:57:22 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0DJtsx2031798
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0DJvD3D031863
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2011 11:55:54 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2011 11:57:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/cs5535-gpio.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ecryptfs/main.c |   46 -------------------------------------------
+ include/linux/fs.h |    3 --
+ 2 files changed, 49 deletions(-)
 
-diff -puN drivers/gpio/cs5535-gpio.c~linux-next-rejects drivers/gpio/cs5535-gpio.c
---- a/drivers/gpio/cs5535-gpio.c~linux-next-rejects
-+++ a/drivers/gpio/cs5535-gpio.c
-@@ -11,14 +11,13 @@
- #include <linux/kernel.h>
- #include <linux/spinlock.h>
- #include <linux/module.h>
--#include <linux/pci.h>
-+#include <linux/platform_device.h>
- #include <linux/gpio.h>
- #include <linux/io.h>
- #include <linux/cs5535.h>
- #include <asm/msr.h>
+diff -puN fs/ecryptfs/main.c~linux-next-git-rejects fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~linux-next-git-rejects
++++ a/fs/ecryptfs/main.c
+@@ -501,52 +501,6 @@ struct kmem_cache *ecryptfs_sb_info_cach
+ static struct file_system_type ecryptfs_fs_type;
  
- #define DRV_NAME "cs5535-gpio"
--#define GPIO_BAR 1
+ /**
+-<<<<<<< HEAD
+-=======
+- * ecryptfs_read_super
+- * @sb: The ecryptfs super block
+- * @dev_name: The path to mount over
+- *
+- * Read the super block of the lower filesystem, and use
+- * ecryptfs_interpose to create our initial inode and super block
+- * struct.
+- */
+-static int ecryptfs_read_super(struct super_block *sb, const char *dev_name)
+-{
+-	struct path path;
+-	int rc;
+-
+-	rc = kern_path(dev_name, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &path);
+-	if (rc) {
+-		ecryptfs_printk(KERN_WARNING, "path_lookup() failed\n");
+-		goto out;
+-	}
+-	if (path.dentry->d_sb->s_type == &ecryptfs_fs_type) {
+-		rc = -EINVAL;
+-		printk(KERN_ERR "Mount on filesystem of type "
+-			"eCryptfs explicitly disallowed due to "
+-			"known incompatibilities\n");
+-		goto out_free;
+-	}
+-	ecryptfs_set_superblock_lower(sb, path.dentry->d_sb);
+-	sb->s_maxbytes = path.dentry->d_sb->s_maxbytes;
+-	sb->s_blocksize = path.dentry->d_sb->s_blocksize;
+-	sb->s_magic = ECRYPTFS_SUPER_MAGIC;
+-	ecryptfs_set_dentry_lower(sb->s_root, path.dentry);
+-	ecryptfs_set_dentry_lower_mnt(sb->s_root, path.mnt);
+-	rc = ecryptfs_interpose(path.dentry, sb->s_root, sb, 0);
+-	if (rc)
+-		goto out_free;
+-	rc = 0;
+-	goto out;
+-out_free:
+-	path_put(&path);
+-out:
+-	return rc;
+-}
+-
+-/**
+->>>>>>> FETCH_HEAD
+  * ecryptfs_get_sb
+  * @fs_type
+  * @flags
+diff -puN include/linux/fs.h~linux-next-git-rejects include/linux/fs.h
+--- a/include/linux/fs.h~linux-next-git-rejects
++++ a/include/linux/fs.h
+@@ -1423,15 +1423,12 @@ struct super_block {
+ 	 * generic_show_options()
+ 	 */
+ 	char __rcu *s_options;
+-<<<<<<< HEAD
+ 	const struct dentry_operations *s_d_op; /* default d_op for dentries */
+-=======
  
- /*
-  * Some GPIO pins
+ 	/*
+ 	 * Saved pool identifier for cleancache (-1 means none)
+ 	 */
+ 	int cleancache_poolid;
+->>>>>>> FETCH_HEAD
+ };
+ 
+ extern struct timespec current_fs_time(struct super_block *sb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
