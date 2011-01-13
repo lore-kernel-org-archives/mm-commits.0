@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kpagecount-added-slab-page-checking-because-of-_mapcount-in-union.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:39 -0800
-Message-ID: <201101132011.p0DKBKjK030165@imap1.linux-foundation.org>
+Subject: [merged] proc-kcore-fix-seeking.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:08:45 -0800
+Message-ID: <201101132011.p0DKBQve030174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933673Ab1AMUMD (ORCPT
+	by vger.kernel.org with ESMTP id S933673Ab1AMUMG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:12:03 -0500
+	Thu, 13 Jan 2011 15:12:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pholasek@redhat.com, fengguang.wu@intel.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: anderson@redhat.com, fweisbec@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kpagecount: add slab page checking because _mapcount is in a union
+     /proc/kcore: fix seeking
 has been removed from the -mm tree.  Its filename was
-     kpagecount-added-slab-page-checking-because-of-_mapcount-in-union.patch
+     proc-kcore-fix-seeking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kpagecount: add slab page checking because _mapcount is in a union
-From: Petr Holasek <pholasek@redhat.com>
+Subject: /proc/kcore: fix seeking
+From: Dave Anderson <anderson@redhat.com>
 
-Add a PageSlab() check before adding the _mapcount value to /kpagecount. 
-page->_mapcount is in a union with the SLAB structure so for pages
-controlled by SLAB, page_mapcount() returns nonsense.
+Commit 34aacb2920 ("procfs: Use generic_file_llseek in /proc/kcore") broke
+seeking on /proc/kcore.  This changes it back to use default_llseek in
+order to restore the original behavior.
 
-Signed-off-by: Petr Holasek <pholasek@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Matt Mackall <mpm@selenic.com>
+The problem with generic_file_llseek is that it only allows seeks up to
+inode->i_sb->s_maxbytes, which is 2GB-1 on procfs, where the memory file
+offset values in the /proc/kcore PT_LOAD segments may exceed or start
+beyond that offset value.
+
+A similar revert was made for /proc/vmcore.
+
+Signed-off-by: Dave Anderson <anderson@redhat.com>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |    2 +-
+ fs/proc/kcore.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/page.c~kpagecount-added-slab-page-checking-because-of-_mapcount-in-union fs/proc/page.c
---- a/fs/proc/page.c~kpagecount-added-slab-page-checking-because-of-_mapcount-in-union
-+++ a/fs/proc/page.c
-@@ -40,7 +40,7 @@ static ssize_t kpagecount_read(struct fi
- 			ppage = pfn_to_page(pfn);
- 		else
- 			ppage = NULL;
--		if (!ppage)
-+		if (!ppage || PageSlab(ppage))
- 			pcount = 0;
- 		else
- 			pcount = page_mapcount(ppage);
+diff -puN fs/proc/kcore.c~proc-kcore-fix-seeking fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-fix-seeking
++++ a/fs/proc/kcore.c
+@@ -558,7 +558,7 @@ static int open_kcore(struct inode *inod
+ static const struct file_operations proc_kcore_operations = {
+ 	.read		= read_kcore,
+ 	.open		= open_kcore,
+-	.llseek		= generic_file_llseek,
++	.llseek		= default_llseek,
+ };
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
 _
 
-Patches currently in -mm which might be from pholasek@redhat.com are
+Patches currently in -mm which might be from anderson@redhat.com are
 
 origin.patch
 
