@@ -1,70 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] asm-generic-use-little-endian-bitops.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 11:44:04 -0800
-Message-ID: <201101131946.p0DJkiPb028784@imap1.linux-foundation.org>
+Subject: [to-be-updated] kvm-stop-including-asm-generic-bitops-leh.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 11:44:02 -0800
+Message-ID: <201101131946.p0DJkgUA028780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756799Ab1AMTqt (ORCPT
+	by vger.kernel.org with ESMTP id S1756825Ab1AMTqt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 13 Jan 2011 14:46:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, avi@redhat.com, mtosatti@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic: use little-endian bitops
+     kvm: stop including asm-generic/bitops/le.h
 has been removed from the -mm tree.  Its filename was
-     asm-generic-use-little-endian-bitops.patch
+     kvm-stop-including-asm-generic-bitops-leh.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: use little-endian bitops
+Subject: kvm: stop including asm-generic/bitops/le.h
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-As a preparation for removing ext2 non-atomic bit operations from
-asm/bitops.h.  This converts ext2 non-atomic bit operations to
-little-endian bit operations.
+No need to include asm-generic/bitops/le.h as all architectures provide
+little-endian bit operations now.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/ext2-atomic.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ virt/kvm/kvm_main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/asm-generic/bitops/ext2-atomic.h~asm-generic-use-little-endian-bitops include/asm-generic/bitops/ext2-atomic.h
---- a/include/asm-generic/bitops/ext2-atomic.h~asm-generic-use-little-endian-bitops
-+++ a/include/asm-generic/bitops/ext2-atomic.h
-@@ -5,7 +5,7 @@
- 	({						\
- 		int ret;				\
- 		spin_lock(lock);			\
--		ret = ext2_set_bit((nr), (unsigned long *)(addr)); \
-+		ret = __test_and_set_le_bit((nr), (unsigned long *)(addr)); \
- 		spin_unlock(lock);			\
- 		ret;					\
- 	})
-@@ -14,7 +14,7 @@
- 	({						\
- 		int ret;				\
- 		spin_lock(lock);			\
--		ret = ext2_clear_bit((nr), (unsigned long *)(addr)); \
-+		ret = __test_and_clear_le_bit((nr), (unsigned long *)(addr)); \
- 		spin_unlock(lock);			\
- 		ret;					\
- 	})
+diff -puN virt/kvm/kvm_main.c~kvm-stop-including-asm-generic-bitops-leh virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~kvm-stop-including-asm-generic-bitops-leh
++++ a/virt/kvm/kvm_main.c
+@@ -52,7 +52,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+-#include <asm-generic/bitops/le.h>
+ 
+ #include "coalesced_mmio.h"
+ 
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+asm-generic-use-little-endian-bitops.patch
 ext3-use-little-endian-bitops.patch
 ext4-use-little-endian-bitops.patch
 ocfs2-use-little-endian-bitops.patch
