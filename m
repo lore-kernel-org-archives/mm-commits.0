@@ -1,288 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-move-proc_consolec-to-fs-proc-consolesc.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:43 -0800
-Message-ID: <201101132011.p0DKBOPZ030171@imap1.linux-foundation.org>
+Subject: [merged] drivers-telephony-ixjc-fix-warning.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:08:13 -0800
+Message-ID: <201101132010.p0DKAst6030103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933754Ab1AMUUe (ORCPT
+	by vger.kernel.org with ESMTP id S1756822Ab1AMUUc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:20:34 -0500
+	Thu, 13 Jan 2011 15:20:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, namhyung@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: move proc_console.c to fs/proc/consoles.c
+     drivers/telephony/ixj.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     proc-move-proc_consolec-to-fs-proc-consolesc.patch
+     drivers-telephony-ixjc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: move proc_console.c to fs/proc/consoles.c
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: drivers/telephony/ixj.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Filename is supposed to match procfile name for random junk.
+  CC      drivers/telephony/ixj.o
+drivers/telephony/ixj.c:287: warning: \u2018ixj_pci_tbl\u2019 defined but not used
 
-Add __init while I'm at it.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Makefile       |    2 
- fs/proc/consoles.c     |  114 +++++++++++++++++++++++++++++++++++++++
- fs/proc/proc_console.c |  114 ---------------------------------------
- 3 files changed, 115 insertions(+), 115 deletions(-)
+ drivers/telephony/ixj.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/Makefile~proc-move-proc_consolec-to-fs-proc-consolesc fs/proc/Makefile
---- a/fs/proc/Makefile~proc-move-proc_consolec-to-fs-proc-consolesc
-+++ a/fs/proc/Makefile
-@@ -10,12 +10,12 @@ proc-$(CONFIG_MMU)	:= mmu.o task_mmu.o
- proc-y       += inode.o root.o base.o generic.o array.o \
- 		proc_tty.o
- proc-y	+= cmdline.o
-+proc-y	+= consoles.o
- proc-y	+= cpuinfo.o
- proc-y	+= devices.o
- proc-y	+= interrupts.o
- proc-y	+= loadavg.o
- proc-y	+= meminfo.o
--proc-y	+= proc_console.o
- proc-y	+= stat.o
- proc-y	+= uptime.o
- proc-y	+= version.o
-diff -puN /dev/null fs/proc/consoles.c
---- /dev/null
-+++ a/fs/proc/consoles.c
-@@ -0,0 +1,114 @@
-+/*
-+ * Copyright (c) 2010 Werner Fink, Jiri Slaby
-+ *
-+ * Licensed under GPLv2
-+ */
-+
-+#include <linux/console.h>
-+#include <linux/kernel.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/tty_driver.h>
-+
-+/*
-+ * This is handler for /proc/consoles
-+ */
-+static int show_console_dev(struct seq_file *m, void *v)
-+{
-+	static const struct {
-+		short flag;
-+		char name;
-+	} con_flags[] = {
-+		{ CON_ENABLED,		'E' },
-+		{ CON_CONSDEV,		'C' },
-+		{ CON_BOOT,		'B' },
-+		{ CON_PRINTBUFFER,	'p' },
-+		{ CON_BRL,		'b' },
-+		{ CON_ANYTIME,		'a' },
-+	};
-+	char flags[ARRAY_SIZE(con_flags) + 1];
-+	struct console *con = v;
-+	unsigned int a;
-+	int len;
-+	dev_t dev = 0;
-+
-+	if (con->device) {
-+		const struct tty_driver *driver;
-+		int index;
-+		driver = con->device(con, &index);
-+		if (driver) {
-+			dev = MKDEV(driver->major, driver->minor_start);
-+			dev += index;
-+		}
-+	}
-+
-+	for (a = 0; a < ARRAY_SIZE(con_flags); a++)
-+		flags[a] = (con->flags & con_flags[a].flag) ?
-+			con_flags[a].name : ' ';
-+	flags[a] = 0;
-+
-+	seq_printf(m, "%s%d%n", con->name, con->index, &len);
-+	len = 21 - len;
-+	if (len < 1)
-+		len = 1;
-+	seq_printf(m, "%*c%c%c%c (%s)", len, ' ', con->read ? 'R' : '-',
-+			con->write ? 'W' : '-', con->unblank ? 'U' : '-',
-+			flags);
-+	if (dev)
-+		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
-+
-+	seq_printf(m, "\n");
-+
-+	return 0;
-+}
-+
-+static void *c_start(struct seq_file *m, loff_t *pos)
-+{
-+	struct console *con;
-+	loff_t off = 0;
-+
-+	acquire_console_sem();
-+	for_each_console(con)
-+		if (off++ == *pos)
-+			break;
-+
-+	return con;
-+}
-+
-+static void *c_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	struct console *con = v;
-+	++*pos;
-+	return con->next;
-+}
-+
-+static void c_stop(struct seq_file *m, void *v)
-+{
-+	release_console_sem();
-+}
-+
-+static const struct seq_operations consoles_op = {
-+	.start	= c_start,
-+	.next	= c_next,
-+	.stop	= c_stop,
-+	.show	= show_console_dev
-+};
-+
-+static int consoles_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &consoles_op);
-+}
-+
-+static const struct file_operations proc_consoles_operations = {
-+	.open		= consoles_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
-+static int __init proc_consoles_init(void)
-+{
-+	proc_create("consoles", 0, NULL, &proc_consoles_operations);
-+	return 0;
-+}
-+module_init(proc_consoles_init);
-diff -puN fs/proc/proc_console.c~proc-move-proc_consolec-to-fs-proc-consolesc /dev/null
---- a/fs/proc/proc_console.c
-+++ /dev/null
-@@ -1,114 +0,0 @@
--/*
-- * Copyright (c) 2010 Werner Fink, Jiri Slaby
-- *
-- * Licensed under GPLv2
-- */
+diff -puN drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning
++++ a/drivers/telephony/ixj.c
+@@ -284,12 +284,11 @@ static int samplerate = 100;
+ 
+ module_param(ixjdebug, int, 0);
+ 
+-static struct pci_device_id ixj_pci_tbl[] __devinitdata = {
++static DEFINE_PCI_DEVICE_TABLE(ixj_pci_tbl) = {
+ 	{ PCI_VENDOR_ID_QUICKNET, PCI_DEVICE_ID_QUICKNET_XJ,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{ }
+ };
 -
--#include <linux/console.h>
--#include <linux/kernel.h>
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/tty_driver.h>
--
--/*
-- * This is handler for /proc/consoles
-- */
--static int show_console_dev(struct seq_file *m, void *v)
--{
--	static const struct {
--		short flag;
--		char name;
--	} con_flags[] = {
--		{ CON_ENABLED,		'E' },
--		{ CON_CONSDEV,		'C' },
--		{ CON_BOOT,		'B' },
--		{ CON_PRINTBUFFER,	'p' },
--		{ CON_BRL,		'b' },
--		{ CON_ANYTIME,		'a' },
--	};
--	char flags[ARRAY_SIZE(con_flags) + 1];
--	struct console *con = v;
--	unsigned int a;
--	int len;
--	dev_t dev = 0;
--
--	if (con->device) {
--		const struct tty_driver *driver;
--		int index;
--		driver = con->device(con, &index);
--		if (driver) {
--			dev = MKDEV(driver->major, driver->minor_start);
--			dev += index;
--		}
--	}
--
--	for (a = 0; a < ARRAY_SIZE(con_flags); a++)
--		flags[a] = (con->flags & con_flags[a].flag) ?
--			con_flags[a].name : ' ';
--	flags[a] = 0;
--
--	seq_printf(m, "%s%d%n", con->name, con->index, &len);
--	len = 21 - len;
--	if (len < 1)
--		len = 1;
--	seq_printf(m, "%*c%c%c%c (%s)", len, ' ', con->read ? 'R' : '-',
--			con->write ? 'W' : '-', con->unblank ? 'U' : '-',
--			flags);
--	if (dev)
--		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
--
--	seq_printf(m, "\n");
--
--	return 0;
--}
--
--static void *c_start(struct seq_file *m, loff_t *pos)
--{
--	struct console *con;
--	loff_t off = 0;
--
--	acquire_console_sem();
--	for_each_console(con)
--		if (off++ == *pos)
--			break;
--
--	return con;
--}
--
--static void *c_next(struct seq_file *m, void *v, loff_t *pos)
--{
--	struct console *con = v;
--	++*pos;
--	return con->next;
--}
--
--static void c_stop(struct seq_file *m, void *v)
--{
--	release_console_sem();
--}
--
--static const struct seq_operations consoles_op = {
--	.start	= c_start,
--	.next	= c_next,
--	.stop	= c_stop,
--	.show	= show_console_dev
--};
--
--static int consoles_open(struct inode *inode, struct file *file)
--{
--	return seq_open(file, &consoles_op);
--}
--
--static const struct file_operations proc_consoles_operations = {
--	.open		= consoles_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= seq_release,
--};
+ MODULE_DEVICE_TABLE(pci, ixj_pci_tbl);
+ 
+ /************************************************************************
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code-checkpatch-fixes.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
+thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
+thp-kvm-mmu-transparent-hugepage-support-bisection.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
+mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+memcg-document-cgroup-dirty-memory-interfaces-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
