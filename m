@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-config_transparent_hugepage-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:30:20 -0800
-Message-ID: <201101132330.p0DNUKmA007148@imap1.linux-foundation.org>
+Subject: [folded] thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:30:42 -0800
+Message-ID: <201101132330.p0DNUgbl007161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756916Ab1AMXaf (ORCPT
+	by vger.kernel.org with ESMTP id S1757320Ab1AMXa4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:30:35 -0500
+	Thu, 13 Jan 2011 18:30:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-config_transparent_hugepage-fix
+     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2
 has been removed from the -mm tree.  Its filename was
-     thp-config_transparent_hugepage-fix.patch
+     thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
 
-This patch was dropped because it was folded into thp-config_transparent_hugepage.patch
+This patch was dropped because it was folded into thp-add-pmd-mangling-generic-functions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-config_transparent_hugepage-fix
+Subject: thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-thp: remove dependency on HUGETLB_PAGE
-
-THP code is already 100% standalone and not depending on a bit of hugetlbfs.
-
-HUGETLBFS_PAGE would be better removed and unified with HUGETLBFS considering
-the kernel won't build if they're not equal.
+__pmd should return a valid pmd_t for every arch.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
+ include/asm-generic/pgtable.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~thp-config_transparent_hugepage-fix fs/Kconfig
---- a/fs/Kconfig~thp-config_transparent_hugepage-fix
-+++ a/fs/Kconfig
-@@ -147,7 +147,7 @@ config HUGETLBFS
- 	  If unsure, say N.
- 
- config HUGETLB_PAGE
--	def_bool HUGETLBFS || TRANSPARENT_HUGEPAGE
-+	def_bool HUGETLBFS
- 
- source "fs/configfs/Kconfig"
- 
+diff -puN include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch
++++ a/include/asm-generic/pgtable.h
+@@ -93,7 +93,7 @@ static inline pmd_t pmdp_get_and_clear(s
+ 				       pmd_t *pmdp)
+ {
+ 	BUG();
+-	return (pmd_t){ 0 };
++	return __pmd(0);
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -83,8 +77,6 @@ thp-comment-reminder-in-destroy_compound_page.patch
 thp-config_transparent_hugepage.patch
 thp-special-pmd_trans_-functions.patch
 thp-add-pmd-mangling-generic-functions.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um.patch
-thp-add-pmd-mangling-generic-functions-fix-pgtableh-build-for-um-2patch.patch
 thp-add-pmd-mangling-functions-to-x86.patch
 thp-bail-out-gup_fast-on-splitting-pmd.patch
 thp-pte-alloc-trans-splitting.patch
