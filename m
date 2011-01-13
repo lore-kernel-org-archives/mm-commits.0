@@ -1,98 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-capture-monotonic_raw-timestamps-as-well-v7.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:26:42 -0800
-Message-ID: <201101130026.p0D0QgpQ012438@imap1.linux-foundation.org>
+Subject: [folded] ntp-add-hardpps-implementation-update-v7.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:26:29 -0800
+Message-ID: <201101130026.p0D0QTci012429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755961Ab1AMA07 (ORCPT
+	by vger.kernel.org with ESMTP id S1756402Ab1AMA1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:26:59 -0500
+	Wed, 12 Jan 2011 19:27:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-capture-monotonic_raw-timestamps-as-well-v7
+     ntp-add-hardpps-implementation-update-v7
 has been removed from the -mm tree.  Its filename was
-     pps-capture-monotonic_raw-timestamps-as-well-v7.patch
+     ntp-add-hardpps-implementation-update-v7.patch
 
-This patch was dropped because it was folded into pps-capture-monotonic_raw-timestamps-as-well.patch
+This patch was dropped because it was folded into ntp-add-hardpps-implementation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-capture-monotonic_raw-timestamps-as-well-v7
+Subject: ntp-add-hardpps-implementation-update-v7
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: John Stultz <johnstul@us.ibm.com>
+Acked-by: John Stultz <johnstul@us.ibm.com>
 Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pps_kernel.h |   13 +++++++++++++
- kernel/time/timekeeping.c  |    4 ++++
- 2 files changed, 17 insertions(+)
+ drivers/pps/Kconfig |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well-v7 include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well-v7
-+++ a/include/linux/pps_kernel.h
-@@ -47,7 +47,9 @@ struct pps_source_info {
- };
+diff -puN drivers/pps/Kconfig~ntp-add-hardpps-implementation-update-v7 drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~ntp-add-hardpps-implementation-update-v7
++++ a/drivers/pps/Kconfig
+@@ -32,11 +32,13 @@ config PPS_DEBUG
  
- struct pps_event_time {
-+#ifdef CONFIG_NTP_PPS
- 	struct timespec ts_raw;
-+#endif /* CONFIG_NTP_PPS */
- 	struct timespec ts_real;
- };
+ config NTP_PPS
+ 	bool "PPS kernel consumer support"
+-	depends on PPS
++	depends on PPS && !NO_HZ
+ 	help
+ 	  This option adds support for direct in-kernel time
+ 	  syncronization using an external PPS signal.
  
-@@ -98,10 +100,21 @@ static inline void timespec_to_pps_ktime
- 	kt->nsec = ts.tv_nsec;
- }
- 
-+#ifdef CONFIG_NTP_PPS
++	  It doesn't work on tickless systems at the moment.
 +
- static inline void pps_get_ts(struct pps_event_time *ts)
- {
- 	getnstime_raw_and_real(&ts->ts_raw, &ts->ts_real);
- }
+ source drivers/pps/clients/Kconfig
  
-+#else /* CONFIG_NTP_PPS */
-+
-+static inline void pps_get_ts(struct pps_event_time *ts)
-+{
-+	getnstimeofday(&ts->ts_real);
-+}
-+
-+#endif /* CONFIG_NTP_PPS */
-+
- #endif /* LINUX_PPS_KERNEL_H */
- 
-diff -puN kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well-v7 kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well-v7
-+++ a/kernel/time/timekeeping.c
-@@ -288,6 +288,8 @@ void ktime_get_ts(struct timespec *ts)
- }
- EXPORT_SYMBOL_GPL(ktime_get_ts);
- 
-+#ifdef CONFIG_NTP_PPS
-+
- /**
-  * getnstime_raw_and_real - get day and raw monotonic time in timespec format
-  * @ts_raw:	pointer to the timespec to be set to raw monotonic time
-@@ -327,6 +329,8 @@ void getnstime_raw_and_real(struct times
- }
- EXPORT_SYMBOL(getnstime_raw_and_real);
- 
-+#endif /* CONFIG_NTP_PPS */
-+
- /**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
+ endmenu
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
@@ -110,6 +71,7 @@ pps-simplify-conditions-a-bit.patch
 pps-timestamp-is-always-passed-to-dcd_change.patch
 ntp-add-hardpps-implementation.patch
 pps-capture-monotonic_raw-timestamps-as-well.patch
+pps-capture-monotonic_raw-timestamps-as-well-v7.patch
 pps-add-kernel-consumer-support.patch
 pps-add-kernel-consumer-support-v7.patch
 pps-add-parallel-port-pps-client.patch
