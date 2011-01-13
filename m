@@ -1,68 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded] w1-ds2423-counter-driver-and-documentation-fix.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:28:49 -0800
-Message-ID: <201101130028.p0D0SneH012561@imap1.linux-foundation.org>
+Subject: [folded] aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:29:25 -0800
+Message-ID: <201101130029.p0D0TP0w012589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542Ab1AMA3G (ORCPT
+	by vger.kernel.org with ESMTP id S1755542Ab1AMA3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:29:06 -0500
+	Wed, 12 Jan 2011 19:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, johnpol@2ka.mipt.ru, lamikr@pilppa.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: fix ds2423 build, needs to select CRC16
+     aio-remove-unused-aio_run_iocbs-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     w1-ds2423-counter-driver-and-documentation-fix.patch
+     aio-remove-unused-aio_run_iocbs-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into w1-ds2423-counter-driver-and-documentation.patch
+This patch was dropped because it was folded into aio-remove-unused-aio_run_iocbs.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: fix ds2423 build, needs to select CRC16
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: aio-remove-unused-aio_run_iocbs-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix w1_ds2423 build:  needs to select CRC16.
+WARNING: please, no space before tabs
+#25: FILE: fs/aio.c:804:
++ * ^Irun list, and keep running them until the list$
 
-w1_ds2423.c:(.text+0x9971d): undefined reference to `crc16'
-w1_ds2423.c:(.text+0x9973a): undefined reference to `crc16'
+WARNING: please, no space before tabs
+#26: FILE: fs/aio.c:805:
++ * ^Istays empty.$
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mika Laitio <lamikr@pilppa.org>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+total: 0 errors, 2 warnings, 33 lines checked
+
+./patches/aio-remove-unused-aio_run_iocbs.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/aio.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/w1/slaves/Kconfig~w1-ds2423-counter-driver-and-documentation-fix drivers/w1/slaves/Kconfig
---- a/drivers/w1/slaves/Kconfig~w1-ds2423-counter-driver-and-documentation-fix
-+++ a/drivers/w1/slaves/Kconfig
-@@ -18,6 +18,7 @@ config W1_SLAVE_SMEM
+diff -puN fs/aio.c~aio-remove-unused-aio_run_iocbs-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-remove-unused-aio_run_iocbs-checkpatch-fixes
++++ a/fs/aio.c
+@@ -800,11 +800,10 @@ static void aio_queue_work(struct kioctx
  
- config W1_SLAVE_DS2423
- 	tristate "Counter 1-wire device (DS2423)"
-+	select CRC16
- 	help
- 	  If you enable this you can read the counter values available
- 	  in the DS2423 chipset from the w1_slave file under the
+ /*
+  * aio_run_all_iocbs:
+- * 	Process all pending retries queued on the ioctx
+- * 	run list, and keep running them until the list
+- * 	stays empty.
+- * Assumes it is operating within the aio issuer's mm
+- * context.
++ *	Process all pending retries queued on the ioctx
++ *	run list, and keep running them until the list
++ *	stays empty.
++ * Assumes it is operating within the aio issuer's mm context.
+  */
+ static inline void aio_run_all_iocbs(struct kioctx *ctx)
+ {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-uml-mmapper_kern-needs-module_license.patch
-kernel-clean-up-use_generic_smp_helpers.patch
+leds-add-output-inversion-option-to-backlight-trigger.patch
+include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+include-linux-unaligned-packed_structh-use-__packed.patch
+ihex-fix-unused-return-value-compiler-warning.patch
 kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
-gpio_rdc321x-select-mfd_support-to-squelch-kconfig-warning.patch
-gpio_vx855-eliminate-kconfig-dependency-warning.patch
-documentation-email-clientstxt-warn-about-word-wrap-bug-in-kmail.patch
-update-thunderbird-docs-with-wordwrap-plugin.patch
-w1-ds2423-counter-driver-and-documentation.patch
+fs-select-fix-information-leak-to-userspace.patch
+drivers-telephony-ixjc-fix-warning.patch
+fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
+sysctl-remove-obsolete-comments.patch
+user_ns-improve-the-user_ns-on-the-slab-packaging.patch
+pps-add-parallel-port-pps-signal-generator.patch
+memstick-factor-out-transfer-initiating-functionality-in-mspro_blockc.patch
+aio-remove-unused-aio_run_iocbs.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-fix.patch
+cramfs-generate-unique-inode-number-for-better-inode-cache-usage-checkpatch-fixes.patch
+ramoops-fix-types-remove-typecasts.patch
+fs-ext4-inodec-use-pr_warn_ratelimited.patch
 
