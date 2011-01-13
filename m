@@ -1,88 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] dm-use-little-endian-bit-operations.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 11:44:24 -0800
-Message-ID: <201101131947.p0DJl4dI028824@imap1.linux-foundation.org>
+Subject: [to-be-updated] bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 11:44:34 -0800
+Message-ID: <201101131947.p0DJlFV8028847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757115Ab1AMTrQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757072Ab1AMTrT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 14:47:16 -0500
+	Thu, 13 Jan 2011 14:47:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm: use little-endian bit operations
+     bitops: use find_first_zero_bit() instead of find_next_zero_bit(addr, size, 0)
 has been removed from the -mm tree.  Its filename was
-     dm-use-little-endian-bit-operations.patch
+     bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm: use little-endian bit operations
+Subject: bitops: use find_first_zero_bit() instead of find_next_zero_bit(addr, size, 0)
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-As a preparation for removing ext2 non-atomic bit operations from
-asm/bitops.h.  This converts ext2 non-atomic bit operations to
-little-endian bit operations.
+The little-endian bitops patch series introduced inefficiency to some
+little-endian architectures.
+
+include/asm-generic/bitops/le.h defines find_first_zero_le_bit() like this:
+
+	#define find_first_zero_le_bit(addr, size) \
+		find_next_zero_le_bit((addr), (size), 0)
+
+All little-endian architectures include le.h and little-endian bitops
+are just aliases for their native endian bitops. So above macro definision
+is converted to:
+
+	#define find_first_zero_le_bit(addr, size) \
+		find_next_zero_bit(addr, size, 0)
+
+This is inefficient for some architectures which have faster
+find_first_zero_bit() than find_next_zero_bit(addr, size, 0).
+
+Fix it by aliasing find_first_zero_bit() to find_first_zero_le_bit()
+on little-endian architectures.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-generic/bitops/le.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-log.c~dm-use-little-endian-bit-operations drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~dm-use-little-endian-bit-operations
-+++ a/drivers/md/dm-log.c
-@@ -251,20 +251,20 @@ struct log_c {
-  */
- static inline int log_test_bit(uint32_t *bs, unsigned bit)
- {
--	return ext2_test_bit(bit, (unsigned long *) bs) ? 1 : 0;
-+	return test_le_bit(bit, (unsigned long *) bs) ? 1 : 0;
- }
+diff -puN include/asm-generic/bitops/le.h~bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0 include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0
++++ a/include/asm-generic/bitops/le.h
+@@ -12,6 +12,8 @@
+ 	find_next_zero_bit(addr, size, offset)
+ #define find_next_le_bit(addr, size, offset) \
+ 	find_next_bit(addr, size, offset)
++#define find_first_zero_le_bit(addr, size) \
++	find_first_zero_bit(addr, size)
  
- static inline void log_set_bit(struct log_c *l,
- 			       uint32_t *bs, unsigned bit)
- {
--	ext2_set_bit(bit, (unsigned long *) bs);
-+	__test_and_set_le_bit(bit, (unsigned long *) bs);
- 	l->touched_cleaned = 1;
- }
+ #elif defined(__BIG_ENDIAN)
  
- static inline void log_clear_bit(struct log_c *l,
- 				 uint32_t *bs, unsigned bit)
- {
--	ext2_clear_bit(bit, (unsigned long *) bs);
-+	__test_and_clear_le_bit(bit, (unsigned long *) bs);
- 	l->touched_dirtied = 1;
- }
+@@ -22,6 +24,9 @@ extern unsigned long find_next_zero_le_b
+ extern unsigned long find_next_le_bit(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset);
  
-@@ -740,7 +740,7 @@ static int core_get_resync_work(struct d
- 		return 0;
++#define find_first_zero_le_bit(addr, size) \
++	find_next_zero_le_bit((addr), (size), 0)
++
+ #else
+ #error "Please fix <asm/byteorder.h>"
+ #endif
+@@ -43,7 +48,4 @@ extern unsigned long find_next_le_bit(co
+ #define __test_and_clear_le_bit(nr, addr) \
+ 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
  
- 	do {
--		*region = ext2_find_next_zero_bit(
-+		*region = find_next_zero_le_bit(
- 					     (unsigned long *) lc->sync_bits,
- 					     lc->region_count,
- 					     lc->sync_search);
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-origin.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
-m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
-bitops-use-find_first_zero_bit-instead-of-find_next_zero_bitaddr-size-0.patch
-spufs-use-simple_write_to_buffer.patch
-
+-#define find_first_zero_le_bit(addr, size) \
+-	find_next_zero_le_bit((addr), (size), 0)
