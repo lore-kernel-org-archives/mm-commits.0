@@ -1,78 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-make-rolestats-the-default.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:05:27 -0800
-Message-ID: <201101132008.p0DK88Lf029843@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-use-git-fallback-more-often.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:05:39 -0800
+Message-ID: <201101132008.p0DK8KPN029919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933642Ab1AMUIj (ORCPT
+	by vger.kernel.org with ESMTP id S933472Ab1AMUIu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:08:39 -0500
+	Thu, 13 Jan 2011 15:08:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: make --rolestats the default
+     scripts/get_maintainer.pl:  use --git-fallback more often
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-make-rolestats-the-default.patch
+     scripts-get_maintainerpl-use-git-fallback-more-often.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: make --rolestats the default
+Subject: scripts/get_maintainer.pl:  use --git-fallback more often
 From: Joe Perches <joe@perches.com>
 
-This script now requires a user to add --norolestats to the command line
-so it's harder to feed the output of this script to programs that send
-mass emails.
+On Fri, 2010-11-05 at 13:50 -0700, Andrew Morton wrote:
+> z:/usr/src/git26> perl scripts/get_maintainer.pl -file mm/mempolicy.c
+> linux-mm@kvack.org
+> linux-kernel@vger.kernel.org
 
-Update --help to correct command line defaults.
+Turns out this is an arguable defect in the script.
 
-Change version to 0.26.
+The MAINTAINERS entry for mm is:
+
+MEMORY MANAGEMENT
+L:	linux-mm@kvack.org
+W:	http://www.linux-mm.org
+S:	Maintained
+F:	include/linux/mm.h
+F:	mm/
+
+There's a maintainer entry, but no named individual, so the script doesn't
+use git history via --git-fallback.
+
+This is also a defect for MAINTAINERS with status entries marked "Orphan"
+or "Odd fixes".
+
+The script now checks a section for any "M:" entry and that an "S:" entry
+is supported or maintained.  If both those conditions are not satisified,
+use --git-fallback as appropriate.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/get_maintainer.pl |   38 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-make-rolestats-the-default
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-use-git-fallback-more-often scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-use-git-fallback-more-often
 +++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+@@ -494,6 +494,40 @@ if ($web) {
  
- my $P = $0;
--my $V = '0.26-beta6';
-+my $V = '0.26';
+ exit($exit);
  
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -40,7 +40,7 @@ my $email_use_mailmap = 1;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $output_roles = 0;
--my $output_rolestats = 0;
-+my $output_rolestats = 1;
- my $scm = 0;
- my $web = 0;
- my $subsystem = 0;
-@@ -720,7 +720,8 @@ Other options:
-   --help => show this help information
- 
- Default options:
--  [--email --git --m --n --l --multiline --pattern-depth=0 --remove-duplicates]
-+  [--email --nogit --git-fallback --m --n --l --multiline -pattern-depth=0
-+   --remove-duplicates --rolestats]
- 
- Notes:
-   Using "-f directory" may give unexpected results:
++sub range_is_maintained {
++    my ($start, $end) = @_;
++
++    for (my $i = $start; $i < $end; $i++) {
++	my $line = $typevalue[$i];
++	if ($line =~ m/^(\C):\s*(.*)/) {
++	    my $type = $1;
++	    my $value = $2;
++	    if ($type eq 'S') {
++		if ($value =~ /(maintain|support)/i) {
++		    return 1;
++		}
++	    }
++	}
++    }
++    return 0;
++}
++
++sub range_has_maintainer {
++    my ($start, $end) = @_;
++
++    for (my $i = $start; $i < $end; $i++) {
++	my $line = $typevalue[$i];
++	if ($line =~ m/^(\C):\s*(.*)/) {
++	    my $type = $1;
++	    my $value = $2;
++	    if ($type eq 'M') {
++		return 1;
++	    }
++	}
++    }
++    return 0;
++}
++
+ sub get_maintainers {
+     %email_hash_name = ();
+     %email_hash_address = ();
+@@ -556,7 +590,9 @@ sub get_maintainers {
+ 				my $file_pd = ($file  =~ tr@/@@);
+ 				$value_pd++ if (substr($value,-1,1) ne "/");
+ 				$value_pd = -1 if ($value =~ /^\.\*/);
+-				if ($value_pd >= $file_pd) {
++				if ($value_pd >= $file_pd &&
++				    range_is_maintained($start, $end) &&
++				    range_has_maintainer($start, $end)) {
+ 				    $exact_pattern_match_hash{$file} = 1;
+ 				}
+ 				if ($pattern_depth == 0 ||
 _
 
 Patches currently in -mm which might be from joe@perches.com are
