@@ -1,113 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-telephony-ixjc-fix-warning.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:08:13 -0800
-Message-ID: <201101132010.p0DKAst6030103@imap1.linux-foundation.org>
+Subject: [merged] fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:08:28 -0800
+Message-ID: <201101132011.p0DKB93I030130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756822Ab1AMUUc (ORCPT
+	by vger.kernel.org with ESMTP id S933755Ab1AMUUm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:20:32 -0500
+	Thu, 13 Jan 2011 15:20:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, namhyung@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, trivial@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/telephony/ixj.c: fix warning
+     fs/proc/base.c, kernel/latencytop.c: convert sprintf_symbol() to %ps
 has been removed from the -mm tree.  Its filename was
-     drivers-telephony-ixjc-fix-warning.patch
+     fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/telephony/ixj.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/proc/base.c, kernel/latencytop.c: convert sprintf_symbol() to %ps
+From: Joe Perches <joe@perches.com>
 
-  CC      drivers/telephony/ixj.o
-drivers/telephony/ixj.c:287: warning: \u2018ixj_pci_tbl\u2019 defined but not used
+Use temporary lr for struct latency_record for improved readability and
+fewer columns used.  Removed trailing space from output.
 
-Reported-by: Namhyung Kim <namhyung@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/telephony/ixj.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/base.c      |   22 ++++++++--------------
+ kernel/latencytop.c |   23 +++++++++--------------
+ 2 files changed, 17 insertions(+), 28 deletions(-)
 
-diff -puN drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning drivers/telephony/ixj.c
---- a/drivers/telephony/ixj.c~drivers-telephony-ixjc-fix-warning
-+++ a/drivers/telephony/ixj.c
-@@ -284,12 +284,11 @@ static int samplerate = 100;
+diff -puN fs/proc/base.c~fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps fs/proc/base.c
+--- a/fs/proc/base.c~fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps
++++ a/fs/proc/base.c
+@@ -373,24 +373,18 @@ static int lstats_show_proc(struct seq_f
+ 		return -ESRCH;
+ 	seq_puts(m, "Latency Top version : v0.1\n");
+ 	for (i = 0; i < 32; i++) {
+-		if (task->latency_record[i].backtrace[0]) {
++		struct latency_record *lr = &task->latency_record[i];
++		if (lr->backtrace[0]) {
+ 			int q;
+-			seq_printf(m, "%i %li %li ",
+-				task->latency_record[i].count,
+-				task->latency_record[i].time,
+-				task->latency_record[i].max);
++			seq_printf(m, "%i %li %li",
++				   lr->count, lr->time, lr->max);
+ 			for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
+-				char sym[KSYM_SYMBOL_LEN];
+-				char *c;
+-				if (!task->latency_record[i].backtrace[q])
++				unsigned long bt = lr->backtrace[q];
++				if (!bt)
+ 					break;
+-				if (task->latency_record[i].backtrace[q] == ULONG_MAX)
++				if (bt == ULONG_MAX)
+ 					break;
+-				sprint_symbol(sym, task->latency_record[i].backtrace[q]);
+-				c = strchr(sym, '+');
+-				if (c)
+-					*c = 0;
+-				seq_printf(m, "%s ", sym);
++				seq_printf(m, " %ps", (void *)bt);
+ 			}
+ 			seq_printf(m, "\n");
+ 		}
+diff -puN kernel/latencytop.c~fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps kernel/latencytop.c
+--- a/kernel/latencytop.c~fs-proc-basec-kernel-latencytopc-convert-sprintf_symbol-to-%ps
++++ a/kernel/latencytop.c
+@@ -241,24 +241,19 @@ static int lstats_show(struct seq_file *
+ 	seq_puts(m, "Latency Top version : v0.1\n");
  
- module_param(ixjdebug, int, 0);
- 
--static struct pci_device_id ixj_pci_tbl[] __devinitdata = {
-+static DEFINE_PCI_DEVICE_TABLE(ixj_pci_tbl) = {
- 	{ PCI_VENDOR_ID_QUICKNET, PCI_DEVICE_ID_QUICKNET_XJ,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{ }
- };
--
- MODULE_DEVICE_TABLE(pci, ixj_pci_tbl);
- 
- /************************************************************************
+ 	for (i = 0; i < MAXLR; i++) {
+-		if (latency_record[i].backtrace[0]) {
++		struct latency_record *lr = &latency_record[i];
++
++		if (lr->backtrace[0]) {
+ 			int q;
+-			seq_printf(m, "%i %lu %lu ",
+-				latency_record[i].count,
+-				latency_record[i].time,
+-				latency_record[i].max);
++			seq_printf(m, "%i %lu %lu",
++				   lr->count, lr->time, lr->max);
+ 			for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
+-				char sym[KSYM_SYMBOL_LEN];
+-				char *c;
+-				if (!latency_record[i].backtrace[q])
++				unsigned long bt = lr->backtrace[q];
++				if (!bt)
+ 					break;
+-				if (latency_record[i].backtrace[q] == ULONG_MAX)
++				if (bt == ULONG_MAX)
+ 					break;
+-				sprint_symbol(sym, latency_record[i].backtrace[q]);
+-				c = strchr(sym, '+');
+-				if (c)
+-					*c = 0;
+-				seq_printf(m, "%s ", sym);
++				seq_printf(m, " %ps", (void *)bt);
+ 			}
+ 			seq_printf(m, "\n");
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code-checkpatch-fixes.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-fix.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
-thp-pte-alloc-trans-splitting-fix-checkpatch-fixes.patch
-thp-kvm-mmu-transparent-hugepage-support-bisection.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise-fix.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration-fix.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common-fix.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk-fix.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-checkpatch-fixes.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists-fix.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler-fix.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment-fix.patch
-mm-fix-migration-hangs-on-anon_vma-lock-checkpatch-fixes.patch
-mm-page_allocc-dont-cache-current-in-a-local.patch
-mm-batch-activate_page-to-reduce-lock-contention-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-document-cgroup-dirty-memory-interfaces-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-convert-sprintf_symbol-to-%ps.patch
 
