@@ -1,114 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] user_ns-improve-the-user_ns-on-the-slab-packaging.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:09:09 -0800
-Message-ID: <201101132011.p0DKBobf030207@imap1.linux-foundation.org>
+Subject: [merged] gpio-vr41xx_giu-irq_data-conversion.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:07:57 -0800
+Message-ID: <201101132010.p0DKAc1S030079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756629Ab1AMUVs (ORCPT
+	by vger.kernel.org with ESMTP id S933746Ab1AMUW0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:21:48 -0500
+	Thu, 13 Jan 2011 15:22:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@parallels.com, serge@hallyn.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: buytenh@wantstofly.org, buytenh@secretlab.ca, yuasa@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user_ns: improve the user_ns on-the-slab packaging
+     gpio: vr41xx_giu: irq_data conversion
 has been removed from the -mm tree.  Its filename was
-     user_ns-improve-the-user_ns-on-the-slab-packaging.patch
+     gpio-vr41xx_giu-irq_data-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: user_ns: improve the user_ns on-the-slab packaging
-From: Pavel Emelyanov <xemul@parallels.com>
+Subject: gpio: vr41xx_giu: irq_data conversion
+From: Lennert Buytenhek <buytenh@wantstofly.org>
 
-Currently on 64-bit arch the user_namespace is 2096 and when being
-kmalloc-ed it resides on a 4k slab wasting 2003 bytes.
+Converts irq_chips and flow handlers over to the new struct irq_data based
+irq_chip functions.
 
-If we allocate a separate cache for it and reduce the hash size from 128
-to 64 chains the packaging becomes *much* better - the struct is 1072
-bytes and the hole between is 98 bytes.
-
-[akpm@linux-foundation.org: s/__initcall/module_init/]
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
+Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
+Cc: Yoichi Yuasa <yuasa@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    2 +-
- kernel/user_namespace.c        |   15 ++++++++++++---
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ drivers/gpio/vr41xx_giu.c |   48 ++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user_ns-improve-the-user_ns-on-the-slab-packaging
-+++ a/include/linux/user_namespace.h
-@@ -6,7 +6,7 @@
- #include <linux/sched.h>
- #include <linux/err.h>
- 
--#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
-+#define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 7)
- #define UIDHASH_SZ	(1 << UIDHASH_BITS)
- 
- struct user_namespace {
-diff -puN kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging kernel/user_namespace.c
---- a/kernel/user_namespace.c~user_ns-improve-the-user_ns-on-the-slab-packaging
-+++ a/kernel/user_namespace.c
-@@ -12,6 +12,8 @@
- #include <linux/highuid.h>
- #include <linux/cred.h>
- 
-+static struct kmem_cache *user_ns_cachep __read_mostly;
-+
- /*
-  * Create a new user namespace, deriving the creator from the user in the
-  * passed credentials, and replacing that user with the new root user for the
-@@ -26,7 +28,7 @@ int create_user_ns(struct cred *new)
- 	struct user_struct *root_user;
- 	int n;
- 
--	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
-+	ns = kmem_cache_alloc(user_ns_cachep, GFP_KERNEL);
- 	if (!ns)
- 		return -ENOMEM;
- 
-@@ -38,7 +40,7 @@ int create_user_ns(struct cred *new)
- 	/* Alloc new root user.  */
- 	root_user = alloc_uid(ns, 0);
- 	if (!root_user) {
--		kfree(ns);
-+		kmem_cache_free(user_ns_cachep, ns);
- 		return -ENOMEM;
- 	}
- 
-@@ -71,7 +73,7 @@ static void free_user_ns_work(struct wor
- 	struct user_namespace *ns =
- 		container_of(work, struct user_namespace, destroyer);
- 	free_uid(ns->creator);
--	kfree(ns);
-+	kmem_cache_free(user_ns_cachep, ns);
+diff -puN drivers/gpio/vr41xx_giu.c~gpio-vr41xx_giu-irq_data-conversion drivers/gpio/vr41xx_giu.c
+--- a/drivers/gpio/vr41xx_giu.c~gpio-vr41xx_giu-irq_data-conversion
++++ a/drivers/gpio/vr41xx_giu.c
+@@ -111,69 +111,69 @@ static inline u16 giu_clear(u16 offset, 
+ 	return data;
  }
  
- void free_user_ns(struct kref *kref)
-@@ -126,3 +128,10 @@ gid_t user_ns_map_gid(struct user_namesp
- 	/* No useful relationship so no mapping */
- 	return overflowgid;
+-static void ack_giuint_low(unsigned int irq)
++static void ack_giuint_low(struct irq_data *d)
+ {
+-	giu_write(GIUINTSTATL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_write(GIUINTSTATL, 1 << GPIO_PIN_OF_IRQ(d->irq));
  }
-+
-+static __init int user_namespaces_init(void)
-+{
-+	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
-+	return 0;
-+}
-+module_init(user_namespaces_init);
+ 
+-static void mask_giuint_low(unsigned int irq)
++static void mask_giuint_low(struct irq_data *d)
+ {
+-	giu_clear(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_clear(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(d->irq));
+ }
+ 
+-static void mask_ack_giuint_low(unsigned int irq)
++static void mask_ack_giuint_low(struct irq_data *d)
+ {
+ 	unsigned int pin;
+ 
+-	pin = GPIO_PIN_OF_IRQ(irq);
++	pin = GPIO_PIN_OF_IRQ(d->irq);
+ 	giu_clear(GIUINTENL, 1 << pin);
+ 	giu_write(GIUINTSTATL, 1 << pin);
+ }
+ 
+-static void unmask_giuint_low(unsigned int irq)
++static void unmask_giuint_low(struct irq_data *d)
+ {
+-	giu_set(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(irq));
++	giu_set(GIUINTENL, 1 << GPIO_PIN_OF_IRQ(d->irq));
+ }
+ 
+ static struct irq_chip giuint_low_irq_chip = {
+ 	.name		= "GIUINTL",
+-	.ack		= ack_giuint_low,
+-	.mask		= mask_giuint_low,
+-	.mask_ack	= mask_ack_giuint_low,
+-	.unmask		= unmask_giuint_low,
++	.irq_ack	= ack_giuint_low,
++	.irq_mask	= mask_giuint_low,
++	.irq_mask_ack	= mask_ack_giuint_low,
++	.irq_unmask	= unmask_giuint_low,
+ };
+ 
+-static void ack_giuint_high(unsigned int irq)
++static void ack_giuint_high(struct irq_data *d)
+ {
+ 	giu_write(GIUINTSTATH,
+-		  1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++		  1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+-static void mask_giuint_high(unsigned int irq)
++static void mask_giuint_high(struct irq_data *d)
+ {
+-	giu_clear(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++	giu_clear(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+-static void mask_ack_giuint_high(unsigned int irq)
++static void mask_ack_giuint_high(struct irq_data *d)
+ {
+ 	unsigned int pin;
+ 
+-	pin = GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET;
++	pin = GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET;
+ 	giu_clear(GIUINTENH, 1 << pin);
+ 	giu_write(GIUINTSTATH, 1 << pin);
+ }
+ 
+-static void unmask_giuint_high(unsigned int irq)
++static void unmask_giuint_high(struct irq_data *d)
+ {
+-	giu_set(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(irq) - GIUINT_HIGH_OFFSET));
++	giu_set(GIUINTENH, 1 << (GPIO_PIN_OF_IRQ(d->irq) - GIUINT_HIGH_OFFSET));
+ }
+ 
+ static struct irq_chip giuint_high_irq_chip = {
+ 	.name		= "GIUINTH",
+-	.ack		= ack_giuint_high,
+-	.mask		= mask_giuint_high,
+-	.mask_ack	= mask_ack_giuint_high,
+-	.unmask		= unmask_giuint_high,
++	.irq_ack	= ack_giuint_high,
++	.irq_mask	= mask_giuint_high,
++	.irq_mask_ack	= mask_ack_giuint_high,
++	.irq_unmask	= unmask_giuint_high,
+ };
+ 
+ static int giu_get_irq(unsigned int irq)
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
+linux-next.patch
 
