@@ -1,57 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch removed from -mm tree
-Date: Wed, 12 Jan 2011 16:18:10 -0800
-Message-ID: <201101130018.p0D0IBKO012079@imap1.linux-foundation.org>
+Subject: [folded] ihex-fix-unused-return-value-compiler-warning-fix.patch removed from -mm tree
+Date: Wed, 12 Jan 2011 16:19:24 -0800
+Message-ID: <201101130019.p0D0JOvP012103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756294Ab1AMASf (ORCPT
+	by vger.kernel.org with ESMTP id S1754892Ab1AMATa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Jan 2011 19:18:35 -0500
+	Wed, 12 Jan 2011 19:19:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eike-kernel@sf-tec.de, geert@linux-m68k.org, michalj@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, cmruffin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
+     ihex-fix-unused-return-value-compiler-warning-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix.patch
+     ihex-fix-unused-return-value-compiler-warning-fix.patch
 
-This patch was dropped because it was folded into include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
+This patch was dropped because it was folded into ihex-fix-unused-return-value-compiler-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
+Subject: ihex-fix-unused-return-value-compiler-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Januszewski <michalj@gmail.com>
-Cc: Rolf Eike Beer <eike-kernel@sf-tec.de
+correctly handle short writes
+
+Cc: Chris Ruffin <cmruffin@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ firmware/ihex2fw.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit-fix
-+++ a/include/linux/kernel.h
-@@ -143,6 +143,12 @@ extern int _cond_resched(void);
- 
- #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
- 
-+/*
-+ * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
-+ * input types abs() returns a signed long.
-+ * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
-+ * for those.
-+ */
- #define abs(x) ({						\
- 		long ret;					\
- 		if (sizeof(x) == sizeof(long)) {		\
+diff -puN firmware/ihex2fw.c~ihex-fix-unused-return-value-compiler-warning-fix firmware/ihex2fw.c
+--- a/firmware/ihex2fw.c~ihex-fix-unused-return-value-compiler-warning-fix
++++ a/firmware/ihex2fw.c
+@@ -269,12 +269,12 @@ static int output_records(int outfd)
+ 		p->addr = htonl(p->addr);
+ 		p->len = htons(p->len);
+ 		if (write(outfd, &p->addr, writelen) != writelen)
+-			return errno;
++			return 1;
+ 		p = p->next;
+ 	}
+ 	/* EOF record is zero length, since we don't bother to represent
+ 	   the type field in the binary version */
+ 	if (write(outfd, zeroes, 6) != 6)
+-		return errno;
++		return 1;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +63,7 @@ origin.patch
 leds-add-output-inversion-option-to-backlight-trigger.patch
 include-linux-kernelh-abs-fix-handling-of-32-bit-unsigneds-on-64-bit.patch
 include-linux-unaligned-packed_structh-use-__packed.patch
-ihex-fix-unused-return-value-compiler-warning-fix.patch
+ihex-fix-unused-return-value-compiler-warning.patch
 kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users.patch
 kptr_restrict-for-hiding-kernel-pointers-from-unprivileged-users-fix.patch
 kptr_restrict-for-hiding-kernel-pointers-v7-fix.patch
