@@ -1,64 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:26:49 -0800
-Message-ID: <201101132326.p0DNQnhr006966@imap1.linux-foundation.org>
+Subject: [folded] mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 15:27:43 -0800
+Message-ID: <201101132327.p0DNRh8d006998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756964Ab1AMX1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1756981Ab1AMX2H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:27:16 -0500
+	Thu, 13 Jan 2011 18:28:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, apw@shadowen.org, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
+     mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix.patch
+     mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+This patch was dropped because it was folded into mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
+Subject: mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use conventional task_struct naming
+mm/memory-failure.c: In function 'soft_offline_huge_page':
+mm/memory-failure.c:1293: error: too few arguments to function 'migrate_huge_pages'
+make[1]: *** [mm/memory-failure.o] Error 1
 
-Cc: Hugh Dickins <hughd@google.com>
+This is a guess.
+
+Someone please document migrate_huge_pages()?
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim-avoid-a-potential-deadlock-due-to-lock_page-during-direct-compaction-fix
-+++ a/mm/page_alloc.c
-@@ -1815,15 +1815,15 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	int migratetype, unsigned long *did_some_progress)
- {
- 	struct page *page;
--	struct task_struct *p = current;
-+	struct task_struct *tsk = current;
+diff -puN mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix
++++ a/mm/memory-failure.c
+@@ -1290,9 +1290,10 @@ static int soft_offline_huge_page(struct
+ 	/* Keep page count to indicate a given hugepage is isolated. */
  
- 	if (!order || compaction_deferred(preferred_zone))
- 		return NULL;
- 
--	p->flags |= PF_MEMALLOC;
-+	tsk->flags |= PF_MEMALLOC;
- 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
- 								nodemask);
--	p->flags &= ~PF_MEMALLOC;
-+	tsk->flags &= ~PF_MEMALLOC;
- 	if (*did_some_progress != COMPACT_SKIPPED) {
- 
- 		/* Page migration frees to the PCP lists but we want merging */
+ 	list_add(&hpage->lru, &pagelist);
+-	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0);
++	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
++				true);
+ 	if (ret) {
+-			putback_lru_pages(&pagelist);
++		putback_lru_pages(&pagelist);
+ 		pr_debug("soft offline: %#lx: migration failed %d, type %lx\n",
+ 			 pfn, ret, page->flags);
+ 		if (ret > 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +73,7 @@ mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresho
 sync_inode_metadata-fix-comment.patch
 fs-mpagec-consolidate-code.patch
 mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path-fix.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
 mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages-fix.patch
 mlock-do-not-hold-mmap_sem-for-extended-periods-of-time-fix.patch
 writeback-avoid-unnecessary-determine_dirtyable_memory-call-fix.patch
