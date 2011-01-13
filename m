@@ -1,84 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-lp5521-modify-the-way-of-setting-led-device-name.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 12:03:26 -0800
-Message-ID: <201101132006.p0DK677o029699@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-lp5521c-fix-potential-buffer-overflow.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 12:03:14 -0800
+Message-ID: <201101132005.p0DK5tZ0029676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933543Ab1AMUGx (ORCPT
+	by vger.kernel.org with ESMTP id S1756782Ab1AMUG7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 15:06:53 -0500
+	Thu, 13 Jan 2011 15:06:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arun.murthy@stericsson.com, ilkka.koskinen@nokia.com, rpurdie@rpsys.net, samu.p.onkalo@nokia.com, mm-commits@vger.kernel.org
+To: segoon@openwall.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds-lp5521: modify the way of setting led device name
+     drivers/leds/leds-lp5521.c: fix potential buffer overflow
 has been removed from the -mm tree.  Its filename was
-     leds-lp5521-modify-the-way-of-setting-led-device-name.patch
+     drivers-leds-leds-lp5521c-fix-potential-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-lp5521: modify the way of setting led device name
-From: Arun Murthy <arun.murthy@stericsson.com>
+Subject: drivers/leds/leds-lp5521.c: fix potential buffer overflow
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-Currently the led device name is fetched from the device_type in
-I2C_BOARD_INFO which comes from the platform data.  This name is in turn
-used to create an entry in sysfs.
+The code doesn't check first sscanf() return value.  If first sscanf()
+failed then c contains some garbage.  It might lead to reading
+uninitialised stack data in the second sscanf() call.
 
-If there exists two or more lp5521 on a particular platform, the
-device_type in I2C_BOARD_INFO has to be the same, else lp5521 driver probe
-wont be called and if used so, results in run time warning "cannot create
-sysfs with same name" and hence a failure.
-
-The name that is used to create sysfs entry is to be passed by the struct
-led_platform_data.  Hence adding an element of type const char * and
-change in lp5521 driver to use this name in creating the led device if
-present else use the name obtained by I2C_BOARD_INFO.
-
-Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
-Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c  |    3 ++-
- include/linux/leds-lp5521.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/leds/leds-lp5521.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-lp5521-modify-the-way-of-setting-led-device-name
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-potential-buffer-overflow drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-potential-buffer-overflow
 +++ a/drivers/leds/leds-lp5521.c
-@@ -617,7 +617,8 @@ static int __init lp5521_init_led(struct
- 		return -EINVAL;
- 	}
- 
--	snprintf(name, sizeof(name), "%s:channel%d", client->name, chan);
-+	snprintf(name, sizeof(name), "%s:channel%d",
-+			pdata->label ?: client->name, chan);
- 	led->cdev.brightness_set = lp5521_set_brightness;
- 	led->cdev.name = name;
- 	res = led_classdev_register(dev, &led->cdev);
-diff -puN include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name include/linux/leds-lp5521.h
---- a/include/linux/leds-lp5521.h~leds-lp5521-modify-the-way-of-setting-led-device-name
-+++ a/include/linux/leds-lp5521.h
-@@ -42,6 +42,7 @@ struct lp5521_platform_data {
- 	int	(*setup_resources)(void);
- 	void	(*release_resources)(void);
- 	void	(*enable)(bool state);
-+	const char *label;
- };
- 
- #endif /* __LINUX_LP5521_H */
+@@ -373,6 +373,8 @@ static int lp5521_do_store_load(struct l
+ 	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
+ 		/* separate sscanfs because length is working only for %s */
+ 		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
++		if (ret != 2)
++			goto fail;
+ 		ret = sscanf(c, "%2x", &cmd);
+ 		if (ret != 1)
+ 			goto fail;
 _
 
-Patches currently in -mm which might be from arun.murthy@stericsson.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
 origin.patch
+linux-next.patch
 
