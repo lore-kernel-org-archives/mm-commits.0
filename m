@@ -1,76 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-convert-sprintf_symbol-to-%ps.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:45 -0800
-Message-ID: <201101142247.p0EMlZP5005015@imap1.linux-foundation.org>
+Subject: [merged] mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:23 -0800
+Message-ID: <201101142247.p0EMlDQm004974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525Ab1ANWrk (ORCPT
+	by vger.kernel.org with ESMTP id S1752525Ab1ANWro (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:40 -0500
+	Fri, 14 Jan 2011 17:47:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, penberg@kernel.org, trivial@kernel.org, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: convert sprintf_symbol to %pS
+     mm: vmstat: use a single setter function and callback for adjusting percpu thresholds
 has been removed from the -mm tree.  Its filename was
-     mm-convert-sprintf_symbol-to-%ps.patch
+     mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: convert sprintf_symbol to %pS
-From: Joe Perches <joe@perches.com>
+Subject: mm: vmstat: use a single setter function and callback for adjusting percpu thresholds
+From: Mel Gorman <mel@csn.ul.ie>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Jiri Kosina <trivial@kernel.org>
+reduce_pgdat_percpu_threshold() and restore_pgdat_percpu_threshold() exist
+to adjust the per-cpu vmstat thresholds while kswapd is awake to avoid
+errors due to counter drift.  The functions duplicate some code so this
+patch replaces them with a single set_pgdat_percpu_threshold() that takes
+a callback function to calculate the desired threshold as a parameter.
+
+[akpm@linux-foundation.org: readability tweak]
+[kosaki.motohiro@jp.fujitsu.com: set_pgdat_percpu_threshold(): don't use for_each_online_cpu]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c    |   11 ++++-------
- mm/vmalloc.c |    9 ++-------
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ include/linux/vmstat.h |   10 ++++++----
+ mm/vmscan.c            |   19 +++++++++++++++++--
+ mm/vmstat.c            |   36 +++++++-----------------------------
+ 3 files changed, 30 insertions(+), 35 deletions(-)
 
-diff -puN mm/slub.c~mm-convert-sprintf_symbol-to-%ps mm/slub.c
---- a/mm/slub.c~mm-convert-sprintf_symbol-to-%ps
-+++ a/mm/slub.c
-@@ -3636,7 +3636,7 @@ static int list_locations(struct kmem_ca
- 		len += sprintf(buf + len, "%7ld ", l->count);
+diff -puN include/linux/vmstat.h~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds
++++ a/include/linux/vmstat.h
+@@ -254,8 +254,11 @@ extern void dec_zone_state(struct zone *
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
  
- 		if (l->addr)
--			len += sprint_symbol(buf + len, (unsigned long)l->addr);
-+			len += sprintf(buf + len, "%pS", (void *)l->addr);
- 		else
- 			len += sprintf(buf + len, "<not-available>");
+ void refresh_cpu_vm_stats(int);
+-void reduce_pgdat_percpu_threshold(pg_data_t *pgdat);
+-void restore_pgdat_percpu_threshold(pg_data_t *pgdat);
++
++int calculate_pressure_threshold(struct zone *zone);
++int calculate_normal_threshold(struct zone *zone);
++void set_pgdat_percpu_threshold(pg_data_t *pgdat,
++				int (*calculate_pressure)(struct zone *));
+ #else /* CONFIG_SMP */
  
-@@ -3946,12 +3946,9 @@ SLAB_ATTR(min_partial);
+ /*
+@@ -300,8 +303,7 @@ static inline void __dec_zone_page_state
+ #define dec_zone_page_state __dec_zone_page_state
+ #define mod_zone_page_state __mod_zone_page_state
  
- static ssize_t ctor_show(struct kmem_cache *s, char *buf)
+-static inline void reduce_pgdat_percpu_threshold(pg_data_t *pgdat) { }
+-static inline void restore_pgdat_percpu_threshold(pg_data_t *pgdat) { }
++#define set_pgdat_percpu_threshold(pgdat, callback) { }
+ 
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+ #endif
+diff -puN mm/vmscan.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds
++++ a/mm/vmscan.c
+@@ -2448,9 +2448,24 @@ static int kswapd(void *p)
+ 				 */
+ 				if (!sleeping_prematurely(pgdat, order, remaining)) {
+ 					trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+-					restore_pgdat_percpu_threshold(pgdat);
++
++					/*
++					 * vmstat counters are not perfectly
++					 * accurate and the estimated value
++					 * for counters such as NR_FREE_PAGES
++					 * can deviate from the true value by
++					 * nr_online_cpus * threshold. To
++					 * avoid the zone watermarks being
++					 * breached while under pressure, we
++					 * reduce the per-cpu vmstat threshold
++					 * while kswapd is awake and restore
++					 * them before going back to sleep.
++					 */
++					set_pgdat_percpu_threshold(pgdat,
++						calculate_normal_threshold);
+ 					schedule();
+-					reduce_pgdat_percpu_threshold(pgdat);
++					set_pgdat_percpu_threshold(pgdat,
++						calculate_pressure_threshold);
+ 				} else {
+ 					if (remaining)
+ 						count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
+diff -puN mm/vmstat.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds
++++ a/mm/vmstat.c
+@@ -83,7 +83,7 @@ EXPORT_SYMBOL(vm_stat);
+ 
+ #ifdef CONFIG_SMP
+ 
+-static int calculate_pressure_threshold(struct zone *zone)
++int calculate_pressure_threshold(struct zone *zone)
  {
--	if (s->ctor) {
--		int n = sprint_symbol(buf, (unsigned long)s->ctor);
--
--		return n + sprintf(buf + n, "\n");
--	}
--	return 0;
-+	if (!s->ctor)
-+		return 0;
-+	return sprintf(buf, "%pS\n", s->ctor);
+ 	int threshold;
+ 	int watermark_distance;
+@@ -107,7 +107,7 @@ static int calculate_pressure_threshold(
+ 	return threshold;
  }
- SLAB_ATTR_RO(ctor);
  
-diff -puN mm/vmalloc.c~mm-convert-sprintf_symbol-to-%ps mm/vmalloc.c
---- a/mm/vmalloc.c~mm-convert-sprintf_symbol-to-%ps
-+++ a/mm/vmalloc.c
-@@ -2456,13 +2456,8 @@ static int s_show(struct seq_file *m, vo
- 	seq_printf(m, "0x%p-0x%p %7ld",
- 		v->addr, v->addr + v->size, v->size);
+-static int calculate_threshold(struct zone *zone)
++int calculate_normal_threshold(struct zone *zone)
+ {
+ 	int threshold;
+ 	int mem;	/* memory in 128 MB units */
+@@ -166,7 +166,7 @@ static void refresh_zone_stat_thresholds
+ 	for_each_populated_zone(zone) {
+ 		unsigned long max_drift, tolerate_drift;
  
--	if (v->caller) {
--		char buff[KSYM_SYMBOL_LEN];
+-		threshold = calculate_threshold(zone);
++		threshold = calculate_normal_threshold(zone);
+ 
+ 		for_each_online_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+@@ -185,46 +185,24 @@ static void refresh_zone_stat_thresholds
+ 	}
+ }
+ 
+-void reduce_pgdat_percpu_threshold(pg_data_t *pgdat)
++void set_pgdat_percpu_threshold(pg_data_t *pgdat,
++				int (*calculate_pressure)(struct zone *))
+ {
+ 	struct zone *zone;
+ 	int cpu;
+ 	int threshold;
+ 	int i;
+ 
+-	get_online_cpus();
+ 	for (i = 0; i < pgdat->nr_zones; i++) {
+ 		zone = &pgdat->node_zones[i];
+ 		if (!zone->percpu_drift_mark)
+ 			continue;
+ 
+-		threshold = calculate_pressure_threshold(zone);
+-		for_each_online_cpu(cpu)
+-			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+-							= threshold;
+-	}
+-	put_online_cpus();
+-}
+-
+-void restore_pgdat_percpu_threshold(pg_data_t *pgdat)
+-{
+-	struct zone *zone;
+-	int cpu;
+-	int threshold;
+-	int i;
+-
+-	get_online_cpus();
+-	for (i = 0; i < pgdat->nr_zones; i++) {
+-		zone = &pgdat->node_zones[i];
+-		if (!zone->percpu_drift_mark)
+-			continue;
+-
+-		threshold = calculate_threshold(zone);
+-		for_each_online_cpu(cpu)
++		threshold = (*calculate_pressure)(zone);
++		for_each_possible_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
+ 	}
+-	put_online_cpus();
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from mel@csn.ul.ie are
+
+origin.patch
+linux-next.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+thp-add-pagetranscompound.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+
