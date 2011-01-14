@@ -1,115 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-stop-background-kupdate-works-from-livelocking-other-works.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:33 -0800
-Message-ID: <201101142247.p0EMlNdo004988@imap1.linux-foundation.org>
+Subject: [merged] sched-remove-long-deprecated-clone_stopped-flag.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:17 -0800
+Message-ID: <201101142247.p0EMl7JP004965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40068 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800Ab1ANWrs (ORCPT
+	by vger.kernel.org with ESMTP id S1752587Ab1ANWrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:48 -0500
+	Fri, 14 Jan 2011 17:47:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hch@lst.de, jengelh@medozas.de, mm-commits@vger.kernel.org
+To: davej@redhat.com, mingo@elte.hu, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: stop background/kupdate works from livelocking other works
+     sched: remove long deprecated CLONE_STOPPED flag
 has been removed from the -mm tree.  Its filename was
-     writeback-stop-background-kupdate-works-from-livelocking-other-works.patch
+     sched-remove-long-deprecated-clone_stopped-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: stop background/kupdate works from livelocking other works
-From: Jan Kara <jack@suse.cz>
+Subject: sched: remove long deprecated CLONE_STOPPED flag
+From: Dave Jones <davej@redhat.com>
 
-Background writeback is easily livelockable in a loop in wb_writeback() by
-a process continuously re-dirtying pages (or continuously appending to a
-file).  This is in fact intended as the target of background writeback is
-to write dirty pages it can find as long as we are over
-dirty_background_threshold.
+This warning was added in commit bdff746a3915 ("clone: prepare to recycle
+CLONE_STOPPED") three years ago.  2.6.26 came and went.  As far as I know,
+no-one is actually using CLONE_STOPPED.
 
-But the above behavior gets inconvenient at times because no other work
-queued in the flusher thread's queue gets processed.  In particular, since
-e.g.  sync(1) relies on flusher thread to do all the IO for it, sync(1)
-can hang forever waiting for flusher thread to do the work.
-
-Generally, when a flusher thread has some work queued, someone submitted
-the work to achieve a goal more specific than what background writeback
-does.  Moreover by working on the specific work, we also reduce amount of
-dirty pages which is exactly the target of background writeout.  So it
-makes sense to give specific work a priority over a generic page cleaning.
-
-Thus we interrupt background writeback if there is some other work to do. 
-We return to the background writeback after completing all the queued
-work.
-
-This may delay the writeback of expired inodes for a while, however the
-expired inodes will eventually be flushed to disk as long as the other
-works won't livelock.
-
-[fengguang.wu@intel.com: update comment]
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de> 
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/sched.h |    3 ++-
+ kernel/fork.c         |   28 +---------------------------
+ 2 files changed, 3 insertions(+), 28 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-stop-background-kupdate-works-from-livelocking-other-works fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-stop-background-kupdate-works-from-livelocking-other-works
-+++ a/fs/fs-writeback.c
-@@ -651,6 +651,16 @@ static long wb_writeback(struct bdi_writ
- 			break;
+diff -puN include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag include/linux/sched.h
+--- a/include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag
++++ a/include/linux/sched.h
+@@ -21,7 +21,8 @@
+ #define CLONE_DETACHED		0x00400000	/* Unused, ignored */
+ #define CLONE_UNTRACED		0x00800000	/* set if the tracing process can't force CLONE_PTRACE on this clone */
+ #define CLONE_CHILD_SETTID	0x01000000	/* set the TID in the child */
+-#define CLONE_STOPPED		0x02000000	/* Start in stopped state */
++/* 0x02000000 was previously the unused CLONE_STOPPED (Start in stopped state)
++   and is now available for re-use. */
+ #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
+ #define CLONE_NEWIPC		0x08000000	/* New ipcs */
+ #define CLONE_NEWUSER		0x10000000	/* New user namespace */
+diff -puN kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag kernel/fork.c
+--- a/kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag
++++ a/kernel/fork.c
+@@ -1410,23 +1410,6 @@ long do_fork(unsigned long clone_flags,
+ 	}
  
- 		/*
-+		 * Background writeout and kupdate-style writeback may
-+		 * run forever. Stop them if there is other work to do
-+		 * so that e.g. sync can proceed. They'll be restarted
-+		 * after the other works are all done.
-+		 */
-+		if ((work->for_background || work->for_kupdate) &&
-+		    !list_empty(&wb->bdi->work_list))
-+			break;
-+
-+		/*
- 		 * For background writeout, stop when we are below the
- 		 * background dirty threshold
+ 	/*
+-	 * We hope to recycle these flags after 2.6.26
+-	 */
+-	if (unlikely(clone_flags & CLONE_STOPPED)) {
+-		static int __read_mostly count = 100;
+-
+-		if (count > 0 && printk_ratelimit()) {
+-			char comm[TASK_COMM_LEN];
+-
+-			count--;
+-			printk(KERN_INFO "fork(): process `%s' used deprecated "
+-					"clone flags 0x%lx\n",
+-				get_task_comm(comm, current),
+-				clone_flags & CLONE_STOPPED);
+-		}
+-	}
+-
+-	/*
+ 	 * When called from kernel_thread, don't do user tracing stuff.
+ 	 */
+ 	if (likely(user_mode(regs)))
+@@ -1464,16 +1447,7 @@ long do_fork(unsigned long clone_flags,
  		 */
+ 		p->flags &= ~PF_STARTING;
+ 
+-		if (unlikely(clone_flags & CLONE_STOPPED)) {
+-			/*
+-			 * We'll start up with an immediate SIGSTOP.
+-			 */
+-			sigaddset(&p->pending.signal, SIGSTOP);
+-			set_tsk_thread_flag(p, TIF_SIGPENDING);
+-			__set_task_state(p, TASK_STOPPED);
+-		} else {
+-			wake_up_new_task(p, clone_flags);
+-		}
++		wake_up_new_task(p, clone_flags);
+ 
+ 		tracehook_report_clone_complete(trace, regs,
+ 						clone_flags, nr, p);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
 linux-next.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
 
