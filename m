@@ -1,119 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-mpagec-consolidate-code.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:43 -0800
-Message-ID: <201101142247.p0EMlXdR005012@imap1.linux-foundation.org>
+Subject: [merged] sync_inode_metadata-fix-comment.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:35 -0800
+Message-ID: <201101142247.p0EMlP63004991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525Ab1ANWrf (ORCPT
+	by vger.kernel.org with ESMTP id S1752525Ab1ANWre (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:35 -0500
+	Fri, 14 Jan 2011 17:47:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haishan.bai@gmail.com, shan.hai@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/mpage.c: consolidate code
+     sync_inode_metadata: fix comment
 has been removed from the -mm tree.  Its filename was
-     fs-mpagec-consolidate-code.patch
+     sync_inode_metadata-fix-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/mpage.c: consolidate code
-From: Hai Shan <haishan.bai@gmail.com>
+Subject: sync_inode_metadata: fix comment
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Merge mpage_end_io_read() and mpage_end_io_write() into mpage_end_io() to
-eliminate code duplication.
+Use correct function name, remove incorrect apostrophe
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Hai Shan <shan.hai@windriver.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   49 +++++++++++++++++--------------------------------
- 1 file changed, 17 insertions(+), 32 deletions(-)
+ fs/fs-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/mpage.c~fs-mpagec-consolidate-code fs/mpage.c
---- a/fs/mpage.c~fs-mpagec-consolidate-code
-+++ a/fs/mpage.c
-@@ -40,7 +40,7 @@
-  * status of that page is hard.  See end_buffer_async_read() for the details.
-  * There is no point in duplicating all that complexity.
+diff -puN fs/fs-writeback.c~sync_inode_metadata-fix-comment fs/fs-writeback.c
+--- a/fs/fs-writeback.c~sync_inode_metadata-fix-comment
++++ a/fs/fs-writeback.c
+@@ -1303,11 +1303,11 @@ int sync_inode(struct inode *inode, stru
+ EXPORT_SYMBOL(sync_inode);
+ 
+ /**
+- * sync_inode - write an inode to disk
++ * sync_inode_metadata - write an inode to disk
+  * @inode: the inode to sync
+  * @wait: wait for I/O to complete.
+  *
+- * Write an inode to disk and adjust it's dirty state after completion.
++ * Write an inode to disk and adjust its dirty state after completion.
+  *
+  * Note: only writes the actual inode, no associated data or other metadata.
   */
--static void mpage_end_io_read(struct bio *bio, int err)
-+static void mpage_end_io(struct bio *bio, int err)
- {
- 	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
- 	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
-@@ -50,44 +50,29 @@ static void mpage_end_io_read(struct bio
- 
- 		if (--bvec >= bio->bi_io_vec)
- 			prefetchw(&bvec->bv_page->flags);
--
--		if (uptodate) {
--			SetPageUptodate(page);
--		} else {
--			ClearPageUptodate(page);
--			SetPageError(page);
--		}
--		unlock_page(page);
--	} while (bvec >= bio->bi_io_vec);
--	bio_put(bio);
--}
--
--static void mpage_end_io_write(struct bio *bio, int err)
--{
--	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
--	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
--
--	do {
--		struct page *page = bvec->bv_page;
--
--		if (--bvec >= bio->bi_io_vec)
--			prefetchw(&bvec->bv_page->flags);
--
--		if (!uptodate){
--			SetPageError(page);
--			if (page->mapping)
--				set_bit(AS_EIO, &page->mapping->flags);
-+		if (bio_data_dir(bio) == READ) {
-+			if (uptodate) {
-+				SetPageUptodate(page);
-+			} else {
-+				ClearPageUptodate(page);
-+				SetPageError(page);
-+			}
-+			unlock_page(page);
-+		} else { /* bio_data_dir(bio) == WRITE */
-+			if (!uptodate) {
-+				SetPageError(page);
-+				if (page->mapping)
-+					set_bit(AS_EIO, &page->mapping->flags);
-+			}
-+			end_page_writeback(page);
- 		}
--		end_page_writeback(page);
- 	} while (bvec >= bio->bi_io_vec);
- 	bio_put(bio);
- }
- 
- static struct bio *mpage_bio_submit(int rw, struct bio *bio)
- {
--	bio->bi_end_io = mpage_end_io_read;
--	if (rw == WRITE)
--		bio->bi_end_io = mpage_end_io_write;
-+	bio->bi_end_io = mpage_end_io;
- 	submit_bio(rw, bio);
- 	return NULL;
- }
 _
 
-Patches currently in -mm which might be from haishan.bai@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+drivers-nfc-pn544c-fix-min_t-warnings.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
