@@ -1,66 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:14 -0800
-Message-ID: <201101142247.p0EMl45C004957@imap1.linux-foundation.org>
+Subject: [merged] fs-mpagec-consolidate-code.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:43 -0800
+Message-ID: <201101142247.p0EMlXdR005012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525Ab1ANWrU (ORCPT
+	by vger.kernel.org with ESMTP id S1752525Ab1ANWrf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:20 -0500
+	Fri, 14 Jan 2011 17:47:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: claudio@evidence.eu.com, arkadiusz.bubala@gmail.com, greg@kroah.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: haishan.bai@gmail.com, shan.hai@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix RTS high after initialization in RS485 mode
+     fs/mpage.c: consolidate code
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+     fs-mpagec-consolidate-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix RTS high after initialization in RS485 mode
-From: Claudio Scordino <claudio@evidence.eu.com>
+Subject: fs/mpage.c: consolidate code
+From: Hai Shan <haishan.bai@gmail.com>
 
-When working in RS485 mode, the atmel_serial driver keeps RTS high after
-the initialization of the serial port.  It goes low only after the first
-character has been sent.
+Merge mpage_end_io_read() and mpage_end_io_write() into mpage_end_io() to
+eliminate code duplication.
 
-[akpm@linux-foundation.org: simplify code]
-Signed-off-by: Claudio Scordino <claudio@evidence.eu.com>
-Signed-off-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
-Tested-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Greg KH <greg@kroah.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Hai Shan <shan.hai@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/mpage.c |   49 +++++++++++++++++--------------------------------
+ 1 file changed, 17 insertions(+), 32 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode
-+++ a/drivers/serial/atmel_serial.c
-@@ -1732,6 +1732,11 @@ static int __devinit atmel_serial_probe(
- 	device_init_wakeup(&pdev->dev, 1);
- 	platform_set_drvdata(pdev, port);
+diff -puN fs/mpage.c~fs-mpagec-consolidate-code fs/mpage.c
+--- a/fs/mpage.c~fs-mpagec-consolidate-code
++++ a/fs/mpage.c
+@@ -40,7 +40,7 @@
+  * status of that page is hard.  See end_buffer_async_read() for the details.
+  * There is no point in duplicating all that complexity.
+  */
+-static void mpage_end_io_read(struct bio *bio, int err)
++static void mpage_end_io(struct bio *bio, int err)
+ {
+ 	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
+ 	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
+@@ -50,44 +50,29 @@ static void mpage_end_io_read(struct bio
  
-+	if (port->rs485.flags & SER_RS485_ENABLED) {
-+		UART_PUT_MR(&port->uart, ATMEL_US_USMODE_NORMAL);
-+		UART_PUT_CR(&port->uart, ATMEL_US_RTSEN);
-+	}
-+
- 	return 0;
+ 		if (--bvec >= bio->bi_io_vec)
+ 			prefetchw(&bvec->bv_page->flags);
+-
+-		if (uptodate) {
+-			SetPageUptodate(page);
+-		} else {
+-			ClearPageUptodate(page);
+-			SetPageError(page);
+-		}
+-		unlock_page(page);
+-	} while (bvec >= bio->bi_io_vec);
+-	bio_put(bio);
+-}
+-
+-static void mpage_end_io_write(struct bio *bio, int err)
+-{
+-	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
+-	struct bio_vec *bvec = bio->bi_io_vec + bio->bi_vcnt - 1;
+-
+-	do {
+-		struct page *page = bvec->bv_page;
+-
+-		if (--bvec >= bio->bi_io_vec)
+-			prefetchw(&bvec->bv_page->flags);
+-
+-		if (!uptodate){
+-			SetPageError(page);
+-			if (page->mapping)
+-				set_bit(AS_EIO, &page->mapping->flags);
++		if (bio_data_dir(bio) == READ) {
++			if (uptodate) {
++				SetPageUptodate(page);
++			} else {
++				ClearPageUptodate(page);
++				SetPageError(page);
++			}
++			unlock_page(page);
++		} else { /* bio_data_dir(bio) == WRITE */
++			if (!uptodate) {
++				SetPageError(page);
++				if (page->mapping)
++					set_bit(AS_EIO, &page->mapping->flags);
++			}
++			end_page_writeback(page);
+ 		}
+-		end_page_writeback(page);
+ 	} while (bvec >= bio->bi_io_vec);
+ 	bio_put(bio);
+ }
  
- err_add_port:
+ static struct bio *mpage_bio_submit(int rw, struct bio *bio)
+ {
+-	bio->bi_end_io = mpage_end_io_read;
+-	if (rw == WRITE)
+-		bio->bi_end_io = mpage_end_io_write;
++	bio->bi_end_io = mpage_end_io;
+ 	submit_bio(rw, bio);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from claudio@evidence.eu.com are
+Patches currently in -mm which might be from haishan.bai@gmail.com are
 
 origin.patch
 
