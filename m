@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-add-debug-checks-for-mapcount-related-invariants.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:37 -0800
-Message-ID: <201101142251.p0EMpRxK005509@imap1.linux-foundation.org>
+Subject: [merged] thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:39 -0800
+Message-ID: <201101142251.p0EMpT0q005513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753058Ab1ANWvf (ORCPT
+	by vger.kernel.org with ESMTP id S1753163Ab1ANWvf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 14 Jan 2011 17:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,52 +15,64 @@ To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: add debug checks for mapcount related invariants
+     thp: fix memory-failure hugetlbfs vs THP collision
 has been removed from the -mm tree.  Its filename was
-     thp-add-debug-checks-for-mapcount-related-invariants.patch
+     thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: add debug checks for mapcount related invariants
+Subject: thp: fix memory-failure hugetlbfs vs THP collision
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add debug checks for invariants that if broken could lead to mapcount vs
-page_mapcount debug checks to trigger later in split_huge_page.
+hugetlbfs was changed to allow memory failure to migrate the hugetlbfs
+pages and that broke THP as split_huge_page was then called on hugetlbfs
+pages too.
+
+compound_head/order was also run unsafe on THP pages that can be splitted
+at any time.
+
+All compound_head() invocations in memory-failure.c that are run on pages
+that aren't pinned and that can be freed and reused from under us (while
+compound_head is running) are buggy because compound_head can return a
+dangling pointer, but I'm not fixing this as this is a generic
+memory-failure bug not specific to THP but it applies to hugetlbfs too, so
+I can fix it later after THP is merged upstream.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    2 +-
+ mm/rmap.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~thp-add-debug-checks-for-mapcount-related-invariants mm/memory.c
---- a/mm/memory.c~thp-add-debug-checks-for-mapcount-related-invariants
-+++ a/mm/memory.c
-@@ -804,6 +804,7 @@ static inline int copy_pmd_range(struct 
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*src_pmd)) {
- 			int err;
-+			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
- 			err = copy_huge_pmd(dst_mm, src_mm,
- 					    dst_pmd, src_pmd, addr, vma);
- 			if (err == -ENOMEM)
-@@ -1015,9 +1016,10 @@ static inline unsigned long zap_pmd_rang
- 	do {
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*pmd)) {
--			if (next-addr != HPAGE_PMD_SIZE)
-+			if (next-addr != HPAGE_PMD_SIZE) {
-+				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
- 				split_huge_page_pmd(vma->vm_mm, pmd);
--			else if (zap_huge_pmd(tlb, vma, pmd)) {
-+			} else if (zap_huge_pmd(tlb, vma, pmd)) {
- 				(*zap_work)--;
- 				continue;
- 			}
+diff -puN mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/memory-failure.c
+--- a/mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
++++ a/mm/memory-failure.c
+@@ -386,7 +386,7 @@ static void collect_procs_anon(struct pa
+ 	struct task_struct *tsk;
+ 	struct anon_vma *av;
+ 
+-	if (unlikely(split_huge_page(page)))
++	if (!PageHuge(page) && unlikely(split_huge_page(page)))
+ 		return;
+ 	read_lock(&tasklist_lock);
+ 	av = page_lock_anon_vma(page);
+diff -puN mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/rmap.c
+--- a/mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
++++ a/mm/rmap.c
+@@ -1430,7 +1430,7 @@ int try_to_unmap(struct page *page, enum
+ 	int ret;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	BUG_ON(PageTransHuge(page));
++	VM_BUG_ON(!PageHuge(page) && PageTransHuge(page));
+ 
+ 	if (unlikely(PageKsm(page)))
+ 		ret = try_to_unmap_ksm(page, flags);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
