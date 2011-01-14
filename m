@@ -1,113 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-pmd_trans_huge-migrate-bugcheck.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:47:30 -0800
-Message-ID: <201101142250.p0EMoKBT005401@imap1.linux-foundation.org>
+Subject: [merged] thp-transhuge-memcg-commit-tail-pages-at-charge.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:47:34 -0800
+Message-ID: <201101142250.p0EMoONP005407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752786Ab1ANWub (ORCPT
+	by vger.kernel.org with ESMTP id S1753886Ab1ANWuc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:50:31 -0500
+	Fri, 14 Jan 2011 17:50:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: pmd_trans_huge migrate bugcheck
+     thp: transhuge-memcg: commit tail pages at charge
 has been removed from the -mm tree.  Its filename was
-     thp-pmd_trans_huge-migrate-bugcheck.patch
+     thp-transhuge-memcg-commit-tail-pages-at-charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: pmd_trans_huge migrate bugcheck
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: transhuge-memcg: commit tail pages at charge
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-No pmd_trans_huge should ever materialize in migration ptes areas, because
-we split the hugepage before migration ptes are instantiated.
+By this patch, when a transparent hugepage is charged, not only the head
+page but also all the tail pages are committed, IOW pc->mem_cgroup and
+pc->flags of tail pages are set.
 
+Without this patch:
+
+- Tail pages are not linked to any memcg's LRU at splitting. This causes many
+  problems, for example, the charged memcg's directory can never be rmdir'ed
+  because it doesn't have enough pages to scan to make the usage decrease to 0.
+- "rss" field in memory.stat would be incorrect. Moreover, usage_in_bytes in
+  root cgroup is calculated by the stat not by res_counter(since 2.6.32),
+  it would be incorrect too.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/memory.c        |    5 +++++
- mm/migrate.c       |    7 ++++++-
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   52 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 35 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/mm.h~thp-pmd_trans_huge-migrate-bugcheck include/linux/mm.h
---- a/include/linux/mm.h~thp-pmd_trans_huge-migrate-bugcheck
-+++ a/include/linux/mm.h
-@@ -1490,6 +1490,7 @@ struct page *follow_page(struct vm_area_
- #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
- #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
- #define FOLL_MLOCK	0x40	/* mark page as mlocked */
-+#define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
- 
- typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
- 			void *data);
-diff -puN mm/memory.c~thp-pmd_trans_huge-migrate-bugcheck mm/memory.c
---- a/mm/memory.c~thp-pmd_trans_huge-migrate-bugcheck
-+++ a/mm/memory.c
-@@ -1305,6 +1305,10 @@ struct page *follow_page(struct vm_area_
- 		goto out;
+diff -puN mm/memcontrol.c~thp-transhuge-memcg-commit-tail-pages-at-charge mm/memcontrol.c
+--- a/mm/memcontrol.c~thp-transhuge-memcg-commit-tail-pages-at-charge
++++ a/mm/memcontrol.c
+@@ -2094,23 +2094,10 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+  * commit a charge got by __mem_cgroup_try_charge() and makes page_cgroup to be
+  * USED state. If already USED, uncharge and return.
+  */
+-
+-static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
+-				       struct page_cgroup *pc,
+-				       enum charge_type ctype,
+-				       int page_size)
++static void ____mem_cgroup_commit_charge(struct mem_cgroup *mem,
++					 struct page_cgroup *pc,
++					 enum charge_type ctype)
+ {
+-	/* try_charge() can return NULL to *memcg, taking care of it. */
+-	if (!mem)
+-		return;
+-
+-	lock_page_cgroup(pc);
+-	if (unlikely(PageCgroupUsed(pc))) {
+-		unlock_page_cgroup(pc);
+-		mem_cgroup_cancel_charge(mem, page_size);
+-		return;
+-	}
+-
+ 	pc->mem_cgroup = mem;
+ 	/*
+ 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
+@@ -2135,6 +2122,33 @@ static void __mem_cgroup_commit_charge(s
  	}
- 	if (pmd_trans_huge(*pmd)) {
-+		if (flags & FOLL_SPLIT) {
-+			split_huge_page_pmd(mm, pmd);
-+			goto split_fallthrough;
-+		}
- 		spin_lock(&mm->page_table_lock);
- 		if (likely(pmd_trans_huge(*pmd))) {
- 			if (unlikely(pmd_trans_splitting(*pmd))) {
-@@ -1320,6 +1324,7 @@ struct page *follow_page(struct vm_area_
- 			spin_unlock(&mm->page_table_lock);
- 		/* fall through */
+ 
+ 	mem_cgroup_charge_statistics(mem, pc, true);
++}
++
++static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
++				       struct page_cgroup *pc,
++				       enum charge_type ctype,
++				       int page_size)
++{
++	int i;
++	int count = page_size >> PAGE_SHIFT;
++
++	/* try_charge() can return NULL to *memcg, taking care of it. */
++	if (!mem)
++		return;
++
++	lock_page_cgroup(pc);
++	if (unlikely(PageCgroupUsed(pc))) {
++		unlock_page_cgroup(pc);
++		mem_cgroup_cancel_charge(mem, page_size);
++		return;
++	}
++
++	/*
++	 * we don't need page_cgroup_lock about tail pages, becase they are not
++	 * accessed by any other context at this point.
++	 */
++	for (i = 0; i < count; i++)
++		____mem_cgroup_commit_charge(mem, pc + i, ctype);
+ 
+ 	unlock_page_cgroup(pc);
+ 	/*
+@@ -2532,6 +2546,8 @@ direct_uncharge:
+ static struct mem_cgroup *
+ __mem_cgroup_uncharge_common(struct page *page, enum charge_type ctype)
+ {
++	int i;
++	int count;
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+ 	int page_size = PAGE_SIZE;
+@@ -2545,6 +2561,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (PageTransHuge(page))
+ 		page_size <<= compound_order(page);
+ 
++	count = page_size >> PAGE_SHIFT;
+ 	/*
+ 	 * Check if our page_cgroup is valid
+ 	 */
+@@ -2577,7 +2594,8 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
  	}
-+split_fallthrough:
- 	if (unlikely(pmd_bad(*pmd)))
- 		goto no_page_table;
  
-diff -puN mm/migrate.c~thp-pmd_trans_huge-migrate-bugcheck mm/migrate.c
---- a/mm/migrate.c~thp-pmd_trans_huge-migrate-bugcheck
-+++ a/mm/migrate.c
-@@ -113,6 +113,8 @@ static int remove_migration_pte(struct p
- 			goto out;
+-	mem_cgroup_charge_statistics(mem, pc, false);
++	for (i = 0; i < count; i++)
++		mem_cgroup_charge_statistics(mem, pc + i, false);
  
- 		pmd = pmd_offset(pud, addr);
-+		if (pmd_trans_huge(*pmd))
-+			goto out;
- 		if (!pmd_present(*pmd))
- 			goto out;
- 
-@@ -632,6 +634,9 @@ static int unmap_and_move(new_page_t get
- 		/* page was freed from under us. So we are done. */
- 		goto move_newpage;
- 	}
-+	if (unlikely(PageTransHuge(page)))
-+		if (unlikely(split_huge_page(page)))
-+			goto move_newpage;
- 
- 	/* prepare cgroup just returns 0 or -ENOMEM */
- 	rc = -EAGAIN;
-@@ -1063,7 +1068,7 @@ static int do_move_page_to_node_array(st
- 		if (!vma || pp->addr < vma->vm_start || !vma_migratable(vma))
- 			goto set_status;
- 
--		page = follow_page(vma, pp->addr, FOLL_GET);
-+		page = follow_page(vma, pp->addr, FOLL_GET|FOLL_SPLIT);
- 
- 		err = PTR_ERR(page);
- 		if (IS_ERR(page))
+ 	ClearPageCgroupUsed(pc);
+ 	/*
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-thp-add-pagetranscompound.patch
 
