@@ -1,302 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-add-pmd-mangling-functions-to-x86.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:46:53 -0800
-Message-ID: <201101142249.p0EMnha9005317@imap1.linux-foundation.org>
+Subject: [merged] mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:46:06 -0800
+Message-ID: <201101142248.p0EMmuim005245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800Ab1ANWty (ORCPT
+	by vger.kernel.org with ESMTP id S1753834Ab1ANWtv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:49:54 -0500
+	Fri, 14 Jan 2011 17:49:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     thp: add pmd mangling functions to x86
+     mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
 has been removed from the -mm tree.  Its filename was
-     thp-add-pmd-mangling-functions-to-x86.patch
+     mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: add pmd mangling functions to x86
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
+From: Mel Gorman <mel@csn.ul.ie>
 
-Add needed pmd mangling functions with symmetry with their pte
-counterparts.  pmdp_splitting_flush() is the only new addition on the pmd_
-methods and it's needed to serialize the VM against split_huge_page.  It
-simply atomically sets the splitting bit in a similar way
-pmdp_clear_flush_young atomically clears the accessed bit. 
-pmdp_splitting_flush() also has to flush the tlb to make it effective
-against gup_fast, but it wouldn't really require to flush the tlb too. 
-Just the tlb flush is the simplest operation we can invoke to serialize
-pmdp_splitting_flush() against gup_fast.
+When kswapd is woken up for a high-order allocation, it takes account of
+the highest usable zone by the caller (the classzone idx).  During
+allocation, this index is used to select the lowmem_reserve[] that should
+be applied to the watermark calculation in zone_watermark_ok().
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+When balancing a node, kswapd considers the highest unbalanced zone to be
+the classzone index.  This will always be at least be the callers
+classzone_idx and can be higher.  However, sleeping_prematurely() always
+considers the lowest zone (e.g.  ZONE_DMA) to be the classzone index. 
+This means that sleeping_prematurely() can consider a zone to be balanced
+that is unusable by the allocation request that originally woke kswapd. 
+This patch changes sleeping_prematurely() to use a classzone_idx matching
+the value it used in balance_pgdat().
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Eric B Munson <emunson@mgebm.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Simon Kirby <sim@hostway.ca>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h    |    2 
- arch/x86/include/asm/pgtable_64.h |  119 ++++++++++++++++++++++++++--
- arch/x86/mm/pgtable.c             |   66 +++++++++++++++
- 3 files changed, 179 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~thp-add-pmd-mangling-functions-to-x86 arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~thp-add-pmd-mangling-functions-to-x86
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -353,7 +353,7 @@ static inline unsigned long pmd_page_vad
-  * Currently stuck as a macro due to indirect forward reference to
-  * linux/mmzone.h's __section_mem_map_addr() definition:
+diff -puN mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely
++++ a/mm/vmscan.c
+@@ -2227,7 +2227,8 @@ static bool pgdat_balanced(pg_data_t *pg
+ }
+ 
+ /* is kswapd sleeping prematurely? */
+-static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
++static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
++					int classzone_idx)
+ {
+ 	int i;
+ 	unsigned long balanced = 0;
+@@ -2235,7 +2236,7 @@ static bool sleeping_prematurely(pg_data
+ 
+ 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
+ 	if (remaining)
+-		return 1;
++		return true;
+ 
+ 	/* Check the watermark levels */
+ 	for (i = 0; i < pgdat->nr_zones; i++) {
+@@ -2256,7 +2257,7 @@ static bool sleeping_prematurely(pg_data
+ 		}
+ 
+ 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
+-								0, 0))
++							classzone_idx, 0))
+ 			all_zones_ok = false;
+ 		else
+ 			balanced += zone->present_pages;
+@@ -2268,7 +2269,7 @@ static bool sleeping_prematurely(pg_data
+ 	 * must be balanced
+ 	 */
+ 	if (order)
+-		return pgdat_balanced(pgdat, balanced, 0);
++		return pgdat_balanced(pgdat, balanced, classzone_idx);
+ 	else
+ 		return !all_zones_ok;
+ }
+@@ -2295,7 +2296,7 @@ static bool sleeping_prematurely(pg_data
+  * of pages is balanced across the zones.
   */
--#define pmd_page(pmd)	pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT)
-+#define pmd_page(pmd)	pfn_to_page((pmd_val(pmd) & PTE_PFN_MASK) >> PAGE_SHIFT)
- 
- /*
-  * the pmd page can be thought of an array like this: pmd_t[PTRS_PER_PMD]
-diff -puN arch/x86/include/asm/pgtable_64.h~thp-add-pmd-mangling-functions-to-x86 arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~thp-add-pmd-mangling-functions-to-x86
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -59,6 +59,16 @@ static inline void native_set_pte_atomic
- 	native_set_pte(ptep, pte);
- }
- 
-+static inline void native_set_pmd(pmd_t *pmdp, pmd_t pmd)
-+{
-+	*pmdp = pmd;
-+}
-+
-+static inline void native_pmd_clear(pmd_t *pmd)
-+{
-+	native_set_pmd(pmd, native_make_pmd(0));
-+}
-+
- static inline pte_t native_ptep_get_and_clear(pte_t *xp)
+ static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
+-							int classzone_idx)
++							int *classzone_idx)
  {
- #ifdef CONFIG_SMP
-@@ -72,14 +82,17 @@ static inline pte_t native_ptep_get_and_
- #endif
+ 	int all_zones_ok;
+ 	unsigned long balanced;
+@@ -2358,6 +2359,7 @@ loop_again:
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), 0, 0)) {
+ 				end_zone = i;
++				*classzone_idx = i;
+ 				break;
+ 			}
+ 		}
+@@ -2451,12 +2453,12 @@ loop_again:
+ 				 * spectulatively avoid congestion waits
+ 				 */
+ 				zone_clear_flag(zone, ZONE_CONGESTED);
+-				if (i <= classzone_idx)
++				if (i <= *classzone_idx)
+ 					balanced += zone->present_pages;
+ 			}
+ 
+ 		}
+-		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))
++		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))
+ 			break;		/* kswapd: all done */
+ 		/*
+ 		 * OK, kswapd is getting into trouble.  Take a nap, then take
+@@ -2485,7 +2487,7 @@ out:
+ 	 * high-order: Balanced zones must make up at least 25% of the node
+ 	 *             for the node to be balanced
+ 	 */
+-	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))) {
++	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))) {
+ 		cond_resched();
+ 
+ 		try_to_freeze();
+@@ -2546,10 +2548,11 @@ out:
+ 	 * if another caller entered the allocator slow path while kswapd
+ 	 * was awake, order will remain at the higher level
+ 	 */
++	*classzone_idx = end_zone;
+ 	return order;
  }
  
--static inline void native_set_pmd(pmd_t *pmdp, pmd_t pmd)
--{
--	*pmdp = pmd;
--}
--
--static inline void native_pmd_clear(pmd_t *pmd)
-+static inline pmd_t native_pmdp_get_and_clear(pmd_t *xp)
+-static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
++static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
  {
--	native_set_pmd(pmd, native_make_pmd(0));
-+#ifdef CONFIG_SMP
-+	return native_make_pmd(xchg(&xp->pmd, 0));
-+#else
-+	/* native_local_pmdp_get_and_clear,
-+	   but duplicated because of cyclic dependency */
-+	pmd_t ret = *xp;
-+	native_pmd_clear(xp);
-+	return ret;
-+#endif
- }
+ 	long remaining = 0;
+ 	DEFINE_WAIT(wait);
+@@ -2560,7 +2563,7 @@ static void kswapd_try_to_sleep(pg_data_
+ 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
  
- static inline void native_set_pud(pud_t *pudp, pud_t pud)
-@@ -181,6 +194,98 @@ static inline int pmd_trans_huge(pmd_t p
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	/* Try to sleep for a short interval */
+-	if (!sleeping_prematurely(pgdat, order, remaining)) {
++	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
+ 		remaining = schedule_timeout(HZ/10);
+ 		finish_wait(&pgdat->kswapd_wait, &wait);
+ 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+@@ -2570,7 +2573,7 @@ static void kswapd_try_to_sleep(pg_data_
+ 	 * After a short sleep, check if it was a premature sleep. If not, then
+ 	 * go fully to sleep until explicitly woken up.
+ 	 */
+-	if (!sleeping_prematurely(pgdat, order, remaining)) {
++	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
+ 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
  
-+#define mk_pmd(page, pgprot)   pfn_pmd(page_to_pfn(page), (pgprot))
-+
-+#define  __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
-+extern int pmdp_set_access_flags(struct vm_area_struct *vma,
-+				 unsigned long address, pmd_t *pmdp,
-+				 pmd_t entry, int dirty);
-+
-+#define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
-+extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+				     unsigned long addr, pmd_t *pmdp);
-+
-+#define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
-+extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
-+				  unsigned long address, pmd_t *pmdp);
-+
-+
-+#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
-+extern void pmdp_splitting_flush(struct vm_area_struct *vma,
-+				 unsigned long addr, pmd_t *pmdp);
-+
-+#define __HAVE_ARCH_PMD_WRITE
-+static inline int pmd_write(pmd_t pmd)
-+{
-+	return pmd_flags(pmd) & _PAGE_RW;
-+}
-+
-+#define __HAVE_ARCH_PMDP_GET_AND_CLEAR
-+static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm, unsigned long addr,
-+				       pmd_t *pmdp)
-+{
-+	pmd_t pmd = native_pmdp_get_and_clear(pmdp);
-+	pmd_update(mm, addr, pmdp);
-+	return pmd;
-+}
-+
-+#define __HAVE_ARCH_PMDP_SET_WRPROTECT
-+static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-+				      unsigned long addr, pmd_t *pmdp)
-+{
-+	clear_bit(_PAGE_BIT_RW, (unsigned long *)&pmdp->pmd);
-+	pmd_update(mm, addr, pmdp);
-+}
-+
-+static inline int pmd_young(pmd_t pmd)
-+{
-+	return pmd_flags(pmd) & _PAGE_ACCESSED;
-+}
-+
-+static inline pmd_t pmd_set_flags(pmd_t pmd, pmdval_t set)
-+{
-+	pmdval_t v = native_pmd_val(pmd);
-+
-+	return native_make_pmd(v | set);
-+}
-+
-+static inline pmd_t pmd_clear_flags(pmd_t pmd, pmdval_t clear)
-+{
-+	pmdval_t v = native_pmd_val(pmd);
-+
-+	return native_make_pmd(v & ~clear);
-+}
-+
-+static inline pmd_t pmd_mkold(pmd_t pmd)
-+{
-+	return pmd_clear_flags(pmd, _PAGE_ACCESSED);
-+}
-+
-+static inline pmd_t pmd_wrprotect(pmd_t pmd)
-+{
-+	return pmd_clear_flags(pmd, _PAGE_RW);
-+}
-+
-+static inline pmd_t pmd_mkdirty(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_DIRTY);
-+}
-+
-+static inline pmd_t pmd_mkhuge(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_PSE);
-+}
-+
-+static inline pmd_t pmd_mkyoung(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_ACCESSED);
-+}
-+
-+static inline pmd_t pmd_mkwrite(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_RW);
-+}
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_X86_PGTABLE_64_H */
-diff -puN arch/x86/mm/pgtable.c~thp-add-pmd-mangling-functions-to-x86 arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~thp-add-pmd-mangling-functions-to-x86
-+++ a/arch/x86/mm/pgtable.c
-@@ -320,6 +320,25 @@ int ptep_set_access_flags(struct vm_area
- 	return changed;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+int pmdp_set_access_flags(struct vm_area_struct *vma,
-+			  unsigned long address, pmd_t *pmdp,
-+			  pmd_t entry, int dirty)
-+{
-+	int changed = !pmd_same(*pmdp, entry);
-+
-+	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+
-+	if (changed && dirty) {
-+		*pmdp = entry;
-+		pmd_update_defer(vma->vm_mm, address, pmdp);
-+		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
-+	}
-+
-+	return changed;
-+}
-+#endif
-+
- int ptep_test_and_clear_young(struct vm_area_struct *vma,
- 			      unsigned long addr, pte_t *ptep)
- {
-@@ -335,6 +354,23 @@ int ptep_test_and_clear_young(struct vm_
- 	return ret;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+			      unsigned long addr, pmd_t *pmdp)
-+{
-+	int ret = 0;
-+
-+	if (pmd_young(*pmdp))
-+		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
-+					 (unsigned long *) &pmdp->pmd);
-+
-+	if (ret)
-+		pmd_update(vma->vm_mm, addr, pmdp);
-+
-+	return ret;
-+}
-+#endif
-+
- int ptep_clear_flush_young(struct vm_area_struct *vma,
- 			   unsigned long address, pte_t *ptep)
- {
-@@ -347,6 +383,36 @@ int ptep_clear_flush_young(struct vm_are
- 	return young;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+int pmdp_clear_flush_young(struct vm_area_struct *vma,
-+			   unsigned long address, pmd_t *pmdp)
-+{
-+	int young;
-+
-+	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+
-+	young = pmdp_test_and_clear_young(vma, address, pmdp);
-+	if (young)
-+		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
-+
-+	return young;
-+}
-+
-+void pmdp_splitting_flush(struct vm_area_struct *vma,
-+			  unsigned long address, pmd_t *pmdp)
-+{
-+	int set;
-+	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+	set = !test_and_set_bit(_PAGE_BIT_SPLITTING,
-+				(unsigned long *)&pmdp->pmd);
-+	if (set) {
-+		pmd_update(vma->vm_mm, address, pmdp);
-+		/* need tlb flush only to serialize against gup-fast */
-+		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
-+	}
-+}
-+#endif
-+
- /**
-  * reserve_top_address - reserves a hole in the top of kernel address space
-  * @reserve - size of hole to reserve
+ 		/*
+@@ -2658,7 +2661,7 @@ static int kswapd(void *p)
+ 			order = new_order;
+ 			classzone_idx = new_classzone_idx;
+ 		} else {
+-			kswapd_try_to_sleep(pgdat, order);
++			kswapd_try_to_sleep(pgdat, order, classzone_idx);
+ 			order = pgdat->kswapd_max_order;
+ 			classzone_idx = pgdat->classzone_idx;
+ 			pgdat->kswapd_max_order = 0;
+@@ -2675,7 +2678,7 @@ static int kswapd(void *p)
+ 		 */
+ 		if (!ret) {
+ 			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
+-			order = balance_pgdat(pgdat, order, classzone_idx);
++			order = balance_pgdat(pgdat, order, &classzone_idx);
+ 		}
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
+linux-next.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
 thp-add-pagetranscompound.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
