@@ -1,117 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-memory-migration-of-shmem-swapcache.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:49:49 -0800
-Message-ID: <201101142252.p0EMqdJx005644@imap1.linux-foundation.org>
+Subject: [merged] include-gpioh-remove-remaining-__must_check-annotiations.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:49:54 -0800
+Message-ID: <201101142252.p0EMqiC0005650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753775Ab1ANWw7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753775Ab1ANWw5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:52:59 -0500
+	Fri, 14 Jan 2011 17:52:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix memory migration of shmem swapcache
+     include/gpio.h: remove remaining __must_check-annotiations
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-memory-migration-of-shmem-swapcache.patch
+     include-gpioh-remove-remaining-__must_check-annotiations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix memory migration of shmem swapcache
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: include/gpio.h: remove remaining __must_check-annotiations
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-In the current implementation mem_cgroup_end_migration() decides whether
-the page migration has succeeded or not by checking "oldpage->mapping".
+5f829e405 ("gpiolib: add missing functions to generic fallback") also
+introduced two.
 
-But if we are tring to migrate a shmem swapcache, the page->mapping of it
-is NULL from the begining, so the check would be invalid.  As a result,
-mem_cgroup_end_migration() assumes the migration has succeeded even if
-it's not, so "newpage" would be freed while it's not uncharged.
-
-This patch fixes it by passing mem_cgroup_end_migration() the result of
-the page migration.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 ++---
- mm/memcontrol.c            |    5 ++---
- mm/migrate.c               |    2 +-
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ include/linux/gpio.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-memory-migration-of-shmem-swapcache include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-memory-migration-of-shmem-swapcache
-+++ a/include/linux/memcontrol.h
-@@ -98,7 +98,7 @@ extern int
- mem_cgroup_prepare_migration(struct page *page,
- 	struct page *newpage, struct mem_cgroup **ptr);
- extern void mem_cgroup_end_migration(struct mem_cgroup *mem,
--	struct page *oldpage, struct page *newpage);
-+	struct page *oldpage, struct page *newpage, bool migration_ok);
- 
- /*
-  * For memory reclaim.
-@@ -251,8 +251,7 @@ mem_cgroup_prepare_migration(struct page
+diff -puN include/linux/gpio.h~include-gpioh-remove-remaining-__must_check-annotiations include/linux/gpio.h
+--- a/include/linux/gpio.h~include-gpioh-remove-remaining-__must_check-annotiations
++++ a/include/linux/gpio.h
+@@ -35,13 +35,13 @@ static inline int gpio_request(unsigned 
+ 	return -ENOSYS;
  }
  
- static inline void mem_cgroup_end_migration(struct mem_cgroup *mem,
--					struct page *oldpage,
--					struct page *newpage)
-+		struct page *oldpage, struct page *newpage, bool migration_ok)
+-static inline int __must_check gpio_request_one(unsigned gpio,
++static inline int gpio_request_one(unsigned gpio,
+ 					unsigned long flags, const char *label)
  {
+ 	return -ENOSYS;
  }
  
-diff -puN mm/memcontrol.c~memcg-fix-memory-migration-of-shmem-swapcache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-memory-migration-of-shmem-swapcache
-+++ a/mm/memcontrol.c
-@@ -2896,7 +2896,7 @@ int mem_cgroup_prepare_migration(struct 
- 
- /* remove redundant charge if migration failed*/
- void mem_cgroup_end_migration(struct mem_cgroup *mem,
--	struct page *oldpage, struct page *newpage)
-+	struct page *oldpage, struct page *newpage, bool migration_ok)
+-static inline int __must_check gpio_request_array(struct gpio *array, size_t num)
++static inline int gpio_request_array(struct gpio *array, size_t num)
  {
- 	struct page *used, *unused;
- 	struct page_cgroup *pc;
-@@ -2905,8 +2905,7 @@ void mem_cgroup_end_migration(struct mem
- 		return;
- 	/* blocks rmdir() */
- 	cgroup_exclude_rmdir(&mem->css);
--	/* at migration success, oldpage->mapping is NULL. */
--	if (oldpage->mapping) {
-+	if (!migration_ok) {
- 		used = oldpage;
- 		unused = newpage;
- 	} else {
-diff -puN mm/migrate.c~memcg-fix-memory-migration-of-shmem-swapcache mm/migrate.c
---- a/mm/migrate.c~memcg-fix-memory-migration-of-shmem-swapcache
-+++ a/mm/migrate.c
-@@ -768,7 +768,7 @@ skip_unmap:
- 
- uncharge:
- 	if (!charge)
--		mem_cgroup_end_migration(mem, page, newpage);
-+		mem_cgroup_end_migration(mem, page, newpage, rc == 0);
- unlock:
- 	unlock_page(page);
- 
+ 	return -ENOSYS;
+ }
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
+linux-next.patch
 
