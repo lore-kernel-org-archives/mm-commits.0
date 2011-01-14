@@ -1,124 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-set-recommended-min-free-kbytes.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:01 -0800
-Message-ID: <201101142250.p0EMop8h005445@imap1.linux-foundation.org>
+Subject: [merged] thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:07 -0800
+Message-ID: <201101142250.p0EMovhl005454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752901Ab1ANWvC (ORCPT
+	by vger.kernel.org with ESMTP id S1752915Ab1ANWvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:51:02 -0500
+	Fri, 14 Jan 2011 17:51:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: set recommended min free kbytes
+     thp: allocate memory in khugepaged outside of mmap_sem write mode
 has been removed from the -mm tree.  Its filename was
-     thp-set-recommended-min-free-kbytes.patch
+     thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: set recommended min free kbytes
+Subject: thp: allocate memory in khugepaged outside of mmap_sem write mode
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-If transparent hugepage is enabled initialize min_free_kbytes to an
-optimal value by default.  This moves the hugeadm algorithm in kernel.
+This tries to be more friendly to filesystem in userland, with userland
+backends that allocate memory in the I/O paths and that could deadlock if
+khugepaged holds the mmap_sem write mode of the userland backend while
+allocating memory.  Memory allocation may wait for writeback I/O
+completion from the daemon that may be blocked in the mmap_sem read mode
+if a page fault happens and the daemon wasn't using mlock for the memory
+required for the I/O submission and completion.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   52 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ mm/huge_memory.c |   56 +++++++++++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 22 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-set-recommended-min-free-kbytes mm/huge_memory.c
---- a/mm/huge_memory.c~thp-set-recommended-min-free-kbytes
+diff -puN mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-allocate-memory-in-khugepaged-outside-of-mmap_sem-write-mode
 +++ a/mm/huge_memory.c
-@@ -85,6 +85,47 @@ struct khugepaged_scan {
- 	.mm_head = LIST_HEAD_INIT(khugepaged_scan.mm_head),
- };
+@@ -1664,9 +1664,9 @@ static void __collapse_huge_page_copy(pt
  
-+
-+static int set_recommended_min_free_kbytes(void)
-+{
-+	struct zone *zone;
-+	int nr_zones = 0;
-+	unsigned long recommended_min;
-+	extern int min_free_kbytes;
-+
-+	if (!test_bit(TRANSPARENT_HUGEPAGE_FLAG,
-+		      &transparent_hugepage_flags) &&
-+	    !test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
-+		      &transparent_hugepage_flags))
-+		return 0;
-+
-+	for_each_populated_zone(zone)
-+		nr_zones++;
-+
-+	/* Make sure at least 2 hugepages are free for MIGRATE_RESERVE */
-+	recommended_min = pageblock_nr_pages * nr_zones * 2;
-+
-+	/*
-+	 * Make sure that on average at least two pageblocks are almost free
-+	 * of another type, one for a migratetype to fall back to and a
-+	 * second to avoid subsequent fallbacks of other types There are 3
-+	 * MIGRATE_TYPES we care about.
-+	 */
-+	recommended_min += pageblock_nr_pages * nr_zones *
-+			   MIGRATE_PCPTYPES * MIGRATE_PCPTYPES;
-+
-+	/* don't ever allow to reserve more than 5% of the lowmem */
-+	recommended_min = min(recommended_min,
-+			      (unsigned long) nr_free_buffer_pages() / 20);
-+	recommended_min <<= (PAGE_SHIFT-10);
-+
-+	if (recommended_min > min_free_kbytes)
-+		min_free_kbytes = recommended_min;
-+	setup_per_zone_wmarks();
-+	return 0;
-+}
-+late_initcall(set_recommended_min_free_kbytes);
-+
- static int start_khugepaged(void)
+ static void collapse_huge_page(struct mm_struct *mm,
+ 			       unsigned long address,
+-			       struct page **hpage)
++			       struct page **hpage,
++			       struct vm_area_struct *vma)
  {
- 	int err = 0;
-@@ -108,6 +149,8 @@ static int start_khugepaged(void)
- 		mutex_unlock(&khugepaged_mutex);
- 		if (wakeup)
- 			wake_up_interruptible(&khugepaged_wait);
+-	struct vm_area_struct *vma;
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd, _pmd;
+@@ -1680,9 +1680,34 @@ static void collapse_huge_page(struct mm
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ #ifndef CONFIG_NUMA
+ 	VM_BUG_ON(!*hpage);
++	new_page = *hpage;
+ #else
+ 	VM_BUG_ON(*hpage);
++	/*
++	 * Allocate the page while the vma is still valid and under
++	 * the mmap_sem read mode so there is no memory allocation
++	 * later when we take the mmap_sem in write mode. This is more
++	 * friendly behavior (OTOH it may actually hide bugs) to
++	 * filesystems in userland with daemons allocating memory in
++	 * the userland I/O paths.  Allocating memory with the
++	 * mmap_sem in read mode is good idea also to allow greater
++	 * scalability.
++	 */
++	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address);
++	if (unlikely(!new_page)) {
++		up_read(&mm->mmap_sem);
++		*hpage = ERR_PTR(-ENOMEM);
++		return;
++	}
+ #endif
++	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
++		up_read(&mm->mmap_sem);
++		put_page(new_page);
++		return;
++	}
 +
-+		set_recommended_min_free_kbytes();
- 	} else
- 		/* wakeup to exit */
- 		wake_up_interruptible(&khugepaged_wait);
-@@ -177,6 +220,13 @@ static ssize_t enabled_store(struct kobj
- 			ret = err;
++	/* after allocating the hugepage upgrade to mmap_sem write mode */
++	up_read(&mm->mmap_sem);
+ 
+ 	/*
+ 	 * Prevent all access to pagetables with the exception of
+@@ -1720,18 +1745,6 @@ static void collapse_huge_page(struct mm
+ 	if (!pmd_present(*pmd) || pmd_trans_huge(*pmd))
+ 		goto out;
+ 
+-#ifndef CONFIG_NUMA
+-	new_page = *hpage;
+-#else
+-	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address);
+-	if (unlikely(!new_page)) {
+-		*hpage = ERR_PTR(-ENOMEM);
+-		goto out;
+-	}
+-#endif
+-	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL)))
+-		goto out_put_page;
+-
+ 	anon_vma_lock(vma->anon_vma);
+ 
+ 	pte = pte_offset_map(pmd, address);
+@@ -1759,7 +1772,7 @@ static void collapse_huge_page(struct mm
+ 		spin_unlock(&mm->page_table_lock);
+ 		anon_vma_unlock(vma->anon_vma);
+ 		mem_cgroup_uncharge_page(new_page);
+-		goto out_put_page;
++		goto out;
  	}
  
-+	if (ret > 0 &&
-+	    (test_bit(TRANSPARENT_HUGEPAGE_FLAG,
-+		      &transparent_hugepage_flags) ||
-+	     test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
-+		      &transparent_hugepage_flags)))
-+		set_recommended_min_free_kbytes();
-+
- 	return ret;
+ 	/*
+@@ -1798,15 +1811,15 @@ static void collapse_huge_page(struct mm
+ 	*hpage = NULL;
+ #endif
+ 	khugepaged_pages_collapsed++;
+-out:
++out_up_write:
+ 	up_write(&mm->mmap_sem);
+ 	return;
+ 
+-out_put_page:
++out:
+ #ifdef CONFIG_NUMA
+ 	put_page(new_page);
+ #endif
+-	goto out;
++	goto out_up_write;
  }
- static struct kobj_attribute enabled_attr =
-@@ -464,6 +514,8 @@ static int __init hugepage_init(void)
  
- 	start_khugepaged();
- 
-+	set_recommended_min_free_kbytes();
-+
+ static int khugepaged_scan_pmd(struct mm_struct *mm,
+@@ -1865,10 +1878,9 @@ static int khugepaged_scan_pmd(struct mm
+ 		ret = 1;
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
+-	if (ret) {
+-		up_read(&mm->mmap_sem);
+-		collapse_huge_page(mm, address, hpage);
+-	}
++	if (ret)
++		/* collapse_huge_page will return with the mmap_sem released */
++		collapse_huge_page(mm, address, hpage, vma);
  out:
- 	return err;
+ 	return ret;
  }
 _
 
