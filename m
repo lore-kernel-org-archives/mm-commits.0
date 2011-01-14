@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + include-gpioh-remove-remaining-__must_check-annotiations.patch added to -mm tree
-Date: Fri, 14 Jan 2011 01:17:24 -0800
-Message-ID: <201101140920.p0E9K9Ht001918@imap1.linux-foundation.org>
+Subject: + gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch added to -mm tree
+Date: Fri, 14 Jan 2011 01:18:24 -0800
+Message-ID: <201101140921.p0E9L9ME001942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751335Ab1ANJUv (ORCPT
+	by vger.kernel.org with ESMTP id S1753461Ab1ANJVs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 04:20:51 -0500
+	Fri, 14 Jan 2011 04:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: w.sang@pengutronix.de, gregkh@suse.de
+Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, richard.rojfors@mocean-labs.com
 
 
 The patch titled
-     include/gpio.h: remove remaining __must_check-annotiations
+     gpio: timbgpio: Fix up irq_data conversion breakage.
 has been added to the -mm tree.  Its filename is
-     include-gpioh-remove-remaining-__must_check-annotiations.patch
+     gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,53 +29,69 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: include/gpio.h: remove remaining __must_check-annotiations
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: gpio: timbgpio: Fix up irq_data conversion breakage.
+=46rom: Lennert Buytenhek <buytenh@wantstofly.org>
 
-5f829e405 ("gpiolib: add missing functions to generic fallback") also
-introduced two.
+a1f5f22adc3 ("gpio: timbgpio: irq_data conversion") was slightly too
+enthusiastic in converting timbgpio_irq() over to take an irq_data *
+argument instead of an unsigned int irq argument, as it is a flow handl=
+er,
+which still take IRQ numbers for now.  (And on top of that, it was usin=
+g
+the wrong accessors.)
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Greg KH <gregkh@suse.de>
+This fixes it up, and seems to build without warnings.
+
+Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
+Cc: Richard R=F6jfors <richard.rojfors@mocean-labs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gpio.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/timbgpio.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/gpio.h~include-gpioh-remove-remaining-__must_check-annotiations include/linux/gpio.h
---- a/include/linux/gpio.h~include-gpioh-remove-remaining-__must_check-annotiations
-+++ a/include/linux/gpio.h
-@@ -35,13 +35,13 @@ static inline int gpio_request(unsigned 
- 	return -ENOSYS;
+diff -puN drivers/gpio/timbgpio.c~gpio-timbgpio-fix-up-irq_data-convers=
+ion-breakage drivers/gpio/timbgpio.c
+--- a/drivers/gpio/timbgpio.c~gpio-timbgpio-fix-up-irq_data-conversion-=
+breakage
++++ a/drivers/gpio/timbgpio.c
+@@ -193,13 +193,13 @@ out:
+ 	return ret;
  }
- 
--static inline int __must_check gpio_request_one(unsigned gpio,
-+static inline int gpio_request_one(unsigned gpio,
- 					unsigned long flags, const char *label)
+=20
+-static void timbgpio_irq(struct irq_data *d, struct irq_desc *desc)
++static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
  {
- 	return -ENOSYS;
- }
- 
--static inline int __must_check gpio_request_array(struct gpio *array, size_t num)
-+static inline int gpio_request_array(struct gpio *array, size_t num)
- {
- 	return -ENOSYS;
- }
+-	struct timbgpio *tgpio =3D irq_data_get_irq_data(d);
++	struct timbgpio *tgpio =3D get_irq_data(irq);
+ 	unsigned long ipr;
+ 	int offset;
+=20
+-	desc->irq_data.chip->ack(irq_get_irq_data(d));
++	desc->irq_data.chip->irq_ack(irq_get_irq_data(irq));
+ 	ipr =3D ioread32(tgpio->membase + TGPIO_IPR);
+ 	iowrite32(ipr, tgpio->membase + TGPIO_ICR);
+=20
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from buytenh@wantstofly.org are
 
 origin.patch
-partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check.patch
-include-gpioh-remove-remaining-__must_check-annotiations.patch
+gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
