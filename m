@@ -1,74 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:45:27 -0800
-Message-ID: <201101142248.p0EMmHb8005120@imap1.linux-foundation.org>
+Subject: [merged] mm-add-foll_mlock-follow_page-flag.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:45:30 -0800
+Message-ID: <201101142248.p0EMmK1G005191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752807Ab1ANWsq (ORCPT
+	by vger.kernel.org with ESMTP id S1753079Ab1ANWss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:48:46 -0500
+	Fri, 14 Jan 2011 17:48:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, Valdis.Kletnieks@vt.edu, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org
+To: walken@google.com, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, tglx@
 
 
 The patch titled
-     mlock: only hold mmap_sem in shared mode when faulting in pages
+     mm: add FOLL_MLOCK follow_page flag.
 has been removed from the -mm tree.  Its filename was
-     mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages.patch
+     mm-add-foll_mlock-follow_page-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: only hold mmap_sem in shared mode when faulting in pages
+Subject: mm: add FOLL_MLOCK follow_page flag.
 From: Michel Lespinasse <walken@google.com>
 
-Currently mlock() holds mmap_sem in exclusive mode while the pages get
-faulted in.  In the case of a large mlock, this can potentially take a
-very long time, during which various commands such as 'ps auxw' will
-block.  This makes sysadmins unhappy:
+Move the code to mlock pages from __mlock_vma_pages_range() to
+follow_page().
 
-real    14m36.232s
-user    0m0.003s
-sys     0m0.015s
-(output from 'time ps auxw' while a 20GB file was being mlocked without
-being previously preloaded into page cache)
+This allows __mlock_vma_pages_range() to not have to break down work into
+16-page batches.
 
-I propose that mlock() could release mmap_sem after the VM_LOCKED bits
-have been set in all appropriate VMAs.  Then a second pass could be done
-to actually mlock the pages, in small batches, releasing mmap_sem when we
-block on disk access or when we detect some contention.
-
-
-This patch:
-
-Before this change, mlock() holds mmap_sem in exclusive mode while the
-pages get faulted in.  In the case of a large mlock, this can potentially
-take a very long time.  Various things will block while mmap_sem is held,
-including 'ps auxw'.  This can make sysadmins angry.
-
-I propose that mlock() could release mmap_sem after the VM_LOCKED bits
-have been set in all appropriate VMAs.  Then a second pass could be done
-to actually mlock the pages with mmap_sem held for reads only.  We need to
-recheck the vma flags after we re-acquire mmap_sem, but this is easy.
-
-In the case where a vma has been munlocked before mlock completes, pages
-that were already marked as PageMlocked() are handled by the munlock()
-call, and mlock() is careful to not mark new page batches as PageMlocked()
-after the munlock() call has cleared the VM_LOCKED vma flags.  So, the end
-result will be identical to what'd happen if munlock() had executed after
-the mlock() call.
-
-In a later change, I will allow the second pass to release mmap_sem when
-blocking on disk accesses or when it is otherwise contended, so that it
-won't be held for long periods of time even in shared mode.
+An additional motivation for doing this within the present patch series is
+that it'll make it easier for a later chagne to drop mmap_sem when
+blocking on disk (we'd like to be able to resume at the page that was read
+from disk instead of at the start of a 16-page batch).
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Tested-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -81,142 +51,134 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   81 ++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 64 insertions(+), 17 deletions(-)
+ include/linux/mm.h |    1 
+ mm/memory.c        |   22 ++++++++++++++
+ mm/mlock.c         |   65 +++----------------------------------------
+ 3 files changed, 28 insertions(+), 60 deletions(-)
 
-diff -puN mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages mm/mlock.c
---- a/mm/mlock.c~mlock-only-hold-mmap_sem-in-shared-mode-when-faulting-in-pages
+diff -puN include/linux/mm.h~mm-add-foll_mlock-follow_page-flag include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-foll_mlock-follow_page-flag
++++ a/include/linux/mm.h
+@@ -1415,6 +1415,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_GET	0x04	/* do get_page on page */
+ #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+ #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
++#define FOLL_MLOCK	0x40	/* mark page as mlocked */
+ 
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/memory.c~mm-add-foll_mlock-follow_page-flag mm/memory.c
+--- a/mm/memory.c~mm-add-foll_mlock-follow_page-flag
++++ a/mm/memory.c
+@@ -1310,6 +1310,28 @@ struct page *follow_page(struct vm_area_
+ 		 */
+ 		mark_page_accessed(page);
+ 	}
++	if (flags & FOLL_MLOCK) {
++		/*
++		 * The preliminary mapping check is mainly to avoid the
++		 * pointless overhead of lock_page on the ZERO_PAGE
++		 * which might bounce very badly if there is contention.
++		 *
++		 * If the page is already locked, we don't need to
++		 * handle it now - vmscan will handle it later if and
++		 * when it attempts to reclaim the page.
++		 */
++		if (page->mapping && trylock_page(page)) {
++			lru_add_drain();  /* push cached pages to LRU */
++			/*
++			 * Because we lock page here and migration is
++			 * blocked by the pte's page reference, we need
++			 * only check for file-cache page truncation.
++			 */
++			if (page->mapping)
++				mlock_vma_page(page);
++			unlock_page(page);
++		}
++	}
+ unlock:
+ 	pte_unmap_unlock(ptep, ptl);
+ out:
+diff -puN mm/mlock.c~mm-add-foll_mlock-follow_page-flag mm/mlock.c
+--- a/mm/mlock.c~mm-add-foll_mlock-follow_page-flag
 +++ a/mm/mlock.c
-@@ -377,18 +377,10 @@ static int mlock_fixup(struct vm_area_st
- 	int ret = 0;
- 	int lock = newflags & VM_LOCKED;
- 
--	if (newflags == vma->vm_flags ||
--			(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-+	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
-+	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current))
- 		goto out;	/* don't set VM_LOCKED,  don't count */
- 
--	if ((vma->vm_flags & (VM_DONTEXPAND | VM_RESERVED)) ||
--			is_vm_hugetlb_page(vma) ||
--			vma == get_gate_vma(current)) {
--		if (lock)
--			make_pages_present(start, end);
--		goto out;	/* don't set VM_LOCKED,  don't count */
--	}
--
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
- 			  vma->vm_file, pgoff, vma_policy(vma));
-@@ -424,14 +416,10 @@ success:
- 	 * set VM_LOCKED, __mlock_vma_pages_range will bring it back.
- 	 */
- 
--	if (lock) {
-+	if (lock)
- 		vma->vm_flags = newflags;
--		ret = __mlock_vma_pages_range(vma, start, end);
--		if (ret < 0)
--			ret = __mlock_posix_error_return(ret);
--	} else {
-+	else
- 		munlock_vma_pages_range(vma, start, end);
--	}
- 
- out:
- 	*prev = vma;
-@@ -444,7 +432,8 @@ static int do_mlock(unsigned long start,
- 	struct vm_area_struct * vma, * prev;
- 	int error;
- 
--	len = PAGE_ALIGN(len);
-+	VM_BUG_ON(start & ~PAGE_MASK);
-+	VM_BUG_ON(len != PAGE_ALIGN(len));
- 	end = start + len;
- 	if (end < start)
- 		return -EINVAL;
-@@ -487,6 +476,58 @@ static int do_mlock(unsigned long start,
- 	return error;
- }
- 
-+static int do_mlock_pages(unsigned long start, size_t len, int ignore_errors)
-+{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long end, nstart, nend;
-+	struct vm_area_struct *vma = NULL;
-+	int ret = 0;
-+
-+	VM_BUG_ON(start & ~PAGE_MASK);
-+	VM_BUG_ON(len != PAGE_ALIGN(len));
-+	end = start + len;
-+
-+	down_read(&mm->mmap_sem);
-+	for (nstart = start; nstart < end; nstart = nend) {
-+		/*
-+		 * We want to fault in pages for [nstart; end) address range.
-+		 * Find first corresponding VMA.
-+		 */
-+		if (!vma)
-+			vma = find_vma(mm, nstart);
-+		else
-+			vma = vma->vm_next;
-+		if (!vma || vma->vm_start >= end)
-+			break;
-+		/*
-+		 * Set [nstart; nend) to intersection of desired address
-+		 * range with the first VMA. Also, skip undesirable VMA types.
-+		 */
-+		nend = min(end, vma->vm_end);
-+		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+			continue;
-+		if (nstart < vma->vm_start)
-+			nstart = vma->vm_start;
-+		/*
-+		 * Now fault in a range of pages within the first VMA.
-+		 */
-+		if (vma->vm_flags & VM_LOCKED) {
-+			ret = __mlock_vma_pages_range(vma, nstart, nend);
-+			if (ret < 0 && ignore_errors) {
-+				ret = 0;
-+				continue;	/* continue at next VMA */
-+			}
-+			if (ret) {
-+				ret = __mlock_posix_error_return(ret);
-+				break;
-+			}
-+		} else
-+			make_pages_present(nstart, nend);
-+	}
-+	up_read(&mm->mmap_sem);
-+	return ret;	/* 0 or negative error code */
-+}
-+
- SYSCALL_DEFINE2(mlock, unsigned long, start, size_t, len)
+@@ -159,10 +159,9 @@ static long __mlock_vma_pages_range(stru
  {
- 	unsigned long locked;
-@@ -512,6 +553,8 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
- 		error = do_mlock(start, len, 1);
- 	up_write(&current->mm->mmap_sem);
-+	if (!error)
-+		error = do_mlock_pages(start, len, 0);
- 	return error;
- }
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long addr = start;
+-	struct page *pages[16]; /* 16 gives a reasonable batch */
+ 	int nr_pages = (end - start) / PAGE_SIZE;
+-	int ret = 0;
+ 	int gup_flags;
++	int ret;
  
-@@ -576,6 +619,10 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	    capable(CAP_IPC_LOCK))
- 		ret = do_mlockall(flags);
- 	up_write(&current->mm->mmap_sem);
-+	if (!ret && (flags & MCL_CURRENT)) {
-+		/* Ignore errors */
-+		do_mlock_pages(0, TASK_SIZE, 1);
-+	}
- out:
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from walken@google.com are
-
-origin.patch
-
+ 	VM_BUG_ON(start & ~PAGE_MASK);
+ 	VM_BUG_ON(end   & ~PAGE_MASK);
+@@ -170,7 +169,7 @@ static long __mlock_vma_pages_range(stru
+ 	VM_BUG_ON(end   > vma->vm_end);
+ 	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
+ 
+-	gup_flags = FOLL_TOUCH | FOLL_GET;
++	gup_flags = FOLL_TOUCH | FOLL_MLOCK;
+ 	/*
+ 	 * We want to touch writable mappings with a write fault in order
+ 	 * to break COW, except for shared mappings because these don't COW
+@@ -185,63 +184,9 @@ static long __mlock_vma_pages_range(stru
+ 		nr_pages--;
+ 	}
+ 
+-	while (nr_pages > 0) {
+-		int i;
+-
+-		cond_resched();
+-
+-		/*
+-		 * get_user_pages makes pages present if we are
+-		 * setting mlock. and this extra reference count will
+-		 * disable migration of this page.  However, page may
+-		 * still be truncated out from under us.
+-		 */
+-		ret = __get_user_pages(current, mm, addr,
+-				min_t(int, nr_pages, ARRAY_SIZE(pages)),
+-				gup_flags, pages, NULL);
+-		/*
+-		 * This can happen for, e.g., VM_NONLINEAR regions before
+-		 * a page has been allocated and mapped at a given offset,
+-		 * or for addresses that map beyond end of a file.
+-		 * We'll mlock the pages if/when they get faulted in.
+-		 */
+-		if (ret < 0)
+-			break;
+-
+-		lru_add_drain();	/* push cached pages to LRU */
+-
+-		for (i = 0; i < ret; i++) {
+-			struct page *page = pages[i];
+-
+-			if (page->mapping) {
+-				/*
+-				 * That preliminary check is mainly to avoid
+-				 * the pointless overhead of lock_page on the
+-				 * ZERO_PAGE: which might bounce very badly if
+-				 * there is contention.  However, we're still
+-				 * dirtying its cacheline with get/put_page:
+-				 * we'll add another __get_user_pages flag to
+-				 * avoid it if that case turns out to matter.
+-				 */
+-				lock_page(page);
+-				/*
+-				 * Because we lock page here and migration is
+-				 * blocked by the elevated reference, we need
+-				 * only check for file-cache page truncation.
+-				 */
+-				if (page->mapping)
+-					mlock_vma_page(page);
+-				unlock_page(page);
+-			}
+-			put_page(page);	/* ref from get_user_pages() */
+-		}
+-
+-		addr += ret * PAGE_SIZE;
+-		nr_pages -= ret;
+-		ret = 0;
+-	}
