@@ -1,135 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-compound_lock.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:46:22 -0800
-Message-ID: <201101142249.p0EMnCOf005275@imap1.linux-foundation.org>
+Subject: [merged] mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:46:01 -0800
+Message-ID: <201101142248.p0EMmpT8005239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753776Ab1ANWtY (ORCPT
+	by vger.kernel.org with ESMTP id S1753761Ab1ANWtX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:49:24 -0500
+	Fri, 14 Jan 2011 17:49:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     thp: compound_lock
+     mm: kswapd: reset kswapd_max_order and classzone_idx after reading
 has been removed from the -mm tree.  Its filename was
-     thp-compound_lock.patch
+     mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: compound_lock
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: kswapd: reset kswapd_max_order and classzone_idx after reading
+From: Mel Gorman <mel@csn.ul.ie>
 
-Add a new compound_lock() needed to serialize put_page against
-__split_huge_page_refcount().
+When kswapd wakes up, it reads its order and classzone from pgdat and
+calls balance_pgdat.  While its awake, it potentially reclaimes at a high
+order and a low classzone index.  This might have been a once-off that was
+not required by subsequent callers.  However, because the pgdat values
+were not reset, they remain artifically high while balance_pgdat() is
+running and potentially kswapd enters a second unnecessary reclaim cycle. 
+Reset the pgdat order and classzone index after reading.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Eric B Munson <emunson@mgebm.net>
+Cc: Simon Kirby <sim@hostway.ca>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |   34 ++++++++++++++++++++++++++++++++++
- include/linux/page-flags.h |   12 +++++++++++-
- 2 files changed, 45 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/mm.h~thp-compound_lock include/linux/mm.h
---- a/include/linux/mm.h~thp-compound_lock
-+++ a/include/linux/mm.h
-@@ -14,6 +14,7 @@
- #include <linux/mm_types.h>
- #include <linux/range.h>
- #include <linux/pfn.h>
-+#include <linux/bit_spinlock.h>
+diff -puN mm/vmscan.c~mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-reset-kswapd_max_order-and-classzone_idx-after-reading
++++ a/mm/vmscan.c
+@@ -2653,6 +2653,8 @@ static int kswapd(void *p)
+ 			kswapd_try_to_sleep(pgdat, order);
+ 			order = pgdat->kswapd_max_order;
+ 			classzone_idx = pgdat->classzone_idx;
++			pgdat->kswapd_max_order = 0;
++			pgdat->classzone_idx = MAX_NR_ZONES - 1;
+ 		}
  
- struct mempolicy;
- struct anon_vma;
-@@ -305,6 +306,39 @@ static inline int is_vmalloc_or_module_a
- }
- #endif
- 
-+static inline void compound_lock(struct page *page)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	bit_spin_lock(PG_compound_lock, &page->flags);
-+#endif
-+}
-+
-+static inline void compound_unlock(struct page *page)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	bit_spin_unlock(PG_compound_lock, &page->flags);
-+#endif
-+}
-+
-+static inline unsigned long compound_lock_irqsave(struct page *page)
-+{
-+	unsigned long uninitialized_var(flags);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	local_irq_save(flags);
-+	compound_lock(page);
-+#endif
-+	return flags;
-+}
-+
-+static inline void compound_unlock_irqrestore(struct page *page,
-+					      unsigned long flags)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	compound_unlock(page);
-+	local_irq_restore(flags);
-+#endif
-+}
-+
- static inline struct page *compound_head(struct page *page)
- {
- 	if (unlikely(PageTail(page)))
-diff -puN include/linux/page-flags.h~thp-compound_lock include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-compound_lock
-+++ a/include/linux/page-flags.h
-@@ -108,6 +108,9 @@ enum pageflags {
- #ifdef CONFIG_MEMORY_FAILURE
- 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
- #endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	PG_compound_lock,
-+#endif
- 	__NR_PAGEFLAGS,
- 
- 	/* Filesystems */
-@@ -397,6 +400,12 @@ static inline void __ClearPageTail(struc
- #define __PG_MLOCKED		0
- #endif
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define __PG_COMPOUND_LOCK		(1 << PG_compound_lock)
-+#else
-+#define __PG_COMPOUND_LOCK		0
-+#endif
-+
- /*
-  * Flags checked when a page is freed.  Pages being freed should not have
-  * these flags set.  It they are, there is a problem.
-@@ -406,7 +415,8 @@ static inline void __ClearPageTail(struc
- 	 1 << PG_private | 1 << PG_private_2 | \
- 	 1 << PG_buddy	 | 1 << PG_writeback | 1 << PG_reserved | \
- 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
--	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON)
-+	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON | \
-+	 __PG_COMPOUND_LOCK)
- 
- /*
-  * Flags checked when a page is prepped for return by the page allocator.
+ 		ret = try_to_freeze();
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
+linux-next.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
 thp-add-pagetranscompound.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
