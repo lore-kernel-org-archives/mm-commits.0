@@ -1,121 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-madvisemadv_hugepage.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:47:27 -0800
-Message-ID: <201101142250.p0EMoHlb005398@imap1.linux-foundation.org>
+Subject: [merged] thp-transparent-hugepage-vmstat.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:47:38 -0800
+Message-ID: <201101142250.p0EMoShO005413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57498 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752845Ab1ANWu2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752786Ab1ANWue (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:50:28 -0500
+	Fri, 14 Jan 2011 17:50:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: madvise(MADV_HUGEPAGE)
+     thp: transparent hugepage vmstat
 has been removed from the -mm tree.  Its filename was
-     thp-madvisemadv_hugepage.patch
+     thp-transparent-hugepage-vmstat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: madvise(MADV_HUGEPAGE)
+Subject: thp: transparent hugepage vmstat
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add madvise MADV_HUGEPAGE to mark regions that are important to be
-hugepage backed.  Return -EINVAL if the vma is not of an anonymous type,
-or the feature isn't built into the kernel.  Never silently return
-success.
+Add hugepage stat information to /proc/vmstat and /proc/meminfo.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    6 ++++++
- mm/huge_memory.c        |   16 ++++++++++++++++
- mm/madvise.c            |    8 ++++++++
- 3 files changed, 30 insertions(+)
+ fs/proc/meminfo.c      |   14 +++++++++++++-
+ include/linux/mmzone.h |    1 +
+ mm/huge_memory.c       |    3 +++
+ mm/rmap.c              |   20 ++++++++++++++++----
+ mm/vmstat.c            |    1 +
+ 5 files changed, 34 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/huge_mm.h~thp-madvisemadv_hugepage include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-madvisemadv_hugepage
-+++ a/include/linux/huge_mm.h
-@@ -97,6 +97,7 @@ extern void __split_huge_page_pmd(struct
- #if HPAGE_PMD_ORDER > MAX_ORDER
- #error "hugepages can't be allocated by the buddy allocator"
- #endif
-+extern int hugepage_madvise(unsigned long *vm_flags);
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUG(); 0; })
-@@ -113,6 +114,11 @@ static inline int split_huge_page(struct
- 	do { } while (0)
- #define wait_split_huge_page(__anon_vma, __pmd)	\
- 	do { } while (0)
-+static inline int hugepage_madvise(unsigned long *vm_flags)
-+{
-+	BUG();
-+	return 0;
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #endif /* _LINUX_HUGE_MM_H */
-diff -puN mm/huge_memory.c~thp-madvisemadv_hugepage mm/huge_memory.c
---- a/mm/huge_memory.c~thp-madvisemadv_hugepage
-+++ a/mm/huge_memory.c
-@@ -896,6 +896,22 @@ out:
- 	return ret;
- }
- 
-+int hugepage_madvise(unsigned long *vm_flags)
-+{
-+	/*
-+	 * Be somewhat over-protective like KSM for now!
-+	 */
-+	if (*vm_flags & (VM_HUGEPAGE | VM_SHARED  | VM_MAYSHARE   |
-+			 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
-+			 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
-+			 VM_MIXEDMAP | VM_SAO))
-+		return -EINVAL;
-+
-+	*vm_flags |= VM_HUGEPAGE;
-+
-+	return 0;
-+}
-+
- void __split_huge_page_pmd(struct mm_struct *mm, pmd_t *pmd)
- {
- 	struct page *page;
-diff -puN mm/madvise.c~thp-madvisemadv_hugepage mm/madvise.c
---- a/mm/madvise.c~thp-madvisemadv_hugepage
-+++ a/mm/madvise.c
-@@ -71,6 +71,11 @@ static long madvise_behavior(struct vm_a
- 		if (error)
- 			goto out;
- 		break;
-+	case MADV_HUGEPAGE:
-+		error = hugepage_madvise(&new_flags);
-+		if (error)
-+			goto out;
-+		break;
- 	}
- 
- 	if (new_flags == vma->vm_flags) {
-@@ -283,6 +288,9 @@ madvise_behavior_valid(int behavior)
- 	case MADV_MERGEABLE:
- 	case MADV_UNMERGEABLE:
+diff -puN fs/proc/meminfo.c~thp-transparent-hugepage-vmstat fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~thp-transparent-hugepage-vmstat
++++ a/fs/proc/meminfo.c
+@@ -101,6 +101,9 @@ static int meminfo_proc_show(struct seq_
+ #ifdef CONFIG_MEMORY_FAILURE
+ 		"HardwareCorrupted: %5lu kB\n"
  #endif
 +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	case MADV_HUGEPAGE:
++		"AnonHugePages:  %8lu kB\n"
 +#endif
- 		return 1;
+ 		,
+ 		K(i.totalram),
+ 		K(i.freeram),
+@@ -128,7 +131,12 @@ static int meminfo_proc_show(struct seq_
+ 		K(i.freeswap),
+ 		K(global_page_state(NR_FILE_DIRTY)),
+ 		K(global_page_state(NR_WRITEBACK)),
+-		K(global_page_state(NR_ANON_PAGES)),
++		K(global_page_state(NR_ANON_PAGES)
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		  + global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
++		  HPAGE_PMD_NR
++#endif
++		  ),
+ 		K(global_page_state(NR_FILE_MAPPED)),
+ 		K(global_page_state(NR_SHMEM)),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+@@ -151,6 +159,10 @@ static int meminfo_proc_show(struct seq_
+ #ifdef CONFIG_MEMORY_FAILURE
+ 		,atomic_long_read(&mce_bad_pages) << (PAGE_SHIFT - 10)
+ #endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
++		   HPAGE_PMD_NR)
++#endif
+ 		);
  
- 	default:
+ 	hugetlb_report_meminfo(m);
+diff -puN include/linux/mmzone.h~thp-transparent-hugepage-vmstat include/linux/mmzone.h
+--- a/include/linux/mmzone.h~thp-transparent-hugepage-vmstat
++++ a/include/linux/mmzone.h
+@@ -114,6 +114,7 @@ enum zone_stat_item {
+ 	NUMA_LOCAL,		/* allocation from local node */
+ 	NUMA_OTHER,		/* allocation from other node */
+ #endif
++	NR_ANON_TRANSPARENT_HUGEPAGES,
+ 	NR_VM_ZONE_STAT_ITEMS };
+ 
+ /*
+diff -puN mm/huge_memory.c~thp-transparent-hugepage-vmstat mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-transparent-hugepage-vmstat
++++ a/mm/huge_memory.c
+@@ -751,6 +751,9 @@ static void __split_huge_page_refcount(s
+ 		lru_add_page_tail(zone, page, page_tail);
+ 	}
+ 
++	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++	__mod_zone_page_state(zone, NR_ANON_PAGES, HPAGE_PMD_NR);
++
+ 	ClearPageCompound(page);
+ 	compound_unlock(page);
+ 	spin_unlock_irq(&zone->lru_lock);
+diff -puN mm/rmap.c~thp-transparent-hugepage-vmstat mm/rmap.c
+--- a/mm/rmap.c~thp-transparent-hugepage-vmstat
++++ a/mm/rmap.c
+@@ -882,8 +882,13 @@ void do_page_add_anon_rmap(struct page *
+ 	struct vm_area_struct *vma, unsigned long address, int exclusive)
+ {
+ 	int first = atomic_inc_and_test(&page->_mapcount);
+-	if (first)
+-		__inc_zone_page_state(page, NR_ANON_PAGES);
++	if (first) {
++		if (!PageTransHuge(page))
++			__inc_zone_page_state(page, NR_ANON_PAGES);
++		else
++			__inc_zone_page_state(page,
++					      NR_ANON_TRANSPARENT_HUGEPAGES);
++	}
+ 	if (unlikely(PageKsm(page)))
+ 		return;
+ 
+@@ -911,7 +916,10 @@ void page_add_new_anon_rmap(struct page 
+ 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	SetPageSwapBacked(page);
+ 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
+-	__inc_zone_page_state(page, NR_ANON_PAGES);
++	if (!PageTransHuge(page))
++		__inc_zone_page_state(page, NR_ANON_PAGES);
++	else
++		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
+ 	__page_set_anon_rmap(page, vma, address, 1);
+ 	if (page_evictable(page, vma))
+ 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
+@@ -964,7 +972,11 @@ void page_remove_rmap(struct page *page)
+ 		return;
+ 	if (PageAnon(page)) {
+ 		mem_cgroup_uncharge_page(page);
+-		__dec_zone_page_state(page, NR_ANON_PAGES);
++		if (!PageTransHuge(page))
++			__dec_zone_page_state(page, NR_ANON_PAGES);
++		else
++			__dec_zone_page_state(page,
++					      NR_ANON_TRANSPARENT_HUGEPAGES);
+ 	} else {
+ 		__dec_zone_page_state(page, NR_FILE_MAPPED);
+ 		mem_cgroup_update_file_mapped(page, -1);
+diff -puN mm/vmstat.c~thp-transparent-hugepage-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~thp-transparent-hugepage-vmstat
++++ a/mm/vmstat.c
+@@ -880,6 +880,7 @@ static const char * const vmstat_text[] 
+ 	"numa_local",
+ 	"numa_other",
+ #endif
++	"nr_anon_transparent_hugepages",
+ 	"nr_dirty_threshold",
+ 	"nr_dirty_background_threshold",
+ 
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
