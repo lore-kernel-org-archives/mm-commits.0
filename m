@@ -1,122 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-nfc-pn544c-fix-min_t-warnings.patch added to -mm tree
-Date: Thu, 13 Jan 2011 16:24:25 -0800
-Message-ID: <201101140024.p0E0OPJq009993@imap1.linux-foundation.org>
+Subject: [to-be-updated] memstick-add-support-for-mspro-specific-data-transfer-method.patch removed from -mm tree
+Date: Thu, 13 Jan 2011 20:08:03 -0800
+Message-ID: <201101140410.p0E4AkSI022333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137Ab1ANAZE (ORCPT
+	by vger.kernel.org with ESMTP id S1751959Ab1ANELR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 19:25:04 -0500
+	Thu, 13 Jan 2011 23:11:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matti.j.aaltonen@nokia.com, sfr@canb.auug.org.au
+To: oakad@yahoo.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/nfc/pn544.c: fix min_t warnings
-has been added to the -mm tree.  Its filename is
-     drivers-nfc-pn544c-fix-min_t-warnings.patch
+     memstick: add support for MSPro specific data transfer method
+has been removed from the -mm tree.  Its filename was
+     memstick-add-support-for-mspro-specific-data-transfer-method.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/nfc/pn544.c: fix min_t warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memstick: add support for MSPro specific data transfer method
+From: Alex Dubov <oakad@yahoo.com>
 
-drivers/nfc/pn544.c: In function 'pn544_read':
-drivers/nfc/pn544.c:356: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c:377: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c: In function 'pn544_write':
-drivers/nfc/pn544.c:463: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c:485: warning: comparison of distinct pointer types lacks a cast
+This patch enables faster data transfer to/from MSPro media for enabled hosts
+(currently only jmb38x_ms). Other supported hosts and transfer methods (HG,
+XC) to follow.
 
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Alex Dubov <oakad@yahoo.com>
+Reported-by: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nfc/pn544.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memstick/core/mspro_block.c |   63 +++++++++++++++++++++++---
+ drivers/memstick/host/jmb38x_ms.c   |    2 
+ include/linux/memstick.h            |    7 ++
+ 3 files changed, 64 insertions(+), 8 deletions(-)
 
-diff -puN drivers/nfc/pn544.c~drivers-nfc-pn544c-fix-min_t-warnings drivers/nfc/pn544.c
---- a/drivers/nfc/pn544.c~drivers-nfc-pn544c-fix-min_t-warnings
-+++ a/drivers/nfc/pn544.c
-@@ -69,7 +69,7 @@ struct pn544_info {
- 	struct mutex read_mutex; /* Serialize read_irq access */
- 	struct mutex mutex; /* Serialize info struct access */
- 	u8 *buf;
--	unsigned int buflen;
-+	size_t buflen;
- };
+diff -puN drivers/memstick/core/mspro_block.c~memstick-add-support-for-mspro-specific-data-transfer-method drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-add-support-for-mspro-specific-data-transfer-method
++++ a/drivers/memstick/core/mspro_block.c
+@@ -588,12 +588,10 @@ static int h_mspro_block_transfer_data(s
+ 		return mspro_block_complete_req(card, (*mrq)->error);
  
- static const char reg_vdd_io[]	= "Vdd_IO";
+ 	switch ((*mrq)->tpc) {
+-	case MS_TPC_WRITE_REG:
+-		memstick_init_req(*mrq, MS_TPC_SET_CMD, &msb->transfer_cmd, 1);
+-		(*mrq)->need_card_int = 1;
+-		return 0;
++	case MS_TPC_EX_SET_CMD:
+ 	case MS_TPC_SET_CMD:
+ 		t_val = (*mrq)->int_reg;
++		msb->mrq_handler = h_mspro_block_transfer_data;
+ 		memstick_init_req(*mrq, MS_TPC_GET_INT, NULL, 1);
+ 		if (msb->caps & MEMSTICK_CAP_AUTO_GET_INT)
+ 			goto has_int_reg;
+@@ -663,6 +661,20 @@ has_int_reg:
+ 	}
+ }
+ 
++static int h_mspro_block_invoke_cmd(struct memstick_dev *card,
++				    struct memstick_request **mrq)
++{
++	struct mspro_block_data *msb = memstick_get_drvdata(card);
++
++	if ((*mrq)->error)
++		return mspro_block_complete_req(card, (*mrq)->error);
++
++	card->next_request = h_mspro_block_transfer_data;
++	memstick_init_req(*mrq, MS_TPC_SET_CMD, &msb->transfer_cmd, 1);
++	(*mrq)->need_card_int = 1;
++	return 0;
++}
++
+ /*** Transfer setup functions for different access methods. ***/
+ 
+ /** Setup data transfer request for SET_CMD TPC with arguments in card
+@@ -688,11 +700,37 @@ static void h_mspro_block_setup_cmd(stru
+ 	param.data_address = cpu_to_be32((uint32_t)offset);
+ 
+ 	card->next_request = h_mspro_block_req_init;
+-	msb->mrq_handler = h_mspro_block_transfer_data;
++	msb->mrq_handler = h_mspro_block_invoke_cmd;
+ 	memstick_init_req(&card->current_mrq, MS_TPC_WRITE_REG,
+ 			  &param, sizeof(param));
+ }
+ 
++/** Setup data transfer request for EX_SET_CMD TPC with arguments in TPC packet.
++ *
++ *  @card    Current media instance
++ *  @offset  Target data offset in bytes
++ *  @length  Required transfer length in bytes.
++ */
++static void h_mspro_block_ex_setup_cmd(struct memstick_dev *card, u64 offset,
++				       size_t length)
++{
++	struct mspro_block_data *msb = memstick_get_drvdata(card);
++	struct mspro_ex_cmd_param param = {
++		.command = msb->transfer_cmd,
++		.data_count = cpu_to_be16((uint16_t)(length / msb->page_size)),
++		/* ISO C90 warning precludes direct initialization for now. */
++		.data_address = 0
++	};
++
++	do_div(offset, msb->page_size);
++	param.data_address = cpu_to_be32((uint32_t)offset);
++
++	card->next_request = h_mspro_block_req_init;
++	msb->mrq_handler = h_mspro_block_transfer_data;
++	memstick_init_req(&card->current_mrq, MS_TPC_EX_SET_CMD,
++			  &param, sizeof(param));
++}
++
+ /*** Data transfer ***/
+ 
+ static int mspro_block_issue_req(struct memstick_dev *card, int chunk)
+@@ -718,13 +756,12 @@ try_again:
+ 		t_off <<= 9;
+ 		count = blk_rq_bytes(msb->block_req);
+ 
+-		msb->setup_transfer(card, t_off, count);
+-
+ 		msb->data_dir = rq_data_dir(msb->block_req);
+ 		msb->transfer_cmd = msb->data_dir == READ
+ 				    ? MSPRO_CMD_READ_DATA
+ 				    : MSPRO_CMD_WRITE_DATA;
+ 
++		msb->setup_transfer(card, t_off, count);
+ 		memstick_new_req(card->host);
+ 		return 0;
+ 	}
+@@ -1170,6 +1207,18 @@ static int mspro_block_init_card(struct 
+ 	dev_dbg(&card->dev, "card r/w status %d\n", msb->read_only ? 0 : 1);
+ 
+ 	msb->page_size = 512;
++
++	/* All MSPro media devices are expected to support extended command
++	 * transfer mode. Faulty or old adapters may chose not to advertise
++	 * this capability and rely on somewhat slower default mode.
++	 *
++	 * Even more advanced HG and XC modes of operation, when implemented,
++	 * will have to be selected after media attribute parsing, to ensure
++	 * full compatibility.
++	 */
++	if (msb->caps & MEMSTICK_CAP_EX_CMD)
++		msb->setup_transfer = h_mspro_block_ex_setup_cmd;
++
+ 	rc = mspro_block_read_attributes(card);
+ 	if (rc)
+ 		return rc;
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-add-support-for-mspro-specific-data-transfer-method drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-add-support-for-mspro-specific-data-transfer-method
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -894,7 +894,7 @@ static struct memstick_host *jmb38x_ms_a
+ 	msh->request = jmb38x_ms_submit_req;
+ 	msh->set_param = jmb38x_ms_set_param;
+ 
+-	msh->caps = MEMSTICK_CAP_PAR4 | MEMSTICK_CAP_PAR8;
++	msh->caps = MEMSTICK_CAP_PAR4 | MEMSTICK_CAP_PAR8 | MEMSTICK_CAP_EX_CMD;
+ 
+ 	setup_timer(&host->timer, jmb38x_ms_abort, (unsigned long)msh);
+ 
+diff -puN include/linux/memstick.h~memstick-add-support-for-mspro-specific-data-transfer-method include/linux/memstick.h
+--- a/include/linux/memstick.h~memstick-add-support-for-mspro-specific-data-transfer-method
++++ a/include/linux/memstick.h
+@@ -105,6 +105,12 @@ struct mspro_param_register {
+ 	unsigned char  tpc_param;
+ } __attribute__((packed));
+ 
++struct mspro_ex_cmd_param {
++	unsigned char command;
++	__be16        data_count;
++	__be32        data_address;
++} __packed;
++
+ struct mspro_io_info_register {
+ 	unsigned char version;
+ 	unsigned char io_category;
+@@ -279,6 +285,7 @@ struct memstick_host {
+ #define MEMSTICK_CAP_AUTO_GET_INT  1
+ #define MEMSTICK_CAP_PAR4          2
+ #define MEMSTICK_CAP_PAR8          4
++#define MEMSTICK_CAP_EX_CMD        8
+ 
+ 	struct work_struct  media_checker;
+ 	struct device       dev;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oakad@yahoo.com are
 
 origin.patch
-atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
-mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
-sync_inode_metadata-fix-comment.patch
-fs-mpagec-consolidate-code.patch
-mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
-mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
-mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
-writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
-thp-pte-alloc-trans-splitting.patch
-thp-kvm-mmu-transparent-hugepage-support.patch
-thp-khugepaged-make-khugepaged-aware-of-madvise.patch
-mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
-mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
-brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
-mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
-mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
-hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
-hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment.patch
-mm-fix-migration-hangs-on-anon_vma-lock.patch
-mm-page_allocc-dont-cache-current-in-a-local.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check.patch
-drivers-nfc-pn544c-fix-min_t-warnings.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-mm-deactivate-invalidated-pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
 scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader.patch
+memstick-add-support-for-legacy-memorysticks.patch
+memstick-add-support-for-legacy-memorysticks-update.patch
 
