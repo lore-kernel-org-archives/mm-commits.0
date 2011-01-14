@@ -1,44 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-create-extensible-page-stat-update-routines.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:49:34 -0800
-Message-ID: <201101142252.p0EMqOHg005616@imap1.linux-foundation.org>
+Subject: [merged] memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:49:32 -0800
+Message-ID: <201101142252.p0EMqMm8005613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525Ab1ANWwt (ORCPT
+	by vger.kernel.org with ESMTP id S1752525Ab1ANWwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:52:49 -0500
+	Fri, 14 Jan 2011 17:52:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commi
 
 
 The patch titled
-     memcg: create extensible page stat update routines
+     memcg: add page_cgroup flags for dirty page tracking
 has been removed from the -mm tree.  Its filename was
-     memcg-create-extensible-page-stat-update-routines.patch
+     memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: create extensible page stat update routines
+Subject: memcg: add page_cgroup flags for dirty page tracking
 From: Greg Thelen <gthelen@google.com>
 
-Replace usage of the mem_cgroup_update_file_mapped() memcg
-statistic update routine with two new routines:
-* mem_cgroup_inc_page_stat()
-* mem_cgroup_dec_page_stat()
+This patchset provides the ability for each cgroup to have independent
+dirty page limits.
 
-As before, only the file_mapped statistic is managed.  However, these more
-general interfaces allow for new statistics to be more easily added.  New
-statistics are added with memcg dirty page accounting.
+Limiting dirty memory is like fixing the max amount of dirty (hard to
+reclaim) page cache used by a cgroup.  So, in case of multiple cgroup
+writers, they will not be able to consume more than their designated share
+of dirty pages and will be forced to perform write-out if they cross that
+limit.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
+The patches are based on a series proposed by Andrea Righi in Mar 2010.
+
+Overview:
+
+- Add page_cgroup flags to record when pages are dirty, in writeback, or nfs
+  unstable.
+
+- Extend mem_cgroup to record the total number of pages in each of the 
+  interesting dirty states (dirty, writeback, unstable_nfs).  
+
+- Add dirty parameters similar to the system-wide  /proc/sys/vm/dirty_*
+  limits to mem_cgroup.  The mem_cgroup dirty parameters are accessible
+  via cgroupfs control files.
+
+- Consider both system and per-memcg dirty limits in page writeback when
+  deciding to queue background writeback or block for foreground writeback.
+
+Known shortcomings:
+
+- When a cgroup dirty limit is exceeded, then bdi writeback is employed to
+  writeback dirty inodes.  Bdi writeback considers inodes from any cgroup, not
+  just inodes contributing dirty pages to the cgroup exceeding its limit.  
+
+- When memory.use_hierarchy is set, then dirty limits are disabled.  This is a
+  implementation detail.  An enhanced implementation is needed to check the
+  chain of parents to ensure that no dirty limit is exceeded.
+
+Performance data:
+- A page fault microbenchmark workload was used to measure performance, which
+  can be called in read or write mode:
+        f = open(foo. $cpu)
+        truncate(f, 4096)
+        alarm(60)
+        while (1) {
+                p = mmap(f, 4096)
+                if (write)
+			*p = 1
+		else
+			x = *p
+                munmap(p)
+        }
+
+- The workload was called for several points in the patch series in different
+  modes:
+  - s_read is a single threaded reader
+  - s_write is a single threaded writer
+  - p_read is a 16 thread reader, each operating on a different file
+  - p_write is a 16 thread writer, each operating on a different file
+
+- Measurements were collected on a 16 core non-numa system using "perf stat
+  --repeat 3".  The -a option was used for parallel (p_*) runs.
+
+- All numbers are page fault rate (M/sec).  Higher is better.
+
+- To compare the performance of a kernel without non-memcg compare the first and
+  last rows, neither has memcg configured.  The first row does not include any
+  of these memcg patches.
+
+- To compare the performance of using memcg dirty limits, compare the baseline
+  (2nd row titled "w/ memcg") with the the code and memcg enabled (2nd to last
+  row titled "all patches").
+
+                           root_cgroup                    child_cgroup
+                 s_read s_write p_read p_write   s_read s_write p_read p_write
+mmotm w/o memcg   0.428  0.390   0.429  0.388
+mmotm w/ memcg    0.411  0.378   0.391  0.362     0.412  0.377   0.385  0.363
+all patches       0.384  0.360   0.370  0.348     0.381  0.363   0.368  0.347
+all patches       0.431  0.402   0.427  0.395
+  w/o memcg
+
+
+
+This patch:
+
+Add additional flags to page_cgroup to track dirty pages within a
+mem_cgroup.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrea Righi <arighi@develer.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
 Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
@@ -46,136 +123,56 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   31 ++++++++++++++++++++++++++++---
- mm/memcontrol.c            |   16 +++++++---------
- mm/rmap.c                  |    4 ++--
- 3 files changed, 37 insertions(+), 14 deletions(-)
+ include/linux/page_cgroup.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-create-extensible-page-stat-update-routines include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-create-extensible-page-stat-update-routines
-+++ a/include/linux/memcontrol.h
-@@ -25,6 +25,11 @@ struct page_cgroup;
- struct page;
- struct mm_struct;
+diff -puN include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking
++++ a/include/linux/page_cgroup.h
+@@ -40,6 +40,9 @@ enum {
+ 	PCG_USED, /* this object is in use. */
+ 	PCG_ACCT_LRU, /* page has been accounted for */
+ 	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
++	PCG_FILE_DIRTY, /* page is dirty */
++	PCG_FILE_WRITEBACK, /* page is under writeback */
++	PCG_FILE_UNSTABLE_NFS, /* page is NFS unstable */
+ 	PCG_MIGRATION, /* under page migration */
+ };
  
-+/* Stats that can be updated by kernel. */
-+enum mem_cgroup_page_stat_item {
-+	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
-+};
+@@ -59,6 +62,10 @@ static inline void ClearPageCgroup##unam
+ static inline int TestClearPageCgroup##uname(struct page_cgroup *pc)	\
+ 	{ return test_and_clear_bit(PCG_##lname, &pc->flags);  }
+ 
++#define TESTSETPCGFLAG(uname, lname)			\
++static inline int TestSetPageCgroup##uname(struct page_cgroup *pc)	\
++	{ return test_and_set_bit(PCG_##lname, &pc->flags);  }
 +
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-@@ -121,7 +126,22 @@ static inline bool mem_cgroup_disabled(v
- 	return false;
- }
+ /* Cache flag is set only once (at allocation) */
+ TESTPCGFLAG(Cache, CACHE)
+ CLEARPCGFLAG(Cache, CACHE)
+@@ -78,6 +85,22 @@ SETPCGFLAG(FileMapped, FILE_MAPPED)
+ CLEARPCGFLAG(FileMapped, FILE_MAPPED)
+ TESTPCGFLAG(FileMapped, FILE_MAPPED)
  
--void mem_cgroup_update_file_mapped(struct page *page, int val);
-+void mem_cgroup_update_page_stat(struct page *page,
-+				 enum mem_cgroup_page_stat_item idx,
-+				 int val);
++SETPCGFLAG(FileDirty, FILE_DIRTY)
++CLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTPCGFLAG(FileDirty, FILE_DIRTY)
++TESTCLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTSETPCGFLAG(FileDirty, FILE_DIRTY)
 +
-+static inline void mem_cgroup_inc_page_stat(struct page *page,
-+					    enum mem_cgroup_page_stat_item idx)
-+{
-+	mem_cgroup_update_page_stat(page, idx, 1);
-+}
++SETPCGFLAG(FileWriteback, FILE_WRITEBACK)
++CLEARPCGFLAG(FileWriteback, FILE_WRITEBACK)
++TESTPCGFLAG(FileWriteback, FILE_WRITEBACK)
 +
-+static inline void mem_cgroup_dec_page_stat(struct page *page,
-+					    enum mem_cgroup_page_stat_item idx)
-+{
-+	mem_cgroup_update_page_stat(page, idx, -1);
-+}
++SETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++CLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTCLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTSETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
 +
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
- 						gfp_t gfp_mask);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
-@@ -293,8 +313,13 @@ mem_cgroup_print_oom_info(struct mem_cgr
- {
- }
- 
--static inline void mem_cgroup_update_file_mapped(struct page *page,
--							int val)
-+static inline void mem_cgroup_inc_page_stat(struct page *page,
-+					    enum mem_cgroup_page_stat_item idx)
-+{
-+}
-+
-+static inline void mem_cgroup_dec_page_stat(struct page *page,
-+					    enum mem_cgroup_page_stat_item idx)
- {
- }
- 
-diff -puN mm/memcontrol.c~memcg-create-extensible-page-stat-update-routines mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-create-extensible-page-stat-update-routines
-+++ a/mm/memcontrol.c
-@@ -1600,7 +1600,8 @@ bool mem_cgroup_handle_oom(struct mem_cg
-  * possibility of race condition. If there is, we take a lock.
-  */
- 
--static void mem_cgroup_update_file_stat(struct page *page, int idx, int val)
-+void mem_cgroup_update_page_stat(struct page *page,
-+				 enum mem_cgroup_page_stat_item idx, int val)
- {
- 	struct mem_cgroup *mem;
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
-@@ -1623,30 +1624,27 @@ static void mem_cgroup_update_file_stat(
- 			goto out;
- 	}
- 
--	this_cpu_add(mem->stat->count[idx], val);
--
- 	switch (idx) {
--	case MEM_CGROUP_STAT_FILE_MAPPED:
-+	case MEMCG_NR_FILE_MAPPED:
- 		if (val > 0)
- 			SetPageCgroupFileMapped(pc);
- 		else if (!page_mapped(page))
- 			ClearPageCgroupFileMapped(pc);
-+		idx = MEM_CGROUP_STAT_FILE_MAPPED;
- 		break;
- 	default:
- 		BUG();
- 	}
- 
-+	this_cpu_add(mem->stat->count[idx], val);
-+
- out:
- 	if (unlikely(need_unlock))
- 		unlock_page_cgroup(pc);
- 	rcu_read_unlock();
- 	return;
- }
--
--void mem_cgroup_update_file_mapped(struct page *page, int val)
--{
--	mem_cgroup_update_file_stat(page, MEM_CGROUP_STAT_FILE_MAPPED, val);
--}
-+EXPORT_SYMBOL(mem_cgroup_update_page_stat);
- 
- /*
-  * size of first charge trial. "32" comes from vmscan.c's magic value.
-diff -puN mm/rmap.c~memcg-create-extensible-page-stat-update-routines mm/rmap.c
---- a/mm/rmap.c~memcg-create-extensible-page-stat-update-routines
-+++ a/mm/rmap.c
-@@ -937,7 +937,7 @@ void page_add_file_rmap(struct page *pag
- {
- 	if (atomic_inc_and_test(&page->_mapcount)) {
- 		__inc_zone_page_state(page, NR_FILE_MAPPED);
--		mem_cgroup_update_file_mapped(page, 1);
-+		mem_cgroup_inc_page_stat(page, MEMCG_NR_FILE_MAPPED);
- 	}
- }
- 
-@@ -979,7 +979,7 @@ void page_remove_rmap(struct page *page)
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 	} else {
- 		__dec_zone_page_state(page, NR_FILE_MAPPED);
--		mem_cgroup_update_file_mapped(page, -1);
-+		mem_cgroup_dec_page_stat(page, MEMCG_NR_FILE_MAPPED);
- 	}
- 	/*
- 	 * It would be tidy to reset the PageAnon mapping here,
+ SETPCGFLAG(Migration, MIGRATION)
+ CLEARPCGFLAG(Migration, MIGRATION)
+ TESTPCGFLAG(Migration, MIGRATION)
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
