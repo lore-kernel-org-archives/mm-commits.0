@@ -1,163 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-transparent-hugepage-vmstat.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:47:38 -0800
-Message-ID: <201101142250.p0EMoShO005413@imap1.linux-foundation.org>
+Subject: [merged] thp-memcg-huge-memory.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:47:36 -0800
+Message-ID: <201101142250.p0EMoQio005410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752786Ab1ANWue (ORCPT
+	by vger.kernel.org with ESMTP id S1753885Ab1ANWub (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:50:34 -0500
+	Fri, 14 Jan 2011 17:50:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: transparent hugepage vmstat
+     thp: memcg huge memory
 has been removed from the -mm tree.  Its filename was
-     thp-transparent-hugepage-vmstat.patch
+     thp-memcg-huge-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: transparent hugepage vmstat
+Subject: thp: memcg huge memory
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add hugepage stat information to /proc/vmstat and /proc/meminfo.
+Add memcg charge/uncharge to hugepage faults in huge_memory.c.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c      |   14 +++++++++++++-
- include/linux/mmzone.h |    1 +
- mm/huge_memory.c       |    3 +++
- mm/rmap.c              |   20 ++++++++++++++++----
- mm/vmstat.c            |    1 +
- 5 files changed, 34 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   36 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/meminfo.c~thp-transparent-hugepage-vmstat fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~thp-transparent-hugepage-vmstat
-+++ a/fs/proc/meminfo.c
-@@ -101,6 +101,9 @@ static int meminfo_proc_show(struct seq_
- #ifdef CONFIG_MEMORY_FAILURE
- 		"HardwareCorrupted: %5lu kB\n"
- #endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		"AnonHugePages:  %8lu kB\n"
-+#endif
- 		,
- 		K(i.totalram),
- 		K(i.freeram),
-@@ -128,7 +131,12 @@ static int meminfo_proc_show(struct seq_
- 		K(i.freeswap),
- 		K(global_page_state(NR_FILE_DIRTY)),
- 		K(global_page_state(NR_WRITEBACK)),
--		K(global_page_state(NR_ANON_PAGES)),
-+		K(global_page_state(NR_ANON_PAGES)
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		  + global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
-+		  HPAGE_PMD_NR
-+#endif
-+		  ),
- 		K(global_page_state(NR_FILE_MAPPED)),
- 		K(global_page_state(NR_SHMEM)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
-@@ -151,6 +159,10 @@ static int meminfo_proc_show(struct seq_
- #ifdef CONFIG_MEMORY_FAILURE
- 		,atomic_long_read(&mce_bad_pages) << (PAGE_SHIFT - 10)
- #endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
-+		   HPAGE_PMD_NR)
-+#endif
- 		);
- 
- 	hugetlb_report_meminfo(m);
-diff -puN include/linux/mmzone.h~thp-transparent-hugepage-vmstat include/linux/mmzone.h
---- a/include/linux/mmzone.h~thp-transparent-hugepage-vmstat
-+++ a/include/linux/mmzone.h
-@@ -114,6 +114,7 @@ enum zone_stat_item {
- 	NUMA_LOCAL,		/* allocation from local node */
- 	NUMA_OTHER,		/* allocation from other node */
- #endif
-+	NR_ANON_TRANSPARENT_HUGEPAGES,
- 	NR_VM_ZONE_STAT_ITEMS };
- 
- /*
-diff -puN mm/huge_memory.c~thp-transparent-hugepage-vmstat mm/huge_memory.c
---- a/mm/huge_memory.c~thp-transparent-hugepage-vmstat
+diff -puN mm/huge_memory.c~thp-memcg-huge-memory mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-memcg-huge-memory
 +++ a/mm/huge_memory.c
-@@ -751,6 +751,9 @@ static void __split_huge_page_refcount(s
- 		lru_add_page_tail(zone, page, page_tail);
+@@ -233,6 +233,7 @@ static int __do_huge_pmd_anonymous_page(
+ 	VM_BUG_ON(!PageCompound(page));
+ 	pgtable = pte_alloc_one(mm, haddr);
+ 	if (unlikely(!pgtable)) {
++		mem_cgroup_uncharge_page(page);
+ 		put_page(page);
+ 		return VM_FAULT_OOM;
+ 	}
+@@ -243,6 +244,7 @@ static int __do_huge_pmd_anonymous_page(
+ 	spin_lock(&mm->page_table_lock);
+ 	if (unlikely(!pmd_none(*pmd))) {
+ 		spin_unlock(&mm->page_table_lock);
++		mem_cgroup_uncharge_page(page);
+ 		put_page(page);
+ 		pte_free(mm, pgtable);
+ 	} else {
+@@ -286,6 +288,10 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		page = alloc_hugepage(transparent_hugepage_defrag(vma));
+ 		if (unlikely(!page))
+ 			goto out;
++		if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
++			put_page(page);
++			goto out;
++		}
+ 
+ 		return __do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page);
+ 	}
+@@ -402,9 +408,17 @@ static int do_huge_pmd_wp_page_fallback(
+ 	for (i = 0; i < HPAGE_PMD_NR; i++) {
+ 		pages[i] = alloc_page_vma(GFP_HIGHUSER_MOVABLE,
+ 					  vma, address);
+-		if (unlikely(!pages[i])) {
+-			while (--i >= 0)
++		if (unlikely(!pages[i] ||
++			     mem_cgroup_newpage_charge(pages[i], mm,
++						       GFP_KERNEL))) {
++			if (pages[i])
+ 				put_page(pages[i]);
++			mem_cgroup_uncharge_start();
++			while (--i >= 0) {
++				mem_cgroup_uncharge_page(pages[i]);
++				put_page(pages[i]);
++			}
++			mem_cgroup_uncharge_end();
+ 			kfree(pages);
+ 			ret |= VM_FAULT_OOM;
+ 			goto out;
+@@ -455,8 +469,12 @@ out:
+ 
+ out_free_pages:
+ 	spin_unlock(&mm->page_table_lock);
+-	for (i = 0; i < HPAGE_PMD_NR; i++)
++	mem_cgroup_uncharge_start();
++	for (i = 0; i < HPAGE_PMD_NR; i++) {
++		mem_cgroup_uncharge_page(pages[i]);
+ 		put_page(pages[i]);
++	}
++	mem_cgroup_uncharge_end();
+ 	kfree(pages);
+ 	goto out;
+ }
+@@ -501,14 +519,22 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 		goto out;
  	}
  
-+	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
-+	__mod_zone_page_state(zone, NR_ANON_PAGES, HPAGE_PMD_NR);
-+
- 	ClearPageCompound(page);
- 	compound_unlock(page);
- 	spin_unlock_irq(&zone->lru_lock);
-diff -puN mm/rmap.c~thp-transparent-hugepage-vmstat mm/rmap.c
---- a/mm/rmap.c~thp-transparent-hugepage-vmstat
-+++ a/mm/rmap.c
-@@ -882,8 +882,13 @@ void do_page_add_anon_rmap(struct page *
- 	struct vm_area_struct *vma, unsigned long address, int exclusive)
- {
- 	int first = atomic_inc_and_test(&page->_mapcount);
--	if (first)
--		__inc_zone_page_state(page, NR_ANON_PAGES);
-+	if (first) {
-+		if (!PageTransHuge(page))
-+			__inc_zone_page_state(page, NR_ANON_PAGES);
-+		else
-+			__inc_zone_page_state(page,
-+					      NR_ANON_TRANSPARENT_HUGEPAGES);
++	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
++		put_page(new_page);
++		put_page(page);
++		ret |= VM_FAULT_OOM;
++		goto out;
 +	}
- 	if (unlikely(PageKsm(page)))
- 		return;
++
+ 	copy_user_huge_page(new_page, page, haddr, vma, HPAGE_PMD_NR);
+ 	__SetPageUptodate(new_page);
  
-@@ -911,7 +916,10 @@ void page_add_new_anon_rmap(struct page 
- 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	SetPageSwapBacked(page);
- 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
--	__inc_zone_page_state(page, NR_ANON_PAGES);
-+	if (!PageTransHuge(page))
-+		__inc_zone_page_state(page, NR_ANON_PAGES);
-+	else
-+		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
- 	__page_set_anon_rmap(page, vma, address, 1);
- 	if (page_evictable(page, vma))
- 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
-@@ -964,7 +972,11 @@ void page_remove_rmap(struct page *page)
- 		return;
- 	if (PageAnon(page)) {
- 		mem_cgroup_uncharge_page(page);
--		__dec_zone_page_state(page, NR_ANON_PAGES);
-+		if (!PageTransHuge(page))
-+			__dec_zone_page_state(page, NR_ANON_PAGES);
-+		else
-+			__dec_zone_page_state(page,
-+					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 	} else {
- 		__dec_zone_page_state(page, NR_FILE_MAPPED);
- 		mem_cgroup_update_file_mapped(page, -1);
-diff -puN mm/vmstat.c~thp-transparent-hugepage-vmstat mm/vmstat.c
---- a/mm/vmstat.c~thp-transparent-hugepage-vmstat
-+++ a/mm/vmstat.c
-@@ -880,6 +880,7 @@ static const char * const vmstat_text[] 
- 	"numa_local",
- 	"numa_other",
- #endif
-+	"nr_anon_transparent_hugepages",
- 	"nr_dirty_threshold",
- 	"nr_dirty_background_threshold",
- 
+ 	spin_lock(&mm->page_table_lock);
+ 	put_page(page);
+-	if (unlikely(!pmd_same(*pmd, orig_pmd)))
++	if (unlikely(!pmd_same(*pmd, orig_pmd))) {
++		mem_cgroup_uncharge_page(new_page);
+ 		put_page(new_page);
+-	else {
++	} else {
+ 		pmd_t entry;
+ 		VM_BUG_ON(!PageHead(page));
+ 		entry = mk_pmd(new_page, vma->vm_page_prot);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
