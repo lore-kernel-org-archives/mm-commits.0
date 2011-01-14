@@ -1,35 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-simplify-code-of-swapc.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:49:28 -0800
-Message-ID: <201101142252.p0EMqIck005606@imap1.linux-foundation.org>
+Subject: [merged] mm-batch-activate_page-to-reduce-lock-contention.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:49:30 -0800
+Message-ID: <201101142252.p0EMqKG0005610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753079Ab1ANWwd (ORCPT
+	by vger.kernel.org with ESMTP id S1753079Ab1ANWwe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:52:33 -0500
+	Fri, 14 Jan 2011 17:52:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shaohua.li@intel.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: simplify code of swap.c
+     mm: batch activate_page() to reduce lock contention
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-code-of-swapc.patch
+     mm-batch-activate_page-to-reduce-lock-contention.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: simplify code of swap.c
+Subject: mm: batch activate_page() to reduce lock contention
 From: Shaohua Li <shaohua.li@intel.com>
 
-Clean up code and remove duplicate code.  Next patch will use
-pagevec_lru_move_fn introduced here too.
+The zone->lru_lock is heavily contented in workload where activate_page()
+is frequently used.  We could do batch activate_page() to reduce the lock
+contention.  The batched pages will be added into zone list when the pool
+is full or page reclaim is trying to drain them.
 
+For example, in a 4 socket 64 CPU system, create a sparse file and 64
+processes, processes shared map to the file.  Each process read access the
+whole file and then exit.  The process exit will do unmap_vmas() and cause
+a lot of activate_page() call.  In such workload, we saw about 58% total
+time reduction with below patch.  Other workloads with a lot of
+activate_page also benefits a lot too.
+
+I tested some microbenchmarks:
+case-anon-cow-rand-mt		0.58%
+case-anon-cow-rand		-3.30%
+case-anon-cow-seq-mt		-0.51%
+case-anon-cow-seq		-5.68%
+case-anon-r-rand-mt		0.23%
+case-anon-r-rand		0.81%
+case-anon-r-seq-mt		-0.71%
+case-anon-r-seq			-1.99%
+case-anon-rx-rand-mt		2.11%
+case-anon-rx-seq-mt		3.46%
+case-anon-w-rand-mt		-0.03%
+case-anon-w-rand		-0.50%
+case-anon-w-seq-mt		-1.08%
+case-anon-w-seq			-0.12%
+case-anon-wx-rand-mt		-5.02%
+case-anon-wx-seq-mt		-1.43%
+case-fork			1.65%
+case-fork-sleep			-0.07%
+case-fork-withmem		1.39%
+case-hugetlb			-0.59%
+case-lru-file-mmap-read-mt	-0.54%
+case-lru-file-mmap-read		0.61%
+case-lru-file-mmap-read-rand	-2.24%
+case-lru-file-readonce		-0.64%
+case-lru-file-readtwice		-11.69%
+case-lru-memcg			-1.35%
+case-mmap-pread-rand-mt		1.88%
+case-mmap-pread-rand		-15.26%
+case-mmap-pread-seq-mt		0.89%
+case-mmap-pread-seq		-69.72%
+case-mmap-xread-rand-mt		0.71%
+case-mmap-xread-seq-mt		0.38%
+
+The most significent are:
+case-lru-file-readtwice		-11.69%
+case-mmap-pread-rand		-15.26%
+case-mmap-pread-seq		-69.72%
+
+which use activate_page a lot.  others are basically variations because
+each run has slightly difference.
+
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Minchan Kim <minchan.kim@gmail.com>
@@ -38,157 +90,169 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |  101 +++++++++++++++++++++++++++-------------------------
- 1 file changed, 54 insertions(+), 47 deletions(-)
+ mm/internal.h |    9 ++++
+ mm/swap.c     |   90 ++++++++++++++++++++++++++++++++++++++++++------
+ mm/vmscan.c   |    6 ++-
+ 3 files changed, 92 insertions(+), 13 deletions(-)
 
-diff -puN mm/swap.c~mm-simplify-code-of-swapc mm/swap.c
---- a/mm/swap.c~mm-simplify-code-of-swapc
+diff -puN mm/internal.h~mm-batch-activate_page-to-reduce-lock-contention mm/internal.h
+--- a/mm/internal.h~mm-batch-activate_page-to-reduce-lock-contention
++++ a/mm/internal.h
+@@ -39,6 +39,15 @@ static inline void __put_page(struct pag
+ 
+ extern unsigned long highest_memmap_pfn;
+ 
++#ifdef CONFIG_SMP
++extern int putback_active_lru_page(struct zone *zone, struct page *page);
++#else
++static inline int putback_active_lru_page(struct zone *zone, struct page *page)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * in mm/vmscan.c:
+  */
+diff -puN mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention mm/swap.c
+--- a/mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention
 +++ a/mm/swap.c
-@@ -178,15 +178,13 @@ void put_pages_list(struct list_head *pa
- }
- EXPORT_SYMBOL(put_pages_list);
- 
--/*
-- * pagevec_move_tail() must be called with IRQ disabled.
-- * Otherwise this may cause nasty races.
-- */
--static void pagevec_move_tail(struct pagevec *pvec)
-+static void pagevec_lru_move_fn(struct pagevec *pvec,
-+				void (*move_fn)(struct page *page, void *arg),
-+				void *arg)
- {
- 	int i;
--	int pgmoved = 0;
- 	struct zone *zone = NULL;
-+	unsigned long flags = 0;
- 
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
-@@ -194,29 +192,49 @@ static void pagevec_move_tail(struct pag
- 
- 		if (pagezone != zone) {
- 			if (zone)
--				spin_unlock(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			zone = pagezone;
--			spin_lock(&zone->lru_lock);
--		}
--		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--			int lru = page_lru_base_type(page);
--			list_move_tail(&page->lru, &zone->lru[lru].list);
--			pgmoved++;
-+			spin_lock_irqsave(&zone->lru_lock, flags);
- 		}
-+
-+		(*move_fn)(page, arg);
- 	}
- 	if (zone)
--		spin_unlock(&zone->lru_lock);
--	__count_vm_events(PGROTATED, pgmoved);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
-+	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
- 	pagevec_reinit(pvec);
+@@ -271,27 +271,94 @@ static void update_page_reclaim_stat(str
  }
  
-+static void pagevec_move_tail_fn(struct page *page, void *arg)
-+{
-+	int *pgmoved = arg;
-+	struct zone *zone = page_zone(page);
-+
-+	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
-+		int lru = page_lru_base_type(page);
-+		list_move_tail(&page->lru, &zone->lru[lru].list);
-+		(*pgmoved)++;
-+	}
-+}
-+
-+/*
-+ * pagevec_move_tail() must be called with IRQ disabled.
-+ * Otherwise this may cause nasty races.
-+ */
-+static void pagevec_move_tail(struct pagevec *pvec)
-+{
-+	int pgmoved = 0;
-+
-+	pagevec_lru_move_fn(pvec, pagevec_move_tail_fn, &pgmoved);
-+	__count_vm_events(PGROTATED, pgmoved);
-+}
-+
  /*
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-  * inactive list.
+- * FIXME: speed this up?
++ * A page will go to active list either by activate_page or putback_lru_page.
++ * In the activate_page case, the page hasn't active bit set. The page might
++ * not in LRU list because it's isolated before it gets a chance to be moved to
++ * active list. The window is small because pagevec just stores several pages.
++ * For such case, we do nothing for such page.
++ * In the putback_lru_page case, the page isn't in lru list but has active
++ * bit set
   */
--void  rotate_reclaimable_page(struct page *page)
-+void rotate_reclaimable_page(struct page *page)
+-void activate_page(struct page *page)
++static void __activate_page(struct page *page, void *arg)
  {
- 	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
- 	    !PageUnevictable(page) && PageLRU(page)) {
-@@ -516,44 +534,33 @@ void lru_add_page_tail(struct zone* zone
- 	}
- }
+ 	struct zone *zone = page_zone(page);
++	int file = page_is_file_cache(page);
++	int lru = page_lru_base_type(page);
++	bool putback = !PageLRU(page);
++
++	/* The page is isolated before it's moved to active list */
++	if (!PageLRU(page) && !PageActive(page))
++		return;
++	if ((PageLRU(page) && PageActive(page)) || PageUnevictable(page))
++		return;
  
-+static void ____pagevec_lru_add_fn(struct page *page, void *arg)
-+{
-+	enum lru_list lru = (enum lru_list)arg;
-+	struct zone *zone = page_zone(page);
-+	int file = is_file_lru(lru);
-+	int active = is_active_lru(lru);
-+
-+	VM_BUG_ON(PageActive(page));
-+	VM_BUG_ON(PageUnevictable(page));
-+	VM_BUG_ON(PageLRU(page));
-+
-+	SetPageLRU(page);
-+	if (active)
-+		SetPageActive(page);
-+	update_page_reclaim_stat(zone, page, file, active);
-+	add_page_to_lru_list(zone, page, lru);
-+}
-+
- /*
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
-  */
- void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
- {
--	int i;
--	struct zone *zone = NULL;
--
- 	VM_BUG_ON(is_unevictable_lru(lru));
+-	spin_lock_irq(&zone->lru_lock);
+-	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-		int file = page_is_file_cache(page);
+-		int lru = page_lru_base_type(page);
++	if (!putback)
+ 		del_page_from_lru_list(zone, page, lru);
++	else
++		SetPageLRU(page);
  
--	for (i = 0; i < pagevec_count(pvec); i++) {
--		struct page *page = pvec->pages[i];
--		struct zone *pagezone = page_zone(page);
--		int file;
--		int active;
--
--		if (pagezone != zone) {
--			if (zone)
--				spin_unlock_irq(&zone->lru_lock);
--			zone = pagezone;
--			spin_lock_irq(&zone->lru_lock);
--		}
--		VM_BUG_ON(PageActive(page));
--		VM_BUG_ON(PageUnevictable(page));
--		VM_BUG_ON(PageLRU(page));
--		SetPageLRU(page);
--		active = is_active_lru(lru);
--		file = is_file_lru(lru);
--		if (active)
--			SetPageActive(page);
--		update_page_reclaim_stat(zone, page, file, active);
+-		SetPageActive(page);
+-		lru += LRU_ACTIVE;
 -		add_page_to_lru_list(zone, page, lru);
--	}
--	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
--	pagevec_reinit(pvec);
-+	pagevec_lru_move_fn(pvec, ____pagevec_lru_add_fn, (void *)lru);
+-		__count_vm_event(PGACTIVATE);
++	SetPageActive(page);
++	lru += LRU_ACTIVE;
++	add_page_to_lru_list(zone, page, lru);
++
++	if (putback)
++		return;
++	__count_vm_event(PGACTIVATE);
++	update_page_reclaim_stat(zone, page, file, 1);
++}
++
++#ifdef CONFIG_SMP
++static DEFINE_PER_CPU(struct pagevec, activate_page_pvecs);
++
++static void activate_page_drain(int cpu)
++{
++	struct pagevec *pvec = &per_cpu(activate_page_pvecs, cpu);
++
++	if (pagevec_count(pvec))
++		pagevec_lru_move_fn(pvec, __activate_page, NULL);
++}
++
++void activate_page(struct page *page)
++{
++	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
++		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
+ 
+-		update_page_reclaim_stat(zone, page, file, 1);
++		page_cache_get(page);
++		if (!pagevec_add(pvec, page))
++			pagevec_lru_move_fn(pvec, __activate_page, NULL);
++		put_cpu_var(activate_page_pvecs);
+ 	}
++}
++
++/* Caller should hold zone->lru_lock */
++int putback_active_lru_page(struct zone *zone, struct page *page)
++{
++	struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
++
++	if (!pagevec_add(pvec, page)) {
++		spin_unlock_irq(&zone->lru_lock);
++		pagevec_lru_move_fn(pvec, __activate_page, NULL);
++		spin_lock_irq(&zone->lru_lock);
++	}
++	put_cpu_var(activate_page_pvecs);
++	return 1;
++}
++
++#else
++static inline void activate_page_drain(int cpu)
++{
++}
++
++void activate_page(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++
++	spin_lock_irq(&zone->lru_lock);
++	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page))
++		__activate_page(page, NULL);
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
++#endif
+ 
+ /*
+  * Mark a page as having seen activity.
+@@ -390,6 +457,7 @@ static void drain_cpu_pagevecs(int cpu)
+ 		pagevec_move_tail(pvec);
+ 		local_irq_restore(flags);
+ 	}
++	activate_page_drain(cpu);
  }
  
- EXPORT_SYMBOL(____pagevec_lru_add);
+ void lru_add_drain(void)
+diff -puN mm/vmscan.c~mm-batch-activate_page-to-reduce-lock-contention mm/vmscan.c
+--- a/mm/vmscan.c~mm-batch-activate_page-to-reduce-lock-contention
++++ a/mm/vmscan.c
+@@ -1271,14 +1271,16 @@ putback_lru_pages(struct zone *zone, str
+ 			spin_lock_irq(&zone->lru_lock);
+ 			continue;
+ 		}
+-		SetPageLRU(page);
+ 		lru = page_lru(page);
+-		add_page_to_lru_list(zone, page, lru);
+ 		if (is_active_lru(lru)) {
+ 			int file = is_file_lru(lru);
+ 			int numpages = hpage_nr_pages(page);
+ 			reclaim_stat->recent_rotated[file] += numpages;
++			if (putback_active_lru_page(zone, page))
++				continue;
+ 		}
++		SetPageLRU(page);
++		add_page_to_lru_list(zone, page, lru);
+ 		if (!pagevec_add(&pvec, page)) {
+ 			spin_unlock_irq(&zone->lru_lock);
+ 			__pagevec_release(&pvec);
 _
 
 Patches currently in -mm which might be from shaohua.li@intel.com are
