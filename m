@@ -1,174 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-ksm-on-thp.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:49 -0800
-Message-ID: <201101142251.p0EMpdWk005537@imap1.linux-foundation.org>
+Subject: [merged] mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:49:03 -0800
+Message-ID: <201101142251.p0EMprvT005553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753926Ab1ANWvw (ORCPT
+	by vger.kernel.org with ESMTP id S1753449Ab1ANWv5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:51:52 -0500
+	Fri, 14 Jan 2011 17:51:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org
+To: pullip.cho@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: KSM on THP
+     mm/page_alloc.c: simplify calculation of combined index of adjacent buddy lists
 has been removed from the -mm tree.  Its filename was
-     thp-ksm-on-thp.patch
+     mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: KSM on THP
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm/page_alloc.c: simplify calculation of combined index of adjacent buddy lists
+From: KyongHo Cho <pullip.cho@samsung.com>
 
-This makes KSM full operational with THP pages.  Subpages are scanned
-while the hugepage is still in place and delivering max cpu performance,
-and only if there's a match and we're going to deduplicate memory, the
-single hugepages with the subpage match is split.
+The previous approach of calucation of combined index was
 
-There will be no false sharing between ksmd and khugepaged.  khugepaged
-won't collapse 2m virtual regions with KSM pages inside.  ksmd also should
-only split pages when the checksum matches and we're likely to split an
-hugepage for some long living ksm page (usual ksm heuristic to avoid
-sharing pages that get de-cowed).
+	page_idx & ~(1 << order))
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+but we have same result with
+
+	page_idx & buddy_idx
+
+This reduces instructions slightly as well as enhances readability.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: fix used-unintialised warning]
+Signed-off-by: KyongHo Cho <pullip.cho@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   67 +++++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 58 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff -puN mm/ksm.c~thp-ksm-on-thp mm/ksm.c
---- a/mm/ksm.c~thp-ksm-on-thp
-+++ a/mm/ksm.c
-@@ -412,6 +412,29 @@ out:
- 	up_read(&mm->mmap_sem);
- }
- 
-+static struct page *page_trans_compound_anon(struct page *page)
-+{
-+	if (PageTransCompound(page)) {
-+		struct page *head;
-+		head = compound_head(page);
-+		/*
-+		 * head may be a dangling pointer.
-+		 * __split_huge_page_refcount clears PageTail
-+		 * before overwriting first_page, so if
-+		 * PageTail is still there it means the head
-+		 * pointer isn't dangling.
-+		 */
-+		if (head != page) {
-+			smp_rmb();
-+			if (!PageTransCompound(page))
-+				return NULL;
-+		}
-+		if (PageAnon(head))
-+			return head;
-+	}
-+	return NULL;
-+}
-+
- static struct page *get_mergeable_page(struct rmap_item *rmap_item)
+diff -puN mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists
++++ a/mm/page_alloc.c
+@@ -427,18 +427,10 @@ static inline void rmv_page_order(struct
+  *
+  * Assumption: *_mem_map is contiguous at least up to MAX_ORDER
+  */
+-static inline struct page *
+-__page_find_buddy(struct page *page, unsigned long page_idx, unsigned int order)
+-{
+-	unsigned long buddy_idx = page_idx ^ (1 << order);
+-
+-	return page + (buddy_idx - page_idx);
+-}
+-
+ static inline unsigned long
+-__find_combined_index(unsigned long page_idx, unsigned int order)
++__find_buddy_index(unsigned long page_idx, unsigned int order)
  {
- 	struct mm_struct *mm = rmap_item->mm;
-@@ -431,7 +454,7 @@ static struct page *get_mergeable_page(s
- 	page = follow_page(vma, addr, FOLL_GET);
- 	if (IS_ERR_OR_NULL(page))
- 		goto out;
--	if (PageAnon(page) && !PageTransCompound(page)) {
-+	if (PageAnon(page) || page_trans_compound_anon(page)) {
- 		flush_anon_page(vma, page, addr);
- 		flush_dcache_page(page);
- 	} else {
-@@ -709,6 +732,7 @@ static int write_protect_page(struct vm_
- 	if (addr == -EFAULT)
- 		goto out;
- 
-+	BUG_ON(PageTransCompound(page));
- 	ptep = page_check_address(page, mm, addr, &ptl, 0);
- 	if (!ptep)
- 		goto out;
-@@ -784,6 +808,7 @@ static int replace_page(struct vm_area_s
- 		goto out;
- 
- 	pmd = pmd_offset(pud, addr);
-+	BUG_ON(pmd_trans_huge(*pmd));
- 	if (!pmd_present(*pmd))
- 		goto out;
- 
-@@ -811,6 +836,33 @@ out:
- 	return err;
+-	return (page_idx & ~(1 << order));
++	return page_idx ^ (1 << order);
  }
  
-+static int page_trans_compound_anon_split(struct page *page)
-+{
-+	int ret = 0;
-+	struct page *transhuge_head = page_trans_compound_anon(page);
-+	if (transhuge_head) {
-+		/* Get the reference on the head to split it. */
-+		if (get_page_unless_zero(transhuge_head)) {
-+			/*
-+			 * Recheck we got the reference while the head
-+			 * was still anonymous.
-+			 */
-+			if (PageAnon(transhuge_head))
-+				ret = split_huge_page(transhuge_head);
-+			else
-+				/*
-+				 * Retry later if split_huge_page run
-+				 * from under us.
-+				 */
-+				ret = 1;
-+			put_page(transhuge_head);
-+		} else
-+			/* Retry later if split_huge_page run from under us. */
-+			ret = 1;
-+	}
-+	return ret;
-+}
-+
  /*
-  * try_to_merge_one_page - take two pages and merge them into one
-  * @vma: the vma that holds the pte pointing to page
-@@ -831,6 +883,9 @@ static int try_to_merge_one_page(struct 
+@@ -500,6 +492,7 @@ static inline void __free_one_page(struc
+ {
+ 	unsigned long page_idx;
+ 	unsigned long combined_idx;
++	unsigned long uninitialized_var(buddy_idx);
+ 	struct page *buddy;
  
- 	if (!(vma->vm_flags & VM_MERGEABLE))
- 		goto out;
-+	if (PageTransCompound(page) && page_trans_compound_anon_split(page))
-+		goto out;
-+	BUG_ON(PageTransCompound(page));
- 	if (!PageAnon(page))
- 		goto out;
+ 	if (unlikely(PageCompound(page)))
+@@ -514,7 +507,8 @@ static inline void __free_one_page(struc
+ 	VM_BUG_ON(bad_range(zone, page));
  
-@@ -1285,14 +1340,8 @@ next_mm:
- 				cond_resched();
- 				continue;
- 			}
--			if (PageTransCompound(*page)) {
--				put_page(*page);
--				ksm_scan.address &= HPAGE_PMD_MASK;
--				ksm_scan.address += HPAGE_PMD_SIZE;
--				cond_resched();
--				continue;
--			}
--			if (PageAnon(*page)) {
-+			if (PageAnon(*page) ||
-+			    page_trans_compound_anon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
- 				rmap_item = get_next_rmap_item(slot,
+ 	while (order < MAX_ORDER-1) {
+-		buddy = __page_find_buddy(page, page_idx, order);
++		buddy_idx = __find_buddy_index(page_idx, order);
++		buddy = page + (buddy_idx - page_idx);
+ 		if (!page_is_buddy(page, buddy, order))
+ 			break;
+ 
+@@ -522,7 +516,7 @@ static inline void __free_one_page(struc
+ 		list_del(&buddy->lru);
+ 		zone->free_area[order].nr_free--;
+ 		rmv_page_order(buddy);
+-		combined_idx = __find_combined_index(page_idx, order);
++		combined_idx = buddy_idx & page_idx;
+ 		page = page + (combined_idx - page_idx);
+ 		page_idx = combined_idx;
+ 		order++;
+@@ -539,9 +533,10 @@ static inline void __free_one_page(struc
+ 	 */
+ 	if ((order < MAX_ORDER-2) && pfn_valid_within(page_to_pfn(buddy))) {
+ 		struct page *higher_page, *higher_buddy;
+-		combined_idx = __find_combined_index(page_idx, order);
+-		higher_page = page + combined_idx - page_idx;
+-		higher_buddy = __page_find_buddy(higher_page, combined_idx, order + 1);
++		combined_idx = buddy_idx & page_idx;
++		higher_page = page + (combined_idx - page_idx);
++		buddy_idx = __find_buddy_index(combined_idx, order + 1);
++		higher_buddy = page + (buddy_idx - combined_idx);
+ 		if (page_is_buddy(higher_page, higher_buddy, order + 1)) {
+ 			list_add_tail(&page->lru,
+ 				&zone->free_area[order].free_list[migratetype]);
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from pullip.cho@samsung.com are
 
 origin.patch
-thp-add-pagetranscompound.patch
 
