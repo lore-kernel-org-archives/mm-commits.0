@@ -1,109 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sched-remove-long-deprecated-clone_stopped-flag.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:17 -0800
-Message-ID: <201101142247.p0EMl7JP004965@imap1.linux-foundation.org>
+Subject: [merged] vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:39 -0800
+Message-ID: <201101142247.p0EMlTTh004997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752587Ab1ANWrw (ORCPT
+	by vger.kernel.org with ESMTP id S1752800Ab1ANWry (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:52 -0500
+	Fri, 14 Jan 2011 17:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mingo@elte.hu, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: remove long deprecated CLONE_STOPPED flag
+     vmscan: factor out kswapd sleeping logic from kswapd()
 has been removed from the -mm tree.  Its filename was
-     sched-remove-long-deprecated-clone_stopped-flag.patch
+     vmscan-factor-out-kswapd-sleeping-logic-from-kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: remove long deprecated CLONE_STOPPED flag
-From: Dave Jones <davej@redhat.com>
+Subject: vmscan: factor out kswapd sleeping logic from kswapd()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This warning was added in commit bdff746a3915 ("clone: prepare to recycle
-CLONE_STOPPED") three years ago.  2.6.26 came and went.  As far as I know,
-no-one is actually using CLONE_STOPPED.
+Currently, kswapd() has deep nesting and is slightly hard to read.  Clean
+this up.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ++-
- kernel/fork.c         |   28 +---------------------------
- 2 files changed, 3 insertions(+), 28 deletions(-)
+ mm/vmscan.c |   92 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 46 deletions(-)
 
-diff -puN include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag include/linux/sched.h
---- a/include/linux/sched.h~sched-remove-long-deprecated-clone_stopped-flag
-+++ a/include/linux/sched.h
-@@ -21,7 +21,8 @@
- #define CLONE_DETACHED		0x00400000	/* Unused, ignored */
- #define CLONE_UNTRACED		0x00800000	/* set if the tracing process can't force CLONE_PTRACE on this clone */
- #define CLONE_CHILD_SETTID	0x01000000	/* set the TID in the child */
--#define CLONE_STOPPED		0x02000000	/* Start in stopped state */
-+/* 0x02000000 was previously the unused CLONE_STOPPED (Start in stopped state)
-+   and is now available for re-use. */
- #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
- #define CLONE_NEWIPC		0x08000000	/* New ipcs */
- #define CLONE_NEWUSER		0x10000000	/* New user namespace */
-diff -puN kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag kernel/fork.c
---- a/kernel/fork.c~sched-remove-long-deprecated-clone_stopped-flag
-+++ a/kernel/fork.c
-@@ -1410,23 +1410,6 @@ long do_fork(unsigned long clone_flags,
- 	}
+diff -puN mm/vmscan.c~vmscan-factor-out-kswapd-sleeping-logic-from-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-factor-out-kswapd-sleeping-logic-from-kswapd
++++ a/mm/vmscan.c
+@@ -2371,6 +2371,50 @@ out:
+ 	return sc.nr_reclaimed;
+ }
  
- 	/*
--	 * We hope to recycle these flags after 2.6.26
--	 */
--	if (unlikely(clone_flags & CLONE_STOPPED)) {
--		static int __read_mostly count = 100;
--
--		if (count > 0 && printk_ratelimit()) {
--			char comm[TASK_COMM_LEN];
--
--			count--;
--			printk(KERN_INFO "fork(): process `%s' used deprecated "
--					"clone flags 0x%lx\n",
--				get_task_comm(comm, current),
--				clone_flags & CLONE_STOPPED);
--		}
--	}
--
--	/*
- 	 * When called from kernel_thread, don't do user tracing stuff.
- 	 */
- 	if (likely(user_mode(regs)))
-@@ -1464,16 +1447,7 @@ long do_fork(unsigned long clone_flags,
- 		 */
- 		p->flags &= ~PF_STARTING;
++static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
++{
++	long remaining = 0;
++	DEFINE_WAIT(wait);
++
++	if (freezing(current) || kthread_should_stop())
++		return;
++
++	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
++
++	/* Try to sleep for a short interval */
++	if (!sleeping_prematurely(pgdat, order, remaining)) {
++		remaining = schedule_timeout(HZ/10);
++		finish_wait(&pgdat->kswapd_wait, &wait);
++		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
++	}
++
++	/*
++	 * After a short sleep, check if it was a premature sleep. If not, then
++	 * go fully to sleep until explicitly woken up.
++	 */
++	if (!sleeping_prematurely(pgdat, order, remaining)) {
++		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
++
++		/*
++		 * vmstat counters are not perfectly accurate and the estimated
++		 * value for counters such as NR_FREE_PAGES can deviate from the
++		 * true value by nr_online_cpus * threshold. To avoid the zone
++		 * watermarks being breached while under pressure, we reduce the
++		 * per-cpu vmstat threshold while kswapd is awake and restore
++		 * them before going back to sleep.
++		 */
++		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
++		schedule();
++		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
++	} else {
++		if (remaining)
++			count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
++		else
++			count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
++	}
++	finish_wait(&pgdat->kswapd_wait, &wait);
++}
++
+ /*
+  * The background pageout daemon, started as a kernel thread
+  * from the init process.
+@@ -2389,7 +2433,7 @@ static int kswapd(void *p)
+ 	unsigned long order;
+ 	pg_data_t *pgdat = (pg_data_t*)p;
+ 	struct task_struct *tsk = current;
+-	DEFINE_WAIT(wait);
++
+ 	struct reclaim_state reclaim_state = {
+ 		.reclaimed_slab = 0,
+ 	};
+@@ -2421,7 +2465,6 @@ static int kswapd(void *p)
+ 		unsigned long new_order;
+ 		int ret;
  
--		if (unlikely(clone_flags & CLONE_STOPPED)) {
--			/*
--			 * We'll start up with an immediate SIGSTOP.
--			 */
--			sigaddset(&p->pending.signal, SIGSTOP);
--			set_tsk_thread_flag(p, TIF_SIGPENDING);
--			__set_task_state(p, TASK_STOPPED);
--		} else {
--			wake_up_new_task(p, clone_flags);
--		}
-+		wake_up_new_task(p, clone_flags);
+-		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 		new_order = pgdat->kswapd_max_order;
+ 		pgdat->kswapd_max_order = 0;
+ 		if (order < new_order) {
+@@ -2431,52 +2474,9 @@ static int kswapd(void *p)
+ 			 */
+ 			order = new_order;
+ 		} else {
+-			if (!freezing(current) && !kthread_should_stop()) {
+-				long remaining = 0;
+-
+-				/* Try to sleep for a short interval */
+-				if (!sleeping_prematurely(pgdat, order, remaining)) {
+-					remaining = schedule_timeout(HZ/10);
+-					finish_wait(&pgdat->kswapd_wait, &wait);
+-					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+-				}
+-
+-				/*
+-				 * After a short sleep, check if it was a
+-				 * premature sleep. If not, then go fully
+-				 * to sleep until explicitly woken up
+-				 */
+-				if (!sleeping_prematurely(pgdat, order, remaining)) {
+-					trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+-
+-					/*
+-					 * vmstat counters are not perfectly
+-					 * accurate and the estimated value
+-					 * for counters such as NR_FREE_PAGES
+-					 * can deviate from the true value by
+-					 * nr_online_cpus * threshold. To
+-					 * avoid the zone watermarks being
+-					 * breached while under pressure, we
+-					 * reduce the per-cpu vmstat threshold
+-					 * while kswapd is awake and restore
+-					 * them before going back to sleep.
+-					 */
+-					set_pgdat_percpu_threshold(pgdat,
+-						calculate_normal_threshold);
+-					schedule();
+-					set_pgdat_percpu_threshold(pgdat,
+-						calculate_pressure_threshold);
+-				} else {
+-					if (remaining)
+-						count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
+-					else
+-						count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
+-				}
+-			}
+-
++			kswapd_try_to_sleep(pgdat, order);
+ 			order = pgdat->kswapd_max_order;
+ 		}
+-		finish_wait(&pgdat->kswapd_wait, &wait);
  
- 		tracehook_report_clone_complete(trace, regs,
- 						clone_flags, nr, p);
+ 		ret = try_to_freeze();
+ 		if (kthread_should_stop())
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-deactivate-invalidated-pages.patch
+mm-deactivate-invalidated-pages-fix.patch
 
