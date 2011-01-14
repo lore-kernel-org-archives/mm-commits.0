@@ -1,82 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:39 -0800
-Message-ID: <201101142251.p0EMpT0q005513@imap1.linux-foundation.org>
+Subject: [merged] thp-transparent-hugepage-sysfs-meminfo.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:35 -0800
+Message-ID: <201101142251.p0EMpP9M005505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753163Ab1ANWvf (ORCPT
+	by vger.kernel.org with ESMTP id S1753926Ab1ANWvf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 14 Jan 2011 17:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: fix memory-failure hugetlbfs vs THP collision
+     thp: transparent hugepage sysfs meminfo
 has been removed from the -mm tree.  Its filename was
-     thp-fix-memory-failure-hugetlbfs-vs-thp-collision.patch
+     thp-transparent-hugepage-sysfs-meminfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: fix memory-failure hugetlbfs vs THP collision
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: transparent hugepage sysfs meminfo
+From: David Rientjes <rientjes@google.com>
 
-hugetlbfs was changed to allow memory failure to migrate the hugetlbfs
-pages and that broke THP as split_huge_page was then called on hugetlbfs
-pages too.
+Add hugepage statistics to per-node sysfs meminfo
 
-compound_head/order was also run unsafe on THP pages that can be splitted
-at any time.
-
-All compound_head() invocations in memory-failure.c that are run on pages
-that aren't pinned and that can be freed and reused from under us (while
-compound_head is running) are buggy because compound_head can return a
-dangling pointer, but I'm not fixing this as this is a generic
-memory-failure bug not specific to THP but it applies to hugetlbfs too, so
-I can fix it later after THP is merged upstream.
-
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- mm/rmap.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/node.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
-+++ a/mm/memory-failure.c
-@@ -386,7 +386,7 @@ static void collect_procs_anon(struct pa
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
- 
--	if (unlikely(split_huge_page(page)))
-+	if (!PageHuge(page) && unlikely(split_huge_page(page)))
- 		return;
- 	read_lock(&tasklist_lock);
- 	av = page_lock_anon_vma(page);
-diff -puN mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision mm/rmap.c
---- a/mm/rmap.c~thp-fix-memory-failure-hugetlbfs-vs-thp-collision
-+++ a/mm/rmap.c
-@@ -1430,7 +1430,7 @@ int try_to_unmap(struct page *page, enum
- 	int ret;
- 
- 	BUG_ON(!PageLocked(page));
--	BUG_ON(PageTransHuge(page));
-+	VM_BUG_ON(!PageHuge(page) && PageTransHuge(page));
- 
- 	if (unlikely(PageKsm(page)))
- 		ret = try_to_unmap_ksm(page, flags);
+diff -puN drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo drivers/base/node.c
+--- a/drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo
++++ a/drivers/base/node.c
+@@ -117,12 +117,21 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d WritebackTmp:   %8lu kB\n"
+ 		       "Node %d Slab:           %8lu kB\n"
+ 		       "Node %d SReclaimable:   %8lu kB\n"
+-		       "Node %d SUnreclaim:     %8lu kB\n",
++		       "Node %d SUnreclaim:     %8lu kB\n"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		       "Node %d AnonHugePages:  %8lu kB\n"
++#endif
++			,
+ 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
+ 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
+ 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
+ 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
+-		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
++		       nid, K(node_page_state(nid, NR_ANON_PAGES)
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			+ node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
++			HPAGE_PMD_NR
++#endif
++		       ),
+ 		       nid, K(node_page_state(nid, NR_SHMEM)),
+ 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
+ 				THREAD_SIZE / 1024,
+@@ -133,7 +142,13 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
+ 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
+ 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
+-		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
++		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			, nid,
++			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
++			HPAGE_PMD_NR)
++#endif
++		       );
+ 	n += hugetlb_report_node_meminfo(nid, buf + n);
+ 	return n;
+ }
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-thp-add-pagetranscompound.patch
+linux-next.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
 
