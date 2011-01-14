@@ -1,90 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-transparent-hugepage-sysfs-meminfo.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:35 -0800
-Message-ID: <201101142251.p0EMpP9M005505@imap1.linux-foundation.org>
+Subject: [merged] thp-scale-nr_rotated-to-balance-memory-pressure.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:32 -0800
+Message-ID: <201101142251.p0EMpMo3005502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753926Ab1ANWvf (ORCPT
+	by vger.kernel.org with ESMTP id S1753058Ab1ANWvd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:51:35 -0500
+	Fri, 14 Jan 2011 17:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: transparent hugepage sysfs meminfo
+     thp: scale nr_rotated to balance memory pressure
 has been removed from the -mm tree.  Its filename was
-     thp-transparent-hugepage-sysfs-meminfo.patch
+     thp-scale-nr_rotated-to-balance-memory-pressure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: transparent hugepage sysfs meminfo
-From: David Rientjes <rientjes@google.com>
+Subject: thp: scale nr_rotated to balance memory pressure
+From: Rik van Riel <riel@redhat.com>
 
-Add hugepage statistics to per-node sysfs meminfo
+Make sure we scale up nr_rotated when we encounter a referenced
+transparent huge page.  This ensures pageout scanning balance is not
+distorted when there are huge pages on the LRU.
 
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo drivers/base/node.c
---- a/drivers/base/node.c~thp-transparent-hugepage-sysfs-meminfo
-+++ a/drivers/base/node.c
-@@ -117,12 +117,21 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d WritebackTmp:   %8lu kB\n"
- 		       "Node %d Slab:           %8lu kB\n"
- 		       "Node %d SReclaimable:   %8lu kB\n"
--		       "Node %d SUnreclaim:     %8lu kB\n",
-+		       "Node %d SUnreclaim:     %8lu kB\n"
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		       "Node %d AnonHugePages:  %8lu kB\n"
-+#endif
-+			,
- 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
- 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
--		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
-+		       nid, K(node_page_state(nid, NR_ANON_PAGES)
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			+ node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
-+			HPAGE_PMD_NR
-+#endif
-+		       ),
- 		       nid, K(node_page_state(nid, NR_SHMEM)),
- 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
-@@ -133,7 +142,13 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
- 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
--		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
-+		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			, nid,
-+			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
-+			HPAGE_PMD_NR)
-+#endif
-+		       );
- 	n += hugetlb_report_node_meminfo(nid, buf + n);
- 	return n;
- }
+diff -puN mm/vmscan.c~thp-scale-nr_rotated-to-balance-memory-pressure mm/vmscan.c
+--- a/mm/vmscan.c~thp-scale-nr_rotated-to-balance-memory-pressure
++++ a/mm/vmscan.c
+@@ -1276,7 +1276,8 @@ putback_lru_pages(struct zone *zone, str
+ 		add_page_to_lru_list(zone, page, lru);
+ 		if (is_active_lru(lru)) {
+ 			int file = is_file_lru(lru);
+-			reclaim_stat->recent_rotated[file]++;
++			int numpages = hpage_nr_pages(page);
++			reclaim_stat->recent_rotated[file] += numpages;
+ 		}
+ 		if (!pagevec_add(&pvec, page)) {
+ 			spin_unlock_irq(&zone->lru_lock);
+@@ -1552,7 +1553,7 @@ static void shrink_active_list(unsigned 
+ 		}
+ 
+ 		if (page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
+-			nr_rotated++;
++			nr_rotated += hpage_nr_pages(page);
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
+ 			 * give them one more trip around the active list. So
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
 linux-next.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
+writeback-io-less-balance_dirty_pages.patch
+writeback-consolidate-variable-names-in-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages.patch
+writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
+writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
+writeback-account-per-bdi-accumulated-written-pages.patch
+writeback-bdi-write-bandwidth-estimation.patch
+writeback-bdi-write-bandwidth-estimation-fix.patch
+writeback-show-bdi-write-bandwidth-in-debugfs.patch
+writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-deactivate-invalidated-pages.patch
+mm-deactivate-invalidated-pages-fix.patch
 
