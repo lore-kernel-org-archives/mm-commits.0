@@ -1,92 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-deadlock-between-cpuset-and-memcg-fix.patch removed from -mm tree
-Date: Thu, 13 Jan 2011 15:39:52 -0800
-Message-ID: <201101132339.p0DNdr8G007571@imap1.linux-foundation.org>
+Subject: + partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check.patch added to -mm tree
+Date: Thu, 13 Jan 2011 16:20:20 -0800
+Message-ID: <201101140020.p0E0KKD2009829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab1AMXki (ORCPT
+	by vger.kernel.org with ESMTP id S1752137Ab1ANAVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Jan 2011 18:40:38 -0500
+	Thu, 13 Jan 2011 19:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, bblum@andrew.cmu.edu, kamezawa.hiroyuki@gmail.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, gregkh@suse.de, sfr@canb.auug.org.au, w.sang@pengutronix.de
 
 
 The patch titled
-     memcg-fix-deadlock-between-cpuset-and-memcg-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-fix-deadlock-between-cpuset-and-memcg-fix.patch
+     partially revert "gpiolib: annotate gpio-intialization with __must_check"
+has been added to the -mm tree.  Its filename is
+     partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check.patch
 
-This patch was dropped because it was folded into memcg-fix-deadlock-between-cpuset-and-memcg.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-deadlock-between-cpuset-and-memcg-fix
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: partially revert "gpiolib: annotate gpio-intialization with __must_check"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We must clear "mc.moving_task" before waking up all waiters at the end of
-task migration.
+Revert the __must_check aditions: we don't add __must_check until the
+things which must be checked are actually checked.
 
-Otherwise, there can be a small race like:
-
-        mem_cgroup_clear_mc()        |    mem_cgroup_wait_acct_move()
-    ---------------------------------+-----------------------------------
-          __mem_cgroup_clear_mc()    |
-            wake_up_all()            |
-                                     |    prepare_to_wait()
-                                     |    if (mc.moving_task) -> true
-                                     |      schedule()
-                                     |      -> noone wakes it up.
-          mc.moving_task = NULL      |
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Ben Blum <bblum@andrew.cmu.edu>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/asm-generic/gpio.h |   10 +++++-----
+ include/linux/gpio.h       |    6 +++---
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-deadlock-between-cpuset-and-memcg-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-deadlock-between-cpuset-and-memcg-fix
-+++ a/mm/memcontrol.c
-@@ -4756,12 +4756,16 @@ static void mem_cgroup_clear_mc(void)
- {
- 	struct mem_cgroup *from = mc.from;
+diff -puN include/asm-generic/gpio.h~partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check
++++ a/include/asm-generic/gpio.h
+@@ -147,11 +147,11 @@ extern struct gpio_chip *gpiochip_find(v
+ /* Always use the library code for GPIO management calls,
+  * or when sleeping may be involved.
+  */
+-extern int __must_check gpio_request(unsigned gpio, const char *label);
++extern int gpio_request(unsigned gpio, const char *label);
+ extern void gpio_free(unsigned gpio);
  
-+	/*
-+	 * we must clear moving_task before waking up waiters at the end of
-+	 * task migration.
-+	 */
-+	mc.moving_task = NULL;
- 	__mem_cgroup_clear_mc();
- 	spin_lock(&mc.lock);
- 	mc.from = NULL;
- 	mc.to = NULL;
- 	spin_unlock(&mc.lock);
--	mc.moving_task = NULL;
- 	mem_cgroup_end_move(from);
+-extern int __must_check gpio_direction_input(unsigned gpio);
+-extern int __must_check gpio_direction_output(unsigned gpio, int value);
++extern int gpio_direction_input(unsigned gpio);
++extern int gpio_direction_output(unsigned gpio, int value);
+ 
+ extern int gpio_set_debounce(unsigned gpio, unsigned debounce);
+ 
+@@ -192,8 +192,8 @@ struct gpio {
+ 	const char	*label;
+ };
+ 
+-extern int __must_check gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
+-extern int __must_check gpio_request_array(struct gpio *array, size_t num);
++extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
++extern int gpio_request_array(struct gpio *array, size_t num);
+ extern void gpio_free_array(struct gpio *array, size_t num);
+ 
+ #ifdef CONFIG_GPIO_SYSFS
+diff -puN include/linux/gpio.h~partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check include/linux/gpio.h
+--- a/include/linux/gpio.h~partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check
++++ a/include/linux/gpio.h
+@@ -30,7 +30,7 @@ static inline int gpio_is_valid(int numb
+ 	return 0;
  }
  
+-static inline int __must_check gpio_request(unsigned gpio, const char *label)
++static inline int gpio_request(unsigned gpio, const char *label)
+ {
+ 	return -ENOSYS;
+ }
+@@ -62,12 +62,12 @@ static inline void gpio_free_array(struc
+ 	WARN_ON(1);
+ }
+ 
+-static inline int __must_check gpio_direction_input(unsigned gpio)
++static inline int gpio_direction_input(unsigned gpio)
+ {
+ 	return -ENOSYS;
+ }
+ 
+-static inline int __must_check gpio_direction_output(unsigned gpio, int value)
++static inline int gpio_direction_output(unsigned gpio, int value)
+ {
+ 	return -ENOSYS;
+ }
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-transhuge-memcg-commit-tail-pages-at-charge.patch
-thp-compound_trans_order.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+origin.patch
+atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
+mm-vmstat-use-a-single-setter-function-and-callback-for-adjusting-percpu-thresholds.patch
+sync_inode_metadata-fix-comment.patch
+fs-mpagec-consolidate-code.patch
+mm-vmscan-reclaim-order-0-and-use-compaction-instead-of-lumpy-reclaim.patch
+mm-migration-allow-migration-to-operate-asynchronously-and-avoid-synchronous-compaction-in-the-faster-path.patch
+mlock-do-not-hold-mmap_sem-for-extended-periods-of-time.patch
+writeback-avoid-unnecessary-determine_dirtyable_memory-call.patch
+thp-pte-alloc-trans-splitting.patch
+thp-kvm-mmu-transparent-hugepage-support.patch
+thp-khugepaged-make-khugepaged-aware-of-madvise.patch
+mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
+brk-fix-min_brk-lower-bound-computation-for-compat_brk.patch
+mm-page_allocc-simplify-calculation-of-combined-index-of-adjacent-buddy-lists.patch
+mm-dmapoolc-use-task_uninterruptible-in-dma_pool_alloc.patch
+hugetlb-check-the-return-value-of-string-conversion-in-sysctl-handler.patch
+hugetlb-do-not-allow-pagesize-=-max_order-pool-adjustment.patch
+mm-fix-migration-hangs-on-anon_vma-lock.patch
+mm-page_allocc-dont-cache-current-in-a-local.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-create-extensible-page-stat-update-routines.patch
-memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
-memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
-memcg-fix-deadlock-between-cpuset-and-memcg.patch
-memcg-fix-memory-migration-of-shmem-swapcache.patch
+partially-revert-gpiolib-annotate-gpio-intialization-with-__must_check.patch
 
