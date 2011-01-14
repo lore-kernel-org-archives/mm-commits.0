@@ -1,97 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch added to -mm tree
-Date: Fri, 14 Jan 2011 01:18:24 -0800
-Message-ID: <201101140921.p0E9L9ME001942@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-document-cgroup-dirty-memory-interfaces.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:27:24 -0800
+Message-ID: <201101142230.p0EMUEb4004241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753461Ab1ANJVs (ORCPT
+	by vger.kernel.org with ESMTP id S1752043Ab1ANWbJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 04:21:48 -0500
+	Fri, 14 Jan 2011 17:31:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, buytenh@secretlab.ca, richard.rojfors@mocean-labs.com
+To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commi
 
 
 The patch titled
-     gpio: timbgpio: Fix up irq_data conversion breakage.
-has been added to the -mm tree.  Its filename is
-     gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch
+     memcg: document cgroup dirty memory interfaces
+has been removed from the -mm tree.  Its filename was
+     memcg-document-cgroup-dirty-memory-interfaces.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: timbgpio: Fix up irq_data conversion breakage.
-=46rom: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: memcg: document cgroup dirty memory interfaces
+From: Greg Thelen <gthelen@google.com>
 
-a1f5f22adc3 ("gpio: timbgpio: irq_data conversion") was slightly too
-enthusiastic in converting timbgpio_irq() over to take an irq_data *
-argument instead of an unsigned int irq argument, as it is a flow handl=
-er,
-which still take IRQ numbers for now.  (And on top of that, it was usin=
-g
-the wrong accessors.)
+Document cgroup dirty memory interfaces and statistics.
 
-This fixes it up, and seems to build without warnings.
-
-Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Cc: Richard R=F6jfors <richard.rojfors@mocean-labs.com>
+[akpm@linux-foundation.org: fix use_hierarchy description]
+Signed-off-by: Andrea Righi <arighi@develer.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/cgroups/memory.txt |   74 +++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
 
-diff -puN drivers/gpio/timbgpio.c~gpio-timbgpio-fix-up-irq_data-convers=
-ion-breakage drivers/gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~gpio-timbgpio-fix-up-irq_data-conversion-=
-breakage
-+++ a/drivers/gpio/timbgpio.c
-@@ -193,13 +193,13 @@ out:
- 	return ret;
- }
-=20
--static void timbgpio_irq(struct irq_data *d, struct irq_desc *desc)
-+static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
- {
--	struct timbgpio *tgpio =3D irq_data_get_irq_data(d);
-+	struct timbgpio *tgpio =3D get_irq_data(irq);
- 	unsigned long ipr;
- 	int offset;
-=20
--	desc->irq_data.chip->ack(irq_get_irq_data(d));
-+	desc->irq_data.chip->irq_ack(irq_get_irq_data(irq));
- 	ipr =3D ioread32(tgpio->membase + TGPIO_IPR);
- 	iowrite32(ipr, tgpio->membase + TGPIO_ICR);
-=20
+diff -puN Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-memory-interfaces Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-memory-interfaces
++++ a/Documentation/cgroups/memory.txt
+@@ -385,6 +385,10 @@ mapped_file	- # of bytes of mapped file 
+ pgpgin		- # of pages paged in (equivalent to # of charging events).
+ pgpgout		- # of pages paged out (equivalent to # of uncharging events).
+ swap		- # of bytes of swap usage
++dirty		- # of bytes that are waiting to get written back to the disk.
++writeback	- # of bytes that are actively being written back to the disk.
++nfs_unstable	- # of bytes sent to the NFS server, but not yet committed to
++		the actual storage.
+ inactive_anon	- # of bytes of anonymous memory and swap cache memory on
+ 		LRU list.
+ active_anon	- # of bytes of anonymous and swap cache memory on active
+@@ -406,6 +410,9 @@ total_mapped_file	- sum of all children'
+ total_pgpgin		- sum of all children's "pgpgin"
+ total_pgpgout		- sum of all children's "pgpgout"
+ total_swap		- sum of all children's "swap"
++total_dirty		- sum of all children's "dirty"
++total_writeback		- sum of all children's "writeback"
++total_nfs_unstable	- sum of all children's "nfs_unstable"
+ total_inactive_anon	- sum of all children's "inactive_anon"
+ total_active_anon	- sum of all children's "active_anon"
+ total_inactive_file	- sum of all children's "inactive_file"
+@@ -453,6 +460,73 @@ memory under it will be reclaimed.
+ You can reset failcnt by writing 0 to failcnt file.
+ # echo 0 > .../memory.failcnt
+ 
++5.5 dirty memory
++
++Control the maximum amount of dirty pages a cgroup can have at any given time.
++
++Limiting dirty memory is like fixing the max amount of dirty (hard to reclaim)
++page cache used by a cgroup.  So, in case of multiple cgroup writers, they will
++not be able to consume more than their designated share of dirty pages and will
++be forced to perform write-out if they cross that limit.
++
++The interface is equivalent to the procfs interface: /proc/sys/vm/dirty_*.  It
++is possible to configure a limit to trigger both a direct writeback or a
++background writeback performed by per-bdi flusher threads.  The root cgroup
++memory.dirty_* control files are read-only and match the contents of
++the /proc/sys/vm/dirty_* files.
++
++Per-cgroup dirty limits can be set using the following files in the cgroupfs:
++
++- memory.dirty_ratio: the amount of dirty memory (expressed as a percentage of
++  cgroup memory) at which a process generating dirty pages will itself start
++  writing out dirty data.
++
++- memory.dirty_limit_in_bytes: the amount of dirty memory (expressed in bytes)
++  in the cgroup at which a process generating dirty pages will start itself
++  writing out dirty data.  Suffix (k, K, m, M, g, or G) can be used to indicate
++  that value is kilo, mega or gigabytes.
++
++  Note: memory.dirty_limit_in_bytes is the counterpart of memory.dirty_ratio.
++  Only one of them may be specified at a time.  When one is written it is
++  immediately taken into account to evaluate the dirty memory limits and the
++  other appears as 0 when read.
++
++- memory.dirty_background_ratio: the amount of dirty memory of the cgroup
++  (expressed as a percentage of cgroup memory) at which background writeback
++  kernel threads will start writing out dirty data.
++
++- memory.dirty_background_limit_in_bytes: the amount of dirty memory (expressed
++  in bytes) in the cgroup at which background writeback kernel threads will
++  start writing out dirty data.  Suffix (k, K, m, M, g, or G) can be used to
++  indicate that value is kilo, mega or gigabytes.
++
++  Note: memory.dirty_background_limit_in_bytes is the counterpart of
++  memory.dirty_background_ratio.  Only one of them may be specified at a time.
++  When one is written it is immediately taken into account to evaluate the dirty
++  memory limits and the other appears as 0 when read.
++
++A cgroup may contain more dirty memory than its dirty limit.  This is possible
++because of the principle that the first cgroup to touch a page is charged for
++it.  Subsequent page counting events (dirty, writeback, nfs_unstable) are also
++counted to the originally charged cgroup.
++
++Example: If page is allocated by a cgroup A task, then the page is charged to
++cgroup A.  If the page is later dirtied by a task in cgroup B, then the cgroup A
++dirty count will be incremented.  If cgroup A is over its dirty limit but cgroup
++B is not, then dirtying a cgroup A page from a cgroup B task may push cgroup A
++over its dirty limit without throttling the dirtying cgroup B task.
++
++When use_hierarchy=0, each cgroup has dirty memory usage and limits.
++System-wide dirty limits are also consulted.  Dirty memory consumption is
++checked against both system-wide and per-cgroup dirty limits.
++
++The current implementation does not enforce per-cgroup dirty limits when
++use_hierarchy=1.  System-wide dirty limits are used for processes in such
++cgroups.  Attempts to read memory.dirty_* files return the system-wide
++values.  Writes to the memory.dirty_* files return error.  An enhanced
++implementation is needed to check the chain of parents to ensure that no
++dirty limit is exceeded.
++
+ 6. Hierarchy support
+ 
+ The memory controller supports a deep hierarchy and hierarchical accounting.
 _
 
-Patches currently in -mm which might be from buytenh@wantstofly.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-gpio-timbgpio-fix-up-irq_data-conversion-breakage.patch
-linux-next.patch
+memcg-create-extensible-page-stat-update-routines.patch
+memcg-add-lock-to-synchronize-page-accounting-and-migration.patch
+memcg-fix-unit-mismatch-in-memcg-oom-limit-calculation.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
