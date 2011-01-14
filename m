@@ -1,214 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:46:06 -0800
-Message-ID: <201101142248.p0EMmuim005245@imap1.linux-foundation.org>
+Subject: [merged] thp-special-pmd_trans_-functions.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:46:49 -0800
+Message-ID: <201101142249.p0EMndUB005311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753834Ab1ANWtv (ORCPT
+	by vger.kernel.org with ESMTP id S1753849Ab1ANWtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:49:51 -0500
+	Fri, 14 Jan 2011 17:49:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+To: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
+     thp: special pmd_trans_* functions
 has been removed from the -mm tree.  Its filename was
-     mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely.patch
+     thp-special-pmd_trans_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: kswapd: use the classzone idx that kswapd was using for sleeping_prematurely()
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: thp: special pmd_trans_* functions
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-When kswapd is woken up for a high-order allocation, it takes account of
-the highest usable zone by the caller (the classzone idx).  During
-allocation, this index is used to select the lowmem_reserve[] that should
-be applied to the watermark calculation in zone_watermark_ok().
+These returns 0 at compile time when the config option is disabled, to
+allow gcc to eliminate the transparent hugepage function calls at compile
+time without additional #ifdefs (only the export of those functions have
+to be visible to gcc but they won't be required at link time and
+huge_memory.o can be not built at all).
 
-When balancing a node, kswapd considers the highest unbalanced zone to be
-the classzone index.  This will always be at least be the callers
-classzone_idx and can be higher.  However, sleeping_prematurely() always
-considers the lowest zone (e.g.  ZONE_DMA) to be the classzone index. 
-This means that sleeping_prematurely() can consider a zone to be balanced
-that is unusable by the allocation request that originally woke kswapd. 
-This patch changes sleeping_prematurely() to use a classzone_idx matching
-the value it used in balance_pgdat().
+_PAGE_BIT_UNUSED1 is never used for pmd, only on pte.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Simon Kirby <sim@hostway.ca>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ arch/x86/include/asm/pgtable_64.h    |   13 +++++++++++++
+ arch/x86/include/asm/pgtable_types.h |    2 ++
+ include/asm-generic/pgtable.h        |   11 +++++++++++
+ 3 files changed, 26 insertions(+)
 
-diff -puN mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely mm/vmscan.c
---- a/mm/vmscan.c~mm-kswapd-use-the-classzone-idx-that-kswapd-was-using-for-sleeping_prematurely
-+++ a/mm/vmscan.c
-@@ -2227,7 +2227,8 @@ static bool pgdat_balanced(pg_data_t *pg
- }
+diff -puN arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~thp-special-pmd_trans_-functions
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -168,6 +168,19 @@ extern void cleanup_highmap(void);
+ #define	kc_offset_to_vaddr(o) ((o) | ~__VIRTUAL_MASK)
  
- /* is kswapd sleeping prematurely? */
--static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
-+static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
-+					int classzone_idx)
- {
- 	int i;
- 	unsigned long balanced = 0;
-@@ -2235,7 +2236,7 @@ static bool sleeping_prematurely(pg_data
+ #define __HAVE_ARCH_PTE_SAME
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return pmd_val(pmd) & _PAGE_SPLITTING;
++}
++
++static inline int pmd_trans_huge(pmd_t pmd)
++{
++	return pmd_val(pmd) & _PAGE_PSE;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ #endif /* !__ASSEMBLY__ */
  
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
- 	if (remaining)
--		return 1;
-+		return true;
+ #endif /* _ASM_X86_PGTABLE_64_H */
+diff -puN arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~thp-special-pmd_trans_-functions
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -22,6 +22,7 @@
+ #define _PAGE_BIT_PAT_LARGE	12	/* On 2MB or 1GB pages */
+ #define _PAGE_BIT_SPECIAL	_PAGE_BIT_UNUSED1
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_UNUSED1
++#define _PAGE_BIT_SPLITTING	_PAGE_BIT_UNUSED1 /* only valid on a PSE pmd */
+ #define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
  
- 	/* Check the watermark levels */
- 	for (i = 0; i < pgdat->nr_zones; i++) {
-@@ -2256,7 +2257,7 @@ static bool sleeping_prematurely(pg_data
- 		}
+ /* If _PAGE_BIT_PRESENT is clear, we use these: */
+@@ -45,6 +46,7 @@
+ #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
+ #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
+ #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
++#define _PAGE_SPLITTING	(_AT(pteval_t, 1) << _PAGE_BIT_SPLITTING)
+ #define __HAVE_ARCH_PTE_SPECIAL
  
- 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
--								0, 0))
-+							classzone_idx, 0))
- 			all_zones_ok = false;
- 		else
- 			balanced += zone->present_pages;
-@@ -2268,7 +2269,7 @@ static bool sleeping_prematurely(pg_data
- 	 * must be balanced
- 	 */
- 	if (order)
--		return pgdat_balanced(pgdat, balanced, 0);
-+		return pgdat_balanced(pgdat, balanced, classzone_idx);
- 	else
- 		return !all_zones_ok;
- }
-@@ -2295,7 +2296,7 @@ static bool sleeping_prematurely(pg_data
-  * of pages is balanced across the zones.
-  */
- static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
--							int classzone_idx)
-+							int *classzone_idx)
- {
- 	int all_zones_ok;
- 	unsigned long balanced;
-@@ -2358,6 +2359,7 @@ loop_again:
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
-+				*classzone_idx = i;
- 				break;
- 			}
- 		}
-@@ -2451,12 +2453,12 @@ loop_again:
- 				 * spectulatively avoid congestion waits
- 				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
--				if (i <= classzone_idx)
-+				if (i <= *classzone_idx)
- 					balanced += zone->present_pages;
- 			}
+ #ifdef CONFIG_KMEMCHECK
+diff -puN include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-special-pmd_trans_-functions
++++ a/include/asm-generic/pgtable.h
+@@ -348,6 +348,17 @@ extern void untrack_pfn_vma(struct vm_ar
+ 				unsigned long size);
+ #endif
  
- 		}
--		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))
-+		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))
- 			break;		/* kswapd: all done */
- 		/*
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
-@@ -2485,7 +2487,7 @@ out:
- 	 * high-order: Balanced zones must make up at least 25% of the node
- 	 *             for the node to be balanced
- 	 */
--	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))) {
-+	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))) {
- 		cond_resched();
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_trans_huge(pmd_t pmd)
++{
++	return 0;
++}
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return 0;
++}
++#endif
++
+ #endif /* !__ASSEMBLY__ */
  
- 		try_to_freeze();
-@@ -2546,10 +2548,11 @@ out:
- 	 * if another caller entered the allocator slow path while kswapd
- 	 * was awake, order will remain at the higher level
- 	 */
-+	*classzone_idx = end_zone;
- 	return order;
- }
- 
--static void kswapd_try_to_sleep(pg_data_t *pgdat, int order)
-+static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
- {
- 	long remaining = 0;
- 	DEFINE_WAIT(wait);
-@@ -2560,7 +2563,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
- 
- 	/* Try to sleep for a short interval */
--	if (!sleeping_prematurely(pgdat, order, remaining)) {
-+	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
- 		remaining = schedule_timeout(HZ/10);
- 		finish_wait(&pgdat->kswapd_wait, &wait);
- 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-@@ -2570,7 +2573,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	 * After a short sleep, check if it was a premature sleep. If not, then
- 	 * go fully to sleep until explicitly woken up.
- 	 */
--	if (!sleeping_prematurely(pgdat, order, remaining)) {
-+	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
- 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
- 
- 		/*
-@@ -2658,7 +2661,7 @@ static int kswapd(void *p)
- 			order = new_order;
- 			classzone_idx = new_classzone_idx;
- 		} else {
--			kswapd_try_to_sleep(pgdat, order);
-+			kswapd_try_to_sleep(pgdat, order, classzone_idx);
- 			order = pgdat->kswapd_max_order;
- 			classzone_idx = pgdat->classzone_idx;
- 			pgdat->kswapd_max_order = 0;
-@@ -2675,7 +2678,7 @@ static int kswapd(void *p)
- 		 */
- 		if (!ret) {
- 			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
--			order = balance_pgdat(pgdat, order, classzone_idx);
-+			order = balance_pgdat(pgdat, order, &classzone_idx);
- 		}
- 	}
- 	return 0;
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-linux-next.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
 thp-add-pagetranscompound.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 
