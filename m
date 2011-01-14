@@ -1,158 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:48:54 -0800
-Message-ID: <201101142251.p0EMpilT005544@imap1.linux-foundation.org>
+Subject: [merged] mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:57 -0800
+Message-ID: <201101142251.p0EMplGw005547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753926Ab1ANWvy (ORCPT
+	by vger.kernel.org with ESMTP id S1753449Ab1ANWvx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:51:54 -0500
+	Fri, 14 Jan 2011 17:51:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, miltonm@bga.com, minchan.kim@gmail.com, nickpiggin@yahoo.com.au, stable@kernel.org, mm-commits@vger.kernel.org
+To: jj@chaosbits.net, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: migration: use rcu_dereference_protected when dereferencing the radix tree slot during file page migration
+     mm/hugetlb.c: fix error-path memory leak in nr_hugepages_store_common()
 has been removed from the -mm tree.  Its filename was
-     mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration.patch
+     mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: migration: use rcu_dereference_protected when dereferencing the radix tree slot during file page migration
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm/hugetlb.c: fix error-path memory leak in nr_hugepages_store_common()
+From: Jesper Juhl <jj@chaosbits.net>
 
-migrate_pages() -> unmap_and_move() only calls rcu_read_lock() for
-anonymous pages, as introduced by git commit
-989f89c57e6361e7d16fbd9572b5da7d313b073d ("fix rcu_read_lock() in page
-migraton").  The point of the RCU protection there is part of getting a
-stable reference to anon_vma and is only held for anon pages as file pages
-are locked which is sufficient protection against freeing.
+The NODEMASK_ALLOC macro may dynamically allocate memory for its second
+argument ('nodes_allowed' in this context).
 
-However, while a file page's mapping is being migrated, the radix tree is
-double checked to ensure it is the expected page.  This uses
-radix_tree_deref_slot() -> rcu_dereference() without the RCU lock held
-triggering the following warning.
+In nr_hugepages_store_common() we may abort early if strict_strtoul()
+fails, but in that case we do not free the memory already allocated to
+'nodes_allowed', causing a memory leak.
 
-[  173.674290] ===================================================
-[  173.676016] [ INFO: suspicious rcu_dereference_check() usage. ]
-[  173.676016] ---------------------------------------------------
-[  173.676016] include/linux/radix-tree.h:145 invoked rcu_dereference_check() without protection!
-[  173.676016]
-[  173.676016] other info that might help us debug this:
-[  173.676016]
-[  173.676016]
-[  173.676016] rcu_scheduler_active = 1, debug_locks = 0
-[  173.676016] 1 lock held by hugeadm/2899:
-[  173.676016]  #0:  (&(&inode->i_data.tree_lock)->rlock){..-.-.}, at: [<c10e3d2b>] migrate_page_move_mapping+0x40/0x1ab
-[  173.676016]
-[  173.676016] stack backtrace:
-[  173.676016] Pid: 2899, comm: hugeadm Not tainted 2.6.37-rc5-autobuild
-[  173.676016] Call Trace:
-[  173.676016]  [<c128cc01>] ? printk+0x14/0x1b
-[  173.676016]  [<c1063502>] lockdep_rcu_dereference+0x7d/0x86
-[  173.676016]  [<c10e3db5>] migrate_page_move_mapping+0xca/0x1ab
-[  173.676016]  [<c10e41ad>] migrate_page+0x23/0x39
-[  173.676016]  [<c10e491b>] buffer_migrate_page+0x22/0x107
-[  173.676016]  [<c10e48f9>] ? buffer_migrate_page+0x0/0x107
-[  173.676016]  [<c10e425d>] move_to_new_page+0x9a/0x1ae
-[  173.676016]  [<c10e47e6>] migrate_pages+0x1e7/0x2fa
+This patch closes the leak by freeing the memory in the error path.
 
-This patch introduces radix_tree_deref_slot_protected() which calls
-rcu_dereference_protected().  Users of it must pass in the
-mapping->tree_lock that is protecting this dereference.  Holding the tree
-lock protects against parallel updaters of the radix tree meaning that
-rcu_dereference_protected is allowable.
-
-[akpm@linux-foundation.org: remove unneeded casts]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+[akpm@linux-foundation.org: use NODEMASK_FREE, per Minchan Kim]
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Milton Miller <miltonm@bga.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: <stable@kernel.org>		[2.6.37.early]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   16 ++++++++++++++++
- mm/migrate.c               |    4 ++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/radix-tree.h~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration
-+++ a/include/linux/radix-tree.h
-@@ -146,6 +146,22 @@ static inline void *radix_tree_deref_slo
- }
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-error-path-memory-leak-in-nr_hugepages_store_common
++++ a/mm/hugetlb.c
+@@ -1374,8 +1374,10 @@ static ssize_t nr_hugepages_store_common
+ 	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
  
- /**
-+ * radix_tree_deref_slot_protected	- dereference a slot without RCU lock but with tree lock held
-+ * @pslot:	pointer to slot, returned by radix_tree_lookup_slot
-+ * Returns:	item that was stored in that slot with any direct pointer flag
-+ *		removed.
-+ *
-+ * Similar to radix_tree_deref_slot but only used during migration when a pages
-+ * mapping is being moved. The caller does not hold the RCU read lock but it
-+ * must hold the tree lock to prevent parallel updates.
-+ */
-+static inline void *radix_tree_deref_slot_protected(void **pslot,
-+							spinlock_t *treelock)
-+{
-+	return rcu_dereference_protected(*pslot, lockdep_is_held(treelock));
-+}
-+
-+/**
-  * radix_tree_deref_retry	- check radix_tree_deref_slot
-  * @arg:	pointer returned by radix_tree_deref_slot
-  * Returns:	0 if retry is not required, otherwise retry is required
-diff -puN mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration mm/migrate.c
---- a/mm/migrate.c~mm-migration-use-rcu_dereference_protected-when-dereferencing-the-radix-tree-slot-during-file-page-migration
-+++ a/mm/migrate.c
-@@ -248,7 +248,7 @@ static int migrate_page_move_mapping(str
+ 	err = strict_strtoul(buf, 10, &count);
+-	if (err)
++	if (err) {
++		NODEMASK_FREE(nodes_allowed);
+ 		return 0;
++	}
  
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--			(struct page *)radix_tree_deref_slot(pslot) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
- 	}
-@@ -320,7 +320,7 @@ int migrate_huge_page_move_mapping(struc
- 
- 	expected_count = 2 + page_has_private(page);
- 	if (page_count(page) != expected_count ||
--	    (struct page *)radix_tree_deref_slot(pslot) != page) {
-+		radix_tree_deref_slot_protected(pslot, &mapping->tree_lock) != page) {
- 		spin_unlock_irq(&mapping->tree_lock);
- 		return -EAGAIN;
- 	}
+ 	h = kobj_to_hstate(kobj, &nid);
+ 	if (nid == NUMA_NO_NODE) {
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
 origin.patch
 linux-next.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-thp-add-pagetranscompound.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+audit-always-follow-va_copy-with-va_end.patch
 
