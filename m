@@ -1,106 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-clear-pageerror-bit-in-msync-fsync.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:45:14 -0800
-Message-ID: <201101142248.p0EMm4LM005083@imap1.linux-foundation.org>
+Subject: [merged] oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:45:12 -0800
+Message-ID: <201101142248.p0EMm2Dw005079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752912Ab1ANWsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752908Ab1ANWsO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:48:16 -0500
+	Fri, 14 Jan 2011 17:48:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, jack@suse.cz, jlayton@redhat.com, tytso@mit.edu, vaurora@redhat.com, mm-commits@vger.kernel.org
+To: msb@chromium.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: clear PageError bit in msync & fsync
+     oom: allow a non-CAP_SYS_RESOURCE proces to oom_score_adj down
 has been removed from the -mm tree.  Its filename was
-     mm-clear-pageerror-bit-in-msync-fsync.patch
+     oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: clear PageError bit in msync & fsync
-From: Rik van Riel <riel@redhat.com>
+Subject: oom: allow a non-CAP_SYS_RESOURCE proces to oom_score_adj down
+From: Mandeep Singh Baines <msb@chromium.org>
 
-Temporary IO failures, eg.  due to loss of both multipath paths, can
-permanently leave the PageError bit set on a page, resulting in msync or
-fsync returning -EIO over and over again, even if IO is now getting to the
-disk correctly.
+We'd like to be able to oom_score_adj a process up/down as it
+enters/leaves the foreground.  Currently, it is not possible to oom_adj
+down without CAP_SYS_RESOURCE.  This patch allows a task to decrease its
+oom_score_adj back to the value that a CAP_SYS_RESOURCE thread set it to
+or its inherited value at fork.  Assuming the thread that has forked it
+has oom_score_adj of 0, each process could decrease it back from 0 upon
+activation unless a CAP_SYS_RESOURCE thread elevated it to something
+higher.
 
-We already clear the AS_ENOSPC and AS_IO bits in mapping->flags in the
-filemap_fdatawait_range function.  Also clearing the PageError bit on the
-page allows subsequent msync or fsync calls on this file to return without
-an error, if the subsequent IO succeeds.
+Alternative considered:
 
-Unfortunately data written out in the msync or fsync call that returned
--EIO can still get lost, because the page dirty bit appears to not get
-restored on IO error.  However, the alternative could be potentially all
-of memory filling up with uncleanable dirty pages, hanging the system, so
-there is no nice choice here...
+* a setuid binary
+* a daemon with CAP_SYS_RESOURCE
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Valerie Aurora <vaurora@redhat.com>
-Acked-by: Jeff Layton <jlayton@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Acked-by: Jan Kara <jack@suse.cz>
+Since you don't wan't all processes to be able to reduce their oom_adj, a
+setuid or daemon implementation would be complex.  The alternatives also
+have much higher overhead.
+
+This patch updated from original patch based on feedback from David
+Rientjes.
+
+Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- mm/filemap.c               |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.txt |    4 ++++
+ fs/proc/base.c                     |    4 +++-
+ include/linux/sched.h              |    2 ++
+ kernel/fork.c                      |    1 +
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~mm-clear-pageerror-bit-in-msync-fsync include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-clear-pageerror-bit-in-msync-fsync
-+++ a/include/linux/page-flags.h
-@@ -198,7 +198,7 @@ static inline int __TestClearPage##uname
- struct page;	/* forward declaration */
+diff -puN Documentation/filesystems/proc.txt~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/Documentation/filesystems/proc.txt
+@@ -1323,6 +1323,10 @@ scaled linearly with /proc/<pid>/oom_sco
+ Writing to /proc/<pid>/oom_score_adj or /proc/<pid>/oom_adj will change the
+ other with its scaled value.
  
- TESTPAGEFLAG(Locked, locked) TESTSETFLAG(Locked, locked)
--PAGEFLAG(Error, error)
-+PAGEFLAG(Error, error) TESTCLEARFLAG(Error, error)
- PAGEFLAG(Referenced, referenced) TESTCLEARFLAG(Referenced, referenced)
- PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty, dirty)
- PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
-diff -puN mm/filemap.c~mm-clear-pageerror-bit-in-msync-fsync mm/filemap.c
---- a/mm/filemap.c~mm-clear-pageerror-bit-in-msync-fsync
-+++ a/mm/filemap.c
-@@ -298,7 +298,7 @@ int filemap_fdatawait_range(struct addre
- 				continue;
++The value of /proc/<pid>/oom_score_adj may be reduced no lower than the last
++value set by a CAP_SYS_RESOURCE process. To reduce the value any lower
++requires CAP_SYS_RESOURCE.
++
+ NOTICE: /proc/<pid>/oom_adj is deprecated and will be removed, please see
+ Documentation/feature-removal-schedule.txt.
  
- 			wait_on_page_writeback(page);
--			if (PageError(page))
-+			if (TestClearPageError(page))
- 				ret = -EIO;
- 		}
- 		pagevec_release(&pvec);
+diff -puN fs/proc/base.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down fs/proc/base.c
+--- a/fs/proc/base.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/fs/proc/base.c
+@@ -1151,7 +1151,7 @@ static ssize_t oom_score_adj_write(struc
+ 		goto err_task_lock;
+ 	}
+ 
+-	if (oom_score_adj < task->signal->oom_score_adj &&
++	if (oom_score_adj < task->signal->oom_score_adj_min &&
+ 			!capable(CAP_SYS_RESOURCE)) {
+ 		err = -EACCES;
+ 		goto err_sighand;
+@@ -1164,6 +1164,8 @@ static ssize_t oom_score_adj_write(struc
+ 			atomic_dec(&task->mm->oom_disable_count);
+ 	}
+ 	task->signal->oom_score_adj = oom_score_adj;
++	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
++		task->signal->oom_score_adj_min = oom_score_adj;
+ 	/*
+ 	 * Scale /proc/pid/oom_adj appropriately ensuring that OOM_DISABLE is
+ 	 * always attainable.
+diff -puN include/linux/sched.h~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down include/linux/sched.h
+--- a/include/linux/sched.h~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/include/linux/sched.h
+@@ -634,6 +634,8 @@ struct signal_struct {
+ 
+ 	int oom_adj;		/* OOM kill score adjustment (bit shift) */
+ 	int oom_score_adj;	/* OOM kill score adjustment */
++	int oom_score_adj_min;	/* OOM kill score adjustment minimum value.
++				 * Only settable by CAP_SYS_RESOURCE. */
+ 
+ 	struct mutex cred_guard_mutex;	/* guard against foreign influences on
+ 					 * credential calculations
+diff -puN kernel/fork.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down kernel/fork.c
+--- a/kernel/fork.c~oom-allow-a-non-cap_sys_resource-proces-to-oom_score_adj-down
++++ a/kernel/fork.c
+@@ -910,6 +910,7 @@ static int copy_signal(unsigned long clo
+ 
+ 	sig->oom_adj = current->signal->oom_adj;
+ 	sig->oom_score_adj = current->signal->oom_score_adj;
++	sig->oom_score_adj_min = current->signal->oom_score_adj_min;
+ 
+ 	mutex_init(&sig->cred_guard_mutex);
+ 
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from msb@chromium.org are
 
 origin.patch
-linux-next.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-mm-deactivate-invalidated-pages.patch
-mm-deactivate-invalidated-pages-fix.patch
 
