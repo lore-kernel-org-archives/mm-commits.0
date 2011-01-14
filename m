@@ -1,83 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-add-pmd_modify.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:47:54 -0800
-Message-ID: <201101142250.p0EMoiX9005435@imap1.linux-foundation.org>
+Subject: [merged] thp-set-recommended-min-free-kbytes.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:48:01 -0800
+Message-ID: <201101142250.p0EMop8h005445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752901Ab1ANWu5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752901Ab1ANWvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:50:57 -0500
+	Fri, 14 Jan 2011 17:51:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, aarcange@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: add pmd_modify
+     thp: set recommended min free kbytes
 has been removed from the -mm tree.  Its filename was
-     thp-add-pmd_modify.patch
+     thp-set-recommended-min-free-kbytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: add pmd_modify
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: thp: set recommended min free kbytes
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add pmd_modify() for use with mprotect() on huge pmds.
+If transparent hugepage is enabled initialize min_free_kbytes to an
+optimal value by default.  This moves the hugeadm algorithm in kernel.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h       |   10 ++++++++++
- arch/x86/include/asm/pgtable_types.h |    1 +
- 2 files changed, 11 insertions(+)
+ mm/huge_memory.c |   52 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable.h~thp-add-pmd_modify arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~thp-add-pmd_modify
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -325,6 +325,16 @@ static inline pte_t pte_modify(pte_t pte
- 	return __pte(val);
- }
+diff -puN mm/huge_memory.c~thp-set-recommended-min-free-kbytes mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-set-recommended-min-free-kbytes
++++ a/mm/huge_memory.c
+@@ -85,6 +85,47 @@ struct khugepaged_scan {
+ 	.mm_head = LIST_HEAD_INIT(khugepaged_scan.mm_head),
+ };
  
-+static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
++
++static int set_recommended_min_free_kbytes(void)
 +{
-+	pmdval_t val = pmd_val(pmd);
++	struct zone *zone;
++	int nr_zones = 0;
++	unsigned long recommended_min;
++	extern int min_free_kbytes;
 +
-+	val &= _HPAGE_CHG_MASK;
-+	val |= massage_pgprot(newprot) & ~_HPAGE_CHG_MASK;
++	if (!test_bit(TRANSPARENT_HUGEPAGE_FLAG,
++		      &transparent_hugepage_flags) &&
++	    !test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
++		      &transparent_hugepage_flags))
++		return 0;
 +
-+	return __pmd(val);
++	for_each_populated_zone(zone)
++		nr_zones++;
++
++	/* Make sure at least 2 hugepages are free for MIGRATE_RESERVE */
++	recommended_min = pageblock_nr_pages * nr_zones * 2;
++
++	/*
++	 * Make sure that on average at least two pageblocks are almost free
++	 * of another type, one for a migratetype to fall back to and a
++	 * second to avoid subsequent fallbacks of other types There are 3
++	 * MIGRATE_TYPES we care about.
++	 */
++	recommended_min += pageblock_nr_pages * nr_zones *
++			   MIGRATE_PCPTYPES * MIGRATE_PCPTYPES;
++
++	/* don't ever allow to reserve more than 5% of the lowmem */
++	recommended_min = min(recommended_min,
++			      (unsigned long) nr_free_buffer_pages() / 20);
++	recommended_min <<= (PAGE_SHIFT-10);
++
++	if (recommended_min > min_free_kbytes)
++		min_free_kbytes = recommended_min;
++	setup_per_zone_wmarks();
++	return 0;
 +}
++late_initcall(set_recommended_min_free_kbytes);
 +
- /* mprotect needs to preserve PAT bits when updating vm_page_prot */
- #define pgprot_modify pgprot_modify
- static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
-diff -puN arch/x86/include/asm/pgtable_types.h~thp-add-pmd_modify arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~thp-add-pmd_modify
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -72,6 +72,7 @@
- /* Set of bits not changed in pte_modify */
- #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
- 			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY)
-+#define _HPAGE_CHG_MASK (_PAGE_CHG_MASK | _PAGE_PSE)
+ static int start_khugepaged(void)
+ {
+ 	int err = 0;
+@@ -108,6 +149,8 @@ static int start_khugepaged(void)
+ 		mutex_unlock(&khugepaged_mutex);
+ 		if (wakeup)
+ 			wake_up_interruptible(&khugepaged_wait);
++
++		set_recommended_min_free_kbytes();
+ 	} else
+ 		/* wakeup to exit */
+ 		wake_up_interruptible(&khugepaged_wait);
+@@ -177,6 +220,13 @@ static ssize_t enabled_store(struct kobj
+ 			ret = err;
+ 	}
  
- #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
- #define _PAGE_CACHE_WB		(0)
++	if (ret > 0 &&
++	    (test_bit(TRANSPARENT_HUGEPAGE_FLAG,
++		      &transparent_hugepage_flags) ||
++	     test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
++		      &transparent_hugepage_flags)))
++		set_recommended_min_free_kbytes();
++
+ 	return ret;
+ }
+ static struct kobj_attribute enabled_attr =
+@@ -464,6 +514,8 @@ static int __init hugepage_init(void)
+ 
+ 	start_khugepaged();
+ 
++	set_recommended_min_free_kbytes();
++
+ out:
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-mm-deactivate-invalidated-pages.patch
-mm-deactivate-invalidated-pages-fix.patch
+thp-add-pagetranscompound.patch
 
