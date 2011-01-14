@@ -1,199 +1,427 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-integrated-background-writeback-work.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:25 -0800
-Message-ID: <201101142247.p0EMlF7W004977@imap1.linux-foundation.org>
+Subject: [merged] mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:19 -0800
+Message-ID: <201101142247.p0EMl9iS004969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800Ab1ANWrw (ORCPT
+	by vger.kernel.org with ESMTP id S1752845Ab1ANWrz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:52 -0500
+	Fri, 14 Jan 2011 17:47:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hch@lst.de, jengelh@medozas.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, cl@linux.com, kyle@mcmartin.ca, nico@chdir.org, rientjes@google.com, shaohua.li@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: integrated background writeback work
+     mm: page allocator: adjust the per-cpu counter threshold when memory is low
 has been removed from the -mm tree.  Its filename was
-     writeback-integrated-background-writeback-work.patch
+     mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: integrated background writeback work
-From: Jan Kara <jack@suse.cz>
+Subject: mm: page allocator: adjust the per-cpu counter threshold when memory is low
+From: Mel Gorman <mel@csn.ul.ie>
 
-Check whether background writeback is needed after finishing each work.
+Commit aa45484 ("calculate a better estimate of NR_FREE_PAGES when memory
+is low") noted that watermarks were based on the vmstat NR_FREE_PAGES.  To
+avoid synchronization overhead, these counters are maintained on a per-cpu
+basis and drained both periodically and when a threshold is above a
+threshold.  On large CPU systems, the difference between the estimate and
+real value of NR_FREE_PAGES can be very high.  The system can get into a
+case where pages are allocated far below the min watermark potentially
+causing livelock issues.  The commit solved the problem by taking a better
+reading of NR_FREE_PAGES when memory was low.
 
-When bdi flusher thread finishes doing some work check whether any kind of
-background writeback needs to be done (either because
-dirty_background_ratio is exceeded or because we need to start flushing
-old inodes).  If so, just do background write back.
+Unfortately, as reported by Shaohua Li this accurate reading can consume a
+large amount of CPU time on systems with many sockets due to cache line
+bouncing.  This patch takes a different approach.  For large machines
+where counter drift might be unsafe and while kswapd is awake, the per-cpu
+thresholds for the target pgdat are reduced to limit the level of drift to
+what should be a safe level.  This incurs a performance penalty in heavy
+memory pressure by a factor that depends on the workload and the machine
+but the machine should function correctly without accidentally exhausting
+all memory on a node.  There is an additional cost when kswapd wakes and
+sleeps but the event is not expected to be frequent - in Shaohua's test
+case, there was one recorded sleep and wake event at least.
 
-This way, bdi_start_background_writeback() just needs to wake up the
-flusher thread.  It will do background writeback as soon as there is no
-other work.
+To ensure that kswapd wakes up, a safe version of zone_watermark_ok() is
+introduced that takes a more accurate reading of NR_FREE_PAGES when called
+from wakeup_kswapd, when deciding whether it is really safe to go back to
+sleep in sleeping_prematurely() and when deciding if a zone is really
+balanced or not in balance_pgdat().  We are still using an expensive
+function but limiting how often it is called.
 
-This is a preparatory patch for the next patch which stops background
-writeback as soon as there is other work to do.
+When the test case is reproduced, the time spent in the watermark
+functions is reduced.  The following report is on the percentage of time
+spent cumulatively spent in the functions zone_nr_free_pages(),
+zone_watermark_ok(), __zone_watermark_ok(), zone_watermark_ok_safe(),
+zone_page_state_snapshot(), zone_page_state().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de> 
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+vanilla                      11.6615%
+disable-threshold            0.2584%
+
+David said:
+
+: We had to pull aa454840 "mm: page allocator: calculate a better estimate 
+: of NR_FREE_PAGES when memory is low and kswapd is awake" from 2.6.36 
+: internally because tests showed that it would cause the machine to stall 
+: as the result of heavy kswapd activity.  I merged it back with this fix as 
+: it is pending in the -mm tree and it solves the issue we were seeing, so I 
+: definitely think this should be pushed to -stable (and I would seriously 
+: consider it for 2.6.37 inclusion even at this late date).
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Shaohua Li <shaohua.li@intel.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Tested-by: Nicolas Bareil <nico@chdir.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: <stable@kernel.org>		[2.6.37.1, 2.6.36.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   61 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 46 insertions(+), 15 deletions(-)
+ include/linux/mmzone.h |   10 +----
+ include/linux/vmstat.h |    5 ++
+ mm/mmzone.c            |   21 ------------
+ mm/page_alloc.c        |   35 +++++++++++++++-----
+ mm/vmscan.c            |   23 +++++++------
+ mm/vmstat.c            |   68 ++++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 115 insertions(+), 47 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-integrated-background-writeback-work fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-integrated-background-writeback-work
-+++ a/fs/fs-writeback.c
-@@ -84,13 +84,9 @@ static inline struct inode *wb_inode(str
- 	return list_entry(head, struct inode, i_wb_list);
+diff -puN include/linux/mmzone.h~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/include/linux/mmzone.h
+@@ -458,12 +458,6 @@ static inline int zone_is_oom_locked(con
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
  }
  
--static void bdi_queue_work(struct backing_dev_info *bdi,
--		struct wb_writeback_work *work)
-+/* Wakeup flusher thread or forker thread to fork it. Requires bdi->wb_lock. */
-+static void bdi_wakeup_flusher(struct backing_dev_info *bdi)
- {
--	trace_writeback_queue(bdi, work);
+-#ifdef CONFIG_SMP
+-unsigned long zone_nr_free_pages(struct zone *zone);
+-#else
+-#define zone_nr_free_pages(zone) zone_page_state(zone, NR_FREE_PAGES)
+-#endif /* CONFIG_SMP */
 -
--	spin_lock_bh(&bdi->wb_lock);
--	list_add_tail(&work->list, &bdi->work_list);
- 	if (bdi->wb.task) {
- 		wake_up_process(bdi->wb.task);
- 	} else {
-@@ -98,15 +94,26 @@ static void bdi_queue_work(struct backin
- 		 * The bdi thread isn't there, wake up the forker thread which
- 		 * will create and run it.
- 		 */
--		trace_writeback_nothread(bdi, work);
- 		wake_up_process(default_backing_dev_info.wb.task);
- 	}
-+}
-+
-+static void bdi_queue_work(struct backing_dev_info *bdi,
-+			   struct wb_writeback_work *work)
-+{
-+	trace_writeback_queue(bdi, work);
-+
-+	spin_lock_bh(&bdi->wb_lock);
-+	list_add_tail(&work->list, &bdi->work_list);
-+	if (!bdi->wb.task)
-+		trace_writeback_nothread(bdi, work);
-+	bdi_wakeup_flusher(bdi);
- 	spin_unlock_bh(&bdi->wb_lock);
- }
+ /*
+  * The "priority" of VM scanning is how much of the queues we will scan in one
+  * go. A value of 12 for DEF_PRIORITY implies that we will scan 1/4096th of the
+@@ -661,7 +655,9 @@ typedef struct pglist_data {
+ extern struct mutex zonelists_mutex;
+ void build_all_zonelists(void *data);
+ void wakeup_kswapd(struct zone *zone, int order);
+-int zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++		int classzone_idx, int alloc_flags);
++bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
+ 		int classzone_idx, int alloc_flags);
+ enum memmap_context {
+ 	MEMMAP_EARLY,
+diff -puN include/linux/vmstat.h~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/include/linux/vmstat.h
+@@ -254,6 +254,8 @@ extern void dec_zone_state(struct zone *
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
  
- static void
- __bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages,
--		bool range_cyclic, bool for_background)
-+		      bool range_cyclic)
- {
- 	struct wb_writeback_work *work;
- 
-@@ -126,7 +133,6 @@ __bdi_start_writeback(struct backing_dev
- 	work->sync_mode	= WB_SYNC_NONE;
- 	work->nr_pages	= nr_pages;
- 	work->range_cyclic = range_cyclic;
--	work->for_background = for_background;
- 
- 	bdi_queue_work(bdi, work);
- }
-@@ -144,7 +150,7 @@ __bdi_start_writeback(struct backing_dev
-  */
- void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages)
- {
--	__bdi_start_writeback(bdi, nr_pages, true, false);
-+	__bdi_start_writeback(bdi, nr_pages, true);
- }
- 
- /**
-@@ -152,13 +158,20 @@ void bdi_start_writeback(struct backing_
-  * @bdi: the backing device to write from
-  *
-  * Description:
-- *   This does WB_SYNC_NONE background writeback. The IO is only
-- *   started when this function returns, we make no guarentees on
-- *   completion. Caller need not hold sb s_umount semaphore.
-+ *   This makes sure WB_SYNC_NONE background writeback happens. When
-+ *   this function returns, it is only guaranteed that for given BDI
-+ *   some IO is happening if we are over background dirty threshold.
-+ *   Caller need not hold sb s_umount semaphore.
-  */
- void bdi_start_background_writeback(struct backing_dev_info *bdi)
- {
--	__bdi_start_writeback(bdi, LONG_MAX, true, true);
-+	/*
-+	 * We just wake up the flusher thread. It will perform background
-+	 * writeback as soon as there is no other work to do.
-+	 */
-+	spin_lock_bh(&bdi->wb_lock);
-+	bdi_wakeup_flusher(bdi);
-+	spin_unlock_bh(&bdi->wb_lock);
- }
+ void refresh_cpu_vm_stats(int);
++void reduce_pgdat_percpu_threshold(pg_data_t *pgdat);
++void restore_pgdat_percpu_threshold(pg_data_t *pgdat);
+ #else /* CONFIG_SMP */
  
  /*
-@@ -718,6 +731,23 @@ static unsigned long get_nr_dirty_pages(
- 		get_nr_dirty_inodes();
- }
+@@ -298,6 +300,9 @@ static inline void __dec_zone_page_state
+ #define dec_zone_page_state __dec_zone_page_state
+ #define mod_zone_page_state __mod_zone_page_state
  
-+static long wb_check_background_flush(struct bdi_writeback *wb)
-+{
-+	if (over_bground_thresh()) {
++static inline void reduce_pgdat_percpu_threshold(pg_data_t *pgdat) { }
++static inline void restore_pgdat_percpu_threshold(pg_data_t *pgdat) { }
 +
-+		struct wb_writeback_work work = {
-+			.nr_pages	= LONG_MAX,
-+			.sync_mode	= WB_SYNC_NONE,
-+			.for_background	= 1,
-+			.range_cyclic	= 1,
-+		};
-+
-+		return wb_writeback(wb, &work);
-+	}
-+
-+	return 0;
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+ #endif
+ 
+diff -puN mm/mmzone.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low mm/mmzone.c
+--- a/mm/mmzone.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/mm/mmzone.c
+@@ -87,24 +87,3 @@ int memmap_valid_within(unsigned long pf
+ 	return 1;
+ }
+ #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+-
+-#ifdef CONFIG_SMP
+-/* Called when a more accurate view of NR_FREE_PAGES is needed */
+-unsigned long zone_nr_free_pages(struct zone *zone)
+-{
+-	unsigned long nr_free_pages = zone_page_state(zone, NR_FREE_PAGES);
+-
+-	/*
+-	 * While kswapd is awake, it is considered the zone is under some
+-	 * memory pressure. Under pressure, there is a risk that
+-	 * per-cpu-counter-drift will allow the min watermark to be breached
+-	 * potentially causing a live-lock. While kswapd is awake and
+-	 * free pages are low, get a better estimate for free pages
+-	 */
+-	if (nr_free_pages < zone->percpu_drift_mark &&
+-			!waitqueue_active(&zone->zone_pgdat->kswapd_wait))
+-		return zone_page_state_snapshot(zone, NR_FREE_PAGES);
+-
+-	return nr_free_pages;
+-}
+-#endif /* CONFIG_SMP */
+diff -puN mm/page_alloc.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/mm/page_alloc.c
+@@ -1460,24 +1460,24 @@ static inline int should_fail_alloc_page
+ #endif /* CONFIG_FAIL_PAGE_ALLOC */
+ 
+ /*
+- * Return 1 if free pages are above 'mark'. This takes into account the order
++ * Return true if free pages are above 'mark'. This takes into account the order
+  * of the allocation.
+  */
+-int zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+-		      int classzone_idx, int alloc_flags)
++static bool __zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++		      int classzone_idx, int alloc_flags, long free_pages)
+ {
+ 	/* free_pages my go negative - that's OK */
+ 	long min = mark;
+-	long free_pages = zone_nr_free_pages(z) - (1 << order) + 1;
+ 	int o;
+ 
++	free_pages -= (1 << order) + 1;
+ 	if (alloc_flags & ALLOC_HIGH)
+ 		min -= min / 2;
+ 	if (alloc_flags & ALLOC_HARDER)
+ 		min -= min / 4;
+ 
+ 	if (free_pages <= min + z->lowmem_reserve[classzone_idx])
+-		return 0;
++		return false;
+ 	for (o = 0; o < order; o++) {
+ 		/* At the next order, this order's pages become unavailable */
+ 		free_pages -= z->free_area[o].nr_free << o;
+@@ -1486,9 +1486,28 @@ int zone_watermark_ok(struct zone *z, in
+ 		min >>= 1;
+ 
+ 		if (free_pages <= min)
+-			return 0;
++			return false;
+ 	}
+-	return 1;
++	return true;
 +}
 +
- static long wb_check_old_data_flush(struct bdi_writeback *wb)
- {
- 	unsigned long expired;
-@@ -787,6 +817,7 @@ long wb_do_writeback(struct bdi_writebac
- 	 * Check for periodic writeback, kupdated() style
- 	 */
- 	wrote += wb_check_old_data_flush(wb);
-+	wrote += wb_check_background_flush(wb);
- 	clear_bit(BDI_writeback_running, &wb->bdi->state);
- 
- 	return wrote;
-@@ -873,7 +904,7 @@ void wakeup_flusher_threads(long nr_page
- 	list_for_each_entry_rcu(bdi, &bdi_list, bdi_list) {
- 		if (!bdi_has_dirty_io(bdi))
- 			continue;
--		__bdi_start_writeback(bdi, nr_pages, false, false);
-+		__bdi_start_writeback(bdi, nr_pages, false);
- 	}
- 	rcu_read_unlock();
++bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
++		      int classzone_idx, int alloc_flags)
++{
++	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
++					zone_page_state(z, NR_FREE_PAGES));
++}
++
++bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
++		      int classzone_idx, int alloc_flags)
++{
++	long free_pages = zone_page_state(z, NR_FREE_PAGES);
++
++	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
++		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
++
++	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
++								free_pages);
  }
+ 
+ #ifdef CONFIG_NUMA
+@@ -2442,7 +2461,7 @@ void show_free_areas(void)
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			zone->name,
+-			K(zone_nr_free_pages(zone)),
++			K(zone_page_state(zone, NR_FREE_PAGES)),
+ 			K(min_wmark_pages(zone)),
+ 			K(low_wmark_pages(zone)),
+ 			K(high_wmark_pages(zone)),
+diff -puN mm/vmscan.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low mm/vmscan.c
+--- a/mm/vmscan.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/mm/vmscan.c
+@@ -2143,7 +2143,7 @@ static int sleeping_prematurely(pg_data_
+ 		if (zone->all_unreclaimable)
+ 			continue;
+ 
+-		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
++		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
+ 								0, 0))
+ 			return 1;
+ 	}
+@@ -2230,7 +2230,7 @@ loop_again:
+ 				shrink_active_list(SWAP_CLUSTER_MAX, zone,
+ 							&sc, priority, 0);
+ 
+-			if (!zone_watermark_ok(zone, order,
++			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), 0, 0)) {
+ 				end_zone = i;
+ 				break;
+@@ -2276,7 +2276,7 @@ loop_again:
+ 			 * We put equal pressure on every zone, unless one
+ 			 * zone has way too many pages free already.
+ 			 */
+-			if (!zone_watermark_ok(zone, order,
++			if (!zone_watermark_ok_safe(zone, order,
+ 					8*high_wmark_pages(zone), end_zone, 0))
+ 				shrink_zone(priority, zone, &sc);
+ 			reclaim_state->reclaimed_slab = 0;
+@@ -2297,7 +2297,7 @@ loop_again:
+ 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
+ 				sc.may_writepage = 1;
+ 
+-			if (!zone_watermark_ok(zone, order,
++			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), end_zone, 0)) {
+ 				all_zones_ok = 0;
+ 				/*
+@@ -2305,7 +2305,7 @@ loop_again:
+ 				 * means that we have a GFP_ATOMIC allocation
+ 				 * failure risk. Hurry up!
+ 				 */
+-				if (!zone_watermark_ok(zone, order,
++				if (!zone_watermark_ok_safe(zone, order,
+ 					    min_wmark_pages(zone), end_zone, 0))
+ 					has_under_min_watermark_zone = 1;
+ 			} else {
+@@ -2448,7 +2448,9 @@ static int kswapd(void *p)
+ 				 */
+ 				if (!sleeping_prematurely(pgdat, order, remaining)) {
+ 					trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
++					restore_pgdat_percpu_threshold(pgdat);
+ 					schedule();
++					reduce_pgdat_percpu_threshold(pgdat);
+ 				} else {
+ 					if (remaining)
+ 						count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
+@@ -2487,16 +2489,17 @@ void wakeup_kswapd(struct zone *zone, in
+ 	if (!populated_zone(zone))
+ 		return;
+ 
+-	pgdat = zone->zone_pgdat;
+-	if (zone_watermark_ok(zone, order, low_wmark_pages(zone), 0, 0))
++	if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 		return;
++	pgdat = zone->zone_pgdat;
+ 	if (pgdat->kswapd_max_order < order)
+ 		pgdat->kswapd_max_order = order;
+-	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
+-	if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-		return;
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
++	if (zone_watermark_ok_safe(zone, order, low_wmark_pages(zone), 0, 0))
++		return;
++
++	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
+ 	wake_up_interruptible(&pgdat->kswapd_wait);
+ }
+ 
+diff -puN mm/vmstat.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low mm/vmstat.c
+--- a/mm/vmstat.c~mm-page-allocator-adjust-the-per-cpu-counter-threshold-when-memory-is-low
++++ a/mm/vmstat.c
+@@ -83,6 +83,30 @@ EXPORT_SYMBOL(vm_stat);
+ 
+ #ifdef CONFIG_SMP
+ 
++static int calculate_pressure_threshold(struct zone *zone)
++{
++	int threshold;
++	int watermark_distance;
++
++	/*
++	 * As vmstats are not up to date, there is drift between the estimated
++	 * and real values. For high thresholds and a high number of CPUs, it
++	 * is possible for the min watermark to be breached while the estimated
++	 * value looks fine. The pressure threshold is a reduced value such
++	 * that even the maximum amount of drift will not accidentally breach
++	 * the min watermark
++	 */
++	watermark_distance = low_wmark_pages(zone) - min_wmark_pages(zone);
++	threshold = max(1, (int)(watermark_distance / num_online_cpus()));
++
++	/*
++	 * Maximum threshold is 125
++	 */
++	threshold = min(125, threshold);
++
++	return threshold;
++}
++
+ static int calculate_threshold(struct zone *zone)
+ {
+ 	int threshold;
+@@ -161,6 +185,48 @@ static void refresh_zone_stat_thresholds
+ 	}
+ }
+ 
++void reduce_pgdat_percpu_threshold(pg_data_t *pgdat)
++{
++	struct zone *zone;
++	int cpu;
++	int threshold;
++	int i;
++
++	get_online_cpus();
++	for (i = 0; i < pgdat->nr_zones; i++) {
++		zone = &pgdat->node_zones[i];
++		if (!zone->percpu_drift_mark)
++			continue;
++
++		threshold = calculate_pressure_threshold(zone);
++		for_each_online_cpu(cpu)
++			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
++							= threshold;
++	}
++	put_online_cpus();
++}
++
++void restore_pgdat_percpu_threshold(pg_data_t *pgdat)
++{
++	struct zone *zone;
++	int cpu;
++	int threshold;
++	int i;
++
++	get_online_cpus();
++	for (i = 0; i < pgdat->nr_zones; i++) {
++		zone = &pgdat->node_zones[i];
++		if (!zone->percpu_drift_mark)
++			continue;
++
++		threshold = calculate_threshold(zone);
++		for_each_online_cpu(cpu)
++			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
++							= threshold;
++	}
++	put_online_cpus();
++}
++
+ /*
+  * For use when we know that interrupts are disabled.
+  */
+@@ -911,7 +977,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        scanned  %lu"
+ 		   "\n        spanned  %lu"
+ 		   "\n        present  %lu",
+-		   zone_nr_free_pages(zone),
++		   zone_page_state(zone, NR_FREE_PAGES),
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
@@ -210,4 +438,6 @@ writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
 writeback-make-nr_to_write-a-per-file-limit-fix.patch
+thp-add-pagetranscompound.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
