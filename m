@@ -1,196 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:45:55 -0800
-Message-ID: <201101142248.p0EMmj3w005230@imap1.linux-foundation.org>
+Subject: [merged] thp-update-futex-compound-knowledge.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:46:30 -0800
+Message-ID: <201101142249.p0EMnKO2005284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780Ab1ANWt1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753788Ab1ANWt3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:49:27 -0500
+	Fri, 14 Jan 2011 17:49:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, dave@linux.vnet.ibm.com, emunson@mgebm.net, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+To: aarcange@redhat.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: kswapd: keep kswapd awake for high-order allocations until a percentage of the node is balanced
+     thp: update futex compound knowledge
 has been removed from the -mm tree.  Its filename was
-     mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced.patch
+     thp-update-futex-compound-knowledge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: kswapd: keep kswapd awake for high-order allocations until a percentage of the node is balanced
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: thp: update futex compound knowledge
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-When reclaiming for high-orders, kswapd is responsible for balancing a
-node but it should not reclaim excessively.  It avoids excessive reclaim
-by considering if any zone in a node is balanced then the node is
-balanced.  In the cases where there are imbalanced zone sizes (e.g. 
-ZONE_DMA with both ZONE_DMA32 and ZONE_NORMAL), kswapd can go to sleep
-prematurely as just one small zone was balanced.
+Futex code is smarter than most other gup_fast O_DIRECT code and knows
+about the compound internals.  However now doing a put_page(head_page)
+will not release the pin on the tail page taken by gup-fast, leading to
+all sort of refcounting bugchecks.  Getting a stable head_page is a little
+tricky.
 
-This alters the sleep logic of kswapd slightly.  It counts the number of
-pages that make up the balanced zones.  If the total number of balanced
-pages is more than a quarter of the zone, kswapd will go back to sleep. 
-This should keep a node balanced without reclaiming an excessive number of
-pages.
+page_head = page is there because if this is not a tail page it's also the
+page_head.  Only in case this is a tail page, compound_head is called,
+otherwise it's guaranteed unnecessary.  And if it's a tail page
+compound_head has to run atomically inside irq disabled section
+__get_user_pages_fast before returning.  Otherwise ->first_page won't be a
+stable pointer.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Cc: Simon Kirby <sim@hostway.ca>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Disableing irq before __get_user_page_fast and releasing irq after running
+compound_head is needed because if __get_user_page_fast returns == 1, it
+means the huge pmd is established and cannot go away from under us. 
+pmdp_splitting_flush_notify in __split_huge_page_splitting will have to
+wait for local_irq_enable before the IPI delivery can return.  This means
+__split_huge_page_refcount can't be running from under us, and in turn
+when we run compound_head(page) we're not reading a dangling pointer from
+tailpage->first_page.  Then after we get to stable head page, we are
+always safe to call compound_lock and after taking the compound lock on
+head page we can finally re-check if the page returned by gup-fast is
+still a tail page.  in which case we're set and we didn't need to split
+the hugepage in order to take a futex on it.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   58 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 49 insertions(+), 9 deletions(-)
+ kernel/futex.c |   55 ++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 45 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced mm/vmscan.c
---- a/mm/vmscan.c~mm-kswapd-keep-kswapd-awake-for-high-order-allocations-until-a-percentage-of-the-node-is-balanced
-+++ a/mm/vmscan.c
-@@ -2198,10 +2198,40 @@ unsigned long try_to_free_mem_cgroup_pag
- }
- #endif
- 
-+/*
-+ * pgdat_balanced is used when checking if a node is balanced for high-order
-+ * allocations. Only zones that meet watermarks and are in a zone allowed
-+ * by the callers classzone_idx are added to balanced_pages. The total of
-+ * balanced pages must be at least 25% of the zones allowed by classzone_idx
-+ * for the node to be considered balanced. Forcing all zones to be balanced
-+ * for high orders can cause excessive reclaim when there are imbalanced zones.
-+ * The choice of 25% is due to
-+ *   o a 16M DMA zone that is balanced will not balance a zone on any
-+ *     reasonable sized machine
-+ *   o On all other machines, the top zone must be at least a reasonable
-+ *     precentage of the middle zones. For example, on 32-bit x86, highmem
-+ *     would need to be at least 256M for it to be balance a whole node.
-+ *     Similarly, on x86-64 the Normal zone would need to be at least 1G
-+ *     to balance a node on its own. These seemed like reasonable ratios.
-+ */
-+static bool pgdat_balanced(pg_data_t *pgdat, unsigned long balanced_pages,
-+						int classzone_idx)
-+{
-+	unsigned long present_pages = 0;
-+	int i;
-+
-+	for (i = 0; i <= classzone_idx; i++)
-+		present_pages += pgdat->node_zones[i].present_pages;
-+
-+	return balanced_pages > (present_pages >> 2);
-+}
-+
- /* is kswapd sleeping prematurely? */
- static int sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
+diff -puN kernel/futex.c~thp-update-futex-compound-knowledge kernel/futex.c
+--- a/kernel/futex.c~thp-update-futex-compound-knowledge
++++ a/kernel/futex.c
+@@ -233,7 +233,7 @@ get_futex_key(u32 __user *uaddr, int fsh
  {
- 	int i;
-+	unsigned long balanced = 0;
-+	bool all_zones_ok = true;
- 
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
- 	if (remaining)
-@@ -2219,10 +2249,20 @@ static int sleeping_prematurely(pg_data_
- 
- 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
- 								0, 0))
--			return 1;
-+			all_zones_ok = false;
-+		else
-+			balanced += zone->present_pages;
- 	}
- 
--	return 0;
-+	/*
-+	 * For high-order requests, the balanced zones must contain at least
-+	 * 25% of the nodes pages for kswapd to sleep. For order-0, all zones
-+	 * must be balanced
-+	 */
-+	if (order)
-+		return pgdat_balanced(pgdat, balanced, 0);
-+	else
-+		return !all_zones_ok;
- }
- 
- /*
-@@ -2250,7 +2290,7 @@ static unsigned long balance_pgdat(pg_da
- 							int classzone_idx)
- {
- 	int all_zones_ok;
--	int any_zone_ok;
-+	unsigned long balanced;
- 	int priority;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
-@@ -2284,7 +2324,7 @@ loop_again:
- 			disable_swap_token();
- 
- 		all_zones_ok = 1;
--		any_zone_ok = 0;
-+		balanced = 0;
- 
- 		/*
- 		 * Scan in the highmem->dma direction for the highest
-@@ -2404,11 +2444,11 @@ loop_again:
- 				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
- 				if (i <= classzone_idx)
--					any_zone_ok = 1;
-+					balanced += zone->present_pages;
- 			}
- 
- 		}
--		if (all_zones_ok || (order && any_zone_ok))
-+		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))
- 			break;		/* kswapd: all done */
- 		/*
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
-@@ -2434,10 +2474,10 @@ out:
+ 	unsigned long address = (unsigned long)uaddr;
+ 	struct mm_struct *mm = current->mm;
+-	struct page *page;
++	struct page *page, *page_head;
+ 	int err;
  
  	/*
- 	 * order-0: All zones must meet high watermark for a balanced node
--	 * high-order: Any zone below pgdats classzone_idx must meet the high
--	 *             watermark for a balanced node
-+	 * high-order: Balanced zones must make up at least 25% of the node
-+	 *             for the node to be balanced
- 	 */
--	if (!(all_zones_ok || (order && any_zone_ok))) {
-+	if (!(all_zones_ok || (order && pgdat_balanced(pgdat, balanced, classzone_idx)))) {
- 		cond_resched();
+@@ -265,11 +265,46 @@ again:
+ 	if (err < 0)
+ 		return err;
  
- 		try_to_freeze();
+-	page = compound_head(page);
+-	lock_page(page);
+-	if (!page->mapping) {
+-		unlock_page(page);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	page_head = page;
++	if (unlikely(PageTail(page))) {
+ 		put_page(page);
++		/* serialize against __split_huge_page_splitting() */
++		local_irq_disable();
++		if (likely(__get_user_pages_fast(address, 1, 1, &page) == 1)) {
++			page_head = compound_head(page);
++			/*
++			 * page_head is valid pointer but we must pin
++			 * it before taking the PG_lock and/or
++			 * PG_compound_lock. The moment we re-enable
++			 * irqs __split_huge_page_splitting() can
++			 * return and the head page can be freed from
++			 * under us. We can't take the PG_lock and/or
++			 * PG_compound_lock on a page that could be
++			 * freed from under us.
++			 */
++			if (page != page_head) {
++				get_page(page_head);
++				put_page(page);
++			}
++			local_irq_enable();
++		} else {
++			local_irq_enable();
++			goto again;
++		}
++	}
++#else
++	page_head = compound_head(page);
++	if (page != page_head) {
++		get_page(page_head);
++		put_page(page);
++	}
++#endif
++
++	lock_page(page_head);
++	if (!page_head->mapping) {
++		unlock_page(page_head);
++		put_page(page_head);
+ 		goto again;
+ 	}
+ 
+@@ -280,20 +315,20 @@ again:
+ 	 * it's a read-only handle, it's expected that futexes attach to
+ 	 * the object not the particular process.
+ 	 */
+-	if (PageAnon(page)) {
++	if (PageAnon(page_head)) {
+ 		key->both.offset |= FUT_OFF_MMSHARED; /* ref taken on mm */
+ 		key->private.mm = mm;
+ 		key->private.address = address;
+ 	} else {
+ 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
+-		key->shared.inode = page->mapping->host;
+-		key->shared.pgoff = page->index;
++		key->shared.inode = page_head->mapping->host;
++		key->shared.pgoff = page_head->index;
+ 	}
+ 
+ 	get_futex_key_refs(key);
+ 
+-	unlock_page(page);
+-	put_page(page);
++	unlock_page(page_head);
++	put_page(page_head);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-linux-next.patch
-writeback-io-less-balance_dirty_pages.patch
-writeback-consolidate-variable-names-in-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
-writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
-writeback-account-per-bdi-accumulated-written-pages.patch
-writeback-bdi-write-bandwidth-estimation.patch
-writeback-bdi-write-bandwidth-estimation-fix.patch
-writeback-show-bdi-write-bandwidth-in-debugfs.patch
-writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
-writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
-writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
-writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
-writeback-add-trace-event-for-balance_dirty_pages.patch
-writeback-make-nr_to_write-a-per-file-limit.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
 thp-add-pagetranscompound.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 
