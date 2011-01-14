@@ -1,69 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-entries-affecting-via-technologies.patch removed from -mm tree
-Date: Fri, 14 Jan 2011 14:44:07 -0800
-Message-ID: <201101142246.p0EMkwTP004942@imap1.linux-foundation.org>
+Subject: [merged] atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch removed from -mm tree
+Date: Fri, 14 Jan 2011 14:44:14 -0800
+Message-ID: <201101142247.p0EMl45C004957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525Ab1ANWrI (ORCPT
+	by vger.kernel.org with ESMTP id S1752525Ab1ANWrU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 17:47:08 -0500
+	Fri, 14 Jan 2011 17:47:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: BruceChang@via.com.tw, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, brucechang@via.com.tw, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: claudio@evidence.eu.com, arkadiusz.bubala@gmail.com, greg@kroah.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update entries affecting VIA Technologies
+     atmel_serial: fix RTS high after initialization in RS485 mode
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-entries-affecting-via-technologies.patch
+     atmel_serial-fix-rts-high-after-initialization-in-rs485-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update entries affecting VIA Technologies
-From: Bruce Chang <BruceChang@via.com.tw>
+Subject: atmel_serial: fix RTS high after initialization in RS485 mode
+From: Claudio Scordino <claudio@evidence.eu.com>
 
-Since the original maintainer-Joseph Chan (josephchan@via.com.tw) doesn't
-handle the Linux driver for VIA now, I would like to request to update the
-maintainer for the SD/MMC CARD CONTROLLER DRIVER and VIA
-UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER before we find a better one. 
+When working in RS485 mode, the atmel_serial driver keeps RTS high after
+the initialization of the serial port.  It goes low only after the first
+character has been sent.
 
-Signed-off-by: Bruce Chang <brucechang@via.com.tw>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Harald Welte <HaraldWelte@viatech.com>
+[akpm@linux-foundation.org: simplify code]
+Signed-off-by: Claudio Scordino <claudio@evidence.eu.com>
+Signed-off-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
+Tested-by: Arkadiusz Bubala <arkadiusz.bubala@gmail.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/serial/atmel_serial.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-entries-affecting-via-technologies MAINTAINERS
---- a/MAINTAINERS~maintainers-update-entries-affecting-via-technologies
-+++ a/MAINTAINERS
-@@ -6592,13 +6592,12 @@ F:	Documentation/i2c/busses/i2c-viapro
- F:	drivers/i2c/busses/i2c-viapro.c
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-rts-high-after-initialization-in-rs485-mode
++++ a/drivers/serial/atmel_serial.c
+@@ -1732,6 +1732,11 @@ static int __devinit atmel_serial_probe(
+ 	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, port);
  
- VIA SD/MMC CARD CONTROLLER DRIVER
--M:	Joseph Chan <JosephChan@via.com.tw>
-+M:	Bruce Chang <brucechang@via.com.tw>
- M:	Harald Welte <HaraldWelte@viatech.com>
- S:	Maintained
- F:	drivers/mmc/host/via-sdmmc.c
++	if (port->rs485.flags & SER_RS485_ENABLED) {
++		UART_PUT_MR(&port->uart, ATMEL_US_USMODE_NORMAL);
++		UART_PUT_CR(&port->uart, ATMEL_US_RTSEN);
++	}
++
+ 	return 0;
  
- VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
--M:	Joseph Chan <JosephChan@via.com.tw>
- M:	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
+ err_add_port:
 _
 
-Patches currently in -mm which might be from BruceChang@via.com.tw are
+Patches currently in -mm which might be from claudio@evidence.eu.com are
 
 origin.patch
 
