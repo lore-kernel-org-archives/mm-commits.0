@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch added to -mm tree
-Date: Fri, 14 Jan 2011 15:33:03 -0800
-Message-ID: <201101142333.p0ENX4YO007353@imap1.linux-foundation.org>
+Subject: + x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch added to -mm tree
+Date: Fri, 14 Jan 2011 16:25:29 -0800
+Message-ID: <201101150025.p0F0PT8f009625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753785Ab1ANXdi (ORCPT
+	by vger.kernel.org with ESMTP id S1751130Ab1AOAZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Jan 2011 18:33:38 -0500
+	Fri, 14 Jan 2011 19:25:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg@redhat.com, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, rpurdie@rpsys.net, rui.zhang@intel.com
+Cc: rientjes@google.com, jj@chaosbits.net
 
 
 The patch titled
-     acpi: tie ACPI backlight devices to PCI devices if possible
+     x86, numa: add error handling for bad cpu-to-node mappings
 has been added to the -mm tree.  Its filename is
-     acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch
+     x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: tie ACPI backlight devices to PCI devices if possible
-From: Matthew Garrett <mjg@redhat.com>
+Subject: x86, numa: add error handling for bad cpu-to-node mappings
+From: David Rientjes <rientjes@google.com>
 
-Dual-GPU machines may provide more than one ACPI backlight interface.  Tie
-the backlight device to the GPU in order to allow userspace to identify
-the correct interface.
+CONFIG_DEBUG_PER_CPU_MAPS may return NUMA_NO_NODE when an
+early_cpu_to_node() mapping hasn't been initialized.  In such a case, it
+emits a warning and continues without an issue but callers may try to use
+the return value to index into an array.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+We can catch those errors and fail silently since a warning has already
+been emitted.  No current user of numa_add_cpu() requires this error
+checking to avoid a crash, but it's better to be proactive in case a
+future user happens to have a bug and a user tries to diagnose it with
+CONFIG_DEBUG_PER_CPU_MAPS.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Jesper Juhl <jj@chaosbits.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ arch/x86/mm/numa_64.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible
-+++ a/drivers/acpi/video.c
-@@ -782,6 +782,9 @@ static void acpi_video_device_find_cap(s
+diff -puN arch/x86/mm/numa_64.c~x86-numa-add-error-handling-for-bad-cpu-to-node-mappings arch/x86/mm/numa_64.c
+--- a/arch/x86/mm/numa_64.c~x86-numa-add-error-handling-for-bad-cpu-to-node-mappings
++++ a/arch/x86/mm/numa_64.c
+@@ -839,6 +839,10 @@ static struct cpumask __cpuinit *debug_c
+ 	struct cpumask *mask;
+ 	char buf[64];
  
- 	if (acpi_video_backlight_support()) {
- 		struct backlight_properties props;
-+		struct pci_dev *pdev;
-+		acpi_handle acpi_parent;
-+		struct device *parent = NULL;
- 		int result;
- 		static int count = 0;
- 		char *name;
-@@ -794,10 +797,20 @@ static void acpi_video_device_find_cap(s
- 			return;
- 		count++;
++	if (node == NUMA_NO_NODE) {
++		/* early_cpu_to_node() already emits a warning and trace */
++		return NULL;
++	}
+ 	mask = node_to_cpumask_map[node];
+ 	if (!mask) {
+ 		pr_err("node_to_cpumask_map[%i] NULL\n", node);
+@@ -877,6 +881,10 @@ static void __cpuinit numa_set_cpumask(i
+ 	struct cpumask *mask;
+ 	int i;
  
-+		acpi_get_parent(device->dev->handle, &acpi_parent);
-+
-+		pdev = acpi_get_pci_dev(acpi_parent);
-+		if (pdev) {
-+			parent = &pdev->dev;
-+			pci_dev_put(pdev);
-+		}
-+
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.type = BACKLIGHT_FIRMWARE;
- 		props.max_brightness = device->brightness->count - 3;
--		device->backlight = backlight_device_register(name, NULL, device,
-+		device->backlight = backlight_device_register(name,
-+							      parent,
-+							      device,
- 							      &acpi_backlight_ops,
- 							      &props);
- 		kfree(name);
++	if (node == NUMA_NO_NODE) {
++		/* early_cpu_to_node() already emits a warning and trace */
++		return;
++	}
+ 	for_each_online_node(i) {
+ 		unsigned long addr;
+ 
 _
 
-Patches currently in -mm which might be from mjg@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-acerhdf-add-support-for-aspire-1410-bios-v13314.patch
-backlight-add-backlight-type.patch
-i915-add-native-backlight-control.patch
-radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch
-nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev.patch
-acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch
-mbp_nvidia_bl-remove-dmi-dependency.patch
-mbp_nvidia_bl-check-that-the-backlight-control-functions.patch
-mbp_nvidia_bl-rename-to-apple_bl.patch
+linux-next.patch
+x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
 
