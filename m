@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch added to -mm tree
-Date: Sun, 16 Jan 2011 15:04:37 -0800
-Message-ID: <201101162304.p0GN4bx1025120@imap1.linux-foundation.org>
+Subject: + arch-x86-xen-mmuc-export-arbitrary_virt_to_machine.patch added to -mm tree
+Date: Sun, 16 Jan 2011 16:54:52 -0800
+Message-ID: <201101170054.p0H0sqUm029249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751696Ab1APXFR (ORCPT
+	by vger.kernel.org with ESMTP id S1751709Ab1AQAy7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Jan 2011 18:05:17 -0500
+	Sun, 16 Jan 2011 19:54:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: James.Bottomley@HansenPartnership.com, aarcange@redhat.com
+Cc: akpm@linux-foundation.org, jeremy@goop.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     parisc: fix compile breakage caused by inlining maybe_mkwrite
+     arch/x86/xen/mmu.c: export arbitrary_virt_to_machine()
 has been added to the -mm tree.  Its filename is
-     parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch
+     arch-x86-xen-mmuc-export-arbitrary_virt_to_machine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: fix compile breakage caused by inlining maybe_mkwrite
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: arch/x86/xen/mmu.c: export arbitrary_virt_to_machine()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-on Parisc, we have an include of linux/mm.h inside our asm/pgtable.h, so
-14fd403f2 ("thp: export maybe_mkwrite") causes us an unsatisfiable use of
-pte_mkwrite in linux/mm.h
+x86_4 allmodconfig:
 
-The fix is obviously not to include linux/mm.h in our pgtable.h, which
-unbreaks the build.
+ERROR: "arbitrary_virt_to_machine" [drivers/xen/xen-gntdev.ko] undefined!
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgtable.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/xen/mmu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite arch/parisc/include/asm/pgtable.h
---- a/arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -10,11 +10,13 @@
-  * we simulate an x86-style page table for the linux mm code
-  */
+diff -puN arch/x86/xen/mmu.c~arch-x86-xen-mmuc-export-arbitrary_virt_to_machine arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~arch-x86-xen-mmuc-export-arbitrary_virt_to_machine
++++ a/arch/x86/xen/mmu.c
+@@ -201,6 +201,7 @@ xmaddr_t arbitrary_virt_to_machine(void 
+ 	offset = address & ~PAGE_MASK;
+ 	return XMADDR(((phys_addr_t)pte_mfn(*pte) << PAGE_SHIFT) + offset);
+ }
++EXPORT_SYMBOL_GPL(arbitrary_virt_to_machine);
  
--#include <linux/mm.h>		/* for vm_area_struct */
- #include <linux/bitops.h>
-+#include <linux/spinlock.h>
- #include <asm/processor.h>
- #include <asm/cache.h>
- 
-+struct vm_area_struct;
-+
- /*
-  * kern_addr_valid(ADDR) tests if ADDR is pointing to valid kernel
-  * memory.  For the return value to be meaningful, ADDR must be >=
+ void make_lowmem_page_readonly(void *vaddr)
+ {
 _
 
-Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n.patch
-parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch
+drivers-nfc-pn544c-fix-min_t-warnings.patch
+arch-x86-xen-mmuc-export-arbitrary_virt_to_machine.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
-scsi-fix-a-header-to-include-linux-typesh.patch
-scatterlist-new-helper-functions.patch
+mm.patch
+writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-deactivate-invalidated-pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
 scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
