@@ -1,117 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 13:57:24 -0800
-Message-ID: <201101182157.p0ILvOQ4007653__21958.0798795961$1295387898$gmane$org@imap1.linux-foundation.org>
+Subject: [folded] n_hdlc-fix-read-and-write-locking-update.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 14:03:02 -0800
+Message-ID: <201101182203.p0IM32oN007969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750923Ab1ARV6L (ORCPT
+	by vger.kernel.org with ESMTP id S1752139Ab1ARWDX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 16:58:11 -0500
+	Tue, 18 Jan 2011 17:03:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterhuewe@gmx.de, anarsoul@gmail.com, ben-linux@fluff.org, linux@arm.linux.org.uk, rpurdie@rpsys.net, stable@kernel.org, support@simtec.co.uk, mm-commits@vger.kernel.org
+To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
+     n_hdlc-fix-read-and-write-locking-update
 has been removed from the -mm tree.  Its filename was
-     leds-h1940-use-gpiolib-for-latch-access-fix-build-failure.patch
+     n_hdlc-fix-read-and-write-locking-update.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into n_hdlc-fix-read-and-write-locking.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-h1940.c: use gpiolib for latch access, fix build failure
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: n_hdlc-fix-read-and-write-locking-update
+From: Paul Fulghum <paulkf@microgate.com>
 
-Fix a build failure by converting leds-h1940.c to use gpiolib for latch
-access introduced by 14477095abc6 ("ARM: h1940: Use gpiolib for latch
-access").
-
-drivers/leds/leds-h1940.c: In function 'h1940_greenled_set':
-drivers/leds/leds-h1940.c:33: error: implicit declaration of function 'h1940_latch_control'
-
-Unfortunately this driver was not converted back then.
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Cc: Vasily Khoruzhick <anarsoul@gmail.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Vincent Sanders <support@simtec.co.uk>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <stable@kernel.org>		[2.6.37.x]
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-h1940.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/tty/n_hdlc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure drivers/leds/leds-h1940.c
---- a/drivers/leds/leds-h1940.c~leds-h1940-use-gpiolib-for-latch-access-fix-build-failure
-+++ a/drivers/leds/leds-h1940.c
-@@ -30,17 +30,17 @@ static void h1940_greenled_set(struct le
- {
- 	switch (value) {
- 	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
- 		break;
- 	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_GREEN);
-+		gpio_set_value(H1940_LATCH_LED_GREEN, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
- 		break;
- 	default:
- 	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_GREEN, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_GREEN, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA7, 0);
- 		break;
- 	}
-@@ -60,17 +60,17 @@ static void h1940_redled_set(struct led_
- {
- 	switch (value) {
- 	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
- 		break;
- 	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_RED);
-+		gpio_set_value(H1940_LATCH_LED_RED, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
- 		break;
- 	default:
- 	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_RED, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_RED, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA1, 0);
- 		break;
- 	}
-@@ -91,10 +91,10 @@ static void h1940_blueled_set(struct led
- {
- 	if (value) {
- 		/* flashing Blue */
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 1);
- 		s3c2410_gpio_setpin(S3C2410_GPA3, 1);
- 	} else {
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
-+		gpio_set_value(H1940_LATCH_LED_FLASH, 0);
- 		s3c2410_gpio_setpin(S3C2410_GPA3, 0);
+diff -puN drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking-update drivers/tty/n_hdlc.c
+--- a/drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking-update
++++ a/drivers/tty/n_hdlc.c
+@@ -646,7 +646,7 @@ static ssize_t n_hdlc_tty_read(struct tt
  	}
  
+ 	remove_wait_queue(&tty->read_wait, &wait);
+-	set_current_state(TASK_RUNNING);
++	__set_current_state(TASK_RUNNING);
+ 
+ 	return ret;
+ 	
+@@ -719,7 +719,7 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		}
+ 	}
+ 
+-	set_current_state(TASK_RUNNING);
++	__set_current_state(TASK_RUNNING);
+ 	remove_wait_queue(&tty->write_wait, &wait);
+ 
+ 	if (!error) {		
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-origin.patch
+n_hdlc-fix-read-and-write-locking.patch
 
