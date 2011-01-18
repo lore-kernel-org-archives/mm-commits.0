@@ -1,73 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-add-pagetranscompound.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 12:30:14 -0800
-Message-ID: <201101182030.p0IKUEKi003544@imap1.linux-foundation.org>
+Subject: [merged] parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 12:30:10 -0800
+Message-ID: <201101182030.p0IKUACb003538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364Ab1ARUnd (ORCPT
+	by vger.kernel.org with ESMTP id S1753274Ab1ARUn4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 15:43:33 -0500
+	Tue, 18 Jan 2011 15:43:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: James.Bottomley@HansenPartnership.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: add PageTransCompound
+     parisc: fix compile breakage caused by inlining maybe_mkwrite
 has been removed from the -mm tree.  Its filename was
-     thp-add-pagetranscompound.patch
+     parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: add PageTransCompound
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: parisc: fix compile breakage caused by inlining maybe_mkwrite
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
 
-Remove branches when CONFIG_TRANSPARENT_HUGEPAGE=n.
+on Parisc, we have an include of linux/mm.h inside our asm/pgtable.h, so
+14fd403f2 ("thp: export maybe_mkwrite") causes us an unsatisfiable use of
+pte_mkwrite in linux/mm.h
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+The fix is obviously not to include linux/mm.h in our pgtable.h, which
+unbreaks the build.
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/parisc/include/asm/pgtable.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~thp-add-pagetranscompound include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-add-pagetranscompound
-+++ a/include/linux/page-flags.h
-@@ -429,6 +429,11 @@ static inline int PageTransCompound(stru
- 	return PageCompound(page);
- }
+diff -puN arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite arch/parisc/include/asm/pgtable.h
+--- a/arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -10,11 +10,13 @@
+  * we simulate an x86-style page table for the linux mm code
+  */
  
-+static inline int PageTransCompound(struct page *page)
-+{
-+	return PageCompound(page);
-+}
+-#include <linux/mm.h>		/* for vm_area_struct */
+ #include <linux/bitops.h>
++#include <linux/spinlock.h>
+ #include <asm/processor.h>
+ #include <asm/cache.h>
+ 
++struct vm_area_struct;
 +
- #else
- 
- static inline int PageTransHuge(struct page *page)
-@@ -440,6 +445,11 @@ static inline int PageTransCompound(stru
- {
- 	return 0;
- }
-+
-+static inline int PageTransCompound(struct page *page)
-+{
-+	return 0;
-+}
- #endif
- 
- #ifdef CONFIG_MMU
+ /*
+  * kern_addr_valid(ADDR) tests if ADDR is pointing to valid kernel
+  * memory.  For the return value to be meaningful, ADDR must be >=
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
 
 origin.patch
 linux-next.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+scsi-fix-a-header-to-include-linux-typesh.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-fix.patch
 
