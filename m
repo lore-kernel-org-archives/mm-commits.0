@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-keep-list-of-mounts-for-each-superblock.patch added to -mm tree
-Date: Tue, 18 Jan 2011 15:10:05 -0800
-Message-ID: <201101182310.p0INA5Rp011257@imap1.linux-foundation.org>
+Subject: + vfs-ignore-error-on-forced-remount.patch added to -mm tree
+Date: Tue, 18 Jan 2011 15:10:03 -0800
+Message-ID: <201101182310.p0INA3lf011251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752283Ab1ARXKl (ORCPT
+	by vger.kernel.org with ESMTP id S1752283Ab1ARXKk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:10:41 -0500
+	Tue, 18 Jan 2011 18:10:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     vfs: keep list of mounts for each superblock
+     vfs: ignore error on forced remount
 has been added to the -mm tree.  Its filename is
-     vfs-keep-list-of-mounts-for-each-superblock.patch
+     vfs-ignore-error-on-forced-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: keep list of mounts for each superblock
+Subject: vfs: ignore error on forced remount
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Keep track of vfsmounts belonging to a superblock.  List is protected by
-vfsmount_lock.
+On emergency remount we want to force MS_RDONLY on the super block even if
+->remount_fs() failed for some reason.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |    5 +++++
- fs/super.c            |    7 +++++++
- include/linux/fs.h    |    1 +
- include/linux/mount.h |    1 +
- 4 files changed, 14 insertions(+)
+ fs/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock fs/namespace.c
---- a/fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/fs/namespace.c
-@@ -723,6 +723,10 @@ static struct vfsmount *clone_mnt(struct
- 			if (!list_empty(&old->mnt_expire))
- 				list_add(&mnt->mnt_expire, &old->mnt_expire);
- 		}
-+
-+		br_write_lock(vfsmount_lock);
-+		list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+		br_write_unlock(vfsmount_lock);
- 	}
- 	return mnt;
- 
-@@ -783,6 +787,7 @@ put_again:
- 		acct_auto_close_mnt(mnt);
- 		goto put_again;
- 	}
-+	list_del(&mnt->mnt_instance);
- 	br_write_unlock(vfsmount_lock);
- 	mntfree(mnt);
- }
-diff -puN fs/super.c~vfs-keep-list-of-mounts-for-each-superblock fs/super.c
---- a/fs/super.c~vfs-keep-list-of-mounts-for-each-superblock
+diff -puN fs/super.c~vfs-ignore-error-on-forced-remount fs/super.c
+--- a/fs/super.c~vfs-ignore-error-on-forced-remount
 +++ a/fs/super.c
-@@ -76,6 +76,7 @@ static struct super_block *alloc_super(s
- 		INIT_HLIST_BL_HEAD(&s->s_anon);
- 		INIT_LIST_HEAD(&s->s_inodes);
- 		INIT_LIST_HEAD(&s->s_dentry_lru);
-+		INIT_LIST_HEAD(&s->s_mounts);
- 		init_rwsem(&s->s_umount);
- 		mutex_init(&s->s_lock);
- 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
-@@ -130,6 +131,7 @@ static inline void destroy_super(struct 
- 	free_percpu(s->s_files);
- #endif
- 	security_sb_free(s);
-+	WARN_ON(!list_empty(&s->s_mounts));
- 	kfree(s->s_subtype);
- 	kfree(s->s_options);
- 	kfree(s);
-@@ -1022,6 +1024,11 @@ vfs_kern_mount(struct file_system_type *
- 	mnt->mnt_parent = mnt;
- 	up_write(&mnt->mnt_sb->s_umount);
- 	free_secdata(secdata);
-+
-+	br_write_lock(vfsmount_lock);
-+	list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+	br_write_unlock(vfsmount_lock);
-+
- 	return mnt;
- out_sb:
- 	dput(mnt->mnt_root);
-diff -puN include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/fs.h
---- a/include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/include/linux/fs.h
-@@ -1386,6 +1386,7 @@ struct super_block {
- #else
- 	struct list_head	s_files;
- #endif
-+	struct list_head	s_mounts;	/* list of mounts */
- 	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
- 	struct list_head	s_dentry_lru;	/* unused dentry lru */
- 	int			s_nr_dentry_unused;	/* # of dentry on lru */
-diff -puN include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/mount.h
---- a/include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/include/linux/mount.h
-@@ -67,6 +67,7 @@ struct vfsmount {
- #endif
- 	struct list_head mnt_mounts;	/* list of children, anchored here */
- 	struct list_head mnt_child;	/* and going through their mnt_child */
-+	struct list_head mnt_instance;	/* mount instance on sb->s_mounts */
- 	int mnt_flags;
- 	/* 4 bytes hole on 64bits arches without fsnotify */
- #ifdef CONFIG_FSNOTIFY
+@@ -583,7 +583,8 @@ int do_remount_sb(struct super_block *sb
+ 
+ 	if (sb->s_op->remount_fs) {
+ 		retval = sb->s_op->remount_fs(sb, &flags, data);
+-		if (retval)
++		/* If forced remount, go ahead despite any errors */
++		if (retval && !force)
+ 			return retval;
+ 	}
+ 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
