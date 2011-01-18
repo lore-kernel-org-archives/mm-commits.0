@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch added to -mm tree
-Date: Tue, 18 Jan 2011 15:08:00 -0800
-Message-ID: <201101182308.p0IN81gX011115@imap1.linux-foundation.org>
+Subject: + vfs-keep-list-of-mounts-for-each-superblock.patch added to -mm tree
+Date: Tue, 18 Jan 2011 15:10:05 -0800
+Message-ID: <201101182310.p0INA5Rp011257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753040Ab1ARXIl (ORCPT
+	by vger.kernel.org with ESMTP id S1752283Ab1ARXKl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:08:41 -0500
+	Tue, 18 Jan 2011 18:10:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, mel@csn.ul.ie
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     mm: compaction: prevent division-by-zero during user-requested compaction
+     vfs: keep list of mounts for each superblock
 has been added to the -mm tree.  Its filename is
-     mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
+     vfs-keep-list-of-mounts-for-each-superblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: prevent division-by-zero during user-requested compaction
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: vfs: keep list of mounts for each superblock
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Up until 3e7d344 ("mm: vmscan: reclaim order-0 and use compaction instead
-of lumpy reclaim"), compaction skipped calculating the fragmentation index
-of a zone when compaction was explicitely requested through the procfs
-knob.
+Keep track of vfsmounts belonging to a superblock.  List is protected by
+vfsmount_lock.
 
-However, when compaction_suitable was introduced, it did not come with an
-extra check for order == -1, set on explicit compaction requests, and
-passed this order on to the fragmentation index calculation, where it
-overshifts the number of requested pages, leading to a division by zero.
-
-This patch makes sure that order == -1 is recognized as the flag it is
-rather than passing it along as valid order parameter.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/namespace.c        |    5 +++++
+ fs/super.c            |    7 +++++++
+ include/linux/fs.h    |    1 +
+ include/linux/mount.h |    1 +
+ 4 files changed, 14 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction
-+++ a/mm/compaction.c
-@@ -453,6 +453,9 @@ unsigned long compaction_suitable(struct
- 	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
- 		return COMPACT_SKIPPED;
- 
-+	if (order == -1)
-+		return COMPACT_CONTINUE;
+diff -puN fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock fs/namespace.c
+--- a/fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock
++++ a/fs/namespace.c
+@@ -723,6 +723,10 @@ static struct vfsmount *clone_mnt(struct
+ 			if (!list_empty(&old->mnt_expire))
+ 				list_add(&mnt->mnt_expire, &old->mnt_expire);
+ 		}
 +
- 	/*
- 	 * fragmentation index determines if allocation failures are due to
- 	 * low memory or external fragmentation
++		br_write_lock(vfsmount_lock);
++		list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
++		br_write_unlock(vfsmount_lock);
+ 	}
+ 	return mnt;
+ 
+@@ -783,6 +787,7 @@ put_again:
+ 		acct_auto_close_mnt(mnt);
+ 		goto put_again;
+ 	}
++	list_del(&mnt->mnt_instance);
+ 	br_write_unlock(vfsmount_lock);
+ 	mntfree(mnt);
+ }
+diff -puN fs/super.c~vfs-keep-list-of-mounts-for-each-superblock fs/super.c
+--- a/fs/super.c~vfs-keep-list-of-mounts-for-each-superblock
++++ a/fs/super.c
+@@ -76,6 +76,7 @@ static struct super_block *alloc_super(s
+ 		INIT_HLIST_BL_HEAD(&s->s_anon);
+ 		INIT_LIST_HEAD(&s->s_inodes);
+ 		INIT_LIST_HEAD(&s->s_dentry_lru);
++		INIT_LIST_HEAD(&s->s_mounts);
+ 		init_rwsem(&s->s_umount);
+ 		mutex_init(&s->s_lock);
+ 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
+@@ -130,6 +131,7 @@ static inline void destroy_super(struct 
+ 	free_percpu(s->s_files);
+ #endif
+ 	security_sb_free(s);
++	WARN_ON(!list_empty(&s->s_mounts));
+ 	kfree(s->s_subtype);
+ 	kfree(s->s_options);
+ 	kfree(s);
+@@ -1022,6 +1024,11 @@ vfs_kern_mount(struct file_system_type *
+ 	mnt->mnt_parent = mnt;
+ 	up_write(&mnt->mnt_sb->s_umount);
+ 	free_secdata(secdata);
++
++	br_write_lock(vfsmount_lock);
++	list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
++	br_write_unlock(vfsmount_lock);
++
+ 	return mnt;
+ out_sb:
+ 	dput(mnt->mnt_root);
+diff -puN include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/fs.h
+--- a/include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock
++++ a/include/linux/fs.h
+@@ -1386,6 +1386,7 @@ struct super_block {
+ #else
+ 	struct list_head	s_files;
+ #endif
++	struct list_head	s_mounts;	/* list of mounts */
+ 	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
+ 	struct list_head	s_dentry_lru;	/* unused dentry lru */
+ 	int			s_nr_dentry_unused;	/* # of dentry on lru */
+diff -puN include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/mount.h
+--- a/include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock
++++ a/include/linux/mount.h
+@@ -67,6 +67,7 @@ struct vfsmount {
+ #endif
+ 	struct list_head mnt_mounts;	/* list of children, anchored here */
+ 	struct list_head mnt_child;	/* and going through their mnt_child */
++	struct list_head mnt_instance;	/* mount instance on sb->s_mounts */
+ 	int mnt_flags;
+ 	/* 4 bytes hole on 64bits arches without fsnotify */
+ #ifdef CONFIG_FSNOTIFY
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
-writeback-check-skipped-pages-on-wb_sync_all.patch
-mm-deactivate-invalidated-pages.patch
+linux-next.patch
+vfs-ignore-error-on-forced-remount.patch
+vfs-keep-list-of-mounts-for-each-superblock.patch
+vfs-protect-remounting-superblock-read-only.patch
+vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
 
