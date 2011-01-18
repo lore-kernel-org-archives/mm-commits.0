@@ -1,68 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] writeback-make-nr_to_write-a-per-file-limit-fix.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 14:05:21 -0800
-Message-ID: <201101182205.p0IM5LY8008147@imap1.linux-foundation.org>
+Subject: + mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch added to -mm tree
+Date: Tue, 18 Jan 2011 15:08:03 -0800
+Message-ID: <201101182308.p0IN84Hr011118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644Ab1ARWGk (ORCPT
+	by vger.kernel.org with ESMTP id S1753032Ab1ARXIl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 17:06:40 -0500
+	Tue, 18 Jan 2011 18:08:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, jack@suse.cz, kosaki.motohiro@jp.f
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie
 
 
 The patch titled
-     writeback-make-nr_to_write-a-per-file-limit-fix
-has been removed from the -mm tree.  Its filename was
-     writeback-make-nr_to_write-a-per-file-limit-fix.patch
+     mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
+has been added to the -mm tree.  Its filename is
+     mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
 
-This patch was dropped because it was folded into writeback-make-nr_to_write-a-per-file-limit.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-make-nr_to_write-a-per-file-limit-fix
+Subject: mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-older gcc's are dumb:
+add comment, per Mel
 
-fs/fs-writeback.c: In function 'writeback_single_inode':
-fs/fs-writeback.c:334: warning: 'nr_to_write' may be used uninitialized in this function
-
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-make-nr_to_write-a-per-file-limit-fix
-+++ a/fs/fs-writeback.c
-@@ -331,7 +331,7 @@ writeback_single_inode(struct inode *ino
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	long per_file_limit = wbc->per_file_limit;
--	long nr_to_write;
-+	long uninitialized_var(nr_to_write);
- 	unsigned dirty;
- 	int ret;
+diff -puN mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
++++ a/mm/compaction.c
+@@ -453,6 +453,10 @@ unsigned long compaction_suitable(struct
+ 	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
+ 		return COMPACT_SKIPPED;
+ 
++	/*
++	 * order == -1 is expected when compacting via
++	 * /proc/sys/vm/compact_memory
++	 */
+ 	if (order == -1)
+ 		return COMPACT_CONTINUE;
  
 _
 
@@ -74,6 +71,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 mm-vmap-area-cache.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
