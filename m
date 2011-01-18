@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-protect-remounting-superblock-read-only.patch added to -mm tree
-Date: Tue, 18 Jan 2011 15:10:07 -0800
-Message-ID: <201101182310.p0INA721011260@imap1.linux-foundation.org>
+Subject: + mm-add-replace_page_cache_page-function.patch added to -mm tree
+Date: Tue, 18 Jan 2011 15:29:18 -0800
+Message-ID: <201101182329.p0INTIpg013360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751714Ab1ARXLg (ORCPT
+	by vger.kernel.org with ESMTP id S1752409Ab1ARX35 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:11:36 -0500
+	Tue, 18 Jan 2011 18:29:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mszeredi@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     vfs: protect remounting superblock read-only
+     mm: add replace_page_cache_page() function
 has been added to the -mm tree.  Its filename is
-     vfs-protect-remounting-superblock-read-only.patch
+     mm-add-replace_page_cache_page-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,211 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: protect remounting superblock read-only
+Subject: mm: add replace_page_cache_page() function
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Currently remouting superblock read-only is racy in a major way.
+This function basically does:
 
-With the per mount read-only infrastructure it is now possible to prevent
-most races, which this patch attempts.
+     remove_from_page_cache(old);
+     page_cache_release(old);
+     add_to_page_cache_locked(new);
 
-Before starting the remount read-only, iterate through all mounts
-belonging to the superblock and if none of them have any pending writes,
-set sb->s_readonly_remount.  This indicates that remount is in progress
-and no further write requests are allowed.  If the remount succeeds set
-MS_RDONLY and reset s_readonly_remount.
+Except it does this atomically, so there's no possibility for the "add" to
+fail because of a race.
 
-If the remounting is unsuccessful just reset s_readonly_remount.  This can
-result in transient EROFS errors, despite the fact the remount failed. 
-Unfortunately hodling off writes is difficult as remount itself may touch
-the filesystem (e.g.  through load_nls()) which would deadlock.
+If memory cgroups are enabled, then the memory cgroup charge is also moved
+from the old page to the new.
 
-Small races still remain because delayed writes due to nlink going to zero
-but inode still having a reference are not dealt with by this patch.
+This function is currently used by fuse to move pages into the page cache
+on read, instead of copying the page contents.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/internal.h      |    1 +
- fs/namespace.c     |   40 +++++++++++++++++++++++++++++++++++++++-
- fs/super.c         |   22 ++++++++++++++++++----
- include/linux/fs.h |    3 +++
- 4 files changed, 61 insertions(+), 5 deletions(-)
+ fs/fuse/dev.c              |   10 ++---
+ include/linux/memcontrol.h |    4 +-
+ include/linux/pagemap.h    |    1 
+ mm/filemap.c               |   65 +++++++++++++++++++++++++++++++++++
+ mm/memcontrol.c            |    4 +-
+ mm/migrate.c               |    2 -
+ 6 files changed, 75 insertions(+), 11 deletions(-)
 
-diff -puN fs/internal.h~vfs-protect-remounting-superblock-read-only fs/internal.h
---- a/fs/internal.h~vfs-protect-remounting-superblock-read-only
-+++ a/fs/internal.h
-@@ -74,6 +74,7 @@ extern int finish_automount(struct vfsmo
+diff -puN fs/fuse/dev.c~mm-add-replace_page_cache_page-function fs/fuse/dev.c
+--- a/fs/fuse/dev.c~mm-add-replace_page_cache_page-function
++++ a/fs/fuse/dev.c
+@@ -737,14 +737,12 @@ static int fuse_try_move_page(struct fus
+ 	if (WARN_ON(PageMlocked(oldpage)))
+ 		goto out_fallback_unlock;
  
- extern void mnt_make_longterm(struct vfsmount *);
- extern void mnt_make_shortterm(struct vfsmount *);
-+extern int sb_prepare_remount_readonly(struct super_block *);
- 
- extern void __init mnt_init(void);
- 
-diff -puN fs/namespace.c~vfs-protect-remounting-superblock-read-only fs/namespace.c
---- a/fs/namespace.c~vfs-protect-remounting-superblock-read-only
-+++ a/fs/namespace.c
-@@ -311,6 +311,15 @@ static unsigned int mnt_get_writers(stru
- #endif
- }
- 
-+static int mnt_is_readonly(struct vfsmount *mnt)
-+{
-+	if (mnt->mnt_sb->s_readonly_remount)
-+		return 1;
-+	/* Order wrt setting s_flags/s_readonly_remount in do_remount() */
-+	smp_rmb();
-+	return __mnt_is_readonly(mnt);
-+}
+-	remove_from_page_cache(oldpage);
+-	page_cache_release(oldpage);
+-
+-	err = add_to_page_cache_locked(newpage, mapping, index, GFP_KERNEL);
++	err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
+ 	if (err) {
+-		printk(KERN_WARNING "fuse_try_move_page: failed to add page");
+-		goto out_fallback_unlock;
++		unlock_page(newpage);
++		return err;
+ 	}
 +
- /*
-  * Most r/o checks on a fs are for operations that take
-  * discrete amounts of time, like a write() or unlink().
-@@ -349,7 +358,7 @@ int mnt_want_write(struct vfsmount *mnt)
- 	 * MNT_WRITE_HOLD is cleared.
- 	 */
- 	smp_rmb();
--	if (__mnt_is_readonly(mnt)) {
-+	if (mnt_is_readonly(mnt)) {
- 		mnt_dec_writers(mnt);
- 		ret = -EROFS;
- 		goto out;
-@@ -466,6 +475,35 @@ static void __mnt_unmake_readonly(struct
- 	br_write_unlock(vfsmount_lock);
- }
+ 	page_cache_get(newpage);
  
-+int sb_prepare_remount_readonly(struct super_block *sb)
-+{
-+	struct vfsmount *mnt;
-+	int err = 0;
-+
-+	br_write_lock(vfsmount_lock);
-+	list_for_each_entry(mnt, &sb->s_mounts, mnt_instance) {
-+		if (!(mnt->mnt_flags & MNT_READONLY)) {
-+			mnt->mnt_flags |= MNT_WRITE_HOLD;
-+			smp_mb();
-+			if (mnt_get_writers(mnt) > 0) {
-+				err = -EBUSY;
-+				break;
-+			}
-+		}
-+	}
-+	if (!err) {
-+		sb->s_readonly_remount = 1;
-+		smp_wmb();
-+	}
-+	list_for_each_entry(mnt, &sb->s_mounts, mnt_instance) {
-+		if (mnt->mnt_flags & MNT_WRITE_HOLD)
-+			mnt->mnt_flags &= ~MNT_WRITE_HOLD;
-+	}
-+	br_write_unlock(vfsmount_lock);
-+
-+	return err;
-+}
-+
- void simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
+diff -puN include/linux/memcontrol.h~mm-add-replace_page_cache_page-function include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-add-replace_page_cache_page-function
++++ a/include/linux/memcontrol.h
+@@ -96,7 +96,7 @@ extern struct cgroup_subsys_state *mem_c
+ 
+ extern int
+ mem_cgroup_prepare_migration(struct page *page,
+-	struct page *newpage, struct mem_cgroup **ptr);
++	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask);
+ extern void mem_cgroup_end_migration(struct mem_cgroup *mem,
+ 	struct page *oldpage, struct page *newpage, bool migration_ok);
+ 
+@@ -245,7 +245,7 @@ static inline struct cgroup_subsys_state
+ 
+ static inline int
+ mem_cgroup_prepare_migration(struct page *page, struct page *newpage,
+-	struct mem_cgroup **ptr)
++	struct mem_cgroup **ptr, gfp_t gfp_mask)
  {
- 	mnt->mnt_sb = sb;
-diff -puN fs/super.c~vfs-protect-remounting-superblock-read-only fs/super.c
---- a/fs/super.c~vfs-protect-remounting-superblock-read-only
-+++ a/fs/super.c
-@@ -577,19 +577,29 @@ int do_remount_sb(struct super_block *sb
- 	/* If we are remounting RDONLY and current sb is read/write,
- 	   make sure there are no rw files opened */
- 	if (remount_ro) {
--		if (force)
-+		if (force) {
- 			mark_files_ro(sb);
--		else if (!fs_may_remount_ro(sb))
--			return -EBUSY;
-+		} else {
-+			retval = sb_prepare_remount_readonly(sb);
-+			if (retval)
-+				return retval;
-+
-+			retval = -EBUSY;
-+			if (!fs_may_remount_ro(sb))
-+				goto cancel_readonly;
-+		}
- 	}
- 
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
- 		/* If forced remount, go ahead despite any errors */
- 		if (retval && !force)
--			return retval;
-+			goto cancel_readonly;
- 	}
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
-+	/* Needs to be ordered wrt mnt_is_readonly() */
-+	smp_wmb();
-+	sb->s_readonly_remount = 0;
- 
- 	/*
- 	 * Some filesystems modify their metadata via some other path than the
-@@ -602,6 +612,10 @@ int do_remount_sb(struct super_block *sb
- 	if (remount_ro && sb->s_bdev)
- 		invalidate_bdev(sb->s_bdev);
  	return 0;
-+
-+cancel_readonly:
-+	sb->s_readonly_remount = 0;
-+	return retval;
  }
+diff -puN include/linux/pagemap.h~mm-add-replace_page_cache_page-function include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-add-replace_page_cache_page-function
++++ a/include/linux/pagemap.h
+@@ -457,6 +457,7 @@ int add_to_page_cache_lru(struct page *p
+ 				pgoff_t index, gfp_t gfp_mask);
+ extern void remove_from_page_cache(struct page *page);
+ extern void __remove_from_page_cache(struct page *page);
++int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
  
- static void do_emergency_remount(struct work_struct *work)
-diff -puN include/linux/fs.h~vfs-protect-remounting-superblock-read-only include/linux/fs.h
---- a/include/linux/fs.h~vfs-protect-remounting-superblock-read-only
-+++ a/include/linux/fs.h
-@@ -1432,6 +1432,9 @@ struct super_block {
- 	 * Saved pool identifier for cleancache (-1 means none)
- 	 */
- 	int cleancache_poolid;
+ /*
+  * Like add_to_page_cache_locked, but used to add newly allocated pages:
+diff -puN mm/filemap.c~mm-add-replace_page_cache_page-function mm/filemap.c
+--- a/mm/filemap.c~mm-add-replace_page_cache_page-function
++++ a/mm/filemap.c
+@@ -398,6 +398,71 @@ int filemap_write_and_wait_range(struct 
+ EXPORT_SYMBOL(filemap_write_and_wait_range);
+ 
+ /**
++ * replace_page_cache_page - replace a pagecache page with a new one
++ * @old:	page to be replaced
++ * @new:	page to replace with
++ * @gfp_mask:	allocation mode
++ *
++ * This function replaces a page in the pagecache with a new one.  On
++ * success it acquires the pagecache reference for the new page and
++ * drops it for the old page.  Both the old and new pages must be
++ * locked.  This function does not add the new page to the LRU, the
++ * caller must do that.
++ *
++ * The remove + add is atomic.  The only way this function can fail is
++ * memory allocation failure.
++ */
++int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
++{
++	int error;
++	struct mem_cgroup *memcg = NULL;
 +
-+	/* Being remounted read-only */
-+	int s_readonly_remount;
- };
++	VM_BUG_ON(!PageLocked(old));
++	VM_BUG_ON(!PageLocked(new));
++	VM_BUG_ON(new->mapping);
++
++	/*
++	 * This is not page migration, but prepare_migration and
++	 * end_migration does enough work for charge replacement.
++	 *
++	 * In the longer term we probably want a specialized function
++	 * for moving the charge from old to new in a more efficient
++	 * manner.
++	 */
++	error = mem_cgroup_prepare_migration(old, new, &memcg, gfp_mask);
++	if (error)
++		return error;
++
++	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
++	if (!error) {
++		struct address_space *mapping = old->mapping;
++		pgoff_t offset = old->index;
++
++		page_cache_get(new);
++		new->mapping = mapping;
++		new->index = offset;
++
++		spin_lock_irq(&mapping->tree_lock);
++		__remove_from_page_cache(old);
++		error = radix_tree_insert(&mapping->page_tree, offset, new);
++		BUG_ON(error);
++		mapping->nrpages++;
++		__inc_zone_page_state(new, NR_FILE_PAGES);
++		if (PageSwapBacked(new))
++			__inc_zone_page_state(new, NR_SHMEM);
++		spin_unlock_irq(&mapping->tree_lock);
++		radix_tree_preload_end();
++		page_cache_release(old);
++		mem_cgroup_end_migration(memcg, old, new, true);
++	} else {
++		mem_cgroup_end_migration(memcg, old, new, false);
++	}
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(replace_page_cache_page);
++
++/**
+  * add_to_page_cache_locked - add a locked page to the pagecache
+  * @page:	page to add
+  * @mapping:	the page's address_space
+diff -puN mm/memcontrol.c~mm-add-replace_page_cache_page-function mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-add-replace_page_cache_page-function
++++ a/mm/memcontrol.c
+@@ -2806,7 +2806,7 @@ static inline int mem_cgroup_move_swap_a
+  * page belongs to.
+  */
+ int mem_cgroup_prepare_migration(struct page *page,
+-	struct page *newpage, struct mem_cgroup **ptr)
++	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask)
+ {
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+@@ -2863,7 +2863,7 @@ int mem_cgroup_prepare_migration(struct 
+ 		return 0;
  
- extern struct timespec current_fs_time(struct super_block *sb);
+ 	*ptr = mem;
+-	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false, PAGE_SIZE);
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask, ptr, false, PAGE_SIZE);
+ 	css_put(&mem->css);/* drop extra refcnt */
+ 	if (ret || *ptr == NULL) {
+ 		if (PageAnon(page)) {
+diff -puN mm/migrate.c~mm-add-replace_page_cache_page-function mm/migrate.c
+--- a/mm/migrate.c~mm-add-replace_page_cache_page-function
++++ a/mm/migrate.c
+@@ -678,7 +678,7 @@ static int unmap_and_move(new_page_t get
+ 	}
+ 
+ 	/* charge against new page */
+-	charge = mem_cgroup_prepare_migration(page, newpage, &mem);
++	charge = mem_cgroup_prepare_migration(page, newpage, &mem, GFP_KERNEL);
+ 	if (charge == -ENOMEM) {
+ 		rc = -ENOMEM;
+ 		goto unlock;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 linux-next.patch
+mm-add-replace_page_cache_page-function.patch
 vfs-ignore-error-on-forced-remount.patch
 vfs-keep-list-of-mounts-for-each-superblock.patch
 vfs-protect-remounting-superblock-read-only.patch
 vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
+mm-add-replace_page_cache_page-function-fix.patch
 
