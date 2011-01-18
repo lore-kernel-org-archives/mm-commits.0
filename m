@@ -1,88 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-nfc-pn544c-fix-min_t-warnings.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 12:30:04 -0800
-Message-ID: <201101182030.p0IKU4vL003532@imap1.linux-foundation.org>
+Subject: [merged] mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 12:30:07 -0800
+Message-ID: <201101182030.p0IKU7xg003535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524Ab1ARUa4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753564Ab1ARUbJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 15:30:56 -0500
+	Tue, 18 Jan 2011 15:31:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matti.j.aaltonen@nokia.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, davem@davemloft.net, sfr@canb.auug.org.au, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/nfc/pn544.c: fix min_t warnings
+     mm: thp: remove pmdp_get_and_clear/pmdp_clear_flush/pmdp_splitting_flush methods when THP=n
 has been removed from the -mm tree.  Its filename was
-     drivers-nfc-pn544c-fix-min_t-warnings.patch
+     mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/nfc/pn544.c: fix min_t warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: thp: remove pmdp_get_and_clear/pmdp_clear_flush/pmdp_splitting_flush methods when THP=n
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-drivers/nfc/pn544.c: In function 'pn544_read':
-drivers/nfc/pn544.c:356: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c:377: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c: In function 'pn544_write':
-drivers/nfc/pn544.c:463: warning: comparison of distinct pointer types lacks a cast
-drivers/nfc/pn544.c:485: warning: comparison of distinct pointer types lacks a cast
+pmdp_get_and_clear/pmdp_clear_flush/pmdp_splitting_flush were trapped as
+BUG() and they were defined only to diminish the risk of build issues on
+not-x86 archs and to be consistent with the generic pte methods previously
+defined in include/asm-generic/pgtable.h.
 
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+But they are causing more trouble than they were supposed to solve, so
+it's simpler not to define them when THP is off.
+
+This is also correcting the export of pmdp_splitting_flush which is
+currently unused (x86 isn't using the generic implementation in
+mm/pgtable-generic.c and no other arch needs that [yet]).
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Sam Ravnborg <sam@ravnborg.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nfc/pn544.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/pgtable.h |   14 +++-----------
+ mm/pgtable-generic.c          |   11 ++++-------
+ 2 files changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN drivers/nfc/pn544.c~drivers-nfc-pn544c-fix-min_t-warnings drivers/nfc/pn544.c
---- a/drivers/nfc/pn544.c~drivers-nfc-pn544c-fix-min_t-warnings
-+++ a/drivers/nfc/pn544.c
-@@ -69,7 +69,7 @@ struct pn544_info {
- 	struct mutex read_mutex; /* Serialize read_irq access */
- 	struct mutex mutex; /* Serialize info struct access */
- 	u8 *buf;
--	unsigned int buflen;
-+	size_t buflen;
- };
+diff -puN include/asm-generic/pgtable.h~mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n
++++ a/include/asm-generic/pgtable.h
+@@ -87,14 +87,6 @@ static inline pmd_t pmdp_get_and_clear(s
+ 	pmd_clear(mm, address, pmdp);
+ 	return pmd;
+ })
+-#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm,
+-				       unsigned long address,
+-				       pmd_t *pmdp)
+-{
+-	BUG();
+-	return __pmd(0);
+-}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
- static const char reg_vdd_io[]	= "Vdd_IO";
+@@ -163,9 +155,9 @@ static inline void pmdp_set_wrprotect(st
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_SPLITTING_FLUSH
+-extern pmd_t pmdp_clear_flush(struct vm_area_struct *vma,
+-			      unsigned long address,
+-			      pmd_t *pmdp);
++extern pmd_t pmdp_splitting_flush(struct vm_area_struct *vma,
++				  unsigned long address,
++				  pmd_t *pmdp);
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PTE_SAME
+diff -puN mm/pgtable-generic.c~mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-thp-remove-pmdp_get_and_clear-pmdp_clear_flush-pmdp_splitting_flush-methods-when-thp=n
++++ a/mm/pgtable-generic.c
+@@ -92,32 +92,29 @@ pte_t ptep_clear_flush(struct vm_area_st
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_CLEAR_FLUSH
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ pmd_t pmdp_clear_flush(struct vm_area_struct *vma, unsigned long address,
+ 		       pmd_t *pmdp)
+ {
+ 	pmd_t pmd;
+-#ifndef CONFIG_TRANSPARENT_HUGEPAGE
+-	BUG();
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
+ }
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_SPLITTING_FLUSH
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ pmd_t pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
+ 			   pmd_t *pmdp)
+ {
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	pmd_t pmd = pmd_mksplitting(*pmdp);
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+ 	/* tlb flush only to serialize against gup-fast */
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+-#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-	BUG();
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ }
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
-writeback-make-nr_to_write-a-per-file-limit-fix.patch
-mm-deactivate-invalidated-pages.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
