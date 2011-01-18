@@ -1,66 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [folded] n_hdlc-fix-read-and-write-locking-update.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 14:03:02 -0800
-Message-ID: <201101182203.p0IM32oN007969@imap1.linux-foundation.org>
+Subject: [folded] writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 14:04:12 -0800
+Message-ID: <201101182204.p0IM4CgU008043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752139Ab1ARWDX (ORCPT
+	by vger.kernel.org with ESMTP id S1751644Ab1ARWEj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 17:03:23 -0500
+	Tue, 18 Jan 2011 17:04:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, jengelh@medozas.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     n_hdlc-fix-read-and-write-locking-update
+     writeback-check-skipped-pages-on-wb_sync_all-update-fix
 has been removed from the -mm tree.  Its filename was
-     n_hdlc-fix-read-and-write-locking-update.patch
+     writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 
-This patch was dropped because it was folded into n_hdlc-fix-read-and-write-locking.patch
+This patch was dropped because it was folded into writeback-check-skipped-pages-on-wb_sync_all.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: n_hdlc-fix-read-and-write-locking-update
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: writeback-check-skipped-pages-on-wb_sync_all-update-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Christoph Hellwig <hch@lst.de> 
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/n_hdlc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking-update drivers/tty/n_hdlc.c
---- a/drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking-update
-+++ a/drivers/tty/n_hdlc.c
-@@ -646,7 +646,7 @@ static ssize_t n_hdlc_tty_read(struct tt
- 	}
- 
- 	remove_wait_queue(&tty->read_wait, &wait);
--	set_current_state(TASK_RUNNING);
-+	__set_current_state(TASK_RUNNING);
- 
- 	return ret;
- 	
-@@ -719,7 +719,7 @@ static ssize_t n_hdlc_tty_write(struct t
+diff -puN fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update-fix
++++ a/fs/fs-writeback.c
+@@ -530,7 +530,7 @@ static int writeback_sb_inodes(struct su
+ 			/*
+ 			 * There's no logic to retry skipped pages for sync(),
+ 			 * filesystems are assumed not to skip dirty pages on
+-			 * temporal lock contentions or non fatal errors.
++			 * temporary lock contentions or non fatal errors.
+ 			 */
+ 			WARN_ON_ONCE(wbc->sync_mode == WB_SYNC_ALL);
  		}
- 	}
- 
--	set_current_state(TASK_RUNNING);
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&tty->write_wait, &wait);
- 
- 	if (!error) {		
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-n_hdlc-fix-read-and-write-locking.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+writeback-check-skipped-pages-on-wb_sync_all.patch
+writeback-make-nr_to_write-a-per-file-limit-fix.patch
+mm-deactivate-invalidated-pages.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
