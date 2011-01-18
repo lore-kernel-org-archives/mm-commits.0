@@ -1,71 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded] writeback-check-skipped-pages-on-wb_sync_all-update.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 14:04:09 -0800
-Message-ID: <201101182204.p0IM49kx008040@imap1.linux-foundation.org>
+Subject: [folded] writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 14:04:41 -0800
+Message-ID: <201101182204.p0IM4f6e008055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751597Ab1ARWEj (ORCPT
+	by vger.kernel.org with ESMTP id S1751644Ab1ARWGH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 17:04:39 -0500
+	Tue, 18 Jan 2011 17:06:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, jengelh@medozas.de, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     writeback-check-skipped-pages-on-wb_sync_all-update
+     writeback: fix increasement of nr_dirtied_pause
 has been removed from the -mm tree.  Its filename was
-     writeback-check-skipped-pages-on-wb_sync_all-update.patch
+     writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
 
-This patch was dropped because it was folded into writeback-check-skipped-pages-on-wb_sync_all.patch
+This patch was dropped because it was folded into writeback-per-task-rate-limit-on-balance_dirty_pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-check-skipped-pages-on-wb_sync_all-update
+Subject: writeback: fix increasement of nr_dirtied_pause
 From: Wu Fengguang <fengguang.wu@intel.com>
 
+Date: Wed Nov 17 22:31:26 CST 2010
+
+Fix a bug that
+
+	current->nr_dirtied_pause += current->nr_dirtied_pause >> 5;
+
+does not effectively increase nr_dirtied_pause when it's <= 32.
+Thus nr_dirtied_pause may never grow up..
+
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chris Mason <chris.mason@oracle.com>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de> 
-Cc: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jan Kara <jack@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-check-skipped-pages-on-wb_sync_all-update
-+++ a/fs/fs-writeback.c
-@@ -527,6 +527,11 @@ static int writeback_sb_inodes(struct su
- 			 * buffers.  Skip this inode for now.
- 			 */
- 			redirty_tail(inode);
-+			/*
-+			 * There's no logic to retry skipped pages for sync(),
-+			 * filesystems are assumed not to skip dirty pages on
-+			 * temporal lock contentions or non fatal errors.
-+			 */
- 			WARN_ON_ONCE(wbc->sync_mode == WB_SYNC_ALL);
- 		}
- 		spin_unlock(&inode_lock);
+diff -puN mm/page-writeback.c~writeback-per-task-rate-limit-on-balance_dirty_pages-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-per-task-rate-limit-on-balance_dirty_pages-fix
++++ a/mm/page-writeback.c
+@@ -580,7 +580,7 @@ pause:
+ 	if (pause == 0 && nr_dirty < background_thresh)
+ 		current->nr_dirtied_pause = ratelimit_pages(bdi);
+ 	else if (pause == 1)
+-		current->nr_dirtied_pause += current->nr_dirtied_pause >> 5;
++		current->nr_dirtied_pause += current->nr_dirtied_pause / 32 + 1;
+ 	else if (pause >= HZ/10)
+ 		/*
+ 		 * when repeated, writing 1 page per 100ms on slow devices,
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 writeback-check-skipped-pages-on-wb_sync_all.patch
-writeback-check-skipped-pages-on-wb_sync_all-update-fix.patch
 writeback-io-less-balance_dirty_pages.patch
 writeback-consolidate-variable-names-in-balance_dirty_pages.patch
 writeback-per-task-rate-limit-on-balance_dirty_pages.patch
-writeback-per-task-rate-limit-on-balance_dirty_pages-fix.patch
 writeback-prevent-duplicate-balance_dirty_pages_ratelimited-calls.patch
 writeback-account-per-bdi-accumulated-written-pages.patch
 writeback-bdi-write-bandwidth-estimation.patch
