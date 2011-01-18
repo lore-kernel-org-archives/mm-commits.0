@@ -1,244 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-replace_page_cache_page-function.patch added to -mm tree
-Date: Tue, 18 Jan 2011 15:29:18 -0800
-Message-ID: <201101182329.p0INTIpg013360@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-deactivate-invalidated-pages.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 15:48:07 -0800
+Message-ID: <201101182348.p0INm7Mh014128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752409Ab1ARX35 (ORCPT
+	by vger.kernel.org with ESMTP id S1750961Ab1ARXtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:29:57 -0500
+	Tue, 18 Jan 2011 18:49:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
+To: minchan.kim@gmail.com, bgamari.foss@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add replace_page_cache_page() function
-has been added to the -mm tree.  Its filename is
-     mm-add-replace_page_cache_page-function.patch
+     mm: deactivate invalidated pages
+has been removed from the -mm tree.  Its filename was
+     mm-deactivate-invalidated-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add replace_page_cache_page() function
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: mm: deactivate invalidated pages
+From: Minchan Kim <minchan.kim@gmail.com>
 
-This function basically does:
+Recently, there are reported problem about thrashing. 
+(http://marc.info/?l=rsync&m=128885034930933&w=2) It happens by backup
+workloads(ex, nightly rsync).  That's because the workload makes just
+use-once pages and touches pages twice.  It promotes the page into active
+list so that it results in working set page eviction.
 
-     remove_from_page_cache(old);
-     page_cache_release(old);
-     add_to_page_cache_locked(new);
+Some app developer want to support POSIX_FADV_NOREUSE.  But other OSes
+don't support it, either. 
+(http://marc.info/?l=linux-mm&m=128928979512086&w=2)
 
-Except it does this atomically, so there's no possibility for the "add" to
-fail because of a race.
+By Other approach, app developer uses POSIX_FADV_DONTNEED.  But it has a
+problem.  If kernel meets page is writing during invalidate_mapping_pages,
+it can't work.  It is very hard for application programmer to use it. 
+Because they always have to sync data before calling
+fadivse(..POSIX_FADV_DONTNEED) to make sure the pages could be
+discardable.  At last, they can't use deferred write of kernel so that
+they could see performance loss. 
+(http://insights.oetiker.ch/linux/fadvise.html)
 
-If memory cgroups are enabled, then the memory cgroup charge is also moved
-from the old page to the new.
+In fact, invalidate is very big hint to reclaimer.  It means we don't use
+the page any more.  So let's move the writing page into inactive list's
+head.
 
-This function is currently used by fuse to move pages into the page cache
-on read, instead of copying the page contents.
+If it is real working set, it could have a enough time to activate the
+page since we always try to keep many pages in inactive list.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+I reused Peter's lru_demote() with some changes.
+
+[akpm@linux-foundation.org: s/deactive/deactivate/g]
+Reported-by: Ben Gamari <bgamari.foss@gmail.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c              |   10 ++---
- include/linux/memcontrol.h |    4 +-
- include/linux/pagemap.h    |    1 
- mm/filemap.c               |   65 +++++++++++++++++++++++++++++++++++
- mm/memcontrol.c            |    4 +-
- mm/migrate.c               |    2 -
- 6 files changed, 75 insertions(+), 11 deletions(-)
+ include/linux/swap.h |    1 
+ mm/swap.c            |   58 +++++++++++++++++++++++++++++++++++++++++
+ mm/truncate.c        |   16 ++++++++---
+ 3 files changed, 71 insertions(+), 4 deletions(-)
 
-diff -puN fs/fuse/dev.c~mm-add-replace_page_cache_page-function fs/fuse/dev.c
---- a/fs/fuse/dev.c~mm-add-replace_page_cache_page-function
-+++ a/fs/fuse/dev.c
-@@ -737,14 +737,12 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
- 		goto out_fallback_unlock;
+diff -puN include/linux/swap.h~mm-deactivate-invalidated-pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-deactivate-invalidated-pages
++++ a/include/linux/swap.h
+@@ -215,6 +215,7 @@ extern void mark_page_accessed(struct pa
+ extern void lru_add_drain(void);
+ extern int lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
++extern void lru_deactivate_page(struct page *page);
+ extern void swap_setup(void);
  
--	remove_from_page_cache(oldpage);
--	page_cache_release(oldpage);
--
--	err = add_to_page_cache_locked(newpage, mapping, index, GFP_KERNEL);
-+	err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
- 	if (err) {
--		printk(KERN_WARNING "fuse_try_move_page: failed to add page");
--		goto out_fallback_unlock;
-+		unlock_page(newpage);
-+		return err;
- 	}
+ extern void add_page_to_unevictable_list(struct page *page);
+diff -puN mm/swap.c~mm-deactivate-invalidated-pages mm/swap.c
+--- a/mm/swap.c~mm-deactivate-invalidated-pages
++++ a/mm/swap.c
+@@ -39,6 +39,8 @@ int page_cluster;
+ 
+ static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
++static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
 +
- 	page_cache_get(newpage);
- 
- 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
-diff -puN include/linux/memcontrol.h~mm-add-replace_page_cache_page-function include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-add-replace_page_cache_page-function
-+++ a/include/linux/memcontrol.h
-@@ -96,7 +96,7 @@ extern struct cgroup_subsys_state *mem_c
- 
- extern int
- mem_cgroup_prepare_migration(struct page *page,
--	struct page *newpage, struct mem_cgroup **ptr);
-+	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask);
- extern void mem_cgroup_end_migration(struct mem_cgroup *mem,
- 	struct page *oldpage, struct page *newpage, bool migration_ok);
- 
-@@ -245,7 +245,7 @@ static inline struct cgroup_subsys_state
- 
- static inline int
- mem_cgroup_prepare_migration(struct page *page, struct page *newpage,
--	struct mem_cgroup **ptr)
-+	struct mem_cgroup **ptr, gfp_t gfp_mask)
- {
- 	return 0;
- }
-diff -puN include/linux/pagemap.h~mm-add-replace_page_cache_page-function include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-add-replace_page_cache_page-function
-+++ a/include/linux/pagemap.h
-@@ -457,6 +457,7 @@ int add_to_page_cache_lru(struct page *p
- 				pgoff_t index, gfp_t gfp_mask);
- extern void remove_from_page_cache(struct page *page);
- extern void __remove_from_page_cache(struct page *page);
-+int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
  
  /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-diff -puN mm/filemap.c~mm-add-replace_page_cache_page-function mm/filemap.c
---- a/mm/filemap.c~mm-add-replace_page_cache_page-function
-+++ a/mm/filemap.c
-@@ -398,6 +398,71 @@ int filemap_write_and_wait_range(struct 
- EXPORT_SYMBOL(filemap_write_and_wait_range);
+  * This path almost never happens for VM activity - pages are normally
+@@ -346,6 +348,45 @@ void add_page_to_unevictable_list(struct
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
  
- /**
-+ * replace_page_cache_page - replace a pagecache page with a new one
-+ * @old:	page to be replaced
-+ * @new:	page to replace with
-+ * @gfp_mask:	allocation mode
-+ *
-+ * This function replaces a page in the pagecache with a new one.  On
-+ * success it acquires the pagecache reference for the new page and
-+ * drops it for the old page.  Both the old and new pages must be
-+ * locked.  This function does not add the new page to the LRU, the
-+ * caller must do that.
-+ *
-+ * The remove + add is atomic.  The only way this function can fail is
-+ * memory allocation failure.
-+ */
-+int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
++static void __pagevec_lru_deactivate(struct pagevec *pvec)
 +{
-+	int error;
-+	struct mem_cgroup *memcg = NULL;
++	int i, lru, file;
 +
-+	VM_BUG_ON(!PageLocked(old));
-+	VM_BUG_ON(!PageLocked(new));
-+	VM_BUG_ON(new->mapping);
++	struct zone *zone = NULL;
 +
-+	/*
-+	 * This is not page migration, but prepare_migration and
-+	 * end_migration does enough work for charge replacement.
-+	 *
-+	 * In the longer term we probably want a specialized function
-+	 * for moving the charge from old to new in a more efficient
-+	 * manner.
-+	 */
-+	error = mem_cgroup_prepare_migration(old, new, &memcg, gfp_mask);
-+	if (error)
-+		return error;
++	for (i = 0; i < pagevec_count(pvec); i++) {
++		struct page *page = pvec->pages[i];
++		struct zone *pagezone = page_zone(page);
 +
-+	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
-+	if (!error) {
-+		struct address_space *mapping = old->mapping;
-+		pgoff_t offset = old->index;
++		if (pagezone != zone) {
++			if (zone)
++				spin_unlock_irq(&zone->lru_lock);
++			zone = pagezone;
++			spin_lock_irq(&zone->lru_lock);
++		}
 +
-+		page_cache_get(new);
-+		new->mapping = mapping;
-+		new->index = offset;
++		if (PageLRU(page)) {
++			if (PageActive(page)) {
++				file = page_is_file_cache(page);
++				lru = page_lru_base_type(page);
++				del_page_from_lru_list(zone, page,
++						lru + LRU_ACTIVE);
++				ClearPageActive(page);
++				ClearPageReferenced(page);
++				add_page_to_lru_list(zone, page, lru);
++				__count_vm_event(PGDEACTIVATE);
 +
-+		spin_lock_irq(&mapping->tree_lock);
-+		__remove_from_page_cache(old);
-+		error = radix_tree_insert(&mapping->page_tree, offset, new);
-+		BUG_ON(error);
-+		mapping->nrpages++;
-+		__inc_zone_page_state(new, NR_FILE_PAGES);
-+		if (PageSwapBacked(new))
-+			__inc_zone_page_state(new, NR_SHMEM);
-+		spin_unlock_irq(&mapping->tree_lock);
-+		radix_tree_preload_end();
-+		page_cache_release(old);
-+		mem_cgroup_end_migration(memcg, old, new, true);
-+	} else {
-+		mem_cgroup_end_migration(memcg, old, new, false);
++				update_page_reclaim_stat(zone, page, file, 0);
++			}
++		}
 +	}
++	if (zone)
++		spin_unlock_irq(&zone->lru_lock);
 +
-+	return error;
++	release_pages(pvec->pages, pvec->nr, pvec->cold);
++	pagevec_reinit(pvec);
 +}
-+EXPORT_SYMBOL_GPL(replace_page_cache_page);
 +
-+/**
-  * add_to_page_cache_locked - add a locked page to the pagecache
-  * @page:	page to add
-  * @mapping:	the page's address_space
-diff -puN mm/memcontrol.c~mm-add-replace_page_cache_page-function mm/memcontrol.c
---- a/mm/memcontrol.c~mm-add-replace_page_cache_page-function
-+++ a/mm/memcontrol.c
-@@ -2806,7 +2806,7 @@ static inline int mem_cgroup_move_swap_a
-  * page belongs to.
-  */
- int mem_cgroup_prepare_migration(struct page *page,
--	struct page *newpage, struct mem_cgroup **ptr)
-+	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask)
- {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
-@@ -2863,7 +2863,7 @@ int mem_cgroup_prepare_migration(struct 
- 		return 0;
- 
- 	*ptr = mem;
--	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false, PAGE_SIZE);
-+	ret = __mem_cgroup_try_charge(NULL, gfp_mask, ptr, false, PAGE_SIZE);
- 	css_put(&mem->css);/* drop extra refcnt */
- 	if (ret || *ptr == NULL) {
- 		if (PageAnon(page)) {
-diff -puN mm/migrate.c~mm-add-replace_page_cache_page-function mm/migrate.c
---- a/mm/migrate.c~mm-add-replace_page_cache_page-function
-+++ a/mm/migrate.c
-@@ -678,7 +678,7 @@ static int unmap_and_move(new_page_t get
+ /*
+  * Drain pages out of the cpu's pagevecs.
+  * Either "cpu" is the current CPU, and preemption has already been
+@@ -372,6 +413,23 @@ static void drain_cpu_pagevecs(int cpu)
+ 		pagevec_move_tail(pvec);
+ 		local_irq_restore(flags);
  	}
++	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
++	if (pagevec_count(pvec))
++		__pagevec_lru_deactivate(pvec);
++}
++
++/*
++ * Forecfully demote a page to the tail of the inactive list.
++ */
++void lru_deactivate_page(struct page *page)
++{
++	if (likely(get_page_unless_zero(page))) {
++		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
++
++		if (!pagevec_add(pvec, page))
++			__pagevec_lru_deactivate(pvec);
++		put_cpu_var(lru_deactivate_pvecs);
++	}
+ }
  
- 	/* charge against new page */
--	charge = mem_cgroup_prepare_migration(page, newpage, &mem);
-+	charge = mem_cgroup_prepare_migration(page, newpage, &mem, GFP_KERNEL);
- 	if (charge == -ENOMEM) {
- 		rc = -ENOMEM;
- 		goto unlock;
+ void lru_add_drain(void)
+diff -puN mm/truncate.c~mm-deactivate-invalidated-pages mm/truncate.c
+--- a/mm/truncate.c~mm-deactivate-invalidated-pages
++++ a/mm/truncate.c
+@@ -332,7 +332,8 @@ unsigned long invalidate_mapping_pages(s
+ {
+ 	struct pagevec pvec;
+ 	pgoff_t next = start;
+-	unsigned long ret = 0;
++	unsigned long ret;
++	unsigned long count = 0;
+ 	int i;
+ 
+ 	pagevec_init(&pvec, 0);
+@@ -359,8 +360,15 @@ unsigned long invalidate_mapping_pages(s
+ 			if (lock_failed)
+ 				continue;
+ 
+-			ret += invalidate_inode_page(page);
+-
++			ret = invalidate_inode_page(page);
++			/*
++			 * If the page was dirty or under writeback we cannot
++			 * invalidate it now.  Move it to the tail of the
++			 * inactive LRU so that reclaim will free it promptly.
++			 */
++			if (!ret)
++				lru_deactivate_page(page);
++			count += ret;
+ 			unlock_page(page);
+ 			if (next > end)
+ 				break;
+@@ -369,7 +377,7 @@ unsigned long invalidate_mapping_pages(s
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+-	return ret;
++	return count;
+ }
+ EXPORT_SYMBOL(invalidate_mapping_pages);
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-add-replace_page_cache_page-function.patch
-vfs-ignore-error-on-forced-remount.patch
-vfs-keep-list-of-mounts-for-each-superblock.patch
-vfs-protect-remounting-superblock-read-only.patch
-vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
-mm-add-replace_page_cache_page-function-fix.patch
+mm-vmap-area-cache.patch
 
