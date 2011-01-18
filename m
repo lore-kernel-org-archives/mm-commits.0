@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-ignore-error-on-forced-remount.patch added to -mm tree
-Date: Tue, 18 Jan 2011 15:10:03 -0800
-Message-ID: <201101182310.p0INA3lf011251@imap1.linux-foundation.org>
+Subject: + vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch added to -mm tree
+Date: Tue, 18 Jan 2011 15:10:09 -0800
+Message-ID: <201101182310.p0INA9Zn011263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752283Ab1ARXKk (ORCPT
+	by vger.kernel.org with ESMTP id S1751701Ab1ARXLF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:10:40 -0500
+	Tue, 18 Jan 2011 18:11:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     vfs: ignore error on forced remount
+     vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
 has been added to the -mm tree.  Its filename is
-     vfs-ignore-error-on-forced-remount.patch
+     vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: ignore error on forced remount
+Subject: vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-On emergency remount we want to force MS_RDONLY on the super block even if
-->remount_fs() failed for some reason.
+Now a successful sb_prepare_remount_readonly() should ensure that no
+writable files remain for this superblock.  So turn this check into a
+WARN_ON.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/file_table.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/super.c~vfs-ignore-error-on-forced-remount fs/super.c
---- a/fs/super.c~vfs-ignore-error-on-forced-remount
-+++ a/fs/super.c
-@@ -583,7 +583,8 @@ int do_remount_sb(struct super_block *sb
+diff -puN fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on fs/file_table.c
+--- a/fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on
++++ a/fs/file_table.c
+@@ -436,8 +436,11 @@ int fs_may_remount_ro(struct super_block
+ 		if (inode->i_nlink == 0)
+ 			goto too_bad;
  
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
--		if (retval)
-+		/* If forced remount, go ahead despite any errors */
-+		if (retval && !force)
- 			return retval;
- 	}
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
+-		/* Writeable file? */
+-		if (S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE))
++		/*
++		 * Writable file?
++		 * Should be caught by sb_prepare_remount_readonly().
++		 */
++		if (WARN_ON(S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE)))
+ 			goto too_bad;
+ 	} while_file_list_for_each_entry;
+ 	lg_global_unlock(files_lglock);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
