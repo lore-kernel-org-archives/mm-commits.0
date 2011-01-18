@@ -1,72 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 12:30:10 -0800
-Message-ID: <201101182030.p0IKUACb003538@imap1.linux-foundation.org>
+Subject: [merged] fs-fs_posix_acl-does-not-depend-on-block.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 12:30:22 -0800
+Message-ID: <201101182030.p0IKUMbu003553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753274Ab1ARUn4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753274Ab1ARUok (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 15:43:56 -0500
+	Tue, 18 Jan 2011 15:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: James.Bottomley@HansenPartnership.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parisc: fix compile breakage caused by inlining maybe_mkwrite
+     fs: FS_POSIX_ACL does not depend on BLOCK
 has been removed from the -mm tree.  Its filename was
-     parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite.patch
+     fs-fs_posix_acl-does-not-depend-on-block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: fix compile breakage caused by inlining maybe_mkwrite
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: fs: FS_POSIX_ACL does not depend on BLOCK
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-on Parisc, we have an include of linux/mm.h inside our asm/pgtable.h, so
-14fd403f2 ("thp: export maybe_mkwrite") causes us an unsatisfiable use of
-pte_mkwrite in linux/mm.h
+- Fix a kconfig unmet dependency warning.
+- Remove the comment that identifies which filesystems use POSIX ACL
+  utility routines.
+- Move the FS_POSIX_ACL symbol outside of the BLOCK symbol if/endif block
+  because its functions do not depend on BLOCK and some of the filesystems
+  that use it do not depend on BLOCK.
 
-The fix is obviously not to include linux/mm.h in our pgtable.h, which
-unbreaks the build.
+warning: (GENERIC_ACL && JFFS2_FS_POSIX_ACL && NFSD_V4 && NFS_ACL_SUPPORT && 9P_FS_POSIX_ACL) selects FS_POSIX_ACL which has unmet direct dependencies (BLOCK)
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgtable.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/Kconfig |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite arch/parisc/include/asm/pgtable.h
---- a/arch/parisc/include/asm/pgtable.h~parisc-fix-compile-breakage-caused-by-inlining-maybe_mkwrite
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -10,11 +10,13 @@
-  * we simulate an x86-style page table for the linux mm code
-  */
+diff -puN fs/Kconfig~fs-fs_posix_acl-does-not-depend-on-block fs/Kconfig
+--- a/fs/Kconfig~fs-fs_posix_acl-does-not-depend-on-block
++++ a/fs/Kconfig
+@@ -30,15 +30,6 @@ config FS_MBCACHE
+ source "fs/reiserfs/Kconfig"
+ source "fs/jfs/Kconfig"
  
--#include <linux/mm.h>		/* for vm_area_struct */
- #include <linux/bitops.h>
-+#include <linux/spinlock.h>
- #include <asm/processor.h>
- #include <asm/cache.h>
+-config FS_POSIX_ACL
+-# Posix ACL utility routines (for now, only ext2/ext3/jfs/reiserfs/nfs4)
+-#
+-# NOTE: you can implement Posix ACLs without these helpers (XFS does).
+-# 	Never use this symbol for ifdefs.
+-#
+-	bool
+-	default n
+-
+ source "fs/xfs/Kconfig"
+ source "fs/gfs2/Kconfig"
+ source "fs/ocfs2/Kconfig"
+@@ -47,6 +38,14 @@ source "fs/nilfs2/Kconfig"
  
-+struct vm_area_struct;
+ endif # BLOCK
+ 
++# Posix ACL utility routines
++#
++# Note: Posix ACLs can be implemented without these helpers.  Never use
++# this symbol for ifdefs in core code.
++#
++config FS_POSIX_ACL
++	def_bool n
 +
- /*
-  * kern_addr_valid(ADDR) tests if ADDR is pointing to valid kernel
-  * memory.  For the return value to be meaningful, ADDR must be >=
+ config EXPORTFS
+ 	tristate
+ 
 _
 
-Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-scsi-fix-a-header-to-include-linux-typesh.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-fix.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
