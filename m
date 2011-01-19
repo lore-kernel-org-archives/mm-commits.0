@@ -1,150 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: [folded] scatterlist-new-helper-functions-update.patch removed from -mm tree
-Date: Wed, 19 Jan 2011 13:05:12 -0800
-Message-ID: <201101192105.p0JL5CBf003043@imap1.linux-foundation.org>
+Subject: + llist-irq_work-use-llist-in-irq_work.patch added to -mm tree
+Date: Wed, 19 Jan 2011 14:02:52 -0800
+Message-ID: <201101192202.p0JM2qIf005828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525Ab1ASVFX (ORCPT
+	by vger.kernel.org with ESMTP id S1753581Ab1ASWFP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 16:05:23 -0500
+	Wed, 19 Jan 2011 17:05:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maximlevitsky@gmail.com, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, oakad@yahoo.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ying.huang@intel.com, ak@linux.intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, hans-christian.egtvedt@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, liqin.chen@sunplusct.com, mingo@redhat.com, monstr@monstr.eu, peterz@infradead.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, vapier@gentoo.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     scatterlist-new-helper-functions-update
-has been removed from the -mm tree.  Its filename was
-     scatterlist-new-helper-functions-update.patch
+     llist: irq_work, Use llist in irq_work
+has been added to the -mm tree.  Its filename is
+     llist-irq_work-use-llist-in-irq_work.patch
 
-This patch was dropped because it was folded into scatterlist-new-helper-functions.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scatterlist-new-helper-functions-update
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: llist: irq_work, Use llist in irq_work
+From: Huang Ying <ying.huang@intel.com>
 
-I hopefully addressed all comments on this code.
+Use llist in irq_work instead of the lock-less linked list implementation
+in irq_work to avoid the code duplication.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Alex Dubov <oakad@yahoo.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Andy Grover <andy.grover@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |   41 +++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ include/linux/irq_work.h |   15 +++---
+ init/Kconfig             |    1 
+ kernel/irq_work.c        |   92 ++++++++++++++-----------------------
+ 3 files changed, 47 insertions(+), 61 deletions(-)
 
-diff -puN lib/scatterlist.c~scatterlist-new-helper-functions-update lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-new-helper-functions-update
-+++ a/lib/scatterlist.c
-@@ -40,9 +40,8 @@ EXPORT_SYMBOL(sg_next);
+diff -puN include/linux/irq_work.h~llist-irq_work-use-llist-in-irq_work include/linux/irq_work.h
+--- a/include/linux/irq_work.h~llist-irq_work-use-llist-in-irq_work
++++ a/include/linux/irq_work.h
+@@ -1,20 +1,23 @@
+ #ifndef _LINUX_IRQ_WORK_H
+ #define _LINUX_IRQ_WORK_H
  
- /**
-  * sg_advance - advance scatterlist by 'consumed' bytes
-- * @sg - the current sg entry
-- * @consumed - how much bytes to advance
++#include <linux/llist.h>
++
+ struct irq_work {
+-	struct irq_work *next;
++	unsigned long flags;
++	struct llist_node llnode;
+ 	void (*func)(struct irq_work *);
+ };
+ 
+ static inline
+-void init_irq_work(struct irq_work *entry, void (*func)(struct irq_work *))
++void init_irq_work(struct irq_work *work, void (*func)(struct irq_work *))
+ {
+-	entry->next = NULL;
+-	entry->func = func;
++	work->flags = 0;
++	work->func = func;
+ }
+ 
+-bool irq_work_queue(struct irq_work *entry);
++bool irq_work_queue(struct irq_work *work);
+ void irq_work_run(void);
+-void irq_work_sync(struct irq_work *entry);
++void irq_work_sync(struct irq_work *work);
+ 
+ #endif /* _LINUX_IRQ_WORK_H */
+diff -puN init/Kconfig~llist-irq_work-use-llist-in-irq_work init/Kconfig
+--- a/init/Kconfig~llist-irq_work-use-llist-in-irq_work
++++ a/init/Kconfig
+@@ -27,6 +27,7 @@ config HAVE_IRQ_WORK
+ config IRQ_WORK
+ 	bool
+ 	depends on HAVE_IRQ_WORK
++	select LLIST
+ 
+ menu "General setup"
+ 
+diff -puN kernel/irq_work.c~llist-irq_work-use-llist-in-irq_work kernel/irq_work.c
+--- a/kernel/irq_work.c~llist-irq_work-use-llist-in-irq_work
++++ a/kernel/irq_work.c
+@@ -17,49 +17,34 @@
+  * claimed   NULL, 3 -> {pending}       : claimed to be enqueued
+  * pending   next, 3 -> {busy}          : queued, pending callback
+  * busy      NULL, 2 -> {free, claimed} : callback in progress, can be claimed
 - *
-+ * @sg:		The current sg entry
-+ * @consumed: 	How much bytes to advance
+- * We use the lower two bits of the next pointer to keep PENDING and BUSY
+- * flags.
   */
- struct scatterlist *sg_advance(struct scatterlist *sg, int consumed)
- {
-@@ -74,10 +73,10 @@ EXPORT_SYMBOL(sg_advance);
  
- /**
-  * sg_nents - calculate number of sg entries in sg list
-- * @sg - the current sg entry
-+ * @sg:		The current sg entry
-  *
-- * Allows to calculate dynamicly the lenght of the sg table, based on
-- * assumption that last entry is NULL
-+ * Allows to calculate dynamically the length of the sg table, based on
-+ * assumption that last entry is correctly marked by sg_mark_end
-  */
- int sg_nents(struct scatterlist *sg)
- {
-@@ -92,11 +91,11 @@ int sg_nents(struct scatterlist *sg)
- EXPORT_SYMBOL(sg_nents);
+ #define IRQ_WORK_PENDING	1UL
+ #define IRQ_WORK_BUSY		2UL
+ #define IRQ_WORK_FLAGS		3UL
  
- /**
-- * sg_total_len - calculate total lenght of scatterlist
-- * @sg - the current sg entry
-+ * sg_total_len - calculate total length of scatterlist
-+ * @sg: 	The current sg entry
-  *
-- * Dynamicly calculate total number of bytes in a sg list
-- * based on assumption that list ends with a NULL entry
-+ * Dynamically calculate total number of bytes in an scatterlist
-+ * based on assumption that last entry is correctly marked by sg_mark_end
-  */
- int sg_total_len(struct scatterlist *sg)
- {
-@@ -618,11 +617,14 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
- 
- 
- /**
-- * sg_compare_to_buffer - compare contents of the data pointeted by sg table
-+ * sg_compare_to_buffer - compare contents of the data pointed by sg table
-  * to a kernel ram buffer
-- * @sg - the current sg entry
-- * @buffer - linear buffer to compare with
-- * @len - lenght of that buffer
-+ *
-+ * @sg:		The current sg entry
-+ * @buffer: 	Linear kernel buffer to compare with
-+ * @len:	Length of that buffer
-+ *
-+ * Returns 0 if equal and memcmp compliant result otherwise
-  */
- bool sg_compare_to_buffer(struct scatterlist *sg, u8 *buffer, size_t len)
- {
-@@ -630,9 +632,6 @@ bool sg_compare_to_buffer(struct scatter
- 	int retval = 0;
- 	struct sg_mapping_iter miter;
- 
--	if (sg_total_len(sg) < len)
--		return 1;
+-static inline bool irq_work_is_set(struct irq_work *entry, int flags)
+-{
+-	return (unsigned long)entry->next & flags;
+-}
 -
- 	local_irq_save(flags);
- 	sg_miter_start(&miter, sg, sg_nents(sg),
- 				SG_MITER_ATOMIC | SG_MITER_FROM_SG);
-@@ -640,15 +639,17 @@ bool sg_compare_to_buffer(struct scatter
- 	while (sg_miter_next(&miter) && len > 0) {
+-static inline struct irq_work *irq_work_next(struct irq_work *entry)
+-{
+-	unsigned long next = (unsigned long)entry->next;
+-	next &= ~IRQ_WORK_FLAGS;
+-	return (struct irq_work *)next;
+-}
++#define LIST_NONEMPTY_BIT	0
  
- 		int cmplen = min(miter.length, len);
--		if (memcmp(miter.addr, buffer, cmplen)) {
--			retval = 1;
-+		retval = memcmp(miter.addr, buffer, cmplen);
-+		if (retval)
- 			break;
--		}
+-static inline struct irq_work *next_flags(struct irq_work *entry, int flags)
+-{
+-	unsigned long next = (unsigned long)entry;
+-	next |= flags;
+-	return (struct irq_work *)next;
+-}
++struct irq_work_list {
++	unsigned long flags;
++	struct llist_head llist;
++};
  
- 		buffer += cmplen;
- 		len -= cmplen;
+-static DEFINE_PER_CPU(struct irq_work *, irq_work_list);
++static DEFINE_PER_CPU(struct irq_work_list, irq_work_lists);
+ 
+ /*
+  * Claim the entry so that no one else will poke at it.
+  */
+-static bool irq_work_claim(struct irq_work *entry)
++static bool irq_work_claim(struct irq_work *work)
+ {
+-	struct irq_work *next, *nflags;
++	unsigned long flags, nflags;
+ 
+ 	do {
+-		next = entry->next;
+-		if ((unsigned long)next & IRQ_WORK_PENDING)
++		flags = work->flags;
++		if (flags & IRQ_WORK_PENDING)
+ 			return false;
+-		nflags = next_flags(next, IRQ_WORK_FLAGS);
+-	} while (cmpxchg(&entry->next, next, nflags) != next);
++		nflags = flags | IRQ_WORK_FLAGS;
++	} while (cmpxchg(&work->flags, flags, nflags) != flags);
+ 
+ 	return true;
+ }
+@@ -75,23 +60,19 @@ void __weak arch_irq_work_raise(void)
+ /*
+  * Queue the entry and raise the IPI if needed.
+  */
+-static void __irq_work_queue(struct irq_work *entry)
++static void __irq_work_queue(struct irq_work *work)
+ {
+-	struct irq_work *next;
++	struct irq_work_list *irq_work_list;
+ 
+-	preempt_disable();
++	irq_work_list = &get_cpu_var(irq_work_lists);
+ 
+-	do {
+-		next = __this_cpu_read(irq_work_list);
+-		/* Can assign non-atomic because we keep the flags set. */
+-		entry->next = next_flags(next, IRQ_WORK_FLAGS);
+-	} while (this_cpu_cmpxchg(irq_work_list, next, entry) != next);
++	llist_add(&work->llnode, &irq_work_list->llist);
+ 
+ 	/* The list was empty, raise self-interrupt to start processing. */
+-	if (!irq_work_next(entry))
++	if (!test_and_set_bit(LIST_NONEMPTY_BIT, &irq_work_list->flags))
+ 		arch_irq_work_raise();
+ 
+-	preempt_enable();
++	put_cpu_var(irq_work_list);
+ }
+ 
+ /*
+@@ -100,16 +81,16 @@ static void __irq_work_queue(struct irq_
+  *
+  * Can be re-enqueued while the callback is still in progress.
+  */
+-bool irq_work_queue(struct irq_work *entry)
++bool irq_work_queue(struct irq_work *work)
+ {
+-	if (!irq_work_claim(entry)) {
++	if (!irq_work_claim(work)) {
+ 		/*
+ 		 * Already enqueued, can't do!
+ 		 */
+ 		return false;
  	}
  
-+	if (!retval && len)
-+		retval = -1;
-+
- 	sg_miter_stop(&miter);
- 	local_irq_restore(flags);
- 	return retval;
+-	__irq_work_queue(entry);
++	__irq_work_queue(work);
+ 	return true;
+ }
+ EXPORT_SYMBOL_GPL(irq_work_queue);
+@@ -120,34 +101,35 @@ EXPORT_SYMBOL_GPL(irq_work_queue);
+  */
+ void irq_work_run(void)
+ {
+-	struct irq_work *list;
++	struct irq_work *work;
++	struct irq_work_list *irq_work_list;
++	struct llist_node *llnode;
+ 
+-	if (this_cpu_read(irq_work_list) == NULL)
++	irq_work_list = &__get_cpu_var(irq_work_lists);
++	if (llist_empty(&irq_work_list->llist))
+ 		return;
+ 
+ 	BUG_ON(!in_irq());
+ 	BUG_ON(!irqs_disabled());
+ 
+-	list = this_cpu_xchg(irq_work_list, NULL);
+-
+-	while (list != NULL) {
+-		struct irq_work *entry = list;
++	clear_bit(LIST_NONEMPTY_BIT, &irq_work_list->flags);
++	llnode = llist_del_all(&irq_work_list->llist);
++	while (llnode != NULL) {
++		work = llist_entry(llnode, struct irq_work, llnode);
+ 
+-		list = irq_work_next(list);
++		llnode = llnode->next;
+ 
+ 		/*
+-		 * Clear the PENDING bit, after this point the @entry
++		 * Clear the PENDING bit, after this point the @work
+ 		 * can be re-used.
+ 		 */
+-		entry->next = next_flags(NULL, IRQ_WORK_BUSY);
+-		entry->func(entry);
++		work->flags = IRQ_WORK_BUSY;
++		work->func(work);
+ 		/*
+ 		 * Clear the BUSY bit and return to the free state if
+ 		 * no-one else claimed it meanwhile.
+ 		 */
+-		(void)cmpxchg(&entry->next,
+-			      next_flags(NULL, IRQ_WORK_BUSY),
+-			      NULL);
++		(void)cmpxchg(&work->flags, IRQ_WORK_BUSY, 0);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(irq_work_run);
+@@ -156,11 +138,11 @@ EXPORT_SYMBOL_GPL(irq_work_run);
+  * Synchronize against the irq_work @entry, ensures the entry is not
+  * currently in use.
+  */
+-void irq_work_sync(struct irq_work *entry)
++void irq_work_sync(struct irq_work *work)
+ {
+ 	WARN_ON_ONCE(irqs_disabled());
+ 
+-	while (irq_work_is_set(entry, IRQ_WORK_BUSY))
++	while (work->flags & IRQ_WORK_BUSY)
+ 		cpu_relax();
+ }
+ EXPORT_SYMBOL_GPL(irq_work_sync);
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-linux-next.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-checkpatch-fixes.patch
-scatterlist-new-helper-functions-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader.patch
-memstick-add-support-for-legacy-memorysticks.patch
-memstick-add-support-for-legacy-memorysticks-update.patch
-memstick-add-alex-dubov-to-maintainers-of-the-memstick-core.patch
+llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch
+llist-lib-add-lock-less-null-terminated-single-list.patch
+llist-irq_work-use-llist-in-irq_work.patch
+llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
 
