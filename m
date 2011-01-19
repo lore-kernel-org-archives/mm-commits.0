@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scatterlist-new-helper-functions-update-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 19 Jan 2011 11:46:47 -0800
-Message-ID: <201101191946.p0JJkl2w031720@imap1.linux-foundation.org>
+Subject: + memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup.patch added to -mm tree
+Date: Wed, 19 Jan 2011 12:05:21 -0800
+Message-ID: <201101192005.p0JK5LEd032581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754116Ab1ASTqu (ORCPT
+	by vger.kernel.org with ESMTP id S1752671Ab1ASUGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 14:46:50 -0500
+	Wed, 19 Jan 2011 15:06:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, maximlevitsky@gmail.com
+Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     scatterlist-new-helper-functions-update-checkpatch-fixes
+     memcg: correctly order reading PCG_USED and pc->mem_cgroup
 has been added to the -mm tree.  Its filename is
-     scatterlist-new-helper-functions-update-checkpatch-fixes.patch
+     memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scatterlist-new-helper-functions-update-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: correctly order reading PCG_USED and pc->mem_cgroup
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-WARNING: please, no space before tabs
-#27: FILE: lib/scatterlist.c:44:
-+ * @consumed: ^IHow much bytes to advance$
+The placement of the read-side barrier is confused: the writer first
+sets pc->mem_cgroup, then PCG_USED.  The read-side barrier has to be
+between testing PCG_USED and reading pc->mem_cgroup.
 
-WARNING: please, no space before tabs
-#52: FILE: lib/scatterlist.c:95:
-+ * @sg: ^IThe current sg entry$
-
-WARNING: please, no space before tabs
-#73: FILE: lib/scatterlist.c:624:
-+ * @buffer: ^ILinear kernel buffer to compare with$
-
-total: 0 errors, 3 warnings, 86 lines checked
-
-./patches/scatterlist-new-helper-functions-update.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff -puN lib/scatterlist.c~scatterlist-new-helper-functions-update-checkpatch-fixes lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-new-helper-functions-update-checkpatch-fixes
-+++ a/lib/scatterlist.c
-@@ -41,7 +41,7 @@ EXPORT_SYMBOL(sg_next);
- /**
-  * sg_advance - advance scatterlist by 'consumed' bytes
-  * @sg:		The current sg entry
-- * @consumed: 	How much bytes to advance
-+ * @consumed:	How much bytes to advance
-  */
- struct scatterlist *sg_advance(struct scatterlist *sg, int consumed)
- {
-@@ -92,7 +92,7 @@ EXPORT_SYMBOL(sg_nents);
+diff -puN mm/memcontrol.c~memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup
++++ a/mm/memcontrol.c
+@@ -836,13 +836,12 @@ void mem_cgroup_rotate_lru_list(struct p
+ 		return;
  
- /**
-  * sg_total_len - calculate total length of scatterlist
-- * @sg: 	The current sg entry
-+ * @sg: The current sg entry
-  *
-  * Dynamically calculate total number of bytes in an scatterlist
-  * based on assumption that last entry is correctly marked by sg_mark_end
-@@ -621,7 +621,7 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
-  * to a kernel ram buffer
-  *
-  * @sg:		The current sg entry
-- * @buffer: 	Linear kernel buffer to compare with
-+ * @buffer:	Linear kernel buffer to compare with
-  * @len:	Length of that buffer
-  *
-  * Returns 0 if equal and memcmp compliant result otherwise
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio-fix.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions-update-checkpatch-fixes.patch
-scatterlist-new-helper-functions-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+ 	pc = lookup_page_cgroup(page);
+-	/*
+-	 * Used bit is set without atomic ops but after smp_wmb().
+-	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
+-	 */
+-	smp_rmb();
+ 	/* unused or root page is not rotated. */
+-	if (!PageCgroupUsed(pc) || mem_cgroup_is_root(pc->mem_cgroup))
++	if (!PageCgroupUsed(pc))
++		return;
++	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
++	smp_rmb();
++	if (mem_cgroup_is_root(pc->mem_cgroup))
+ 		return;
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	list_move(&pc->lru, &mz->lists[lru]);
+@@ -857,14 +856,10 @@ void mem_cgroup_add_lru_list(struct page
+ 		return;
+ 	pc = lookup_page_cgroup(page);
+ 	VM_BUG_ON(PageCgroupAcctLRU(pc));
+-	/*
+-	 * Used bit is set without atomic ops but after smp_wmb().
+-	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
+-	 */
+-	smp_rmb();
+ 	if (!PageCgroupUsed(pc))
+ 		return;
+-
++	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
++	smp_rmb();
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
+ 	SetPageCgroupAcctLRU(pc);
+@@ -1030,14 +1025,10 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ 		return NULL;
+ 
+ 	pc = lookup_page_cgroup(page);
+-	/*
+-	 * Used bit is set without atomic ops but after smp_wmb().
+-	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
+-	 */
+-	smp_rmb();
+ 	if (!PageCgroupUsed(pc))
+ 		return NULL;
