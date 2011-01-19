@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-used-bit-handling-at-uncharge-in-thp.patch added to -mm tree
-Date: Wed, 19 Jan 2011 12:50:56 -0800
-Message-ID: <201101192050.p0JKoumC002264@imap1.linux-foundation.org>
+Subject: + memcg-fix-rmdir-force_empty-with-thp.patch added to -mm tree
+Date: Wed, 19 Jan 2011 12:51:00 -0800
+Message-ID: <201101192051.p0JKp0cx002271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751473Ab1ASUvf (ORCPT
+	by vger.kernel.org with ESMTP id S1751473Ab1ASUvg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 15:51:35 -0500
+	Wed, 19 Jan 2011 15:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.or
 
 
 The patch titled
-     memcg: fix USED bit handling at uncharge in THP
+     memcg: fix rmdir, force_empty with THP
 has been added to the -mm tree.  Its filename is
-     memcg-fix-used-bit-handling-at-uncharge-in-thp.patch
+     memcg-fix-rmdir-force_empty-with-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix USED bit handling at uncharge in THP
+Subject: memcg: fix rmdir, force_empty with THP
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now, under THP:
+Now, when THP is enabled, memcg's rmdir() function is broken because
+move_account() for THP page is not supported.
 
-at charge:
-  - PageCgroupUsed bit is set to all page_cgroup on a hugepage.
-    ....set to 512 pages.
-at uncharge
-  - PageCgroupUsed bit is unset on the head page.
-
-So, some pages will remain with "Used" bit.
-
-This patch fixes that Used bit is set only to the head page.
-Used bits for tail pages will be set at splitting if necessary.
-
-This patch adds this lock order:
-   compound_lock() -> page_cgroup_move_lock().
+This will cause account leak or -EBUSY issue at rmdir().
+This patch fixes the issue by supporting move_account() THP pages.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -60,185 +50,111 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 +++
- mm/huge_memory.c           |    2 
- mm/memcontrol.c            |   91 +++++++++++++++++++----------------
- 3 files changed, 61 insertions(+), 40 deletions(-)
+ mm/memcontrol.c |   37 ++++++++++++++++++++++++++-----------
+ 1 file changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-used-bit-handling-at-uncharge-in-thp include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-used-bit-handling-at-uncharge-in-thp
-+++ a/include/linux/memcontrol.h
-@@ -146,6 +146,10 @@ unsigned long mem_cgroup_soft_limit_recl
- 						gfp_t gfp_mask);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
-+#endif
-+
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct mem_cgroup;
- 
-@@ -335,6 +339,10 @@ u64 mem_cgroup_get_limit(struct mem_cgro
- 	return 0;
- }
- 
-+static inline mem_cgroup_split_huge_fixup(struct page *head, struct page *tail)
-+{
-+}
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/huge_memory.c~memcg-fix-used-bit-handling-at-uncharge-in-thp mm/huge_memory.c
---- a/mm/huge_memory.c~memcg-fix-used-bit-handling-at-uncharge-in-thp
-+++ a/mm/huge_memory.c
-@@ -1203,6 +1203,8 @@ static void __split_huge_page_refcount(s
- 		BUG_ON(!PageDirty(page_tail));
- 		BUG_ON(!PageSwapBacked(page_tail));
- 
-+		mem_cgroup_split_huge_fixup(page, page_tail);
-+
- 		lru_add_page_tail(zone, page, page_tail);
- 	}
- 
-diff -puN mm/memcontrol.c~memcg-fix-used-bit-handling-at-uncharge-in-thp mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-used-bit-handling-at-uncharge-in-thp
+diff -puN mm/memcontrol.c~memcg-fix-rmdir-force_empty-with-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-rmdir-force_empty-with-thp
 +++ a/mm/memcontrol.c
-@@ -1614,7 +1614,7 @@ void mem_cgroup_update_page_stat(struct 
- 	if (unlikely(!mem || !PageCgroupUsed(pc)))
- 		goto out;
- 	/* pc->mem_cgroup is unstable ? */
--	if (unlikely(mem_cgroup_stealed(mem))) {
-+	if (unlikely(mem_cgroup_stealed(mem)) || PageTransHuge(page)) {
- 		/* take a lock against to access pc->mem_cgroup */
+@@ -2197,8 +2197,11 @@ void mem_cgroup_split_huge_fixup(struct 
+  */
+ 
+ static void __mem_cgroup_move_account(struct page_cgroup *pc,
+-	struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge)
++	struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge,
++	int charge_size)
+ {
++	int nr_pages = charge_size >> PAGE_SHIFT;
++
+ 	VM_BUG_ON(from == to);
+ 	VM_BUG_ON(PageLRU(pc->page));
+ 	VM_BUG_ON(!page_is_cgroup_locked(pc));
+@@ -2212,14 +2215,14 @@ static void __mem_cgroup_move_account(st
+ 		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+ 		preempt_enable();
+ 	}
+-	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -1);
++	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -nr_pages);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+-		mem_cgroup_cancel_charge(from, PAGE_SIZE);
++		mem_cgroup_cancel_charge(from, charge_size);
+ 
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+-	mem_cgroup_charge_statistics(to, PageCgroupCache(pc), 1);
++	mem_cgroup_charge_statistics(to, PageCgroupCache(pc), nr_pages);
+ 	/*
+ 	 * We charges against "to" which may not have any tasks. Then, "to"
+ 	 * can be under rmdir(). But in current implementation, caller of
+@@ -2234,15 +2237,19 @@ static void __mem_cgroup_move_account(st
+  * __mem_cgroup_move_account()
+  */
+ static int mem_cgroup_move_account(struct page_cgroup *pc,
+-		struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge)
++		struct mem_cgroup *from, struct mem_cgroup *to,
++		bool uncharge, int charge_size)
+ {
+ 	int ret = -EINVAL;
+ 	unsigned long flags;
+ 
++	if ((charge_size > PAGE_SIZE) && !PageTransHuge(pc->page))
++		return -EBUSY;
++
+ 	lock_page_cgroup(pc);
+ 	if (PageCgroupUsed(pc) && pc->mem_cgroup == from) {
  		move_lock_page_cgroup(pc, &flags);
- 		need_unlock = true;
-@@ -2083,14 +2083,27 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- 	return mem;
- }
- 
--/*
-- * commit a charge got by __mem_cgroup_try_charge() and makes page_cgroup to be
-- * USED state. If already USED, uncharge and return.
-- */
--static void ____mem_cgroup_commit_charge(struct mem_cgroup *mem,
--					 struct page_cgroup *pc,
--					 enum charge_type ctype)
-+static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
-+				       struct page_cgroup *pc,
-+				       enum charge_type ctype,
-+				       int page_size)
- {
-+	int nr_pages = page_size >> PAGE_SHIFT;
-+
-+	/* try_charge() can return NULL to *memcg, taking care of it. */
-+	if (!mem)
-+		return;
-+
-+	lock_page_cgroup(pc);
-+	if (unlikely(PageCgroupUsed(pc))) {
-+		unlock_page_cgroup(pc);
-+		mem_cgroup_cancel_charge(mem, page_size);
-+		return;
-+	}
-+	/*
-+	 * we don't need page_cgroup_lock about tail pages, becase they are not
-+	 * accessed by any other context at this point.
-+	 */
- 	pc->mem_cgroup = mem;
- 	/*
- 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-@@ -2114,35 +2127,7 @@ static void ____mem_cgroup_commit_charge
- 		break;
+-		__mem_cgroup_move_account(pc, from, to, uncharge);
++		__mem_cgroup_move_account(pc, from, to, uncharge, charge_size);
+ 		move_unlock_page_cgroup(pc, &flags);
+ 		ret = 0;
  	}
- 
--	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), 1);
--}
--
--static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
--				       struct page_cgroup *pc,
--				       enum charge_type ctype,
--				       int page_size)
--{
--	int i;
--	int count = page_size >> PAGE_SHIFT;
--
--	/* try_charge() can return NULL to *memcg, taking care of it. */
--	if (!mem)
--		return;
--
--	lock_page_cgroup(pc);
--	if (unlikely(PageCgroupUsed(pc))) {
--		unlock_page_cgroup(pc);
--		mem_cgroup_cancel_charge(mem, page_size);
--		return;
--	}
--
--	/*
--	 * we don't need page_cgroup_lock about tail pages, becase they are not
--	 * accessed by any other context at this point.
--	 */
--	for (i = 0; i < count; i++)
--		____mem_cgroup_commit_charge(mem, pc + i, ctype);
--
-+	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), nr_pages);
- 	unlock_page_cgroup(pc);
- 	/*
- 	 * "charge_statistics" updated event counter. Then, check it.
-@@ -2152,6 +2137,34 @@ static void __mem_cgroup_commit_charge(s
- 	memcg_check_events(mem, pc->page);
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+
-+#define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MOVE_LOCK) |\
-+			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
-+/*
-+ * Because tail pages are not marked as "used", set it. We're under
-+ * zone->lru_lock, 'splitting on pmd' and compund_lock.
-+ */
-+void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail)
-+{
-+	struct page_cgroup *head_pc = lookup_page_cgroup(head);
-+	struct page_cgroup *tail_pc = lookup_page_cgroup(tail);
+@@ -2267,6 +2274,8 @@ static int mem_cgroup_move_parent(struct
+ 	struct cgroup *cg = child->css.cgroup;
+ 	struct cgroup *pcg = cg->parent;
+ 	struct mem_cgroup *parent;
++	int charge = PAGE_SIZE;
 +	unsigned long flags;
-+
-+	/*
-+	 * We have no races witch charge/uncharge but will have races with
-+	 * page state accounting.
-+	 */
-+	move_lock_page_cgroup(head_pc, &flags);
-+
-+	tail_pc->mem_cgroup = head_pc->mem_cgroup;
-+	smp_wmb(); /* see __commit_charge() */
-+	/* we don't need to copy all flags...*/
-+	tail_pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
-+	move_unlock_page_cgroup(head_pc, &flags);
-+}
-+#endif
-+
- /**
-  * __mem_cgroup_move_account - move account of the page
-  * @pc:	page_cgroup of the page.
-@@ -2545,7 +2558,6 @@ direct_uncharge:
- static struct mem_cgroup *
- __mem_cgroup_uncharge_common(struct page *page, enum charge_type ctype)
- {
--	int i;
- 	int count;
- 	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
-@@ -2595,8 +2607,7 @@ __mem_cgroup_uncharge_common(struct page
- 		break;
- 	}
+ 	int ret;
  
--	for (i = 0; i < count; i++)
--		mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), -1);
-+	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), -count);
+ 	/* Is ROOT ? */
+@@ -2278,17 +2287,23 @@ static int mem_cgroup_move_parent(struct
+ 		goto out;
+ 	if (isolate_lru_page(page))
+ 		goto put;
++	/* The page is isolated from LRU and we have no race with splitting */
++	charge = PAGE_SIZE << compound_order(page);
  
- 	ClearPageCgroupUsed(pc);
- 	/*
+ 	parent = mem_cgroup_from_cont(pcg);
+-	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false,
+-				      PAGE_SIZE);
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false, charge);
+ 	if (ret || !parent)
+ 		goto put_back;
+ 
+-	ret = mem_cgroup_move_account(pc, child, parent, true);
++	if (charge > PAGE_SIZE)
++		flags = compound_lock_irqsave(page);
++
++	ret = mem_cgroup_move_account(pc, child, parent, true, charge);
+ 	if (ret)
+-		mem_cgroup_cancel_charge(parent, PAGE_SIZE);
++		mem_cgroup_cancel_charge(parent, charge);
+ put_back:
++	if (charge > PAGE_SIZE)
++		compound_unlock_irqrestore(page, flags);
+ 	putback_lru_page(page);
+ put:
+ 	put_page(page);
+@@ -4868,7 +4883,7 @@ retry:
+ 				goto put;
+ 			pc = lookup_page_cgroup(page);
+ 			if (!mem_cgroup_move_account(pc,
+-						mc.from, mc.to, false)) {
++					mc.from, mc.to, false, PAGE_SIZE)) {
+ 				mc.precharge--;
+ 				/* we uncharge from mc.from later. */
+ 				mc.moved_charge++;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
