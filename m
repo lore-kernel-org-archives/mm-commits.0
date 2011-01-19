@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bh1780gli-convert-to-dev-pm-ops.patch added to -mm tree
-Date: Tue, 18 Jan 2011 16:01:24 -0800
-Message-ID: <201101190001.p0J01OSx014689@imap1.linux-foundation.org>
+Subject: + drivers-misc-bmp085c-free-initmem-memory.patch added to -mm tree
+Date: Tue, 18 Jan 2011 16:06:27 -0800
+Message-ID: <201101190006.p0J06R0k014904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751967Ab1ASAB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752186Ab1ASAG3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 19:01:27 -0500
+	Tue, 18 Jan 2011 19:06:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: shubhrajyoti@ti.com
 
 
 The patch titled
-     bh1780gli: convert to dev pm ops
+     drivers/misc/bmp085.c: free initmem memory
 has been added to the -mm tree.  Its filename is
-     bh1780gli-convert-to-dev-pm-ops.patch
+     drivers-misc-bmp085c-free-initmem-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bh1780gli: convert to dev pm ops
+Subject: drivers/misc/bmp085.c: free initmem memory
 From: Shubhrajyoti Datta <shubhrajyoti@ti.com>
+
+Free the memory that is used only at init
 
 Signed-off-by: Shubhrajyoti Datta <shubhrajyoti@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/bh1780gli.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/misc/bmp085.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops drivers/misc/bh1780gli.c
---- a/drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops
-+++ a/drivers/misc/bh1780gli.c
-@@ -196,10 +196,11 @@ static int __devexit bh1780_remove(struc
+diff -puN drivers/misc/bmp085.c~drivers-misc-bmp085c-free-initmem-memory drivers/misc/bmp085.c
+--- a/drivers/misc/bmp085.c~drivers-misc-bmp085c-free-initmem-memory
++++ a/drivers/misc/bmp085.c
+@@ -402,7 +402,7 @@ exit:
+ 	return status;
  }
  
- #ifdef CONFIG_PM
--static int bh1780_suspend(struct i2c_client *client, pm_message_t mesg)
-+static int bh1780_suspend(struct device *dev)
+-static int bmp085_probe(struct i2c_client *client,
++static int __devinit bmp085_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
  {
- 	struct bh1780_data *ddata;
- 	int state, ret;
-+	struct i2c_client *client = to_i2c_client(dev);
- 
- 	ddata = i2c_get_clientdata(client);
- 	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
-@@ -217,14 +218,14 @@ static int bh1780_suspend(struct i2c_cli
- 	return 0;
+ 	struct bmp085_data *data;
+@@ -438,7 +438,7 @@ exit:
+ 	return err;
  }
  
--static int bh1780_resume(struct i2c_client *client)
-+static int bh1780_resume(struct device *dev)
+-static int bmp085_remove(struct i2c_client *client)
++static int __devexit bmp085_remove(struct i2c_client *client)
  {
- 	struct bh1780_data *ddata;
- 	int state, ret;
-+	struct i2c_client *client = to_i2c_client(dev);
+ 	sysfs_remove_group(&client->dev.kobj, &bmp085_attr_group);
+ 	kfree(i2c_get_clientdata(client));
+@@ -457,7 +457,7 @@ static struct i2c_driver bmp085_driver =
+ 	},
+ 	.id_table	= bmp085_id,
+ 	.probe		= bmp085_probe,
+-	.remove		= bmp085_remove,
++	.remove		= __devexit_p(bmp085_remove),
  
- 	ddata = i2c_get_clientdata(client);
- 	state = ddata->power_state;
--
- 	ret = bh1780_write(ddata, BH1780_REG_CONTROL, state,
- 				"CONTROL");
- 
-@@ -233,9 +234,7 @@ static int bh1780_resume(struct i2c_clie
- 
- 	return 0;
- }
--#else
--#define bh1780_suspend NULL
--#define bh1780_resume NULL
-+static SIMPLE_DEV_PM_OPS(bh1780_pm, bh1780_suspend, bh1780_resume);
- #endif /* CONFIG_PM */
- 
- static const struct i2c_device_id bh1780_id[] = {
-@@ -247,11 +246,12 @@ static struct i2c_driver bh1780_driver =
- 	.probe		= bh1780_probe,
- 	.remove		= bh1780_remove,
- 	.id_table	= bh1780_id,
--	.suspend	= bh1780_suspend,
--	.resume		= bh1780_resume,
- 	.driver = {
--		.name = "bh1780"
--	},
-+		.name = "bh1780",
-+#ifdef CONFIG_PM
-+		.pm	= &bh1780_pm,
-+#endif
-+},
- };
- 
- static int __init bh1780_init(void)
+ 	.detect		= bmp085_detect,
+ 	.address_list	= normal_i2c
 _
 
 Patches currently in -mm which might be from shubhrajyoti@ti.com are
 
 origin.patch
 bh1780gli-convert-to-dev-pm-ops.patch
+drivers-misc-bmp085c-free-initmem-memory.patch
 
