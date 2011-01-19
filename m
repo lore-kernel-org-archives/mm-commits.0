@@ -1,75 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 18:33:45 -0800
-Message-ID: <201101190233.p0J2Xj5i021006@imap1.linux-foundation.org>
+Subject: [to-be-updated] writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 18:33:36 -0800
+Message-ID: <201101190233.p0J2XafA020996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753239Ab1ASCfJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751733Ab1ASCfD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 21:35:09 -0500
+	Tue, 18 Jan 2011 21:35:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     writeback: scale down max throttle bandwidth on concurrent dirtiers
+     writeback: quit throttling when bdi dirty pages dropped low
 has been removed from the -mm tree.  Its filename was
-     writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+     writeback-quit-throttling-when-bdi-dirty-pages-dropped-low.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: scale down max throttle bandwidth on concurrent dirtiers
+Subject: writeback: quit throttling when bdi dirty pages dropped low
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-This will noticeably reduce the fluctuaions of pause time when there are
-100+ concurrent dirtiers.
+Tests show that bdi_thresh may take minutes to ramp up on a typical
+desktop.  The time should be improvable but cannot be eliminated totally. 
+So when (background_thresh + dirty_thresh)/2 is reached and
+balance_dirty_pages() starts to throttle the task, it will suddenly find
+the (still low and ramping up) bdi_thresh is exceeded _excessively_.  Here
+we definitely don't want to stall the task for one minute (when it's
+writing to USB stick).  So introduce an alternative way to break out of
+the loop when the bdi dirty/write pages has dropped by a reasonable
+amount.
 
-The more parallel dirtiers (1 dirtier => 4 dirtiers), the smaller
-bandwidth each dirtier will share (bdi_bandwidth => bdi_bandwidth/4), the
-less gap to the dirty limit ((C-A) => (C-B)), the less stable the pause
-time will be (given the same fluctuation of bdi_dirty).
+When dirty_background_ratio is set close to dirty_ratio, bdi_thresh may
+also be constantly exceeded due to the task_dirty_limit() gap.  This is
+addressed by another patch to lower the background threshold when
+necessary.
 
-For example, if A drifts to A', its pause time may drift from 5ms to 6ms,
-while B to B' may drift from 50ms to 90ms.  It's much larger fluctuations
-in relative ratio as well as absolute time.
+It will take at least 100ms before trying to break out.
 
-Fig.1 before patch, gap (C-B) is too low to get smooth pause time
-
-throttle_bandwidth_A = bdi_bandwidth .........o
-                                              | o <= A'
-                                              |   o
-                                              |     o
-                                              |       o
-                                              |         o
-throttle_bandwidth_B = bdi_bandwidth / 4 .....|...........o
-                                              |           | o <= B'
- ---------------------------------------------+-----------+---o
-                                              A           B   C
-
-The solution is to lower the slope of the throttle line accordingly, which
-makes B stabilize at some point more far away from C.
-
-Fig.2 after patch
-
-throttle_bandwidth_A = bdi_bandwidth .........o
-                                              | o <= A'
-                                              |   o
-                                              |     o
-    lowered max throttle bandwidth for B ===> *       o
-                                              |   *     o
-throttle_bandwidth_B = bdi_bandwidth / 4 .............*   o
-                                              |       |   * o
- ---------------------------------------------+-------+-------o
-                                              A       B       C
-
-Note that C is actually different points for 1-dirty and 4-dirtiers cases,
-but for easy graphing, we move them together.
+Note that this opens the chance that during normal operation, a huge
+number of slow dirtiers writing to a really slow device might manage to
+outrun bdi_thresh.  But the risk is pretty low.  It takes at least one
+100ms sleep loop to break out, and the global limit is still enforced.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -89,44 +67,54 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN mm/page-writeback.c~writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers
+diff -puN mm/page-writeback.c~writeback-quit-throttling-when-bdi-dirty-pages-dropped-low mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-quit-throttling-when-bdi-dirty-pages-dropped-low
 +++ a/mm/page-writeback.c
-@@ -538,6 +538,7 @@ static void balance_dirty_pages(struct a
+@@ -527,6 +527,7 @@ static void balance_dirty_pages(struct a
+ {
+ 	long nr_reclaimable;
+ 	long nr_dirty, bdi_dirty;  /* = file_dirty + writeback + unstable_nfs */
++	long bdi_prev_dirty = 0;
  	unsigned long background_thresh;
  	unsigned long dirty_thresh;
  	unsigned long bdi_thresh;
-+	unsigned long task_thresh;
- 	unsigned long bw;
- 	unsigned long pause = 0;
- 	bool dirty_exceeded = false;
-@@ -567,7 +568,7 @@ static void balance_dirty_pages(struct a
- 			break;
- 
- 		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
--		bdi_thresh = task_dirty_limit(current, bdi_thresh);
-+		task_thresh = task_dirty_limit(current, bdi_thresh);
- 
- 		/*
- 		 * In order to avoid the stacked BDI deadlock we need
-@@ -606,14 +607,23 @@ static void balance_dirty_pages(struct a
- 			break;
- 		bdi_prev_dirty = bdi_dirty;
- 
--		if (bdi_dirty >= bdi_thresh) {
-+		if (bdi_dirty >= task_thresh) {
- 			pause = HZ/10;
- 			goto pause;
+@@ -579,6 +580,25 @@ static void balance_dirty_pages(struct a
+ 				    bdi_stat(bdi, BDI_WRITEBACK);
  		}
  
 +		/*
-+		 * When bdi_dirty grows closer to bdi_thresh, it indicates more
-+		 * concurrent dirtiers. Proportionally lower the max throttle
-+		 * bandwidth. This will resist bdi_dirty from approaching to
-+		 * close to task_thresh, and help reduce fluctuations of pause
-+		 * time when there are lots of dirtiers.
++		 * bdi_thresh takes time to ramp up from the initial 0,
++		 * especially for slow devices.
++		 *
++		 * It's possible that at the moment dirty throttling starts,
++		 * 	bdi_dirty = nr_dirty
++		 * 		  = (background_thresh + dirty_thresh) / 2
++		 * 		  >> bdi_thresh
++		 * Then the task could be blocked for a dozen second to flush
++		 * all the exceeded (bdi_dirty - bdi_thresh) pages. So offer a
++		 * complementary way to break out of the loop when 250ms worth
++		 * of dirty pages have been cleaned during our pause time.
 +		 */
- 		bw = bdi->write_bandwidth;
++		if (nr_dirty < dirty_thresh &&
++		    bdi_prev_dirty - bdi_dirty >
++		    bdi->write_bandwidth >> (PAGE_CACHE_SHIFT + 2))
++			break;
++		bdi_prev_dirty = bdi_dirty;
++
+ 		if (bdi_dirty >= bdi_thresh) {
+ 			pause = HZ/10;
+ 			goto pause;
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+origin.patch
+writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
+writeback-add-trace-event-for-balance_dirty_pages.patch
+writeback-make-nr_to_write-a-per-file-limit.patch
+
