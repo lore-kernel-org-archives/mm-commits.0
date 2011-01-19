@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + llist-lib-add-lock-less-null-terminated-single-list.patch added to -mm tree
-Date: Wed, 19 Jan 2011 14:02:48 -0800
-Message-ID: <201101192202.p0JM2mes005824@imap1.linux-foundation.org>
+Subject: + llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch added to -mm tree
+Date: Wed, 19 Jan 2011 14:02:55 -0800
+Message-ID: <201101192202.p0JM2toN005831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754046Ab1ASWFX (ORCPT
+	by vger.kernel.org with ESMTP id S1754062Ab1ASWFZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 17:05:23 -0500
+	Wed, 19 Jan 2011 17:05:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, ak@linux.intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, hans-christian.egtvedt@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, liqin.chen@sunplusct.com, mingo@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, vapier@gentoo.org, ysato@users.sourceforge.jp
+Cc: ying.huang@intel.com, ak@linux.intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris.mason@oracle.com, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, hans-christian.egtvedt@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, liqin.chen@sunplusct.com, mingo@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, vapier@gentoo.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     llist: lib, Add lock-less NULL terminated single list
+     llist: net, rds, Replace xlist in net/rds/xlist.h with llist
 has been added to the -mm tree.  Its filename is
-     llist-lib-add-lock-less-null-terminated-single-list.patch
+     llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: llist: lib, Add lock-less NULL terminated single list
+Subject: llist: net, rds, Replace xlist in net/rds/xlist.h with llist
 From: Huang Ying <ying.huang@intel.com>
 
-Cmpxchg is used to implement adding new entry to the list, deleting all
-entries from the list, deleting first entry of the list and some other
-operations.
+The functionality of xlist and llist is almost same.  This patch replace
+xlist with llist to avoid code duplication.
 
-Because this is a single list, so the tail can not be accessed in O(1).
-
-If there are multiple producers and multiple consumers, llist_add can be
-used in producers and llist_del_all can be used in consumers.  They can
-work simultaneously without lock.  But llist_del_first can not be used
-here.  Because llist_del_first depends on list->first->next does not
-changed if list->first is not changed during its operation, but
-llist_del_first, llist_add, llist_add sequence in another consumer may
-violate that.
-
-If there are multiple producers and one consumer, llist_add can be used in
-producers and llist_del_all or llist_del_first can be used in the
-consumer.
-
-The list entries deleted via llist_del_all can be traversed with
-traversing function such as llist_for_each etc.  But the list entries can
-not be traversed safely before deleted from the list without proper
-synchronization with the list consumers.
-
-The basic atomic operation of this list is cmpxchg on long.  On
-architectures that don't have NMI-safe cmpxchg implementation, the list
-can NOT be used in NMI handler.  So code uses the list in NMI handler
-should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
+Known issues: don't know how to test this, need special hardware?
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Mike Frysinger <vapier@gentoo.org>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
@@ -93,267 +71,329 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/llist.h |   99 +++++++++++++++++++++++++++++++++
- lib/Kconfig           |    3 +
- lib/Makefile          |    2 
- lib/llist.c           |  119 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 223 insertions(+)
+ net/rds/Kconfig   |    1 
+ net/rds/ib_rdma.c |  112 ++++++++++++++++++++------------------------
+ net/rds/xlist.h   |   80 -------------------------------
+ 3 files changed, 52 insertions(+), 141 deletions(-)
 
-diff -puN /dev/null include/linux/llist.h
---- /dev/null
-+++ a/include/linux/llist.h
-@@ -0,0 +1,99 @@
-+#ifndef LLIST_H
-+#define LLIST_H
-+/*
-+ * Lock-less NULL terminated single linked list
-+ *
-+ * If there are multiple producers and multiple consumers, llist_add
-+ * can be used in producers and llist_del_all can be used in
-+ * consumers.  They can work simultaneously without lock.  But
-+ * llist_del_first can not be used here.  Because llist_del_first
-+ * depends on list->first->next does not changed if list->first is not
-+ * changed during its operation, but llist_del_first, llist_add,
-+ * llist_add sequence in another consumer may violate that.
-+ *
-+ * If there are multiple producers and one consumer, llist_add can be
-+ * used in producers and llist_del_all or llist_del_first can be used
-+ * in the consumer.
-+ *
-+ * The list entries deleted via llist_del_all can be traversed with
-+ * traversing function such as llist_for_each etc.  But the list
-+ * entries can not be traversed safely before deleted from the list
-+ * without proper synchronization with the list consumers.
-+ *
-+ * The basic atomic operation of this list is cmpxchg on long.  On
-+ * architectures that don't have NMI-safe cmpxchg implementation, the
-+ * list can NOT be used in NMI handler.  So code uses the list in NMI
-+ * handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
-+ */
-+
-+struct llist_head {
-+	struct llist_node *first;
-+};
-+
-+struct llist_node {
-+	struct llist_node *next;
-+};
-+
-+#define LLIST_HEAD_INIT(name)	{ NULL }
-+#define LLIST_HEAD(name)	struct llist_head name = LLIST_HEAD_INIT(name)
-+
-+/**
-+ * init_llist_head - initialize lock-less list head
-+ * @head:	the head for your lock-less list
-+ */
-+static inline void init_llist_head(struct llist_head *list)
-+{
-+	list->first = NULL;
-+}
-+
-+/**
-+ * llist_entry - get the struct of this entry
-+ * @ptr:	the &struct llist_node pointer.
-+ * @type:	the type of the struct this is embedded in.
-+ * @member:	the name of the llist_node within the struct.
-+ */
-+#define llist_entry(ptr, type, member)		\
-+	container_of(ptr, type, member)
-+
-+/**
-+ * llist_for_each - iterate over some entries of a lock-less list
-+ * @pos:	the &struct llist_node to use as a loop cursor
-+ * @node:	the first entry of deleted list entries
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being deleted from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each(pos, node)			\
-+	for (pos = (node); pos; pos = pos->next)
-+
-+/**
-+ * llist_for_each_entry - iterate over some entries of lock-less list of given type
-+ * @pos:	the type * to use as a loop cursor.
-+ * @node:	the fist entry of deleted list entries.
-+ * @member:	the name of the llist_node with the struct.
-+ *
-+ * In general, some entries of the lock-less list can be traversed
-+ * safely only after being removed from list, so start with an entry
-+ * instead of list head.
-+ */
-+#define llist_for_each_entry(pos, node, member)				\
-+	for (pos = llist_entry((node), typeof(*pos), member);		\
-+	     &pos->member != NULL;					\
-+	     pos = llist_entry(pos->member.next, typeof(*pos), member))
-+
-+/**
-+ * llist_empty - tests whether a lock-less list is empty
-+ * @head:	the list to test
-+ */
-+static inline int llist_empty(const struct llist_head *head)
-+{
-+	return head->first == NULL;
-+}
-+
-+void llist_add(struct llist_node *new, struct llist_head *head);
-+void llist_add_batch(struct llist_node *new_first, struct llist_node *new_last,
-+		     struct llist_head *head);
-+struct llist_node *llist_del_first(struct llist_head *head);
-+struct llist_node *llist_del_all(struct llist_head *head);
-+#endif /* LLIST_H */
-diff -puN lib/Kconfig~llist-lib-add-lock-less-null-terminated-single-list lib/Kconfig
---- a/lib/Kconfig~llist-lib-add-lock-less-null-terminated-single-list
-+++ a/lib/Kconfig
-@@ -240,4 +240,7 @@ config IOQ
+diff -puN net/rds/Kconfig~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/Kconfig
+--- a/net/rds/Kconfig~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist
++++ a/net/rds/Kconfig
+@@ -9,6 +9,7 @@ config RDS
  
- 	 If unsure, say N
- 
-+config LLIST
-+	bool
-+
- endmenu
-diff -puN lib/Makefile~llist-lib-add-lock-less-null-terminated-single-list lib/Makefile
---- a/lib/Makefile~llist-lib-add-lock-less-null-terminated-single-list
-+++ a/lib/Makefile
-@@ -112,6 +112,8 @@ obj-$(CONFIG_ATOMIC64_SELFTEST) += atomi
- 
- obj-$(CONFIG_AVERAGE) += average.o
- 
-+obj-$(CONFIG_LLIST) += llist.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
- 
-diff -puN /dev/null lib/llist.c
---- /dev/null
-+++ a/lib/llist.c
-@@ -0,0 +1,119 @@
-+/*
-+ * Lock-less NULL terminated single linked list
-+ *
-+ * The basic atomic operation of this list is cmpxchg on long.  On
-+ * architectures that don't have NMI-safe cmpxchg implementation, the
-+ * list can NOT be used in NMI handler.  So code uses the list in NMI
-+ * handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
-+ *
-+ * Copyright 2010 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
+ config RDS_RDMA
+ 	tristate "RDS over Infiniband and iWARP"
++	select LLIST
+ 	depends on RDS && INFINIBAND && INFINIBAND_ADDR_TRANS
+ 	---help---
+ 	  Allow RDS to use Infiniband and iWARP as a transport.
+diff -puN net/rds/ib_rdma.c~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/ib_rdma.c
+--- a/net/rds/ib_rdma.c~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist
++++ a/net/rds/ib_rdma.c
+@@ -33,10 +33,10 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/rculist.h>
 +#include <linux/llist.h>
+ 
+ #include "rds.h"
+ #include "ib.h"
+-#include "xlist.h"
+ 
+ static struct workqueue_struct *rds_ib_fmr_wq;
+ 
+@@ -51,7 +51,7 @@ struct rds_ib_mr {
+ 	struct rds_ib_mr_pool	*pool;
+ 	struct ib_fmr		*fmr;
+ 
+-	struct xlist_head	xlist;
++	struct llist_node	llnode;
+ 
+ 	/* unmap_list is for freeing */
+ 	struct list_head	unmap_list;
+@@ -73,9 +73,9 @@ struct rds_ib_mr_pool {
+ 	atomic_t		item_count;		/* total # of MRs */
+ 	atomic_t		dirty_count;		/* # dirty of MRs */
+ 
+-	struct xlist_head	drop_list;		/* MRs that have reached their max_maps limit */
+-	struct xlist_head	free_list;		/* unused MRs */
+-	struct xlist_head	clean_list;		/* global unused & unamapped MRs */
++	struct llist_head	drop_list;		/* MRs that have reached their max_maps limit */
++	struct llist_head	free_list;		/* unused MRs */
++	struct llist_head	clean_list;		/* global unused & unamapped MRs */
+ 	wait_queue_head_t	flush_wait;
+ 
+ 	atomic_t		free_pinned;		/* memory pinned by free MRs */
+@@ -222,9 +222,9 @@ struct rds_ib_mr_pool *rds_ib_create_mr_
+ 	if (!pool)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	INIT_XLIST_HEAD(&pool->free_list);
+-	INIT_XLIST_HEAD(&pool->drop_list);
+-	INIT_XLIST_HEAD(&pool->clean_list);
++	init_llist_head(&pool->free_list);
++	init_llist_head(&pool->drop_list);
++	init_llist_head(&pool->clean_list);
+ 	mutex_init(&pool->flush_lock);
+ 	init_waitqueue_head(&pool->flush_wait);
+ 	INIT_DELAYED_WORK(&pool->flush_worker, rds_ib_mr_pool_flush_worker);
+@@ -262,26 +262,18 @@ void rds_ib_destroy_mr_pool(struct rds_i
+ 	kfree(pool);
+ }
+ 
+-static void refill_local(struct rds_ib_mr_pool *pool, struct xlist_head *xl,
+-			 struct rds_ib_mr **ibmr_ret)
+-{
+-	struct xlist_head *ibmr_xl;
+-	ibmr_xl = xlist_del_head_fast(xl);
+-	*ibmr_ret = list_entry(ibmr_xl, struct rds_ib_mr, xlist);
+-}
+-
+ static inline struct rds_ib_mr *rds_ib_reuse_fmr(struct rds_ib_mr_pool *pool)
+ {
+ 	struct rds_ib_mr *ibmr = NULL;
+-	struct xlist_head *ret;
++	struct llist_node *ret;
+ 	unsigned long *flag;
+ 
+ 	preempt_disable();
+ 	flag = &__get_cpu_var(clean_list_grace);
+ 	set_bit(CLEAN_LIST_BUSY_BIT, flag);
+-	ret = xlist_del_head(&pool->clean_list);
++	ret = llist_del_first(&pool->clean_list);
+ 	if (ret)
+-		ibmr = list_entry(ret, struct rds_ib_mr, xlist);
++		ibmr = llist_entry(ret, struct rds_ib_mr, llnode);
+ 
+ 	clear_bit(CLEAN_LIST_BUSY_BIT, flag);
+ 	preempt_enable();
+@@ -531,46 +523,44 @@ static inline unsigned int rds_ib_flush_
+ }
+ 
+ /*
+- * given an xlist of mrs, put them all into the list_head for more processing
++ * given an llist of mrs, put them all into the list_head for more processing
+  */
+-static void xlist_append_to_list(struct xlist_head *xlist, struct list_head *list)
++static void llist_append_to_list(struct llist_head *llist, struct list_head *list)
+ {
+ 	struct rds_ib_mr *ibmr;
+-	struct xlist_head splice;
+-	struct xlist_head *cur;
+-	struct xlist_head *next;
+-
+-	splice.next = NULL;
+-	xlist_splice(xlist, &splice);
+-	cur = splice.next;
+-	while (cur) {
+-		next = cur->next;
+-		ibmr = list_entry(cur, struct rds_ib_mr, xlist);
++	struct llist_node *node;
++	struct llist_node *next;
 +
-+#include <asm/system.h>
-+
-+/**
-+ * llist_add - add a new entry
-+ * @new:	new entry to be added
-+ * @head:	the head for your lock-less list
-+ */
-+void llist_add(struct llist_node *new, struct llist_head *head)
-+{
-+	struct llist_node *entry;
-+
-+#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	BUG_ON(in_nmi());
-+#endif
-+
-+	do {
-+		entry = head->first;
-+		new->next = entry;
-+	} while (cmpxchg(&head->first, entry, new) != entry);
-+}
-+EXPORT_SYMBOL_GPL(llist_add);
-+
-+/**
-+ * llist_add_batch - add several linked entries in batch
-+ * @new_first:	first entry in batch to be added
-+ * @new_last:	last entry in batch to be added
-+ * @head:	the head for your lock-less list
-+ */
-+void llist_add_batch(struct llist_node *new_first, struct llist_node *new_last,
-+		     struct llist_head *head)
-+{
-+	struct llist_node *entry;
-+
-+#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	BUG_ON(in_nmi());
-+#endif
-+
-+	do {
-+		entry = head->first;
-+		new_last->next = entry;
-+	} while (cmpxchg(&head->first, entry, new_first) != entry);
-+}
-+EXPORT_SYMBOL_GPL(llist_add_batch);
-+
-+/**
-+ * llist_del_first - delete the first entry of lock-less list
-+ * @head:	the head for your lock-less list
-+ *
-+ * If list is empty, return NULL, otherwise, return the first entry deleted.
-+ *
-+ * Only one llist_del_first user can be used simultaneously with
-+ * multiple llist_add users without lock. Because otherwise
-+ * llist_del_first, llist_add, llist_add sequence in another user may
-+ * change @head->first->next, but keep @head->first. If multiple
-+ * consumers are needed, please use llist_del_all.
-+ */
-+struct llist_node *llist_del_first(struct llist_head *head)
-+{
-+	struct llist_node *entry;
-+
-+#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	BUG_ON(in_nmi());
-+#endif
-+
-+	do {
-+		entry = head->first;
-+		if (entry == NULL)
-+			return NULL;
-+	} while (cmpxchg(&head->first, entry, entry->next) != entry);
-+
-+	return entry;
-+}
-+EXPORT_SYMBOL_GPL(llist_del_first);
-+
-+/**
-+ * llist_del_all - delete all entries from lock-less list
-+ * @head:	the head of lock-less list to delete all entries
-+ *
-+ * If list is empty, return NULL, otherwise, delete all entries and
-+ * return the pointer to the first entry.
-+ */
-+struct llist_node *llist_del_all(struct llist_head *head)
-+{
-+#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	BUG_ON(in_nmi());
-+#endif
-+
-+	return xchg(&head->first, NULL);
-+}
-+EXPORT_SYMBOL_GPL(llist_del_all);
-_
-
-Patches currently in -mm which might be from ying.huang@intel.com are
-
-llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch
-llist-lib-add-lock-less-null-terminated-single-list.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
-
++	node = llist_del_all(llist);
++	while (node) {
++		next = node->next;
++		ibmr = llist_entry(node, struct rds_ib_mr, llnode);
+ 		list_add_tail(&ibmr->unmap_list, list);
+-		cur = next;
++		node = next;
+ 	}
+ }
+ 
+ /*
+- * this takes a list head of mrs and turns it into an xlist of clusters.
+- * each cluster has an xlist of MR_CLUSTER_SIZE mrs that are ready for
+- * reuse.
++ * this takes a list head of mrs and turns it into linked llist nodes
++ * of clusters.  Each cluster has linked llist nodes of
++ * MR_CLUSTER_SIZE mrs that are ready for reuse.
+  */
+-static void list_append_to_xlist(struct rds_ib_mr_pool *pool,
+-				struct list_head *list, struct xlist_head *xlist,
+-				struct xlist_head **tail_ret)
++static void list_to_llist_nodes(struct rds_ib_mr_pool *pool,
++				struct list_head *list,
++				struct llist_node **nodes_head,
++				struct llist_node **nodes_tail)
+ {
+ 	struct rds_ib_mr *ibmr;
+-	struct xlist_head *cur_mr = xlist;
+-	struct xlist_head *tail_mr = NULL;
++	struct llist_node *cur = NULL;
++	struct llist_node **next = nodes_head;
+ 
+ 	list_for_each_entry(ibmr, list, unmap_list) {
+-		tail_mr = &ibmr->xlist;
+-		tail_mr->next = NULL;
+-		cur_mr->next = tail_mr;
+-		cur_mr = tail_mr;
++		cur = &ibmr->llnode;
++		*next = cur;
++		next = &cur->next;
+ 	}
+-	*tail_ret = tail_mr;
++	*next = NULL;
++	*nodes_tail = cur;
+ }
+ 
+ /*
+@@ -583,8 +573,8 @@ static int rds_ib_flush_mr_pool(struct r
+ 			        int free_all, struct rds_ib_mr **ibmr_ret)
+ {
+ 	struct rds_ib_mr *ibmr, *next;
+-	struct xlist_head clean_xlist;
+-	struct xlist_head *clean_tail;
++	struct llist_node *clean_nodes;
++	struct llist_node *clean_tail;
+ 	LIST_HEAD(unmap_list);
+ 	LIST_HEAD(fmr_list);
+ 	unsigned long unpinned = 0;
+@@ -605,7 +595,7 @@ static int rds_ib_flush_mr_pool(struct r
+ 
+ 			prepare_to_wait(&pool->flush_wait, &wait,
+ 					TASK_UNINTERRUPTIBLE);
+-			if (xlist_empty(&pool->clean_list))
++			if (llist_empty(&pool->clean_list))
+ 				schedule();
+ 
+ 			ibmr = rds_ib_reuse_fmr(pool);
+@@ -630,10 +620,10 @@ static int rds_ib_flush_mr_pool(struct r
+ 	/* Get the list of all MRs to be dropped. Ordering matters -
+ 	 * we want to put drop_list ahead of free_list.
+ 	 */
+-	xlist_append_to_list(&pool->drop_list, &unmap_list);
+-	xlist_append_to_list(&pool->free_list, &unmap_list);
++	llist_append_to_list(&pool->drop_list, &unmap_list);
++	llist_append_to_list(&pool->free_list, &unmap_list);
+ 	if (free_all)
+-		xlist_append_to_list(&pool->clean_list, &unmap_list);
++		llist_append_to_list(&pool->clean_list, &unmap_list);
+ 
+ 	free_goal = rds_ib_flush_goal(pool, free_all);
+ 
+@@ -665,22 +655,22 @@ static int rds_ib_flush_mr_pool(struct r
+ 	if (!list_empty(&unmap_list)) {
+ 		/* we have to make sure that none of the things we're about
+ 		 * to put on the clean list would race with other cpus trying
+-		 * to pull items off.  The xlist would explode if we managed to
++		 * to pull items off.  The llist would explode if we managed to
+ 		 * remove something from the clean list and then add it back again
+-		 * while another CPU was spinning on that same item in xlist_del_head.
++		 * while another CPU was spinning on that same item in llist_del_first.
+ 		 *
+-		 * This is pretty unlikely, but just in case  wait for an xlist grace period
++		 * This is pretty unlikely, but just in case  wait for an llist grace period
+ 		 * here before adding anything back into the clean list.
+ 		 */
+ 		wait_clean_list_grace();
+ 
+-		list_append_to_xlist(pool, &unmap_list, &clean_xlist, &clean_tail);
++		list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
+ 		if (ibmr_ret)
+-			refill_local(pool, &clean_xlist, ibmr_ret);
++			*ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
+ 
+-		/* refill_local may have emptied our list */
+-		if (!xlist_empty(&clean_xlist))
+-			xlist_add(clean_xlist.next, clean_tail, &pool->clean_list);
++		/* more than one entry in llist nodes */
++		if (clean_nodes->next)
++			llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
+ 
+ 	}
+ 
+@@ -731,9 +721,9 @@ void rds_ib_free_mr(void *trans_private,
+ 
+ 	/* Return it to the pool's free list */
+ 	if (ibmr->remap_count >= pool->fmr_attr.max_maps)
+-		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->drop_list);
++		llist_add(&ibmr->llnode, &pool->drop_list);
+ 	else
+-		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->free_list);
++		llist_add(&ibmr->llnode, &pool->free_list);
+ 
+ 	atomic_add(ibmr->sg_len, &pool->free_pinned);
+ 	atomic_inc(&pool->dirty_count);
+diff -puN net/rds/xlist.h~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist /dev/null
+--- a/net/rds/xlist.h
++++ /dev/null
+@@ -1,80 +0,0 @@
+-#ifndef _LINUX_XLIST_H
+-#define _LINUX_XLIST_H
+-
+-#include <linux/stddef.h>
+-#include <linux/poison.h>
+-#include <linux/prefetch.h>
+-#include <asm/system.h>
+-
+-struct xlist_head {
+-	struct xlist_head *next;
+-};
+-
+-static inline void INIT_XLIST_HEAD(struct xlist_head *list)
+-{
+-	list->next = NULL;
+-}
+-
+-static inline int xlist_empty(struct xlist_head *head)
+-{
+-	return head->next == NULL;
+-}
+-
+-static inline void xlist_add(struct xlist_head *new, struct xlist_head *tail,
+-			     struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-	struct xlist_head *check;
+-
+-	while (1) {
+-		cur = head->next;
+-		tail->next = cur;
+-		check = cmpxchg(&head->next, cur, new);
+-		if (check == cur)
+-			break;
+-	}
+-}
+-
+-static inline struct xlist_head *xlist_del_head(struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-	struct xlist_head *check;
+-	struct xlist_head *next;
+-
+-	while (1) {
+-		cur = head->next;
+-		if (!cur)
+-			goto out;
+-
+-		next = cur->next;
+-		check = cmpxchg(&head->next, cur, next);
+-		if (check == cur)
+-			goto out;
+-	}
+-out:
+-	return cur;
+-}
+-
+-static inline struct xlist_head *xlist_del_head_fast(struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-
+-	cur = head->next;
+-	if (!cur)
+-		return NULL;
+-
+-	head->next = cur->next;
+-	return cur;
+-}
+-
+-static inline void xlist_splice(struct xlist_head *list,
+-				struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-
+-	WARN_ON(head->next);
+-	cur = xchg(&list->next, NULL);
+-	head->next = cur;
+-}
