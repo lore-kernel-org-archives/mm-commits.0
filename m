@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ioctlc-remove-unnecessary-variable.patch added to -mm tree
-Date: Wed, 19 Jan 2011 15:12:32 -0800
-Message-ID: <201101192312.p0JNCWa9009232@imap1.linux-foundation.org>
+Subject: + mm-fir-truncate_setsize-comment.patch added to -mm tree
+Date: Wed, 19 Jan 2011 15:13:51 -0800
+Message-ID: <201101192313.p0JNDp2h009273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753106Ab1ASXMx (ORCPT
+	by vger.kernel.org with ESMTP id S1753106Ab1ASXOj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 18:12:53 -0500
+	Wed, 19 Jan 2011 18:14:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com
+Cc: jack@suse.cz, hch@infradead.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     fs/ioctl.c: remove unnecessary variable
+     mm: fir truncate_setsize() comment
 has been added to the -mm tree.  Its filename is
-     fs-ioctlc-remove-unnecessary-variable.patch
+     mm-fir-truncate_setsize-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ioctl.c: remove unnecessary variable
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: mm: fir truncate_setsize() comment
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Contrary to what the comment says, truncate_setsize() should be called
+*before* filesystem truncated blocks.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/truncate.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/ioctl.c~fs-ioctlc-remove-unnecessary-variable fs/ioctl.c
---- a/fs/ioctl.c~fs-ioctlc-remove-unnecessary-variable
-+++ a/fs/ioctl.c
-@@ -592,8 +592,7 @@ int do_vfs_ioctl(struct file *filp, unsi
- 	case FIGETBSZ:
- 	{
- 		struct inode *inode = filp->f_path.dentry->d_inode;
--		int __user *p = (int __user *)arg;
--		return put_user(inode->i_sb->s_blocksize, p);
-+		return put_user(inode->i_sb->s_blocksize, argp);
- 	}
- 
- 	default:
+diff -puN mm/truncate.c~mm-fir-truncate_setsize-comment mm/truncate.c
+--- a/mm/truncate.c~mm-fir-truncate_setsize-comment
++++ a/mm/truncate.c
+@@ -559,13 +559,12 @@ EXPORT_SYMBOL(truncate_pagecache);
+  * @inode: inode
+  * @newsize: new file size
+  *
+- * truncate_setsize updastes i_size update and performs pagecache
+- * truncation (if necessary) for a file size updates. It will be
+- * typically be called from the filesystem's setattr function when
+- * ATTR_SIZE is passed in.
++ * truncate_setsize updates i_size and performs pagecache truncation (if
++ * necessary) to @newsize. It will be typically be called from the filesystem's
++ * setattr function when ATTR_SIZE is passed in.
+  *
+- * Must be called with inode_mutex held and after all filesystem
+- * specific block truncation has been performed.
++ * Must be called with inode_mutex held and before all filesystem specific
++ * block truncation has been performed.
+  */
+ void truncate_setsize(struct inode *inode, loff_t newsize)
+ {
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-fs-ioctlc-remove-unnecessary-variable.patch
+linux-next.patch
+mm-fir-truncate_setsize-comment.patch
 
