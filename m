@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch added to -mm tree
-Date: Wed, 19 Jan 2011 14:02:43 -0800
-Message-ID: <201101192202.p0JM2hWJ005821@imap1.linux-foundation.org>
+Subject: + llist-lib-add-lock-less-null-terminated-single-list.patch added to -mm tree
+Date: Wed, 19 Jan 2011 14:02:48 -0800
+Message-ID: <201101192202.p0JM2mes005824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643Ab1ASWFQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754046Ab1ASWFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 17:05:16 -0500
+	Wed, 19 Jan 2011 17:05:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, hans-christian.egtvedt@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, liqin.chen@sunplusct.com, mingo@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, vapier@gentoo.org, ysato@users.sourceforge.jp
+Cc: ying.huang@intel.com, ak@linux.intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, hans-christian.egtvedt@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, liqin.chen@sunplusct.com, mingo@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, vapier@gentoo.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     llist: add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+     llist: lib, Add lock-less NULL terminated single list
 has been added to the -mm tree.  Its filename is
-     llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch
+     llist-lib-add-lock-less-null-terminated-single-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: llist: add Kconfig option ARCH_HAVE_NMI_SAFE_CMPXCHG
+Subject: llist: lib, Add lock-less NULL terminated single list
 From: Huang Ying <ying.huang@intel.com>
 
-cmpxchg() is widely used by lockless code, including NMI-safe lockless
-code.  But on some architectures, the cmpxchg() implementation is not
-NMI-safe, on these architectures the lockless code may need to a
-spin_trylock_irqsave() based implementation.
+Cmpxchg is used to implement adding new entry to the list, deleting all
+entries from the list, deleting first entry of the list and some other
+operations.
 
-This patch adds a Kconfig option: ARCH_HAVE_NMI_SAFE_CMPXCHG, so that
-NMI-safe lockless code can depend on it or provide different
-implementation according to it.
+Because this is a single list, so the tail can not be accessed in O(1).
 
-On many architectures, cmpxchg is only NMI-safe for several specific
-operand sizes.  So, ARCH_HAVE_NMI_SAFE_CMPXCHG define in this patch only
-guarantees cmpxchg is NMI-safe for sizeof(unsigned long).
+If there are multiple producers and multiple consumers, llist_add can be
+used in producers and llist_del_all can be used in consumers.  They can
+work simultaneously without lock.  But llist_del_first can not be used
+here.  Because llist_del_first depends on list->first->next does not
+changed if list->first is not changed during its operation, but
+llist_del_first, llist_add, llist_add sequence in another consumer may
+violate that.
+
+If there are multiple producers and one consumer, llist_add can be used in
+producers and llist_del_all or llist_del_first can be used in the
+consumer.
+
+The list entries deleted via llist_del_all can be traversed with
+traversing function such as llist_for_each etc.  But the list entries can
+not be traversed safely before deleted from the list without proper
+synchronization with the list consumers.
+
+The basic atomic operation of this list is cmpxchg on long.  On
+architectures that don't have NMI-safe cmpxchg implementation, the list
+can NOT be used in NMI handler.  So code uses the list in NMI handler
+should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Mikael Starvik <starvik@axis.com>
@@ -77,164 +93,261 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig         |    3 +++
- arch/alpha/Kconfig   |    1 +
- arch/avr32/Kconfig   |    1 +
- arch/frv/Kconfig     |    1 +
- arch/ia64/Kconfig    |    1 +
- arch/m68k/Kconfig    |    1 +
- arch/parisc/Kconfig  |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/s390/Kconfig    |    1 +
- arch/sh/Kconfig      |    1 +
- arch/sparc/Kconfig   |    1 +
- arch/tile/Kconfig    |    1 +
- arch/x86/Kconfig     |    1 +
- 13 files changed, 15 insertions(+)
+ include/linux/llist.h |   99 +++++++++++++++++++++++++++++++++
+ lib/Kconfig           |    3 +
+ lib/Makefile          |    2 
+ lib/llist.c           |  119 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 223 insertions(+)
 
-diff -puN arch/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/Kconfig
---- a/arch/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/Kconfig
-@@ -178,4 +178,7 @@ config HAVE_ARCH_JUMP_LABEL
- config HAVE_ARCH_MUTEX_CPU_RELAX
- 	bool
+diff -puN /dev/null include/linux/llist.h
+--- /dev/null
++++ a/include/linux/llist.h
+@@ -0,0 +1,99 @@
++#ifndef LLIST_H
++#define LLIST_H
++/*
++ * Lock-less NULL terminated single linked list
++ *
++ * If there are multiple producers and multiple consumers, llist_add
++ * can be used in producers and llist_del_all can be used in
++ * consumers.  They can work simultaneously without lock.  But
++ * llist_del_first can not be used here.  Because llist_del_first
++ * depends on list->first->next does not changed if list->first is not
++ * changed during its operation, but llist_del_first, llist_add,
++ * llist_add sequence in another consumer may violate that.
++ *
++ * If there are multiple producers and one consumer, llist_add can be
++ * used in producers and llist_del_all or llist_del_first can be used
++ * in the consumer.
++ *
++ * The list entries deleted via llist_del_all can be traversed with
++ * traversing function such as llist_for_each etc.  But the list
++ * entries can not be traversed safely before deleted from the list
++ * without proper synchronization with the list consumers.
++ *
++ * The basic atomic operation of this list is cmpxchg on long.  On
++ * architectures that don't have NMI-safe cmpxchg implementation, the
++ * list can NOT be used in NMI handler.  So code uses the list in NMI
++ * handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
++ */
++
++struct llist_head {
++	struct llist_node *first;
++};
++
++struct llist_node {
++	struct llist_node *next;
++};
++
++#define LLIST_HEAD_INIT(name)	{ NULL }
++#define LLIST_HEAD(name)	struct llist_head name = LLIST_HEAD_INIT(name)
++
++/**
++ * init_llist_head - initialize lock-less list head
++ * @head:	the head for your lock-less list
++ */
++static inline void init_llist_head(struct llist_head *list)
++{
++	list->first = NULL;
++}
++
++/**
++ * llist_entry - get the struct of this entry
++ * @ptr:	the &struct llist_node pointer.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the llist_node within the struct.
++ */
++#define llist_entry(ptr, type, member)		\
++	container_of(ptr, type, member)
++
++/**
++ * llist_for_each - iterate over some entries of a lock-less list
++ * @pos:	the &struct llist_node to use as a loop cursor
++ * @node:	the first entry of deleted list entries
++ *
++ * In general, some entries of the lock-less list can be traversed
++ * safely only after being deleted from list, so start with an entry
++ * instead of list head.
++ */
++#define llist_for_each(pos, node)			\
++	for (pos = (node); pos; pos = pos->next)
++
++/**
++ * llist_for_each_entry - iterate over some entries of lock-less list of given type
++ * @pos:	the type * to use as a loop cursor.
++ * @node:	the fist entry of deleted list entries.
++ * @member:	the name of the llist_node with the struct.
++ *
++ * In general, some entries of the lock-less list can be traversed
++ * safely only after being removed from list, so start with an entry
++ * instead of list head.
++ */
++#define llist_for_each_entry(pos, node, member)				\
++	for (pos = llist_entry((node), typeof(*pos), member);		\
++	     &pos->member != NULL;					\
++	     pos = llist_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * llist_empty - tests whether a lock-less list is empty
++ * @head:	the list to test
++ */
++static inline int llist_empty(const struct llist_head *head)
++{
++	return head->first == NULL;
++}
++
++void llist_add(struct llist_node *new, struct llist_head *head);
++void llist_add_batch(struct llist_node *new_first, struct llist_node *new_last,
++		     struct llist_head *head);
++struct llist_node *llist_del_first(struct llist_head *head);
++struct llist_node *llist_del_all(struct llist_head *head);
++#endif /* LLIST_H */
+diff -puN lib/Kconfig~llist-lib-add-lock-less-null-terminated-single-list lib/Kconfig
+--- a/lib/Kconfig~llist-lib-add-lock-less-null-terminated-single-list
++++ a/lib/Kconfig
+@@ -240,4 +240,7 @@ config IOQ
  
-+config ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	 If unsure, say N
+ 
++config LLIST
 +	bool
 +
- source "kernel/gcov/Kconfig"
-diff -puN arch/alpha/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/alpha/Kconfig
-@@ -7,6 +7,7 @@ config ALPHA
- 	select HAVE_SYSCALL_WRAPPERS
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_DMA_ATTRS
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
-diff -puN arch/avr32/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/avr32/Kconfig
-@@ -6,6 +6,7 @@ config AVR32
- 	select HAVE_CLK
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	help
- 	  AVR32 is a high-performance 32-bit RISC microprocessor core,
- 	  designed for cost-sensitive embedded applications, with particular
-diff -puN arch/frv/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/frv/Kconfig
---- a/arch/frv/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/frv/Kconfig
-@@ -5,6 +5,7 @@ config FRV
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ endmenu
+diff -puN lib/Makefile~llist-lib-add-lock-less-null-terminated-single-list lib/Makefile
+--- a/lib/Makefile~llist-lib-add-lock-less-null-terminated-single-list
++++ a/lib/Makefile
+@@ -112,6 +112,8 @@ obj-$(CONFIG_ATOMIC64_SELFTEST) += atomi
  
- config ZONE_DMA
- 	bool
-diff -puN arch/ia64/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/ia64/Kconfig
-@@ -22,6 +22,7 @@ config IA64
- 	select HAVE_KVM
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_DMA_API_DEBUG
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/m68k/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/m68k/Kconfig
-@@ -4,6 +4,7 @@ config M68K
- 	select HAVE_AOUT
- 	select HAVE_IDE
- 	select GENERIC_ATOMIC64
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if RMW_INSNS
+ obj-$(CONFIG_AVERAGE) += average.o
  
- config MMU
- 	bool
-diff -puN arch/parisc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/parisc/Kconfig
-@@ -11,6 +11,7 @@ config PARISC
- 	select BUG
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select GENERIC_ATOMIC64 if !64BIT
- 	select GENERIC_HARDIRQS_NO__DO_IRQ
- 	help
-diff -puN arch/powerpc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/powerpc/Kconfig
-@@ -141,6 +141,7 @@ config PPC
- 	select GENERIC_ATOMIC64 if PPC32
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select HAVE_HW_BREAKPOINT if PERF_EVENTS && PPC_BOOK3S_64
++obj-$(CONFIG_LLIST) += llist.o
++
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
  
-diff -puN arch/s390/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/s390/Kconfig
---- a/arch/s390/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/s390/Kconfig
-@@ -81,6 +81,7 @@ config S390
- 	select INIT_ALL_POSSIBLE
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_KERNEL_GZIP
- 	select HAVE_KERNEL_BZIP2
- 	select HAVE_KERNEL_LZMA
-diff -puN arch/sh/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/sh/Kconfig
---- a/arch/sh/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/sh/Kconfig
-@@ -11,6 +11,7 @@ config SUPERH
- 	select HAVE_DMA_ATTRS
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
- 	select PERF_USE_VMALLOC
- 	select HAVE_KERNEL_GZIP
- 	select HAVE_KERNEL_BZIP2
-diff -puN arch/sparc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/sparc/Kconfig
-@@ -50,6 +50,7 @@ config SPARC64
- 	select RTC_DRV_STARFIRE
- 	select HAVE_PERF_EVENTS
- 	select PERF_USE_VMALLOC
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 
- config ARCH_DEFCONFIG
- 	string
-diff -puN arch/tile/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/tile/Kconfig
---- a/arch/tile/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/tile/Kconfig
-@@ -104,6 +104,7 @@ config TILE
- 	select GENERIC_FIND_NEXT_BIT
- 	select USE_GENERIC_SMP_HELPERS
- 	select CC_OPTIMIZE_FOR_SIZE
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 
- # FIXME: investigate whether we need/want these options.
- #	select HAVE_IOREMAP_PROT
-diff -puN arch/x86/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg arch/x86/Kconfig
---- a/arch/x86/Kconfig~llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg
-+++ a/arch/x86/Kconfig
-@@ -23,6 +23,7 @@ config X86
- 	select HAVE_OPROFILE
- 	select HAVE_PERF_EVENTS
- 	select HAVE_IRQ_WORK
-+	select ARCH_HAVE_NMI_SAFE_CMPXCHG if !M386
- 	select HAVE_IOREMAP_PROT
- 	select HAVE_KPROBES
- 	select HAVE_MEMBLOCK
+diff -puN /dev/null lib/llist.c
+--- /dev/null
++++ a/lib/llist.c
+@@ -0,0 +1,119 @@
++/*
++ * Lock-less NULL terminated single linked list
++ *
++ * The basic atomic operation of this list is cmpxchg on long.  On
++ * architectures that don't have NMI-safe cmpxchg implementation, the
++ * list can NOT be used in NMI handler.  So code uses the list in NMI
++ * handler should depend on CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG.
++ *
++ * Copyright 2010 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/llist.h>
++
++#include <asm/system.h>
++
++/**
++ * llist_add - add a new entry
++ * @new:	new entry to be added
++ * @head:	the head for your lock-less list
++ */
++void llist_add(struct llist_node *new, struct llist_head *head)
++{
++	struct llist_node *entry;
++
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
++
++	do {
++		entry = head->first;
++		new->next = entry;
++	} while (cmpxchg(&head->first, entry, new) != entry);
++}
++EXPORT_SYMBOL_GPL(llist_add);
++
++/**
++ * llist_add_batch - add several linked entries in batch
++ * @new_first:	first entry in batch to be added
++ * @new_last:	last entry in batch to be added
++ * @head:	the head for your lock-less list
++ */
++void llist_add_batch(struct llist_node *new_first, struct llist_node *new_last,
++		     struct llist_head *head)
++{
++	struct llist_node *entry;
++
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
++
++	do {
++		entry = head->first;
++		new_last->next = entry;
++	} while (cmpxchg(&head->first, entry, new_first) != entry);
++}
++EXPORT_SYMBOL_GPL(llist_add_batch);
++
++/**
++ * llist_del_first - delete the first entry of lock-less list
++ * @head:	the head for your lock-less list
++ *
++ * If list is empty, return NULL, otherwise, return the first entry deleted.
++ *
++ * Only one llist_del_first user can be used simultaneously with
++ * multiple llist_add users without lock. Because otherwise
++ * llist_del_first, llist_add, llist_add sequence in another user may
++ * change @head->first->next, but keep @head->first. If multiple
++ * consumers are needed, please use llist_del_all.
++ */
++struct llist_node *llist_del_first(struct llist_head *head)
++{
++	struct llist_node *entry;
++
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
++
++	do {
++		entry = head->first;
++		if (entry == NULL)
++			return NULL;
++	} while (cmpxchg(&head->first, entry, entry->next) != entry);
++
++	return entry;
++}
++EXPORT_SYMBOL_GPL(llist_del_first);
++
++/**
++ * llist_del_all - delete all entries from lock-less list
++ * @head:	the head of lock-less list to delete all entries
++ *
++ * If list is empty, return NULL, otherwise, delete all entries and
++ * return the pointer to the first entry.
++ */
++struct llist_node *llist_del_all(struct llist_head *head)
++{
++#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++	BUG_ON(in_nmi());
++#endif
++
++	return xchg(&head->first, NULL);
++}
++EXPORT_SYMBOL_GPL(llist_del_all);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
