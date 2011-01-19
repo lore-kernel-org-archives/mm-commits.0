@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-move-ready-event-check-into-proper-inline.patch added to -mm tree
-Date: Wed, 19 Jan 2011 14:29:51 -0800
-Message-ID: <201101192229.p0JMTpIM007209@imap1.linux-foundation.org>
+Subject: + epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch added to -mm tree
+Date: Wed, 19 Jan 2011 14:29:53 -0800
+Message-ID: <201101192229.p0JMTr6b007212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755054Ab1ASW3y (ORCPT
+	by vger.kernel.org with ESMTP id S1755055Ab1ASW34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 17:29:54 -0500
+	Wed, 19 Jan 2011 17:29:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, shawn.bohrer@gmail.com
+Cc: shawn.bohrer@gmail.com, akpm@linux-foundation.org, davidel@xmailserver.org
 
 
 The patch titled
-     epoll: move ready event check into proper inline
+     epoll: fix compiler warning and optimize the non-blocking path
 has been added to the -mm tree.  Its filename is
-     epoll-move-ready-event-check-into-proper-inline.patch
+     epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: move ready event check into proper inline
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: epoll: fix compiler warning and optimize the non-blocking path
+From: Shawn Bohrer <shawn.bohrer@gmail.com>
 
-Move the event readiness check into a proper inline, and use it uniformly
-inside ep_poll() code.  Events in the ->ovflist are no less ready than the
-ones in ->rdllist.
+Add a comment to ep_poll(), rename labels a bit clearly, fix a warning of
+unused variable from gcc and optimize the non-blocking path a little.
 
+Hinted-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ fs/eventpoll.c |   32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-move-ready-event-check-into-proper-inline fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-move-ready-event-check-into-proper-inline
+diff -puN fs/eventpoll.c~epoll-fix-compiler-warning-and-optimize-the-non-blocking-path fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-fix-compiler-warning-and-optimize-the-non-blocking-path
 +++ a/fs/eventpoll.c
-@@ -306,6 +306,19 @@ static void ep_nested_calls_init(struct 
+@@ -1127,27 +1127,50 @@ static int ep_send_events(struct eventpo
+ 	return ep_scan_ready_list(ep, ep_send_events_proc, &esed);
  }
  
- /**
-+ * ep_events_available - Checks if ready events might be available.
++/**
++ * ep_poll - Retrieves ready events, and delivers them to the caller supplied
++ *           event buffer.
 + *
 + * @ep: Pointer to the eventpoll context.
++ * @events: Pointer to the userspace buffer where the ready events should be
++ *          stored.
++ * @maxevents: Size (in terms of number of events) of the caller event buffer.
++ * @timeout: Maximum timeout for the ready events fetch operation, in
++ *           milliseconds. If the @timeout is zero, the function will not block,
++ *           while if the @timeout is less than zero, the function will block
++ *           until at least one event has been retrieved (or an error
++ *           occurred).
 + *
-+ * Returns: Returns a value different than zero if ready events are available,
-+ *          or zero otherwise.
++ * Returns: Returns the number of ready events which have been fetched, or an
++ *          error code, in case of error.
 + */
-+static inline int ep_events_available(struct eventpoll *ep)
-+{
-+	return !list_empty(&ep->rdllist) || ep->ovflist != EP_UNACTIVE_PTR;
-+}
-+
-+/**
-  * ep_call_nested - Perform a bound (possibly) nested call, by checking
-  *                  that the recursion limit is not exceeded, and that
-  *                  the same nested call (by the meaning of same cookie) is
-@@ -1138,7 +1151,7 @@ retry:
+ static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
+ 		   int maxevents, long timeout)
+ {
+ 	int res, eavail, timed_out = 0;
+ 	unsigned long flags;
+-	long slack;
++	long slack = 0;
+ 	wait_queue_t wait;
+ 	struct timespec end_time;
+ 	ktime_t expires, *to = NULL;
+ 
+ 	if (timeout > 0) {
+ 		ktime_get_ts(&end_time);
+-		timespec_add_ns(&end_time, (u64)timeout * NSEC_PER_MSEC);
++		timespec_add_ns(&end_time, (u64) timeout * NSEC_PER_MSEC);
+ 		slack = select_estimate_accuracy(&end_time);
+ 		to = &expires;
+ 		*to = timespec_to_ktime(end_time);
+ 	} else if (timeout == 0) {
++		/*
++		 * Avoid the unnecessary trip to the wait queue loop, if the
++		 * caller specified a non blocking operation.
++		 */
+ 		timed_out = 1;
++		spin_lock_irqsave(&ep->lock, flags);
++		goto check_events;
+ 	}
+ 
+-retry:
++fetch_events:
  	spin_lock_irqsave(&ep->lock, flags);
  
  	res = 0;
--	if (list_empty(&ep->rdllist)) {
-+	if (!ep_events_available(ep)) {
- 		/*
- 		 * We don't have any available event to return to the caller.
- 		 * We need to sleep here, and we will be wake up by
-@@ -1154,7 +1167,7 @@ retry:
- 			 * to TASK_INTERRUPTIBLE before doing the checks.
- 			 */
- 			set_current_state(TASK_INTERRUPTIBLE);
--			if (!list_empty(&ep->rdllist) || timed_out)
-+			if (ep_events_available(ep) || timed_out)
- 				break;
- 			if (signal_pending(current)) {
- 				res = -EINTR;
-@@ -1172,7 +1185,7 @@ retry:
+@@ -1184,6 +1207,7 @@ retry:
+ 
  		set_current_state(TASK_RUNNING);
  	}
++check_events:
  	/* Is it worth to try to dig for events ? */
--	eavail = !list_empty(&ep->rdllist) || ep->ovflist != EP_UNACTIVE_PTR;
-+	eavail = ep_events_available(ep);
+ 	eavail = ep_events_available(ep);
  
- 	spin_unlock_irqrestore(&ep->lock, flags);
+@@ -1196,7 +1220,7 @@ retry:
+ 	 */
+ 	if (!res && eavail &&
+ 	    !(res = ep_send_events(ep, events, maxevents)) && !timed_out)
+-		goto retry;
++		goto fetch_events;
  
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from shawn.bohrer@gmail.com are
 
 epoll-move-ready-event-check-into-proper-inline.patch
 epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
