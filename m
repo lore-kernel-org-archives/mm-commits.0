@@ -1,37 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 18:33:42 -0800
-Message-ID: <201101190233.p0J2XgFO021002@imap1.linux-foundation.org>
+Subject: [to-be-updated] writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch removed from -mm tree
+Date: Tue, 18 Jan 2011 18:33:39 -0800
+Message-ID: <201101190233.p0J2Xd6Y020999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753239Ab1ASCfD (ORCPT
+	by vger.kernel.org with ESMTP id S1753239Ab1ASCfV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 21:35:03 -0500
+	Tue, 18 Jan 2011 21:35:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, chris.mason@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     writeback: make reasonable gap between the dirty/background thresholds
+     writeback: reduce per-bdi dirty threshold ramp up time
 has been removed from the -mm tree.  Its filename was
-     writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
+     writeback-reduce-per-bdi-dirty-threshold-ramp-up-time.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: make reasonable gap between the dirty/background thresholds
+Subject: writeback: reduce per-bdi dirty threshold ramp up time
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-The change is virtually a no-op for the majority users that use the
-default 10/20 background/dirty ratios.  For others don't know why they are
-setting background ratio close enough to dirty ratio.  Someone must set
-background ratio equal to dirty ratio, but no one seems to notice or
-complain that it's then silently halved under the hood..
+Reduce the dampening for the control system, yielding faster convergence.
+
+Currently it converges at a snail's pace for slow devices (in order of
+minutes).  For really fast storage, the convergence speed should be fine.
+
+It makes sense to make it reasonably fast for typical desktops.
+
+After patch, it converges in ~10 seconds for 60MB/s writes and 4GB mem. 
+So expect ~1s for a fast 600MB/s storage under 4GB mem, or ~4s under 16GB
+mem, which seems reasonable.
+
+$ while true; do grep BdiDirtyThresh /debug/bdi/8:0/stats; sleep 1; done
+BdiDirtyThresh:            0 kB
+BdiDirtyThresh:       118748 kB
+BdiDirtyThresh:       214280 kB
+BdiDirtyThresh:       303868 kB
+BdiDirtyThresh:       376528 kB
+BdiDirtyThresh:       411180 kB
+BdiDirtyThresh:       448636 kB
+BdiDirtyThresh:       472260 kB
+BdiDirtyThresh:       490924 kB
+BdiDirtyThresh:       499596 kB
+BdiDirtyThresh:       507068 kB
+...
+DirtyThresh:          530392 kB
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -51,35 +71,27 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-make-reasonable-gap-between-the-dirty-background-thresholds mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-make-reasonable-gap-between-the-dirty-background-thresholds
+diff -puN mm/page-writeback.c~writeback-reduce-per-bdi-dirty-threshold-ramp-up-time mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-reduce-per-bdi-dirty-threshold-ramp-up-time
 +++ a/mm/page-writeback.c
-@@ -403,8 +403,15 @@ void global_dirty_limits(unsigned long *
+@@ -125,7 +125,7 @@ static int calc_period_shift(void)
  	else
- 		background = (dirty_background_ratio * available_memory) / 100;
+ 		dirty_total = (vm_dirty_ratio * determine_dirtyable_memory()) /
+ 				100;
+-	return 2 + ilog2(dirty_total - 1);
++	return ilog2(dirty_total - 1) - 1;
+ }
  
--	if (background >= dirty)
--		background = dirty / 2;
-+	/*
-+	 * Ensure at least 1/4 gap between background and dirty thresholds, so
-+	 * that when dirty throttling starts at (background + dirty)/2, it's at
-+	 * the entrance of bdi soft throttle threshold, so as to avoid being
-+	 * hard throttled.
-+	 */
-+	if (background > dirty - dirty * 2 / BDI_SOFT_DIRTY_LIMIT)
-+		background = dirty - dirty * 2 / BDI_SOFT_DIRTY_LIMIT;
-+
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
- 		background += background / 4;
+ /*
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
+writeback-make-reasonable-gap-between-the-dirty-background-thresholds.patch
 writeback-scale-down-max-throttle-bandwidth-on-concurrent-dirtiers.patch
 writeback-add-trace-event-for-balance_dirty_pages.patch
 writeback-make-nr_to_write-a-per-file-limit.patch
