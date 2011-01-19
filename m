@@ -1,81 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-include-linux-scatterlisth-to-pick-up-arch_has_sg_chain.patch added to -mm tree
-Date: Tue, 18 Jan 2011 18:48:20 -0800
-Message-ID: <201101190248.p0J2mKRp021649@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 19 Jan 2011 11:19:49 -0800
+Message-ID: <201101191919.p0JJJnlh030270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751820Ab1ASCs6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754481Ab1ASTUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 21:48:58 -0500
+	Wed, 19 Jan 2011 14:20:19 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0JJJnnY019020
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2011 11:19:49 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dillowda@ornl.gov, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: include linux/scatterlist.h to pick up ARCH_HAS_SG_CHAIN
-has been added to the -mm tree.  Its filename is
-     scsi-include-linux-scatterlisth-to-pick-up-arch_has_sg_chain.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: include linux/scatterlist.h to pick up ARCH_HAS_SG_CHAIN
-From: David Dillow <dillowda@ornl.gov>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If the compiled object doesn't include linux/scatterlist.h before
-scsi/scsi.h, it will get an incorrect definition of
-SCSI_MAX_SG_CHAIN_SEGMENTS.
-
-This fixes an issue I found while working on the SRP initiator, where
-linux/scatterlist.h was being pulled in by scsi/scsi_device.h.  It's not
-clear if I'm supposed to include linux/scatterlist.h myself, or if I'm
-including the scsi headers in the wrong order.  It makes sense for me that
-scsi.h would pickup the needed headers itself to prevent confusion.
-
-Another option is to potentially get rid of the ARCH_HAS_SG_CHAIN define
-as all archs have it save m68knommu.
-
-Signed-off-by: David Dillow <dillowda@ornl.gov>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/scsi/scsi.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/m68k/include/asm/m54xxacr.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/scsi/scsi.h~scsi-include-linux-scatterlisth-to-pick-up-arch_has_sg_chain include/scsi/scsi.h
---- a/include/scsi/scsi.h~scsi-include-linux-scatterlisth-to-pick-up-arch_has_sg_chain
-+++ a/include/scsi/scsi.h
-@@ -9,6 +9,7 @@
- #define _SCSI_SCSI_H
+diff -puN arch/m68k/include/asm/m54xxacr.h~linux-next-git-rejects arch/m68k/include/asm/m54xxacr.h
+--- a/arch/m68k/include/asm/m54xxacr.h~linux-next-git-rejects
++++ a/arch/m68k/include/asm/m54xxacr.h
+@@ -26,11 +26,7 @@
+ #define CACR_IHLCK	0x00000800	/* Intruction cache half lock */
+ #define CACR_IDCM	0x00000400	/* Intruction cache inhibit */
+ #define CACR_ICINVA	0x00000100	/* Invalidate instr cache */
+-<<<<<<< HEAD
+-#define CACR_EUSP	0x00000020	/* Enable separate user a7 */
+-=======
+ #define	CACR_EUSP	0x00000020	/* Enable separate user a7 */
+->>>>>>> FETCH_HEAD
  
- #include <linux/types.h>
-+#include <linux/scatterlist.h>
- 
- struct scsi_cmnd;
- 
+ #define ACR_BASE_POS	24		/* Address Base */
+ #define ACR_MASK_POS	16		/* Address Mask */
 _
 
-Patches currently in -mm which might be from dillowda@ornl.gov are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
 fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio-fix.patch
-scsi-include-linux-scatterlisth-to-pick-up-arch_has_sg_chain.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
