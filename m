@@ -1,214 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-deactivate-invalidated-pages.patch removed from -mm tree
-Date: Tue, 18 Jan 2011 15:48:07 -0800
-Message-ID: <201101182348.p0INm7Mh014128@imap1.linux-foundation.org>
+Subject: + bh1780gli-convert-to-dev-pm-ops.patch added to -mm tree
+Date: Tue, 18 Jan 2011 16:01:24 -0800
+Message-ID: <201101190001.p0J01OSx014689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750961Ab1ARXtB (ORCPT
+	by vger.kernel.org with ESMTP id S1751967Ab1ASAB1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Jan 2011 18:49:01 -0500
+	Tue, 18 Jan 2011 19:01:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, bgamari.foss@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: shubhrajyoti@ti.com
 
 
 The patch titled
-     mm: deactivate invalidated pages
-has been removed from the -mm tree.  Its filename was
-     mm-deactivate-invalidated-pages.patch
+     bh1780gli: convert to dev pm ops
+has been added to the -mm tree.  Its filename is
+     bh1780gli-convert-to-dev-pm-ops.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: deactivate invalidated pages
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: bh1780gli: convert to dev pm ops
+From: Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
-Recently, there are reported problem about thrashing. 
-(http://marc.info/?l=rsync&m=128885034930933&w=2) It happens by backup
-workloads(ex, nightly rsync).  That's because the workload makes just
-use-once pages and touches pages twice.  It promotes the page into active
-list so that it results in working set page eviction.
-
-Some app developer want to support POSIX_FADV_NOREUSE.  But other OSes
-don't support it, either. 
-(http://marc.info/?l=linux-mm&m=128928979512086&w=2)
-
-By Other approach, app developer uses POSIX_FADV_DONTNEED.  But it has a
-problem.  If kernel meets page is writing during invalidate_mapping_pages,
-it can't work.  It is very hard for application programmer to use it. 
-Because they always have to sync data before calling
-fadivse(..POSIX_FADV_DONTNEED) to make sure the pages could be
-discardable.  At last, they can't use deferred write of kernel so that
-they could see performance loss. 
-(http://insights.oetiker.ch/linux/fadvise.html)
-
-In fact, invalidate is very big hint to reclaimer.  It means we don't use
-the page any more.  So let's move the writing page into inactive list's
-head.
-
-If it is real working set, it could have a enough time to activate the
-page since we always try to keep many pages in inactive list.
-
-I reused Peter's lru_demote() with some changes.
-
-[akpm@linux-foundation.org: s/deactive/deactivate/g]
-Reported-by: Ben Gamari <bgamari.foss@gmail.com>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
+Signed-off-by: Shubhrajyoti Datta <shubhrajyoti@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swap.c            |   58 +++++++++++++++++++++++++++++++++++++++++
- mm/truncate.c        |   16 ++++++++---
- 3 files changed, 71 insertions(+), 4 deletions(-)
+ drivers/misc/bh1780gli.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/swap.h~mm-deactivate-invalidated-pages include/linux/swap.h
---- a/include/linux/swap.h~mm-deactivate-invalidated-pages
-+++ a/include/linux/swap.h
-@@ -215,6 +215,7 @@ extern void mark_page_accessed(struct pa
- extern void lru_add_drain(void);
- extern int lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
-+extern void lru_deactivate_page(struct page *page);
- extern void swap_setup(void);
- 
- extern void add_page_to_unevictable_list(struct page *page);
-diff -puN mm/swap.c~mm-deactivate-invalidated-pages mm/swap.c
---- a/mm/swap.c~mm-deactivate-invalidated-pages
-+++ a/mm/swap.c
-@@ -39,6 +39,8 @@ int page_cluster;
- 
- static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
- static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
-+static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
-+
- 
- /*
-  * This path almost never happens for VM activity - pages are normally
-@@ -346,6 +348,45 @@ void add_page_to_unevictable_list(struct
- 	spin_unlock_irq(&zone->lru_lock);
+diff -puN drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops drivers/misc/bh1780gli.c
+--- a/drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops
++++ a/drivers/misc/bh1780gli.c
+@@ -196,10 +196,11 @@ static int __devexit bh1780_remove(struc
  }
  
-+static void __pagevec_lru_deactivate(struct pagevec *pvec)
-+{
-+	int i, lru, file;
-+
-+	struct zone *zone = NULL;
-+
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+		struct zone *pagezone = page_zone(page);
-+
-+		if (pagezone != zone) {
-+			if (zone)
-+				spin_unlock_irq(&zone->lru_lock);
-+			zone = pagezone;
-+			spin_lock_irq(&zone->lru_lock);
-+		}
-+
-+		if (PageLRU(page)) {
-+			if (PageActive(page)) {
-+				file = page_is_file_cache(page);
-+				lru = page_lru_base_type(page);
-+				del_page_from_lru_list(zone, page,
-+						lru + LRU_ACTIVE);
-+				ClearPageActive(page);
-+				ClearPageReferenced(page);
-+				add_page_to_lru_list(zone, page, lru);
-+				__count_vm_event(PGDEACTIVATE);
-+
-+				update_page_reclaim_stat(zone, page, file, 0);
-+			}
-+		}
-+	}
-+	if (zone)
-+		spin_unlock_irq(&zone->lru_lock);
-+
-+	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+	pagevec_reinit(pvec);
-+}
-+
- /*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
-@@ -372,6 +413,23 @@ static void drain_cpu_pagevecs(int cpu)
- 		pagevec_move_tail(pvec);
- 		local_irq_restore(flags);
- 	}
-+	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
-+	if (pagevec_count(pvec))
-+		__pagevec_lru_deactivate(pvec);
-+}
-+
-+/*
-+ * Forecfully demote a page to the tail of the inactive list.
-+ */
-+void lru_deactivate_page(struct page *page)
-+{
-+	if (likely(get_page_unless_zero(page))) {
-+		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
-+
-+		if (!pagevec_add(pvec, page))
-+			__pagevec_lru_deactivate(pvec);
-+		put_cpu_var(lru_deactivate_pvecs);
-+	}
- }
- 
- void lru_add_drain(void)
-diff -puN mm/truncate.c~mm-deactivate-invalidated-pages mm/truncate.c
---- a/mm/truncate.c~mm-deactivate-invalidated-pages
-+++ a/mm/truncate.c
-@@ -332,7 +332,8 @@ unsigned long invalidate_mapping_pages(s
+ #ifdef CONFIG_PM
+-static int bh1780_suspend(struct i2c_client *client, pm_message_t mesg)
++static int bh1780_suspend(struct device *dev)
  {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
--	unsigned long ret = 0;
-+	unsigned long ret;
-+	unsigned long count = 0;
- 	int i;
+ 	struct bh1780_data *ddata;
+ 	int state, ret;
++	struct i2c_client *client = to_i2c_client(dev);
  
- 	pagevec_init(&pvec, 0);
-@@ -359,8 +360,15 @@ unsigned long invalidate_mapping_pages(s
- 			if (lock_failed)
- 				continue;
- 
--			ret += invalidate_inode_page(page);
--
-+			ret = invalidate_inode_page(page);
-+			/*
-+			 * If the page was dirty or under writeback we cannot
-+			 * invalidate it now.  Move it to the tail of the
-+			 * inactive LRU so that reclaim will free it promptly.
-+			 */
-+			if (!ret)
-+				lru_deactivate_page(page);
-+			count += ret;
- 			unlock_page(page);
- 			if (next > end)
- 				break;
-@@ -369,7 +377,7 @@ unsigned long invalidate_mapping_pages(s
- 		mem_cgroup_uncharge_end();
- 		cond_resched();
- 	}
--	return ret;
-+	return count;
+ 	ddata = i2c_get_clientdata(client);
+ 	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
+@@ -217,14 +218,14 @@ static int bh1780_suspend(struct i2c_cli
+ 	return 0;
  }
- EXPORT_SYMBOL(invalidate_mapping_pages);
  
+-static int bh1780_resume(struct i2c_client *client)
++static int bh1780_resume(struct device *dev)
+ {
+ 	struct bh1780_data *ddata;
+ 	int state, ret;
++	struct i2c_client *client = to_i2c_client(dev);
+ 
+ 	ddata = i2c_get_clientdata(client);
+ 	state = ddata->power_state;
+-
+ 	ret = bh1780_write(ddata, BH1780_REG_CONTROL, state,
+ 				"CONTROL");
+ 
+@@ -233,9 +234,7 @@ static int bh1780_resume(struct i2c_clie
+ 
+ 	return 0;
+ }
+-#else
+-#define bh1780_suspend NULL
+-#define bh1780_resume NULL
++static SIMPLE_DEV_PM_OPS(bh1780_pm, bh1780_suspend, bh1780_resume);
+ #endif /* CONFIG_PM */
+ 
+ static const struct i2c_device_id bh1780_id[] = {
+@@ -247,11 +246,12 @@ static struct i2c_driver bh1780_driver =
+ 	.probe		= bh1780_probe,
+ 	.remove		= bh1780_remove,
+ 	.id_table	= bh1780_id,
+-	.suspend	= bh1780_suspend,
+-	.resume		= bh1780_resume,
+ 	.driver = {
+-		.name = "bh1780"
+-	},
++		.name = "bh1780",
++#ifdef CONFIG_PM
++		.pm	= &bh1780_pm,
++#endif
++},
+ };
+ 
+ static int __init bh1780_init(void)
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from shubhrajyoti@ti.com are
 
 origin.patch
-linux-next.patch
-mm-vmap-area-cache.patch
+bh1780gli-convert-to-dev-pm-ops.patch
 
