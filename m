@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-serial-fix-apbuart-build.patch added to -mm tree
-Date: Wed, 19 Jan 2011 14:34:35 -0800
-Message-ID: <201101192234.p0JMYZup007455@imap1.linux-foundation.org>
+Subject: + vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space.patch added to -mm tree
+Date: Wed, 19 Jan 2011 14:50:29 -0800
+Message-ID: <201101192250.p0JMoTGA008194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755078Ab1ASWew (ORCPT
+	by vger.kernel.org with ESMTP id S1754421Ab1ASWub (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 17:34:52 -0500
+	Wed, 19 Jan 2011 17:50:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, daniel@gaisler.com, gregkh@suse.de
+Cc: joe@perches.com, drosenberg@vsecurity.com
 
 
 The patch titled
-     tty/serial: fix apbuart build
+     vsprintf: neaten %pK kptr_restrict, save a bit of code space
 has been added to the -mm tree.  Its filename is
-     tty-serial-fix-apbuart-build.patch
+     vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty/serial: fix apbuart build
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vsprintf: neaten %pK kptr_restrict, save a bit of code space
+From: Joe Perches <joe@perches.com>
 
-Fix build errors by selecting SERIAL_CORE:
+If kptr restrictions are on, just set the passed pointer to NULL.
 
-ERROR: "uart_register_driver" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_write_wakeup" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_update_timeout" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_get_divisor" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_get_baud_rate" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_add_one_port" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_unregister_driver" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_remove_one_port" [drivers/tty/serial/apbuart.ko] undefined!
+$ size lib/vsprintf.o.*
+   text	   data	    bss	    dec	    hex	filename
+   8247	      4	      2	   8253	   203d	lib/vsprintf.o.new
+   8282	      4	      2	   8288	   2060	lib/vsprintf.o.old
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Greg KH <gregkh@suse.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ lib/vsprintf.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/tty/serial/Kconfig~tty-serial-fix-apbuart-build drivers/tty/serial/Kconfig
---- a/drivers/tty/serial/Kconfig~tty-serial-fix-apbuart-build
-+++ a/drivers/tty/serial/Kconfig
-@@ -1518,6 +1518,7 @@ config SERIAL_BCM63XX_CONSOLE
- config SERIAL_GRLIB_GAISLER_APBUART
- 	tristate "GRLIB APBUART serial support"
- 	depends on OF
-+	select SERIAL_CORE
- 	---help---
- 	Add support for the GRLIB APBUART serial port.
- 
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-backlight-fix-88pm860x_bl-macro-collision.patch
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-tty-serial-fix-apbuart-build.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-
+diff -puN lib/vsprintf.c~vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space
++++ a/lib/vsprintf.c
+@@ -1047,16 +1047,12 @@ char *pointer(const char *fmt, char *buf
+ 			if (spec.field_width == -1)
+ 				spec.field_width = 2 * sizeof(void *);
+ 			return string(buf, end, "pK-error", spec);
+-		} else if ((kptr_restrict == 0) ||
+-			 (kptr_restrict == 1 &&
+-			  has_capability_noaudit(current, CAP_SYSLOG)))
+-			break;
