@@ -1,117 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 20 Jan 2011 12:38:21 -0800
-Message-ID: <201101202038.p0KKcMPC000998@imap1.linux-foundation.org>
+Subject: [folded] mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch removed from -mm tree
+Date: Thu, 20 Jan 2011 14:40:11 -0800
+Message-ID: <201101202240.p0KMeBHI006758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753343Ab1ATUjL (ORCPT
+	by vger.kernel.org with ESMTP id S1751254Ab1ATWkp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 15:39:11 -0500
+	Thu, 20 Jan 2011 17:40:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, mingo@elte.hu, tglx@tglx.de, torbenh@gmx.de
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
+     mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
+Subject: mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#1175: FILE: drivers/video/arkfb.c:26:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+add comment, per Mel
 
-WARNING: line over 80 characters
-#1992: FILE: drivers/video/s3fb.c:25:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
-
-WARNING: line over 80 characters
-#2259: FILE: drivers/video/vt8623fb.c:26:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
-
-WARNING: line over 80 characters
-#2386: FILE: kernel/printk.c:607:
-+ * We try to grab the console_lock.  If we succeed, it's easy - we log the output and
-
-WARNING: Statements terminations use 1 semicolon
-#2440: FILE: kernel/printk.c:996:
-+	console_lock();;
-
-WARNING: Statements terminations use 1 semicolon
-#2459: FILE: kernel/printk.c:1030:
-+		console_lock();;
-
-total: 0 errors, 6 warnings, 2244 lines checked
-
-./patches/change-acquire-release_console_sem-to-console_lock-unlock.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Greg KH <gregkh@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@tglx.de>
-Cc: Torben Hohn <torbenh@gmx.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes kernel/printk.c
---- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
-+++ a/kernel/printk.c
-@@ -993,7 +993,7 @@ void suspend_console(void)
- 	if (!console_suspend_enabled)
- 		return;
- 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
--	console_lock();;
-+	console_lock();
- 	console_suspended = 1;
- 	up(&console_sem);
- }
-@@ -1027,7 +1027,7 @@ static int __cpuinit console_cpu_notify(
- 	case CPU_DYING:
- 	case CPU_DOWN_FAILED:
- 	case CPU_UP_CANCELED:
--		console_lock();;
-+		console_lock();
- 		console_unlock();
- 	}
- 	return NOTIFY_OK;
+diff -puN mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix
++++ a/mm/compaction.c
+@@ -453,6 +453,10 @@ unsigned long compaction_suitable(struct
+ 	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
+ 		return COMPACT_SKIPPED;
+ 
++	/*
++	 * order == -1 is expected when compacting via
++	 * /proc/sys/vm/compact_memory
++	 */
+ 	if (order == -1)
+ 		return COMPACT_CONTINUE;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
+mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
+fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio-fix.patch
+memcg-fix-used-bit-handling-at-uncharge-in-thp-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction-fix.patch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio-fix.patch
-memcg-fix-used-bit-handling-at-uncharge-in-thp-fix.patch
+change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 mm-vmap-area-cache.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
