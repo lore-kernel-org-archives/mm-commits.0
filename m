@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch added to -mm tree
-Date: Wed, 19 Jan 2011 16:46:58 -0800
-Message-ID: <201101200046.p0K0kw3r013305@imap1.linux-foundation.org>
+Subject: + kernel-smpc-fix-smp_call_function_many-smp-race.patch added to -mm tree
+Date: Wed, 19 Jan 2011 16:46:56 -0800
+Message-ID: <201101200046.p0K0kvJh013302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753052Ab1ATArd (ORCPT
+	by vger.kernel.org with ESMTP id S1753052Ab1ATAro (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 19:47:33 -0500
+	Wed, 19 Jan 2011 19:47:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miltonm@bga.com, anton@samba.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com
+Cc: anton@samba.org, miltonm@bga.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, stable@kernel.org
 
 
 The patch titled
-     kernel/smp.c: consolidate writes in smp_call_function_interrupt()
+     kernel/smp.c: fix smp_call_function_many() SMP race
 has been added to the -mm tree.  Its filename is
-     kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch
+     kernel-smpc-fix-smp_call_function_many-smp-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,201 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/smp.c: consolidate writes in smp_call_function_interrupt()
-From: Milton Miller <miltonm@bga.com>
+Subject: kernel/smp.c: fix smp_call_function_many() SMP race
+From: Anton Blanchard <anton@samba.org>
 
-We have to test the cpu mask in the interrupt handler before checking the
-refs, otherwise we can start to follow an entry before its deleted and
-find it partially initailzed for the next trip.  Presently we also clear
-the cpumask bit before executing the called function, which implies
-getting write access to the line.  After the function is called we then
-decrement refs, and if they go to zero we then unlock the structure.
+I noticed a failure where we hit the following WARN_ON in
+generic_smp_call_function_interrupt:
 
-However, this implies getting write access to the call function data
-before and after another the function is called.  If we can assert that no
-smp_call_function execution function is allowed to enable interrupts, then
-we can move both writes to after the function is called, hopfully allowing
-both writes with one cache line bounce.
+                if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
+                        continue;
 
-On a 256 thread system with a kernel compiled for 1024 threads, the time
-to execute testcase in the "smp_call_function_many race" changelog was
-reduced by about 30-40ms out of about 545 ms.
+                data->csd.func(data->csd.info);
 
-I decided to keep this as WARN because its now a buggy function, even
-though the stack trace is of no value -- a simple printk would give us the
-information needed.
+                refs = atomic_dec_return(&data->refs);
+                WARN_ON(refs < 0);      <-------------------------
 
-Raw data:
+We atomically tested and cleared our bit in the cpumask, and yet the
+number of cpus left (ie refs) was 0.  How can this be?
 
-without patch
-ipi_test startup took 1219366ns complete 539819014ns total 541038380ns
-ipi_test startup took 1695754ns complete 543439872ns total 545135626ns
-ipi_test startup took 7513568ns complete 539606362ns total 547119930ns
-ipi_test startup took 13304064ns complete 533898562ns total 547202626ns
-ipi_test startup took 8668192ns complete 544264074ns total 552932266ns
-ipi_test startup took 4977626ns complete 548862684ns total 553840310ns
-ipi_test startup took 2144486ns complete 541292318ns total 543436804ns
-ipi_test startup took 21245824ns complete 530280180ns total 551526004ns
+It turns out commit 54fdade1c3332391948ec43530c02c4794a38172
+("generic-ipi: make struct call_function_data lockless") is at fault.  It
+removes locking from smp_call_function_many and in doing so creates a
+rather complicated race.
 
-with patch
-ipi_test startup took 5961748ns complete 500859628ns total 506821376ns
-ipi_test startup took 8975996ns complete 495098924ns total 504074920ns
-ipi_test startup took 19797750ns complete 492204740ns total 512002490ns
-ipi_test startup took 14824796ns complete 487495878ns total 502320674ns
-ipi_test startup took 11514882ns complete 494439372ns total 505954254ns
-ipi_test startup took 8288084ns complete 502570774ns total 510858858ns
-ipi_test startup took 6789954ns complete 493388112ns total 500178066ns
+The problem comes about because:
 
-	#include <linux/module.h>
-	#include <linux/init.h>
-	#include <linux/sched.h> /* sched clock */
+- The smp_call_function_many interrupt handler walks call_function.queue
+  without any locking.
+- We reuse a percpu data structure in smp_call_function_many.
+- We do not wait for any RCU grace period before starting the next
+  smp_call_function_many.
 
-	#define ITERATIONS 100
+Imagine a scenario where CPU A does two smp_call_functions back to back,
+and CPU B does an smp_call_function in between.  We concentrate on how CPU
+C handles the calls:
 
-	static void do_nothing_ipi(void *dummy)
-	{
+CPU A            CPU B                  CPU C              CPU D
+
+smp_call_function
+                                        smp_call_function_interrupt
+                                            walks
+					call_function.queue sees
+					data from CPU A on list
+
+                 smp_call_function
+
+                                        smp_call_function_interrupt
+                                            walks
+
+                                        call_function.queue sees
+                                          (stale) CPU A on list
+							   smp_call_function int
+							   clears last ref on A
+							   list_del_rcu, unlock
+smp_call_function reuses
+percpu *data A
+                                         data->cpumask sees and
+                                         clears bit in cpumask
+                                         might be using old or new fn!
+                                         decrements refs below 0
+
+set data->refs (too late!)
+
+The important thing to note is since the interrupt handler walks a
+potentially stale call_function.queue without any locking, then another
+cpu can view the percpu *data structure at any time, even when the owner
+is in the process of initialising it.
+
+The following test case hits the WARN_ON 100% of the time on my PowerPC
+box (having 128 threads does help :)
+
+#include <linux/module.h>
+#include <linux/init.h>
+
+#define ITERATIONS 100
+
+static void do_nothing_ipi(void *dummy)
+{
+}
+
+static void do_ipis(struct work_struct *dummy)
+{
+	int i;
+
+	for (i = 0; i < ITERATIONS; i++)
+		smp_call_function(do_nothing_ipi, NULL, 1);
+
+	printk(KERN_DEBUG "cpu %d finished\n", smp_processor_id());
+}
+
+static struct work_struct work[NR_CPUS];
+
+static int __init testcase_init(void)
+{
+	int cpu;
+
+	for_each_online_cpu(cpu) {
+		INIT_WORK(&work[cpu], do_ipis);
+		schedule_work_on(cpu, &work[cpu]);
 	}
 
-	static void do_ipis(struct work_struct *dummy)
-	{
-		int i;
+	return 0;
+}
 
-		for (i = 0; i < ITERATIONS; i++)
-			smp_call_function(do_nothing_ipi, NULL, 1);
+static void __exit testcase_exit(void)
+{
+}
 
-		printk(KERN_DEBUG "cpu %d finished\n", smp_processor_id());
-	}
+module_init(testcase_init)
+module_exit(testcase_exit)
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Anton Blanchard");
 
-	static struct work_struct work[NR_CPUS];
+I tried to fix it by ordering the read and the write of ->cpumask and
+->refs.  In doing so I missed a critical case but Paul McKenney was able
+to spot my bug thankfully :) To ensure we arent viewing previous
+iterations the interrupt handler needs to read ->refs then ->cpumask then
+->refs _again_.
 
-	static int __init testcase_init(void)
-	{
-		int cpu;
-		u64 start, started, done;
+Thanks to Milton Miller and Paul McKenney for helping to debug this issue.
 
-		start = local_clock();
-		for_each_online_cpu(cpu) {
-			INIT_WORK(&work[cpu], do_ipis);
-			schedule_work_on(cpu, &work[cpu]);
-		}
-		started = local_clock();
-		for_each_online_cpu(cpu)
-			flush_work(&work[cpu]);
-		done = local_clock();
-		pr_info("ipi_test startup took %lldns complete %lldns total %lldns\n",
-			started-start, done-started, done-start);
-
-		return 0;
-	}
-
-	static void __exit testcase_exit(void)
-	{
-	}
-
-	module_init(testcase_init)
-	module_exit(testcase_exit)
-	MODULE_LICENSE("GPL");
-	MODULE_AUTHOR("Anton Blanchard");
-
-
-
+[miltonm@bga.com: add WARN_ON and BUG_ON, remove extra read of refs before initial read of mask that doesn't help (also noted by Peter Zijlstra), adjust comments, hopefully clarify scenario ]
+[miltonm@bga.com: remove excess tests]
+Signed-off-by: Anton Blanchard <anton@samba.org>
 Signed-off-by: Milton Miller <miltonm@bga.com>
-Cc: Anton Blanchard <anton@samba.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: <stable@kernel.org> [2.6.32+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ kernel/smp.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt kernel/smp.c
---- a/kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt
+diff -puN kernel/smp.c~kernel-smpc-fix-smp_call_function_many-smp-race kernel/smp.c
+--- a/kernel/smp.c~kernel-smpc-fix-smp_call_function_many-smp-race
 +++ a/kernel/smp.c
-@@ -194,6 +194,7 @@ void generic_smp_call_function_interrupt
- 	 */
+@@ -195,6 +195,24 @@ void generic_smp_call_function_interrupt
  	list_for_each_entry_rcu(data, &call_function.queue, csd.list) {
  		int refs;
-+		void (*func) (void *info);
- 
- 		/*
- 		 * Since we walk the list without any locks, we might
-@@ -213,24 +214,32 @@ void generic_smp_call_function_interrupt
- 		if (atomic_read(&data->refs) == 0)
- 			continue;
- 
--		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
--			continue;
--
-+		func = data->csd.func;			/* for later warn */
- 		data->csd.func(data->csd.info);
  
 +		/*
-+		 * If the cpu mask is not still set then it enabled interrupts,
-+		 * we took another smp interrupt, and executed the function
-+		 * twice on this cpu.  In theory that copy decremented refs.
++		 * Since we walk the list without any locks, we might
++		 * see an entry that was completed, removed from the
++		 * list and is in the process of being reused.
++		 *
++		 * We must check that the cpu is in the cpumask before
++		 * checking the refs, and both must be set before
++		 * executing the callback on this cpu.
 +		 */
-+		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask)) {
-+			WARN(1, "%pS enabled interrupts and double executed\n",
-+			     func);
-+			continue;
-+		}
 +
- 		refs = atomic_dec_return(&data->refs);
- 		WARN_ON(refs < 0);
--		if (!refs) {
--			WARN_ON(!cpumask_empty(data->cpumask));
--
--			raw_spin_lock(&call_function.lock);
--			list_del_rcu(&data->csd.list);
--			raw_spin_unlock(&call_function.lock);
--		}
- 
- 		if (refs)
++		if (!cpumask_test_cpu(cpu, data->cpumask))
++			continue;
++
++		smp_rmb();
++
++		if (atomic_read(&data->refs) == 0)
++			continue;
++
+ 		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
  			continue;
  
-+		WARN_ON(!cpumask_empty(data->cpumask));
+@@ -203,6 +221,8 @@ void generic_smp_call_function_interrupt
+ 		refs = atomic_dec_return(&data->refs);
+ 		WARN_ON(refs < 0);
+ 		if (!refs) {
++			WARN_ON(!cpumask_empty(data->cpumask));
 +
-+		raw_spin_lock(&call_function.lock);
-+		list_del_rcu(&data->csd.list);
-+		raw_spin_unlock(&call_function.lock);
-+
- 		csd_unlock(&data->csd);
- 	}
+ 			raw_spin_lock(&call_function.lock);
+ 			list_del_rcu(&data->csd.list);
+ 			raw_spin_unlock(&call_function.lock);
+@@ -454,11 +474,21 @@ void smp_call_function_many(const struct
  
+ 	data = &__get_cpu_var(cfd_data);
+ 	csd_lock(&data->csd);
++	BUG_ON(atomic_read(&data->refs) || !cpumask_empty(data->cpumask));
+ 
+ 	data->csd.func = func;
+ 	data->csd.info = info;
+ 	cpumask_and(data->cpumask, mask, cpu_online_mask);
+ 	cpumask_clear_cpu(this_cpu, data->cpumask);
++
++	/*
++	 * To ensure the interrupt handler gets an complete view
++	 * we order the cpumask and refs writes and order the read
++	 * of them in the interrupt handler.  In addition we may
++	 * only clear our own cpu bit from the mask.
++	 */
++	smp_wmb();
++
+ 	atomic_set(&data->refs, cpumask_weight(data->cpumask));
+ 
+ 	raw_spin_lock_irqsave(&call_function.lock, flags);
 _
 
-Patches currently in -mm which might be from miltonm@bga.com are
+Patches currently in -mm which might be from anton@samba.org are
 
-linux-next.patch
 kernel-smpc-fix-smp_call_function_many-smp-race.patch
 kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch
 
