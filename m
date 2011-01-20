@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch added to -mm tree
-Date: Wed, 19 Jan 2011 16:38:35 -0800
-Message-ID: <201101200038.p0K0cZxv012949@imap1.linux-foundation.org>
+Subject: + kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch added to -mm tree
+Date: Wed, 19 Jan 2011 16:46:58 -0800
+Message-ID: <201101200046.p0K0kw3r013305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754777Ab1ATAih (ORCPT
+	by vger.kernel.org with ESMTP id S1753052Ab1ATArd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Jan 2011 19:38:37 -0500
+	Wed, 19 Jan 2011 19:47:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, vapier@gentoo.org
+Cc: miltonm@bga.com, anton@samba.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     sigma-firmware-loader-for-analog-devices-sigmastudio-fix
+     kernel/smp.c: consolidate writes in smp_call_function_interrupt()
 has been added to the -mm tree.  Its filename is
-     sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch
+     kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,197 +26,181 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sigma-firmware-loader-for-analog-devices-sigmastudio-fix
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/smp.c: consolidate writes in smp_call_function_interrupt()
+From: Milton Miller <miltonm@bga.com>
 
-Cc: Mike Frysinger <vapier@gentoo.org>
+We have to test the cpu mask in the interrupt handler before checking the
+refs, otherwise we can start to follow an entry before its deleted and
+find it partially initailzed for the next trip.  Presently we also clear
+the cpumask bit before executing the called function, which implies
+getting write access to the line.  After the function is called we then
+decrement refs, and if they go to zero we then unlock the structure.
+
+However, this implies getting write access to the call function data
+before and after another the function is called.  If we can assert that no
+smp_call_function execution function is allowed to enable interrupts, then
+we can move both writes to after the function is called, hopfully allowing
+both writes with one cache line bounce.
+
+On a 256 thread system with a kernel compiled for 1024 threads, the time
+to execute testcase in the "smp_call_function_many race" changelog was
+reduced by about 30-40ms out of about 545 ms.
+
+I decided to keep this as WARN because its now a buggy function, even
+though the stack trace is of no value -- a simple printk would give us the
+information needed.
+
+Raw data:
+
+without patch
+ipi_test startup took 1219366ns complete 539819014ns total 541038380ns
+ipi_test startup took 1695754ns complete 543439872ns total 545135626ns
+ipi_test startup took 7513568ns complete 539606362ns total 547119930ns
+ipi_test startup took 13304064ns complete 533898562ns total 547202626ns
+ipi_test startup took 8668192ns complete 544264074ns total 552932266ns
+ipi_test startup took 4977626ns complete 548862684ns total 553840310ns
+ipi_test startup took 2144486ns complete 541292318ns total 543436804ns
+ipi_test startup took 21245824ns complete 530280180ns total 551526004ns
+
+with patch
+ipi_test startup took 5961748ns complete 500859628ns total 506821376ns
+ipi_test startup took 8975996ns complete 495098924ns total 504074920ns
+ipi_test startup took 19797750ns complete 492204740ns total 512002490ns
+ipi_test startup took 14824796ns complete 487495878ns total 502320674ns
+ipi_test startup took 11514882ns complete 494439372ns total 505954254ns
+ipi_test startup took 8288084ns complete 502570774ns total 510858858ns
+ipi_test startup took 6789954ns complete 493388112ns total 500178066ns
+
+	#include <linux/module.h>
+	#include <linux/init.h>
+	#include <linux/sched.h> /* sched clock */
+
+	#define ITERATIONS 100
+
+	static void do_nothing_ipi(void *dummy)
+	{
+	}
+
+	static void do_ipis(struct work_struct *dummy)
+	{
+		int i;
+
+		for (i = 0; i < ITERATIONS; i++)
+			smp_call_function(do_nothing_ipi, NULL, 1);
+
+		printk(KERN_DEBUG "cpu %d finished\n", smp_processor_id());
+	}
+
+	static struct work_struct work[NR_CPUS];
+
+	static int __init testcase_init(void)
+	{
+		int cpu;
+		u64 start, started, done;
+
+		start = local_clock();
+		for_each_online_cpu(cpu) {
+			INIT_WORK(&work[cpu], do_ipis);
+			schedule_work_on(cpu, &work[cpu]);
+		}
+		started = local_clock();
+		for_each_online_cpu(cpu)
+			flush_work(&work[cpu]);
+		done = local_clock();
+		pr_info("ipi_test startup took %lldns complete %lldns total %lldns\n",
+			started-start, done-started, done-start);
+
+		return 0;
+	}
+
+	static void __exit testcase_exit(void)
+	{
+	}
+
+	module_init(testcase_init)
+	module_exit(testcase_exit)
+	MODULE_LICENSE("GPL");
+	MODULE_AUTHOR("Anton Blanchard");
+
+
+
+Signed-off-by: Milton Miller <miltonm@bga.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/sigma.c |   53 +++++++++++++++++++------------------
- include/linux/sigma.h    |   10 +++---
- 2 files changed, 33 insertions(+), 30 deletions(-)
+ kernel/smp.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-dev=
-ices-sigmastudio-fix drivers/firmware/sigma.c
---- a/drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-devices=
--sigmastudio-fix
-+++ a/drivers/firmware/sigma.c
-@@ -1,9 +1,9 @@
- /*
-  * Load Analog Devices SigmaStudio firmware files
-  *
--=C2=A0* Copyright 2009 Analog Devices Inc.
--=C2=A0*
--=C2=A0* Licensed under the GPL-2 or later.
-+=A0* Copyright 2009 Analog Devices Inc.
-+=A0*
-+=A0* Licensed under the GPL-2 or later.
-  */
-=20
- #include <linux/crc32.h>
-@@ -14,7 +14,8 @@
- #include <linux/sigma.h>
-=20
- /* Return: 0=3D=3DOK, <0=3D=3Derror, =3D1 =3D=3Dno more actions */
--int process_sigma_action(struct i2c_client *client, struct sigma_firmw=
-are *ssfw)
-+static int process_sigma_action(struct i2c_client *client,
-+				struct sigma_firmware *ssfw)
- {
- 	struct sigma_action *sa =3D (void *)(ssfw->fw->data + ssfw->pos);
- 	size_t len =3D sigma_action_len(sa);
-@@ -24,27 +25,27 @@ int process_sigma_action(struct i2c_clie
- 		sa->instr, sa->addr, len);
-=20
- 	switch (sa->instr) {
--		case SIGMA_ACTION_WRITEXBYTES:
--		case SIGMA_ACTION_WRITESINGLE:
--		case SIGMA_ACTION_WRITESAFELOAD:
--			if (ssfw->fw->size < ssfw->pos + len)
--				return -EINVAL;
--			ret =3D i2c_master_send(client, (void *)&sa->addr, len);
--			if (ret < 0)
--				return -EINVAL;
--			break;
+diff -puN kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt kernel/smp.c
+--- a/kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt
++++ a/kernel/smp.c
+@@ -194,6 +194,7 @@ void generic_smp_call_function_interrupt
+ 	 */
+ 	list_for_each_entry_rcu(data, &call_function.queue, csd.list) {
+ 		int refs;
++		void (*func) (void *info);
+ 
+ 		/*
+ 		 * Since we walk the list without any locks, we might
+@@ -213,24 +214,32 @@ void generic_smp_call_function_interrupt
+ 		if (atomic_read(&data->refs) == 0)
+ 			continue;
+ 
+-		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
+-			continue;
 -
--		case SIGMA_ACTION_DELAY:
--			ret =3D 0;
--			udelay(len);
--			len =3D 0;
--			break;
-+	case SIGMA_ACTION_WRITEXBYTES:
-+	case SIGMA_ACTION_WRITESINGLE:
-+	case SIGMA_ACTION_WRITESAFELOAD:
-+		if (ssfw->fw->size < ssfw->pos + len)
-+			return -EINVAL;
-+		ret =3D i2c_master_send(client, (void *)&sa->addr, len);
-+		if (ret < 0)
-+			return -EINVAL;
-+		break;
-=20
--		case SIGMA_ACTION_END:
--			return 1;
-+	case SIGMA_ACTION_DELAY:
-+		ret =3D 0;
-+		udelay(len);
-+		len =3D 0;
-+		break;
-=20
--		default:
--			return -EINVAL;
-+	case SIGMA_ACTION_END:
-+		return 1;
++		func = data->csd.func;			/* for later warn */
+ 		data->csd.func(data->csd.info);
+ 
++		/*
++		 * If the cpu mask is not still set then it enabled interrupts,
++		 * we took another smp interrupt, and executed the function
++		 * twice on this cpu.  In theory that copy decremented refs.
++		 */
++		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask)) {
++			WARN(1, "%pS enabled interrupts and double executed\n",
++			     func);
++			continue;
++		}
 +
-+	default:
-+		return -EINVAL;
- 	}
-=20
- 	/* when arrive here ret=3D0 or sent data */
-@@ -52,7 +53,8 @@ int process_sigma_action(struct i2c_clie
- 	return ssfw->pos =3D=3D ssfw->fw->size;
- }
-=20
--int process_sigma_actions(struct i2c_client *client, struct sigma_firm=
-ware *ssfw)
-+static int process_sigma_actions(struct i2c_client *client,
-+				 struct sigma_firmware *ssfw)
- {
- 	pr_debug("%s: processing %p\n", __func__, ssfw);
-=20
-@@ -78,7 +80,8 @@ int process_sigma_firmware(struct i2c_cl
- 	/* first load the blob */
- 	ret =3D request_firmware(&fw, name, &client->dev);
- 	if (ret) {
--		pr_debug("%s: request_firmware() failed with %i\n", __func__, ret);
-+		pr_debug("%s: request_firmware() failed with %i\n",
-+			 __func__, ret);
- 		return ret;
- 	}
- 	ssfw.fw =3D fw;
-diff -puN include/linux/sigma.h~sigma-firmware-loader-for-analog-device=
-s-sigmastudio-fix include/linux/sigma.h
---- a/include/linux/sigma.h~sigma-firmware-loader-for-analog-devices-si=
-gmastudio-fix
-+++ a/include/linux/sigma.h
-@@ -1,9 +1,9 @@
- /*
-  * Load firmware files from Analog Devices SigmaStudio
-  *
--=C2=A0* Copyright 2009 Analog Devices Inc.
--=C2=A0*
--=C2=A0* Licensed under the GPL-2 or later.
-+=A0* Copyright 2009 Analog Devices Inc.
-+=A0*
-+=A0* Licensed under the GPL-2 or later.
-  */
-=20
- #ifndef __SIGMA_FIRMWARE_H__
-@@ -12,6 +12,8 @@
- #include <linux/firmware.h>
- #include <linux/types.h>
-=20
-+struct i2c_client;
-+
- #define SIGMA_MAGIC "ADISIGM"
-=20
- struct sigma_firmware {
-@@ -53,8 +55,6 @@ static inline size_t sigma_action_size(s
- 	return sizeof(*sa) + payload_len + (payload_len % 2);
- }
-=20
--struct i2c_client;
+ 		refs = atomic_dec_return(&data->refs);
+ 		WARN_ON(refs < 0);
+-		if (!refs) {
+-			WARN_ON(!cpumask_empty(data->cpumask));
 -
- extern int process_sigma_firmware(struct i2c_client *client, const cha=
-r *name);
-=20
- #endif
+-			raw_spin_lock(&call_function.lock);
+-			list_del_rcu(&data->csd.list);
+-			raw_spin_unlock(&call_function.lock);
+-		}
+ 
+ 		if (refs)
+ 			continue;
+ 
++		WARN_ON(!cpumask_empty(data->cpumask));
++
++		raw_spin_lock(&call_function.lock);
++		list_del_rcu(&data->csd.list);
++		raw_spin_unlock(&call_function.lock);
++
+ 		csd_unlock(&data->csd);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from miltonm@bga.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction=
--fix.patch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio-fix=
-=2Epatch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kernel-smpc-fix-smp_call_function_many-smp-race.patch
+kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
