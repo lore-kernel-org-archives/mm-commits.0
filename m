@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-rename-config_embedded-to-config_expert.patch added to -mm tree
-Date: Thu, 20 Jan 2011 12:32:25 -0800
-Message-ID: <201101202032.p0KKWPA6000705@imap1.linux-foundation.org>
+Subject: + change-acquire-release_console_sem-to-console_lock-unlock.patch added to -mm tree
+Date: Thu, 20 Jan 2011 12:36:43 -0800
+Message-ID: <201101202036.p0KKah8n000936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754686Ab1ATUdp (ORCPT
+	by vger.kernel.org with ESMTP id S1751209Ab1ATUhK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 15:33:45 -0500
+	Thu, 20 Jan 2011 15:37:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, arnd@arndb.de, axboe@kernel.dk, davem@davemloft.net, david.woodhouse@intel.com, gregkh@suse.de, holt@sgi.com, linux-arch@vger.kernel.org, mingo@elte.hu
+Cc: torbenh@gmx.de, gregkh@suse.de, mingo@elte.hu, tglx@tglx.de
 
 
 The patch titled
-     kconfig: rename CONFIG_EMBEDDED to CONFIG_EXPERT
+     console: rename acquire/release_console_sem() to console_lock/unlock()
 has been added to the -mm tree.  Its filename is
-     kconfig-rename-config_embedded-to-config_expert.patch
+     change-acquire-release_console_sem-to-console_lock-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,4771 +34,2672 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: rename CONFIG_EMBEDDED to CONFIG_EXPERT
-From: David Rientjes <rientjes@google.com>
+Subject: console: rename acquire/release_console_sem() to console_lock/unlock()
+From: Torben Hohn <torbenh@gmx.de>
 
-The meaning of CONFIG_EMBEDDED has long since been obsoleted; the option
-is used to configure any non-standard kernel with a much larger scope than
-only small devices.
+The -rt patches change the console_semaphore to console_mutex.  so a quite
+large chunk of the patches changes all acquire/release_console_sem() to
+acquire/release_console_mutex()
 
-This patch renames the option to CONFIG_EXPERT in init/Kconfig and fixes
-references to the option throughout the kernel.  A new CONFIG_EMBEDDED
-option is added that automatically selects CONFIG_EXPERT when enabled and
-can be used in the future to isolate options that should only be
-considered for embedded systems (RISC architectures, SLOB, etc).
+This commit makes things use more neutral function names which dont make
+implications about the underlying lock.
 
-Calling the option "EXPERT" more accurately represents its intention: only
-expert users who understand the impact of the configuration changes they
-are making should enable it.
+The only real change is the return value of console_trylock which is
+inverted from try_acquire_console_sem()
 
-Reviewed-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: David Woodhouse <david.woodhouse@intel.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+This patch also paves the way to switching console_sem from a semaphore to
+a mutex.
+
+Signed-off-by: Torben Hohn <torbenh@gmx.de>
+Cc: Thomas Gleixner <tglx@tglx.de>
 Cc: Greg KH <gregkh@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Robin Holt <holt@sgi.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/ag5evm_defconfig                 |    2 
- arch/arm/configs/am200epdkit_defconfig            |    2 
- arch/arm/configs/at572d940hfek_defconfig          |    2 
- arch/arm/configs/badge4_defconfig                 |    2 
- arch/arm/configs/bcmring_defconfig                |    2 
- arch/arm/configs/cm_x2xx_defconfig                |    2 
- arch/arm/configs/colibri_pxa270_defconfig         |    2 
- arch/arm/configs/collie_defconfig                 |    2 
- arch/arm/configs/corgi_defconfig                  |    2 
- arch/arm/configs/da8xx_omapl_defconfig            |    2 
- arch/arm/configs/davinci_all_defconfig            |    2 
- arch/arm/configs/dove_defconfig                   |    2 
- arch/arm/configs/ebsa110_defconfig                |    2 
- arch/arm/configs/edb7211_defconfig                |    2 
- arch/arm/configs/em_x270_defconfig                |    2 
- arch/arm/configs/ep93xx_defconfig                 |    2 
- arch/arm/configs/eseries_pxa_defconfig            |    2 
- arch/arm/configs/ezx_defconfig                    |    2 
- arch/arm/configs/footbridge_defconfig             |    2 
- arch/arm/configs/fortunet_defconfig               |    2 
- arch/arm/configs/h5000_defconfig                  |    2 
- arch/arm/configs/imote2_defconfig                 |    2 
- arch/arm/configs/ixp2000_defconfig                |    2 
- arch/arm/configs/ixp23xx_defconfig                |    2 
- arch/arm/configs/ixp4xx_defconfig                 |    2 
- arch/arm/configs/loki_defconfig                   |    2 
- arch/arm/configs/lpd7a400_defconfig               |    2 
- arch/arm/configs/lpd7a404_defconfig               |    2 
- arch/arm/configs/magician_defconfig               |    2 
- arch/arm/configs/mv78xx0_defconfig                |    2 
- arch/arm/configs/mx1_defconfig                    |    2 
- arch/arm/configs/mx21_defconfig                   |    2 
- arch/arm/configs/mx27_defconfig                   |    2 
- arch/arm/configs/mx3_defconfig                    |    2 
- arch/arm/configs/mx51_defconfig                   |    2 
- arch/arm/configs/nhk8815_defconfig                |    2 
- arch/arm/configs/omap1_defconfig                  |    2 
- arch/arm/configs/omap2plus_defconfig              |    2 
- arch/arm/configs/orion5x_defconfig                |    2 
- arch/arm/configs/pcm027_defconfig                 |    2 
- arch/arm/configs/pcontrol_g20_defconfig           |    2 
- arch/arm/configs/pleb_defconfig                   |    2 
- arch/arm/configs/pnx4008_defconfig                |    2 
- arch/arm/configs/simpad_defconfig                 |    2 
- arch/arm/configs/spitz_defconfig                  |    2 
- arch/arm/configs/stmp378x_defconfig               |    2 
- arch/arm/configs/stmp37xx_defconfig               |    2 
- arch/arm/configs/tct_hammer_defconfig             |    2 
- arch/arm/configs/trizeps4_defconfig               |    2 
- arch/arm/configs/u300_defconfig                   |    2 
- arch/arm/configs/viper_defconfig                  |    2 
- arch/arm/configs/xcep_defconfig                   |    2 
- arch/avr32/Kconfig                                |    4 
- arch/blackfin/configs/BF518F-EZBRD_defconfig      |    2 
- arch/blackfin/configs/BF526-EZBRD_defconfig       |    2 
- arch/blackfin/configs/BF527-AD7160-EVAL_defconfig |    2 
- arch/blackfin/configs/BF527-EZKIT-V2_defconfig    |    2 
- arch/blackfin/configs/BF527-EZKIT_defconfig       |    2 
- arch/blackfin/configs/BF527-TLL6527M_defconfig    |    2 
- arch/blackfin/configs/BF533-EZKIT_defconfig       |    2 
- arch/blackfin/configs/BF533-STAMP_defconfig       |    2 
- arch/blackfin/configs/BF537-STAMP_defconfig       |    2 
- arch/blackfin/configs/BF538-EZKIT_defconfig       |    2 
- arch/blackfin/configs/BF548-EZKIT_defconfig       |    2 
- arch/blackfin/configs/BF561-ACVILON_defconfig     |    2 
- arch/blackfin/configs/BF561-EZKIT-SMP_defconfig   |    2 
- arch/blackfin/configs/BF561-EZKIT_defconfig       |    2 
- arch/blackfin/configs/BlackStamp_defconfig        |    2 
- arch/blackfin/configs/CM-BF527_defconfig          |    2 
- arch/blackfin/configs/CM-BF533_defconfig          |    2 
- arch/blackfin/configs/CM-BF537E_defconfig         |    2 
- arch/blackfin/configs/CM-BF537U_defconfig         |    2 
- arch/blackfin/configs/CM-BF548_defconfig          |    2 
- arch/blackfin/configs/CM-BF561_defconfig          |    2 
- arch/blackfin/configs/DNP5370_defconfig           |    2 
- arch/blackfin/configs/H8606_defconfig             |    2 
- arch/blackfin/configs/IP0X_defconfig              |    2 
- arch/blackfin/configs/PNAV-10_defconfig           |    2 
- arch/blackfin/configs/SRV1_defconfig              |    2 
- arch/blackfin/configs/TCM-BF518_defconfig         |    2 
- arch/blackfin/configs/TCM-BF537_defconfig         |    2 
- arch/cris/configs/artpec_3_defconfig              |    2 
- arch/cris/configs/etrax-100lx_v2_defconfig        |    2 
- arch/cris/configs/etraxfs_defconfig               |    2 
- arch/frv/defconfig                                |    2 
- arch/h8300/defconfig                              |    2 
- arch/m32r/configs/m32700ut.smp_defconfig          |    2 
- arch/m32r/configs/m32700ut.up_defconfig           |    2 
- arch/m32r/configs/mappi.nommu_defconfig           |    2 
- arch/m32r/configs/mappi.smp_defconfig             |    2 
- arch/m32r/configs/mappi.up_defconfig              |    2 
- arch/m32r/configs/mappi2.opsp_defconfig           |    2 
- arch/m32r/configs/mappi2.vdec2_defconfig          |    2 
- arch/m32r/configs/mappi3.smp_defconfig            |    2 
- arch/m32r/configs/oaks32r_defconfig               |    2 
- arch/m32r/configs/opsput_defconfig                |    2 
- arch/m32r/configs/usrv_defconfig                  |    2 
- arch/m68knommu/configs/m5208evb_defconfig         |    2 
- arch/m68knommu/configs/m5249evb_defconfig         |    2 
- arch/m68knommu/configs/m5272c3_defconfig          |    2 
- arch/m68knommu/configs/m5275evb_defconfig         |    2 
- arch/m68knommu/configs/m5307c3_defconfig          |    2 
- arch/m68knommu/configs/m5407c3_defconfig          |    2 
- arch/m68knommu/defconfig                          |    2 
- arch/microblaze/configs/mmu_defconfig             |    2 
- arch/microblaze/configs/nommu_defconfig           |    2 
- arch/mips/Kconfig.debug                           |    2 
- arch/mips/configs/ar7_defconfig                   |    2 
- arch/mips/configs/bcm47xx_defconfig               |    2 
- arch/mips/configs/bcm63xx_defconfig               |    2 
- arch/mips/configs/bigsur_defconfig                |    2 
- arch/mips/configs/capcella_defconfig              |    2 
- arch/mips/configs/cavium-octeon_defconfig         |    2 
- arch/mips/configs/cobalt_defconfig                |    2 
- arch/mips/configs/db1000_defconfig                |    2 
- arch/mips/configs/db1100_defconfig                |    2 
- arch/mips/configs/db1200_defconfig                |    2 
- arch/mips/configs/db1500_defconfig                |    2 
- arch/mips/configs/db1550_defconfig                |    2 
- arch/mips/configs/decstation_defconfig            |    2 
- arch/mips/configs/e55_defconfig                   |    2 
- arch/mips/configs/fuloong2e_defconfig             |    2 
- arch/mips/configs/gpr_defconfig                   |    2 
- arch/mips/configs/ip22_defconfig                  |    2 
- arch/mips/configs/ip27_defconfig                  |    2 
- arch/mips/configs/ip28_defconfig                  |    2 
- arch/mips/configs/ip32_defconfig                  |    2 
- arch/mips/configs/jazz_defconfig                  |    2 
- arch/mips/configs/jmr3927_defconfig               |    2 
- arch/mips/configs/lasat_defconfig                 |    2 
- arch/mips/configs/lemote2f_defconfig              |    2 
- arch/mips/configs/malta_defconfig                 |    2 
- arch/mips/configs/markeins_defconfig              |    2 
- arch/mips/configs/mipssim_defconfig               |    2 
- arch/mips/configs/mpc30x_defconfig                |    2 
- arch/mips/configs/msp71xx_defconfig               |    2 
- arch/mips/configs/mtx1_defconfig                  |    2 
- arch/mips/configs/pb1100_defconfig                |    2 
- arch/mips/configs/pb1200_defconfig                |    2 
- arch/mips/configs/pb1500_defconfig                |    2 
- arch/mips/configs/pb1550_defconfig                |    2 
- arch/mips/configs/pnx8335-stb225_defconfig        |    2 
- arch/mips/configs/pnx8550-jbs_defconfig           |    2 
- arch/mips/configs/pnx8550-stb810_defconfig        |    2 
- arch/mips/configs/powertv_defconfig               |    2 
- arch/mips/configs/rb532_defconfig                 |    2 
- arch/mips/configs/rbtx49xx_defconfig              |    2 
- arch/mips/configs/rm200_defconfig                 |    2 
- arch/mips/configs/sb1250-swarm_defconfig          |    2 
- arch/mips/configs/tb0219_defconfig                |    2 
- arch/mips/configs/tb0226_defconfig                |    2 
- arch/mips/configs/tb0287_defconfig                |    2 
- arch/mips/configs/workpad_defconfig               |    2 
- arch/mips/configs/wrppmc_defconfig                |    2 
- arch/mips/configs/yosemite_defconfig              |    2 
- arch/mn10300/configs/asb2303_defconfig            |    2 
- arch/mn10300/configs/asb2364_defconfig            |    2 
- arch/parisc/configs/a500_defconfig                |    2 
- arch/parisc/configs/c3000_defconfig               |    2 
- arch/powerpc/configs/40x/acadia_defconfig         |    2 
- arch/powerpc/configs/40x/ep405_defconfig          |    2 
- arch/powerpc/configs/40x/hcu4_defconfig           |    2 
- arch/powerpc/configs/40x/kilauea_defconfig        |    2 
- arch/powerpc/configs/40x/makalu_defconfig         |    2 
- arch/powerpc/configs/40x/walnut_defconfig         |    2 
- arch/powerpc/configs/44x/arches_defconfig         |    2 
- arch/powerpc/configs/44x/bamboo_defconfig         |    2 
- arch/powerpc/configs/44x/bluestone_defconfig      |    2 
- arch/powerpc/configs/44x/canyonlands_defconfig    |    2 
- arch/powerpc/configs/44x/ebony_defconfig          |    2 
- arch/powerpc/configs/44x/eiger_defconfig          |    2 
- arch/powerpc/configs/44x/icon_defconfig           |    2 
- arch/powerpc/configs/44x/iss476-smp_defconfig     |    2 
- arch/powerpc/configs/44x/katmai_defconfig         |    2 
- arch/powerpc/configs/44x/rainier_defconfig        |    2 
- arch/powerpc/configs/44x/redwood_defconfig        |    2 
- arch/powerpc/configs/44x/sam440ep_defconfig       |    2 
- arch/powerpc/configs/44x/sequoia_defconfig        |    2 
- arch/powerpc/configs/44x/taishan_defconfig        |    2 
- arch/powerpc/configs/44x/warp_defconfig           |    2 
- arch/powerpc/configs/52xx/cm5200_defconfig        |    2 
- arch/powerpc/configs/52xx/lite5200b_defconfig     |    2 
- arch/powerpc/configs/52xx/motionpro_defconfig     |    2 
- arch/powerpc/configs/52xx/pcm030_defconfig        |    2 
- arch/powerpc/configs/52xx/tqm5200_defconfig       |    2 
- arch/powerpc/configs/83xx/asp8347_defconfig       |    2 
- arch/powerpc/configs/83xx/kmeter1_defconfig       |    2 
- arch/powerpc/configs/83xx/mpc8313_rdb_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc8315_rdb_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc832x_mds_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc832x_rdb_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc834x_itx_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc834x_itxgp_defconfig |    2 
- arch/powerpc/configs/83xx/mpc834x_mds_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc836x_mds_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc836x_rdk_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc837x_mds_defconfig   |    2 
- arch/powerpc/configs/83xx/mpc837x_rdb_defconfig   |    2 
- arch/powerpc/configs/83xx/sbc834x_defconfig       |    2 
- arch/powerpc/configs/85xx/ksi8560_defconfig       |    2 
- arch/powerpc/configs/85xx/mpc8540_ads_defconfig   |    2 
- arch/powerpc/configs/85xx/mpc8560_ads_defconfig   |    2 
- arch/powerpc/configs/85xx/mpc85xx_cds_defconfig   |    2 
- arch/powerpc/configs/85xx/sbc8548_defconfig       |    2 
- arch/powerpc/configs/85xx/sbc8560_defconfig       |    2 
- arch/powerpc/configs/85xx/socrates_defconfig      |    2 
- arch/powerpc/configs/85xx/stx_gp3_defconfig       |    2 
- arch/powerpc/configs/85xx/tqm8540_defconfig       |    2 
- arch/powerpc/configs/85xx/tqm8541_defconfig       |    2 
- arch/powerpc/configs/85xx/tqm8548_defconfig       |    2 
- arch/powerpc/configs/85xx/tqm8555_defconfig       |    2 
- arch/powerpc/configs/85xx/tqm8560_defconfig       |    2 
- arch/powerpc/configs/85xx/xes_mpc85xx_defconfig   |    2 
- arch/powerpc/configs/86xx/gef_ppc9a_defconfig     |    2 
- arch/powerpc/configs/86xx/gef_sbc310_defconfig    |    2 
- arch/powerpc/configs/86xx/gef_sbc610_defconfig    |    2 
- arch/powerpc/configs/86xx/mpc8610_hpcd_defconfig  |    2 
- arch/powerpc/configs/86xx/mpc8641_hpcn_defconfig  |    2 
- arch/powerpc/configs/86xx/sbc8641d_defconfig      |    2 
- arch/powerpc/configs/adder875_defconfig           |    2 
- arch/powerpc/configs/e55xx_smp_defconfig          |    2 
- arch/powerpc/configs/ep8248e_defconfig            |    2 
- arch/powerpc/configs/ep88xc_defconfig             |    2 
- arch/powerpc/configs/gamecube_defconfig           |    2 
- arch/powerpc/configs/holly_defconfig              |    2 
- arch/powerpc/configs/mgcoge_defconfig             |    2 
- arch/powerpc/configs/mgsuvd_defconfig             |    2 
- arch/powerpc/configs/mpc7448_hpc2_defconfig       |    2 
- arch/powerpc/configs/mpc8272_ads_defconfig        |    2 
- arch/powerpc/configs/mpc83xx_defconfig            |    2 
- arch/powerpc/configs/mpc85xx_defconfig            |    2 
- arch/powerpc/configs/mpc85xx_smp_defconfig        |    2 
- arch/powerpc/configs/mpc866_ads_defconfig         |    2 
- arch/powerpc/configs/mpc86xx_defconfig            |    2 
- arch/powerpc/configs/mpc885_ads_defconfig         |    2 
- arch/powerpc/configs/ppc40x_defconfig             |    2 
- arch/powerpc/configs/ppc44x_defconfig             |    2 
- arch/powerpc/configs/pq2fads_defconfig            |    2 
- arch/powerpc/configs/ps3_defconfig                |    2 
- arch/powerpc/configs/storcenter_defconfig         |    2 
- arch/powerpc/configs/tqm8xx_defconfig             |    2 
- arch/powerpc/configs/wii_defconfig                |    2 
- arch/powerpc/platforms/iseries/Kconfig            |    2 
- arch/powerpc/platforms/pseries/Kconfig            |    6 -
- arch/score/configs/spct6600_defconfig             |    2 
- arch/sh/Kconfig                                   |    2 
- arch/tile/Kconfig                                 |    2 
- arch/tile/Kconfig.debug                           |    2 
- arch/tile/configs/tile_defconfig                  |    2 
- arch/um/defconfig                                 |    2 
- arch/x86/Kconfig                                  |   20 +--
- arch/x86/Kconfig.cpu                              |    2 
- arch/x86/Kconfig.debug                            |    4 
- arch/xtensa/configs/common_defconfig              |    2 
- arch/xtensa/configs/iss_defconfig                 |    2 
- arch/xtensa/configs/s6105_defconfig               |    2 
- block/Kconfig                                     |    2 
- drivers/acpi/Kconfig                              |    2 
- drivers/ata/Kconfig                               |    2 
- drivers/base/Kconfig                              |    2 
- drivers/char/Kconfig                              |   10 -
- drivers/cpufreq/Kconfig                           |    2 
- drivers/firmware/Kconfig                          |    2 
- drivers/gpu/drm/Kconfig                           |    2 
- drivers/gpu/drm/drm_fb_helper.c                   |    4 
- drivers/gpu/drm/nouveau/Kconfig                   |    2 
- drivers/gpu/vga/Kconfig                           |    2 
- drivers/hid/Kconfig                               |   64 ++++++------
- drivers/hid/usbhid/Kconfig                        |    2 
- drivers/ide/Kconfig                               |    2 
- drivers/infiniband/hw/mthca/Kconfig               |    2 
- drivers/infiniband/ulp/ipoib/Kconfig              |    2 
- drivers/input/Kconfig                             |    6 -
- drivers/input/keyboard/Kconfig                    |    4 
- drivers/input/mouse/Kconfig                       |   10 -
- drivers/input/serio/Kconfig                       |    6 -
- drivers/input/touchscreen/Kconfig                 |   30 ++---
- drivers/media/common/tuners/Kconfig               |    2 
- drivers/media/dvb/frontends/Kconfig               |    2 
- drivers/media/video/Kconfig                       |    2 
- drivers/net/Kconfig                               |    2 
- drivers/pci/pcie/Kconfig                          |    2 
- drivers/pcmcia/Kconfig                            |   12 +-
- drivers/serial/Kconfig                            |    4 
- drivers/ssb/Kconfig                               |    2 
- drivers/usb/core/Kconfig                          |    6 -
- drivers/video/Kconfig                             |    2 
- drivers/video/console/Kconfig                     |    2 
- fs/Kconfig                                        |    2 
- fs/proc/Kconfig                                   |    6 -
- fs/sysfs/Kconfig                                  |    2 
- init/Kconfig                                      |   60 ++++++-----
- lib/Kconfig.debug                                 |    6 -
- lib/xz/Kconfig                                    |   12 +-
- net/mac80211/Kconfig                              |    6 -
- net/rfkill/Kconfig                                |    4 
- net/wireless/Kconfig                              |    2 
- usr/Kconfig                                       |   18 +--
- 298 files changed, 431 insertions(+), 423 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c           |    4 
+ arch/arm/mach-omap2/pm34xx.c           |    4 
+ arch/arm/mach-omap2/serial.c           |    4 
+ arch/parisc/kernel/pdc_cons.c          |    4 
+ drivers/char/bfin_jtag_comm.c          |    8 -
+ drivers/gpu/drm/nouveau/nouveau_drv.c  |    8 -
+ drivers/gpu/drm/radeon/radeon_device.c |   10 -
+ drivers/serial/sb1250-duart.c          |    2 
+ drivers/staging/msm/msm_fb.c           |    8 -
+ drivers/staging/olpc_dcon/olpc_dcon.c  |   10 -
+ drivers/staging/sm7xx/smtcfb.c         |    8 -
+ drivers/tty/tty_io.c                   |    4 
+ drivers/tty/vt/selection.c             |    4 
+ drivers/tty/vt/vc_screen.c             |   16 +-
+ drivers/tty/vt/vt.c                    |  124 +++++++++++------------
+ drivers/tty/vt/vt_ioctl.c              |   60 +++++------
+ drivers/video/arkfb.c                  |   12 +-
+ drivers/video/aty/aty128fb.c           |   12 +-
+ drivers/video/aty/atyfb_base.c         |   10 -
+ drivers/video/aty/radeon_pm.c          |   10 -
+ drivers/video/chipsfb.c                |    8 -
+ drivers/video/console/fbcon.c          |   42 +++----
+ drivers/video/da8xx-fb.c               |    8 -
+ drivers/video/fbmem.c                  |   12 +-
+ drivers/video/fbsysfs.c                |   20 +--
+ drivers/video/geode/gxfb_core.c        |    8 -
+ drivers/video/geode/lxfb_core.c        |    8 -
+ drivers/video/i810/i810_main.c         |    8 -
+ drivers/video/jz4740_fb.c              |    8 -
+ drivers/video/mx3fb.c                  |    8 -
+ drivers/video/nvidia/nvidia.c          |    8 -
+ drivers/video/ps3fb.c                  |   16 +-
+ drivers/video/s3fb.c                   |   16 +-
+ drivers/video/savage/savagefb_driver.c |    8 -
+ drivers/video/sh_mobile_hdmi.c         |    8 -
+ drivers/video/sh_mobile_lcdcfb.c       |    4 
+ drivers/video/sm501fb.c                |    8 -
+ drivers/video/tmiofb.c                 |   10 -
+ drivers/video/via/viafbdev.c           |    8 -
+ drivers/video/vt8623fb.c               |   12 +-
+ drivers/video/xen-fbfront.c            |    4 
+ fs/proc/consoles.c                     |    4 
+ include/linux/console.h                |    6 -
+ kernel/printk.c                        |  100 ++++++++++--------
+ 44 files changed, 336 insertions(+), 328 deletions(-)
 
-diff -puN arch/arm/configs/ag5evm_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ag5evm_defconfig
---- a/arch/arm/configs/ag5evm_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ag5evm_defconfig
-@@ -10,7 +10,7 @@ CONFIG_NAMESPACES=y
- # CONFIG_PID_NS is not set
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_INITRAMFS_SOURCE=""
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- # CONFIG_BLK_DEV_BSG is not set
- # CONFIG_IOSCHED_DEADLINE is not set
-diff -puN arch/arm/configs/am200epdkit_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/am200epdkit_defconfig
---- a/arch/arm/configs/am200epdkit_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/am200epdkit_defconfig
-@@ -3,7 +3,7 @@ CONFIG_LOCALVERSION="gum"
- # CONFIG_SWAP is not set
- CONFIG_SYSVIPC=y
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_EPOLL is not set
- # CONFIG_SHMEM is not set
-diff -puN arch/arm/configs/at572d940hfek_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/at572d940hfek_defconfig
---- a/arch/arm/configs/at572d940hfek_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/at572d940hfek_defconfig
-@@ -17,7 +17,7 @@ CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
-diff -puN arch/arm/configs/badge4_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/badge4_defconfig
---- a/arch/arm/configs/badge4_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/badge4_defconfig
-@@ -1,6 +1,6 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODVERSIONS=y
- CONFIG_ARCH_SA1100=y
-diff -puN arch/arm/configs/bcmring_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/bcmring_defconfig
---- a/arch/arm/configs/bcmring_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/bcmring_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_LOCALVERSION_AUTO is not set
- # CONFIG_SWAP is not set
- CONFIG_SYSVIPC=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/arm/configs/cm_x2xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/cm_x2xx_defconfig
---- a/arch/arm/configs/cm_x2xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/cm_x2xx_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_VM_EVENT_COUNTERS is not set
- # CONFIG_SLUB_DEBUG is not set
- # CONFIG_COMPAT_BRK is not set
-diff -puN arch/arm/configs/colibri_pxa270_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/colibri_pxa270_defconfig
---- a/arch/arm/configs/colibri_pxa270_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/colibri_pxa270_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/collie_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/collie_defconfig
---- a/arch/arm/configs/collie_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/collie_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BASE_FULL is not set
- # CONFIG_EPOLL is not set
- CONFIG_SLOB=y
-diff -puN arch/arm/configs/corgi_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/corgi_defconfig
---- a/arch/arm/configs/corgi_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/corgi_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/da8xx_omapl_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/da8xx_omapl_defconfig
---- a/arch/arm/configs/da8xx_omapl_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/da8xx_omapl_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- CONFIG_MODULE_FORCE_UNLOAD=y
-diff -puN arch/arm/configs/davinci_all_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/davinci_all_defconfig
---- a/arch/arm/configs/davinci_all_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/davinci_all_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- CONFIG_MODULE_FORCE_UNLOAD=y
-diff -puN arch/arm/configs/dove_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/dove_defconfig
---- a/arch/arm/configs/dove_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/dove_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/ebsa110_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ebsa110_defconfig
---- a/arch/arm/configs/ebsa110_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ebsa110_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_ARCH_EBSA110=y
- CONFIG_PCCARD=m
-diff -puN arch/arm/configs/edb7211_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/edb7211_defconfig
---- a/arch/arm/configs/edb7211_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/edb7211_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_ARCH_CLPS711X=y
- CONFIG_ARCH_EDB7211=y
-diff -puN arch/arm/configs/em_x270_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/em_x270_defconfig
---- a/arch/arm/configs/em_x270_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/em_x270_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_VM_EVENT_COUNTERS is not set
- # CONFIG_SLUB_DEBUG is not set
- # CONFIG_COMPAT_BRK is not set
-diff -puN arch/arm/configs/ep93xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ep93xx_defconfig
---- a/arch/arm/configs/ep93xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ep93xx_defconfig
-@@ -4,7 +4,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/eseries_pxa_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/eseries_pxa_defconfig
---- a/arch/arm/configs/eseries_pxa_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/eseries_pxa_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
-diff -puN arch/arm/configs/ezx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ezx_defconfig
---- a/arch/arm/configs/ezx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ezx_defconfig
-@@ -7,7 +7,7 @@ CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_RD_BZIP2=y
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/footbridge_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/footbridge_defconfig
---- a/arch/arm/configs/footbridge_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/footbridge_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_MODULES=y
- CONFIG_ARCH_FOOTBRIDGE=y
-diff -puN arch/arm/configs/fortunet_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/fortunet_defconfig
---- a/arch/arm/configs/fortunet_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/fortunet_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_ARCH_CLPS711X=y
- CONFIG_ARCH_FORTUNET=y
-diff -puN arch/arm/configs/h5000_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/h5000_defconfig
---- a/arch/arm/configs/h5000_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/h5000_defconfig
-@@ -4,7 +4,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/imote2_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/imote2_defconfig
---- a/arch/arm/configs/imote2_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/imote2_defconfig
-@@ -6,7 +6,7 @@ CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_RD_BZIP2=y
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/ixp2000_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ixp2000_defconfig
---- a/arch/arm/configs/ixp2000_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ixp2000_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/ixp23xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ixp23xx_defconfig
---- a/arch/arm/configs/ixp23xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ixp23xx_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/ixp4xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/ixp4xx_defconfig
---- a/arch/arm/configs/ixp4xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/ixp4xx_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODVERSIONS=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/arm/configs/loki_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/loki_defconfig
---- a/arch/arm/configs/loki_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/loki_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/lpd7a400_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/lpd7a400_defconfig
---- a/arch/arm/configs/lpd7a400_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/lpd7a400_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
- # CONFIG_IOSCHED_DEADLINE is not set
-diff -puN arch/arm/configs/lpd7a404_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/lpd7a404_defconfig
---- a/arch/arm/configs/lpd7a404_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/lpd7a404_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=16
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
- CONFIG_SLAB=y
-diff -puN arch/arm/configs/magician_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/magician_defconfig
---- a/arch/arm/configs/magician_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/magician_defconfig
-@@ -4,7 +4,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/mv78xx0_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mv78xx0_defconfig
---- a/arch/arm/configs/mv78xx0_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mv78xx0_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- # CONFIG_SLUB_DEBUG is not set
- CONFIG_PROFILING=y
-diff -puN arch/arm/configs/mx1_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mx1_defconfig
---- a/arch/arm/configs/mx1_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mx1_defconfig
-@@ -4,7 +4,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/mx21_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mx21_defconfig
---- a/arch/arm/configs/mx21_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mx21_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/mx27_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mx27_defconfig
---- a/arch/arm/configs/mx27_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mx27_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
-diff -puN arch/arm/configs/mx3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mx3_defconfig
---- a/arch/arm/configs/mx3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mx3_defconfig
-@@ -4,7 +4,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/mx51_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/mx51_defconfig
---- a/arch/arm/configs/mx51_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/mx51_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=18
- CONFIG_RELAY=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SLUB_DEBUG is not set
- # CONFIG_COMPAT_BRK is not set
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/nhk8815_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/nhk8815_defconfig
---- a/arch/arm/configs/nhk8815_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/nhk8815_defconfig
-@@ -7,7 +7,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/omap1_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/omap1_defconfig
---- a/arch/arm/configs/omap1_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/omap1_defconfig
-@@ -6,7 +6,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_BASE_FULL is not set
-diff -puN arch/arm/configs/omap2plus_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/omap2plus_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
-diff -puN arch/arm/configs/orion5x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/orion5x_defconfig
---- a/arch/arm/configs/orion5x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/orion5x_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SLUB_DEBUG is not set
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=y
-diff -puN arch/arm/configs/pcm027_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/pcm027_defconfig
---- a/arch/arm/configs/pcm027_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/pcm027_defconfig
-@@ -7,7 +7,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/pcontrol_g20_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/pcontrol_g20_defconfig
---- a/arch/arm/configs/pcontrol_g20_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/pcontrol_g20_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_NAMESPACES=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/arm/configs/pleb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/pleb_defconfig
---- a/arch/arm/configs/pleb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/pleb_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_SHMEM is not set
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/pnx4008_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/pnx4008_defconfig
---- a/arch/arm/configs/pnx4008_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/pnx4008_defconfig
-@@ -5,7 +5,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_AUDIT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/simpad_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/simpad_defconfig
---- a/arch/arm/configs/simpad_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/simpad_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_LOCALVERSION="oe1"
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/spitz_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/spitz_defconfig
---- a/arch/arm/configs/spitz_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/spitz_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/stmp378x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/stmp378x_defconfig
---- a/arch/arm/configs/stmp378x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/stmp378x_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/stmp37xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/stmp37xx_defconfig
---- a/arch/arm/configs/stmp37xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/stmp37xx_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/arm/configs/tct_hammer_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/tct_hammer_defconfig
---- a/arch/arm/configs/tct_hammer_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/tct_hammer_defconfig
-@@ -5,7 +5,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_BUG is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/arm/configs/trizeps4_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/trizeps4_defconfig
---- a/arch/arm/configs/trizeps4_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/trizeps4_defconfig
-@@ -7,7 +7,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/u300_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/u300_defconfig
---- a/arch/arm/configs/u300_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/u300_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_SWAP is not set
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_AIO is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
- CONFIG_MODULES=y
-diff -puN arch/arm/configs/viper_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/viper_defconfig
---- a/arch/arm/configs/viper_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/viper_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=13
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_ELF_CORE is not set
- # CONFIG_SHMEM is not set
- CONFIG_SLAB=y
-diff -puN arch/arm/configs/xcep_defconfig~kconfig-rename-config_embedded-to-config_expert arch/arm/configs/xcep_defconfig
---- a/arch/arm/configs/xcep_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/arm/configs/xcep_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SHMEM is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/avr32/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/avr32/Kconfig
-@@ -1,8 +1,8 @@
- config AVR32
- 	def_bool y
--	# With EMBEDDED=n, we get lots of stuff automatically selected
-+	# With EXPERT=n, we get lots of stuff automatically selected
- 	# that we usually don't need on AVR32.
--	select EMBEDDED
-+	select EXPERT
- 	select HAVE_CLK
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-diff -puN arch/blackfin/configs/BF518F-EZBRD_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF518F-EZBRD_defconfig
---- a/arch/blackfin/configs/BF518F-EZBRD_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF518F-EZBRD_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF526-EZBRD_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF526-EZBRD_defconfig
---- a/arch/blackfin/configs/BF526-EZBRD_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF526-EZBRD_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF527-AD7160-EVAL_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF527-AD7160-EVAL_defconfig
---- a/arch/blackfin/configs/BF527-AD7160-EVAL_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF527-AD7160-EVAL_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_ELF_CORE is not set
- # CONFIG_AIO is not set
- CONFIG_SLAB=y
-diff -puN arch/blackfin/configs/BF527-EZKIT-V2_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF527-EZKIT-V2_defconfig
---- a/arch/blackfin/configs/BF527-EZKIT-V2_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF527-EZKIT-V2_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF527-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF527-EZKIT_defconfig
---- a/arch/blackfin/configs/BF527-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF527-EZKIT_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF527-TLL6527M_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF527-TLL6527M_defconfig
---- a/arch/blackfin/configs/BF527-TLL6527M_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF527-TLL6527M_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF533-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF533-EZKIT_defconfig
---- a/arch/blackfin/configs/BF533-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF533-EZKIT_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF533-STAMP_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF533-STAMP_defconfig
---- a/arch/blackfin/configs/BF533-STAMP_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF533-STAMP_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF537-STAMP_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF537-STAMP_defconfig
---- a/arch/blackfin/configs/BF537-STAMP_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF537-STAMP_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF538-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF538-EZKIT_defconfig
---- a/arch/blackfin/configs/BF538-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF538-EZKIT_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF548-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF548-EZKIT_defconfig
---- a/arch/blackfin/configs/BF548-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF548-EZKIT_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF561-ACVILON_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF561-ACVILON_defconfig
---- a/arch/blackfin/configs/BF561-ACVILON_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF561-ACVILON_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF561-EZKIT-SMP_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF561-EZKIT-SMP_defconfig
---- a/arch/blackfin/configs/BF561-EZKIT-SMP_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF561-EZKIT-SMP_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BF561-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BF561-EZKIT_defconfig
---- a/arch/blackfin/configs/BF561-EZKIT_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BF561-EZKIT_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/BlackStamp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/BlackStamp_defconfig
---- a/arch/blackfin/configs/BlackStamp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/BlackStamp_defconfig
-@@ -6,7 +6,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/CM-BF527_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF527_defconfig
---- a/arch/blackfin/configs/CM-BF527_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF527_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/CM-BF533_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF533_defconfig
---- a/arch/blackfin/configs/CM-BF533_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF533_defconfig
-@@ -7,7 +7,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/CM-BF537E_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF537E_defconfig
---- a/arch/blackfin/configs/CM-BF537E_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF537E_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/CM-BF537U_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF537U_defconfig
---- a/arch/blackfin/configs/CM-BF537U_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF537U_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/CM-BF548_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF548_defconfig
---- a/arch/blackfin/configs/CM-BF548_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF548_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/CM-BF561_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/CM-BF561_defconfig
---- a/arch/blackfin/configs/CM-BF561_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/CM-BF561_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/DNP5370_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/DNP5370_defconfig
---- a/arch/blackfin/configs/DNP5370_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/DNP5370_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLOB=y
- # CONFIG_BLK_DEV_BSG is not set
- # CONFIG_IOSCHED_CFQ is not set
-diff -puN arch/blackfin/configs/H8606_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/H8606_defconfig
---- a/arch/blackfin/configs/H8606_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/H8606_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/IP0X_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/IP0X_defconfig
---- a/arch/blackfin/configs/IP0X_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/IP0X_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/PNAV-10_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/PNAV-10_defconfig
---- a/arch/blackfin/configs/PNAV-10_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/PNAV-10_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/SRV1_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/SRV1_defconfig
---- a/arch/blackfin/configs/SRV1_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/SRV1_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_ALL=y
- # CONFIG_ELF_CORE is not set
-diff -puN arch/blackfin/configs/TCM-BF518_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/TCM-BF518_defconfig
---- a/arch/blackfin/configs/TCM-BF518_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/TCM-BF518_defconfig
-@@ -7,7 +7,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/blackfin/configs/TCM-BF537_defconfig~kconfig-rename-config_embedded-to-config_expert arch/blackfin/configs/TCM-BF537_defconfig
---- a/arch/blackfin/configs/TCM-BF537_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/blackfin/configs/TCM-BF537_defconfig
-@@ -8,7 +8,7 @@ CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
-diff -puN arch/cris/configs/artpec_3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/cris/configs/artpec_3_defconfig
---- a/arch/cris/configs/artpec_3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/cris/configs/artpec_3_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_SWAP is not set
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/cris/configs/etrax-100lx_v2_defconfig~kconfig-rename-config_embedded-to-config_expert arch/cris/configs/etrax-100lx_v2_defconfig
---- a/arch/cris/configs/etrax-100lx_v2_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/cris/configs/etrax-100lx_v2_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_SWAP is not set
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/cris/configs/etraxfs_defconfig~kconfig-rename-config_embedded-to-config_expert arch/cris/configs/etraxfs_defconfig
---- a/arch/cris/configs/etraxfs_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/cris/configs/etraxfs_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_SWAP is not set
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/frv/defconfig~kconfig-rename-config_embedded-to-config_expert arch/frv/defconfig
---- a/arch/frv/defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/frv/defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_MMU=y
- CONFIG_FRV_OUTOFLINE_ATOMIC_OPS=y
-diff -puN arch/h8300/defconfig~kconfig-rename-config_embedded-to-config_expert arch/h8300/defconfig
---- a/arch/h8300/defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/h8300/defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- # CONFIG_LOCALVERSION_AUTO is not set
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_UID16 is not set
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
-diff -puN arch/m32r/configs/m32700ut.smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/m32700ut.smp_defconfig
---- a/arch/m32r/configs/m32700ut.smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/m32700ut.smp_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=15
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/m32700ut.up_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/m32700ut.up_defconfig
---- a/arch/m32r/configs/m32700ut.up_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/m32700ut.up_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi.nommu_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi.nommu_defconfig
---- a/arch/m32r/configs/mappi.nommu_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi.nommu_defconfig
-@@ -3,7 +3,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi.smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi.smp_defconfig
---- a/arch/m32r/configs/mappi.smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi.smp_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=15
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi.up_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi.up_defconfig
---- a/arch/m32r/configs/mappi.up_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi.up_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi2.opsp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi2.opsp_defconfig
---- a/arch/m32r/configs/mappi2.opsp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi2.opsp_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi2.vdec2_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi2.vdec2_defconfig
---- a/arch/m32r/configs/mappi2.vdec2_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi2.vdec2_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/mappi3.smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/mappi3.smp_defconfig
---- a/arch/m32r/configs/mappi3.smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/mappi3.smp_defconfig
-@@ -5,7 +5,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=15
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/oaks32r_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/oaks32r_defconfig
---- a/arch/m32r/configs/oaks32r_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/oaks32r_defconfig
-@@ -2,7 +2,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/opsput_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/opsput_defconfig
---- a/arch/m32r/configs/opsput_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/opsput_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/m32r/configs/usrv_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m32r/configs/usrv_defconfig
---- a/arch/m32r/configs/usrv_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m32r/configs/usrv_defconfig
-@@ -5,7 +5,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=15
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/m68knommu/configs/m5208evb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5208evb_defconfig
---- a/arch/m68knommu/configs/m5208evb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5208evb_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/configs/m5249evb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5249evb_defconfig
---- a/arch/m68knommu/configs/m5249evb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5249evb_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/configs/m5272c3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5272c3_defconfig
---- a/arch/m68knommu/configs/m5272c3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5272c3_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/configs/m5275evb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5275evb_defconfig
---- a/arch/m68knommu/configs/m5275evb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5275evb_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/configs/m5307c3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5307c3_defconfig
---- a/arch/m68knommu/configs/m5307c3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5307c3_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/configs/m5407c3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/configs/m5407c3_defconfig
---- a/arch/m68knommu/configs/m5407c3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/configs/m5407c3_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/m68knommu/defconfig~kconfig-rename-config_embedded-to-config_expert arch/m68knommu/defconfig
---- a/arch/m68knommu/defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/m68knommu/defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_FUTEX is not set
-diff -puN arch/microblaze/configs/mmu_defconfig~kconfig-rename-config_embedded-to-config_expert arch/microblaze/configs/mmu_defconfig
---- a/arch/microblaze/configs/mmu_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/microblaze/configs/mmu_defconfig
-@@ -7,7 +7,7 @@ CONFIG_BLK_DEV_INITRD=y
- CONFIG_INITRAMFS_SOURCE="rootfs.cpio"
- CONFIG_INITRAMFS_COMPRESSION_GZIP=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_HOTPLUG is not set
-diff -puN arch/microblaze/configs/nommu_defconfig~kconfig-rename-config_embedded-to-config_expert arch/microblaze/configs/nommu_defconfig
---- a/arch/microblaze/configs/nommu_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/microblaze/configs/nommu_defconfig
-@@ -6,7 +6,7 @@ CONFIG_BSD_PROCESS_ACCT_V3=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_HOTPLUG is not set
-diff -puN arch/mips/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert arch/mips/Kconfig.debug
---- a/arch/mips/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/Kconfig.debug
-@@ -7,7 +7,7 @@ config TRACE_IRQFLAGS_SUPPORT
- source "lib/Kconfig.debug"
+diff -puN arch/arm/mach-omap2/pm24xx.c~change-acquire-release_console_sem-to-console_lock-unlock arch/arm/mach-omap2/pm24xx.c
+--- a/arch/arm/mach-omap2/pm24xx.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/arch/arm/mach-omap2/pm24xx.c
+@@ -134,7 +134,7 @@ static void omap2_enter_full_retention(v
  
- config EARLY_PRINTK
--	bool "Early printk" if EMBEDDED
-+	bool "Early printk" if EXPERT
- 	depends on SYS_HAS_EARLY_PRINTK
- 	default y
- 	help
-diff -puN arch/mips/configs/ar7_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/ar7_defconfig
---- a/arch/mips/configs/ar7_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/ar7_defconfig
-@@ -14,7 +14,7 @@ CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/bcm47xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/bcm47xx_defconfig
---- a/arch/mips/configs/bcm47xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/bcm47xx_defconfig
-@@ -21,7 +21,7 @@ CONFIG_CGROUP_CPUACCT=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_RD_LZMA=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/bcm63xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/bcm63xx_defconfig
---- a/arch/mips/configs/bcm63xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/bcm63xx_defconfig
-@@ -10,7 +10,7 @@ CONFIG_EXPERIMENTAL=y
- # CONFIG_SWAP is not set
- CONFIG_TINY_RCU=y
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/mips/configs/bigsur_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/bigsur_defconfig
---- a/arch/mips/configs/bigsur_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/bigsur_defconfig
-@@ -26,7 +26,7 @@ CONFIG_PID_NS=y
- CONFIG_NET_NS=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/capcella_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/capcella_defconfig
---- a/arch/mips/configs/capcella_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/capcella_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/cavium-octeon_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/cavium-octeon_defconfig
---- a/arch/mips/configs/cavium-octeon_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/cavium-octeon_defconfig
-@@ -15,7 +15,7 @@ CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/cobalt_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/cobalt_defconfig
---- a/arch/mips/configs/cobalt_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/cobalt_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/mips/configs/db1000_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/db1000_defconfig
---- a/arch/mips/configs/db1000_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/db1000_defconfig
-@@ -11,7 +11,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/mips/configs/db1100_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/db1100_defconfig
---- a/arch/mips/configs/db1100_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/db1100_defconfig
-@@ -11,7 +11,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/db1200_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/db1200_defconfig
---- a/arch/mips/configs/db1200_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/db1200_defconfig
-@@ -12,7 +12,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/db1500_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/db1500_defconfig
---- a/arch/mips/configs/db1500_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/db1500_defconfig
-@@ -10,7 +10,7 @@ CONFIG_LOCALVERSION="-db1500"
- CONFIG_KERNEL_LZMA=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/mips/configs/db1550_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/db1550_defconfig
---- a/arch/mips/configs/db1550_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/db1550_defconfig
-@@ -11,7 +11,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/decstation_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/decstation_defconfig
---- a/arch/mips/configs/decstation_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/decstation_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/e55_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/e55_defconfig
---- a/arch/mips/configs/e55_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/e55_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/fuloong2e_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/fuloong2e_defconfig
---- a/arch/mips/configs/fuloong2e_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/fuloong2e_defconfig
-@@ -17,7 +17,7 @@ CONFIG_NAMESPACES=y
- CONFIG_USER_NS=y
- CONFIG_PID_NS=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/gpr_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/gpr_defconfig
---- a/arch/mips/configs/gpr_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/gpr_defconfig
-@@ -11,7 +11,7 @@ CONFIG_BSD_PROCESS_ACCT_V3=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/ip22_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/ip22_defconfig
---- a/arch/mips/configs/ip22_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/ip22_defconfig
-@@ -17,7 +17,7 @@ CONFIG_IPC_NS=y
- CONFIG_USER_NS=y
- CONFIG_PID_NS=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_COMPAT_BRK is not set
-diff -puN arch/mips/configs/ip27_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/ip27_defconfig
---- a/arch/mips/configs/ip27_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/ip27_defconfig
-@@ -15,7 +15,7 @@ CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/ip28_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/ip28_defconfig
---- a/arch/mips/configs/ip28_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/ip28_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/ip32_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/ip32_defconfig
---- a/arch/mips/configs/ip32_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/ip32_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_RELAY=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
-diff -puN arch/mips/configs/jazz_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/jazz_defconfig
---- a/arch/mips/configs/jazz_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/jazz_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/jmr3927_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/jmr3927_defconfig
---- a/arch/mips/configs/jmr3927_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/jmr3927_defconfig
-@@ -4,7 +4,7 @@ CONFIG_TOSHIBA_JMR3927=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/lasat_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/lasat_defconfig
---- a/arch/mips/configs/lasat_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/lasat_defconfig
-@@ -8,7 +8,7 @@ CONFIG_HZ_1000=y
- CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
-diff -puN arch/mips/configs/lemote2f_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/lemote2f_defconfig
---- a/arch/mips/configs/lemote2f_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/lemote2f_defconfig
-@@ -21,7 +21,7 @@ CONFIG_BLK_DEV_INITRD=y
- CONFIG_RD_BZIP2=y
- CONFIG_RD_LZMA=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/malta_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/malta_defconfig
---- a/arch/mips/configs/malta_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/malta_defconfig
-@@ -15,7 +15,7 @@ CONFIG_UTS_NS=y
- CONFIG_IPC_NS=y
- CONFIG_PID_NS=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/markeins_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/markeins_defconfig
---- a/arch/mips/configs/markeins_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/markeins_defconfig
-@@ -9,7 +9,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/mipssim_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/mipssim_defconfig
---- a/arch/mips/configs/mipssim_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/mipssim_defconfig
-@@ -7,7 +7,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/mpc30x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/mpc30x_defconfig
---- a/arch/mips/configs/mpc30x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/mpc30x_defconfig
-@@ -5,7 +5,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/msp71xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/msp71xx_defconfig
---- a/arch/mips/configs/msp71xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/msp71xx_defconfig
-@@ -8,7 +8,7 @@ CONFIG_LOCALVERSION="-pmc"
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SHMEM is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/mtx1_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/mtx1_defconfig
---- a/arch/mips/configs/mtx1_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/mtx1_defconfig
-@@ -11,7 +11,7 @@ CONFIG_AUDIT=y
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=m
-diff -puN arch/mips/configs/pb1100_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pb1100_defconfig
---- a/arch/mips/configs/pb1100_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pb1100_defconfig
-@@ -11,7 +11,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/pb1200_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pb1200_defconfig
---- a/arch/mips/configs/pb1200_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pb1200_defconfig
-@@ -12,7 +12,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/pb1500_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pb1500_defconfig
---- a/arch/mips/configs/pb1500_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pb1500_defconfig
-@@ -11,7 +11,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/pb1550_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pb1550_defconfig
---- a/arch/mips/configs/pb1550_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pb1550_defconfig
-@@ -11,7 +11,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/pnx8335-stb225_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pnx8335-stb225_defconfig
---- a/arch/mips/configs/pnx8335-stb225_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pnx8335-stb225_defconfig
-@@ -11,7 +11,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/pnx8550-jbs_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pnx8550-jbs_defconfig
---- a/arch/mips/configs/pnx8550-jbs_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pnx8550-jbs_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/pnx8550-stb810_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/pnx8550-stb810_defconfig
---- a/arch/mips/configs/pnx8550-stb810_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/pnx8550-stb810_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/powertv_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/powertv_defconfig
---- a/arch/mips/configs/powertv_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/powertv_defconfig
-@@ -14,7 +14,7 @@ CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_RD_GZIP is not set
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_ALL=y
- # CONFIG_PCSPKR_PLATFORM is not set
-diff -puN arch/mips/configs/rb532_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/rb532_defconfig
---- a/arch/mips/configs/rb532_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/rb532_defconfig
-@@ -13,7 +13,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/mips/configs/rbtx49xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/rbtx49xx_defconfig
---- a/arch/mips/configs/rbtx49xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/rbtx49xx_defconfig
-@@ -12,7 +12,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/mips/configs/rm200_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/rm200_defconfig
---- a/arch/mips/configs/rm200_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/rm200_defconfig
-@@ -12,7 +12,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/sb1250-swarm_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/sb1250-swarm_defconfig
---- a/arch/mips/configs/sb1250-swarm_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/sb1250-swarm_defconfig
-@@ -15,7 +15,7 @@ CONFIG_RELAY=y
- CONFIG_NAMESPACES=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_COMPAT_BRK is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/tb0219_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/tb0219_defconfig
---- a/arch/mips/configs/tb0219_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/tb0219_defconfig
-@@ -5,7 +5,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/tb0226_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/tb0226_defconfig
---- a/arch/mips/configs/tb0226_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/tb0226_defconfig
-@@ -5,7 +5,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/mips/configs/tb0287_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/tb0287_defconfig
---- a/arch/mips/configs/tb0287_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/tb0287_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_PCSPKR_PLATFORM is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/workpad_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/workpad_defconfig
---- a/arch/mips/configs/workpad_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/workpad_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mips/configs/wrppmc_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/wrppmc_defconfig
---- a/arch/mips/configs/wrppmc_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/wrppmc_defconfig
-@@ -7,7 +7,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_EPOLL is not set
- CONFIG_SLAB=y
-diff -puN arch/mips/configs/yosemite_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mips/configs/yosemite_defconfig
---- a/arch/mips/configs/yosemite_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mips/configs/yosemite_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/mn10300/configs/asb2303_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mn10300/configs/asb2303_defconfig
---- a/arch/mn10300/configs/asb2303_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mn10300/configs/asb2303_defconfig
-@@ -4,7 +4,7 @@ CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_TINY_RCU=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/mn10300/configs/asb2364_defconfig~kconfig-rename-config_embedded-to-config_expert arch/mn10300/configs/asb2364_defconfig
---- a/arch/mn10300/configs/asb2364_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/mn10300/configs/asb2364_defconfig
-@@ -15,7 +15,7 @@ CONFIG_CGROUP_CPUACCT=y
- CONFIG_RESOURCE_COUNTERS=y
- CONFIG_RELAY=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
- CONFIG_SLAB=y
-diff -puN arch/parisc/configs/a500_defconfig~kconfig-rename-config_embedded-to-config_expert arch/parisc/configs/a500_defconfig
---- a/arch/parisc/configs/a500_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/parisc/configs/a500_defconfig
-@@ -8,7 +8,7 @@ CONFIG_LOG_BUF_SHIFT=16
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
-diff -puN arch/parisc/configs/c3000_defconfig~kconfig-rename-config_embedded-to-config_expert arch/parisc/configs/c3000_defconfig
---- a/arch/parisc/configs/c3000_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/parisc/configs/c3000_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
-diff -puN arch/powerpc/configs/40x/acadia_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/acadia_defconfig
---- a/arch/powerpc/configs/40x/acadia_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/acadia_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/40x/ep405_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/ep405_defconfig
---- a/arch/powerpc/configs/40x/ep405_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/ep405_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/40x/hcu4_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/hcu4_defconfig
---- a/arch/powerpc/configs/40x/hcu4_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/hcu4_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/40x/kilauea_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/kilauea_defconfig
---- a/arch/powerpc/configs/40x/kilauea_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/kilauea_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/40x/makalu_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/makalu_defconfig
---- a/arch/powerpc/configs/40x/makalu_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/makalu_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/40x/walnut_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/40x/walnut_defconfig
---- a/arch/powerpc/configs/40x/walnut_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/40x/walnut_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/44x/arches_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/arches_defconfig
---- a/arch/powerpc/configs/44x/arches_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/arches_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/bamboo_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/bamboo_defconfig
---- a/arch/powerpc/configs/44x/bamboo_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/bamboo_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/bluestone_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/bluestone_defconfig
---- a/arch/powerpc/configs/44x/bluestone_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/bluestone_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_VM_EVENT_COUNTERS is not set
- # CONFIG_PCI_QUIRKS is not set
- # CONFIG_COMPAT_BRK is not set
-diff -puN arch/powerpc/configs/44x/canyonlands_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/canyonlands_defconfig
---- a/arch/powerpc/configs/44x/canyonlands_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/canyonlands_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/ebony_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/ebony_defconfig
---- a/arch/powerpc/configs/44x/ebony_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/ebony_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/44x/eiger_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/eiger_defconfig
---- a/arch/powerpc/configs/44x/eiger_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/eiger_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/icon_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/icon_defconfig
---- a/arch/powerpc/configs/44x/icon_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/icon_defconfig
-@@ -6,7 +6,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/iss476-smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/iss476-smp_defconfig
---- a/arch/powerpc/configs/44x/iss476-smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/iss476-smp_defconfig
-@@ -7,7 +7,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_PROFILING=y
-diff -puN arch/powerpc/configs/44x/katmai_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/katmai_defconfig
---- a/arch/powerpc/configs/44x/katmai_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/katmai_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/rainier_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/rainier_defconfig
---- a/arch/powerpc/configs/44x/rainier_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/rainier_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/redwood_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/redwood_defconfig
---- a/arch/powerpc/configs/44x/redwood_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/redwood_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/sam440ep_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/sam440ep_defconfig
---- a/arch/powerpc/configs/44x/sam440ep_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/sam440ep_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/sequoia_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/sequoia_defconfig
---- a/arch/powerpc/configs/44x/sequoia_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/sequoia_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/taishan_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/taishan_defconfig
---- a/arch/powerpc/configs/44x/taishan_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/taishan_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/44x/warp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/44x/warp_defconfig
---- a/arch/powerpc/configs/44x/warp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/44x/warp_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/52xx/cm5200_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/52xx/cm5200_defconfig
---- a/arch/powerpc/configs/52xx/cm5200_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/52xx/cm5200_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/52xx/lite5200b_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/52xx/lite5200b_defconfig
---- a/arch/powerpc/configs/52xx/lite5200b_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/52xx/lite5200b_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/52xx/motionpro_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/52xx/motionpro_defconfig
---- a/arch/powerpc/configs/52xx/motionpro_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/52xx/motionpro_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/52xx/pcm030_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/52xx/pcm030_defconfig
---- a/arch/powerpc/configs/52xx/pcm030_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/52xx/pcm030_defconfig
-@@ -8,7 +8,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
- CONFIG_SLAB=y
-diff -puN arch/powerpc/configs/52xx/tqm5200_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/52xx/tqm5200_defconfig
---- a/arch/powerpc/configs/52xx/tqm5200_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/52xx/tqm5200_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/83xx/asp8347_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/asp8347_defconfig
---- a/arch/powerpc/configs/83xx/asp8347_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/asp8347_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/kmeter1_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/kmeter1_defconfig
---- a/arch/powerpc/configs/83xx/kmeter1_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/kmeter1_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/83xx/mpc8313_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc8313_rdb_defconfig
---- a/arch/powerpc/configs/83xx/mpc8313_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc8313_rdb_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc8315_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc8315_rdb_defconfig
---- a/arch/powerpc/configs/83xx/mpc8315_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc8315_rdb_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc832x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc832x_mds_defconfig
---- a/arch/powerpc/configs/83xx/mpc832x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc832x_mds_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc832x_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc832x_rdb_defconfig
---- a/arch/powerpc/configs/83xx/mpc832x_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc832x_rdb_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc834x_itx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc834x_itx_defconfig
---- a/arch/powerpc/configs/83xx/mpc834x_itx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc834x_itx_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc834x_itxgp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc834x_itxgp_defconfig
---- a/arch/powerpc/configs/83xx/mpc834x_itxgp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc834x_itxgp_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc834x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc834x_mds_defconfig
---- a/arch/powerpc/configs/83xx/mpc834x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc834x_mds_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc836x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc836x_mds_defconfig
---- a/arch/powerpc/configs/83xx/mpc836x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc836x_mds_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc836x_rdk_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc836x_rdk_defconfig
---- a/arch/powerpc/configs/83xx/mpc836x_rdk_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc836x_rdk_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc837x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc837x_mds_defconfig
---- a/arch/powerpc/configs/83xx/mpc837x_mds_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc837x_mds_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/mpc837x_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/mpc837x_rdb_defconfig
---- a/arch/powerpc/configs/83xx/mpc837x_rdb_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/mpc837x_rdb_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/83xx/sbc834x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/83xx/sbc834x_defconfig
---- a/arch/powerpc/configs/83xx/sbc834x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/83xx/sbc834x_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_SLAB=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/85xx/ksi8560_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/ksi8560_defconfig
---- a/arch/powerpc/configs/85xx/ksi8560_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/ksi8560_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_KSI8560=y
- CONFIG_CPM2=y
-diff -puN arch/powerpc/configs/85xx/mpc8540_ads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/mpc8540_ads_defconfig
---- a/arch/powerpc/configs/85xx/mpc8540_ads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/mpc8540_ads_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_MPC8540_ADS=y
- CONFIG_NO_HZ=y
-diff -puN arch/powerpc/configs/85xx/mpc8560_ads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/mpc8560_ads_defconfig
---- a/arch/powerpc/configs/85xx/mpc8560_ads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/mpc8560_ads_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_MPC8560_ADS=y
- CONFIG_BINFMT_MISC=y
-diff -puN arch/powerpc/configs/85xx/mpc85xx_cds_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/mpc85xx_cds_defconfig
---- a/arch/powerpc/configs/85xx/mpc85xx_cds_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/mpc85xx_cds_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_MPC85xx_CDS=y
- CONFIG_NO_HZ=y
-diff -puN arch/powerpc/configs/85xx/sbc8548_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/sbc8548_defconfig
---- a/arch/powerpc/configs/85xx/sbc8548_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/sbc8548_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_SBC8548=y
-diff -puN arch/powerpc/configs/85xx/sbc8560_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/sbc8560_defconfig
---- a/arch/powerpc/configs/85xx/sbc8560_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/sbc8560_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_SBC8560=y
-diff -puN arch/powerpc/configs/85xx/socrates_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/socrates_defconfig
---- a/arch/powerpc/configs/85xx/socrates_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/socrates_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/85xx/stx_gp3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/stx_gp3_defconfig
---- a/arch/powerpc/configs/85xx/stx_gp3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/stx_gp3_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODVERSIONS=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/85xx/tqm8540_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/tqm8540_defconfig
---- a/arch/powerpc/configs/85xx/tqm8540_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/tqm8540_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/85xx/tqm8541_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/tqm8541_defconfig
---- a/arch/powerpc/configs/85xx/tqm8541_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/tqm8541_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/85xx/tqm8548_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/tqm8548_defconfig
---- a/arch/powerpc/configs/85xx/tqm8548_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/tqm8548_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff -puN arch/powerpc/configs/85xx/tqm8555_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/tqm8555_defconfig
---- a/arch/powerpc/configs/85xx/tqm8555_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/tqm8555_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/85xx/tqm8560_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/tqm8560_defconfig
---- a/arch/powerpc/configs/85xx/tqm8560_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/tqm8560_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_EPOLL is not set
-diff -puN arch/powerpc/configs/85xx/xes_mpc85xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/85xx/xes_mpc85xx_defconfig
---- a/arch/powerpc/configs/85xx/xes_mpc85xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/85xx/xes_mpc85xx_defconfig
-@@ -11,7 +11,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/86xx/gef_ppc9a_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/gef_ppc9a_defconfig
---- a/arch/powerpc/configs/86xx/gef_ppc9a_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/gef_ppc9a_defconfig
-@@ -11,7 +11,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/86xx/gef_sbc310_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/gef_sbc310_defconfig
---- a/arch/powerpc/configs/86xx/gef_sbc310_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/gef_sbc310_defconfig
-@@ -11,7 +11,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/86xx/gef_sbc610_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/gef_sbc610_defconfig
---- a/arch/powerpc/configs/86xx/gef_sbc610_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/gef_sbc610_defconfig
-@@ -11,7 +11,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/86xx/mpc8610_hpcd_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/mpc8610_hpcd_defconfig
---- a/arch/powerpc/configs/86xx/mpc8610_hpcd_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/mpc8610_hpcd_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_ELF_CORE is not set
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/86xx/mpc8641_hpcn_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/mpc8641_hpcn_defconfig
---- a/arch/powerpc/configs/86xx/mpc8641_hpcn_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/mpc8641_hpcn_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/86xx/sbc8641d_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/86xx/sbc8641d_defconfig
---- a/arch/powerpc/configs/86xx/sbc8641d_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/86xx/sbc8641d_defconfig
-@@ -11,7 +11,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_RELAY=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/adder875_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/adder875_defconfig
---- a/arch/powerpc/configs/adder875_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/adder875_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_BASE_FULL is not set
-diff -puN arch/powerpc/configs/e55xx_smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/e55xx_smp_defconfig
---- a/arch/powerpc/configs/e55xx_smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/e55xx_smp_defconfig
-@@ -12,7 +12,7 @@ CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/ep8248e_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/ep8248e_defconfig
---- a/arch/powerpc/configs/ep8248e_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/ep8248e_defconfig
-@@ -2,7 +2,7 @@ CONFIG_SYSVIPC=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_SLAB=y
- # CONFIG_IOSCHED_CFQ is not set
-diff -puN arch/powerpc/configs/ep88xc_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/ep88xc_defconfig
---- a/arch/powerpc/configs/ep88xc_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/ep88xc_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_BASE_FULL is not set
-diff -puN arch/powerpc/configs/gamecube_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/gamecube_defconfig
---- a/arch/powerpc/configs/gamecube_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/gamecube_defconfig
-@@ -6,7 +6,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_ELF_CORE is not set
- CONFIG_PERF_COUNTERS=y
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/powerpc/configs/holly_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/holly_defconfig
---- a/arch/powerpc/configs/holly_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/holly_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_MODULES=y
- # CONFIG_BLK_DEV_BSG is not set
- # CONFIG_PPC_CHRP is not set
-diff -puN arch/powerpc/configs/mgcoge_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mgcoge_defconfig
---- a/arch/powerpc/configs/mgcoge_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mgcoge_defconfig
-@@ -3,7 +3,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_SLAB=y
- # CONFIG_IOSCHED_CFQ is not set
-diff -puN arch/powerpc/configs/mgsuvd_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mgsuvd_defconfig
---- a/arch/powerpc/configs/mgsuvd_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mgsuvd_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BUG is not set
-diff -puN arch/powerpc/configs/mpc7448_hpc2_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc7448_hpc2_defconfig
---- a/arch/powerpc/configs/mpc7448_hpc2_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc7448_hpc2_defconfig
-@@ -4,7 +4,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_BLK_DEV_BSG is not set
- # CONFIG_PPC_CHRP is not set
- # CONFIG_PPC_PMAC is not set
-diff -puN arch/powerpc/configs/mpc8272_ads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc8272_ads_defconfig
---- a/arch/powerpc/configs/mpc8272_ads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc8272_ads_defconfig
-@@ -2,7 +2,7 @@ CONFIG_SYSVIPC=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- # CONFIG_PPC_CHRP is not set
- # CONFIG_PPC_PMAC is not set
-diff -puN arch/powerpc/configs/mpc83xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc83xx_defconfig
---- a/arch/powerpc/configs/mpc83xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc83xx_defconfig
-@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SLAB=y
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/mpc85xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc85xx_defconfig
---- a/arch/powerpc/configs/mpc85xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc85xx_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/mpc85xx_smp_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc85xx_smp_defconfig
---- a/arch/powerpc/configs/mpc85xx_smp_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc85xx_smp_defconfig
-@@ -12,7 +12,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/mpc866_ads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc866_ads_defconfig
---- a/arch/powerpc/configs/mpc866_ads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc866_ads_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BUG is not set
-diff -puN arch/powerpc/configs/mpc86xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc86xx_defconfig
---- a/arch/powerpc/configs/mpc86xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc86xx_defconfig
-@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/mpc885_ads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/mpc885_ads_defconfig
---- a/arch/powerpc/configs/mpc885_ads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/mpc885_ads_defconfig
-@@ -4,7 +4,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_BASE_FULL is not set
-diff -puN arch/powerpc/configs/ppc40x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/ppc40x_defconfig
---- a/arch/powerpc/configs/ppc40x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/ppc40x_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/ppc44x_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/ppc44x_defconfig
---- a/arch/powerpc/configs/ppc44x_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/ppc44x_defconfig
-@@ -5,7 +5,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_MODULES=y
-diff -puN arch/powerpc/configs/pq2fads_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/pq2fads_defconfig
---- a/arch/powerpc/configs/pq2fads_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/pq2fads_defconfig
-@@ -3,7 +3,7 @@ CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_ALL=y
- # CONFIG_PPC_CHRP is not set
- # CONFIG_PPC_PMAC is not set
-diff -puN arch/powerpc/configs/ps3_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/ps3_defconfig
---- a/arch/powerpc/configs/ps3_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/ps3_defconfig
-@@ -8,7 +8,7 @@ CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
- CONFIG_NAMESPACES=y
- CONFIG_BLK_DEV_INITRD=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_KALLSYMS_EXTRA_PASS=y
- # CONFIG_PERF_EVENTS is not set
- # CONFIG_COMPAT_BRK is not set
-diff -puN arch/powerpc/configs/storcenter_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/storcenter_defconfig
---- a/arch/powerpc/configs/storcenter_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/storcenter_defconfig
-@@ -1,7 +1,7 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
-diff -puN arch/powerpc/configs/tqm8xx_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/tqm8xx_defconfig
---- a/arch/powerpc/configs/tqm8xx_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/tqm8xx_defconfig
-@@ -5,7 +5,7 @@ CONFIG_SYSVIPC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_ELF_CORE is not set
- # CONFIG_BASE_FULL is not set
-diff -puN arch/powerpc/configs/wii_defconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/configs/wii_defconfig
---- a/arch/powerpc/configs/wii_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/configs/wii_defconfig
-@@ -7,7 +7,7 @@ CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_ELF_CORE is not set
- CONFIG_PERF_COUNTERS=y
- # CONFIG_VM_EVENT_COUNTERS is not set
-diff -puN arch/powerpc/platforms/iseries/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/platforms/iseries/Kconfig
---- a/arch/powerpc/platforms/iseries/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/platforms/iseries/Kconfig
-@@ -2,7 +2,7 @@ config PPC_ISERIES
- 	bool "IBM Legacy iSeries"
- 	depends on PPC64 && PPC_BOOK3S
- 	select PPC_INDIRECT_IO
--	select PPC_PCI_CHOICE if EMBEDDED
-+	select PPC_PCI_CHOICE if EXPERT
+ 	/* Block console output in case it is on one of the OMAP UARTs */
+ 	if (!is_suspending())
+-		if (try_acquire_console_sem())
++		if (!console_trylock())
+ 			goto no_sleep;
  
- menu "iSeries device drivers"
- 	depends on PPC_ISERIES
-diff -puN arch/powerpc/platforms/pseries/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/powerpc/platforms/pseries/Kconfig
---- a/arch/powerpc/platforms/pseries/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/powerpc/platforms/pseries/Kconfig
-@@ -10,7 +10,7 @@ config PPC_PSERIES
- 	select RTAS_ERROR_LOGGING
- 	select PPC_UDBG_16550
- 	select PPC_NATIVE
--	select PPC_PCI_CHOICE if EMBEDDED
-+	select PPC_PCI_CHOICE if EXPERT
- 	default y
+ 	omap_uart_prepare_idle(0);
+@@ -151,7 +151,7 @@ static void omap2_enter_full_retention(v
+ 	omap_uart_resume_idle(0);
  
- config PPC_SPLPAR
-@@ -24,9 +24,9 @@ config PPC_SPLPAR
- 	  two or more partitions.
+ 	if (!is_suspending())
+-		release_console_sem();
++		console_unlock();
  
- config EEH
--	bool "PCI Extended Error Handling (EEH)" if EMBEDDED
-+	bool "PCI Extended Error Handling (EEH)" if EXPERT
- 	depends on PPC_PSERIES && PCI
--	default y if !EMBEDDED
-+	default y if !EXPERT
+ no_sleep:
+ 	if (omap2_pm_debug) {
+diff -puN arch/arm/mach-omap2/pm34xx.c~change-acquire-release_console_sem-to-console_lock-unlock arch/arm/mach-omap2/pm34xx.c
+--- a/arch/arm/mach-omap2/pm34xx.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/arch/arm/mach-omap2/pm34xx.c
+@@ -398,7 +398,7 @@ void omap_sram_idle(void)
+ 	if (!is_suspending())
+ 		if (per_next_state < PWRDM_POWER_ON ||
+ 		    core_next_state < PWRDM_POWER_ON)
+-			if (try_acquire_console_sem())
++			if (!console_trylock())
+ 				goto console_still_active;
  
- config PSERIES_MSI
-        bool
-diff -puN arch/score/configs/spct6600_defconfig~kconfig-rename-config_embedded-to-config_expert arch/score/configs/spct6600_defconfig
---- a/arch/score/configs/spct6600_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/score/configs/spct6600_defconfig
-@@ -9,7 +9,7 @@ CONFIG_LOG_BUF_SHIFT=12
- CONFIG_SYSFS_DEPRECATED_V2=y
- CONFIG_BLK_DEV_INITRD=y
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=y
-diff -puN arch/sh/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/sh/Kconfig
---- a/arch/sh/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/sh/Kconfig
-@@ -1,6 +1,6 @@
- config SUPERH
- 	def_bool y
--	select EMBEDDED
-+	select EXPERT
- 	select CLKDEV_LOOKUP
- 	select HAVE_IDE if HAS_IOPORT
- 	select HAVE_MEMBLOCK
-diff -puN arch/tile/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/tile/Kconfig
---- a/arch/tile/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/tile/Kconfig
-@@ -220,7 +220,7 @@ config FORCE_MAX_ZONEORDER
+ 	/* PER */
+@@ -481,7 +481,7 @@ void omap_sram_idle(void)
+ 	}
  
- choice
- 	depends on !TILEGX
--	prompt "Memory split" if EMBEDDED
-+	prompt "Memory split" if EXPERT
- 	default VMSPLIT_3G
- 	---help---
- 	  Select the desired split between kernel and user memory.
-diff -puN arch/tile/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert arch/tile/Kconfig.debug
---- a/arch/tile/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/tile/Kconfig.debug
-@@ -3,7 +3,7 @@ menu "Kernel hacking"
- source "lib/Kconfig.debug"
+ 	if (!is_suspending())
+-		release_console_sem();
++		console_unlock();
  
- config EARLY_PRINTK
--	bool "Early printk" if EMBEDDED && DEBUG_KERNEL
-+	bool "Early printk" if EXPERT && DEBUG_KERNEL
- 	default y
- 	help
- 	  Write kernel log output directly via the hypervisor console.
-diff -puN arch/tile/configs/tile_defconfig~kconfig-rename-config_embedded-to-config_expert arch/tile/configs/tile_defconfig
---- a/arch/tile/configs/tile_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/tile/configs/tile_defconfig
-@@ -3,7 +3,7 @@ CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_INITRAMFS_SOURCE="usr/contents.txt"
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- # CONFIG_COMPAT_BRK is not set
- CONFIG_PROFILING=y
- CONFIG_MODULES=y
-diff -puN arch/um/defconfig~kconfig-rename-config_embedded-to-config_expert arch/um/defconfig
---- a/arch/um/defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/um/defconfig
-@@ -133,7 +133,7 @@ CONFIG_SYSFS_DEPRECATED=y
- # CONFIG_BLK_DEV_INITRD is not set
- CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_SYSCTL=y
--# CONFIG_EMBEDDED is not set
-+# CONFIG_EXPERT is not set
- CONFIG_UID16=y
- CONFIG_SYSCTL_SYSCALL=y
- CONFIG_KALLSYMS=y
-diff -puN arch/x86/Kconfig~kconfig-rename-config_embedded-to-config_expert arch/x86/Kconfig
---- a/arch/x86/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/x86/Kconfig
-@@ -627,11 +627,11 @@ config APB_TIMER
-          as it is off-chip. APB timers are always running regardless of CPU
-          C states, they are used as per CPU clockevent device when possible.
+ console_still_active:
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+diff -puN arch/arm/mach-omap2/serial.c~change-acquire-release_console_sem-to-console_lock-unlock arch/arm/mach-omap2/serial.c
+--- a/arch/arm/mach-omap2/serial.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/arch/arm/mach-omap2/serial.c
+@@ -812,7 +812,7 @@ void __init omap_serial_init_port(struct
  
--# Mark as embedded because too many people got it wrong.
-+# Mark as expert because too many people got it wrong.
- # The code disables itself when not needed.
- config DMI
- 	default y
--	bool "Enable DMI scanning" if EMBEDDED
-+	bool "Enable DMI scanning" if EXPERT
- 	---help---
- 	  Enabled scanning of DMI to identify machine quirks. Say Y
- 	  here unless you have verified that your setup is not
-@@ -639,7 +639,7 @@ config DMI
- 	  BIOS code.
+ 	oh->dev_attr = uart;
  
- config GART_IOMMU
--	bool "GART IOMMU support" if EMBEDDED
-+	bool "GART IOMMU support" if EXPERT
- 	default y
- 	select SWIOTLB
- 	depends on X86_64 && PCI && AMD_NB
-@@ -889,7 +889,7 @@ config X86_THERMAL_VECTOR
- 	depends on X86_MCE_INTEL
+-	acquire_console_sem(); /* in case the earlycon is on the UART */
++	console_lock(); /* in case the earlycon is on the UART */
  
- config VM86
--	bool "Enable VM86 support" if EMBEDDED
-+	bool "Enable VM86 support" if EXPERT
- 	default y
- 	depends on X86_32
- 	---help---
-@@ -1073,7 +1073,7 @@ endchoice
+ 	/*
+ 	 * Because of early UART probing, UART did not get idled
+@@ -838,7 +838,7 @@ void __init omap_serial_init_port(struct
+ 	omap_uart_block_sleep(uart);
+ 	uart->timeout = DEFAULT_TIMEOUT;
  
- choice
- 	depends on EXPERIMENTAL
--	prompt "Memory split" if EMBEDDED
-+	prompt "Memory split" if EXPERT
- 	default VMSPLIT_3G
- 	depends on X86_32
- 	---help---
-@@ -1135,7 +1135,7 @@ config ARCH_DMA_ADDR_T_64BIT
- 	def_bool X86_64 || HIGHMEM64G
+-	release_console_sem();
++	console_unlock();
  
- config DIRECT_GBPAGES
--	bool "Enable 1GB pages for kernel pagetables" if EMBEDDED
-+	bool "Enable 1GB pages for kernel pagetables" if EXPERT
- 	default y
- 	depends on X86_64
- 	---help---
-@@ -1369,7 +1369,7 @@ config MATH_EMULATION
+ 	if ((cpu_is_omap34xx() && uart->padconf) ||
+ 	    (uart->wk_en && uart->wk_mask)) {
+diff -puN arch/parisc/kernel/pdc_cons.c~change-acquire-release_console_sem-to-console_lock-unlock arch/parisc/kernel/pdc_cons.c
+--- a/arch/parisc/kernel/pdc_cons.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/arch/parisc/kernel/pdc_cons.c
+@@ -169,11 +169,11 @@ static int __init pdc_console_tty_driver
  
- config MTRR
- 	def_bool y
--	prompt "MTRR (Memory Type Range Register) support" if EMBEDDED
-+	prompt "MTRR (Memory Type Range Register) support" if EXPERT
- 	---help---
- 	  On Intel P6 family processors (Pentium Pro, Pentium II and later)
- 	  the Memory Type Range Registers (MTRRs) may be used to control
-@@ -1435,7 +1435,7 @@ config MTRR_SANITIZER_SPARE_REG_NR_DEFAU
+ 	struct console *tmp;
  
- config X86_PAT
- 	def_bool y
--	prompt "x86 PAT support" if EMBEDDED
-+	prompt "x86 PAT support" if EXPERT
- 	depends on MTRR
- 	---help---
- 	  Use PAT attributes to setup page level cache control.
-@@ -1539,7 +1539,7 @@ config KEXEC_JUMP
- 	  code in physical address mode via KEXEC
+-	acquire_console_sem();
++	console_lock();
+ 	for_each_console(tmp)
+ 		if (tmp == &pdc_cons)
+ 			break;
+-	release_console_sem();
++	console_unlock();
  
- config PHYSICAL_START
--	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
-+	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
- 	default "0x1000000"
- 	---help---
- 	  This gives the physical address where the kernel is loaded.
-@@ -1934,7 +1934,7 @@ config PCI_MMCONFIG
- 	depends on X86_64 && PCI && ACPI
- 
- config PCI_CNB20LE_QUIRK
--	bool "Read CNB20LE Host Bridge Windows" if EMBEDDED
-+	bool "Read CNB20LE Host Bridge Windows" if EXPERT
- 	default n
- 	depends on PCI && EXPERIMENTAL
- 	help
-diff -puN arch/x86/Kconfig.cpu~kconfig-rename-config_embedded-to-config_expert arch/x86/Kconfig.cpu
---- a/arch/x86/Kconfig.cpu~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/x86/Kconfig.cpu
-@@ -424,7 +424,7 @@ config X86_DEBUGCTLMSR
- 	depends on !(MK6 || MWINCHIPC6 || MWINCHIP3D || MCYRIXIII || M586MMX || M586TSC || M586 || M486 || M386) && !UML
- 
- menuconfig PROCESSOR_SELECT
--	bool "Supported processor vendors" if EMBEDDED
-+	bool "Supported processor vendors" if EXPERT
- 	---help---
- 	  This lets you choose what x86 vendor support code your kernel
- 	  will include.
-diff -puN arch/x86/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert arch/x86/Kconfig.debug
---- a/arch/x86/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/x86/Kconfig.debug
-@@ -31,7 +31,7 @@ config X86_VERBOSE_BOOTUP
- 	  see errors. Disable this if you want silent bootup.
- 
- config EARLY_PRINTK
--	bool "Early printk" if EMBEDDED
-+	bool "Early printk" if EXPERT
- 	default y
- 	---help---
- 	  Write kernel log output directly into the VGA buffer or to a serial
-@@ -138,7 +138,7 @@ config DEBUG_NX_TEST
- 
- config DOUBLEFAULT
- 	default y
--	bool "Enable doublefault exception handler" if EMBEDDED
-+	bool "Enable doublefault exception handler" if EXPERT
- 	depends on X86_32
- 	---help---
- 	  This option allows trapping of rare doublefault exceptions that
-diff -puN arch/xtensa/configs/common_defconfig~kconfig-rename-config_embedded-to-config_expert arch/xtensa/configs/common_defconfig
---- a/arch/xtensa/configs/common_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/xtensa/configs/common_defconfig
-@@ -32,7 +32,7 @@ CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_HOTPLUG is not set
- CONFIG_KOBJECT_UEVENT=y
- # CONFIG_IKCONFIG is not set
--# CONFIG_EMBEDDED is not set
-+# CONFIG_EXPERT is not set
- CONFIG_KALLSYMS=y
- # CONFIG_KALLSYMS_ALL is not set
- # CONFIG_KALLSYMS_EXTRA_PASS is not set
-diff -puN arch/xtensa/configs/iss_defconfig~kconfig-rename-config_embedded-to-config_expert arch/xtensa/configs/iss_defconfig
---- a/arch/xtensa/configs/iss_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/xtensa/configs/iss_defconfig
-@@ -55,7 +55,7 @@ CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
- CONFIG_SYSCTL=y
- CONFIG_ANON_INODES=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SYSCTL_SYSCALL=y
- CONFIG_KALLSYMS=y
- # CONFIG_KALLSYMS_ALL is not set
-diff -puN arch/xtensa/configs/s6105_defconfig~kconfig-rename-config_embedded-to-config_expert arch/xtensa/configs/s6105_defconfig
---- a/arch/xtensa/configs/s6105_defconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/arch/xtensa/configs/s6105_defconfig
-@@ -55,7 +55,7 @@ CONFIG_BLK_DEV_INITRD=y
- CONFIG_INITRAMFS_SOURCE=""
- CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_SYSCTL=y
--CONFIG_EMBEDDED=y
-+CONFIG_EXPERT=y
- CONFIG_SYSCTL_SYSCALL=y
- CONFIG_KALLSYMS=y
- # CONFIG_KALLSYMS_ALL is not set
-diff -puN block/Kconfig~kconfig-rename-config_embedded-to-config_expert block/Kconfig
---- a/block/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/block/Kconfig
-@@ -2,7 +2,7 @@
- # Block layer core configuration
- #
- menuconfig BLOCK
--       bool "Enable the block layer" if EMBEDDED
-+       bool "Enable the block layer" if EXPERT
-        default y
-        help
- 	 Provide block layer support for the kernel.
-diff -puN drivers/acpi/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/acpi/Kconfig
-@@ -318,7 +318,7 @@ config ACPI_PCI_SLOT
- 	  the module will be called pci_slot.
- 
- config X86_PM_TIMER
--	bool "Power Management Timer Support" if EMBEDDED
-+	bool "Power Management Timer Support" if EXPERT
- 	depends on X86
- 	default y
- 	help
-diff -puN drivers/ata/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/ata/Kconfig
-@@ -783,7 +783,7 @@ config PATA_PCMCIA
- 
- config PATA_PLATFORM
- 	tristate "Generic platform device PATA support"
--	depends on EMBEDDED || PPC || HAVE_PATA_PLATFORM
-+	depends on EXPERT || PPC || HAVE_PATA_PLATFORM
- 	help
- 	  This option enables support for generic directly connected ATA
- 	  devices commonly found on embedded systems.
-diff -puN drivers/base/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/base/Kconfig
---- a/drivers/base/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/base/Kconfig
-@@ -70,7 +70,7 @@ config PREVENT_FIRMWARE_BUILD
- 	  If unsure say Y here.
- 
- config FW_LOADER
--	tristate "Userspace firmware loading support" if EMBEDDED
-+	tristate "Userspace firmware loading support" if EXPERT
- 	default y
- 	---help---
- 	  This option is provided for the case where no in-kernel-tree modules
-diff -puN drivers/char/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/char/Kconfig
---- a/drivers/char/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/char/Kconfig
-@@ -5,7 +5,7 @@
- menu "Character devices"
- 
- config VT
--	bool "Virtual terminal" if EMBEDDED
-+	bool "Virtual terminal" if EXPERT
- 	depends on !S390
- 	select INPUT
- 	default y
-@@ -39,13 +39,13 @@ config VT
- config CONSOLE_TRANSLATIONS
- 	depends on VT
- 	default y
--	bool "Enable character translations in console" if EMBEDDED
-+	bool "Enable character translations in console" if EXPERT
- 	---help---
- 	  This enables support for font mapping and Unicode translation
- 	  on virtual consoles.
- 
- config VT_CONSOLE
--	bool "Support for console on virtual terminal" if EMBEDDED
-+	bool "Support for console on virtual terminal" if EXPERT
- 	depends on VT
- 	default y
- 	---help---
-@@ -429,7 +429,7 @@ config SGI_MBCS
- source "drivers/serial/Kconfig"
- 
- config UNIX98_PTYS
--	bool "Unix98 PTY support" if EMBEDDED
-+	bool "Unix98 PTY support" if EXPERT
- 	default y
- 	---help---
- 	  A pseudo terminal (PTY) is a software device consisting of two
-@@ -495,7 +495,7 @@ config LEGACY_PTY_COUNT
- 
- config TTY_PRINTK
- 	bool "TTY driver to output user messages via printk"
--	depends on EMBEDDED
-+	depends on EXPERT
- 	default n
- 	---help---
- 	  If you say Y here, the support for writing user messages (i.e.
-diff -puN drivers/cpufreq/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/cpufreq/Kconfig
-@@ -71,7 +71,7 @@ config CPU_FREQ_DEFAULT_GOV_PERFORMANCE
- 
- config CPU_FREQ_DEFAULT_GOV_POWERSAVE
- 	bool "powersave"
--	depends on EMBEDDED
-+	depends on EXPERT
- 	select CPU_FREQ_GOV_POWERSAVE
- 	help
- 	  Use the CPUFreq governor 'powersave' as default. This sets
-diff -puN drivers/firmware/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/firmware/Kconfig
---- a/drivers/firmware/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/firmware/Kconfig
-@@ -27,7 +27,7 @@ config EDD_OFF
- 	  using the kernel parameter 'edd={on|skipmbr|off}'.
- 
- config FIRMWARE_MEMMAP
--    bool "Add firmware-provided memory map to sysfs" if EMBEDDED
-+    bool "Add firmware-provided memory map to sysfs" if EXPERT
-     default X86
-     help
-       Add the firmware-provided (unmodified) memory map to /sys/firmware/memmap.
-diff -puN drivers/gpu/drm/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/gpu/drm/Kconfig
---- a/drivers/gpu/drm/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/gpu/drm/Kconfig
-@@ -23,7 +23,7 @@ config DRM_KMS_HELPER
- 	tristate
- 	depends on DRM
- 	select FB
--	select FRAMEBUFFER_CONSOLE if !EMBEDDED
-+	select FRAMEBUFFER_CONSOLE if !EXPERT
- 	help
- 	  FB and CRTC helpers for KMS drivers.
- 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~kconfig-rename-config_embedded-to-config_expert drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -1533,11 +1533,11 @@ bool drm_fb_helper_hotplug_event(struct 
+ 	if (!tmp) {
+ 		printk(KERN_INFO "PDC console driver not registered anymore, not creating %s\n", pdc_cons.name);
+diff -puN drivers/char/bfin_jtag_comm.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/char/bfin_jtag_comm.c
+--- a/drivers/char/bfin_jtag_comm.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/char/bfin_jtag_comm.c
+@@ -183,16 +183,16 @@ bfin_jc_circ_write(const unsigned char *
  }
- EXPORT_SYMBOL(drm_fb_helper_hotplug_event);
  
--/* The Kconfig DRM_KMS_HELPER selects FRAMEBUFFER_CONSOLE (if !EMBEDDED)
-+/* The Kconfig DRM_KMS_HELPER selects FRAMEBUFFER_CONSOLE (if !EXPERT)
-  * but the module doesn't depend on any fb console symbols.  At least
-  * attempt to load fbcon to avoid leaving the system without a usable console.
-  */
--#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EMBEDDED)
-+#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EXPERT)
- static int __init drm_fb_helper_modinit(void)
+ #ifndef CONFIG_BFIN_JTAG_COMM_CONSOLE
+-# define acquire_console_sem()
+-# define release_console_sem()
++# define console_lock()
++# define console_unlock()
+ #endif
+ static int
+ bfin_jc_write(struct tty_struct *tty, const unsigned char *buf, int count)
  {
- 	const char *name = "fbcon";
-diff -puN drivers/gpu/drm/nouveau/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/gpu/drm/nouveau/Kconfig
---- a/drivers/gpu/drm/nouveau/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/gpu/drm/nouveau/Kconfig
-@@ -8,7 +8,7 @@ config DRM_NOUVEAU
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	select FB
--	select FRAMEBUFFER_CONSOLE if !EMBEDDED
-+	select FRAMEBUFFER_CONSOLE if !EXPERT
- 	select FB_BACKLIGHT if DRM_NOUVEAU_BACKLIGHT
- 	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL && INPUT
- 	help
-diff -puN drivers/gpu/vga/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/gpu/vga/Kconfig
---- a/drivers/gpu/vga/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/gpu/vga/Kconfig
-@@ -1,5 +1,5 @@
- config VGA_ARB
--	bool "VGA Arbitration" if EMBEDDED
-+	bool "VGA Arbitration" if EXPERT
- 	default y
- 	depends on PCI
- 	help
-diff -puN drivers/hid/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/hid/Kconfig
---- a/drivers/hid/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/hid/Kconfig
-@@ -62,9 +62,9 @@ config HID_3M_PCT
- 	Support for 3M PCT touch screens.
- 
- config HID_A4TECH
--	tristate "A4 tech mice" if EMBEDDED
-+	tristate "A4 tech mice" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for A4 tech X5 and WOP-35 / Trust 450L mice.
- 
-@@ -77,9 +77,9 @@ config HID_ACRUX_FF
- 	game controllers.
- 
- config HID_APPLE
--	tristate "Apple {i,Power,Mac}Books" if EMBEDDED
-+	tristate "Apple {i,Power,Mac}Books" if EXPERT
- 	depends on (USB_HID || BT_HIDP)
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for some Apple devices which less or more break
- 	HID specification.
-@@ -88,9 +88,9 @@ config HID_APPLE
- 	MacBooks, MacBook Pros and Apple Aluminum.
- 
- config HID_BELKIN
--	tristate "Belkin Flip KVM and Wireless keyboard" if EMBEDDED
-+	tristate "Belkin Flip KVM and Wireless keyboard" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Belkin Flip KVM and Wireless keyboard.
- 
-@@ -101,16 +101,16 @@ config HID_CANDO
- 	Support for Cando dual touch panel.
- 
- config HID_CHERRY
--	tristate "Cherry Cymotion keyboard" if EMBEDDED
-+	tristate "Cherry Cymotion keyboard" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Cherry Cymotion keyboard.
- 
- config HID_CHICONY
--	tristate "Chicony Tactical pad" if EMBEDDED
-+	tristate "Chicony Tactical pad" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Chicony Tactical pad.
- 
-@@ -130,9 +130,9 @@ config HID_PRODIKEYS
- 	  and some additional multimedia keys.
- 
- config HID_CYPRESS
--	tristate "Cypress mouse and barcode readers" if EMBEDDED
-+	tristate "Cypress mouse and barcode readers" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for cypress mouse and barcode readers.
- 
-@@ -174,16 +174,16 @@ config HID_ELECOM
- 	Support for the ELECOM BM084 (bluetooth mouse).
- 
- config HID_EZKEY
--	tristate "Ezkey BTC 8193 keyboard" if EMBEDDED
-+	tristate "Ezkey BTC 8193 keyboard" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Ezkey BTC 8193 keyboard.
- 
- config HID_KYE
--	tristate "Kye/Genius Ergo Mouse" if EMBEDDED
-+	tristate "Kye/Genius Ergo Mouse" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Kye/Genius Ergo Mouse.
- 
-@@ -212,16 +212,16 @@ config HID_TWINHAN
- 	Support for Twinhan IR remote control.
- 
- config HID_KENSINGTON
--	tristate "Kensington Slimblade Trackball" if EMBEDDED
-+	tristate "Kensington Slimblade Trackball" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Kensington Slimblade Trackball.
- 
- config HID_LOGITECH
--	tristate "Logitech devices" if EMBEDDED
-+	tristate "Logitech devices" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Logitech devices that are not fully compliant with HID standard.
- 
-@@ -276,9 +276,9 @@ config HID_MAGICMOUSE
- 	Apple Wireless "Magic" Mouse.
- 
- config HID_MICROSOFT
--	tristate "Microsoft non-fully HID-compliant devices" if EMBEDDED
-+	tristate "Microsoft non-fully HID-compliant devices" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Microsoft devices that are not fully compliant with HID standard.
- 
-@@ -289,9 +289,9 @@ config HID_MOSART
- 	Support for MosArt dual-touch panels.
- 
- config HID_MONTEREY
--	tristate "Monterey Genius KB29E keyboard" if EMBEDDED
-+	tristate "Monterey Genius KB29E keyboard" if EXPERT
- 	depends on USB_HID
--	default !EMBEDDED
-+	default !EXPERT
- 	---help---
- 	Support for Monterey Genius KB29E.
- 
-@@ -365,8 +365,8 @@ config HID_PICOLCD
- 	  - IR
- 
- config HID_PICOLCD_FB
--	bool "Framebuffer support" if EMBEDDED
--	default !EMBEDDED
-+	bool "Framebuffer support" if EXPERT
-+	default !EXPERT
- 	depends on HID_PICOLCD
- 	depends on HID_PICOLCD=FB || FB=y
- 	select FB_DEFERRED_IO
-@@ -379,8 +379,8 @@ config HID_PICOLCD_FB
- 	  frambuffer device.
- 
- config HID_PICOLCD_BACKLIGHT
--	bool "Backlight control" if EMBEDDED
--	default !EMBEDDED
-+	bool "Backlight control" if EXPERT
-+	default !EXPERT
- 	depends on HID_PICOLCD
- 	depends on HID_PICOLCD=BACKLIGHT_CLASS_DEVICE || BACKLIGHT_CLASS_DEVICE=y
- 	---help---
-@@ -388,16 +388,16 @@ config HID_PICOLCD_BACKLIGHT
- 	  class.
- 
- config HID_PICOLCD_LCD
--	bool "Contrast control" if EMBEDDED
--	default !EMBEDDED
-+	bool "Contrast control" if EXPERT
-+	default !EXPERT
- 	depends on HID_PICOLCD
- 	depends on HID_PICOLCD=LCD_CLASS_DEVICE || LCD_CLASS_DEVICE=y
- 	---help---
- 	  Provide access to PicoLCD's LCD contrast via lcd class.
- 
- config HID_PICOLCD_LEDS
--	bool "GPO via leds class" if EMBEDDED
--	default !EMBEDDED
-+	bool "GPO via leds class" if EXPERT
-+	default !EXPERT
- 	depends on HID_PICOLCD
- 	depends on HID_PICOLCD=LEDS_CLASS || LEDS_CLASS=y
- 	---help---
-diff -puN drivers/hid/usbhid/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/hid/usbhid/Kconfig
---- a/drivers/hid/usbhid/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/hid/usbhid/Kconfig
-@@ -45,7 +45,7 @@ config USB_HIDDEV
- 	  If unsure, say Y.
- 
- menu "USB HID Boot Protocol drivers"
--	depends on USB!=n && USB_HID!=y && EMBEDDED
-+	depends on USB!=n && USB_HID!=y && EXPERT
- 
- config USB_KBD
- 	tristate "USB HIDBP Keyboard (simple Boot) support"
-diff -puN drivers/ide/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/ide/Kconfig
-@@ -134,7 +134,7 @@ config BLK_DEV_IDECD
- 	  module will be called ide-cd.
- 
- config BLK_DEV_IDECD_VERBOSE_ERRORS
--	bool "Verbose error logging for IDE/ATAPI CDROM driver" if EMBEDDED
-+	bool "Verbose error logging for IDE/ATAPI CDROM driver" if EXPERT
- 	depends on BLK_DEV_IDECD
- 	default y
- 	help
-diff -puN drivers/infiniband/hw/mthca/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/infiniband/hw/mthca/Kconfig
---- a/drivers/infiniband/hw/mthca/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/infiniband/hw/mthca/Kconfig
-@@ -7,7 +7,7 @@ config INFINIBAND_MTHCA
- 	  ("Tavor") and the MT25208 PCI Express HCA ("Arbel").
- 
- config INFINIBAND_MTHCA_DEBUG
--	bool "Verbose debugging output" if EMBEDDED
-+	bool "Verbose debugging output" if EXPERT
- 	depends on INFINIBAND_MTHCA
- 	default y
- 	---help---
-diff -puN drivers/infiniband/ulp/ipoib/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/infiniband/ulp/ipoib/Kconfig
---- a/drivers/infiniband/ulp/ipoib/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/infiniband/ulp/ipoib/Kconfig
-@@ -24,7 +24,7 @@ config INFINIBAND_IPOIB_CM
- 	  unless you limit mtu for these destinations to 2044.
- 
- config INFINIBAND_IPOIB_DEBUG
--	bool "IP-over-InfiniBand debugging" if EMBEDDED
-+	bool "IP-over-InfiniBand debugging" if EXPERT
- 	depends on INFINIBAND_IPOIB
- 	default y
- 	---help---
-diff -puN drivers/input/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/input/Kconfig
---- a/drivers/input/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/input/Kconfig
-@@ -6,7 +6,7 @@ menu "Input device support"
- 	depends on !S390
- 
- config INPUT
--	tristate "Generic input layer (needed for keyboard, mouse, ...)" if EMBEDDED
-+	tristate "Generic input layer (needed for keyboard, mouse, ...)" if EXPERT
- 	default y
- 	help
- 	  Say Y here if you have any input device (mouse, keyboard, tablet,
-@@ -67,7 +67,7 @@ config INPUT_SPARSEKMAP
- comment "Userland interfaces"
- 
- config INPUT_MOUSEDEV
--	tristate "Mouse interface" if EMBEDDED
-+	tristate "Mouse interface" if EXPERT
- 	default y
- 	help
- 	  Say Y here if you want your mouse to be accessible as char devices
-@@ -150,7 +150,7 @@ config INPUT_EVBUG
- 	  module will be called evbug.
- 
- config INPUT_APMPOWER
--	tristate "Input Power Event -> APM Bridge" if EMBEDDED
-+	tristate "Input Power Event -> APM Bridge" if EXPERT
- 	depends on INPUT && APM_EMULATION
- 	help
- 	  Say Y here if you want suspend key events to trigger a user
-diff -puN drivers/input/keyboard/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/input/keyboard/Kconfig
---- a/drivers/input/keyboard/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/input/keyboard/Kconfig
-@@ -2,7 +2,7 @@
- # Input core configuration
- #
- menuconfig INPUT_KEYBOARD
--	bool "Keyboards" if EMBEDDED || !X86
-+	bool "Keyboards" if EXPERT || !X86
- 	default y
- 	help
- 	  Say Y here, and a list of supported keyboards will be displayed.
-@@ -57,7 +57,7 @@ config KEYBOARD_ATARI
- 	  module will be called atakbd.
- 
- config KEYBOARD_ATKBD
--	tristate "AT keyboard" if EMBEDDED || !X86
-+	tristate "AT keyboard" if EXPERT || !X86
- 	default y
- 	select SERIO
- 	select SERIO_LIBPS2
-diff -puN drivers/input/mouse/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/input/mouse/Kconfig
---- a/drivers/input/mouse/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/input/mouse/Kconfig
-@@ -39,7 +39,7 @@ config MOUSE_PS2
- 	  module will be called psmouse.
- 
- config MOUSE_PS2_ALPS
--	bool "ALPS PS/2 mouse protocol extension" if EMBEDDED
-+	bool "ALPS PS/2 mouse protocol extension" if EXPERT
- 	default y
- 	depends on MOUSE_PS2
- 	help
-@@ -49,7 +49,7 @@ config MOUSE_PS2_ALPS
- 	  If unsure, say Y.
- 
- config MOUSE_PS2_LOGIPS2PP
--	bool "Logitech PS/2++ mouse protocol extension" if EMBEDDED
-+	bool "Logitech PS/2++ mouse protocol extension" if EXPERT
- 	default y
- 	depends on MOUSE_PS2
- 	help
-@@ -59,7 +59,7 @@ config MOUSE_PS2_LOGIPS2PP
- 	  If unsure, say Y.
- 
- config MOUSE_PS2_SYNAPTICS
--	bool "Synaptics PS/2 mouse protocol extension" if EMBEDDED
-+	bool "Synaptics PS/2 mouse protocol extension" if EXPERT
- 	default y
- 	depends on MOUSE_PS2
- 	help
-@@ -69,7 +69,7 @@ config MOUSE_PS2_SYNAPTICS
- 	  If unsure, say Y.
- 
- config MOUSE_PS2_LIFEBOOK
--	bool "Fujitsu Lifebook PS/2 mouse protocol extension" if EMBEDDED
-+	bool "Fujitsu Lifebook PS/2 mouse protocol extension" if EXPERT
- 	default y
- 	depends on MOUSE_PS2 && X86 && DMI
- 	help
-@@ -79,7 +79,7 @@ config MOUSE_PS2_LIFEBOOK
- 	  If unsure, say Y.
- 
- config MOUSE_PS2_TRACKPOINT
--	bool "IBM Trackpoint PS/2 mouse protocol extension" if EMBEDDED
-+	bool "IBM Trackpoint PS/2 mouse protocol extension" if EXPERT
- 	default y
- 	depends on MOUSE_PS2
- 	help
-diff -puN drivers/input/serio/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/input/serio/Kconfig
---- a/drivers/input/serio/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/input/serio/Kconfig
-@@ -2,7 +2,7 @@
- # Input core configuration
- #
- config SERIO
--	tristate "Serial I/O support" if EMBEDDED || !X86
-+	tristate "Serial I/O support" if EXPERT || !X86
- 	default y
- 	help
- 	  Say Yes here if you have any input device that uses serial I/O to
-@@ -19,7 +19,7 @@ config SERIO
- if SERIO
- 
- config SERIO_I8042
--	tristate "i8042 PC Keyboard controller" if EMBEDDED || !X86
-+	tristate "i8042 PC Keyboard controller" if EXPERT || !X86
- 	default y
- 	depends on !PARISC && (!ARM || ARCH_SHARK || FOOTBRIDGE_HOST) && \
- 		   (!SUPERH || SH_CAYMAN) && !M68K && !BLACKFIN
-@@ -168,7 +168,7 @@ config SERIO_MACEPS2
- 	  module will be called maceps2.
- 
- config SERIO_LIBPS2
--	tristate "PS/2 driver library" if EMBEDDED
-+	tristate "PS/2 driver library" if EXPERT
- 	depends on SERIO_I8042 || SERIO_I8042=n
- 	help
- 	  Say Y here if you are using a driver for device connected
-diff -puN drivers/input/touchscreen/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -540,62 +540,62 @@ config TOUCHSCREEN_MC13783
- 
- config TOUCHSCREEN_USB_EGALAX
- 	default y
--	bool "eGalax, eTurboTouch CT-410/510/700 device support" if EMBEDDED
-+	bool "eGalax, eTurboTouch CT-410/510/700 device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_PANJIT
- 	default y
--	bool "PanJit device support" if EMBEDDED
-+	bool "PanJit device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_3M
- 	default y
--	bool "3M/Microtouch EX II series device support" if EMBEDDED
-+	bool "3M/Microtouch EX II series device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_ITM
- 	default y
--	bool "ITM device support" if EMBEDDED
-+	bool "ITM device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_ETURBO
- 	default y
--	bool "eTurboTouch (non-eGalax compatible) device support" if EMBEDDED
-+	bool "eTurboTouch (non-eGalax compatible) device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_GUNZE
- 	default y
--	bool "Gunze AHL61 device support" if EMBEDDED
-+	bool "Gunze AHL61 device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_DMC_TSC10
- 	default y
--	bool "DMC TSC-10/25 device support" if EMBEDDED
-+	bool "DMC TSC-10/25 device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_IRTOUCH
- 	default y
--	bool "IRTOUCHSYSTEMS/UNITOP device support" if EMBEDDED
-+	bool "IRTOUCHSYSTEMS/UNITOP device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_IDEALTEK
- 	default y
--	bool "IdealTEK URTC1000 device support" if EMBEDDED
-+	bool "IdealTEK URTC1000 device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_GENERAL_TOUCH
- 	default y
--	bool "GeneralTouch Touchscreen device support" if EMBEDDED
-+	bool "GeneralTouch Touchscreen device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_GOTOP
- 	default y
--	bool "GoTop Super_Q2/GogoPen/PenPower tablet device support" if EMBEDDED
-+	bool "GoTop Super_Q2/GogoPen/PenPower tablet device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_JASTEC
- 	default y
--	bool "JASTEC/DigiTech DTR-02U USB touch controller device support" if EMBEDDED
-+	bool "JASTEC/DigiTech DTR-02U USB touch controller device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_E2I
-@@ -605,17 +605,17 @@ config TOUCHSCREEN_USB_E2I
- 
- config TOUCHSCREEN_USB_ZYTRONIC
- 	default y
--	bool "Zytronic controller" if EMBEDDED
-+	bool "Zytronic controller" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_ETT_TC45USB
- 	default y
--	bool "ET&T USB series TC4UM/TC5UH touchscreen controller support" if EMBEDDED
-+	bool "ET&T USB series TC4UM/TC5UH touchscreen controller support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_USB_NEXIO
- 	default y
--	bool "NEXIO/iNexio device support" if EMBEDDED
-+	bool "NEXIO/iNexio device support" if EXPERT
- 	depends on TOUCHSCREEN_USB_COMPOSITE
- 
- config TOUCHSCREEN_TOUCHIT213
-diff -puN drivers/media/common/tuners/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/media/common/tuners/Kconfig
---- a/drivers/media/common/tuners/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/media/common/tuners/Kconfig
-@@ -34,7 +34,7 @@ config MEDIA_TUNER
- config MEDIA_TUNER_CUSTOMISE
- 	bool "Customize analog and hybrid tuner modules to build"
- 	depends on MEDIA_TUNER
--	default y if EMBEDDED
-+	default y if EXPERT
- 	help
- 	  This allows the user to deselect tuner drivers unnecessary
- 	  for their hardware from the build. Use this option with care
-diff -puN drivers/media/dvb/frontends/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/media/dvb/frontends/Kconfig
---- a/drivers/media/dvb/frontends/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/media/dvb/frontends/Kconfig
-@@ -1,7 +1,7 @@
- config DVB_FE_CUSTOMISE
- 	bool "Customise the frontend modules to build"
- 	depends on DVB_CORE
--	default y if EMBEDDED
-+	default y if EXPERT
- 	help
- 	  This allows the user to select/deselect frontend drivers for their
- 	  hardware from the build.
-diff -puN drivers/media/video/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/media/video/Kconfig
-@@ -78,7 +78,7 @@ config VIDEO_FIXED_MINOR_RANGES
- 
- config VIDEO_HELPER_CHIPS_AUTO
- 	bool "Autoselect pertinent encoders/decoders and other helper chips"
--	default y if !EMBEDDED
-+	default y if !EXPERT
- 	---help---
- 	  Most video cards may require additional modules to encode or
- 	  decode audio/video standards. This option will autoselect
-diff -puN drivers/net/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/net/Kconfig
---- a/drivers/net/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/net/Kconfig
-@@ -2864,7 +2864,7 @@ config MLX4_CORE
- 	default n
- 
- config MLX4_DEBUG
--	bool "Verbose debugging output" if (MLX4_CORE && EMBEDDED)
-+	bool "Verbose debugging output" if (MLX4_CORE && EXPERT)
- 	depends on MLX4_CORE
- 	default y
- 	---help---
-diff -puN drivers/pci/pcie/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/pci/pcie/Kconfig
---- a/drivers/pci/pcie/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/pci/pcie/Kconfig
-@@ -31,7 +31,7 @@ source "drivers/pci/pcie/aer/Kconfig"
- # PCI Express ASPM
- #
- config PCIEASPM
--	bool "PCI Express ASPM control" if EMBEDDED
-+	bool "PCI Express ASPM control" if EXPERT
- 	depends on PCI && PCIEPORTBUS
- 	default y
- 	help
-diff -puN drivers/pcmcia/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/pcmcia/Kconfig
---- a/drivers/pcmcia/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/pcmcia/Kconfig
-@@ -69,7 +69,7 @@ comment "PC-card bridges"
- config YENTA
- 	tristate "CardBus yenta-compatible bridge support"
- 	depends on PCI
--	select CARDBUS if !EMBEDDED
-+	select CARDBUS if !EXPERT
- 	select PCCARD_NONSTATIC if PCMCIA != n
- 	---help---
- 	  This option enables support for CardBus host bridges.  Virtually
-@@ -84,27 +84,27 @@ config YENTA
- 
- config YENTA_O2
- 	default y
--	bool "Special initialization for O2Micro bridges" if EMBEDDED
-+	bool "Special initialization for O2Micro bridges" if EXPERT
- 	depends on YENTA
- 
- config YENTA_RICOH
- 	default y
--	bool "Special initialization for Ricoh bridges" if EMBEDDED
-+	bool "Special initialization for Ricoh bridges" if EXPERT
- 	depends on YENTA
- 
- config YENTA_TI
- 	default y
--	bool "Special initialization for TI and EnE bridges" if EMBEDDED
-+	bool "Special initialization for TI and EnE bridges" if EXPERT
- 	depends on YENTA
- 
- config YENTA_ENE_TUNE
- 	default y
--	bool "Auto-tune EnE bridges for CB cards" if EMBEDDED
-+	bool "Auto-tune EnE bridges for CB cards" if EXPERT
- 	depends on YENTA_TI && CARDBUS
- 
- config YENTA_TOSHIBA
- 	default y
--	bool "Special initialization for Toshiba ToPIC bridges" if EMBEDDED
-+	bool "Special initialization for Toshiba ToPIC bridges" if EXPERT
- 	depends on YENTA
- 
- config PD6729
-diff -puN drivers/serial/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/serial/Kconfig
-@@ -81,7 +81,7 @@ config SERIAL_8250_GSC
- 	default SERIAL_8250
- 
- config SERIAL_8250_PCI
--	tristate "8250/16550 PCI device support" if EMBEDDED
-+	tristate "8250/16550 PCI device support" if EXPERT
- 	depends on SERIAL_8250 && PCI
- 	default SERIAL_8250
- 	help
-@@ -90,7 +90,7 @@ config SERIAL_8250_PCI
- 	  Saves about 9K.
- 
- config SERIAL_8250_PNP
--	tristate "8250/16550 PNP device support" if EMBEDDED
-+	tristate "8250/16550 PNP device support" if EXPERT
- 	depends on SERIAL_8250 && PNP
- 	default SERIAL_8250
- 	help
-diff -puN drivers/ssb/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/ssb/Kconfig
---- a/drivers/ssb/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/ssb/Kconfig
-@@ -82,7 +82,7 @@ config SSB_SDIOHOST
- 
- config SSB_SILENT
- 	bool "No SSB kernel messages"
--	depends on SSB && EMBEDDED
-+	depends on SSB && EXPERT
- 	help
- 	  This option turns off all Sonics Silicon Backplane printks.
- 	  Note that you won't be able to identify problems, once
-diff -puN drivers/usb/core/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/usb/core/Kconfig
---- a/drivers/usb/core/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/usb/core/Kconfig
-@@ -123,9 +123,9 @@ config USB_OTG
- 
- config USB_OTG_WHITELIST
- 	bool "Rely on OTG Targeted Peripherals List"
--	depends on USB_OTG || EMBEDDED
-+	depends on USB_OTG || EXPERT
- 	default y if USB_OTG
--	default n if EMBEDDED
-+	default n if EXPERT
- 	help
- 	  If you say Y here, the "otg_whitelist.h" file will be used as a
- 	  product whitelist, so USB peripherals not listed there will be
-@@ -141,7 +141,7 @@ config USB_OTG_WHITELIST
- 
- config USB_OTG_BLACKLIST_HUB
- 	bool "Disable external hubs"
--	depends on USB_OTG || EMBEDDED
-+	depends on USB_OTG || EXPERT
- 	help
- 	  If you say Y here, then Linux will refuse to enumerate
- 	  external hubs.  OTG hosts are allowed to reduce hardware
-diff -puN drivers/video/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/video/Kconfig
---- a/drivers/video/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/video/Kconfig
-@@ -1227,7 +1227,7 @@ config FB_CARILLO_RANCH
- 
- config FB_INTEL
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL && EMBEDDED
-+	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL && EXPERT
- 	select FB_MODE_HELPERS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
-diff -puN drivers/video/console/Kconfig~kconfig-rename-config_embedded-to-config_expert drivers/video/console/Kconfig
---- a/drivers/video/console/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/drivers/video/console/Kconfig
-@@ -5,7 +5,7 @@
- menu "Console display driver support"
- 
- config VGA_CONSOLE
--	bool "VGA text console" if EMBEDDED || !X86
-+	bool "VGA text console" if EXPERT || !X86
- 	depends on !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !SUPERH && !BLACKFIN && !AVR32 && !MN10300 && (!ARM || ARCH_FOOTBRIDGE || ARCH_INTEGRATOR || ARCH_NETWINDER)
- 	default y
- 	help
-diff -puN fs/Kconfig~kconfig-rename-config_embedded-to-config_expert fs/Kconfig
---- a/fs/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/fs/Kconfig
-@@ -50,7 +50,7 @@ config EXPORTFS
- 	tristate
- 
- config FILE_LOCKING
--	bool "Enable POSIX file locking API" if EMBEDDED
-+	bool "Enable POSIX file locking API" if EXPERT
- 	default y
- 	help
- 	  This option enables standard file locking support, required
-diff -puN fs/proc/Kconfig~kconfig-rename-config_embedded-to-config_expert fs/proc/Kconfig
---- a/fs/proc/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/fs/proc/Kconfig
-@@ -1,5 +1,5 @@
- config PROC_FS
--	bool "/proc file system support" if EMBEDDED
-+	bool "/proc file system support" if EXPERT
- 	default y
- 	help
- 	  This is a virtual file system providing information about the status
-@@ -40,7 +40,7 @@ config PROC_VMCORE
-         Exports the dump image of crashed kernel in ELF format.
- 
- config PROC_SYSCTL
--	bool "Sysctl support (/proc/sys)" if EMBEDDED
-+	bool "Sysctl support (/proc/sys)" if EXPERT
- 	depends on PROC_FS
- 	select SYSCTL
- 	default y
-@@ -61,7 +61,7 @@ config PROC_SYSCTL
- config PROC_PAGE_MONITOR
-  	default y
- 	depends on PROC_FS && MMU
--	bool "Enable /proc page monitoring" if EMBEDDED
-+	bool "Enable /proc page monitoring" if EXPERT
-  	help
- 	  Various /proc files exist to monitor process memory utilization:
- 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
-diff -puN fs/sysfs/Kconfig~kconfig-rename-config_embedded-to-config_expert fs/sysfs/Kconfig
---- a/fs/sysfs/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/fs/sysfs/Kconfig
-@@ -1,5 +1,5 @@
- config SYSFS
--	bool "sysfs file system support" if EMBEDDED
-+	bool "sysfs file system support" if EXPERT
- 	default y
- 	help
- 	The sysfs filesystem is a virtual filesystem that the kernel uses to
-diff -puN init/Kconfig~kconfig-rename-config_embedded-to-config_expert init/Kconfig
---- a/init/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/init/Kconfig
-@@ -745,8 +745,8 @@ config DEBUG_BLK_CGROUP
- endif # CGROUPS
- 
- menuconfig NAMESPACES
--	bool "Namespaces support" if EMBEDDED
--	default !EMBEDDED
-+	bool "Namespaces support" if EXPERT
-+	default !EXPERT
- 	help
- 	  Provides the way to make tasks work with different objects using
- 	  the same id. For example same IPC id may refer to different objects
-@@ -899,23 +899,31 @@ config SYSCTL
- config ANON_INODES
- 	bool
- 
--menuconfig EMBEDDED
--	bool "Configure standard kernel features (for small systems)"
-+menuconfig EXPERT
-+	bool "Configure standard kernel features (expert users)"
- 	help
- 	  This option allows certain base kernel options and settings
-           to be disabled or tweaked. This is for specialized
-           environments which can tolerate a "non-standard" kernel.
-           Only use this if you really know what you are doing.
- 
-+config EMBEDDED
-+	bool "Embedded system"
-+	select EXPERT
-+	help
-+	  This option should be enabled if compiling the kernel for
-+	  an embedded system so certain expert options are available
-+	  for configuration.
-+
- config UID16
--	bool "Enable 16-bit UID system calls" if EMBEDDED
-+	bool "Enable 16-bit UID system calls" if EXPERT
- 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
- 	default y
- 	help
- 	  This enables the legacy 16-bit UID syscall wrappers.
- 
- config SYSCTL_SYSCALL
--	bool "Sysctl syscall support" if EMBEDDED
-+	bool "Sysctl syscall support" if EXPERT
- 	depends on PROC_SYSCTL
- 	default y
- 	select SYSCTL
-@@ -932,7 +940,7 @@ config SYSCTL_SYSCALL
- 	  If unsure say Y here.
- 
- config KALLSYMS
--	 bool "Load all symbols for debugging/ksymoops" if EMBEDDED
-+	 bool "Load all symbols for debugging/ksymoops" if EXPERT
- 	 default y
- 	 help
- 	   Say Y here to let the kernel print out symbolic crash information and
-@@ -963,7 +971,7 @@ config KALLSYMS_EXTRA_PASS
- 
- 
- config HOTPLUG
--	bool "Support for hot-pluggable devices" if EMBEDDED
-+	bool "Support for hot-pluggable devices" if EXPERT
- 	default y
- 	help
- 	  This option is provided for the case where no hotplug or uevent
-@@ -973,7 +981,7 @@ config HOTPLUG
- 
- config PRINTK
- 	default y
--	bool "Enable support for printk" if EMBEDDED
-+	bool "Enable support for printk" if EXPERT
- 	help
- 	  This option enables normal printk support. Removing it
- 	  eliminates most of the message strings from the kernel image
-@@ -982,7 +990,7 @@ config PRINTK
- 	  strongly discouraged.
- 
- config BUG
--	bool "BUG() support" if EMBEDDED
-+	bool "BUG() support" if EXPERT
- 	default y
- 	help
-           Disabling this option eliminates support for BUG and WARN, reducing
-@@ -993,12 +1001,12 @@ config BUG
- 
- config ELF_CORE
- 	default y
--	bool "Enable ELF core dumps" if EMBEDDED
-+	bool "Enable ELF core dumps" if EXPERT
- 	help
- 	  Enable support for generating core dumps. Disabling saves about 4k.
- 
- config PCSPKR_PLATFORM
--	bool "Enable PC-Speaker support" if EMBEDDED
-+	bool "Enable PC-Speaker support" if EXPERT
- 	depends on ALPHA || X86 || MIPS || PPC_PREP || PPC_CHRP || PPC_PSERIES
- 	default y
- 	help
-@@ -1007,14 +1015,14 @@ config PCSPKR_PLATFORM
- 
- config BASE_FULL
- 	default y
--	bool "Enable full-sized data structures for core" if EMBEDDED
-+	bool "Enable full-sized data structures for core" if EXPERT
- 	help
- 	  Disabling this option reduces the size of miscellaneous core
- 	  kernel data structures. This saves memory on small machines,
- 	  but may reduce performance.
- 
- config FUTEX
--	bool "Enable futex support" if EMBEDDED
-+	bool "Enable futex support" if EXPERT
- 	default y
- 	select RT_MUTEXES
- 	help
-@@ -1023,7 +1031,7 @@ config FUTEX
- 	  run glibc-based applications correctly.
- 
- config EPOLL
--	bool "Enable eventpoll support" if EMBEDDED
-+	bool "Enable eventpoll support" if EXPERT
- 	default y
- 	select ANON_INODES
- 	help
-@@ -1031,7 +1039,7 @@ config EPOLL
- 	  support for epoll family of system calls.
- 
- config SIGNALFD
--	bool "Enable signalfd() system call" if EMBEDDED
-+	bool "Enable signalfd() system call" if EXPERT
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1041,7 +1049,7 @@ config SIGNALFD
- 	  If unsure, say Y.
- 
- config TIMERFD
--	bool "Enable timerfd() system call" if EMBEDDED
-+	bool "Enable timerfd() system call" if EXPERT
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1051,7 +1059,7 @@ config TIMERFD
- 	  If unsure, say Y.
- 
- config EVENTFD
--	bool "Enable eventfd() system call" if EMBEDDED
-+	bool "Enable eventfd() system call" if EXPERT
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1061,7 +1069,7 @@ config EVENTFD
- 	  If unsure, say Y.
- 
- config SHMEM
--	bool "Use full shmem filesystem" if EMBEDDED
-+	bool "Use full shmem filesystem" if EXPERT
- 	default y
- 	depends on MMU
- 	help
-@@ -1072,7 +1080,7 @@ config SHMEM
- 	  which may be appropriate on small systems without swap.
- 
- config AIO
--	bool "Enable AIO support" if EMBEDDED
-+	bool "Enable AIO support" if EXPERT
- 	default y
- 	help
- 	  This option enables POSIX asynchronous I/O which may by used
-@@ -1149,16 +1157,16 @@ endmenu
- 
- config VM_EVENT_COUNTERS
- 	default y
--	bool "Enable VM event counters for /proc/vmstat" if EMBEDDED
-+	bool "Enable VM event counters for /proc/vmstat" if EXPERT
- 	help
- 	  VM event counters are needed for event counts to be shown.
- 	  This option allows the disabling of the VM event counters
--	  on EMBEDDED systems.  /proc/vmstat will only show page counts
-+	  on EXPERT systems.  /proc/vmstat will only show page counts
- 	  if VM event counters are disabled.
- 
- config PCI_QUIRKS
- 	default y
--	bool "Enable PCI quirk workarounds" if EMBEDDED
-+	bool "Enable PCI quirk workarounds" if EXPERT
- 	depends on PCI
- 	help
- 	  This enables workarounds for various PCI chipset
-@@ -1167,7 +1175,7 @@ config PCI_QUIRKS
- 
- config SLUB_DEBUG
- 	default y
--	bool "Enable SLUB debugging support" if EMBEDDED
-+	bool "Enable SLUB debugging support" if EXPERT
- 	depends on SLUB && SYSFS
- 	help
- 	  SLUB has extensive debug support features. Disabling these can
-@@ -1211,7 +1219,7 @@ config SLUB
- 	   a slab allocator.
- 
- config SLOB
--	depends on EMBEDDED
-+	depends on EXPERT
- 	bool "SLOB (Simple Allocator)"
- 	help
- 	   SLOB replaces the stock allocator with a drastically simpler
-@@ -1222,7 +1230,7 @@ endchoice
- 
- config MMAP_ALLOW_UNINITIALIZED
- 	bool "Allow mmapped anonymous memory to be uninitialized"
--	depends on EMBEDDED && !MMU
-+	depends on EXPERT && !MMU
- 	default n
- 	help
- 	  Normally, and according to the Linux spec, anonymous memory obtained
-diff -puN lib/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert lib/Kconfig.debug
---- a/lib/Kconfig.debug~kconfig-rename-config_embedded-to-config_expert
-+++ a/lib/Kconfig.debug
-@@ -657,7 +657,7 @@ config DEBUG_HIGHMEM
- 	  Disable for production systems.
- 
- config DEBUG_BUGVERBOSE
--	bool "Verbose BUG() reporting (adds 70K)" if DEBUG_KERNEL && EMBEDDED
-+	bool "Verbose BUG() reporting (adds 70K)" if DEBUG_KERNEL && EXPERT
- 	depends on BUG
- 	depends on ARM || AVR32 || M32R || M68K || SPARC32 || SPARC64 || \
- 		   FRV || SUPERH || GENERIC_BUG || BLACKFIN || MN10300
-@@ -729,8 +729,8 @@ config DEBUG_WRITECOUNT
- 	  If unsure, say N.
- 
- config DEBUG_MEMORY_INIT
--	bool "Debug memory initialisation" if EMBEDDED
--	default !EMBEDDED
-+	bool "Debug memory initialisation" if EXPERT
-+	default !EXPERT
- 	help
- 	  Enable this for additional checks during memory initialisation.
- 	  The sanity checks verify aspects of the VM such as the memory model
-diff -puN lib/xz/Kconfig~kconfig-rename-config_embedded-to-config_expert lib/xz/Kconfig
---- a/lib/xz/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/lib/xz/Kconfig
-@@ -7,37 +7,37 @@ config XZ_DEC
- 	  CRC32 is supported. See Documentation/xz.txt for more information.
- 
- config XZ_DEC_X86
--	bool "x86 BCJ filter decoder" if EMBEDDED
-+	bool "x86 BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_POWERPC
--	bool "PowerPC BCJ filter decoder" if EMBEDDED
-+	bool "PowerPC BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_IA64
--	bool "IA-64 BCJ filter decoder" if EMBEDDED
-+	bool "IA-64 BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARM
--	bool "ARM BCJ filter decoder" if EMBEDDED
-+	bool "ARM BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARMTHUMB
--	bool "ARM-Thumb BCJ filter decoder" if EMBEDDED
-+	bool "ARM-Thumb BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_SPARC
--	bool "SPARC BCJ filter decoder" if EMBEDDED
-+	bool "SPARC BCJ filter decoder" if EXPERT
- 	default y
- 	depends on XZ_DEC
- 	select XZ_DEC_BCJ
-diff -puN net/mac80211/Kconfig~kconfig-rename-config_embedded-to-config_expert net/mac80211/Kconfig
---- a/net/mac80211/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/net/mac80211/Kconfig
-@@ -20,7 +20,7 @@ config MAC80211_HAS_RC
- 	def_bool n
- 
- config MAC80211_RC_PID
--	bool "PID controller based rate control algorithm" if EMBEDDED
-+	bool "PID controller based rate control algorithm" if EXPERT
- 	select MAC80211_HAS_RC
- 	---help---
- 	  This option enables a TX rate control algorithm for
-@@ -28,14 +28,14 @@ config MAC80211_RC_PID
- 	  rate.
- 
- config MAC80211_RC_MINSTREL
--	bool "Minstrel" if EMBEDDED
-+	bool "Minstrel" if EXPERT
- 	select MAC80211_HAS_RC
- 	default y
- 	---help---
- 	  This option enables the 'minstrel' TX rate control algorithm
- 
- config MAC80211_RC_MINSTREL_HT
--	bool "Minstrel 802.11n support" if EMBEDDED
-+	bool "Minstrel 802.11n support" if EXPERT
- 	depends on MAC80211_RC_MINSTREL
- 	default y
- 	---help---
-diff -puN net/rfkill/Kconfig~kconfig-rename-config_embedded-to-config_expert net/rfkill/Kconfig
---- a/net/rfkill/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/net/rfkill/Kconfig
-@@ -18,7 +18,7 @@ config RFKILL_LEDS
- 	default y
- 
- config RFKILL_INPUT
--	bool "RF switch input support" if EMBEDDED
-+	bool "RF switch input support" if EXPERT
- 	depends on RFKILL
- 	depends on INPUT = y || RFKILL = INPUT
--	default y if !EMBEDDED
-+	default y if !EXPERT
-diff -puN net/wireless/Kconfig~kconfig-rename-config_embedded-to-config_expert net/wireless/Kconfig
---- a/net/wireless/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/net/wireless/Kconfig
-@@ -95,7 +95,7 @@ config CFG80211_DEBUGFS
- 	  If unsure, say N.
- 
- config CFG80211_INTERNAL_REGDB
--	bool "use statically compiled regulatory rules database" if EMBEDDED
-+	bool "use statically compiled regulatory rules database" if EXPERT
- 	default n
- 	depends on CFG80211
- 	---help---
-diff -puN usr/Kconfig~kconfig-rename-config_embedded-to-config_expert usr/Kconfig
---- a/usr/Kconfig~kconfig-rename-config_embedded-to-config_expert
-+++ a/usr/Kconfig
-@@ -46,7 +46,7 @@ config INITRAMFS_ROOT_GID
- 	  If you are not sure, leave it set to "0".
- 
- config RD_GZIP
--	bool "Support initial ramdisks compressed using gzip" if EMBEDDED
-+	bool "Support initial ramdisks compressed using gzip" if EXPERT
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_GZIP
-@@ -55,8 +55,8 @@ config RD_GZIP
- 	  If unsure, say Y.
- 
- config RD_BZIP2
--	bool "Support initial ramdisks compressed using bzip2" if EMBEDDED
--	default !EMBEDDED
-+	bool "Support initial ramdisks compressed using bzip2" if EXPERT
-+	default !EXPERT
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_BZIP2
- 	help
-@@ -64,8 +64,8 @@ config RD_BZIP2
- 	  If unsure, say N.
- 
- config RD_LZMA
--	bool "Support initial ramdisks compressed using LZMA" if EMBEDDED
--	default !EMBEDDED
-+	bool "Support initial ramdisks compressed using LZMA" if EXPERT
-+	default !EXPERT
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZMA
- 	help
-@@ -73,8 +73,8 @@ config RD_LZMA
- 	  If unsure, say N.
- 
- config RD_XZ
--	bool "Support initial ramdisks compressed using XZ" if EMBEDDED
--	default !EMBEDDED
-+	bool "Support initial ramdisks compressed using XZ" if EXPERT
-+	default !EXPERT
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_XZ
- 	help
-@@ -82,8 +82,8 @@ config RD_XZ
- 	  If unsure, say N.
- 
- config RD_LZO
--	bool "Support initial ramdisks compressed using LZO" if EMBEDDED
--	default !EMBEDDED
-+	bool "Support initial ramdisks compressed using LZO" if EXPERT
-+	default !EXPERT
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZO
- 	help
+ 	int i;
+-	acquire_console_sem();
++	console_lock();
+ 	i = bfin_jc_circ_write(buf, count);
+-	release_console_sem();
++	console_unlock();
+ 	wake_up_process(bfin_jc_kthread);
+ 	return i;
+ }
+diff -puN drivers/gpu/drm/nouveau/nouveau_drv.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/gpu/drm/nouveau/nouveau_drv.c
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/gpu/drm/nouveau/nouveau_drv.c
+@@ -234,9 +234,9 @@ nouveau_pci_suspend(struct pci_dev *pdev
+ 		pci_set_power_state(pdev, PCI_D3hot);
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	nouveau_fbcon_set_suspend(dev, 1);
+-	release_console_sem();
++	console_unlock();
+ 	nouveau_fbcon_restore_accel(dev);
+ 	return 0;
+ 
+@@ -359,9 +359,9 @@ nouveau_pci_resume(struct pci_dev *pdev)
+ 		nv_crtc->lut.depth = 0;
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	nouveau_fbcon_set_suspend(dev, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	nouveau_fbcon_zfill_all(dev);
+ 
+diff -puN drivers/gpu/drm/radeon/radeon_device.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/gpu/drm/radeon/radeon_device.c
+--- a/drivers/gpu/drm/radeon/radeon_device.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/gpu/drm/radeon/radeon_device.c
+@@ -891,9 +891,9 @@ int radeon_suspend_kms(struct drm_device
+ 		pci_disable_device(dev->pdev);
+ 		pci_set_power_state(dev->pdev, PCI_D3hot);
+ 	}
+-	acquire_console_sem();
++	console_lock();
+ 	radeon_fbdev_set_suspend(rdev, 1);
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ 
+@@ -905,11 +905,11 @@ int radeon_resume_kms(struct drm_device 
+ 	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	pci_set_power_state(dev->pdev, PCI_D0);
+ 	pci_restore_state(dev->pdev);
+ 	if (pci_enable_device(dev->pdev)) {
+-		release_console_sem();
++		console_unlock();
+ 		return -1;
+ 	}
+ 	pci_set_master(dev->pdev);
+@@ -920,7 +920,7 @@ int radeon_resume_kms(struct drm_device 
+ 	radeon_restore_bios_scratch_regs(rdev);
+ 
+ 	radeon_fbdev_set_suspend(rdev, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	/* reset hpd state */
+ 	radeon_hpd_init(rdev);
+diff -puN drivers/serial/sb1250-duart.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/serial/sb1250-duart.c
+--- a/drivers/serial/sb1250-duart.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/serial/sb1250-duart.c
+@@ -829,7 +829,7 @@ static void __init sbd_probe_duarts(void
+ #ifdef CONFIG_SERIAL_SB1250_DUART_CONSOLE
+ /*
+  * Serial console stuff.  Very basic, polling driver for doing serial
+- * console output.  The console_sem is held by the caller, so we
++ * console output.  The console_lock is held by the caller, so we
+  * shouldn't be interrupted for more console activity.
+  */
+ static void sbd_console_putchar(struct uart_port *uport, int ch)
+diff -puN drivers/staging/msm/msm_fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/staging/msm/msm_fb.c
+--- a/drivers/staging/msm/msm_fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/staging/msm/msm_fb.c
+@@ -347,7 +347,7 @@ static int msm_fb_suspend(struct platfor
+ 	if ((!mfd) || (mfd->key != MFD_KEY))
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(mfd->fbi, 1);
+ 
+ 	ret = msm_fb_suspend_sub(mfd);
+@@ -358,7 +358,7 @@ static int msm_fb_suspend(struct platfor
+ 		pdev->dev.power.power_state = state;
+ 	}
+ 
+-	release_console_sem();
++	console_unlock();
+ 	return ret;
+ }
+ #else
+@@ -431,11 +431,11 @@ static int msm_fb_resume(struct platform
+ 	if ((!mfd) || (mfd->key != MFD_KEY))
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	ret = msm_fb_resume_sub(mfd);
+ 	pdev->dev.power.power_state = PMSG_ON;
+ 	fb_set_suspend(mfd->fbi, 1);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return ret;
+ }
+diff -puN drivers/staging/olpc_dcon/olpc_dcon.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/staging/olpc_dcon/olpc_dcon.c
+--- a/drivers/staging/olpc_dcon/olpc_dcon.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/staging/olpc_dcon/olpc_dcon.c
+@@ -373,17 +373,17 @@ static void dcon_source_switch(struct wo
+ 		 *
+ 		 * For now, we just hope..
+ 		 */
+-		acquire_console_sem();
++		console_lock();
+ 		ignore_fb_events = 1;
+ 		if (fb_blank(fbinfo, FB_BLANK_UNBLANK)) {
+ 			ignore_fb_events = 0;
+-			release_console_sem();
++			console_unlock();
+ 			printk(KERN_ERR "olpc-dcon:  Failed to enter CPU mode\n");
+ 			dcon_pending = DCON_SOURCE_DCON;
+ 			return;
+ 		}
+ 		ignore_fb_events = 0;
+-		release_console_sem();
++		console_unlock();
+ 
+ 		/* And turn off the DCON */
+ 		pdata->set_dconload(1);
+@@ -435,12 +435,12 @@ static void dcon_source_switch(struct wo
+ 			}
+ 		}
+ 
+-		acquire_console_sem();
++		console_lock();
+ 		ignore_fb_events = 1;
+ 		if (fb_blank(fbinfo, FB_BLANK_POWERDOWN))
+ 			printk(KERN_ERR "olpc-dcon:  couldn't blank fb!\n");
+ 		ignore_fb_events = 0;
+-		release_console_sem();
++		console_unlock();
+ 
+ 		printk(KERN_INFO "olpc-dcon: The DCON has control\n");
+ 		break;
+diff -puN drivers/staging/sm7xx/smtcfb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/staging/sm7xx/smtcfb.c
+--- a/drivers/staging/sm7xx/smtcfb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/staging/sm7xx/smtcfb.c
+@@ -1044,9 +1044,9 @@ static int __maybe_unused smtcfb_suspend
+ 
+ 	/* when doing suspend, call fb apis and pci apis */
+ 	if (msg.event == PM_EVENT_SUSPEND) {
+-		acquire_console_sem();
++		console_lock();
+ 		fb_set_suspend(&sfb->fb, 1);
+-		release_console_sem();
++		console_unlock();
+ 		retv = pci_save_state(pdev);
+ 		pci_disable_device(pdev);
+ 		retv = pci_choose_state(pdev, msg);
+@@ -1105,9 +1105,9 @@ static int __maybe_unused smtcfb_resume(
+ 
+ 	smtcfb_setmode(sfb);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(&sfb->fb, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/tty/tty_io.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/tty/tty_io.c
+--- a/drivers/tty/tty_io.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/tty/tty_io.c
+@@ -3256,7 +3256,7 @@ static ssize_t show_cons_active(struct d
+ 	struct console *c;
+ 	ssize_t count = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	for (c = console_drivers; c; c = c->next) {
+ 		if (!c->device)
+ 			continue;
+@@ -3271,7 +3271,7 @@ static ssize_t show_cons_active(struct d
+ 	while (i--)
+ 		count += sprintf(buf + count, "%s%d%c",
+ 				 cs[i]->name, cs[i]->index, i ? ' ':'\n');
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return count;
+ }
+diff -puN drivers/tty/vt/selection.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/tty/vt/selection.c
+--- a/drivers/tty/vt/selection.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/tty/vt/selection.c
+@@ -316,9 +316,9 @@ int paste_selection(struct tty_struct *t
+ 	/* always called with BTM from vt_ioctl */
+ 	WARN_ON(!tty_locked());
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	poke_blanked_console();
+-	release_console_sem();
++	console_unlock();
+ 
+ 	ld = tty_ldisc_ref(tty);
+ 	if (!ld) {
+diff -puN drivers/tty/vt/vc_screen.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/tty/vt/vc_screen.c
+--- a/drivers/tty/vt/vc_screen.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/tty/vt/vc_screen.c
+@@ -202,7 +202,7 @@ vcs_read(struct file *file, char __user 
+ 	/* Select the proper current console and verify
+ 	 * sanity of the situation under the console lock.
+ 	 */
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	attr = (currcons & 128);
+ 	currcons = (currcons & 127);
+@@ -336,9 +336,9 @@ vcs_read(struct file *file, char __user 
+ 		 * the pagefault handling code may want to call printk().
+ 		 */
+ 
+-		release_console_sem();
++		console_unlock();
+ 		ret = copy_to_user(buf, con_buf_start, orig_count);
+-		acquire_console_sem();
++		console_lock();
+ 
+ 		if (ret) {
+ 			read += (orig_count - ret);
+@@ -354,7 +354,7 @@ vcs_read(struct file *file, char __user 
+ 	if (read)
+ 		ret = read;
+ unlock_out:
+-	release_console_sem();
++	console_unlock();
+ 	mutex_unlock(&con_buf_mtx);
+ 	return ret;
+ }
+@@ -379,7 +379,7 @@ vcs_write(struct file *file, const char 
+ 	/* Select the proper current console and verify
+ 	 * sanity of the situation under the console lock.
+ 	 */
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	attr = (currcons & 128);
+ 	currcons = (currcons & 127);
+@@ -414,9 +414,9 @@ vcs_write(struct file *file, const char 
+ 		/* Temporarily drop the console lock so that we can read
+ 		 * in the write data from userspace safely.
+ 		 */
+-		release_console_sem();
++		console_unlock();
+ 		ret = copy_from_user(con_buf, buf, this_round);
+-		acquire_console_sem();
++		console_lock();
+ 
+ 		if (ret) {
+ 			this_round -= ret;
+@@ -542,7 +542,7 @@ vcs_write(struct file *file, const char 
+ 		vcs_scr_updated(vc);
+ 
+ unlock_out:
+-	release_console_sem();
++	console_unlock();
+ 
+ 	mutex_unlock(&con_buf_mtx);
+ 
+diff -puN drivers/tty/vt/vt.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/tty/vt/vt.c
+--- a/drivers/tty/vt/vt.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/tty/vt/vt.c
+@@ -1003,9 +1003,9 @@ static int vt_resize(struct tty_struct *
+ 	struct vc_data *vc = tty->driver_data;
+ 	int ret;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	ret = vc_do_resize(tty, vc, ws->ws_col, ws->ws_row);
+-	release_console_sem();
++	console_unlock();
+ 	return ret;
+ }
+ 
+@@ -1271,7 +1271,7 @@ static void default_attr(struct vc_data 
+ 	vc->vc_color = vc->vc_def_color;
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void csi_m(struct vc_data *vc)
+ {
+ 	int i;
+@@ -1415,7 +1415,7 @@ int mouse_reporting(void)
+ 	return vc_cons[fg_console].d->vc_report_mouse;
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void set_mode(struct vc_data *vc, int on_off)
+ {
+ 	int i;
+@@ -1485,7 +1485,7 @@ static void set_mode(struct vc_data *vc,
+ 		}
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void setterm_command(struct vc_data *vc)
+ {
+ 	switch(vc->vc_par[0]) {
+@@ -1545,7 +1545,7 @@ static void setterm_command(struct vc_da
+ 	}
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void csi_at(struct vc_data *vc, unsigned int nr)
+ {
+ 	if (nr > vc->vc_cols - vc->vc_x)
+@@ -1555,7 +1555,7 @@ static void csi_at(struct vc_data *vc, u
+ 	insert_char(vc, nr);
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void csi_L(struct vc_data *vc, unsigned int nr)
+ {
+ 	if (nr > vc->vc_rows - vc->vc_y)
+@@ -1566,7 +1566,7 @@ static void csi_L(struct vc_data *vc, un
+ 	vc->vc_need_wrap = 0;
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void csi_P(struct vc_data *vc, unsigned int nr)
+ {
+ 	if (nr > vc->vc_cols - vc->vc_x)
+@@ -1576,7 +1576,7 @@ static void csi_P(struct vc_data *vc, un
+ 	delete_char(vc, nr);
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void csi_M(struct vc_data *vc, unsigned int nr)
+ {
+ 	if (nr > vc->vc_rows - vc->vc_y)
+@@ -1587,7 +1587,7 @@ static void csi_M(struct vc_data *vc, un
+ 	vc->vc_need_wrap = 0;
+ }
+ 
+-/* console_sem is held (except via vc_init->reset_terminal */
++/* console_lock is held (except via vc_init->reset_terminal */
+ static void save_cur(struct vc_data *vc)
+ {
+ 	vc->vc_saved_x		= vc->vc_x;
+@@ -1603,7 +1603,7 @@ static void save_cur(struct vc_data *vc)
+ 	vc->vc_saved_G1		= vc->vc_G1_charset;
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void restore_cur(struct vc_data *vc)
+ {
+ 	gotoxy(vc, vc->vc_saved_x, vc->vc_saved_y);
+@@ -1625,7 +1625,7 @@ enum { ESnormal, ESesc, ESsquare, ESgetp
+ 	EShash, ESsetG0, ESsetG1, ESpercent, ESignore, ESnonstd,
+ 	ESpalette };
+ 
+-/* console_sem is held (except via vc_init()) */
++/* console_lock is held (except via vc_init()) */
+ static void reset_terminal(struct vc_data *vc, int do_clear)
+ {
+ 	vc->vc_top		= 0;
+@@ -1685,7 +1685,7 @@ static void reset_terminal(struct vc_dat
+ 	    csi_J(vc, 2);
+ }
+ 
+-/* console_sem is held */
++/* console_lock is held */
+ static void do_con_trol(struct tty_struct *tty, struct vc_data *vc, int c)
+ {
+ 	/*
+@@ -2119,7 +2119,7 @@ static int is_double_width(uint32_t ucs)
+ 	return bisearch(ucs, double_width, ARRAY_SIZE(double_width) - 1);
+ }
+ 
+-/* acquires console_sem */
++/* acquires console_lock */
+ static int do_con_write(struct tty_struct *tty, const unsigned char *buf, int count)
+ {
+ #ifdef VT_BUF_VRAM_ONLY
+@@ -2147,11 +2147,11 @@ static int do_con_write(struct tty_struc
+ 
+ 	might_sleep();
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	vc = tty->driver_data;
+ 	if (vc == NULL) {
+ 		printk(KERN_ERR "vt: argh, driver_data is NULL !\n");
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -2159,7 +2159,7 @@ static int do_con_write(struct tty_struc
+ 	if (!vc_cons_allocated(currcons)) {
+ 	    /* could this happen? */
+ 		printk_once("con_write: tty %d not allocated\n", currcons+1);
+-	    release_console_sem();
++	    console_unlock();
+ 	    return 0;
+ 	}
+ 
+@@ -2375,7 +2375,7 @@ rescan_last_byte:
+ 	}
+ 	FLUSH
+ 	console_conditional_schedule();
+-	release_console_sem();
++	console_unlock();
+ 	notify_update(vc);
+ 	return n;
+ #undef FLUSH
+@@ -2388,11 +2388,11 @@ rescan_last_byte:
+  * us to do the switches asynchronously (needed when we want
+  * to switch due to a keyboard interrupt).  Synchronization
+  * with other console code and prevention of re-entrancy is
+- * ensured with console_sem.
++ * ensured with console_lock.
+  */
+ static void console_callback(struct work_struct *ignored)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	if (want_console >= 0) {
+ 		if (want_console != fg_console &&
+@@ -2422,7 +2422,7 @@ static void console_callback(struct work
+ 	}
+ 	notify_update(vc_cons[fg_console].d);
+ 
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ int set_console(int nr)
+@@ -2603,7 +2603,7 @@ static struct console vt_console_driver 
+  */
+ 
+ /*
+- * Generally a bit racy with respect to console_sem().
++ * Generally a bit racy with respect to console_lock();.
+  *
+  * There are some functions which don't need it.
+  *
+@@ -2629,17 +2629,17 @@ int tioclinux(struct tty_struct *tty, un
+ 	switch (type)
+ 	{
+ 		case TIOCL_SETSEL:
+-			acquire_console_sem();
++			console_lock();
+ 			ret = set_selection((struct tiocl_selection __user *)(p+1), tty);
+-			release_console_sem();
++			console_unlock();
+ 			break;
+ 		case TIOCL_PASTESEL:
+ 			ret = paste_selection(tty);
+ 			break;
+ 		case TIOCL_UNBLANKSCREEN:
+-			acquire_console_sem();
++			console_lock();
+ 			unblank_screen();
+-			release_console_sem();
++			console_unlock();
+ 			break;
+ 		case TIOCL_SELLOADLUT:
+ 			ret = sel_loadlut(p);
+@@ -2688,10 +2688,10 @@ int tioclinux(struct tty_struct *tty, un
+ 			}
+ 			break;
+ 		case TIOCL_BLANKSCREEN:	/* until explicitly unblanked, not only poked */
+-			acquire_console_sem();
++			console_lock();
+ 			ignore_poke = 1;
+ 			do_blank_screen(0);
+-			release_console_sem();
++			console_unlock();
+ 			break;
+ 		case TIOCL_BLANKEDSCREEN:
+ 			ret = console_blanked;
+@@ -2790,11 +2790,11 @@ static void con_flush_chars(struct tty_s
+ 		return;
+ 
+ 	/* if we race with con_close(), vt may be null */
+-	acquire_console_sem();
++	console_lock();
+ 	vc = tty->driver_data;
+ 	if (vc)
+ 		set_cursor(vc);
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ /*
+@@ -2805,7 +2805,7 @@ static int con_open(struct tty_struct *t
+ 	unsigned int currcons = tty->index;
+ 	int ret = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (tty->driver_data == NULL) {
+ 		ret = vc_allocate(currcons);
+ 		if (ret == 0) {
+@@ -2813,7 +2813,7 @@ static int con_open(struct tty_struct *t
+ 
+ 			/* Still being freed */
+ 			if (vc->port.tty) {
+-				release_console_sem();
++				console_unlock();
+ 				return -ERESTARTSYS;
+ 			}
+ 			tty->driver_data = vc;
+@@ -2827,11 +2827,11 @@ static int con_open(struct tty_struct *t
+ 				tty->termios->c_iflag |= IUTF8;
+ 			else
+ 				tty->termios->c_iflag &= ~IUTF8;
+-			release_console_sem();
++			console_unlock();
+ 			return ret;
+ 		}
+ 	}
+-	release_console_sem();
++	console_unlock();
+ 	return ret;
+ }
+ 
+@@ -2844,9 +2844,9 @@ static void con_shutdown(struct tty_stru
+ {
+ 	struct vc_data *vc = tty->driver_data;
+ 	BUG_ON(vc == NULL);
+-	acquire_console_sem();
++	console_lock();
+ 	vc->port.tty = NULL;
+-	release_console_sem();
++	console_unlock();
+ 	tty_shutdown(tty);
+ }
+ 
+@@ -2893,13 +2893,13 @@ static int __init con_init(void)
+ 	struct vc_data *vc;
+ 	unsigned int currcons = 0, i;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	if (conswitchp)
+ 		display_desc = conswitchp->con_startup();
+ 	if (!display_desc) {
+ 		fg_console = 0;
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -2946,7 +2946,7 @@ static int __init con_init(void)
+ 	printable = 1;
+ 	printk("\n");
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ #ifdef CONFIG_VT_CONSOLE
+ 	register_console(&vt_console_driver);
+@@ -3037,7 +3037,7 @@ static int bind_con_driver(const struct 
+ 	if (!try_module_get(owner))
+ 		return -ENODEV;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	/* check if driver is registered */
+ 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
+@@ -3122,7 +3122,7 @@ static int bind_con_driver(const struct 
+ 
+ 	retval = 0;
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	module_put(owner);
+ 	return retval;
+ };
+@@ -3171,7 +3171,7 @@ int unbind_con_driver(const struct consw
+ 	if (!try_module_get(owner))
+ 		return -ENODEV;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	/* check if driver is registered and if it is unbindable */
+ 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
+@@ -3185,7 +3185,7 @@ int unbind_con_driver(const struct consw
+ 	}
+ 
+ 	if (retval) {
+-		release_console_sem();
++		console_unlock();
+ 		goto err;
+ 	}
+ 
+@@ -3204,12 +3204,12 @@ int unbind_con_driver(const struct consw
+ 	}
+ 
+ 	if (retval) {
+-		release_console_sem();
++		console_unlock();
+ 		goto err;
+ 	}
+ 
+ 	if (!con_is_bound(csw)) {
+-		release_console_sem();
++		console_unlock();
+ 		goto err;
+ 	}
+ 
+@@ -3238,7 +3238,7 @@ int unbind_con_driver(const struct consw
+ 	if (!con_is_bound(csw))
+ 		con_driver->flag &= ~CON_DRIVER_FLAG_INIT;
+ 
+-	release_console_sem();
++	console_unlock();
+ 	/* ignore return value, binding should not fail */
+ 	bind_con_driver(defcsw, first, last, deflt);
+ err:
+@@ -3538,7 +3538,7 @@ int register_con_driver(const struct con
+ 	if (!try_module_get(owner))
+ 		return -ENODEV;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
+ 		con_driver = &registered_con_driver[i];
+@@ -3592,7 +3592,7 @@ int register_con_driver(const struct con
+ 	}
+ 
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	module_put(owner);
+ 	return retval;
+ }
+@@ -3613,7 +3613,7 @@ int unregister_con_driver(const struct c
+ {
+ 	int i, retval = -ENODEV;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	/* cannot unregister a bound driver */
+ 	if (con_is_bound(csw))
+@@ -3639,7 +3639,7 @@ int unregister_con_driver(const struct c
+ 		}
+ 	}
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return retval;
+ }
+ EXPORT_SYMBOL(unregister_con_driver);
+@@ -3934,9 +3934,9 @@ int con_set_cmap(unsigned char __user *a
+ {
+ 	int rc;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	rc = set_get_cmap (arg,1);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return rc;
+ }
+@@ -3945,9 +3945,9 @@ int con_get_cmap(unsigned char __user *a
+ {
+ 	int rc;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	rc = set_get_cmap (arg,0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return rc;
+ }
+@@ -3994,12 +3994,12 @@ static int con_font_get(struct vc_data *
+ 	} else
+ 		font.data = NULL;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (vc->vc_sw->con_font_get)
+ 		rc = vc->vc_sw->con_font_get(vc, &font);
+ 	else
+ 		rc = -ENOSYS;
+-	release_console_sem();
++	console_unlock();
+ 
+ 	if (rc)
+ 		goto out;
+@@ -4076,12 +4076,12 @@ static int con_font_set(struct vc_data *
+ 	font.data = memdup_user(op->data, size);
+ 	if (IS_ERR(font.data))
+ 		return PTR_ERR(font.data);
+-	acquire_console_sem();
++	console_lock();
+ 	if (vc->vc_sw->con_font_set)
+ 		rc = vc->vc_sw->con_font_set(vc, &font, op->flags);
+ 	else
+ 		rc = -ENOSYS;
+-	release_console_sem();
++	console_unlock();
+ 	kfree(font.data);
+ 	return rc;
+ }
+@@ -4103,12 +4103,12 @@ static int con_font_default(struct vc_da
+ 	else
+ 		name[MAX_FONT_NAME - 1] = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (vc->vc_sw->con_font_default)
+ 		rc = vc->vc_sw->con_font_default(vc, &font, s);
+ 	else
+ 		rc = -ENOSYS;
+-	release_console_sem();
++	console_unlock();
+ 	if (!rc) {
+ 		op->width = font.width;
+ 		op->height = font.height;
+@@ -4124,7 +4124,7 @@ static int con_font_copy(struct vc_data 
+ 	if (vc->vc_mode != KD_TEXT)
+ 		return -EINVAL;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (!vc->vc_sw->con_font_copy)
+ 		rc = -ENOSYS;
+ 	else if (con < 0 || !vc_cons_allocated(con))
+@@ -4133,7 +4133,7 @@ static int con_font_copy(struct vc_data 
+ 		rc = 0;
+ 	else
+ 		rc = vc->vc_sw->con_font_copy(vc, con);
+-	release_console_sem();
++	console_unlock();
+ 	return rc;
+ }
+ 
+diff -puN drivers/tty/vt/vt_ioctl.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/tty/vt/vt_ioctl.c
+--- a/drivers/tty/vt/vt_ioctl.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/tty/vt/vt_ioctl.c
+@@ -649,12 +649,12 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		/*
+ 		 * explicitly blank/unblank the screen if switching modes
+ 		 */
+-		acquire_console_sem();
++		console_lock();
+ 		if (arg == KD_TEXT)
+ 			do_unblank_screen(1);
+ 		else
+ 			do_blank_screen(1);
+-		release_console_sem();
++		console_unlock();
+ 		break;
+ 
+ 	case KDGETMODE:
+@@ -893,7 +893,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-		acquire_console_sem();
++		console_lock();
+ 		vc->vt_mode = tmp;
+ 		/* the frsig is ignored, so we set it to 0 */
+ 		vc->vt_mode.frsig = 0;
+@@ -901,7 +901,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		vc->vt_pid = get_pid(task_pid(current));
+ 		/* no switch is required -- saw@shade.msu.ru */
+ 		vc->vt_newvt = -1;
+-		release_console_sem();
++		console_unlock();
+ 		break;
+ 	}
+ 
+@@ -910,9 +910,9 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		struct vt_mode tmp;
+ 		int rc;
+ 
+-		acquire_console_sem();
++		console_lock();
+ 		memcpy(&tmp, &vc->vt_mode, sizeof(struct vt_mode));
+-		release_console_sem();
++		console_unlock();
+ 
+ 		rc = copy_to_user(up, &tmp, sizeof(struct vt_mode));
+ 		if (rc)
+@@ -965,9 +965,9 @@ int vt_ioctl(struct tty_struct *tty, str
+ 			ret =  -ENXIO;
+ 		else {
+ 			arg--;
+-			acquire_console_sem();
++			console_lock();
+ 			ret = vc_allocate(arg);
+-			release_console_sem();
++			console_unlock();
+ 			if (ret)
+ 				break;
+ 			set_console(arg);
+@@ -990,7 +990,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 			ret = -ENXIO;
+ 		else {
+ 			vsa.console--;
+-			acquire_console_sem();
++			console_lock();
+ 			ret = vc_allocate(vsa.console);
+ 			if (ret == 0) {
+ 				struct vc_data *nvc;
+@@ -1003,7 +1003,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 				put_pid(nvc->vt_pid);
+ 				nvc->vt_pid = get_pid(task_pid(current));
+ 			}
+-			release_console_sem();
++			console_unlock();
+ 			if (ret)
+ 				break;
+ 			/* Commence switch and lock */
+@@ -1044,7 +1044,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		/*
+ 		 * Switching-from response
+ 		 */
+-		acquire_console_sem();
++		console_lock();
+ 		if (vc->vt_newvt >= 0) {
+ 			if (arg == 0)
+ 				/*
+@@ -1063,7 +1063,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 				vc->vt_newvt = -1;
+ 				ret = vc_allocate(newvt);
+ 				if (ret) {
+-					release_console_sem();
++					console_unlock();
+ 					break;
+ 				}
+ 				/*
+@@ -1083,7 +1083,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 			if (arg != VT_ACKACQ)
+ 				ret = -EINVAL;
+ 		}
+-		release_console_sem();
++		console_unlock();
+ 		break;
+ 
+ 	 /*
+@@ -1096,20 +1096,20 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		}
+ 		if (arg == 0) {
+ 		    /* deallocate all unused consoles, but leave 0 */
+-			acquire_console_sem();
++			console_lock();
+ 			for (i=1; i<MAX_NR_CONSOLES; i++)
+ 				if (! VT_BUSY(i))
+ 					vc_deallocate(i);
+-			release_console_sem();
++			console_unlock();
+ 		} else {
+ 			/* deallocate a single console, if possible */
+ 			arg--;
+ 			if (VT_BUSY(arg))
+ 				ret = -EBUSY;
+ 			else if (arg) {			      /* leave 0 */
+-				acquire_console_sem();
++				console_lock();
+ 				vc_deallocate(arg);
+-				release_console_sem();
++				console_unlock();
+ 			}
+ 		}
+ 		break;
+@@ -1126,7 +1126,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		    get_user(cc, &vtsizes->v_cols))
+ 			ret = -EFAULT;
+ 		else {
+-			acquire_console_sem();
++			console_lock();
+ 			for (i = 0; i < MAX_NR_CONSOLES; i++) {
+ 				vc = vc_cons[i].d;
+ 
+@@ -1135,7 +1135,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 					vc_resize(vc_cons[i].d, cc, ll);
+ 				}
+ 			}
+-			release_console_sem();
++			console_unlock();
+ 		}
+ 		break;
+ 	}
+@@ -1187,14 +1187,14 @@ int vt_ioctl(struct tty_struct *tty, str
+ 		for (i = 0; i < MAX_NR_CONSOLES; i++) {
+ 			if (!vc_cons[i].d)
+ 				continue;
+-			acquire_console_sem();
++			console_lock();
+ 			if (vlin)
+ 				vc_cons[i].d->vc_scan_lines = vlin;
+ 			if (clin)
+ 				vc_cons[i].d->vc_font.height = clin;
+ 			vc_cons[i].d->vc_resize_user = 1;
+ 			vc_resize(vc_cons[i].d, cc, ll);
+-			release_console_sem();
++			console_unlock();
+ 		}
+ 		break;
+ 	}
+@@ -1367,7 +1367,7 @@ void vc_SAK(struct work_struct *work)
+ 	struct vc_data *vc;
+ 	struct tty_struct *tty;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	vc = vc_con->d;
+ 	if (vc) {
+ 		tty = vc->port.tty;
+@@ -1379,7 +1379,7 @@ void vc_SAK(struct work_struct *work)
+ 			__do_SAK(tty);
+ 		reset_vc(vc);
+ 	}
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ #ifdef CONFIG_COMPAT
+@@ -1737,10 +1737,10 @@ int vt_move_to_console(unsigned int vt, 
+ {
+ 	int prev;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	/* Graphics mode - up to X */
+ 	if (disable_vt_switch) {
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 	prev = fg_console;
+@@ -1748,7 +1748,7 @@ int vt_move_to_console(unsigned int vt, 
+ 	if (alloc && vc_allocate(vt)) {
+ 		/* we can't have a free VC for now. Too bad,
+ 		 * we don't want to mess the screen for now. */
+-		release_console_sem();
++		console_unlock();
+ 		return -ENOSPC;
+ 	}
+ 
+@@ -1758,10 +1758,10 @@ int vt_move_to_console(unsigned int vt, 
+ 		 * Let the calling function know so it can decide
+ 		 * what to do.
+ 		 */
+-		release_console_sem();
++		console_unlock();
+ 		return -EIO;
+ 	}
+-	release_console_sem();
++	console_unlock();
+ 	tty_lock();
+ 	if (vt_waitactive(vt + 1)) {
+ 		pr_debug("Suspend: Can't switch VCs.");
+@@ -1781,8 +1781,8 @@ int vt_move_to_console(unsigned int vt, 
+  */
+ void pm_set_vt_switch(int do_switch)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	disable_vt_switch = !do_switch;
+-	release_console_sem();
++	console_unlock();
+ }
+ EXPORT_SYMBOL(pm_set_vt_switch);
+diff -puN drivers/video/arkfb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/arkfb.c
+--- a/drivers/video/arkfb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/arkfb.c
+@@ -23,7 +23,7 @@
+ #include <linux/svga.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <linux/console.h> /* Why should fb driver call console functions? because acquire_console_sem() */
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+ #include <video/vga.h>
+ 
+ #ifdef CONFIG_MTRR
+@@ -1091,12 +1091,12 @@ static int ark_pci_suspend (struct pci_d
+ 
+ 	dev_info(info->device, "suspend\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0)) {
+ 		mutex_unlock(&(par->open_lock));
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -1107,7 +1107,7 @@ static int ark_pci_suspend (struct pci_d
+ 	pci_set_power_state(dev, pci_choose_state(dev, state));
+ 
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -1122,7 +1122,7 @@ static int ark_pci_resume (struct pci_de
+ 
+ 	dev_info(info->device, "resume\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if (par->ref_count == 0)
+@@ -1141,7 +1141,7 @@ static int ark_pci_resume (struct pci_de
+ 
+ fail:
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ #else
+diff -puN drivers/video/aty/aty128fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/aty/aty128fb.c
+@@ -1861,11 +1861,11 @@ static void aty128_early_resume(void *da
+ {
+         struct aty128fb_par *par = data;
+ 
+-	if (try_acquire_console_sem())
++	if (!console_trylock())
+ 		return;
+ 	pci_restore_state(par->pdev);
+ 	aty128_do_resume(par->pdev);
+-	release_console_sem();
++	console_unlock();
+ }
+ #endif /* CONFIG_PPC_PMAC */
+ 
+@@ -2439,7 +2439,7 @@ static int aty128_pci_suspend(struct pci
+ 
+ 	printk(KERN_DEBUG "aty128fb: suspending...\n");
+ 	
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	fb_set_suspend(info, 1);
+ 
+@@ -2471,7 +2471,7 @@ static int aty128_pci_suspend(struct pci
+ 	if (state.event != PM_EVENT_ON)
+ 		aty128_set_suspend(par, 1);
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ 	pdev->dev.power.power_state = state;
+ 
+@@ -2528,9 +2528,9 @@ static int aty128_pci_resume(struct pci_
+ {
+ 	int rc;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	rc = aty128_do_resume(pdev);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return rc;
+ }
+diff -puN drivers/video/aty/atyfb_base.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2069,7 +2069,7 @@ static int atyfb_pci_suspend(struct pci_
+ 	if (state.event == pdev->dev.power.power_state.event)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	fb_set_suspend(info, 1);
+ 
+@@ -2097,14 +2097,14 @@ static int atyfb_pci_suspend(struct pci_
+ 		par->lock_blank = 0;
+ 		atyfb_blank(FB_BLANK_UNBLANK, info);
+ 		fb_set_suspend(info, 0);
+-		release_console_sem();
++		console_unlock();
+ 		return -EIO;
+ 	}
+ #else
+ 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
+ #endif
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ 	pdev->dev.power.power_state = state;
+ 
+@@ -2133,7 +2133,7 @@ static int atyfb_pci_resume(struct pci_d
+ 	if (pdev->dev.power.power_state.event == PM_EVENT_ON)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	/*
+ 	 * PCI state will have been restored by the core, so
+@@ -2161,7 +2161,7 @@ static int atyfb_pci_resume(struct pci_d
+ 	par->lock_blank = 0;
+ 	atyfb_blank(FB_BLANK_UNBLANK, info);
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ 	pdev->dev.power.power_state = PMSG_ON;
+ 
+diff -puN drivers/video/aty/radeon_pm.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/aty/radeon_pm.c
+@@ -2626,7 +2626,7 @@ int radeonfb_pci_suspend(struct pci_dev 
+ 		goto done;
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	fb_set_suspend(info, 1);
+ 
+@@ -2690,7 +2690,7 @@ int radeonfb_pci_suspend(struct pci_dev 
+ 	if (rinfo->pm_mode & radeon_pm_d2)
+ 		radeon_set_suspend(rinfo, 1);
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+  done:
+ 	pdev->dev.power.power_state = mesg;
+@@ -2715,10 +2715,10 @@ int radeonfb_pci_resume(struct pci_dev *
+ 		return 0;
+ 
+ 	if (rinfo->no_schedule) {
+-		if (try_acquire_console_sem())
++		if (!console_trylock())
+ 			return 0;
+ 	} else
+-		acquire_console_sem();
++		console_lock();
+ 
+ 	printk(KERN_DEBUG "radeonfb (%s): resuming from state: %d...\n",
+ 	       pci_name(pdev), pdev->dev.power.power_state.event);
+@@ -2783,7 +2783,7 @@ int radeonfb_pci_resume(struct pci_dev *
+ 	pdev->dev.power.power_state = PMSG_ON;
+ 
+  bail:
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return rc;
+ }
+diff -puN drivers/video/chipsfb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/chipsfb.c
+@@ -460,10 +460,10 @@ static int chipsfb_pci_suspend(struct pc
+ 	if (!(state.event & PM_EVENT_SLEEP))
+ 		goto done;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	chipsfb_blank(1, p);
+ 	fb_set_suspend(p, 1);
+-	release_console_sem();
++	console_unlock();
+  done:
+ 	pdev->dev.power.power_state = state;
+ 	return 0;
+@@ -473,10 +473,10 @@ static int chipsfb_pci_resume(struct pci
+ {
+         struct fb_info *p = pci_get_drvdata(pdev);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(p, 0);
+ 	chipsfb_blank(0, p);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	pdev->dev.power.power_state = PMSG_ON;
+ 	return 0;
+diff -puN drivers/video/console/fbcon.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/console/fbcon.c
+@@ -375,14 +375,14 @@ static void fb_flashcursor(struct work_s
+ 	int c;
+ 	int mode;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (ops && ops->currcon != -1)
+ 		vc = vc_cons[ops->currcon].d;
+ 
+ 	if (!vc || !CON_IS_VISIBLE(vc) ||
+  	    registered_fb[con2fb_map[vc->vc_num]] != info ||
+ 	    vc->vc_deccm != 1) {
+-		release_console_sem();
++		console_unlock();
+ 		return;
+ 	}
+ 
+@@ -392,7 +392,7 @@ static void fb_flashcursor(struct work_s
+ 		CM_ERASE : CM_DRAW;
+ 	ops->cursor(vc, info, mode, softback_lines, get_color(vc, info, c, 1),
+ 		    get_color(vc, info, c, 0));
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ static void cursor_timer_handler(unsigned long dev_addr)
+@@ -836,7 +836,7 @@ static int set_con2fb_map(int unit, int 
+ 
+ 	found = search_fb_in_map(newidx);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	con2fb_map[unit] = newidx;
+ 	if (!err && !found)
+  		err = con2fb_acquire_newinfo(vc, info, unit, oldidx);
+@@ -863,7 +863,7 @@ static int set_con2fb_map(int unit, int 
+ 	if (!search_fb_in_map(info_idx))
+ 		info_idx = newidx;
+ 
+-	release_console_sem();
++	console_unlock();
+  	return err;
+ }
+ 
+@@ -3321,7 +3321,7 @@ static ssize_t store_rotate(struct devic
+ 	if (fbcon_has_exited)
+ 		return count;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	idx = con2fb_map[fg_console];
+ 
+ 	if (idx == -1 || registered_fb[idx] == NULL)
+@@ -3331,7 +3331,7 @@ static ssize_t store_rotate(struct devic
+ 	rotate = simple_strtoul(buf, last, 0);
+ 	fbcon_rotate(info, rotate);
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return count;
+ }
+ 
+@@ -3346,7 +3346,7 @@ static ssize_t store_rotate_all(struct d
+ 	if (fbcon_has_exited)
+ 		return count;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	idx = con2fb_map[fg_console];
+ 
+ 	if (idx == -1 || registered_fb[idx] == NULL)
+@@ -3356,7 +3356,7 @@ static ssize_t store_rotate_all(struct d
+ 	rotate = simple_strtoul(buf, last, 0);
+ 	fbcon_rotate_all(info, rotate);
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return count;
+ }
+ 
+@@ -3369,7 +3369,7 @@ static ssize_t show_rotate(struct device
+ 	if (fbcon_has_exited)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	idx = con2fb_map[fg_console];
+ 
+ 	if (idx == -1 || registered_fb[idx] == NULL)
+@@ -3378,7 +3378,7 @@ static ssize_t show_rotate(struct device
+ 	info = registered_fb[idx];
+ 	rotate = fbcon_get_rotate(info);
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", rotate);
+ }
+ 
+@@ -3392,7 +3392,7 @@ static ssize_t show_cursor_blink(struct 
+ 	if (fbcon_has_exited)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	idx = con2fb_map[fg_console];
+ 
+ 	if (idx == -1 || registered_fb[idx] == NULL)
+@@ -3406,7 +3406,7 @@ static ssize_t show_cursor_blink(struct 
+ 
+ 	blink = (ops->flags & FBCON_FLAGS_CURSOR_TIMER) ? 1 : 0;
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", blink);
+ }
+ 
+@@ -3421,7 +3421,7 @@ static ssize_t store_cursor_blink(struct
+ 	if (fbcon_has_exited)
+ 		return count;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	idx = con2fb_map[fg_console];
+ 
+ 	if (idx == -1 || registered_fb[idx] == NULL)
+@@ -3443,7 +3443,7 @@ static ssize_t store_cursor_blink(struct
+ 	}
+ 
+ err:
+-	release_console_sem();
++	console_unlock();
+ 	return count;
+ }
+ 
+@@ -3482,7 +3482,7 @@ static void fbcon_start(void)
+ 	if (num_registered_fb) {
+ 		int i;
+ 
+-		acquire_console_sem();
++		console_lock();
+ 
+ 		for (i = 0; i < FB_MAX; i++) {
+ 			if (registered_fb[i] != NULL) {
+@@ -3491,7 +3491,7 @@ static void fbcon_start(void)
+ 			}
+ 		}
+ 
+-		release_console_sem();
++		console_unlock();
+ 		fbcon_takeover(0);
+ 	}
+ }
+@@ -3552,7 +3552,7 @@ static int __init fb_console_init(void)
+ {
+ 	int i;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_register_client(&fbcon_event_notifier);
+ 	fbcon_device = device_create(fb_class, NULL, MKDEV(0, 0), NULL,
+ 				     "fbcon");
+@@ -3568,7 +3568,7 @@ static int __init fb_console_init(void)
+ 	for (i = 0; i < MAX_NR_CONSOLES; i++)
+ 		con2fb_map[i] = -1;
+ 
+-	release_console_sem();
++	console_unlock();
+ 	fbcon_start();
+ 	return 0;
+ }
+@@ -3591,12 +3591,12 @@ static void __exit fbcon_deinit_device(v
+ 
+ static void __exit fb_console_exit(void)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	fb_unregister_client(&fbcon_event_notifier);
+ 	fbcon_deinit_device();
+ 	device_destroy(fb_class, MKDEV(0, 0));
+ 	fbcon_exit();
+-	release_console_sem();
++	console_unlock();
+ 	unregister_con_driver(&fb_con);
+ }	
+ 
+diff -puN drivers/video/da8xx-fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/da8xx-fb.c
+@@ -1130,14 +1130,14 @@ static int fb_suspend(struct platform_de
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct da8xx_fb_par *par = info->par;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (par->panel_power_ctrl)
+ 		par->panel_power_ctrl(0);
+ 
+ 	fb_set_suspend(info, 1);
+ 	lcd_disable_raster();
+ 	clk_disable(par->lcdc_clk);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -1146,14 +1146,14 @@ static int fb_resume(struct platform_dev
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct da8xx_fb_par *par = info->par;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (par->panel_power_ctrl)
+ 		par->panel_power_ctrl(1);
+ 
+ 	clk_enable(par->lcdc_clk);
+ 	lcd_enable_raster();
+ 	fb_set_suspend(info, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/fbmem.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/fbmem.c
+@@ -1036,11 +1036,11 @@ static long do_fb_ioctl(struct fb_info *
+ 			return -EFAULT;
+ 		if (!lock_fb_info(info))
+ 			return -ENODEV;
+-		acquire_console_sem();
++		console_lock();
+ 		info->flags |= FBINFO_MISC_USEREVENT;
+ 		ret = fb_set_var(info, &var);
+ 		info->flags &= ~FBINFO_MISC_USEREVENT;
+-		release_console_sem();
++		console_unlock();
+ 		unlock_fb_info(info);
+ 		if (!ret && copy_to_user(argp, &var, sizeof(var)))
+ 			ret = -EFAULT;
+@@ -1072,9 +1072,9 @@ static long do_fb_ioctl(struct fb_info *
+ 			return -EFAULT;
+ 		if (!lock_fb_info(info))
+ 			return -ENODEV;
+-		acquire_console_sem();
++		console_lock();
+ 		ret = fb_pan_display(info, &var);
+-		release_console_sem();
++		console_unlock();
+ 		unlock_fb_info(info);
+ 		if (ret == 0 && copy_to_user(argp, &var, sizeof(var)))
+ 			return -EFAULT;
+@@ -1119,11 +1119,11 @@ static long do_fb_ioctl(struct fb_info *
+ 	case FBIOBLANK:
+ 		if (!lock_fb_info(info))
+ 			return -ENODEV;
+-		acquire_console_sem();
++		console_lock();
+ 		info->flags |= FBINFO_MISC_USEREVENT;
+ 		ret = fb_blank(info, arg);
+ 		info->flags &= ~FBINFO_MISC_USEREVENT;
+-		release_console_sem();
++		console_unlock();
+ 		unlock_fb_info(info);
+ 		break;
+ 	default:
+diff -puN drivers/video/fbsysfs.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/fbsysfs.c
+--- a/drivers/video/fbsysfs.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/fbsysfs.c
+@@ -90,11 +90,11 @@ static int activate(struct fb_info *fb_i
+ 	int err;
+ 
+ 	var->activate |= FB_ACTIVATE_FORCE;
+-	acquire_console_sem();
++	console_lock();
+ 	fb_info->flags |= FBINFO_MISC_USEREVENT;
+ 	err = fb_set_var(fb_info, var);
+ 	fb_info->flags &= ~FBINFO_MISC_USEREVENT;
+-	release_console_sem();
++	console_unlock();
+ 	if (err)
+ 		return err;
+ 	return 0;
+@@ -175,7 +175,7 @@ static ssize_t store_modes(struct device
+ 	if (i * sizeof(struct fb_videomode) != count)
+ 		return -EINVAL;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	list_splice(&fb_info->modelist, &old_list);
+ 	fb_videomode_to_modelist((const struct fb_videomode *)buf, i,
+ 				 &fb_info->modelist);
+@@ -185,7 +185,7 @@ static ssize_t store_modes(struct device
+ 	} else
+ 		fb_destroy_modelist(&old_list);
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -301,11 +301,11 @@ static ssize_t store_blank(struct device
+ 	char *last = NULL;
+ 	int err;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_info->flags |= FBINFO_MISC_USEREVENT;
+ 	err = fb_blank(fb_info, simple_strtoul(buf, &last, 0));
+ 	fb_info->flags &= ~FBINFO_MISC_USEREVENT;
+-	release_console_sem();
++	console_unlock();
+ 	if (err < 0)
+ 		return err;
+ 	return count;
+@@ -364,9 +364,9 @@ static ssize_t store_pan(struct device *
+ 		return -EINVAL;
+ 	var.yoffset = simple_strtoul(last, &last, 0);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	err = fb_pan_display(fb_info, &var);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	if (err < 0)
+ 		return err;
+@@ -399,9 +399,9 @@ static ssize_t store_fbstate(struct devi
+ 
+ 	state = simple_strtoul(buf, &last, 0);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(fb_info, (int)state);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return count;
+ }
+diff -puN drivers/video/geode/gxfb_core.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/geode/gxfb_core.c
+@@ -344,10 +344,10 @@ static int gxfb_suspend(struct pci_dev *
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+ 
+ 	if (state.event == PM_EVENT_SUSPEND) {
+-		acquire_console_sem();
++		console_lock();
+ 		gx_powerdown(info);
+ 		fb_set_suspend(info, 1);
+-		release_console_sem();
++		console_unlock();
+ 	}
+ 
+ 	/* there's no point in setting PCI states; we emulate PCI, so
+@@ -361,7 +361,7 @@ static int gxfb_resume(struct pci_dev *p
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+ 	int ret;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	ret = gx_powerup(info);
+ 	if (ret) {
+ 		printk(KERN_ERR "gxfb:  power up failed!\n");
+@@ -369,7 +369,7 @@ static int gxfb_resume(struct pci_dev *p
+ 	}
+ 
+ 	fb_set_suspend(info, 0);
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ #endif
+diff -puN drivers/video/geode/lxfb_core.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/geode/lxfb_core.c
+@@ -465,10 +465,10 @@ static int lxfb_suspend(struct pci_dev *
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+ 
+ 	if (state.event == PM_EVENT_SUSPEND) {
+-		acquire_console_sem();
++		console_lock();
+ 		lx_powerdown(info);
+ 		fb_set_suspend(info, 1);
+-		release_console_sem();
++		console_unlock();
+ 	}
+ 
+ 	/* there's no point in setting PCI states; we emulate PCI, so
+@@ -482,7 +482,7 @@ static int lxfb_resume(struct pci_dev *p
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+ 	int ret;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	ret = lx_powerup(info);
+ 	if (ret) {
+ 		printk(KERN_ERR "lxfb:  power up failed!\n");
+@@ -490,7 +490,7 @@ static int lxfb_resume(struct pci_dev *p
+ 	}
+ 
+ 	fb_set_suspend(info, 0);
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ #else
+diff -puN drivers/video/i810/i810_main.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/i810/i810_main.c
+--- a/drivers/video/i810/i810_main.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/i810/i810_main.c
+@@ -1574,7 +1574,7 @@ static int i810fb_suspend(struct pci_dev
+ 		return 0;
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(info, 1);
+ 
+ 	if (info->fbops->fb_sync)
+@@ -1587,7 +1587,7 @@ static int i810fb_suspend(struct pci_dev
+ 	pci_save_state(dev);
+ 	pci_disable_device(dev);
+ 	pci_set_power_state(dev, pci_choose_state(dev, mesg));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -1605,7 +1605,7 @@ static int i810fb_resume(struct pci_dev 
+ 		return 0;
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+ 
+@@ -1621,7 +1621,7 @@ static int i810fb_resume(struct pci_dev 
+ 	fb_set_suspend (info, 0);
+ 	info->fbops->fb_blank(VESA_NO_BLANKING, info);
+ fail:
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ /***********************************************************************
+diff -puN drivers/video/jz4740_fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/jz4740_fb.c
+--- a/drivers/video/jz4740_fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/jz4740_fb.c
+@@ -778,9 +778,9 @@ static int jzfb_suspend(struct device *d
+ {
+ 	struct jzfb *jzfb = dev_get_drvdata(dev);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(jzfb->fb, 1);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	mutex_lock(&jzfb->lock);
+ 	if (jzfb->is_enabled)
+@@ -800,9 +800,9 @@ static int jzfb_resume(struct device *de
+ 		jzfb_enable(jzfb);
+ 	mutex_unlock(&jzfb->lock);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(jzfb->fb, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/mx3fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/mx3fb.c
+--- a/drivers/video/mx3fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/mx3fb.c
+@@ -1177,9 +1177,9 @@ static int mx3fb_suspend(struct platform
+ 	struct mx3fb_data *mx3fb = platform_get_drvdata(pdev);
+ 	struct mx3fb_info *mx3_fbi = mx3fb->fbi->par;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(mx3fb->fbi, 1);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	if (mx3_fbi->blank == FB_BLANK_UNBLANK) {
+ 		sdc_disable_channel(mx3_fbi);
+@@ -1202,9 +1202,9 @@ static int mx3fb_resume(struct platform_
+ 		sdc_set_brightness(mx3fb, mx3fb->backlight_level);
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(mx3fb->fbi, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/nvidia/nvidia.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/nvidia/nvidia.c
+@@ -1057,7 +1057,7 @@ static int nvidiafb_suspend(struct pci_d
+ 
+ 	if (mesg.event == PM_EVENT_PRETHAW)
+ 		mesg.event = PM_EVENT_FREEZE;
+-	acquire_console_sem();
++	console_lock();
+ 	par->pm_state = mesg.event;
+ 
+ 	if (mesg.event & PM_EVENT_SLEEP) {
+@@ -1070,7 +1070,7 @@ static int nvidiafb_suspend(struct pci_d
+ 	}
+ 	dev->dev.power.power_state = mesg;
+ 
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ 
+@@ -1079,7 +1079,7 @@ static int nvidiafb_resume(struct pci_de
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct nvidia_par *par = info->par;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	pci_set_power_state(dev, PCI_D0);
+ 
+ 	if (par->pm_state != PM_EVENT_FREEZE) {
+@@ -1097,7 +1097,7 @@ static int nvidiafb_resume(struct pci_de
+ 	nvidiafb_blank(FB_BLANK_UNBLANK, info);
+ 
+ fail:
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ #else
+diff -puN drivers/video/ps3fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/ps3fb.c
+@@ -513,9 +513,9 @@ static int ps3fb_release(struct fb_info 
+ 	if (atomic_dec_and_test(&ps3fb.f_count)) {
+ 		if (atomic_read(&ps3fb.ext_flip)) {
+ 			atomic_set(&ps3fb.ext_flip, 0);
+-			if (!try_acquire_console_sem()) {
++			if (console_trylock()) {
+ 				ps3fb_sync(info, 0);	/* single buffer */
+-				release_console_sem();
++				console_unlock();
+ 			}
+ 		}
+ 	}
+@@ -830,14 +830,14 @@ static int ps3fb_ioctl(struct fb_info *i
+ 			if (vmode) {
+ 				var = info->var;
+ 				fb_videomode_to_var(&var, vmode);
+-				acquire_console_sem();
++				console_lock();
+ 				info->flags |= FBINFO_MISC_USEREVENT;
+ 				/* Force, in case only special bits changed */
+ 				var.activate |= FB_ACTIVATE_FORCE;
+ 				par->new_mode_id = val;
+ 				retval = fb_set_var(info, &var);
+ 				info->flags &= ~FBINFO_MISC_USEREVENT;
+-				release_console_sem();
++				console_unlock();
+ 			}
+ 			break;
+ 		}
+@@ -881,9 +881,9 @@ static int ps3fb_ioctl(struct fb_info *i
+ 			break;
+ 
+ 		dev_dbg(info->device, "PS3FB_IOCTL_FSEL:%d\n", val);
+-		acquire_console_sem();
++		console_lock();
+ 		retval = ps3fb_sync(info, val);
+-		release_console_sem();
++		console_unlock();
+ 		break;
+ 
+ 	default:
+@@ -903,9 +903,9 @@ static int ps3fbd(void *arg)
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 		if (ps3fb.is_kicked) {
+ 			ps3fb.is_kicked = 0;
+-			acquire_console_sem();
++			console_lock();
+ 			ps3fb_sync(info, 0);	/* single buffer */
+-			release_console_sem();
++			console_unlock();
+ 		}
+ 		schedule();
+ 	}
+diff -puN drivers/video/s3fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/s3fb.c
+@@ -22,7 +22,7 @@
+ #include <linux/svga.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <linux/console.h> /* Why should fb driver call console functions? because acquire_console_sem() */
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+ #include <video/vga.h>
+ 
+ #ifdef CONFIG_MTRR
+@@ -1113,12 +1113,12 @@ static int s3_pci_suspend(struct pci_dev
+ 
+ 	dev_info(info->device, "suspend\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0)) {
+ 		mutex_unlock(&(par->open_lock));
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -1129,7 +1129,7 @@ static int s3_pci_suspend(struct pci_dev
+ 	pci_set_power_state(dev, pci_choose_state(dev, state));
+ 
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -1145,12 +1145,12 @@ static int s3_pci_resume(struct pci_dev*
+ 
+ 	dev_info(info->device, "resume\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if (par->ref_count == 0) {
+ 		mutex_unlock(&(par->open_lock));
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -1159,7 +1159,7 @@ static int s3_pci_resume(struct pci_dev*
+ 	err = pci_enable_device(dev);
+ 	if (err) {
+ 		mutex_unlock(&(par->open_lock));
+-		release_console_sem();
++		console_unlock();
+ 		dev_err(info->device, "error %d enabling device for resume\n", err);
+ 		return err;
+ 	}
+@@ -1169,7 +1169,7 @@ static int s3_pci_resume(struct pci_dev*
+ 	fb_set_suspend(info, 0);
+ 
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/savage/savagefb_driver.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/savage/savagefb_driver.c
+--- a/drivers/video/savage/savagefb_driver.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/savage/savagefb_driver.c
+@@ -2373,7 +2373,7 @@ static int savagefb_suspend(struct pci_d
+ 	if (mesg.event == PM_EVENT_FREEZE)
+ 		return 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(info, 1);
+ 
+ 	if (info->fbops->fb_sync)
+@@ -2385,7 +2385,7 @@ static int savagefb_suspend(struct pci_d
+ 	pci_save_state(dev);
+ 	pci_disable_device(dev);
+ 	pci_set_power_state(dev, pci_choose_state(dev, mesg));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -2409,7 +2409,7 @@ static int savagefb_resume(struct pci_de
+ 		return 0;
+ 	}
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+@@ -2423,7 +2423,7 @@ static int savagefb_resume(struct pci_de
+ 	savagefb_set_par(info);
+ 	fb_set_suspend(info, 0);
+ 	savagefb_blank(FB_BLANK_UNBLANK, info);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/sh_mobile_hdmi.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/sh_mobile_hdmi.c
+--- a/drivers/video/sh_mobile_hdmi.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/sh_mobile_hdmi.c
+@@ -1151,7 +1151,7 @@ static void sh_hdmi_edid_work_fn(struct 
+ 
+ 		ch = info->par;
+ 
+-		acquire_console_sem();
++		console_lock();
+ 
+ 		/* HDMI plug in */
+ 		if (!sh_hdmi_must_reconfigure(hdmi) &&
+@@ -1171,7 +1171,7 @@ static void sh_hdmi_edid_work_fn(struct 
+ 			fb_set_suspend(info, 0);
+ 		}
+ 
+-		release_console_sem();
++		console_unlock();
+ 	} else {
+ 		ret = 0;
+ 		if (!hdmi->info)
+@@ -1181,12 +1181,12 @@ static void sh_hdmi_edid_work_fn(struct 
+ 		fb_destroy_modedb(hdmi->monspec.modedb);
+ 		hdmi->monspec.modedb = NULL;
+ 
+-		acquire_console_sem();
++		console_lock();
+ 
+ 		/* HDMI disconnect */
+ 		fb_set_suspend(hdmi->info, 1);
+ 
+-		release_console_sem();
++		console_unlock();
+ 		pm_runtime_put(hdmi->dev);
+ 	}
+ 
+diff -puN drivers/video/sh_mobile_lcdcfb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/sh_mobile_lcdcfb.c
+--- a/drivers/video/sh_mobile_lcdcfb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/sh_mobile_lcdcfb.c
+@@ -912,9 +912,9 @@ static int sh_mobile_release(struct fb_i
+ 
+ 	/* Nothing to reconfigure, when called from fbcon */
+ 	if (user) {
+-		acquire_console_sem();
++		console_lock();
+ 		sh_mobile_fb_reconfig(info);
+-		release_console_sem();
++		console_unlock();
+ 	}
+ 
+ 	mutex_unlock(&ch->open_lock);
+diff -puN drivers/video/sm501fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/sm501fb.c
+@@ -2010,9 +2010,9 @@ static int sm501fb_suspend_fb(struct sm5
+ 
+ 	/* tell console/fb driver we are suspending */
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(fbi, 1);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	/* backup copies in case chip is powered down over suspend */
+ 
+@@ -2069,9 +2069,9 @@ static void sm501fb_resume_fb(struct sm5
+ 		memcpy_toio(par->cursor.k_addr, par->store_cursor,
+ 			    par->cursor.size);
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(fbi, 0);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	vfree(par->store_fb);
+ 	vfree(par->store_cursor);
+diff -puN drivers/video/tmiofb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/tmiofb.c
+--- a/drivers/video/tmiofb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/tmiofb.c
+@@ -25,7 +25,7 @@
+ #include <linux/fb.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+-/* Why should fb driver call console functions? because acquire_console_sem() */
++/* Why should fb driver call console functions? because console_lock() */
+ #include <linux/console.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/tmio.h>
+@@ -944,7 +944,7 @@ static int tmiofb_suspend(struct platfor
+ 	struct mfd_cell *cell = dev->dev.platform_data;
+ 	int retval = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	fb_set_suspend(info, 1);
+ 
+@@ -965,7 +965,7 @@ static int tmiofb_suspend(struct platfor
+ 	if (cell->suspend)
+ 		retval = cell->suspend(dev);
+ 
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return retval;
+ }
+@@ -976,7 +976,7 @@ static int tmiofb_resume(struct platform
+ 	struct mfd_cell *cell = dev->dev.platform_data;
+ 	int retval = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 
+ 	if (cell->resume) {
+ 		retval = cell->resume(dev);
+@@ -992,7 +992,7 @@ static int tmiofb_resume(struct platform
+ 
+ 	fb_set_suspend(info, 0);
+ out:
+-	release_console_sem();
++	console_unlock();
+ 	return retval;
+ }
+ #else
+diff -puN drivers/video/via/viafbdev.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/via/viafbdev.c
+@@ -1674,17 +1674,17 @@ static int parse_mode(const char *str, u
+ #ifdef CONFIG_PM
+ static int viafb_suspend(void *unused)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	fb_set_suspend(viafbinfo, 1);
+ 	viafb_sync(viafbinfo);
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+ 
+ static int viafb_resume(void *unused)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	if (viaparinfo->shared->vdev->engine_mmio)
+ 		viafb_reset_engine(viaparinfo);
+ 	viafb_set_par(viafbinfo);
+@@ -1692,7 +1692,7 @@ static int viafb_resume(void *unused)
+ 		viafb_set_par(viafbinfo1);
+ 	fb_set_suspend(viafbinfo, 0);
+ 
+-	release_console_sem();
++	console_unlock();
+ 	return 0;
+ }
+ 
+diff -puN drivers/video/vt8623fb.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/vt8623fb.c
+@@ -23,7 +23,7 @@
+ #include <linux/svga.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <linux/console.h> /* Why should fb driver call console functions? because acquire_console_sem() */
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+ #include <video/vga.h>
+ 
+ #ifdef CONFIG_MTRR
+@@ -819,12 +819,12 @@ static int vt8623_pci_suspend(struct pci
+ 
+ 	dev_info(info->device, "suspend\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0)) {
+ 		mutex_unlock(&(par->open_lock));
+-		release_console_sem();
++		console_unlock();
+ 		return 0;
+ 	}
+ 
+@@ -835,7 +835,7 @@ static int vt8623_pci_suspend(struct pci
+ 	pci_set_power_state(dev, pci_choose_state(dev, state));
+ 
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+@@ -850,7 +850,7 @@ static int vt8623_pci_resume(struct pci_
+ 
+ 	dev_info(info->device, "resume\n");
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	mutex_lock(&(par->open_lock));
+ 
+ 	if (par->ref_count == 0)
+@@ -869,7 +869,7 @@ static int vt8623_pci_resume(struct pci_
+ 
+ fail:
+ 	mutex_unlock(&(par->open_lock));
+-	release_console_sem();
++	console_unlock();
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/xen-fbfront.c~change-acquire-release_console_sem-to-console_lock-unlock drivers/video/xen-fbfront.c
+--- a/drivers/video/xen-fbfront.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/drivers/video/xen-fbfront.c
+@@ -491,12 +491,12 @@ xenfb_make_preferred_console(void)
+ 	if (console_set_on_cmdline)
+ 		return;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	for_each_console(c) {
+ 		if (!strcmp(c->name, "tty") && c->index == 0)
+ 			break;
+ 	}
+-	release_console_sem();
++	console_unlock();
+ 	if (c) {
+ 		unregister_console(c);
+ 		c->flags |= CON_CONSDEV;
+diff -puN fs/proc/consoles.c~change-acquire-release_console_sem-to-console_lock-unlock fs/proc/consoles.c
+--- a/fs/proc/consoles.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/fs/proc/consoles.c
+@@ -67,7 +67,7 @@ static void *c_start(struct seq_file *m,
+ 	struct console *con;
+ 	loff_t off = 0;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	for_each_console(con)
+ 		if (off++ == *pos)
+ 			break;
+@@ -84,7 +84,7 @@ static void *c_next(struct seq_file *m, 
+ 
+ static void c_stop(struct seq_file *m, void *v)
+ {
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ static const struct seq_operations consoles_op = {
+diff -puN include/linux/console.h~change-acquire-release_console_sem-to-console_lock-unlock include/linux/console.h
+--- a/include/linux/console.h~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/include/linux/console.h
+@@ -139,9 +139,9 @@ extern int update_console_cmdline(char *
+ extern void register_console(struct console *);
+ extern int unregister_console(struct console *);
+ extern struct console *console_drivers;
+-extern void acquire_console_sem(void);
+-extern int try_acquire_console_sem(void);
+-extern void release_console_sem(void);
++extern void console_lock(void);
++extern int console_trylock(void);
++extern void console_unlock(void);
+ extern void console_conditional_schedule(void);
+ extern void console_unblank(void);
+ extern struct tty_driver *console_device(int *);
+diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock kernel/printk.c
+--- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock
++++ a/kernel/printk.c
+@@ -97,7 +97,7 @@ static int console_locked, console_suspe
+ /*
+  * logbuf_lock protects log_buf, log_start, log_end, con_start and logged_chars
+  * It is also used in interesting ways to provide interlocking in
+- * release_console_sem().
++ * console_unlock();.
+  */
+ static DEFINE_SPINLOCK(logbuf_lock);
+ 
+@@ -501,7 +501,7 @@ static void _call_console_drivers(unsign
+ /*
+  * Call the console drivers, asking them to write out
+  * log_buf[start] to log_buf[end - 1].
+- * The console_sem must be held.
++ * The console_lock must be held.
+  */
+ static void call_console_drivers(unsigned start, unsigned end)
+ {
+@@ -604,11 +604,11 @@ static int have_callable_console(void)
+  *
+  * This is printk().  It can be called from any context.  We want it to work.
+  *
+- * We try to grab the console_sem.  If we succeed, it's easy - we log the output and
++ * We try to grab the console_lock.  If we succeed, it's easy - we log the output and
+  * call the console drivers.  If we fail to get the semaphore we place the output
+  * into the log buffer and return.  The current holder of the console_sem will
+- * notice the new output in release_console_sem() and will send it to the
+- * consoles before releasing the semaphore.
++ * notice the new output in console_unlock(); and will send it to the
++ * consoles before releasing the lock.
+  *
+  * One effect of this deferred printing is that code which calls printk() and
+  * then changes console_loglevel may break. This is because console_loglevel
+@@ -659,19 +659,19 @@ static inline int can_use_console(unsign
+ /*
+  * Try to get console ownership to actually show the kernel
+  * messages from a 'printk'. Return true (and with the
+- * console_semaphore held, and 'console_locked' set) if it
++ * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+  *
+  * This gets called with the 'logbuf_lock' spinlock held and
+  * interrupts disabled. It should return with 'lockbuf_lock'
+  * released but interrupts still disabled.
+  */
+-static int acquire_console_semaphore_for_printk(unsigned int cpu)
++static int console_trylock_for_printk(unsigned int cpu)
+ 	__releases(&logbuf_lock)
+ {
+ 	int retval = 0;
+ 
+-	if (!try_acquire_console_sem()) {
++	if (console_trylock()) {
+ 		retval = 1;
+ 
+ 		/*
+@@ -827,12 +827,12 @@ asmlinkage int vprintk(const char *fmt, 
+ 	 * actual magic (print out buffers, wake up klogd,
+ 	 * etc). 
+ 	 *
+-	 * The acquire_console_semaphore_for_printk() function
++	 * The console_trylock_for_printk() function
+ 	 * will release 'logbuf_lock' regardless of whether it
+ 	 * actually gets the semaphore or not.
+ 	 */
+-	if (acquire_console_semaphore_for_printk(this_cpu))
+-		release_console_sem();
++	if (console_trylock_for_printk(this_cpu))
++		console_unlock();
+ 
+ 	lockdep_on();
+ out_restore_irqs:
+@@ -993,7 +993,7 @@ void suspend_console(void)
+ 	if (!console_suspend_enabled)
+ 		return;
+ 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
+-	acquire_console_sem();
++	console_lock();;
+ 	console_suspended = 1;
+ 	up(&console_sem);
+ }
+@@ -1004,7 +1004,7 @@ void resume_console(void)
+ 		return;
+ 	down(&console_sem);
+ 	console_suspended = 0;
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ /**
+@@ -1027,21 +1027,21 @@ static int __cpuinit console_cpu_notify(
+ 	case CPU_DYING:
+ 	case CPU_DOWN_FAILED:
+ 	case CPU_UP_CANCELED:
+-		acquire_console_sem();
+-		release_console_sem();
++		console_lock();;
++		console_unlock();
+ 	}
+ 	return NOTIFY_OK;
+ }
+ 
+ /**
+- * acquire_console_sem - lock the console system for exclusive use.
++ * console_lock - lock the console system for exclusive use.
+  *
+- * Acquires a semaphore which guarantees that the caller has
++ * Acquires a lock which guarantees that the caller has
+  * exclusive access to the console system and the console_drivers list.
+  *
+  * Can sleep, returns nothing.
+  */
+-void acquire_console_sem(void)
++void console_lock(void)
+ {
+ 	BUG_ON(in_interrupt());
+ 	down(&console_sem);
+@@ -1050,21 +1050,29 @@ void acquire_console_sem(void)
+ 	console_locked = 1;
+ 	console_may_schedule = 1;
+ }
+-EXPORT_SYMBOL(acquire_console_sem);
++EXPORT_SYMBOL(console_lock);
+ 
+-int try_acquire_console_sem(void)
++/**
++ * console_trylock - try to lock the console system for exclusive use.
++ *
++ * Tried to acquire a lock which guarantees that the caller has
++ * exclusive access to the console system and the console_drivers list.
++ *
++ * returns -1 on success, and 0 on failure to acquire the lock.
++ */
++int console_trylock(void)
+ {
+ 	if (down_trylock(&console_sem))
+-		return -1;
++		return 0;
+ 	if (console_suspended) {
+ 		up(&console_sem);
+-		return -1;
++		return 0;
+ 	}
+ 	console_locked = 1;
+ 	console_may_schedule = 0;
+-	return 0;
++	return -1;
+ }
+-EXPORT_SYMBOL(try_acquire_console_sem);
++EXPORT_SYMBOL(console_trylock);
+ 
+ int is_console_locked(void)
+ {
+@@ -1095,20 +1103,20 @@ void wake_up_klogd(void)
+ }
+ 
+ /**
+- * release_console_sem - unlock the console system
++ * console_unlock - unlock the console system
+  *
+- * Releases the semaphore which the caller holds on the console system
++ * Releases the console_lock which the caller holds on the console system
+  * and the console driver list.
+  *
+- * While the semaphore was held, console output may have been buffered
+- * by printk().  If this is the case, release_console_sem() emits
+- * the output prior to releasing the semaphore.
++ * While the console_lock was held, console output may have been buffered
++ * by printk().  If this is the case, console_unlock(); emits
++ * the output prior to releasing the lock.
+  *
+  * If there is output waiting for klogd, we wake it up.
+  *
+- * release_console_sem() may be called from any context.
++ * console_unlock(); may be called from any context.
+  */
+-void release_console_sem(void)
++void console_unlock(void)
+ {
+ 	unsigned long flags;
+ 	unsigned _con_start, _log_end;
+@@ -1141,7 +1149,7 @@ void release_console_sem(void)
+ 	if (wake_klogd)
+ 		wake_up_klogd();
+ }
+-EXPORT_SYMBOL(release_console_sem);
++EXPORT_SYMBOL(console_unlock);
+ 
+ /**
+  * console_conditional_schedule - yield the CPU if required
+@@ -1150,7 +1158,7 @@ EXPORT_SYMBOL(release_console_sem);
+  * if this CPU should yield the CPU to another task, do
+  * so here.
+  *
+- * Must be called within acquire_console_sem().
++ * Must be called within console_lock();.
+  */
+ void __sched console_conditional_schedule(void)
+ {
+@@ -1171,14 +1179,14 @@ void console_unblank(void)
+ 		if (down_trylock(&console_sem) != 0)
+ 			return;
+ 	} else
+-		acquire_console_sem();
++		console_lock();
+ 
+ 	console_locked = 1;
+ 	console_may_schedule = 0;
+ 	for_each_console(c)
+ 		if ((c->flags & CON_ENABLED) && c->unblank)
+ 			c->unblank();
+-	release_console_sem();
++	console_unlock();
+ }
+ 
+ /*
+@@ -1189,7 +1197,7 @@ struct tty_driver *console_device(int *i
+ 	struct console *c;
+ 	struct tty_driver *driver = NULL;
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	for_each_console(c) {
+ 		if (!c->device)
+ 			continue;
+@@ -1197,7 +1205,7 @@ struct tty_driver *console_device(int *i
+ 		if (driver)
+ 			break;
+ 	}
+-	release_console_sem();
++	console_unlock();
+ 	return driver;
+ }
+ 
+@@ -1208,17 +1216,17 @@ struct tty_driver *console_device(int *i
+  */
+ void console_stop(struct console *console)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	console->flags &= ~CON_ENABLED;
+-	release_console_sem();
++	console_unlock();
+ }
+ EXPORT_SYMBOL(console_stop);
+ 
+ void console_start(struct console *console)
+ {
+-	acquire_console_sem();
++	console_lock();
+ 	console->flags |= CON_ENABLED;
+-	release_console_sem();
++	console_unlock();
+ }
+ EXPORT_SYMBOL(console_start);
+ 
+@@ -1340,7 +1348,7 @@ void register_console(struct console *ne
+ 	 *	Put this console in the list - keep the
+ 	 *	preferred driver at the head of the list.
+ 	 */
+-	acquire_console_sem();
++	console_lock();
+ 	if ((newcon->flags & CON_CONSDEV) || console_drivers == NULL) {
+ 		newcon->next = console_drivers;
+ 		console_drivers = newcon;
+@@ -1352,14 +1360,14 @@ void register_console(struct console *ne
+ 	}
+ 	if (newcon->flags & CON_PRINTBUFFER) {
+ 		/*
+-		 * release_console_sem() will print out the buffered messages
++		 * console_unlock(); will print out the buffered messages
+ 		 * for us.
+ 		 */
+ 		spin_lock_irqsave(&logbuf_lock, flags);
+ 		con_start = log_start;
+ 		spin_unlock_irqrestore(&logbuf_lock, flags);
+ 	}
+-	release_console_sem();
++	console_unlock();
+ 	console_sysfs_notify();
+ 
+ 	/*
+@@ -1396,7 +1404,7 @@ int unregister_console(struct console *c
+ 		return braille_unregister_console(console);
+ #endif
+ 
+-	acquire_console_sem();
++	console_lock();
+ 	if (console_drivers == console) {
+ 		console_drivers=console->next;
+ 		res = 0;
+@@ -1418,7 +1426,7 @@ int unregister_console(struct console *c
+ 	if (console_drivers != NULL && console->flags & CON_CONSDEV)
+ 		console_drivers->flags |= CON_CONSDEV;
+ 
+-	release_console_sem();
++	console_unlock();
+ 	console_sysfs_notify();
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from torbenh@gmx.de are
 
-kconfig-rename-config_embedded-to-config_expert.patch
-x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
+change-acquire-release_console_sem-to-console_lock-unlock.patch
 
