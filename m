@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch added to -mm tree
-Date: Thu, 20 Jan 2011 14:57:32 -0800
-Message-ID: <201101202257.p0KMvWDU007513@imap1.linux-foundation.org>
+Subject: + leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch added to -mm tree
+Date: Thu, 20 Jan 2011 15:12:28 -0800
+Message-ID: <201101202312.p0KNCSt8008275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755825Ab1ATW56 (ORCPT
+	by vger.kernel.org with ESMTP id S1754715Ab1ATXNM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 17:57:58 -0500
+	Thu, 20 Jan 2011 18:13:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomoki.sekiyama@gmail.com, gregkh@suse.de, maciej.rutecki@gmail.com, rjw@sisk.pl, thomas@archlinux.org
+Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     USB: yurex: recognize GeneralKeys wireless presenter as generic HI=
-D
+     leds-convert-bd2802-driver-to-dev_pm_ops-fix
 has been added to the -mm tree.  Its filename is
-     usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.=
-patch
+     leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,175 +26,129 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: USB: yurex: recognize GeneralKeys wireless presenter as generi=
-c HID
-=46rom: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+Subject: leds-convert-bd2802-driver-to-dev_pm_ops-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Unfortunately, the device seems to have the same Vendor ID and Product =
-ID
-as YUREX leg-shakes sensors, and the commit 6bc235a2e2 ("USB: add drive=
-r
-for Meywa-Denki & Kayac YUREX") added the ID to hid_ignore_list.
+drivers/leds/leds-bd2802.c:765: warning: 'bd2802_suspend' defined but not used
+drivers/leds/leds-bd2802.c:775: warning: 'bd2802_resume' defined but not used
 
-I believe that we can distinguish YUREX and the Wireless Presenter by
-device type.  The patch below makes the driver ignore only YUREX
-(bInterfaceProtocol=3D=3D0), and recognize Wireless Presenter
-(bInterfaceProtocol is keyboard or mouse) as generic HID.  (I don't hav=
-e
-the Wireless Presenter, so not yet ested.)
-
-** YUREX lsusb information:
-Bus 002 Device 007: ID 0c45:1010 Microdia
-Device Descriptor:
-   bLength                18
-   bDescriptorType         1
-   bcdUSB               1.10
-   bDeviceClass            0 (Defined at Interface level)
-   bDeviceSubClass         0
-   bDeviceProtocol         0
-   bMaxPacketSize0         8
-   idVendor           0x0c45 Microdia
-   idProduct          0x1010
-   bcdDevice            0.03
-   iManufacturer           1 JESS
-   iProduct                2 YUREX
-   iSerial                 3 10000269
-   bNumConfigurations      1
-   Configuration Descriptor:
-     bLength                 9
-     bDescriptorType         2
-     wTotalLength           34
-     bNumInterfaces          1
-     bConfigurationValue     1
-     iConfiguration          0
-     bmAttributes         0xa0
-       (Bus Powered)
-       Remote Wakeup
-     MaxPower              100mA
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       0
-       bNumEndpoints           1
-       bInterfaceClass         3 Human Interface Device
-       bInterfaceSubClass      1 Boot Interface Subclass
-       bInterfaceProtocol      0 None
-       iInterface              0
-         HID Device Descriptor:
-           bLength                 9
-           bDescriptorType        33
-           bcdHID               1.10
-           bCountryCode            0 Not supported
-           bNumDescriptors         1
-           bDescriptorType        34 Report
-           wDescriptorLength      31
-          Report Descriptors:
-            ** UNAVAILABLE **
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            3
-           Transfer Type            Interrupt
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0008  1x 8 bytes
-         bInterval              10
-Device Status:     0x0002
-   (Bus Powered)
-   Remote Wakeup Enabled
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=3D26922
-
-Signed-off-by: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Reported-by: Thomas B=E4chler <thomas@archlinux.org>
+Cc: Kim Kyuwon <chammoru@gmail.com>
+Cc: Kim Kyuwon <q1.kim@samsung.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c        |    6 +++++-
- drivers/hid/usbhid/hid-core.c |    2 ++
- include/linux/hid.h           |    3 ++-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/leds/leds-bd2802.c |   36 ++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~usb-yurex-recognize-generalkeys-wirele=
-ss-presenter-as-generic-hid drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~usb-yurex-recognize-generalkeys-wireless-p=
-resenter-as-generic-hid
-+++ a/drivers/hid/hid-core.c
-@@ -1710,7 +1710,6 @@ static const struct hid_device_id hid_ig
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_GTCO, USB_DEVICE_ID_GTCO_1006) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_GTCO, USB_DEVICE_ID_GTCO_1007) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_IMATION, USB_DEVICE_ID_DISC_STAKKA) },
--	{ HID_USB_DEVICE(USB_VENDOR_ID_JESS, USB_DEVICE_ID_JESS_YUREX) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_KBGEAR, USB_DEVICE_ID_KBGEAR_JAMSTUDIO=
-) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_KWORLD, USB_DEVICE_ID_KWORLD_RADIO_FM7=
-00) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_KYE, USB_DEVICE_ID_KYE_GPEN_560) },
-@@ -1830,6 +1829,11 @@ static bool hid_ignore(struct hid_device
- 		    hdev->product <=3D USB_DEVICE_ID_HANWANG_TABLET_LAST)
- 			return true;
- 		break;
-+	case USB_VENDOR_ID_JESS:
-+		if (hdev->product =3D=3D USB_DEVICE_ID_JESS_YUREX &&
-+				hdev->type =3D=3D HID_TYPE_USBNONE)
-+			return true;
-+	break;
- 	}
-=20
- 	if (hdev->type =3D=3D HID_TYPE_USBMOUSE &&
-diff -puN drivers/hid/usbhid/hid-core.c~usb-yurex-recognize-generalkeys=
--wireless-presenter-as-generic-hid drivers/hid/usbhid/hid-core.c
---- a/drivers/hid/usbhid/hid-core.c~usb-yurex-recognize-generalkeys-wir=
-eless-presenter-as-generic-hid
-+++ a/drivers/hid/usbhid/hid-core.c
-@@ -1156,6 +1156,8 @@ static int usbhid_probe(struct usb_inter
- 	if (intf->cur_altsetting->desc.bInterfaceProtocol =3D=3D
- 			USB_INTERFACE_PROTOCOL_MOUSE)
- 		hid->type =3D HID_TYPE_USBMOUSE;
-+	else if (intf->cur_altsetting->desc.bInterfaceProtocol =3D=3D 0)
-+		hid->type =3D HID_TYPE_USBNONE;
-=20
- 	if (dev->manufacturer)
- 		strlcpy(hid->name, dev->manufacturer, sizeof(hid->name));
-diff -puN include/linux/hid.h~usb-yurex-recognize-generalkeys-wireless-=
-presenter-as-generic-hid include/linux/hid.h
---- a/include/linux/hid.h~usb-yurex-recognize-generalkeys-wireless-pres=
-enter-as-generic-hid
-+++ a/include/linux/hid.h
-@@ -453,7 +453,8 @@ struct hid_input {
-=20
- enum hid_type {
- 	HID_TYPE_OTHER =3D 0,
--	HID_TYPE_USBMOUSE
-+	HID_TYPE_USBMOUSE,
-+	HID_TYPE_USBNONE =3D -1,
- };
-=20
- struct hid_driver;
+diff -puN drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops-fix drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops-fix
++++ a/drivers/leds/leds-bd2802.c
+@@ -319,20 +319,6 @@ static void bd2802_turn_off(struct bd280
+ 	bd2802_update_state(led, id, color, BD2802_OFF);
+ }
+ 
+-static void bd2802_restore_state(struct bd2802_led *led)
+-{
+-	int i;
+-
+-	for (i = 0; i < LED_NUM; i++) {
+-		if (led->led[i].r)
+-			bd2802_turn_on(led, i, RED, led->led[i].r);
+-		if (led->led[i].g)
+-			bd2802_turn_on(led, i, GREEN, led->led[i].g);
+-		if (led->led[i].b)
+-			bd2802_turn_on(led, i, BLUE, led->led[i].b);
+-	}
+-}
+-
+ #define BD2802_SET_REGISTER(reg_addr, reg_name)				\
+ static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
+ 	struct device_attribute *attr, const char *buf, size_t count)	\
+@@ -761,6 +747,22 @@ static int __exit bd2802_remove(struct i
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++
++static void bd2802_restore_state(struct bd2802_led *led)
++{
++	int i;
++
++	for (i = 0; i < LED_NUM; i++) {
++		if (led->led[i].r)
++			bd2802_turn_on(led, i, RED, led->led[i].r);
++		if (led->led[i].g)
++			bd2802_turn_on(led, i, GREEN, led->led[i].g);
++		if (led->led[i].b)
++			bd2802_turn_on(led, i, BLUE, led->led[i].b);
++	}
++}
++
+ static int bd2802_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -785,6 +787,10 @@ static int bd2802_resume(struct device *
+ }
+ 
+ static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
++#define BD2802_PM (&bd2802_pm)
++#else		/* CONFIG_PM */
++#define BD2802_PM NULL
++#endif
+ 
+ static const struct i2c_device_id bd2802_id[] = {
+ 	{ "BD2802", 0 },
+@@ -795,7 +801,7 @@ MODULE_DEVICE_TABLE(i2c, bd2802_id);
+ static struct i2c_driver bd2802_i2c_driver = {
+ 	.driver	= {
+ 		.name	= "BD2802",
+-		.pm	= &bd2802_pm,
++		.pm	= BD2802_PM,
+ 	},
+ 	.probe		= bd2802_probe,
+ 	.remove		= __exit_p(bd2802_remove),
 _
 
-Patches currently in -mm which might be from tomoki.sekiyama@gmail.com =
-are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
+mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
+fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio.patch
+memcg-fix-used-bit-handling-at-uncharge-in-thp.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
