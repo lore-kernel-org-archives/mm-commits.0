@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch added to -mm tree
-Date: Thu, 20 Jan 2011 15:12:28 -0800
-Message-ID: <201101202312.p0KNCSt8008275@imap1.linux-foundation.org>
+Subject: + leds-convert-bd2802-driver-to-dev_pm_ops.patch added to -mm tree
+Date: Thu, 20 Jan 2011 15:12:26 -0800
+Message-ID: <201101202312.p0KNCQBJ008272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754715Ab1ATXNM (ORCPT
+	by vger.kernel.org with ESMTP id S1755204Ab1ATXNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 18:13:12 -0500
+	Thu, 20 Jan 2011 18:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net
+Cc: broonie@opensource.wolfsonmicro.com, chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     leds-convert-bd2802-driver-to-dev_pm_ops-fix
+     leds: convert bd2802 driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+     leds-convert-bd2802-driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-convert-bd2802-driver-to-dev_pm_ops-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: convert bd2802 driver to dev_pm_ops
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-drivers/leds/leds-bd2802.c:765: warning: 'bd2802_suspend' defined but not used
-drivers/leds/leds-bd2802.c:775: warning: 'bd2802_resume' defined but not used
+There is a move to deprecate bus-specific PM operations and move to using
+dev_pm_ops instead in order to reduce the amount of boilerplate code in
+buses and facilitiate updates to the PM core.  Do this move for the bs2802
+driver.
 
-Cc: Kim Kyuwon <chammoru@gmail.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Kim Kyuwon <q1.kim@samsung.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-bd2802.c |   36 ++++++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+ drivers/leds/leds-bd2802.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops-fix drivers/leds/leds-bd2802.c
---- a/drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops-fix
+diff -puN drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops
 +++ a/drivers/leds/leds-bd2802.c
-@@ -319,20 +319,6 @@ static void bd2802_turn_off(struct bd280
- 	bd2802_update_state(led, id, color, BD2802_OFF);
- }
+@@ -19,7 +19,7 @@
+ #include <linux/leds.h>
+ #include <linux/leds-bd2802.h>
+ #include <linux/slab.h>
+-
++#include <linux/pm.h>
  
--static void bd2802_restore_state(struct bd2802_led *led)
--{
--	int i;
--
--	for (i = 0; i < LED_NUM; i++) {
--		if (led->led[i].r)
--			bd2802_turn_on(led, i, RED, led->led[i].r);
--		if (led->led[i].g)
--			bd2802_turn_on(led, i, GREEN, led->led[i].g);
--		if (led->led[i].b)
--			bd2802_turn_on(led, i, BLUE, led->led[i].b);
--	}
--}
--
- #define BD2802_SET_REGISTER(reg_addr, reg_name)				\
- static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
- 	struct device_attribute *attr, const char *buf, size_t count)	\
-@@ -761,6 +747,22 @@ static int __exit bd2802_remove(struct i
+ #define LED_CTL(rgb2en, rgb1en) ((rgb2en) << 4 | ((rgb1en) << 0))
+ 
+@@ -761,8 +761,9 @@ static int __exit bd2802_remove(struct i
  	return 0;
  }
  
-+#ifdef CONFIG_PM
-+
-+static void bd2802_restore_state(struct bd2802_led *led)
-+{
-+	int i;
-+
-+	for (i = 0; i < LED_NUM; i++) {
-+		if (led->led[i].r)
-+			bd2802_turn_on(led, i, RED, led->led[i].r);
-+		if (led->led[i].g)
-+			bd2802_turn_on(led, i, GREEN, led->led[i].g);
-+		if (led->led[i].b)
-+			bd2802_turn_on(led, i, BLUE, led->led[i].b);
-+	}
-+}
-+
- static int bd2802_suspend(struct device *dev)
+-static int bd2802_suspend(struct i2c_client *client, pm_message_t mesg)
++static int bd2802_suspend(struct device *dev)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -785,6 +787,10 @@ static int bd2802_resume(struct device *
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct bd2802_led *led = i2c_get_clientdata(client);
+ 
+ 	gpio_set_value(led->pdata->reset_gpio, 0);
+@@ -770,8 +771,9 @@ static int bd2802_suspend(struct i2c_cli
+ 	return 0;
  }
  
- static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
-+#define BD2802_PM (&bd2802_pm)
-+#else		/* CONFIG_PM */
-+#define BD2802_PM NULL
-+#endif
+-static int bd2802_resume(struct i2c_client *client)
++static int bd2802_resume(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct bd2802_led *led = i2c_get_clientdata(client);
  
+ 	if (!bd2802_is_all_off(led) || led->adf_on) {
+@@ -782,6 +784,8 @@ static int bd2802_resume(struct i2c_clie
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
++
  static const struct i2c_device_id bd2802_id[] = {
  	{ "BD2802", 0 },
-@@ -795,7 +801,7 @@ MODULE_DEVICE_TABLE(i2c, bd2802_id);
+ 	{ }
+@@ -791,11 +795,10 @@ MODULE_DEVICE_TABLE(i2c, bd2802_id);
  static struct i2c_driver bd2802_i2c_driver = {
  	.driver	= {
  		.name	= "BD2802",
--		.pm	= &bd2802_pm,
-+		.pm	= BD2802_PM,
++		.pm	= &bd2802_pm,
  	},
  	.probe		= bd2802_probe,
  	.remove		= __exit_p(bd2802_remove),
+-	.suspend	= bd2802_suspend,
+-	.resume		= bd2802_resume,
+ 	.id_table	= bd2802_id,
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio.patch
-memcg-fix-used-bit-handling-at-uncharge-in-thp.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops.patch
 leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
