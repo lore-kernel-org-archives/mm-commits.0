@@ -1,41 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-modify-accounting-function-for-supporting-thp-better.patch removed from -mm tree
-Date: Fri, 21 Jan 2011 12:31:38 -0800
-Message-ID: <201101212031.p0LKVcZ1031633@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-used-bit-handling-at-uncharge-in-thp.patch removed from -mm tree
+Date: Fri, 21 Jan 2011 12:31:41 -0800
+Message-ID: <201101212031.p0LKVfT5031641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969Ab1AUUcW (ORCPT
+	by vger.kernel.org with ESMTP id S1750701Ab1AUUc1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 15:32:22 -0500
+	Fri, 21 Jan 2011 15:32:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: modify accounting function for supporting THP better
+     memcg: fix USED bit handling at uncharge in THP
 has been removed from the -mm tree.  Its filename was
-     memcg-modify-accounting-function-for-supporting-thp-better.patch
+     memcg-fix-used-bit-handling-at-uncharge-in-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: modify accounting function for supporting THP better
+Subject: memcg: fix USED bit handling at uncharge in THP
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-mem_cgroup_charge_statisics() was designed for charging a page but now, we
-have transparent hugepage.  To fix problems (in following patch) it's
-required to change the function to get the number of pages as its
-arguments.
+Now, under THP:
 
-The new function gets following as argument.
-  - type of page rather than 'pc'
-  - size of page which is accounted.
+at charge:
+  - PageCgroupUsed bit is set to all page_cgroup on a hugepage.
+    ....set to 512 pages.
+at uncharge
+  - PageCgroupUsed bit is unset on the head page.
 
+So, some pages will remain with "Used" bit.
+
+This patch fixes that Used bit is set only to the head page.
+Used bits for tail pages will be set at splitting if necessary.
+
+This patch adds this lock order:
+   compound_lock() -> page_cgroup_move_lock().
+
+[akpm@linux-foundation.org: fix warning]
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -43,76 +51,183 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |    9 +++
+ mm/huge_memory.c           |    2 
+ mm/memcontrol.c            |   91 +++++++++++++++++++----------------
+ 3 files changed, 62 insertions(+), 40 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-modify-accounting-function-for-supporting-thp-better mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-modify-accounting-function-for-supporting-thp-better
-+++ a/mm/memcontrol.c
-@@ -600,23 +600,22 @@ static void mem_cgroup_swap_statistics(s
- }
+diff -puN include/linux/memcontrol.h~memcg-fix-used-bit-handling-at-uncharge-in-thp include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-used-bit-handling-at-uncharge-in-thp
++++ a/include/linux/memcontrol.h
+@@ -146,6 +146,10 @@ unsigned long mem_cgroup_soft_limit_recl
+ 						gfp_t gfp_mask);
+ u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
  
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
--					 struct page_cgroup *pc,
--					 bool charge)
-+					 bool file, int nr_pages)
- {
--	int val = (charge) ? 1 : -1;
--
- 	preempt_disable();
- 
--	if (PageCgroupCache(pc))
--		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_CACHE], val);
-+	if (file)
-+		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_CACHE], nr_pages);
- 	else
--		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_RSS], val);
-+		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_RSS], nr_pages);
- 
--	if (charge)
-+	/* pagein of a big page is an event. So, ignore page size */
-+	if (nr_pages > 0)
- 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGIN_COUNT]);
- 	else
- 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGOUT_COUNT]);
--	__this_cpu_inc(mem->stat->count[MEM_CGROUP_EVENTS]);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
++#endif
 +
-+	__this_cpu_add(mem->stat->count[MEM_CGROUP_EVENTS], nr_pages);
+ #else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ struct mem_cgroup;
  
- 	preempt_enable();
+@@ -335,6 +339,11 @@ u64 mem_cgroup_get_limit(struct mem_cgro
+ 	return 0;
  }
-@@ -2115,7 +2114,7 @@ static void ____mem_cgroup_commit_charge
+ 
++static inline void mem_cgroup_split_huge_fixup(struct page *head,
++						struct page *tail)
++{
++}
++
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/huge_memory.c~memcg-fix-used-bit-handling-at-uncharge-in-thp mm/huge_memory.c
+--- a/mm/huge_memory.c~memcg-fix-used-bit-handling-at-uncharge-in-thp
++++ a/mm/huge_memory.c
+@@ -1203,6 +1203,8 @@ static void __split_huge_page_refcount(s
+ 		BUG_ON(!PageDirty(page_tail));
+ 		BUG_ON(!PageSwapBacked(page_tail));
+ 
++		mem_cgroup_split_huge_fixup(page, page_tail);
++
+ 		lru_add_page_tail(zone, page, page_tail);
+ 	}
+ 
+diff -puN mm/memcontrol.c~memcg-fix-used-bit-handling-at-uncharge-in-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-used-bit-handling-at-uncharge-in-thp
++++ a/mm/memcontrol.c
+@@ -1614,7 +1614,7 @@ void mem_cgroup_update_page_stat(struct 
+ 	if (unlikely(!mem || !PageCgroupUsed(pc)))
+ 		goto out;
+ 	/* pc->mem_cgroup is unstable ? */
+-	if (unlikely(mem_cgroup_stealed(mem))) {
++	if (unlikely(mem_cgroup_stealed(mem)) || PageTransHuge(page)) {
+ 		/* take a lock against to access pc->mem_cgroup */
+ 		move_lock_page_cgroup(pc, &flags);
+ 		need_unlock = true;
+@@ -2083,14 +2083,27 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ 	return mem;
+ }
+ 
+-/*
+- * commit a charge got by __mem_cgroup_try_charge() and makes page_cgroup to be
+- * USED state. If already USED, uncharge and return.
+- */
+-static void ____mem_cgroup_commit_charge(struct mem_cgroup *mem,
+-					 struct page_cgroup *pc,
+-					 enum charge_type ctype)
++static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
++				       struct page_cgroup *pc,
++				       enum charge_type ctype,
++				       int page_size)
+ {
++	int nr_pages = page_size >> PAGE_SHIFT;
++
++	/* try_charge() can return NULL to *memcg, taking care of it. */
++	if (!mem)
++		return;
++
++	lock_page_cgroup(pc);
++	if (unlikely(PageCgroupUsed(pc))) {
++		unlock_page_cgroup(pc);
++		mem_cgroup_cancel_charge(mem, page_size);
++		return;
++	}
++	/*
++	 * we don't need page_cgroup_lock about tail pages, becase they are not
++	 * accessed by any other context at this point.
++	 */
+ 	pc->mem_cgroup = mem;
+ 	/*
+ 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
+@@ -2114,35 +2127,7 @@ static void ____mem_cgroup_commit_charge
  		break;
  	}
  
--	mem_cgroup_charge_statistics(mem, pc, true);
-+	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), 1);
+-	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), 1);
+-}
+-
+-static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
+-				       struct page_cgroup *pc,
+-				       enum charge_type ctype,
+-				       int page_size)
+-{
+-	int i;
+-	int count = page_size >> PAGE_SHIFT;
+-
+-	/* try_charge() can return NULL to *memcg, taking care of it. */
+-	if (!mem)
+-		return;
+-
+-	lock_page_cgroup(pc);
+-	if (unlikely(PageCgroupUsed(pc))) {
+-		unlock_page_cgroup(pc);
+-		mem_cgroup_cancel_charge(mem, page_size);
+-		return;
+-	}
+-
+-	/*
+-	 * we don't need page_cgroup_lock about tail pages, becase they are not
+-	 * accessed by any other context at this point.
+-	 */
+-	for (i = 0; i < count; i++)
+-		____mem_cgroup_commit_charge(mem, pc + i, ctype);
+-
++	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), nr_pages);
+ 	unlock_page_cgroup(pc);
+ 	/*
+ 	 * "charge_statistics" updated event counter. Then, check it.
+@@ -2152,6 +2137,34 @@ static void __mem_cgroup_commit_charge(s
+ 	memcg_check_events(mem, pc->page);
  }
  
- static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
-@@ -2186,14 +2185,14 @@ static void __mem_cgroup_move_account(st
- 		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
- 		preempt_enable();
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++
++#define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MOVE_LOCK) |\
++			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
++/*
++ * Because tail pages are not marked as "used", set it. We're under
++ * zone->lru_lock, 'splitting on pmd' and compund_lock.
++ */
++void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail)
++{
++	struct page_cgroup *head_pc = lookup_page_cgroup(head);
++	struct page_cgroup *tail_pc = lookup_page_cgroup(tail);
++	unsigned long flags;
++
++	/*
++	 * We have no races witch charge/uncharge but will have races with
++	 * page state accounting.
++	 */
++	move_lock_page_cgroup(head_pc, &flags);
++
++	tail_pc->mem_cgroup = head_pc->mem_cgroup;
++	smp_wmb(); /* see __commit_charge() */
++	/* we don't need to copy all flags...*/
++	tail_pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
++	move_unlock_page_cgroup(head_pc, &flags);
++}
++#endif
++
+ /**
+  * __mem_cgroup_move_account - move account of the page
+  * @pc:	page_cgroup of the page.
+@@ -2545,7 +2558,6 @@ direct_uncharge:
+ static struct mem_cgroup *
+ __mem_cgroup_uncharge_common(struct page *page, enum charge_type ctype)
+ {
+-	int i;
+ 	int count;
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+@@ -2595,8 +2607,7 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
  	}
--	mem_cgroup_charge_statistics(from, pc, false);
-+	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -1);
- 	if (uncharge)
- 		/* This is not "cancel", but cancel_charge does all we need. */
- 		mem_cgroup_cancel_charge(from, PAGE_SIZE);
  
- 	/* caller should have done css_get */
- 	pc->mem_cgroup = to;
--	mem_cgroup_charge_statistics(to, pc, true);
-+	mem_cgroup_charge_statistics(to, PageCgroupCache(pc), 1);
- 	/*
- 	 * We charges against "to" which may not have any tasks. Then, "to"
- 	 * can be under rmdir(). But in current implementation, caller of
-@@ -2597,7 +2596,7 @@ __mem_cgroup_uncharge_common(struct page
- 	}
- 
- 	for (i = 0; i < count; i++)
--		mem_cgroup_charge_statistics(mem, pc + i, false);
-+		mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), -1);
+-	for (i = 0; i < count; i++)
+-		mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), -1);
++	mem_cgroup_charge_statistics(mem, PageCgroupCache(pc), -count);
  
  	ClearPageCgroupUsed(pc);
  	/*
