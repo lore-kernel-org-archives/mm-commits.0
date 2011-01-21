@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-driver-for-lm3530-als-update.patch added to -mm tree
-Date: Fri, 21 Jan 2011 15:20:31 -0800
-Message-ID: <201101212320.p0LNKVH6007024@imap1.linux-foundation.org>
+Subject: + drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt.patch added to -mm tree
+Date: Fri, 21 Jan 2011 15:23:41 -0800
+Message-ID: <201101212323.p0LNNfdn007108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753861Ab1AUXVM (ORCPT
+	by vger.kernel.org with ESMTP id S1753361Ab1AUXY6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 18:21:12 -0500
+	Fri, 21 Jan 2011 18:24:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shreshthakumar.sahu@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
+Cc: strakh@ispras.ru, mchehab@infradead.org, shijie8@gmail.com
 
 
 The patch titled
-     leds-add-driver-for-lm3530-als-update
+     drivers/media/video/tlg2300/pd-video.c: fix double mutex_unlock in pd_vidioc_s_fmt()
 has been added to the -mm tree.  Its filename is
-     leds-add-driver-for-lm3530-als-update.patch
+     drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-add-driver-for-lm3530-als-update
-From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Subject: drivers/media/video/tlg2300/pd-video.c: fix double mutex_unlock in pd_vidioc_s_fmt()
+From: Alexander Strakh <strakh@ispras.ru>
 
-changes in v3:
-  modified according to comments from Andrew Morton
-  - rectify sloppy string comparision; now using sysfs_streq()
-  - remove unnecessary LM3530_BL_MODE_MAX and use ARRAY_SIZE
-
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   11 ++++-------
- include/linux/led-lm3530.h |    1 -
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/media/video/tlg2300/pd-video.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~leds-add-driver-for-lm3530-als-update drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~leds-add-driver-for-lm3530-als-update
-+++ a/drivers/leds/leds-lm3530.c
-@@ -122,15 +122,12 @@ static const u8 lm3530_reg[LM3530_REG_MA
- 	LM3530_ALS_Z4T_REG,
- };
+diff -puN drivers/media/video/tlg2300/pd-video.c~drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt drivers/media/video/tlg2300/pd-video.c
+--- a/drivers/media/video/tlg2300/pd-video.c~drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt
++++ a/drivers/media/video/tlg2300/pd-video.c
+@@ -764,10 +764,8 @@ static int pd_vidioc_s_fmt(struct poseid
+ 	}
+ 	ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
+ 				vid_resol, &cmd_status);
+-	if (ret || cmd_status) {
+-		mutex_unlock(&pd->lock);
++	if (ret || cmd_status)
+ 		return -EBUSY;
+-	}
  
--static int lm3530_get_mode_from_str(const char *str, int count)
-+static int lm3530_get_mode_from_str(const char *str)
- {
- 	int i;
- 
--	if (str[0] == '\n')
--		return -1;
--
--	for (i = 0; i < LM3530_BL_MODE_MAX; i++)
--		if (!strncmp(mode_map[i].mode, str, count))
-+	for (i = 0; i < ARRAY_SIZE(mode_map); i++)
-+		if (sysfs_streq(str, mode_map[i].mode))
- 			return mode_map[i].mode_val;
- 
- 	return -1;
-@@ -239,7 +236,7 @@ static ssize_t lm3530_mode_set(struct de
- 	struct lm3530_data *drvdata = i2c_get_clientdata(client);
- 	int mode;
- 
--	mode = lm3530_get_mode_from_str(buf, size-1);
-+	mode = lm3530_get_mode_from_str(buf);
- 	if (mode < 0) {
- 		dev_err(dev, "Invalid mode\n");
- 		return -EINVAL;
-diff -puN include/linux/led-lm3530.h~leds-add-driver-for-lm3530-als-update include/linux/led-lm3530.h
---- a/include/linux/led-lm3530.h~leds-add-driver-for-lm3530-als-update
-+++ a/include/linux/led-lm3530.h
-@@ -62,7 +62,6 @@ enum lm3530_mode {
- 	LM3530_BL_MODE_MANUAL = 0,	/* "man" */
- 	LM3530_BL_MODE_ALS,		/* "als" */
- 	LM3530_BL_MODE_PWM,		/* "pwm" */
--	LM3530_BL_MODE_MAX,
- };
- 
- /* ALS input select */
+ 	pix_def->pixelformat = pix->pixelformat; /* save it */
+ 	pix->height = (context->tvnormid & V4L2_STD_525_60) ?  480 : 576;
 _
 
-Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
+Patches currently in -mm which might be from strakh@ispras.ru are
 
-leds-add-driver-for-lm3530-als.patch
-leds-add-driver-for-lm3530-als-update.patch
+drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt.patch
 
