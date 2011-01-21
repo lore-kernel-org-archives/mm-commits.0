@@ -1,48 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch removed from -mm tree
-Date: Thu, 20 Jan 2011 16:11:10 -0800
-Message-ID: <201101210011.p0L0BA6e010816@imap1.linux-foundation.org>
+Subject: + sigma-firmware-loader-for-analog-devices-sigmastudio-v2.patch added to -mm tree
+Date: Thu, 20 Jan 2011 16:11:45 -0800
+Message-ID: <201101210011.p0L0BjHM010822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752121Ab1AUALl (ORCPT
+	by vger.kernel.org with ESMTP id S1752121Ab1AUAMR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 19:11:41 -0500
+	Thu, 20 Jan 2011 19:12:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: vapier@gentoo.org
 
 
 The patch titled
-     sigma-firmware-loader-for-analog-devices-sigmastudio-fix
-has been removed from the -mm tree.  Its filename was
-     sigma-firmware-loader-for-analog-devices-sigmastudio-fix.patch
+     sigma-firmware-loader-for-analog-devices-sigmastudio-v2
+has been added to the -mm tree.  Its filename is
+     sigma-firmware-loader-for-analog-devices-sigmastudio-v2.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: sigma-firmware-loader-for-analog-devices-sigmastudio-fix
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: sigma-firmware-loader-for-analog-devices-sigmastudio-v2
+=46rom: Mike Frysinger <vapier@gentoo.org>
 
-Cc: Mike Frysinger <vapier@gentoo.org>
+address feedback from Andrew
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/sigma.c |   53 +++++++++++++++++++------------------
- include/linux/sigma.h    |   10 +++---
- 2 files changed, 33 insertions(+), 30 deletions(-)
+ drivers/firmware/sigma.c |   67 +++++++++++++++++++------------------
+ include/linux/sigma.h    |   10 ++---
+ 2 files changed, 41 insertions(+), 36 deletions(-)
 
 diff -puN drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-dev=
-ices-sigmastudio-fix drivers/firmware/sigma.c
+ices-sigmastudio-v2 drivers/firmware/sigma.c
 --- a/drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-devices=
--sigmastudio-fix
+-sigmastudio-v2
 +++ a/drivers/firmware/sigma.c
 @@ -1,9 +1,9 @@
  /*
@@ -51,9 +64,9 @@ ices-sigmastudio-fix drivers/firmware/sigma.c
 -=C2=A0* Copyright 2009 Analog Devices Inc.
 -=C2=A0*
 -=C2=A0* Licensed under the GPL-2 or later.
-+=A0* Copyright 2009 Analog Devices Inc.
-+=A0*
-+=A0* Licensed under the GPL-2 or later.
++ * Copyright 2009-2011 Analog Devices Inc.
++ *
++ * Licensed under the GPL-2 or later.
   */
 =20
  #include <linux/crc32.h>
@@ -63,8 +76,9 @@ ices-sigmastudio-fix drivers/firmware/sigma.c
  /* Return: 0=3D=3DOK, <0=3D=3Derror, =3D1 =3D=3Dno more actions */
 -int process_sigma_action(struct i2c_client *client, struct sigma_firmw=
 are *ssfw)
-+static int process_sigma_action(struct i2c_client *client,
-+				struct sigma_firmware *ssfw)
++static int
++process_sigma_action(struct i2c_client *client, struct sigma_firmware =
+*ssfw)
  {
  	struct sigma_action *sa =3D (void *)(ssfw->fw->data + ssfw->pos);
  	size_t len =3D sigma_action_len(sa);
@@ -121,25 +135,52 @@ are *ssfw)
 =20
 -int process_sigma_actions(struct i2c_client *client, struct sigma_firm=
 ware *ssfw)
-+static int process_sigma_actions(struct i2c_client *client,
-+				 struct sigma_firmware *ssfw)
++static int
++process_sigma_actions(struct i2c_client *client, struct sigma_firmware=
+ *ssfw)
  {
  	pr_debug("%s: processing %p\n", __func__, ssfw);
 =20
-@@ -78,7 +80,8 @@ int process_sigma_firmware(struct i2c_cl
- 	/* first load the blob */
- 	ret =3D request_firmware(&fw, name, &client->dev);
- 	if (ret) {
--		pr_debug("%s: request_firmware() failed with %i\n", __func__, ret);
-+		pr_debug("%s: request_firmware() failed with %i\n",
-+			 __func__, ret);
- 		return ret;
- 	}
+@@ -72,6 +74,7 @@ int process_sigma_firmware(struct i2c_cl
+ 	struct sigma_firmware_header *ssfw_head;
+ 	struct sigma_firmware ssfw;
+ 	const struct firmware *fw;
++	u32 crc;
+=20
+ 	pr_debug("%s: loading firmware %s\n", __func__, name);
+=20
+@@ -84,16 +87,18 @@ int process_sigma_firmware(struct i2c_cl
  	ssfw.fw =3D fw;
+=20
+ 	/* then verify the header */
+-	if (fw->size < sizeof(*ssfw_head)) {
+-		ret =3D -ENODATA;
++	ret =3D -EINVAL;
++	if (fw->size < sizeof(*ssfw_head))
+ 		goto done;
+-	}
++
+ 	ssfw_head =3D (void *)fw->data;
+-	if (memcmp(ssfw_head->magic, SIGMA_MAGIC, ARRAY_SIZE(ssfw_head->magic=
+))) {
+-		ret =3D -EINVAL;
++	if (memcmp(ssfw_head->magic, SIGMA_MAGIC, ARRAY_SIZE(ssfw_head->magic=
+)))
++		goto done;
++
++	crc =3D crc32(0, fw->data, fw->size);
++	pr_debug("%s: crc=3D%x\n", __func__, crc);
++	if (crc !=3D ssfw_head->crc)
+ 		goto done;
+-	}
+-	pr_debug("%s: crc=3D%x\n", __func__, crc32(0, fw->data, fw->size));
+=20
+ 	ssfw.pos =3D sizeof(*ssfw_head);
+=20
 diff -puN include/linux/sigma.h~sigma-firmware-loader-for-analog-device=
-s-sigmastudio-fix include/linux/sigma.h
+s-sigmastudio-v2 include/linux/sigma.h
 --- a/include/linux/sigma.h~sigma-firmware-loader-for-analog-devices-si=
-gmastudio-fix
+gmastudio-v2
 +++ a/include/linux/sigma.h
 @@ -1,9 +1,9 @@
  /*
@@ -148,9 +189,9 @@ gmastudio-fix
 -=C2=A0* Copyright 2009 Analog Devices Inc.
 -=C2=A0*
 -=C2=A0* Licensed under the GPL-2 or later.
-+=A0* Copyright 2009 Analog Devices Inc.
-+=A0*
-+=A0* Licensed under the GPL-2 or later.
++ * Copyright 2009-2011 Analog Devices Inc.
++ *
++ * Licensed under the GPL-2 or later.
   */
 =20
  #ifndef __SIGMA_FIRMWARE_H__
@@ -168,51 +209,3 @@ gmastudio-fix
  }
 =20
 -struct i2c_client;
--
- extern int process_sigma_firmware(struct i2c_client *client, const cha=
-r *name);
-=20
- #endif
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
-
-mm-compaction-prevent-division-by-zero-during-user-requested-compaction=
-=2Epatch
-fs-direct-ioc-dont-try-to-allocate-more-than-bio_max_pages-in-a-bio.pat=
-ch
-memcg-fix-used-bit-handling-at-uncharge-in-thp.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fi=
-xes.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
