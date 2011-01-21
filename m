@@ -1,85 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch removed from -mm tree
-Date: Fri, 21 Jan 2011 12:31:33 -0800
-Message-ID: <201101212031.p0LKVXWH031616@imap1.linux-foundation.org>
+Subject: [merged] kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch removed from -mm tree
+Date: Fri, 21 Jan 2011 12:32:05 -0800
+Message-ID: <201101212032.p0LKW5HQ031685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896Ab1AUUci (ORCPT
+	by vger.kernel.org with ESMTP id S1751054Ab1AUUcq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 15:32:38 -0500
+	Fri, 21 Jan 2011 15:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: miltonm@bga.com, anton@samba.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: compaction: prevent division-by-zero during user-requested compaction
+     kernel/smp.c: consolidate writes in smp_call_function_interrupt()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-prevent-division-by-zero-during-user-requested-compaction.patch
+     kernel-smpc-consolidate-writes-in-smp_call_function_interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: prevent division-by-zero during user-requested compaction
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: kernel/smp.c: consolidate writes in smp_call_function_interrupt()
+From: Milton Miller <miltonm@bga.com>
 
-Up until 3e7d344 ("mm: vmscan: reclaim order-0 and use compaction instead
-of lumpy reclaim"), compaction skipped calculating the fragmentation index
-of a zone when compaction was explicitely requested through the procfs
-knob.
+We have to test the cpu mask in the interrupt handler before checking the
+refs, otherwise we can start to follow an entry before its deleted and
+find it partially initailzed for the next trip.  Presently we also clear
+the cpumask bit before executing the called function, which implies
+getting write access to the line.  After the function is called we then
+decrement refs, and if they go to zero we then unlock the structure.
 
-However, when compaction_suitable was introduced, it did not come with an
-extra check for order == -1, set on explicit compaction requests, and
-passed this order on to the fragmentation index calculation, where it
-overshifts the number of requested pages, leading to a division by zero.
+However, this implies getting write access to the call function data
+before and after another the function is called.  If we can assert that no
+smp_call_function execution function is allowed to enable interrupts, then
+we can move both writes to after the function is called, hopfully allowing
+both writes with one cache line bounce.
 
-This patch makes sure that order == -1 is recognized as the flag it is
-rather than passing it along as valid order parameter.
+On a 256 thread system with a kernel compiled for 1024 threads, the time
+to execute testcase in the "smp_call_function_many race" changelog was
+reduced by about 30-40ms out of about 545 ms.
 
-[akpm@linux-foundation.org: add comment, per Mel]
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+I decided to keep this as WARN because its now a buggy function, even
+though the stack trace is of no value -- a simple printk would give us the
+information needed.
+
+Raw data:
+
+without patch
+ipi_test startup took 1219366ns complete 539819014ns total 541038380ns
+ipi_test startup took 1695754ns complete 543439872ns total 545135626ns
+ipi_test startup took 7513568ns complete 539606362ns total 547119930ns
+ipi_test startup took 13304064ns complete 533898562ns total 547202626ns
+ipi_test startup took 8668192ns complete 544264074ns total 552932266ns
+ipi_test startup took 4977626ns complete 548862684ns total 553840310ns
+ipi_test startup took 2144486ns complete 541292318ns total 543436804ns
+ipi_test startup took 21245824ns complete 530280180ns total 551526004ns
+
+with patch
+ipi_test startup took 5961748ns complete 500859628ns total 506821376ns
+ipi_test startup took 8975996ns complete 495098924ns total 504074920ns
+ipi_test startup took 19797750ns complete 492204740ns total 512002490ns
+ipi_test startup took 14824796ns complete 487495878ns total 502320674ns
+ipi_test startup took 11514882ns complete 494439372ns total 505954254ns
+ipi_test startup took 8288084ns complete 502570774ns total 510858858ns
+ipi_test startup took 6789954ns complete 493388112ns total 500178066ns
+
+	#include <linux/module.h>
+	#include <linux/init.h>
+	#include <linux/sched.h> /* sched clock */
+
+	#define ITERATIONS 100
+
+	static void do_nothing_ipi(void *dummy)
+	{
+	}
+
+	static void do_ipis(struct work_struct *dummy)
+	{
+		int i;
+
+		for (i = 0; i < ITERATIONS; i++)
+			smp_call_function(do_nothing_ipi, NULL, 1);
+
+		printk(KERN_DEBUG "cpu %d finished\n", smp_processor_id());
+	}
+
+	static struct work_struct work[NR_CPUS];
+
+	static int __init testcase_init(void)
+	{
+		int cpu;
+		u64 start, started, done;
+
+		start = local_clock();
+		for_each_online_cpu(cpu) {
+			INIT_WORK(&work[cpu], do_ipis);
+			schedule_work_on(cpu, &work[cpu]);
+		}
+		started = local_clock();
+		for_each_online_cpu(cpu)
+			flush_work(&work[cpu]);
+		done = local_clock();
+		pr_info("ipi_test startup took %lldns complete %lldns total %lldns\n",
+			started-start, done-started, done-start);
+
+		return 0;
+	}
+
+	static void __exit testcase_exit(void)
+	{
+	}
+
+	module_init(testcase_init)
+	module_exit(testcase_exit)
+	MODULE_LICENSE("GPL");
+	MODULE_AUTHOR("Anton Blanchard");
+
+
+
+Signed-off-by: Milton Miller <miltonm@bga.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ kernel/smp.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-prevent-division-by-zero-during-user-requested-compaction
-+++ a/mm/compaction.c
-@@ -406,6 +406,10 @@ static int compact_finished(struct zone 
- 	if (!zone_watermark_ok(zone, cc->order, watermark, 0, 0))
- 		return COMPACT_CONTINUE;
+diff -puN kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt kernel/smp.c
+--- a/kernel/smp.c~kernel-smpc-consolidate-writes-in-smp_call_function_interrupt
++++ a/kernel/smp.c
+@@ -194,6 +194,7 @@ void generic_smp_call_function_interrupt
+ 	 */
+ 	list_for_each_entry_rcu(data, &call_function.queue, csd.list) {
+ 		int refs;
++		void (*func) (void *info);
  
-+	/*
-+	 * order == -1 is expected when compacting via
-+	 * /proc/sys/vm/compact_memory
-+	 */
- 	if (cc->order == -1)
- 		return COMPACT_CONTINUE;
+ 		/*
+ 		 * Since we walk the list without any locks, we might
+@@ -213,24 +214,32 @@ void generic_smp_call_function_interrupt
+ 		if (atomic_read(&data->refs) == 0)
+ 			continue;
  
-@@ -454,6 +458,13 @@ unsigned long compaction_suitable(struct
- 		return COMPACT_SKIPPED;
+-		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
+-			continue;
+-
++		func = data->csd.func;			/* for later warn */
+ 		data->csd.func(data->csd.info);
  
- 	/*
-+	 * order == -1 is expected when compacting via
-+	 * /proc/sys/vm/compact_memory
-+	 */
-+	if (order == -1)
-+		return COMPACT_CONTINUE;
++		/*
++		 * If the cpu mask is not still set then it enabled interrupts,
++		 * we took another smp interrupt, and executed the function
++		 * twice on this cpu.  In theory that copy decremented refs.
++		 */
++		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask)) {
++			WARN(1, "%pS enabled interrupts and double executed\n",
++			     func);
++			continue;
++		}
 +
-+	/*
- 	 * fragmentation index determines if allocation failures are due to
- 	 * low memory or external fragmentation
- 	 *
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-
+ 		refs = atomic_dec_return(&data->refs);
+ 		WARN_ON(refs < 0);
+-		if (!refs) {
+-			WARN_ON(!cpumask_empty(data->cpumask));
