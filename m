@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch added to -mm tree
-Date: Thu, 20 Jan 2011 16:22:28 -0800
-Message-ID: <201101210022.p0L0MSJb011269@imap1.linux-foundation.org>
+Subject: + oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch added to -mm tree
+Date: Thu, 20 Jan 2011 16:28:17 -0800
+Message-ID: <201101210028.p0L0SHHr011485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753701Ab1AUAWn (ORCPT
+	by vger.kernel.org with ESMTP id S1753722Ab1AUA3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Jan 2011 19:22:43 -0500
+	Thu, 20 Jan 2011 19:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: feng.tang@intel.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     console: prevent registered consoles from dumping old kernel message over again
+     oom: suppress nodes that are not allowed from meminfo on page alloc failure
 has been added to the -mm tree.  Its filename is
-     console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch
+     oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: console: prevent registered consoles from dumping old kernel message over again
-From: Feng Tang <feng.tang@intel.com>
+Subject: oom: suppress nodes that are not allowed from meminfo on page alloc failure
+From: David Rientjes <rientjes@google.com>
 
-For a platform with many consoles like:
- "console=tty1 console=ttyMFD2 console=ttyS0 earlyprintk=mrst"
+Displaying extremely verbose meminfo for all nodes on the system is
+overkill for page allocation failures when the context restricts that
+allocation to only a subset of nodes.  We don't particularly care about
+the state of all nodes when some are not allowed in the current context,
+they can have an abundance of memory but we can't allocate from that part
+of memory.
 
-Each time when the non "selected_console" (tty1 and ttyMFD2 here) get
-registered, the existing kernel message will be printed out on registered
-consoles again, the "mrst" early console will get some same message for 3
-times, and "tty1" will get some for twice.
+This patch suppresses disallowed nodes from the meminfo dump on a page
+allocation failure if the context requires it.
 
-As suggested by Andrew Morton, every time a new console is registered, it
-will be set as the "exclusive" console which will dump the already
-existing kernel messages.
-
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ mm/page_alloc.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN kernel/printk.c~console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again kernel/printk.c
---- a/kernel/printk.c~console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again
-+++ a/kernel/printk.c
-@@ -113,6 +113,11 @@ static unsigned con_start;	/* Index into
- static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
+diff -puN mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure
++++ a/mm/page_alloc.c
+@@ -2161,12 +2161,25 @@ rebalance:
  
- /*
-+ * If exclusive_console is non-NULL then only this console is to be printed to.
-+ */
-+static struct console *exclusive_console;
+ nopage:
+ 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit()) {
+-		printk(KERN_WARNING "%s: page allocation failure."
+-			" order:%d, mode:0x%x\n",
++		unsigned int filter = SHOW_MEM_FILTER_NODES;
 +
-+/*
-  *	Array of consoles built from command line options (console=)
-  */
- struct console_cmdline
-@@ -460,6 +465,8 @@ static void __call_console_drivers(unsig
- 	struct console *con;
- 
- 	for_each_console(con) {
-+		if (exclusive_console && con != exclusive_console)
-+			continue;
- 		if ((con->flags & CON_ENABLED) && con->write &&
- 				(cpu_online(smp_processor_id()) ||
- 				(con->flags & CON_ANYTIME)))
-@@ -1144,6 +1151,11 @@ void console_unlock(void)
- 		local_irq_restore(flags);
- 	}
- 	console_locked = 0;
-+
-+	/* Release the exclusive_console once it is used */
-+	if (unlikely(exclusive_console))
-+		exclusive_console = NULL;
-+
- 	up(&console_sem);
- 	spin_unlock_irqrestore(&logbuf_lock, flags);
- 	if (wake_klogd)
-@@ -1378,6 +1390,12 @@ void register_console(struct console *ne
- 		spin_lock_irqsave(&logbuf_lock, flags);
- 		con_start = log_start;
- 		spin_unlock_irqrestore(&logbuf_lock, flags);
 +		/*
-+		 * We're about to replay the log buffer.  Only do this to the
-+		 * just-registered console to avoid excessive message spam to
-+		 * the already-registered consoles.
++		 * This documents exceptions given to allocations in certain
++		 * contexts that are allowed to allocate outside current's set
++		 * of allowed nodes.
 +		 */
-+		exclusive_console = newcon;
++		if (!(gfp_mask & __GFP_NOMEMALLOC))
++			if (test_thread_flag(TIF_MEMDIE) ||
++			    (current->flags & (PF_MEMALLOC | PF_EXITING)))
++				filter &= ~SHOW_MEM_FILTER_NODES;
++		if (in_interrupt() || !wait)
++			filter &= ~SHOW_MEM_FILTER_NODES;
++
++		pr_warning("%s: page allocation failure. order:%d, mode:0x%x\n",
+ 			current->comm, order, gfp_mask);
+ 		dump_stack();
+ 		if (!should_suppress_show_mem())
+-			show_mem();
++			__show_mem();
  	}
- 	console_unlock();
- 	console_sysfs_notify();
+ 	return page;
+ got_pg:
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch
+kconfig-rename-config_embedded-to-config_expert.patch
+x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
 
