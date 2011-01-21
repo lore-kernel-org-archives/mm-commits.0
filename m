@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-systems-without-mmu-do-not-need-pte_mkwrite.patch added to -mm tree
-Date: Fri, 21 Jan 2011 00:01:17 -0800
-Message-ID: <201101210801.p0L81HAx029936@imap1.linux-foundation.org>
+Subject: + mm-notifier_from_errno-cleanup.patch added to -mm tree
+Date: Fri, 21 Jan 2011 00:02:48 -0800
+Message-ID: <201101210802.p0L82mC2029994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751289Ab1AUIBi (ORCPT
+	by vger.kernel.org with ESMTP id S1751289Ab1AUIDH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 03:01:38 -0500
+	Fri, 21 Jan 2011 03:03:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: monstr@monstr.eu, aarcange@redhat.com
+Cc: prarit@redhat.com, lizf@cn.fujitsu.com, menage@google.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     mm: systems without MMU do not need pte_mkwrite()
+     mm: notifier_from_errno() cleanup
 has been added to the -mm tree.  Its filename is
-     mm-systems-without-mmu-do-not-need-pte_mkwrite.patch
+     mm-notifier_from_errno-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: systems without MMU do not need pte_mkwrite()
-From: Michal Simek <monstr@monstr.eu>
+Subject: mm: notifier_from_errno() cleanup
+From: Prarit Bhargava <prarit@redhat.com>
 
-14fd403f214 ("thp: export maybe_mkwrite") break systems without MMU.
+While looking at some other notifier callbacks I noticed this code could
+use a simple cleanup.
 
-Error log:
-  CC      arch/microblaze/mm/init.o
-In file included from include/linux/mman.h:14,
-                 from arch/microblaze/mm/consistent.c:24:
-include/linux/mm.h: In function 'maybe_mkwrite':
-include/linux/mm.h:482: error: implicit declaration of function 'pte_mkwrite'
-include/linux/mm.h:482: error: incompatible types in assignment
+notifier_from_errno() no longer needs the if (ret)/else conditional.  That
+same conditional is now done in notifier_from_errno().
 
-Signed-off-by: Michal Simek <monstr@monstr.eu>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_cgroup.c |    7 +------
+ mm/slab.c        |    2 +-
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm.h~mm-systems-without-mmu-do-not-need-pte_mkwrite include/linux/mm.h
---- a/include/linux/mm.h~mm-systems-without-mmu-do-not-need-pte_mkwrite
-+++ a/include/linux/mm.h
-@@ -470,6 +470,7 @@ static inline void set_compound_order(st
- 	page[1].lru.prev = (void *)order;
- }
+diff -puN mm/page_cgroup.c~mm-notifier_from_errno-cleanup mm/page_cgroup.c
+--- a/mm/page_cgroup.c~mm-notifier_from_errno-cleanup
++++ a/mm/page_cgroup.c
+@@ -243,12 +243,7 @@ static int __meminit page_cgroup_callbac
+ 		break;
+ 	}
  
-+#ifdef CONFIG_MMU
- /*
-  * Do pte_mkwrite, but only if the vma says VM_WRITE.  We do this when
-  * servicing faults for write access.  In the normal case, do always want
-@@ -482,6 +483,7 @@ static inline pte_t maybe_mkwrite(pte_t 
- 		pte = pte_mkwrite(pte);
- 	return pte;
- }
-+#endif
- 
- /*
-  * Multiple processes may "see" the same page. E.g. for untouched
-_
-
-Patches currently in -mm which might be from monstr@monstr.eu are
-
-mm-systems-without-mmu-do-not-need-pte_mkwrite.patch
-llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch
-llist-lib-add-lock-less-null-terminated-single-list.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
-
+-	if (ret)
+-		ret = notifier_from_errno(ret);
+-	else
+-		ret = NOTIFY_OK;
