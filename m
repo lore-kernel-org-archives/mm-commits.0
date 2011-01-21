@@ -1,93 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup.patch removed from -mm tree
-Date: Fri, 21 Jan 2011 12:32:00 -0800
-Message-ID: <201101212032.p0LKW0NF031666@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-ledtrig-gpioc-make-output-match-input-tighten-input-checking.patch removed from -mm tree
+Date: Fri, 21 Jan 2011 12:31:54 -0800
+Message-ID: <201101212031.p0LKVswb031659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054Ab1AUUcr (ORCPT
+	by vger.kernel.org with ESMTP id S1750701Ab1AUUdL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 15:32:47 -0500
+	Fri, 21 Jan 2011 15:33:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: jkrzyszt@tis.icnet.pl, lethal@linux-sh.org, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: correctly order reading PCG_USED and pc->mem_cgroup
+     drivers/leds/ledtrig-gpio.c: make output match input, tighten input checking
 has been removed from the -mm tree.  Its filename was
-     memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup.patch
+     drivers-leds-ledtrig-gpioc-make-output-match-input-tighten-input-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: correctly order reading PCG_USED and pc->mem_cgroup
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: drivers/leds/ledtrig-gpio.c: make output match input, tighten input checking
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-The placement of the read-side barrier is confused: the writer first
-sets pc->mem_cgroup, then PCG_USED.  The read-side barrier has to be
-between testing PCG_USED and reading pc->mem_cgroup.
+Replicate changes made to drivers/leds/ledtrig-backlight.c.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/leds/ledtrig-gpio.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-correctly-order-reading-pcg_used-and-pc-mem_cgroup
-+++ a/mm/memcontrol.c
-@@ -836,13 +836,12 @@ void mem_cgroup_rotate_lru_list(struct p
- 		return;
+diff -puN drivers/leds/ledtrig-gpio.c~drivers-leds-ledtrig-gpioc-make-output-match-input-tighten-input-checking drivers/leds/ledtrig-gpio.c
+--- a/drivers/leds/ledtrig-gpio.c~drivers-leds-ledtrig-gpioc-make-output-match-input-tighten-input-checking
++++ a/drivers/leds/ledtrig-gpio.c
+@@ -99,7 +99,7 @@ static ssize_t gpio_trig_inverted_show(s
+ 	struct led_classdev *led = dev_get_drvdata(dev);
+ 	struct gpio_trig_data *gpio_data = led->trigger_data;
  
- 	pc = lookup_page_cgroup(page);
--	/*
--	 * Used bit is set without atomic ops but after smp_wmb().
--	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
--	 */
--	smp_rmb();
- 	/* unused or root page is not rotated. */
--	if (!PageCgroupUsed(pc) || mem_cgroup_is_root(pc->mem_cgroup))
-+	if (!PageCgroupUsed(pc))
-+		return;
-+	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
-+	smp_rmb();
-+	if (mem_cgroup_is_root(pc->mem_cgroup))
- 		return;
- 	mz = page_cgroup_zoneinfo(pc);
- 	list_move(&pc->lru, &mz->lists[lru]);
-@@ -857,14 +856,10 @@ void mem_cgroup_add_lru_list(struct page
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	VM_BUG_ON(PageCgroupAcctLRU(pc));
--	/*
--	 * Used bit is set without atomic ops but after smp_wmb().
--	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
--	 */
--	smp_rmb();
- 	if (!PageCgroupUsed(pc))
- 		return;
--
-+	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
-+	smp_rmb();
- 	mz = page_cgroup_zoneinfo(pc);
- 	/* huge page split is done under lru_lock. so, we have no races. */
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
-@@ -1031,14 +1026,10 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 		return NULL;
+-	return sprintf(buf, "%s\n", gpio_data->inverted ? "yes" : "no");
++	return sprintf(buf, "%u\n", gpio_data->inverted);
+ }
  
- 	pc = lookup_page_cgroup(page);
--	/*
--	 * Used bit is set without atomic ops but after smp_wmb().
--	 * For making pc->mem_cgroup visible, insert smp_rmb() here.
--	 */
--	smp_rmb();
- 	if (!PageCgroupUsed(pc))
- 		return NULL;
+ static ssize_t gpio_trig_inverted_store(struct device *dev,
+@@ -107,16 +107,17 @@ static ssize_t gpio_trig_inverted_store(
+ {
+ 	struct led_classdev *led = dev_get_drvdata(dev);
+ 	struct gpio_trig_data *gpio_data = led->trigger_data;
+-	unsigned inverted;
++	unsigned long inverted;
+ 	int ret;
+ 
+-	ret = sscanf(buf, "%u", &inverted);
+-	if (ret < 1) {
+-		dev_err(dev, "invalid value\n");
++	ret = strict_strtoul(buf, 10, &inverted);
++	if (ret < 0)
++		return ret;
++
++	if (inverted > 1)
+ 		return -EINVAL;
+-	}
+ 
+-	gpio_data->inverted = !!inverted;
++	gpio_data->inverted = inverted;
+ 
+ 	/* After inverting, we need to update the LED. */
+ 	schedule_work(&gpio_data->work);
+_
+
+Patches currently in -mm which might be from jkrzyszt@tis.icnet.pl are
+
+origin.patch
+linux-next.patch
+
