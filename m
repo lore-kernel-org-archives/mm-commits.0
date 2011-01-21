@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-use-kthread_create_on_cpu-update.patch added to -mm tree
-Date: Fri, 21 Jan 2011 14:32:37 -0800
-Message-ID: <201101212232.p0LMWbVD004904@imap1.linux-foundation.org>
+Subject: + kthread-numa-aware-kthread_create_on_cpu-update.patch added to -mm tree
+Date: Fri, 21 Jan 2011 14:32:34 -0800
+Message-ID: <201101212232.p0LMWYAs004900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752522Ab1AUWdm (ORCPT
+	by vger.kernel.org with ESMTP id S1751242Ab1AUWdm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 21 Jan 2011 17:33:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: eric.dumazet@gmail.com, andi@firstfloor.org, davem@davemloft.net, rusty@rust
 The patch titled
      kthread-numa-aware-kthread_create_on_cpu-update
 has been added to the -mm tree.  Its filename is
-     kthread-use-kthread_create_on_cpu-update.patch
+     kthread-numa-aware-kthread_create_on_cpu-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -49,76 +49,111 @@ Cc: linux-arch@vger.kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c      |    6 ++++--
- kernel/stop_machine.c |    6 ++++--
- kernel/workqueue.c    |    6 ++++--
- net/core/pktgen.c     |    6 ++++--
- 4 files changed, 16 insertions(+), 8 deletions(-)
+ include/linux/kthread.h |   10 +++++-----
+ kernel/kthread.c        |   27 +++++++++++++--------------
+ 2 files changed, 18 insertions(+), 19 deletions(-)
 
-diff -puN kernel/softirq.c~kthread-use-kthread_create_on_cpu-update kernel/softirq.c
---- a/kernel/softirq.c~kthread-use-kthread_create_on_cpu-update
-+++ a/kernel/softirq.c
-@@ -831,8 +831,10 @@ static int __cpuinit cpu_callback(struct
- 	switch (action) {
- 	case CPU_UP_PREPARE:
- 	case CPU_UP_PREPARE_FROZEN:
--		p = kthread_create_on_cpu(run_ksoftirqd, hcpu, hotcpu,
--					  "ksoftirqd/%d", hotcpu);
-+		p = kthread_create_on_node(run_ksoftirqd,
-+					   hcpu,
-+					   cpu_to_node(hotcpu),
-+					   "ksoftirqd/%d", hotcpu);
- 		if (IS_ERR(p)) {
- 			printk("ksoftirqd for %i failed\n", hotcpu);
- 			return notifier_from_errno(PTR_ERR(p));
-diff -puN kernel/stop_machine.c~kthread-use-kthread_create_on_cpu-update kernel/stop_machine.c
---- a/kernel/stop_machine.c~kthread-use-kthread_create_on_cpu-update
-+++ a/kernel/stop_machine.c
-@@ -301,8 +301,10 @@ static int __cpuinit cpu_stop_cpu_callba
- 	case CPU_UP_PREPARE:
- 		BUG_ON(stopper->thread || stopper->enabled ||
- 		       !list_empty(&stopper->works));
--		p = kthread_create_on_cpu(cpu_stopper_thread, stopper, cpu,
--					  "migration/%d", cpu);
-+		p = kthread_create_on_node(cpu_stopper_thread,
-+					   stopper,
-+					   cpu_to_node(cpu),
-+					   "migration/%d", cpu);
- 		if (IS_ERR(p))
- 			return notifier_from_errno(PTR_ERR(p));
- 		get_task_struct(p);
-diff -puN kernel/workqueue.c~kthread-use-kthread_create_on_cpu-update kernel/workqueue.c
---- a/kernel/workqueue.c~kthread-use-kthread_create_on_cpu-update
-+++ a/kernel/workqueue.c
-@@ -1356,8 +1356,10 @@ static struct worker *create_worker(stru
- 	worker->id = id;
+diff -puN include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu-update include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu-update
++++ a/include/linux/kthread.h
+@@ -4,14 +4,14 @@
+ #include <linux/err.h>
+ #include <linux/sched.h>
  
- 	if (!on_unbound_cpu)
--		worker->task = kthread_create_on_cpu(worker_thread, worker, gcwq->cpu,
--						     "kworker/%u:%d", gcwq->cpu, id);
-+		worker->task = kthread_create_on_node(worker_thread,
-+						      worker,
-+						      cpu_to_node(gcwq->cpu),
-+						      "kworker/%u:%d", gcwq->cpu, id);
- 	else
- 		worker->task = kthread_create(worker_thread, worker,
- 					      "kworker/u:%d", id);
-diff -puN net/core/pktgen.c~kthread-use-kthread_create_on_cpu-update net/core/pktgen.c
---- a/net/core/pktgen.c~kthread-use-kthread_create_on_cpu-update
-+++ a/net/core/pktgen.c
-@@ -3812,8 +3812,10 @@ static int __init pktgen_create_thread(i
- 	list_add_tail(&t->th_list, &pktgen_threads);
- 	init_completion(&t->start_done);
+-struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
+-					  void *data,
+-					  int cpu,
+-					  const char namefmt[], ...)
++struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
++					   void *data,
++					   int node,
++					   const char namefmt[], ...)
+ 	__attribute__((format(printf, 4, 5)));
  
--	p = kthread_create_on_cpu(pktgen_thread_worker, t, cpu,
--				  "kpktgend_%d", cpu);
-+	p = kthread_create_on_node(pktgen_thread_worker,
-+				   t,
-+				   cpu_to_node(cpu),
-+				   "kpktgend_%d", cpu);
- 	if (IS_ERR(p)) {
- 		pr_err("kernel_thread() failed for cpu %d\n", t->cpu);
- 		list_del(&t->th_list);
+ #define kthread_create(threadfn, data, namefmt, arg...) \
+-	kthread_create_on_cpu(threadfn, data, -1, namefmt, ##arg)
++	kthread_create_on_node(threadfn, data, -1, namefmt, ##arg)
+ 
+ 
+ /**
+diff -puN kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu-update kernel/kthread.c
+--- a/kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu-update
++++ a/kernel/kthread.c
+@@ -27,7 +27,7 @@ struct kthread_create_info
+ 	/* Information passed to kthread() from kthreadd. */
+ 	int (*threadfn)(void *data);
+ 	void *data;
+-	int cpu;
++	int node;
+ 
+ 	/* Result passed back to kthread_create() from kthreadd. */
+ 	struct task_struct *result;
+@@ -114,8 +114,7 @@ static void create_kthread(struct kthrea
+ 	int pid;
+ 
+ #ifdef CONFIG_NUMA
+-	current->pref_node_fork = (create->cpu != -1) ?
+-		cpu_to_node(create->cpu) : -1;
++	current->pref_node_fork = create->node;
+ #endif
+ 	/* We want our own signal handler (we take no signals by default). */
+ 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+@@ -126,18 +125,18 @@ static void create_kthread(struct kthrea
+ }
+ 
+ /**
+- * kthread_create_on_cpu - create a kthread.
++ * kthread_create_on_node - create a kthread.
+  * @threadfn: the function to run until signal_pending(current).
+  * @data: data ptr for @threadfn.
+- * @cpu: cpu number.
++ * @node: memory node number.
+  * @namefmt: printf-style name for the thread.
+  *
+  * Description: This helper function creates and names a kernel
+  * thread.  The thread will be stopped: use wake_up_process() to start
+  * it.  See also kthread_run().
+  *
+- * If thread is going to be bound on a particular cpu, give its number
+- * in @cpu, to get NUMA affinity for kthread stack, or else give -1.
++ * If thread is going to be bound on a particular cpu, give its node
++ * in @node, to get NUMA affinity for kthread stack, or else give -1.
+  * When woken, the thread will run @threadfn() with @data as its
+  * argument. @threadfn() can either call do_exit() directly if it is a
+  * standalone thread for which noone will call kthread_stop(), or
+@@ -147,17 +146,17 @@ static void create_kthread(struct kthrea
+  *
+  * Returns a task_struct or ERR_PTR(-ENOMEM).
+  */
+-struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
+-					  void *data,
+-					  int cpu,
+-					  const char namefmt[],
+-					  ...)
++struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
++					   void *data,
++					   int node,
++					   const char namefmt[],
++					   ...)
+ {
+ 	struct kthread_create_info create;
+ 
+ 	create.threadfn = threadfn;
+ 	create.data = data;
+-	create.cpu = cpu;
++	create.node = node;
+ 	init_completion(&create.done);
+ 
+ 	spin_lock(&kthread_create_lock);
+@@ -184,7 +183,7 @@ struct task_struct *kthread_create_on_cp
+ 	}
+ 	return create.result;
+ }
+-EXPORT_SYMBOL(kthread_create_on_cpu);
++EXPORT_SYMBOL(kthread_create_on_node);
+ 
+ /**
+  * kthread_bind - bind a just-created kthread to a cpu.
 _
 
 Patches currently in -mm which might be from eric.dumazet@gmail.com are
