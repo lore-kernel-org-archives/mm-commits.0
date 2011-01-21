@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-remove-the-big-kernel-lock.patch added to -mm tree
-Date: Fri, 21 Jan 2011 14:55:25 -0800
-Message-ID: <201101212255.p0LMtPT3005901@imap1.linux-foundation.org>
+Subject: + loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3.patch added to -mm tree
+Date: Fri, 21 Jan 2011 15:17:39 -0800
+Message-ID: <201101212317.p0LNHeiT006867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752903Ab1AUW4Q (ORCPT
+	by vger.kernel.org with ESMTP id S1753861Ab1AUXSW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 17:56:16 -0500
+	Fri, 21 Jan 2011 18:18:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, rmk@arm.linux.org.uk, stuart.swales.croftnuisk@gmail.com
+Cc: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com
 
 
 The patch titled
-     adfs: remove the big kernel lock
+     loop: queue_lock NULL pointer derefence in blk_throtl_exit
 has been added to the -mm tree.  Its filename is
-     adfs-remove-the-big-kernel-lock.patch
+     loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,184 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: remove the big kernel lock
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: loop: queue_lock NULL pointer derefence in blk_throtl_exit
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-According to Russell King, adfs was written to not require the big kernel
-lock, and all inode updates are done under adfs_dir_lock.
+Performing
+$ sudo mount -o loop -o umask=0 /dev/sdb1 /mnt/
+mount: wrong fs type, bad option, bad superblock on /dev/loop0,
+       missing codepage or helper program, or other error
+       In some cases useful info is found in syslog - try
+       dmesg | tail  or so
 
-All other metadata in adfs is read-only and does not require locking.  The
-use of the BKL is the result of various pushdowns from the VFS operations.
+$ sudo modprobe -r loop
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+results in oops:
+
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+ IP: [<ffffffff812479d4>] do_raw_spin_lock+0x14/0x122
+ Process modprobe (pid: 6189, threadinfo ffff88009a898000, task
+ ffff880154a88000)
+ Call Trace:
+  [<ffffffff81486788>] _raw_spin_lock_irq+0x4a/0x51
+  [<ffffffff8123404b>] ? blk_throtl_exit+0x3b/0xa0
+  [<ffffffff8105b120>] ? cancel_delayed_work_sync+0xd/0xf
+  [<ffffffff8123404b>] blk_throtl_exit+0x3b/0xa0
+  [<ffffffff81229bc8>] blk_release_queue+0x21/0x65
+  [<ffffffff8123bb06>] kobject_release+0x51/0x66
+  [<ffffffff8123bab5>] ? kobject_release+0x0/0x66
+  [<ffffffff8123ce1e>] kref_put+0x43/0x4d
+  [<ffffffff8123ba27>] kobject_put+0x47/0x4b
+  [<ffffffff8122717c>] blk_cleanup_queue+0x56/0x5b
+  [<ffffffffa01c3824>] loop_exit+0x68/0x844 [loop]
+  [<ffffffff8107cccc>] sys_delete_module+0x1e8/0x25b
+  [<ffffffff814864c9>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+  [<ffffffff81002112>] system_call_fastpath+0x16/0x1b
+
+because of an attempt to acquire NULL queue_lock.  Added the same lines as
+in blk_queue_make_request - `fall back to embedded per-queue lock' - when
+call blk_release_queue on allocated but not initialized queue.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir.c   |    6 ------
- fs/adfs/inode.c |    6 ------
- fs/adfs/super.c |   13 +------------
- 3 files changed, 1 insertion(+), 24 deletions(-)
+ block/blk-sysfs.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/adfs/dir.c~adfs-remove-the-big-kernel-lock fs/adfs/dir.c
---- a/fs/adfs/dir.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/dir.c
-@@ -9,7 +9,6 @@
-  *
-  *  Common directory handling for ADFS
-  */
--#include <linux/smp_lock.h>
- #include "adfs.h"
+diff -puN block/blk-sysfs.c~loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3 block/blk-sysfs.c
+--- a/block/blk-sysfs.c~loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3
++++ a/block/blk-sysfs.c
+@@ -471,6 +471,12 @@ static void blk_release_queue(struct kob
  
- /*
-@@ -27,8 +26,6 @@ adfs_readdir(struct file *filp, void *di
- 	struct adfs_dir dir;
- 	int ret = 0;
+ 	blk_sync_queue(q);
  
--	lock_kernel();	
--
- 	if (filp->f_pos >> 32)
- 		goto out;
++	/* It's possible that blk_release_queue will be called on allocated
++	 * but never initilalized queue. Fall back to our embedded per-queue
++	 * locks in this case. */
++	if (!q->queue_lock)
++		q->queue_lock = &q->__queue_lock;
++
+ 	blk_throtl_exit(q);
  
-@@ -70,7 +67,6 @@ free_out:
- 	ops->free(&dir);
- 
- out:
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -276,7 +272,6 @@ adfs_lookup(struct inode *dir, struct de
- 	struct object_info obj;
- 	int error;
- 
--	lock_kernel();
- 	error = adfs_dir_lookup_byname(dir, &dentry->d_name, &obj);
- 	if (error == 0) {
- 		error = -EACCES;
-@@ -288,7 +283,6 @@ adfs_lookup(struct inode *dir, struct de
- 		if (inode)
- 			error = 0;
- 	}
--	unlock_kernel();
- 	d_add(dentry, inode);
- 	return ERR_PTR(error);
- }
-diff -puN fs/adfs/inode.c~adfs-remove-the-big-kernel-lock fs/adfs/inode.c
---- a/fs/adfs/inode.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/inode.c
-@@ -7,7 +7,6 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#include <linux/smp_lock.h>
- #include <linux/buffer_head.h>
- #include <linux/writeback.h>
- #include "adfs.h"
-@@ -300,8 +299,6 @@ adfs_notify_change(struct dentry *dentry
- 	unsigned int ia_valid = attr->ia_valid;
- 	int error;
- 	
--	lock_kernel();
--
- 	error = inode_change_ok(inode, attr);
- 
- 	/*
-@@ -343,7 +340,6 @@ adfs_notify_change(struct dentry *dentry
- 	if (ia_valid & (ATTR_SIZE | ATTR_MTIME | ATTR_MODE))
- 		mark_inode_dirty(inode);
- out:
--	unlock_kernel();
- 	return error;
- }
- 
-@@ -358,7 +354,6 @@ int adfs_write_inode(struct inode *inode
- 	struct object_info obj;
- 	int ret;
- 
--	lock_kernel();
- 	obj.file_id	= inode->i_ino;
- 	obj.name_len	= 0;
- 	obj.parent_id	= ADFS_I(inode)->parent_id;
-@@ -368,6 +363,5 @@ int adfs_write_inode(struct inode *inode
- 	obj.size	= inode->i_size;
- 
- 	ret = adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
--	unlock_kernel();
- 	return ret;
- }
-diff -puN fs/adfs/super.c~adfs-remove-the-big-kernel-lock fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/super.c
-@@ -14,7 +14,6 @@
- #include <linux/mount.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
--#include <linux/smp_lock.h>
- #include <linux/statfs.h>
- #include "adfs.h"
- #include "dir_f.h"
-@@ -120,15 +119,11 @@ static void adfs_put_super(struct super_
- 	int i;
- 	struct adfs_sb_info *asb = ADFS_SB(sb);
- 
--	lock_kernel();
--
- 	for (i = 0; i < asb->s_map_size; i++)
- 		brelse(asb->s_map[i].dm_bh);
- 	kfree(asb->s_map);
- 	kfree(asb);
- 	sb->s_fs_info = NULL;
--
--	unlock_kernel();
- }
- 
- static int adfs_show_options(struct seq_file *seq, struct vfsmount *mnt)
-@@ -367,15 +362,11 @@ static int adfs_fill_super(struct super_
- 	struct adfs_sb_info *asb;
- 	struct inode *root;
- 
--	lock_kernel();
--
- 	sb->s_flags |= MS_NODIRATIME;
- 
- 	asb = kzalloc(sizeof(*asb), GFP_KERNEL);
--	if (!asb) {
--		unlock_kernel();
-+	if (!asb)
- 		return -ENOMEM;
--	}
- 	sb->s_fs_info = asb;
- 
- 	/* set default options */
-@@ -502,7 +493,6 @@ static int adfs_fill_super(struct super_
- 		adfs_error(sb, "get root inode failed\n");
- 		goto error;
- 	}
--	unlock_kernel();
- 	return 0;
- 
- error_free_bh:
-@@ -510,7 +500,6 @@ error_free_bh:
- error:
- 	sb->s_fs_info = NULL;
- 	kfree(asb);
--	unlock_kernel();
- 	return -EINVAL;
- }
- 
+ 	if (rl->rq_pool)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-origin.patch
-linux-next.patch
-spufs-use-simple_write_to_buffer.patch
-n_hdlc-fix-read-and-write-locking.patch
-hpet-factor-timer-allocate-from-open.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-smp-move-smp-setup-functions-to-kernel-smpc.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-adfs-remove-the-big-kernel-lock.patch
+loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3.patch
+loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit.patch
 
