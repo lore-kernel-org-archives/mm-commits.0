@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-add-hexadecimal-filetype-suffix-option.patch added to -mm tree
-Date: Fri, 21 Jan 2011 14:55:23 -0800
-Message-ID: <201101212255.p0LMtNfm005898@imap1.linux-foundation.org>
+Subject: + adfs-improve-timestamp-precision.patch added to -mm tree
+Date: Fri, 21 Jan 2011 14:55:21 -0800
+Message-ID: <201101212255.p0LMtLLS005892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752903Ab1AUWz7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752903Ab1AUW4H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Jan 2011 17:55:59 -0500
+	Fri, 21 Jan 2011 17:56:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: stuart.swales.croftnuisk@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     adfs: add hexadecimal filetype suffix option
+     adfs: improve timestamp precision
 has been added to the -mm tree.  Its filename is
-     adfs-add-hexadecimal-filetype-suffix-option.patch
+     adfs-improve-timestamp-precision.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,332 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: add hexadecimal filetype suffix option
+Subject: adfs: improve timestamp precision
 From: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
 
-ADFS (FileCore) storage complies with the RISC OS filetype specification
-(12 bits of file type information is stored in the file load address,
-rather than using a file extension).  The existing driver largely ignores
-this information and does not present it to the end user.
+ADFS (FileCore) storage complies with the RISC OS timestamp specification
+(40-bit centiseconds since 01 Jan 1900 00:00:00).  It is desirable that
+stored timestamp precision be maintained to facilitate a precise copy of
+data and metadata from a hard disc (or image thereof) into a RISC OS
+emulator (such as RPCEmu).
 
-It is desirable that stored filetypes be made visible to the end user to
-facilitate a precise copy of data and metadata from a hard disc (or image
-thereof) into a RISC OS emulator (such as RPCEmu) or to a network share
-which can be accessed by real Acorn systems.
+This patch implements a full-precision conversion from ADFS to Unix
+timestamp as the existing driver, for ease of calculation with old 32-bit
+compilers, uses the common trick of shifting the 40-bits representing
+centiseconds around into 32-bits representing seconds thereby losing
+precision.
 
-This patch implements a per-mount filetype suffix option (use -o
-ftsuffix=1) to present any filetype as a ,xyz hexadecimal suffix on each
-file.  This type suffix is compatible with that used by RISC OS systems
-that access network servers using NFS client software and by RPCemu's host
-filing system.
-
-Signed-off-by: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Signed-off-by: Stuart Swales<stuart.swales.croftnuisk@gmail.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/adfs.txt |   18 ++++++++++++++++++
- fs/adfs/adfs.h                     |   21 +++++++++++++++++++--
- fs/adfs/dir_f.c                    |   23 ++++++++++++++++++++---
- fs/adfs/dir_fplus.c                |   18 ++++++++++++++++++
- fs/adfs/inode.c                    |   22 ++++------------------
- fs/adfs/super.c                    |   23 ++++++++++++++++++++---
- 6 files changed, 99 insertions(+), 26 deletions(-)
+ fs/adfs/inode.c |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/filesystems/adfs.txt~adfs-add-hexadecimal-filetype-suffix-option Documentation/filesystems/adfs.txt
---- a/Documentation/filesystems/adfs.txt~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/Documentation/filesystems/adfs.txt
-@@ -9,6 +9,9 @@ Mount options for ADFS
- 		will be nnn.  Default 0700.
-   othmask=nnn	The permission mask for ADFS 'other' permissions
- 		will be nnn.  Default 0077.
-+  ftsuffix=n	When ftsuffix=0, no file type suffix will be applied.
-+		When ftsuffix=1, a hexadecimal suffix corresponding to
-+		the RISC OS file type will be added.  Default 0.
- 
- Mapping of ADFS permissions to Linux permissions
- ------------------------------------------------
-@@ -55,3 +58,18 @@ Mapping of ADFS permissions to Linux per
- 
-   You can therefore tailor the permission translation to whatever you
-   desire the permissions should be under Linux.
-+
-+RISC OS file type suffix
-+------------------------
-+
-+  RISC OS file types are stored in bits 19..8 of the file load address.
-+
-+  To enable non-RISC OS systems to be used to store files without losing
-+  file type information, a file naming convention was devised (initially
-+  for use with NFS) such that a hexadecimal suffix of the form ,xyz
-+  denoted the file type: e.g. BasicFile,ffb is a BASIC (0xffb) file.  This
-+  naming convention is now also used by RISC OS emulators such as RPCEmu.
-+
-+  Mounting an ADFS disc with option ftsuffix=1 will cause appropriate file
-+  type suffixes to be appended to file names read from a directory.  If the
-+  ftsuffix option is zero or omitted, no file type suffixes will be added.
-diff -puN fs/adfs/adfs.h~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/adfs.h
-@@ -50,6 +50,7 @@ struct adfs_sb_info {
- 	gid_t		s_gid;		/* owner gid				 */
- 	umode_t		s_owner_mask;	/* ADFS owner perm -> unix perm		 */
- 	umode_t		s_other_mask;	/* ADFS other perm -> unix perm		 */
-+	int		s_ftsuffix;	/* ,xyz hex filetype suffix option */
- 
- 	__u32		s_ids_per_zone;	/* max. no ids in one zone		 */
- 	__u32		s_idlen;	/* length of ID in map			 */
-@@ -93,7 +94,7 @@ struct adfs_dir {
- /*
-  * This is the overall maximum name length
-  */
--#define ADFS_MAX_NAME_LEN	256
-+#define ADFS_MAX_NAME_LEN	(256 + 4) /* +4 for ,xyz hex filetype suffix */
- struct object_info {
- 	__u32		parent_id;		/* parent object id	*/
- 	__u32		file_id;		/* object id		*/
-@@ -101,10 +102,26 @@ struct object_info {
- 	__u32		execaddr;		/* execution address	*/
- 	__u32		size;			/* size			*/
- 	__u8		attr;			/* RISC OS attributes	*/
--	unsigned char	name_len;		/* name length		*/
-+	unsigned int	name_len;		/* name length		*/
- 	char		name[ADFS_MAX_NAME_LEN];/* file name		*/
-+
-+	/* RISC OS file type (12-bit: derived from loadaddr) */
-+	__u16		filetype;
- };
- 
-+/* RISC OS 12-bit filetype converts to ,xyz hex filename suffix */
-+static inline int append_filetype_suffix(char *buf, __u16 filetype)
-+{
-+	if (filetype == -1)
-+		return 0;
-+
-+	*buf++ = ',';
-+	*buf++ = hex_asc_lo(filetype >> 8);
-+	*buf++ = hex_asc_lo(filetype >> 4);
-+	*buf++ = hex_asc_lo(filetype >> 0);
-+	return 4;
-+}
-+
- struct adfs_dir_ops {
- 	int	(*read)(struct super_block *sb, unsigned int id, unsigned int sz, struct adfs_dir *dir);
- 	int	(*setpos)(struct adfs_dir *dir, unsigned int fpos);
-diff -puN fs/adfs/dir_f.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/dir_f.c
---- a/fs/adfs/dir_f.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/dir_f.c
-@@ -52,7 +52,6 @@ static inline int adfs_readname(char *bu
- 			*buf++ = *ptr;
- 		ptr++;
- 	}
--	*buf = '\0';
- 
- 	return buf - old_buf;
- }
-@@ -208,7 +207,8 @@ release_buffers:
-  * convert a disk-based directory entry to a Linux ADFS directory entry
-  */
- static inline void
--adfs_dir2obj(struct object_info *obj, struct adfs_direntry *de)
-+adfs_dir2obj(struct adfs_dir *dir, struct object_info *obj,
-+	struct adfs_direntry *de)
- {
- 	obj->name_len =	adfs_readname(obj->name, de->dirobname, ADFS_F_NAME_LEN);
- 	obj->file_id  = adfs_readval(de->dirinddiscadd, 3);
-@@ -216,6 +216,23 @@ adfs_dir2obj(struct object_info *obj, st
- 	obj->execaddr = adfs_readval(de->direxec, 4);
- 	obj->size     = adfs_readval(de->dirlen,  4);
- 	obj->attr     = de->newdiratts;
-+	obj->filetype = -1;
-+
-+	/*
-+	 * object is a file and is filetyped and timestamped?
-+	 * RISC OS 12-bit filetype is stored in load_address[19:8]
-+	 */
-+	if ((0 == (obj->attr & ADFS_NDA_DIRECTORY)) &&
-+		(0xfff00000 == (0xfff00000 & obj->loadaddr))) {
-+		obj->filetype = (__u16) ((0x000fff00 & obj->loadaddr) >> 8);
-+
-+		/* optionally append the ,xyz hex filetype suffix */
-+		if (ADFS_SB(dir->sb)->s_ftsuffix)
-+			obj->name_len +=
-+				append_filetype_suffix(
-+					&obj->name[obj->name_len],
-+					obj->filetype);
-+	}
- }
- 
- /*
-@@ -260,7 +277,7 @@ __adfs_dir_get(struct adfs_dir *dir, int
- 	if (!de.dirobname[0])
- 		return -ENOENT;
- 
--	adfs_dir2obj(obj, &de);
-+	adfs_dir2obj(dir, obj, &de);
- 
- 	return 0;
- }
-diff -puN fs/adfs/dir_fplus.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/dir_fplus.c
-@@ -197,6 +197,24 @@ adfs_fplus_getnext(struct adfs_dir *dir,
- 		if (obj->name[i] == '/')
- 			obj->name[i] = '.';
- 
-+	obj->filetype = -1;
-+
-+	/*
-+	 * object is a file and is filetyped and timestamped?
-+	 * RISC OS 12-bit filetype is stored in load_address[19:8]
-+	 */
-+	if ((0 == (obj->attr & ADFS_NDA_DIRECTORY)) &&
-+		(0xfff00000 == (0xfff00000 & obj->loadaddr))) {
-+		obj->filetype = (__u16) ((0x000fff00 & obj->loadaddr) >> 8);
-+
-+		/* optionally append the ,xyz hex filetype suffix */
-+		if (ADFS_SB(dir->sb)->s_ftsuffix)
-+			obj->name_len +=
-+				append_filetype_suffix(
-+					&obj->name[obj->name_len],
-+					obj->filetype);
-+	}
-+
- 	dir->pos += 1;
- 	ret = 0;
- out:
-diff -puN fs/adfs/inode.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/inode.c
---- a/fs/adfs/inode.c~adfs-add-hexadecimal-filetype-suffix-option
+diff -puN fs/adfs/inode.c~adfs-improve-timestamp-precision fs/adfs/inode.c
+--- a/fs/adfs/inode.c~adfs-improve-timestamp-precision
 +++ a/fs/adfs/inode.c
-@@ -79,26 +79,13 @@ static const struct address_space_operat
- 	.bmap		= _adfs_bmap
- };
+@@ -175,50 +175,48 @@ adfs_mode2atts(struct super_block *sb, s
  
--static inline unsigned int
--adfs_filetype(struct inode *inode)
--{
--	unsigned int type;
--
--	if (ADFS_I(inode)->stamped)
--		type = (ADFS_I(inode)->loadaddr >> 8) & 0xfff;
--	else
--		type = (unsigned int) -1;
--
--	return type;
--}
--
  /*
-  * Convert ADFS attributes and filetype to Linux permission.
+  * Convert an ADFS time to Unix time.  ADFS has a 40-bit centi-second time
+- * referenced to 1 Jan 1900 (til 2248)
++ * referenced to 1 Jan 1900 (til 2248) so we need to discard 2208988800 seconds
++ * of time to convert from RISC OS epoch to Unix epoch.
   */
- static umode_t
- adfs_atts2mode(struct super_block *sb, struct inode *inode)
+ static void
+ adfs_adfs2unix_time(struct timespec *tv, struct inode *inode)
  {
--	unsigned int filetype, attr = ADFS_I(inode)->attr;
-+	unsigned int attr = ADFS_I(inode)->attr;
- 	umode_t mode, rmask;
- 	struct adfs_sb_info *asb = ADFS_SB(sb);
- 
-@@ -107,9 +94,7 @@ adfs_atts2mode(struct super_block *sb, s
- 		return S_IFDIR | S_IXUGO | mode;
- 	}
- 
--	filetype = adfs_filetype(inode);
--
--	switch (filetype) {
-+	switch (ADFS_I(inode)->filetype) {
- 	case 0xfc0:	/* LinkFS */
- 		return S_IFLNK|S_IRWXUGO;
- 
-@@ -278,7 +263,8 @@ adfs_iget(struct super_block *sb, struct
- 	ADFS_I(inode)->loadaddr  = obj->loadaddr;
- 	ADFS_I(inode)->execaddr  = obj->execaddr;
- 	ADFS_I(inode)->attr      = obj->attr;
--	ADFS_I(inode)->stamped	  = ((obj->loadaddr & 0xfff00000) == 0xfff00000);
-+	ADFS_I(inode)->filetype  = obj->filetype;
-+	ADFS_I(inode)->stamped   = ((obj->loadaddr & 0xfff00000) == 0xfff00000);
- 
- 	inode->i_mode	 = adfs_atts2mode(sb, inode);
- 	adfs_adfs2unix_time(&inode->i_mtime, inode);
-diff -puN fs/adfs/super.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/super.c
-@@ -143,17 +143,20 @@ static int adfs_show_options(struct seq_
- 		seq_printf(seq, ",ownmask=%o", asb->s_owner_mask);
- 	if (asb->s_other_mask != ADFS_DEFAULT_OTHER_MASK)
- 		seq_printf(seq, ",othmask=%o", asb->s_other_mask);
-+	if (asb->s_ftsuffix != 0)
-+		seq_printf(seq, ",ftsuffix=%u", asb->s_ftsuffix);
- 
- 	return 0;
- }
- 
--enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_err};
-+enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_ftsuffix, Opt_err};
- 
- static const match_table_t tokens = {
- 	{Opt_uid, "uid=%u"},
- 	{Opt_gid, "gid=%u"},
- 	{Opt_ownmask, "ownmask=%o"},
- 	{Opt_othmask, "othmask=%o"},
-+	{Opt_ftsuffix, "ftsuffix=%u"},
- 	{Opt_err, NULL}
- };
- 
-@@ -194,6 +197,11 @@ static int parse_options(struct super_bl
- 				return -EINVAL;
- 			asb->s_other_mask = option;
- 			break;
-+		case Opt_ftsuffix:
-+			if (match_int(args, &option))
-+				return -EINVAL;
-+			asb->s_ftsuffix = option;
-+			break;
- 		default:
- 			printk("ADFS-fs: unrecognised mount option \"%s\" "
- 					"or missing value\n", p);
-@@ -375,6 +383,7 @@ static int adfs_fill_super(struct super_
- 	asb->s_gid = 0;
- 	asb->s_owner_mask = ADFS_DEFAULT_OWNER_MASK;
- 	asb->s_other_mask = ADFS_DEFAULT_OTHER_MASK;
-+	asb->s_ftsuffix = 0;
- 
- 	if (parse_options(sb, data))
- 		goto error;
-@@ -454,11 +463,13 @@ static int adfs_fill_super(struct super_
- 
- 	root_obj.parent_id = root_obj.file_id = le32_to_cpu(dr->root);
- 	root_obj.name_len  = 0;
--	root_obj.loadaddr  = 0;
--	root_obj.execaddr  = 0;
-+	/* Set root object date as 01 Jan 1987 00:00:00 */
-+	root_obj.loadaddr  = 0xfff0003f;
-+	root_obj.execaddr  = 0xec22c000;
- 	root_obj.size	   = ADFS_NEWDIR_SIZE;
- 	root_obj.attr	   = ADFS_NDA_DIRECTORY   | ADFS_NDA_OWNER_READ |
- 			     ADFS_NDA_OWNER_WRITE | ADFS_NDA_PUBLIC_READ;
-+	root_obj.filetype  = -1;
- 
- 	/*
- 	 * If this is a F+ disk with variable length directories,
-@@ -472,6 +483,12 @@ static int adfs_fill_super(struct super_
- 		asb->s_dir     = &adfs_f_dir_ops;
- 		asb->s_namelen = ADFS_F_NAME_LEN;
- 	}
-+	/*
-+	 * ,xyz hex filetype suffix may be added by driver
-+	 * to files that have valid RISC OS filetype
+ 	unsigned int high, low;
++	/* 01 Jan 1970 00:00:00 (Unix epoch) as nanoseconds since
++	 * 01 Jan 1900 00:00:00 (RISC OS epoch)
 +	 */
-+	if (asb->s_ftsuffix)
-+		asb->s_namelen += 4;
++	static const s64 nsec_unix_epoch_diff_risc_os_epoch =
++							2208988800000000000LL;
++	s64 nsec;
  
- 	sb->s_d_op = &adfs_dentry_operations;
- 	root = adfs_iget(sb, &root_obj);
-_
-
-Patches currently in -mm which might be from stuart.swales.croftnuisk@gmail.com are
-
-adfs-fix-e-f-dir-size-2048-crashing-kernel.patch
-adfs-improve-timestamp-precision.patch
-adfs-add-hexadecimal-filetype-suffix-option.patch
-adfs-remove-the-big-kernel-lock.patch
-
+ 	if (ADFS_I(inode)->stamped == 0)
+ 		goto cur_time;
+ 
+-	high = ADFS_I(inode)->loadaddr << 24;
+-	low  = ADFS_I(inode)->execaddr;
++	high = ADFS_I(inode)->loadaddr & 0xFF; /* top 8 bits of timestamp */
++	low  = ADFS_I(inode)->execaddr;    /* bottom 32 bits of timestamp */
+ 
+-	high |= low >> 8;
+-	low  &= 255;
++	/* convert 40-bit centi-seconds to 32-bit seconds
++	 * going via nanoseconds to retain precision
++	 */
++	nsec = (((s64) high << 32) | (s64) low) * 10000000; /* cs to ns */
+ 
+ 	/* Files dated pre  01 Jan 1970 00:00:00. */
+-	if (high < 0x336e996a)
++	if (nsec < nsec_unix_epoch_diff_risc_os_epoch)
+ 		goto too_early;
+ 
+-	/* Files dated post 18 Jan 2038 03:14:05. */
+-	if (high >= 0x656e9969)
+-		goto too_late;
+-
+-	/* discard 2208988800 (0x336e996a00) seconds of time */
+-	high -= 0x336e996a;
+-
+-	/* convert 40-bit centi-seconds to 32-bit seconds */
+-	tv->tv_sec = (((high % 100) << 8) + low) / 100 + (high / 100 << 8);
+-	tv->tv_nsec = 0;
++	/* convert from RISC OS to Unix epoch */
++	nsec -= nsec_unix_epoch_diff_risc_os_epoch;
++
++	*tv = ns_to_timespec(nsec);
+ 	return;
+ 
+  cur_time:
+-	*tv = CURRENT_TIME_SEC;
++	*tv = CURRENT_TIME;
+ 	return;
+ 
+  too_early:
+ 	tv->tv_sec = tv->tv_nsec = 0;
+ 	return;
