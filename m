@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-introduce-config_generic_find_bit_le.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:11 -0800
-Message-ID: <201101242206.p0OM6C16013362@imap1.linux-foundation.org>
+Subject: + asm-generic-rename-generic-little-endian-bitops-functions.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:05:52 -0800
+Message-ID: <201101242205.p0OM5qbN013329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54672 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751384Ab1AXWGR (ORCPT
+	by vger.kernel.org with ESMTP id S1751339Ab1AXWGO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:17 -0500
+	Mon, 24 Jan 2011 17:06:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org
+Cc: akinobu.mita@gmail.com, arnd@arndb.de, benh@kernel.crashing.org, geert@linux-m68k.org, gerg@uclinux.org, hans-christian.egtvedt@atmel.com, paulus@samba.org, schwab@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     bitops: introduce CONFIG_GENERIC_FIND_BIT_LE
+     asm-generic: rename generic little-endian bitops functions
 has been added to the -mm tree.  Its filename is
-     bitops-introduce-config_generic_find_bit_le.patch
+     asm-generic-rename-generic-little-endian-bitops-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,233 +34,314 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: introduce CONFIG_GENERIC_FIND_BIT_LE
+Subject: asm-generic: rename generic little-endian bitops functions
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This introduces CONFIG_GENERIC_FIND_BIT_LE to tell whether to use generic
-implementation of find_*_bit_le() in lib/find_next_bit.c or not.
+As a preparation for providing little-endian bitops for all architectures,
+This renames generic implementation of little-endian bitops.  (remove
+"generic_" prefix and postfix "_le")
 
-For now we select CONFIG_GENERIC_FIND_BIT_LE for all architectures which
-enable CONFIG_GENERIC_FIND_NEXT_BIT.
-
-But m68knommu wants to define own faster find_next_zero_bit_le() and
-continues using generic find_next_{,zero_}bit(). 
-(CONFIG_GENERIC_FIND_NEXT_BIT and !CONFIG_GENERIC_FIND_BIT_LE)
+s/generic_find_next_le_bit/find_next_bit_le/
+s/generic_find_next_zero_le_bit/find_next_zero_bit_le/
+s/generic_find_first_zero_le_bit/find_first_zero_bit_le/
+s/generic___test_and_set_le_bit/__test_and_set_bit_le/
+s/generic___test_and_clear_le_bit/__test_and_clear_bit_le/
+s/generic_test_le_bit/test_bit_le/
+s/generic___set_le_bit/__set_bit_le/
+s/generic___clear_le_bit/__clear_bit_le/
+s/generic_test_and_set_le_bit/test_and_set_bit_le/
+s/generic_test_and_clear_le_bit/test_and_clear_bit_le/
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
 Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/Kconfig        |    4 ++++
- arch/h8300/Kconfig      |    4 ++++
- arch/m32r/Kconfig       |    4 ++++
- arch/m68knommu/Kconfig  |    4 ++++
- arch/microblaze/Kconfig |    3 +++
- arch/mips/Kconfig       |    4 ++++
- arch/parisc/Kconfig     |    4 ++++
- arch/powerpc/Kconfig    |    4 ++++
- arch/sh/Kconfig         |    3 +++
- arch/sparc/Kconfig      |    4 ++++
- arch/xtensa/Kconfig     |    3 +++
- lib/Kconfig             |    3 +++
- lib/Makefile            |    1 +
- lib/find_next_bit.c     |    3 +++
- 14 files changed, 48 insertions(+)
+ arch/avr32/kernel/avr32_ksyms.c              |    4 +-
+ arch/avr32/lib/findbit.S                     |    4 +-
+ arch/m68k/include/asm/bitops_mm.h            |    8 ++--
+ arch/m68k/include/asm/bitops_no.h            |    2 -
+ arch/powerpc/include/asm/bitops.h            |   15 ++++-----
+ include/asm-generic/bitops/ext2-non-atomic.h |   12 +++----
+ include/asm-generic/bitops/le.h              |   28 ++++++++---------
+ include/asm-generic/bitops/minix-le.h        |   10 +++---
+ lib/find_next_bit.c                          |    9 ++---
+ 9 files changed, 46 insertions(+), 46 deletions(-)
 
-diff -puN arch/frv/Kconfig~bitops-introduce-config_generic_find_bit_le arch/frv/Kconfig
---- a/arch/frv/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/frv/Kconfig
-@@ -23,6 +23,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+diff -puN arch/avr32/kernel/avr32_ksyms.c~asm-generic-rename-generic-little-endian-bitops-functions arch/avr32/kernel/avr32_ksyms.c
+--- a/arch/avr32/kernel/avr32_ksyms.c~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/arch/avr32/kernel/avr32_ksyms.c
+@@ -58,8 +58,8 @@ EXPORT_SYMBOL(find_first_zero_bit);
+ EXPORT_SYMBOL(find_next_zero_bit);
+ EXPORT_SYMBOL(find_first_bit);
+ EXPORT_SYMBOL(find_next_bit);
+-EXPORT_SYMBOL(generic_find_next_le_bit);
+-EXPORT_SYMBOL(generic_find_next_zero_le_bit);
++EXPORT_SYMBOL(find_next_bit_le);
++EXPORT_SYMBOL(find_next_zero_bit_le);
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/h8300/Kconfig~bitops-introduce-config_generic_find_bit_le arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/h8300/Kconfig
-@@ -45,6 +45,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+ /* I/O primitives (lib/io-*.S) */
+ EXPORT_SYMBOL(__raw_readsb);
+diff -puN arch/avr32/lib/findbit.S~asm-generic-rename-generic-little-endian-bitops-functions arch/avr32/lib/findbit.S
+--- a/arch/avr32/lib/findbit.S~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/arch/avr32/lib/findbit.S
+@@ -123,7 +123,7 @@ ENTRY(find_next_bit)
+ 	brgt	1b
+ 	retal	r11
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/m32r/Kconfig~bitops-introduce-config_generic_find_bit_le arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/m32r/Kconfig
-@@ -260,6 +260,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+-ENTRY(generic_find_next_le_bit)
++ENTRY(find_next_bit_le)
+ 	lsr	r8, r10, 5
+ 	sub	r9, r11, r10
+ 	retle	r11
+@@ -153,7 +153,7 @@ ENTRY(generic_find_next_le_bit)
+ 	brgt	1b
+ 	retal	r11
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_bit_le arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/m68knommu/Kconfig
-@@ -41,6 +41,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+-ENTRY(generic_find_next_zero_le_bit)
++ENTRY(find_next_zero_bit_le)
+ 	lsr	r8, r10, 5
+ 	sub	r9, r11, r10
+ 	retle	r11
+diff -puN arch/m68k/include/asm/bitops_mm.h~asm-generic-rename-generic-little-endian-bitops-functions arch/m68k/include/asm/bitops_mm.h
+--- a/arch/m68k/include/asm/bitops_mm.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/arch/m68k/include/asm/bitops_mm.h
+@@ -366,9 +366,9 @@ static inline int minix_test_bit(int nr,
+ #define ext2_clear_bit(nr, addr)		__test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
+ #define ext2_clear_bit_atomic(lock, nr, addr)	test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
+ #define ext2_find_next_zero_bit(addr, size, offset) \
+-	generic_find_next_zero_le_bit((unsigned long *)addr, size, offset)
++	find_next_zero_bit_le((unsigned long *)addr, size, offset)
+ #define ext2_find_next_bit(addr, size, offset) \
+-	generic_find_next_le_bit((unsigned long *)addr, size, offset)
++	find_next_bit_le((unsigned long *)addr, size, offset)
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_GPIO
- 	bool
- 	default n
-diff -puN arch/microblaze/Kconfig~bitops-introduce-config_generic_find_bit_le arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/microblaze/Kconfig
-@@ -36,6 +36,9 @@ config ARCH_HAS_ILOG2_U64
- config GENERIC_FIND_NEXT_BIT
- 	def_bool y
+ static inline int ext2_test_bit(int nr, const void *vaddr)
+ {
+@@ -398,7 +398,7 @@ static inline int ext2_find_first_zero_b
+ 	return (p - addr) * 32 + res;
+ }
  
-+config GENERIC_FIND_BIT_LE
-+	def_bool y
-+
- config GENERIC_HWEIGHT
- 	def_bool y
+-static inline unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++static inline unsigned long find_next_zero_bit_le(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset)
+ {
+ 	const unsigned long *p = addr + (offset >> 5);
+@@ -440,7 +440,7 @@ static inline int ext2_find_first_bit(co
+ 	return (p - addr) * 32 + res;
+ }
  
-diff -puN arch/mips/Kconfig~bitops-introduce-config_generic_find_bit_le arch/mips/Kconfig
---- a/arch/mips/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/mips/Kconfig
-@@ -773,6 +773,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+-static inline unsigned long generic_find_next_le_bit(const unsigned long *addr,
++static inline unsigned long find_next_bit_le(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset)
+ {
+ 	const unsigned long *p = addr + (offset >> 5);
+diff -puN arch/m68k/include/asm/bitops_no.h~asm-generic-rename-generic-little-endian-bitops-functions arch/m68k/include/asm/bitops_no.h
+--- a/arch/m68k/include/asm/bitops_no.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/arch/m68k/include/asm/bitops_no.h
+@@ -325,7 +325,7 @@ found_middle:
+ }
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/parisc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/parisc/Kconfig
-@@ -52,6 +52,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+ #define ext2_find_next_bit(addr, size, off) \
+-	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
++	find_next_bit_le((unsigned long *)(addr), (size), (off))
+ #include <asm-generic/bitops/minix.h>
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_BUG
- 	bool
- 	default y
-diff -puN arch/powerpc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/powerpc/Kconfig
-@@ -95,6 +95,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+ #endif /* __KERNEL__ */
+diff -puN arch/powerpc/include/asm/bitops.h~asm-generic-rename-generic-little-endian-bitops-functions arch/powerpc/include/asm/bitops.h
+--- a/arch/powerpc/include/asm/bitops.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -303,11 +303,12 @@ static __inline__ int test_le_bit(unsign
+ #define __test_and_clear_le_bit(nr, addr) \
+ 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_GPIO
- 	bool
- 	help
-diff -puN arch/sh/Kconfig~bitops-introduce-config_generic_find_bit_le arch/sh/Kconfig
---- a/arch/sh/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/sh/Kconfig
-@@ -75,6 +75,9 @@ config GENERIC_CSUM
- config GENERIC_FIND_NEXT_BIT
- 	def_bool y
+-#define find_first_zero_le_bit(addr, size) generic_find_next_zero_le_bit((addr), (size), 0)
+-unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++#define find_first_zero_bit_le(addr, size) \
++	find_next_zero_bit_le((addr), (size), 0)
++unsigned long find_next_zero_bit_le(const unsigned long *addr,
+ 				    unsigned long size, unsigned long offset);
  
-+config GENERIC_FIND_BIT_LE
-+	def_bool y
-+
- config GENERIC_HWEIGHT
- 	def_bool y
+-unsigned long generic_find_next_le_bit(const unsigned long *addr,
++unsigned long find_next_bit_le(const unsigned long *addr,
+ 				    unsigned long size, unsigned long offset);
+ /* Bitmap functions for the ext2 filesystem */
  
-diff -puN arch/sparc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/sparc/Kconfig
-@@ -192,6 +192,10 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+@@ -324,12 +325,12 @@ unsigned long generic_find_next_le_bit(c
+ #define ext2_test_bit(nr, addr)      test_le_bit((nr),(unsigned long*)addr)
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+	default y
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y if !ULTRA_HAS_POPULATION_COUNT
-diff -puN arch/xtensa/Kconfig~bitops-introduce-config_generic_find_bit_le arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/arch/xtensa/Kconfig
-@@ -21,6 +21,9 @@ config RWSEM_XCHGADD_ALGORITHM
- config GENERIC_FIND_NEXT_BIT
- 	def_bool y
+ #define ext2_find_first_zero_bit(addr, size) \
+-	find_first_zero_le_bit((unsigned long*)addr, size)
++	find_first_zero_bit_le((unsigned long*)addr, size)
+ #define ext2_find_next_zero_bit(addr, size, off) \
+-	generic_find_next_zero_le_bit((unsigned long*)addr, size, off)
++	find_next_zero_bit_le((unsigned long *)addr, size, off)
  
-+config GENERIC_FIND_BIT_LE
-+	def_bool y
-+
- config GENERIC_HWEIGHT
- 	def_bool y
+ #define ext2_find_next_bit(addr, size, off) \
+-	generic_find_next_le_bit((unsigned long *)addr, size, off)
++	find_next_bit_le((unsigned long *)addr, size, off)
+ /* Bitmap functions for the minix filesystem.  */
  
-diff -puN lib/Kconfig~bitops-introduce-config_generic_find_bit_le lib/Kconfig
---- a/lib/Kconfig~bitops-introduce-config_generic_find_bit_le
-+++ a/lib/Kconfig
-@@ -22,6 +22,9 @@ config GENERIC_FIND_FIRST_BIT
- config GENERIC_FIND_NEXT_BIT
- 	bool
+ #define minix_test_and_set_bit(nr,addr) \
+@@ -342,7 +343,7 @@ unsigned long generic_find_next_le_bit(c
+ 	test_le_bit(nr, (unsigned long *)addr)
  
-+config GENERIC_FIND_BIT_LE
-+	bool
-+
- config GENERIC_FIND_LAST_BIT
- 	bool
- 	default y
-diff -puN lib/Makefile~bitops-introduce-config_generic_find_bit_le lib/Makefile
---- a/lib/Makefile~bitops-introduce-config_generic_find_bit_le
-+++ a/lib/Makefile
-@@ -38,6 +38,7 @@ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += 
- lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
- lib-$(CONFIG_GENERIC_FIND_FIRST_BIT) += find_next_bit.o
- lib-$(CONFIG_GENERIC_FIND_NEXT_BIT) += find_next_bit.o
-+lib-$(CONFIG_GENERIC_FIND_BIT_LE) += find_next_bit.o
- obj-$(CONFIG_GENERIC_FIND_LAST_BIT) += find_last_bit.o
+ #define minix_find_first_zero_bit(addr,size) \
+-	find_first_zero_le_bit((unsigned long *)addr, size)
++	find_first_zero_bit_le((unsigned long *)addr, size)
  
- CFLAGS_hweight.o = $(subst $(quote),,$(CONFIG_ARCH_HWEIGHT_CFLAGS))
-diff -puN lib/find_next_bit.c~bitops-introduce-config_generic_find_bit_le lib/find_next_bit.c
---- a/lib/find_next_bit.c~bitops-introduce-config_generic_find_bit_le
+ #include <asm-generic/bitops/sched.h>
+ 
+diff -puN include/asm-generic/bitops/ext2-non-atomic.h~asm-generic-rename-generic-little-endian-bitops-functions include/asm-generic/bitops/ext2-non-atomic.h
+--- a/include/asm-generic/bitops/ext2-non-atomic.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/include/asm-generic/bitops/ext2-non-atomic.h
+@@ -4,17 +4,17 @@
+ #include <asm-generic/bitops/le.h>
+ 
+ #define ext2_set_bit(nr,addr)	\
+-	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++	__test_and_set_bit_le((nr), (unsigned long *)(addr))
+ #define ext2_clear_bit(nr,addr)	\
+-	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++	__test_and_clear_bit_le((nr), (unsigned long *)(addr))
+ 
+ #define ext2_test_bit(nr,addr)	\
+-	generic_test_le_bit((nr),(unsigned long *)(addr))
++	test_bit_le((nr), (unsigned long *)(addr))
+ #define ext2_find_first_zero_bit(addr, size) \
+-	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
++	find_first_zero_bit_le((unsigned long *)(addr), (size))
+ #define ext2_find_next_zero_bit(addr, size, off) \
+-	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++	find_next_zero_bit_le((unsigned long *)(addr), (size), (off))
+ #define ext2_find_next_bit(addr, size, off) \
+-	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
++	find_next_bit_le((unsigned long *)(addr), (size), (off))
+ 
+ #endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+diff -puN include/asm-generic/bitops/le.h~asm-generic-rename-generic-little-endian-bitops-functions include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/include/asm-generic/bitops/le.h
+@@ -8,44 +8,44 @@
+ 
+ #define BITOP_LE_SWIZZLE	0
+ 
+-#define generic_find_next_zero_le_bit(addr, size, offset) \
++#define find_next_zero_bit_le(addr, size, offset) \
+ 	find_next_zero_bit(addr, size, offset)
+-#define generic_find_next_le_bit(addr, size, offset) \
++#define find_next_bit_le(addr, size, offset) \
+ 	find_next_bit(addr, size, offset)
+-#define generic_find_first_zero_le_bit(addr, size) \
++#define find_first_zero_bit_le(addr, size) \
+ 	find_first_zero_bit(addr, size)
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
+ #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+ 
+-extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
++extern unsigned long find_next_zero_bit_le(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset);
+-extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
++extern unsigned long find_next_bit_le(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset);
+ 
+-#define generic_find_first_zero_le_bit(addr, size) \
+-	generic_find_next_zero_le_bit((addr), (size), 0)
++#define find_first_zero_bit_le(addr, size) \
++	find_next_zero_bit_le((addr), (size), 0)
+ 
+ #else
+ #error "Please fix <asm/byteorder.h>"
+ #endif
+ 
+-#define generic_test_le_bit(nr, addr) \
++#define test_bit_le(nr, addr) \
+ 	test_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define generic___set_le_bit(nr, addr) \
++#define __set_bit_le(nr, addr) \
+ 	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define generic___clear_le_bit(nr, addr) \
++#define __clear_bit_le(nr, addr) \
+ 	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ 
+-#define generic_test_and_set_le_bit(nr, addr) \
++#define test_and_set_bit_le(nr, addr) \
+ 	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define generic_test_and_clear_le_bit(nr, addr) \
++#define test_and_clear_bit_le(nr, addr) \
+ 	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ 
+-#define generic___test_and_set_le_bit(nr, addr) \
++#define __test_and_set_bit_le(nr, addr) \
+ 	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define generic___test_and_clear_le_bit(nr, addr) \
++#define __test_and_clear_bit_le(nr, addr) \
+ 	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+ 
+ #endif /* _ASM_GENERIC_BITOPS_LE_H_ */
+diff -puN include/asm-generic/bitops/minix-le.h~asm-generic-rename-generic-little-endian-bitops-functions include/asm-generic/bitops/minix-le.h
+--- a/include/asm-generic/bitops/minix-le.h~asm-generic-rename-generic-little-endian-bitops-functions
++++ a/include/asm-generic/bitops/minix-le.h
+@@ -4,14 +4,14 @@
+ #include <asm-generic/bitops/le.h>
+ 
+ #define minix_test_and_set_bit(nr,addr)	\
+-	generic___test_and_set_le_bit((nr),(unsigned long *)(addr))
++	__test_and_set_bit_le((nr), (unsigned long *)(addr))
+ #define minix_set_bit(nr,addr)		\
+-	generic___set_le_bit((nr),(unsigned long *)(addr))
++	__set_bit_le((nr), (unsigned long *)(addr))
+ #define minix_test_and_clear_bit(nr,addr) \
+-	generic___test_and_clear_le_bit((nr),(unsigned long *)(addr))
++	__test_and_clear_bit_le((nr), (unsigned long *)(addr))
+ #define minix_test_bit(nr,addr)		\
+-	generic_test_le_bit((nr),(unsigned long *)(addr))
++	test_bit_le((nr), (unsigned long *)(addr))
+ #define minix_find_first_zero_bit(addr,size) \
+-	generic_find_first_zero_le_bit((unsigned long *)(addr),(size))
++	find_first_zero_bit_le((unsigned long *)(addr), (size))
+ 
+ #endif /* _ASM_GENERIC_BITOPS_MINIX_LE_H_ */
+diff -puN lib/find_next_bit.c~asm-generic-rename-generic-little-endian-bitops-functions lib/find_next_bit.c
+--- a/lib/find_next_bit.c~asm-generic-rename-generic-little-endian-bitops-functions
 +++ a/lib/find_next_bit.c
-@@ -160,6 +160,7 @@ EXPORT_SYMBOL(find_first_zero_bit);
- #endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
+@@ -185,7 +185,7 @@ static inline unsigned long ext2_swab(co
+ #endif
+ }
  
- #ifdef __BIG_ENDIAN
-+#ifdef CONFIG_GENERIC_FIND_BIT_LE
+-unsigned long generic_find_next_zero_le_bit(const unsigned long *addr, unsigned
++unsigned long find_next_zero_bit_le(const unsigned long *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+ 	const unsigned long *p = addr + BITOP_WORD(offset);
+@@ -226,10 +226,9 @@ found_middle:
+ found_middle_swap:
+ 	return result + ffz(ext2_swab(tmp));
+ }
++EXPORT_SYMBOL(find_next_zero_bit_le);
  
- /* include/linux/byteorder does not support "unsigned long" type */
- static inline unsigned long ext2_swabp(const unsigned long * x)
-@@ -273,4 +274,6 @@ found_middle_swap:
+-EXPORT_SYMBOL(generic_find_next_zero_le_bit);
+-
+-unsigned long generic_find_next_le_bit(const unsigned long *addr, unsigned
++unsigned long find_next_bit_le(const unsigned long *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+ 	const unsigned long *p = addr + BITOP_WORD(offset);
+@@ -271,5 +270,5 @@ found_middle:
+ found_middle_swap:
  	return result + __ffs(ext2_swab(tmp));
  }
- EXPORT_SYMBOL(find_next_bit_le);
-+
-+#endif /* CONFIG_GENERIC_FIND_BIT_LE */
+-EXPORT_SYMBOL(generic_find_next_le_bit);
++EXPORT_SYMBOL(find_next_bit_le);
  #endif /* __BIG_ENDIAN */
 _
 
