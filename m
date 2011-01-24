@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent.patch added to -mm tree
-Date: Mon, 24 Jan 2011 13:42:04 -0800
-Message-ID: <201101242142.p0OLg4Y0012127@imap1.linux-foundation.org>
+Subject: + mm-compaction-dont-depend-on-hugetlb_page.patch added to -mm tree
+Date: Mon, 24 Jan 2011 13:43:57 -0800
+Message-ID: <201101242143.p0OLhvlx012191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750831Ab1AXVmS (ORCPT
+	by vger.kernel.org with ESMTP id S1751301Ab1AXVoM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 16:42:18 -0500
+	Mon, 24 Jan 2011 16:44:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jj@chaosbits.net, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+Cc: aarcange@redhat.com, kronos.it@gmail.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm/memcontrol.c: fix uninitialized variable use in mem_cgroup_move_parent()
+     mm: compaction: don't depend on HUGETLB_PAGE
 has been added to the -mm tree.  Its filename is
-     mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent.patch
+     mm-compaction-dont-depend-on-hugetlb_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memcontrol.c: fix uninitialized variable use in mem_cgroup_move_parent()
-From: Jesper Juhl <jj@chaosbits.net>
+Subject: mm: compaction: don't depend on HUGETLB_PAGE
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-In mm/memcontrol.c::mem_cgroup_move_parent() there's a path that jumps to
-the 'put_back' label
+5d6892407 ("thp: select CONFIG_COMPACTION if TRANSPARENT_HUGEPAGE
+enabled") causes this warning during the configuration process:
 
-  	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false, charge);
-  	if (ret || !parent)
-  		goto put_back;
-where we'll
+  warning: (TRANSPARENT_HUGEPAGE) selects COMPACTION which has unmet
+  direct dependencies (EXPERIMENTAL && HUGETLB_PAGE && MMU)
 
-  	if (charge > PAGE_SIZE)
-  		compound_unlock_irqrestore(page, flags);
+COMPACTION doesn't depend on HUGETLB_PAGE, it doesn't depend on THP
+either, it is also useful for regular alloc_pages(order > 0) including the
+very kernel stack during fork (THREAD_ORDER = 1).  It's always better to
+enable COMPACTION.
 
-but, we have not assigned anything to 'flags' at this point, nor have we
-called 'compound_lock_irqsave()' (which is what sets 'flags').  The
-'put_back' label should be moved below the call to
-compound_unlock_irqrestore() as per this patch.
+The warning should be an error because we would end up with MIGRATION not
+selected, and COMPACTION wouldn't work without migration (despite it seems
+to build with an inline migrate_pages returning -ENOSYS).
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+I'd also like to remove EXPERIMENTAL: compaction has been in the kernel
+for some releases (for full safety the default remains disabled which I
+think is enough).
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Luca Tettamanti <kronos.it@gmail.com>
+Tested-by: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent
-+++ a/mm/memcontrol.c
-@@ -2292,9 +2292,10 @@ static int mem_cgroup_move_parent(struct
- 	ret = mem_cgroup_move_account(pc, child, parent, true, charge);
- 	if (ret)
- 		mem_cgroup_cancel_charge(parent, charge);
--put_back:
-+
- 	if (charge > PAGE_SIZE)
- 		compound_unlock_irqrestore(page, flags);
-+put_back:
- 	putback_lru_page(page);
- put:
- 	put_page(page);
+diff -puN mm/Kconfig~mm-compaction-dont-depend-on-hugetlb_page mm/Kconfig
+--- a/mm/Kconfig~mm-compaction-dont-depend-on-hugetlb_page
++++ a/mm/Kconfig
+@@ -179,7 +179,7 @@ config SPLIT_PTLOCK_CPUS
+ config COMPACTION
+ 	bool "Allow for memory compaction"
+ 	select MIGRATION
+-	depends on EXPERIMENTAL && HUGETLB_PAGE && MMU
++	depends on MMU
+ 	help
+ 	  Allows the compaction of memory for the allocation of huge pages.
+ 
 _
 
-Patches currently in -mm which might be from jj@chaosbits.net are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-origin.patch
-linux-next.patch
-mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent.patch
-x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
-audit-always-follow-va_copy-with-va_end.patch
+thp-fix-paravirt-x86-32bit-nopae.patch
+mm-compaction-dont-depend-on-hugetlb_page.patch
 
