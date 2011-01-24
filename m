@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rds-use-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:22 -0800
-Message-ID: <201101242206.p0OM6MX8013377@imap1.linux-foundation.org>
+Subject: + reiserfs-use-little-endian-bitops.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:32 -0800
+Message-ID: <201101242206.p0OM6WHQ013393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751571Ab1AXWG1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751960Ab1AXWGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:27 -0500
+	Mon, 24 Jan 2011 17:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, andy.grover@oracle.com, davem@davemloft.net
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     rds: use little-endian bitops
+     reiserfs: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     rds-use-little-endian-bitops.patch
+     reiserfs-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rds: use little-endian bitops
+Subject: reiserfs: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,44 +42,59 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Andy Grover <andy.grover@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rds/cong.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/reiserfs_fs.h |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN net/rds/cong.c~rds-use-little-endian-bitops net/rds/cong.c
---- a/net/rds/cong.c~rds-use-little-endian-bitops
-+++ a/net/rds/cong.c
-@@ -284,7 +284,7 @@ void rds_cong_set_bit(struct rds_cong_ma
- 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
- 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+diff -puN include/linux/reiserfs_fs.h~reiserfs-use-little-endian-bitops include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-use-little-endian-bitops
++++ a/include/linux/reiserfs_fs.h
+@@ -1124,15 +1124,18 @@ struct reiserfs_de_head {
+ #   define aligned_address(addr)           ((void *)((long)(addr) & ~((1UL << ADDR_UNALIGNED_BITS) - 1)))
+ #   define unaligned_offset(addr)          (((int)((long)(addr) & ((1 << ADDR_UNALIGNED_BITS) - 1))) << 3)
  
--	ext2_set_bit(off, (void *)map->m_page_addrs[i]);
-+	__set_bit_le(off, (void *)map->m_page_addrs[i]);
- }
+-#   define set_bit_unaligned(nr, addr)     ext2_set_bit((nr) + unaligned_offset(addr), aligned_address(addr))
+-#   define clear_bit_unaligned(nr, addr)   ext2_clear_bit((nr) + unaligned_offset(addr), aligned_address(addr))
+-#   define test_bit_unaligned(nr, addr)    ext2_test_bit((nr) + unaligned_offset(addr), aligned_address(addr))
++#   define set_bit_unaligned(nr, addr)	\
++	__test_and_set_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
++#   define clear_bit_unaligned(nr, addr)	\
++	__test_and_clear_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
++#   define test_bit_unaligned(nr, addr)	\
++	test_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
  
- void rds_cong_clear_bit(struct rds_cong_map *map, __be16 port)
-@@ -298,7 +298,7 @@ void rds_cong_clear_bit(struct rds_cong_
- 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
- 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ #else
  
--	ext2_clear_bit(off, (void *)map->m_page_addrs[i]);
-+	__clear_bit_le(off, (void *)map->m_page_addrs[i]);
- }
+-#   define set_bit_unaligned(nr, addr)     ext2_set_bit(nr, addr)
+-#   define clear_bit_unaligned(nr, addr)   ext2_clear_bit(nr, addr)
+-#   define test_bit_unaligned(nr, addr)    ext2_test_bit(nr, addr)
++#   define set_bit_unaligned(nr, addr)	__test_and_set_bit_le(nr, addr)
++#   define clear_bit_unaligned(nr, addr)	__test_and_clear_bit_le(nr, addr)
++#   define test_bit_unaligned(nr, addr)	test_bit_le(nr, addr)
  
- static int rds_cong_test_bit(struct rds_cong_map *map, __be16 port)
-@@ -309,7 +309,7 @@ static int rds_cong_test_bit(struct rds_
- 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
- 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ #endif
  
--	return ext2_test_bit(off, (void *)map->m_page_addrs[i]);
-+	return test_bit_le(off, (void *)map->m_page_addrs[i]);
- }
+@@ -2329,14 +2332,10 @@ __u32 keyed_hash(const signed char *msg,
+ __u32 yura_hash(const signed char *msg, int len);
+ __u32 r5_hash(const signed char *msg, int len);
  
- void rds_cong_add_socket(struct rds_sock *rs)
+-/* the ext2 bit routines adjust for big or little endian as
+-** appropriate for the arch, so in our laziness we use them rather
+-** than using the bit routines they call more directly.  These
+-** routines must be used when changing on disk bitmaps.  */
+-#define reiserfs_test_and_set_le_bit   ext2_set_bit
+-#define reiserfs_test_and_clear_le_bit ext2_clear_bit
+-#define reiserfs_test_le_bit           ext2_test_bit
+-#define reiserfs_find_next_zero_le_bit ext2_find_next_zero_bit
++#define reiserfs_test_and_set_le_bit	__test_and_set_bit_le
++#define reiserfs_test_and_clear_le_bit	__test_and_clear_bit_le
++#define reiserfs_test_le_bit		test_bit_le
++#define reiserfs_find_next_zero_le_bit	find_next_zero_bit_le
+ 
+ /* sometimes reiserfs_truncate may require to allocate few new blocks
+    to perform indirect2direct conversion. People probably used to
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
