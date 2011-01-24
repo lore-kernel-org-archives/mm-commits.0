@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-use-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:39 -0800
-Message-ID: <201101242206.p0OM6dJs013409@imap1.linux-foundation.org>
+Subject: + ext3-use-little-endian-bitops.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:24 -0800
+Message-ID: <201101242206.p0OM6OOd013380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751426Ab1AXWGn (ORCPT
+	by vger.kernel.org with ESMTP id S1751571Ab1AXWGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:43 -0500
+	Mon, 24 Jan 2011 17:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, neilb@suse.de
+Cc: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, jack@suse.cz
 
 
 The patch titled
-     md: use little-endian bitops
+     ext3: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     md-use-little-endian-bitops.patch
+     ext3-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: use little-endian bitops
+Subject: ext3: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,43 +42,36 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: NeilBrown <neilb@suse.de>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/ext3_fs.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-use-little-endian-bitops drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-use-little-endian-bitops
-+++ a/drivers/md/bitmap.c
-@@ -854,7 +854,7 @@ static void bitmap_file_set_bit(struct b
- 		if (bitmap->flags & BITMAP_HOSTENDIAN)
- 			set_bit(bit, kaddr);
- 		else
--			ext2_set_bit(bit, kaddr);
-+			__test_and_set_bit_le(bit, kaddr);
- 		kunmap_atomic(kaddr, KM_USER0);
- 		PRINTK("set file bit %lu page %lu\n", bit, page->index);
- 	}
-@@ -1050,7 +1050,7 @@ static int bitmap_init_from_disk(struct 
- 		if (bitmap->flags & BITMAP_HOSTENDIAN)
- 			b = test_bit(bit, paddr);
- 		else
--			b = ext2_test_bit(bit, paddr);
-+			b = test_bit_le(bit, paddr);
- 		kunmap_atomic(paddr, KM_USER0);
- 		if (b) {
- 			/* if the disk bit is set, set the memory bit */
-@@ -1226,7 +1226,7 @@ void bitmap_daemon_work(mddev_t *mddev)
- 						clear_bit(file_page_offset(bitmap, j),
- 							  paddr);
- 					else
--						ext2_clear_bit(file_page_offset(bitmap, j),
-+						__test_and_clear_bit_le(file_page_offset(bitmap, j),
- 							       paddr);
- 					kunmap_atomic(paddr, KM_USER0);
- 				} else
+diff -puN include/linux/ext3_fs.h~ext3-use-little-endian-bitops include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-use-little-endian-bitops
++++ a/include/linux/ext3_fs.h
+@@ -418,13 +418,13 @@ struct ext3_inode {
+ #define EXT2_MOUNT_DATA_FLAGS		EXT3_MOUNT_DATA_FLAGS
+ #endif
+ 
+-#define ext3_set_bit			ext2_set_bit
++#define ext3_set_bit			__test_and_set_bit_le
+ #define ext3_set_bit_atomic		ext2_set_bit_atomic
+-#define ext3_clear_bit			ext2_clear_bit
++#define ext3_clear_bit			__test_and_clear_bit_le
+ #define ext3_clear_bit_atomic		ext2_clear_bit_atomic
+-#define ext3_test_bit			ext2_test_bit
+-#define ext3_find_first_zero_bit	ext2_find_first_zero_bit
+-#define ext3_find_next_zero_bit		ext2_find_next_zero_bit
++#define ext3_test_bit			test_bit_le
++#define ext3_find_first_zero_bit	find_first_zero_bit_le
++#define ext3_find_next_zero_bit		find_next_zero_bit_le
+ 
+ /*
+  * Maximal mount counts between two filesystem checks
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
