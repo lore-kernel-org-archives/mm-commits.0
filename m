@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s390-introduce-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:05 -0800
-Message-ID: <201101242206.p0OM65b0013353@imap1.linux-foundation.org>
+Subject: + bitops-introduce-config_generic_find_bit_le.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:11 -0800
+Message-ID: <201101242206.p0OM6C16013362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339Ab1AXWGN (ORCPT
+	by vger.kernel.org with ESMTP id S1751384Ab1AXWGR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:13 -0500
+	Mon, 24 Jan 2011 17:06:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org
 
 
 The patch titled
-     s390: introduce little-endian bitops
+     bitops: introduce CONFIG_GENERIC_FIND_BIT_LE
 has been added to the -mm tree.  Its filename is
-     s390-introduce-little-endian-bitops.patch
+     bitops-introduce-config_generic_find_bit_le.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,234 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: introduce little-endian bitops
+Subject: bitops: introduce CONFIG_GENERIC_FIND_BIT_LE
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Introduce little-endian bit operations by renaming native ext2 bit
-operations.  The ext2 bit operations are kept as wrapper macros using
-little-endian bit operations to maintain bisectability until the
-conversions are finished.
+This introduces CONFIG_GENERIC_FIND_BIT_LE to tell whether to use generic
+implementation of find_*_bit_le() in lib/find_next_bit.c or not.
+
+For now we select CONFIG_GENERIC_FIND_BIT_LE for all architectures which
+enable CONFIG_GENERIC_FIND_NEXT_BIT.
+
+But m68knommu wants to define own faster find_next_zero_bit_le() and
+continues using generic find_next_{,zero_}bit(). 
+(CONFIG_GENERIC_FIND_NEXT_BIT and !CONFIG_GENERIC_FIND_BIT_LE)
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/bitops.h |   49 ++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 17 deletions(-)
+ arch/frv/Kconfig        |    4 ++++
+ arch/h8300/Kconfig      |    4 ++++
+ arch/m32r/Kconfig       |    4 ++++
+ arch/m68knommu/Kconfig  |    4 ++++
+ arch/microblaze/Kconfig |    3 +++
+ arch/mips/Kconfig       |    4 ++++
+ arch/parisc/Kconfig     |    4 ++++
+ arch/powerpc/Kconfig    |    4 ++++
+ arch/sh/Kconfig         |    3 +++
+ arch/sparc/Kconfig      |    4 ++++
+ arch/xtensa/Kconfig     |    3 +++
+ lib/Kconfig             |    3 +++
+ lib/Makefile            |    1 +
+ lib/find_next_bit.c     |    3 +++
+ 14 files changed, 48 insertions(+)
 
-diff -puN arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops arch/s390/include/asm/bitops.h
---- a/arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops
-+++ a/arch/s390/include/asm/bitops.h
-@@ -742,18 +742,22 @@ static inline int sched_find_first_bit(u
-  *    23 22 21 20 19 18 17 16 31 30 29 28 27 26 25 24
-  */
+diff -puN arch/frv/Kconfig~bitops-introduce-config_generic_find_bit_le arch/frv/Kconfig
+--- a/arch/frv/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/frv/Kconfig
+@@ -23,6 +23,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
  
--#define ext2_set_bit(nr, addr)       \
--	__test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
--#define ext2_set_bit_atomic(lock, nr, addr)       \
--	test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
--#define ext2_clear_bit(nr, addr)     \
--	__test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
--#define ext2_clear_bit_atomic(lock, nr, addr)     \
--	test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
--#define ext2_test_bit(nr, addr)      \
--	test_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
-+#define __set_bit_le(nr, addr)	\
-+	__set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define __clear_bit_le(nr, addr)	\
-+	__clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define __test_and_set_bit_le(nr, addr)	\
-+	__test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define test_and_set_bit_le(nr, addr)	\
-+	test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define __test_and_clear_bit_le(nr, addr)	\
-+	__test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define test_and_clear_bit_le(nr, addr)	\
-+	test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
-+#define test_bit_le(nr, addr)	\
-+	test_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
- 
--static inline int ext2_find_first_zero_bit(void *vaddr, unsigned int size)
-+static inline int find_first_zero_bit_le(void *vaddr, unsigned int size)
- {
- 	unsigned long bytes, bits;
- 
-@@ -764,7 +768,7 @@ static inline int ext2_find_first_zero_b
- 	return (bits < size) ? bits : size;
- }
- 
--static inline int ext2_find_next_zero_bit(void *vaddr, unsigned long size,
-+static inline int find_next_zero_bit_le(void *vaddr, unsigned long size,
- 					  unsigned long offset)
- {
-         unsigned long *addr = vaddr, *p;
-@@ -790,11 +794,10 @@ static inline int ext2_find_next_zero_bi
- 		size -= __BITOPS_WORDSIZE;
- 		p++;
-         }
--	return offset + ext2_find_first_zero_bit(p, size);
-+	return offset + find_first_zero_bit_le(p, size);
- }
- 
--static inline unsigned long ext2_find_first_bit(void *vaddr,
--						unsigned long size)
-+static inline unsigned long find_first_bit_le(void *vaddr, unsigned long size)
- {
- 	unsigned long bytes, bits;
- 
-@@ -805,7 +808,7 @@ static inline unsigned long ext2_find_fi
- 	return (bits < size) ? bits : size;
- }
- 
--static inline int ext2_find_next_bit(void *vaddr, unsigned long size,
-+static inline int find_next_bit_le(void *vaddr, unsigned long size,
- 				     unsigned long offset)
- {
- 	unsigned long *addr = vaddr, *p;
-@@ -831,9 +834,21 @@ static inline int ext2_find_next_bit(voi
- 		size -= __BITOPS_WORDSIZE;
- 		p++;
- 	}
--	return offset + ext2_find_first_bit(p, size);
-+	return offset + find_first_bit_le(p, size);
- }
- 
-+#define ext2_set_bit __test_and_set_bit_le
-+#define ext2_set_bit_atomic(lock, nr, addr)	\
-+	test_and_set_bit_le(nr, addr)
-+#define ext2_clear_bit __test_and_clear_bit_le
-+#define ext2_clear_bit_atomic(lock, nr, addr)	\
-+	test_and_clear_bit_le(nr, addr)
-+#define ext2_test_bit test_bit_le
-+#define ext2_find_first_zero_bit find_first_zero_bit_le
-+#define ext2_find_next_zero_bit find_next_zero_bit_le
-+#define ext2_find_first_bit find_first_bit_le
-+#define ext2_find_next_bit find_next_bit_le
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
 +
- #include <asm-generic/bitops/minix.h>
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff -puN arch/h8300/Kconfig~bitops-introduce-config_generic_find_bit_le arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/h8300/Kconfig
+@@ -45,6 +45,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
  
- #endif /* __KERNEL__ */
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff -puN arch/m32r/Kconfig~bitops-introduce-config_generic_find_bit_le arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/m32r/Kconfig
+@@ -260,6 +260,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff -puN arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_bit_le arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/m68knommu/Kconfig
+@@ -41,6 +41,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_GPIO
+ 	bool
+ 	default n
+diff -puN arch/microblaze/Kconfig~bitops-introduce-config_generic_find_bit_le arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/microblaze/Kconfig
+@@ -36,6 +36,9 @@ config ARCH_HAS_ILOG2_U64
+ config GENERIC_FIND_NEXT_BIT
+ 	def_bool y
+ 
++config GENERIC_FIND_BIT_LE
++	def_bool y
++
+ config GENERIC_HWEIGHT
+ 	def_bool y
+ 
+diff -puN arch/mips/Kconfig~bitops-introduce-config_generic_find_bit_le arch/mips/Kconfig
+--- a/arch/mips/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/mips/Kconfig
+@@ -773,6 +773,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff -puN arch/parisc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/parisc/Kconfig
+@@ -52,6 +52,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_BUG
+ 	bool
+ 	default y
+diff -puN arch/powerpc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/powerpc/Kconfig
+@@ -95,6 +95,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_GPIO
+ 	bool
+ 	help
+diff -puN arch/sh/Kconfig~bitops-introduce-config_generic_find_bit_le arch/sh/Kconfig
+--- a/arch/sh/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/sh/Kconfig
+@@ -75,6 +75,9 @@ config GENERIC_CSUM
+ config GENERIC_FIND_NEXT_BIT
+ 	def_bool y
+ 
++config GENERIC_FIND_BIT_LE
++	def_bool y
++
+ config GENERIC_HWEIGHT
+ 	def_bool y
+ 
+diff -puN arch/sparc/Kconfig~bitops-introduce-config_generic_find_bit_le arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/sparc/Kconfig
+@@ -192,6 +192,10 @@ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++	default y
++
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y if !ULTRA_HAS_POPULATION_COUNT
+diff -puN arch/xtensa/Kconfig~bitops-introduce-config_generic_find_bit_le arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/arch/xtensa/Kconfig
+@@ -21,6 +21,9 @@ config RWSEM_XCHGADD_ALGORITHM
+ config GENERIC_FIND_NEXT_BIT
+ 	def_bool y
+ 
++config GENERIC_FIND_BIT_LE
++	def_bool y
++
+ config GENERIC_HWEIGHT
+ 	def_bool y
+ 
+diff -puN lib/Kconfig~bitops-introduce-config_generic_find_bit_le lib/Kconfig
+--- a/lib/Kconfig~bitops-introduce-config_generic_find_bit_le
++++ a/lib/Kconfig
+@@ -22,6 +22,9 @@ config GENERIC_FIND_FIRST_BIT
+ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 
++config GENERIC_FIND_BIT_LE
++	bool
++
+ config GENERIC_FIND_LAST_BIT
+ 	bool
+ 	default y
+diff -puN lib/Makefile~bitops-introduce-config_generic_find_bit_le lib/Makefile
+--- a/lib/Makefile~bitops-introduce-config_generic_find_bit_le
++++ a/lib/Makefile
+@@ -38,6 +38,7 @@ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += 
+ lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
+ lib-$(CONFIG_GENERIC_FIND_FIRST_BIT) += find_next_bit.o
+ lib-$(CONFIG_GENERIC_FIND_NEXT_BIT) += find_next_bit.o
++lib-$(CONFIG_GENERIC_FIND_BIT_LE) += find_next_bit.o
+ obj-$(CONFIG_GENERIC_FIND_LAST_BIT) += find_last_bit.o
+ 
+ CFLAGS_hweight.o = $(subst $(quote),,$(CONFIG_ARCH_HWEIGHT_CFLAGS))
+diff -puN lib/find_next_bit.c~bitops-introduce-config_generic_find_bit_le lib/find_next_bit.c
+--- a/lib/find_next_bit.c~bitops-introduce-config_generic_find_bit_le
++++ a/lib/find_next_bit.c
+@@ -160,6 +160,7 @@ EXPORT_SYMBOL(find_first_zero_bit);
+ #endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
+ 
+ #ifdef __BIG_ENDIAN
++#ifdef CONFIG_GENERIC_FIND_BIT_LE
+ 
+ /* include/linux/byteorder does not support "unsigned long" type */
+ static inline unsigned long ext2_swabp(const unsigned long * x)
+@@ -273,4 +274,6 @@ found_middle_swap:
+ 	return result + __ffs(ext2_swab(tmp));
+ }
+ EXPORT_SYMBOL(find_next_bit_le);
++
++#endif /* CONFIG_GENERIC_FIND_BIT_LE */
+ #endif /* __BIG_ENDIAN */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
