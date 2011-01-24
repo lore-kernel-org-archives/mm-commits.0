@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-use-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:20 -0800
-Message-ID: <201101242206.p0OM6K1G013374@imap1.linux-foundation.org>
+Subject: + ext4-use-little-endian-bitops.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:26 -0800
+Message-ID: <201101242206.p0OM6QHT013383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751960Ab1AXWGc (ORCPT
+	by vger.kernel.org with ESMTP id S1751761Ab1AXWGc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 24 Jan 2011 17:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, avi@redhat.com, mtosatti@redhat.com
+Cc: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu
 
 
 The patch titled
-     kvm: use little-endian bitops
+     ext4: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     kvm-use-little-endian-bitops.patch
+     ext4-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: use little-endian bitops
+Subject: ext4: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,26 +42,38 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/ext4.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN virt/kvm/kvm_main.c~kvm-use-little-endian-bitops virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~kvm-use-little-endian-bitops
-+++ a/virt/kvm/kvm_main.c
-@@ -1420,7 +1420,7 @@ void mark_page_dirty_in_slot(struct kvm 
- 	if (memslot && memslot->dirty_bitmap) {
- 		unsigned long rel_gfn = gfn - memslot->base_gfn;
+diff -puN fs/ext4/ext4.h~ext4-use-little-endian-bitops fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-use-little-endian-bitops
++++ a/fs/ext4/ext4.h
+@@ -922,14 +922,14 @@ struct ext4_inode_info {
+ #define test_opt2(sb, opt)		(EXT4_SB(sb)->s_mount_opt2 & \
+ 					 EXT4_MOUNT2_##opt)
  
--		ext2_set_bit(rel_gfn, memslot->dirty_bitmap);
-+		__set_bit_le(rel_gfn, memslot->dirty_bitmap);
- 	}
- }
+-#define ext4_set_bit			ext2_set_bit
++#define ext4_set_bit			__test_and_set_bit_le
+ #define ext4_set_bit_atomic		ext2_set_bit_atomic
+-#define ext4_clear_bit			ext2_clear_bit
++#define ext4_clear_bit			__test_and_clear_bit_le
+ #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
+-#define ext4_test_bit			ext2_test_bit
+-#define ext4_find_first_zero_bit	ext2_find_first_zero_bit
+-#define ext4_find_next_zero_bit		ext2_find_next_zero_bit
+-#define ext4_find_next_bit		ext2_find_next_bit
++#define ext4_test_bit			test_bit_le
++#define ext4_find_first_zero_bit	find_first_zero_bit_le
++#define ext4_find_next_zero_bit		find_next_zero_bit_le
++#define ext4_find_next_bit		find_next_bit_le
  
+ /*
+  * Maximal mount counts between two filesystem checks
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
