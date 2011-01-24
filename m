@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-use-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:30 -0800
-Message-ID: <201101242206.p0OM6U8K013390@imap1.linux-foundation.org>
+Subject: + udf-use-little-endian-bitops.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:34 -0800
+Message-ID: <201101242206.p0OM6Yhh013399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751761Ab1AXWGe (ORCPT
+	by vger.kernel.org with ESMTP id S1752081Ab1AXWGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:34 -0500
+	Mon, 24 Jan 2011 17:06:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, konishi.ryusuke@lab.ntt.co.jp
+Cc: akinobu.mita@gmail.com, jack@suse.cz
 
 
 The patch titled
-     nilfs2: use little-endian bitops
+     udf: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     nilfs2-use-little-endian-bitops.patch
+     udf-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: use little-endian bitops
+Subject: udf: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,25 +42,32 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/udf/balloc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/nilfs2/alloc.h~nilfs2-use-little-endian-bitops fs/nilfs2/alloc.h
---- a/fs/nilfs2/alloc.h~nilfs2-use-little-endian-bitops
-+++ a/fs/nilfs2/alloc.h
-@@ -74,7 +74,7 @@ int nilfs_palloc_freev(struct inode *, _
+diff -puN fs/udf/balloc.c~udf-use-little-endian-bitops fs/udf/balloc.c
+--- a/fs/udf/balloc.c~udf-use-little-endian-bitops
++++ a/fs/udf/balloc.c
+@@ -27,11 +27,10 @@
+ #include "udf_i.h"
+ #include "udf_sb.h"
  
- #define nilfs_set_bit_atomic		ext2_set_bit_atomic
- #define nilfs_clear_bit_atomic		ext2_clear_bit_atomic
--#define nilfs_find_next_zero_bit	ext2_find_next_zero_bit
-+#define nilfs_find_next_zero_bit	find_next_zero_bit_le
+-#define udf_clear_bit(nr, addr) ext2_clear_bit(nr, addr)
+-#define udf_set_bit(nr, addr) ext2_set_bit(nr, addr)
+-#define udf_test_bit(nr, addr) ext2_test_bit(nr, addr)
+-#define udf_find_next_one_bit(addr, size, offset) \
+-		ext2_find_next_bit(addr, size, offset)
++#define udf_clear_bit	__test_and_clear_bit_le
++#define udf_set_bit	__test_and_set_bit_le
++#define udf_test_bit	test_bit_le
++#define udf_find_next_one_bit	find_next_bit_le
  
- /*
-  * persistent object allocator cache
+ static int read_block_bitmap(struct super_block *sb,
+ 			     struct udf_bitmap *bitmap, unsigned int block,
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
