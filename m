@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-use-little-endian-bitops.patch added to -mm tree
-Date: Mon, 24 Jan 2011 14:06:32 -0800
-Message-ID: <201101242206.p0OM6WHQ013393@imap1.linux-foundation.org>
+Subject: + kvm-use-little-endian-bitops.patch added to -mm tree
+Date: Mon, 24 Jan 2011 14:06:20 -0800
+Message-ID: <201101242206.p0OM6K1G013374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751960Ab1AXWGe (ORCPT
+	by vger.kernel.org with ESMTP id S1751960Ab1AXWGc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:06:34 -0500
+	Mon, 24 Jan 2011 17:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akinobu.mita@gmail.com, avi@redhat.com, mtosatti@redhat.com
 
 
 The patch titled
-     reiserfs: use little-endian bitops
+     kvm: use little-endian bitops
 has been added to the -mm tree.  Its filename is
-     reiserfs-use-little-endian-bitops.patch
+     kvm-use-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: use little-endian bitops
+Subject: kvm: use little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 As a preparation for removing ext2 non-atomic bit operations from
@@ -42,59 +42,26 @@ asm/bitops.h.  This converts ext2 non-atomic bit operations to
 little-endian bit operations.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reiserfs_fs.h |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ virt/kvm/kvm_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/reiserfs_fs.h~reiserfs-use-little-endian-bitops include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-use-little-endian-bitops
-+++ a/include/linux/reiserfs_fs.h
-@@ -1124,15 +1124,18 @@ struct reiserfs_de_head {
- #   define aligned_address(addr)           ((void *)((long)(addr) & ~((1UL << ADDR_UNALIGNED_BITS) - 1)))
- #   define unaligned_offset(addr)          (((int)((long)(addr) & ((1 << ADDR_UNALIGNED_BITS) - 1))) << 3)
+diff -puN virt/kvm/kvm_main.c~kvm-use-little-endian-bitops virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~kvm-use-little-endian-bitops
++++ a/virt/kvm/kvm_main.c
+@@ -1420,7 +1420,7 @@ void mark_page_dirty_in_slot(struct kvm 
+ 	if (memslot && memslot->dirty_bitmap) {
+ 		unsigned long rel_gfn = gfn - memslot->base_gfn;
  
--#   define set_bit_unaligned(nr, addr)     ext2_set_bit((nr) + unaligned_offset(addr), aligned_address(addr))
--#   define clear_bit_unaligned(nr, addr)   ext2_clear_bit((nr) + unaligned_offset(addr), aligned_address(addr))
--#   define test_bit_unaligned(nr, addr)    ext2_test_bit((nr) + unaligned_offset(addr), aligned_address(addr))
-+#   define set_bit_unaligned(nr, addr)	\
-+	__test_and_set_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
-+#   define clear_bit_unaligned(nr, addr)	\
-+	__test_and_clear_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
-+#   define test_bit_unaligned(nr, addr)	\
-+	test_bit_le((nr) + unaligned_offset(addr), aligned_address(addr))
+-		ext2_set_bit(rel_gfn, memslot->dirty_bitmap);
++		__set_bit_le(rel_gfn, memslot->dirty_bitmap);
+ 	}
+ }
  
- #else
- 
--#   define set_bit_unaligned(nr, addr)     ext2_set_bit(nr, addr)
--#   define clear_bit_unaligned(nr, addr)   ext2_clear_bit(nr, addr)
--#   define test_bit_unaligned(nr, addr)    ext2_test_bit(nr, addr)
-+#   define set_bit_unaligned(nr, addr)	__test_and_set_bit_le(nr, addr)
-+#   define clear_bit_unaligned(nr, addr)	__test_and_clear_bit_le(nr, addr)
-+#   define test_bit_unaligned(nr, addr)	test_bit_le(nr, addr)
- 
- #endif
- 
-@@ -2329,14 +2332,10 @@ __u32 keyed_hash(const signed char *msg,
- __u32 yura_hash(const signed char *msg, int len);
- __u32 r5_hash(const signed char *msg, int len);
- 
--/* the ext2 bit routines adjust for big or little endian as
--** appropriate for the arch, so in our laziness we use them rather
--** than using the bit routines they call more directly.  These
--** routines must be used when changing on disk bitmaps.  */
--#define reiserfs_test_and_set_le_bit   ext2_set_bit
--#define reiserfs_test_and_clear_le_bit ext2_clear_bit
--#define reiserfs_test_le_bit           ext2_test_bit
--#define reiserfs_find_next_zero_le_bit ext2_find_next_zero_bit
-+#define reiserfs_test_and_set_le_bit	__test_and_set_bit_le
-+#define reiserfs_test_and_clear_le_bit	__test_and_clear_bit_le
-+#define reiserfs_test_le_bit		test_bit_le
-+#define reiserfs_find_next_zero_le_bit	find_next_zero_bit_le
- 
- /* sometimes reiserfs_truncate may require to allocate few new blocks
-    to perform indirect2direct conversion. People probably used to
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
