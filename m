@@ -1,133 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 25 Jan 2011 15:00:49 -0800
-Message-ID: <201101252300.p0PN0nCq013164@imap1.linux-foundation.org>
+Subject: [folded] kthread-use-kthread_create_on_cpu-update.patch removed from -mm tree
+Date: Tue, 25 Jan 2011 15:01:22 -0800
+Message-ID: <201101252301.p0PN1M1M013186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752905Ab1AYXBW (ORCPT
+	by vger.kernel.org with ESMTP id S1752905Ab1AYXB7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Jan 2011 18:01:22 -0500
+	Tue, 25 Jan 2011 18:01:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: eric.dumazet@gmail.com, andi@firstfloor.org, davem@davemloft.net, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
+     kthread-numa-aware-kthread_create_on_cpu-update
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch
+     kthread-use-kthread_create_on_cpu-update.patch
 
-This patch was dropped because it was folded into memcg-fix-race-at-move_parent-around-compound_order.patch
+This patch was dropped because it was folded into kthread-use-kthread_create_on_cpu.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kthread-numa-aware-kthread_create_on_cpu-update
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: mm/memcontrol.c:2241:
-+ ^I * will not handle this page. But page splitting can happen.$
+People told me kthread_create_on_cpu() was a wrong name and prefer
+kthread_create_on_node()
 
-WARNING: please, no space before tabs
-#39: FILE: mm/memcontrol.c:2241:
-+ ^I * will not handle this page. But page splitting can happen.$
-
-ERROR: code indent should use tabs where possible
-#40: FILE: mm/memcontrol.c:2242:
-+ ^I * Do this check under compound_page_lock(). The caller should$
-
-WARNING: please, no space before tabs
-#40: FILE: mm/memcontrol.c:2242:
-+ ^I * Do this check under compound_page_lock(). The caller should$
-
-ERROR: code indent should use tabs where possible
-#41: FILE: mm/memcontrol.c:2243:
-+ ^I * hold it.$
-
-WARNING: please, no space before tabs
-#41: FILE: mm/memcontrol.c:2243:
-+ ^I * hold it.$
-
-ERROR: code indent should use tabs where possible
-#42: FILE: mm/memcontrol.c:2244:
-+ ^I */$
-
-WARNING: please, no space before tabs
-#42: FILE: mm/memcontrol.c:2244:
-+ ^I */$
-
-total: 4 errors, 4 warnings, 52 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/memcg-fix-race-at-move_parent-around-compound_order.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: linux-arch@vger.kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/softirq.c      |    6 ++++--
+ kernel/stop_machine.c |    6 ++++--
+ kernel/workqueue.c    |    6 ++++--
+ net/core/pktgen.c     |    6 ++++--
+ 4 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -2238,10 +2238,10 @@ static int mem_cgroup_move_account(struc
- 	unsigned long flags;
- 	/*
- 	 * The page is isolated from LRU. So, collapse function
-- 	 * will not handle this page. But page splitting can happen.
-- 	 * Do this check under compound_page_lock(). The caller should
-- 	 * hold it.
-- 	 */
-+	 * will not handle this page. But page splitting can happen.
-+	 * Do this check under compound_page_lock(). The caller should
-+	 * hold it.
-+	 */
- 	if ((charge_size > PAGE_SIZE) && !PageTransHuge(pc->page))
- 		return -EBUSY;
+diff -puN kernel/softirq.c~kthread-use-kthread_create_on_cpu-update kernel/softirq.c
+--- a/kernel/softirq.c~kthread-use-kthread_create_on_cpu-update
++++ a/kernel/softirq.c
+@@ -831,8 +831,10 @@ static int __cpuinit cpu_callback(struct
+ 	switch (action) {
+ 	case CPU_UP_PREPARE:
+ 	case CPU_UP_PREPARE_FROZEN:
+-		p = kthread_create_on_cpu(run_ksoftirqd, hcpu, hotcpu,
+-					  "ksoftirqd/%d", hotcpu);
++		p = kthread_create_on_node(run_ksoftirqd,
++					   hcpu,
++					   cpu_to_node(hotcpu),
++					   "ksoftirqd/%d", hotcpu);
+ 		if (IS_ERR(p)) {
+ 			printk("ksoftirqd for %i failed\n", hotcpu);
+ 			return notifier_from_errno(PTR_ERR(p));
+diff -puN kernel/stop_machine.c~kthread-use-kthread_create_on_cpu-update kernel/stop_machine.c
+--- a/kernel/stop_machine.c~kthread-use-kthread_create_on_cpu-update
++++ a/kernel/stop_machine.c
+@@ -301,8 +301,10 @@ static int __cpuinit cpu_stop_cpu_callba
+ 	case CPU_UP_PREPARE:
+ 		BUG_ON(stopper->thread || stopper->enabled ||
+ 		       !list_empty(&stopper->works));
+-		p = kthread_create_on_cpu(cpu_stopper_thread, stopper, cpu,
+-					  "migration/%d", cpu);
++		p = kthread_create_on_node(cpu_stopper_thread,
++					   stopper,
++					   cpu_to_node(cpu),
++					   "migration/%d", cpu);
+ 		if (IS_ERR(p))
+ 			return notifier_from_errno(PTR_ERR(p));
+ 		get_task_struct(p);
+diff -puN kernel/workqueue.c~kthread-use-kthread_create_on_cpu-update kernel/workqueue.c
+--- a/kernel/workqueue.c~kthread-use-kthread_create_on_cpu-update
++++ a/kernel/workqueue.c
+@@ -1356,8 +1356,10 @@ static struct worker *create_worker(stru
+ 	worker->id = id;
  
+ 	if (!on_unbound_cpu)
+-		worker->task = kthread_create_on_cpu(worker_thread, worker, gcwq->cpu,
+-						     "kworker/%u:%d", gcwq->cpu, id);
++		worker->task = kthread_create_on_node(worker_thread,
++						      worker,
++						      cpu_to_node(gcwq->cpu),
++						      "kworker/%u:%d", gcwq->cpu, id);
+ 	else
+ 		worker->task = kthread_create(worker_thread, worker,
+ 					      "kworker/u:%d", id);
+diff -puN net/core/pktgen.c~kthread-use-kthread_create_on_cpu-update net/core/pktgen.c
+--- a/net/core/pktgen.c~kthread-use-kthread_create_on_cpu-update
++++ a/net/core/pktgen.c
+@@ -3812,8 +3812,10 @@ static int __init pktgen_create_thread(i
+ 	list_add_tail(&t->th_list, &pktgen_threads);
+ 	init_completion(&t->start_done);
+ 
+-	p = kthread_create_on_cpu(pktgen_thread_worker, t, cpu,
+-				  "kpktgend_%d", cpu);
++	p = kthread_create_on_node(pktgen_thread_worker,
++				   t,
++				   cpu_to_node(cpu),
++				   "kpktgend_%d", cpu);
+ 	if (IS_ERR(p)) {
+ 		pr_err("kernel_thread() failed for cpu %d\n", t->cpu);
+ 		list_del(&t->th_list);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
 origin.patch
-mm-pgtable-genericc-fix-config_swap=n-build.patch
-memcg-fix-race-at-move_parent-around-compound_order.patch
-change-acquire-release_console_sem-to-console_lock-unlock.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
+net-convert-%p-usage-to-%pk.patch
 
