@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [folded] change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch removed from -mm tree
-Date: Tue, 25 Jan 2011 14:59:45 -0800
-Message-ID: <201101252259.p0PMxjOg013034@imap1.linux-foundation.org>
+Subject: [folded] change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 25 Jan 2011 14:59:42 -0800
+Message-ID: <201101252259.p0PMxgXW013031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752390Ab1AYXAA (ORCPT
+	by vger.kernel.org with ESMTP id S1752905Ab1AYXAA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 25 Jan 2011 18:00:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,49 @@ To: akpm@linux-foundation.org, gregkh@suse.de, mingo@elte.hu, tglx@tglx.de, torb
 
 
 The patch titled
-     change-acquire-release_console_sem-to-console_lock-unlock-fix-2
+     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
+     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into change-acquire-release_console_sem-to-console_lock-unlock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: change-acquire-release_console_sem-to-console_lock-unlock-fix-2
+Subject: change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make console_trylock return 1 on success, per Geert
+WARNING: line over 80 characters
+#1175: FILE: drivers/video/arkfb.c:26:
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+
+WARNING: line over 80 characters
+#1992: FILE: drivers/video/s3fb.c:25:
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+
+WARNING: line over 80 characters
+#2259: FILE: drivers/video/vt8623fb.c:26:
++#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+
+WARNING: line over 80 characters
+#2386: FILE: kernel/printk.c:607:
++ * We try to grab the console_lock.  If we succeed, it's easy - we log the output and
+
+WARNING: Statements terminations use 1 semicolon
+#2440: FILE: kernel/printk.c:996:
++	console_lock();;
+
+WARNING: Statements terminations use 1 semicolon
+#2459: FILE: kernel/printk.c:1030:
++		console_lock();;
+
+total: 0 errors, 6 warnings, 2244 lines checked
+
+./patches/change-acquire-release_console_sem-to-console_lock-unlock.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Greg KH <gregkh@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -39,27 +69,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/printk.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-fix-2 kernel/printk.c
---- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-fix-2
+diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes kernel/printk.c
+--- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
 +++ a/kernel/printk.c
-@@ -1058,7 +1058,7 @@ EXPORT_SYMBOL(console_lock);
-  * Tried to acquire a lock which guarantees that the caller has
-  * exclusive access to the console system and the console_drivers list.
-  *
-- * returns -1 on success, and 0 on failure to acquire the lock.
-+ * returns 1 on success, and 0 on failure to acquire the lock.
-  */
- int console_trylock(void)
- {
-@@ -1070,7 +1070,7 @@ int console_trylock(void)
- 	}
- 	console_locked = 1;
- 	console_may_schedule = 0;
--	return -1;
-+	return 1;
+@@ -993,7 +993,7 @@ void suspend_console(void)
+ 	if (!console_suspend_enabled)
+ 		return;
+ 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
+-	console_lock();;
++	console_lock();
+ 	console_suspended = 1;
+ 	up(&console_sem);
  }
- EXPORT_SYMBOL(console_trylock);
- 
+@@ -1027,7 +1027,7 @@ static int __cpuinit console_cpu_notify(
+ 	case CPU_DYING:
+ 	case CPU_DOWN_FAILED:
+ 	case CPU_UP_CANCELED:
+-		console_lock();;
++		console_lock();
+ 		console_unlock();
+ 	}
+ 	return NOTIFY_OK;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,6 +97,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-pgtable-genericc-fix-config_swap=n-build.patch
 change-acquire-release_console_sem-to-console_lock-unlock.patch
+change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
 memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch
 linux-next.patch
 next-remove-localversion.patch
