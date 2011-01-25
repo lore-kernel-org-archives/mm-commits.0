@@ -1,89 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + drbd-fix-warning.patch added to -mm tree
-Date: Tue, 25 Jan 2011 13:56:21 -0800
-Message-ID: <201101252230.p0PMUHHl011859__26379.0450561375$1295994671$gmane$org@imap1.linux-foundation.org>
+Subject: [folded] change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch removed from -mm tree
+Date: Tue, 25 Jan 2011 14:59:45 -0800
+Message-ID: <201101252259.p0PMxjOg013034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752255Ab1AYWa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752390Ab1AYXAA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Jan 2011 17:30:59 -0500
+	Tue, 25 Jan 2011 18:00:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, drbd-dev@lists.linbit.com, philipp.reisner@linbit.com
+To: akpm@linux-foundation.org, gregkh@suse.de, mingo@elte.hu, tglx@tglx.de, torbenh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drbd: fix warning
-has been added to the -mm tree.  Its filename is
-     drbd-fix-warning.patch
+     change-acquire-release_console_sem-to-console_lock-unlock-fix-2
+has been removed from the -mm tree.  Its filename was
+     change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into change-acquire-release_console_sem-to-console_lock-unlock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drbd: fix warning
+Subject: change-acquire-release_console_sem-to-console_lock-unlock-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/block/drbd/drbd_main.c:54:                        drivers/block/drbd/drbd_int.h:1190: warning: parameter has incomplete type
+make console_trylock return 1 on success, per Geert
 
-Forward declarations of enums do not work.
-
-Fix it unpleasantly by moving the prototype.
-
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@tglx.de>
+Cc: Torben Hohn <torbenh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_int.h |    2 --
- drivers/block/drbd/drbd_req.h |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/printk.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_int.h~drbd-fix-warning drivers/block/drbd/drbd_int.h
---- a/drivers/block/drbd/drbd_int.h~drbd-fix-warning
-+++ a/drivers/block/drbd/drbd_int.h
-@@ -1186,8 +1186,6 @@ extern void drbd_free_resources(struct d
- extern void tl_release(struct drbd_conf *mdev, unsigned int barrier_nr,
- 		       unsigned int set_size);
- extern void tl_clear(struct drbd_conf *mdev);
--enum drbd_req_event;
--extern void tl_restart(struct drbd_conf *mdev, enum drbd_req_event what);
- extern void _tl_add_barrier(struct drbd_conf *, struct drbd_tl_epoch *);
- extern void drbd_free_sock(struct drbd_conf *mdev);
- extern int drbd_send(struct drbd_conf *mdev, struct socket *sock,
-diff -puN drivers/block/drbd/drbd_req.h~drbd-fix-warning drivers/block/drbd/drbd_req.h
---- a/drivers/block/drbd/drbd_req.h~drbd-fix-warning
-+++ a/drivers/block/drbd/drbd_req.h
-@@ -357,4 +357,7 @@ static inline int req_mod(struct drbd_re
- 
- 	return rv;
+diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-fix-2 kernel/printk.c
+--- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-fix-2
++++ a/kernel/printk.c
+@@ -1058,7 +1058,7 @@ EXPORT_SYMBOL(console_lock);
+  * Tried to acquire a lock which guarantees that the caller has
+  * exclusive access to the console system and the console_drivers list.
+  *
+- * returns -1 on success, and 0 on failure to acquire the lock.
++ * returns 1 on success, and 0 on failure to acquire the lock.
+  */
+ int console_trylock(void)
+ {
+@@ -1070,7 +1070,7 @@ int console_trylock(void)
+ 	}
+ 	console_locked = 1;
+ 	console_may_schedule = 0;
+-	return -1;
++	return 1;
  }
-+
-+extern void tl_restart(struct drbd_conf *mdev, enum drbd_req_event what);
-+
- #endif
+ EXPORT_SYMBOL(console_trylock);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-pgtable-genericc-fix-config_swap=n-build.patch
-change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
-change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
+change-acquire-release_console_sem-to-console_lock-unlock.patch
 memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch
 linux-next.patch
 next-remove-localversion.patch
