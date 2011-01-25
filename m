@@ -1,110 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pgtable-genericc-fix-config_swap=n-build.patch added to -mm tree
-Date: Mon, 24 Jan 2011 22:34:02 -0800
-Message-ID: <201101250634.p0P6Y2Wu002365@imap1.linux-foundation.org>
+Subject: [merged] rtc-properly-handle-rtc_read_alarm-error-propagation-and-fix-bug.patch removed from -mm tree
+Date: Tue, 25 Jan 2011 12:18:12 -0800
+Message-ID: <201101252018.p0PKICaS005694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751340Ab1AYGek (ORCPT
+	by vger.kernel.org with ESMTP id S1752707Ab1AYUSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Jan 2011 01:34:40 -0500
+	Tue, 25 Jan 2011 15:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org, sam@ravnborg.org, sshtylyov@mvista.com, yuasa@linux-mips.org
+To: john.stultz@linaro.org, a.zummo@towertech.it, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/pgtable-generic.c: fix CONFIG_SWAP=n build
-has been added to the -mm tree.  Its filename is
-     mm-pgtable-genericc-fix-config_swap=n-build.patch
+     rtc: properly handle rtc_read_alarm error propagation and fix bug
+has been removed from the -mm tree.  Its filename was
+     rtc-properly-handle-rtc_read_alarm-error-propagation-and-fix-bug.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/pgtable-generic.c: fix CONFIG_SWAP=n build
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: properly handle rtc_read_alarm error propagation and fix bug
+From: John Stultz <john.stultz@linaro.org>
 
-mips:
+In reviewing cases where the virtualized interfaces didn't propagate
+errors properly, I noticed rtc_read_alarm needed fixing.  In doing so I
+noticed my RTC rework dropped a memset and that the behavior of
+rtc_read_alarm shouldn't be conditionalized on the alarm.enabled flag (as
+the alarm may be set, but the irqs may be disabled).  So those were
+corrected as well.
 
-In file included from arch/mips/include/asm/tlb.h:21,
-                 from mm/pgtable-generic.c:9:
-include/asm-generic/tlb.h: In function `tlb_flush_mmu':
-include/asm-generic/tlb.h:76: error: implicit declaration of function `release_pages'
-include/asm-generic/tlb.h: In function `tlb_remove_page':
-include/asm-generic/tlb.h:105: error: implicit declaration of function `page_cache_release'
-
-free_pages_and_swap_cache() and free_page_and_swap_cache() are macros
-which call release_pages() and page_cache_release().  The obvious fix is
-to include pagemap.h in swap.h, where those macros are defined.  But that
-breaks sparc for weird reasons.
-
-So fix it within mm/pgtable-generic.c instead.
-
-Reported-by: Yoichi Yuasa <yuasa@linux-mips.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/interface.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN mm/pgtable-generic.c~mm-pgtable-genericc-fix-config_swap=n-build mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-pgtable-genericc-fix-config_swap=n-build
-+++ a/mm/pgtable-generic.c
-@@ -6,6 +6,7 @@
-  *  Copyright (C) 2010  Linus Torvalds
-  */
+diff -puN drivers/rtc/interface.c~rtc-properly-handle-rtc_read_alarm-error-propagation-and-fix-bug drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-properly-handle-rtc_read_alarm-error-propagation-and-fix-bug
++++ a/drivers/rtc/interface.c
+@@ -123,12 +123,18 @@ int rtc_read_alarm(struct rtc_device *rt
+ 	err = mutex_lock_interruptible(&rtc->ops_lock);
+ 	if (err)
+ 		return err;
+-	alarm->enabled = rtc->aie_timer.enabled;
+-	if (alarm->enabled)
++	if (rtc->ops == NULL)
++		err = -ENODEV;
++	else if (!rtc->ops->read_alarm)
++		err = -EINVAL;
++	else {
++		memset(alarm, 0, sizeof(struct rtc_wkalrm));
++		alarm->enabled = rtc->aie_timer.enabled;
+ 		alarm->time = rtc_ktime_to_tm(rtc->aie_timer.node.expires);
++	}
+ 	mutex_unlock(&rtc->ops_lock);
  
-+#include <linux/pagemap.h>
- #include <asm/tlb.h>
- #include <asm-generic/pgtable.h>
+-	return 0;
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(rtc_read_alarm);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-mm-pgtable-genericc-fix-config_swap=n-build.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
-change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+origin.patch
 
