@@ -1,104 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [folded] change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 25 Jan 2011 14:59:42 -0800
-Message-ID: <201101252259.p0PMxgXW013031@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 25 Jan 2011 15:00:49 -0800
+Message-ID: <201101252300.p0PN0nCq013164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752905Ab1AYXAA (ORCPT
+	by vger.kernel.org with ESMTP id S1752905Ab1AYXBW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Jan 2011 18:00:00 -0500
+	Tue, 25 Jan 2011 18:01:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@suse.de, mingo@elte.hu, tglx@tglx.de, torbenh@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
+     memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes.patch
+     memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into change-acquire-release_console_sem-to-console_lock-unlock.patch
+This patch was dropped because it was folded into memcg-fix-race-at-move_parent-around-compound_order.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
+Subject: memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#1175: FILE: drivers/video/arkfb.c:26:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+ERROR: code indent should use tabs where possible
+#39: FILE: mm/memcontrol.c:2241:
++ ^I * will not handle this page. But page splitting can happen.$
 
-WARNING: line over 80 characters
-#1992: FILE: drivers/video/s3fb.c:25:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+WARNING: please, no space before tabs
+#39: FILE: mm/memcontrol.c:2241:
++ ^I * will not handle this page. But page splitting can happen.$
 
-WARNING: line over 80 characters
-#2259: FILE: drivers/video/vt8623fb.c:26:
-+#include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
+ERROR: code indent should use tabs where possible
+#40: FILE: mm/memcontrol.c:2242:
++ ^I * Do this check under compound_page_lock(). The caller should$
 
-WARNING: line over 80 characters
-#2386: FILE: kernel/printk.c:607:
-+ * We try to grab the console_lock.  If we succeed, it's easy - we log the output and
+WARNING: please, no space before tabs
+#40: FILE: mm/memcontrol.c:2242:
++ ^I * Do this check under compound_page_lock(). The caller should$
 
-WARNING: Statements terminations use 1 semicolon
-#2440: FILE: kernel/printk.c:996:
-+	console_lock();;
+ERROR: code indent should use tabs where possible
+#41: FILE: mm/memcontrol.c:2243:
++ ^I * hold it.$
 
-WARNING: Statements terminations use 1 semicolon
-#2459: FILE: kernel/printk.c:1030:
-+		console_lock();;
+WARNING: please, no space before tabs
+#41: FILE: mm/memcontrol.c:2243:
++ ^I * hold it.$
 
-total: 0 errors, 6 warnings, 2244 lines checked
+ERROR: code indent should use tabs where possible
+#42: FILE: mm/memcontrol.c:2244:
++ ^I */$
 
-./patches/change-acquire-release_console_sem-to-console_lock-unlock.patch has style problems, please review.  If any of these errors
+WARNING: please, no space before tabs
+#42: FILE: mm/memcontrol.c:2244:
++ ^I */$
+
+total: 4 errors, 4 warnings, 52 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/memcg-fix-race-at-move_parent-around-compound_order.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Greg KH <gregkh@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@tglx.de>
-Cc: Torben Hohn <torbenh@gmx.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes kernel/printk.c
---- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-checkpatch-fixes
-+++ a/kernel/printk.c
-@@ -993,7 +993,7 @@ void suspend_console(void)
- 	if (!console_suspend_enabled)
- 		return;
- 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
--	console_lock();;
-+	console_lock();
- 	console_suspended = 1;
- 	up(&console_sem);
- }
-@@ -1027,7 +1027,7 @@ static int __cpuinit console_cpu_notify(
- 	case CPU_DYING:
- 	case CPU_DOWN_FAILED:
- 	case CPU_UP_CANCELED:
--		console_lock();;
-+		console_lock();
- 		console_unlock();
- 	}
- 	return NOTIFY_OK;
+diff -puN mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -2238,10 +2238,10 @@ static int mem_cgroup_move_account(struc
+ 	unsigned long flags;
+ 	/*
+ 	 * The page is isolated from LRU. So, collapse function
+- 	 * will not handle this page. But page splitting can happen.
+- 	 * Do this check under compound_page_lock(). The caller should
+- 	 * hold it.
+- 	 */
++	 * will not handle this page. But page splitting can happen.
++	 * Do this check under compound_page_lock(). The caller should
++	 * hold it.
++	 */
+ 	if ((charge_size > PAGE_SIZE) && !PageTransHuge(pc->page))
+ 		return -EBUSY;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-pgtable-genericc-fix-config_swap=n-build.patch
+memcg-fix-race-at-move_parent-around-compound_order.patch
 change-acquire-release_console_sem-to-console_lock-unlock.patch
-change-acquire-release_console_sem-to-console_lock-unlock-fix-2.patch
-memcg-fix-race-at-move_parent-around-compound_order-checkpatch-fixes.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
