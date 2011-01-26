@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch added to -mm tree
-Date: Wed, 26 Jan 2011 15:10:37 -0800
-Message-ID: <201101262310.p0QNAbHg010234@imap1.linux-foundation.org>
+Subject: + mm-migration-fix-page-corruption-during-hugepage-migration.patch added to -mm tree
+Date: Wed, 26 Jan 2011 15:10:35 -0800
+Message-ID: <201101262310.p0QNAZsZ010231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753537Ab1AZXLl (ORCPT
+	by vger.kernel.org with ESMTP id S1753537Ab1AZXLp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 18:11:41 -0500
+	Wed, 26 Jan 2011 18:11:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm/compaction: check migrate_pages's return value instead of list_empty
+     mm/migration: fix page corruption during hugepage migration
 has been added to the -mm tree.  Its filename is
-     mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
+     mm-migration-fix-page-corruption-during-hugepage-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/compaction: check migrate_pages's return value instead of list_empty
+Subject: mm/migration: fix page corruption during hugepage migration
 From: Minchan Kim <minchan.kim@gmail.com>
 
-Many migrate_page's caller check return value instead of list_empy by
-cf608ac19c ("mm: compaction: fix COMPACTPAGEFAILED counting").  This patch
-makes compaction's migrate_pages consistent with others.  This patch
-should not change old behavior.
+If migrate_huge_page by memory-failure fails , it calls put_page in itself
+to decrease page reference and caller of migrate_huge_page also calls
+putback_lru_pages.  It can do double free of page so it can make page
+corruption on page holder.
+
+In addtion, clean of pages on caller is consistent behavior with
+migrate_pages by cf608ac19c ("mm: compaction: fix COMPACTPAGEFAILED
+counting").
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    5 ++++-
+ mm/migrate.c        |    4 ----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty mm/compaction.c
---- a/mm/compaction.c~mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty
-+++ a/mm/compaction.c
-@@ -508,12 +508,13 @@ static int compact_zone(struct zone *zon
- 
- 	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
- 		unsigned long nr_migrate, nr_remaining;
-+		int err;
- 
- 		if (!isolate_migratepages(zone, cc))
- 			continue;
- 
- 		nr_migrate = cc->nr_migratepages;
--		migrate_pages(&cc->migratepages, compaction_alloc,
-+		err = migrate_pages(&cc->migratepages, compaction_alloc,
- 				(unsigned long)cc, false,
- 				cc->sync);
- 		update_nr_listpages(cc);
-@@ -527,7 +528,7 @@ static int compact_zone(struct zone *zon
- 						nr_remaining);
- 
- 		/* Release LRU pages not migrated */
--		if (!list_empty(&cc->migratepages)) {
-+		if (err) {
- 			putback_lru_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 		}
-_
-
-Patches currently in -mm which might be from minchan.kim@gmail.com are
-
-origin.patch
-linux-next.patch
-mm-when-migrate_pages-returns-0-all-pages-must-have-been-released.patch
-mm-migration-fix-page-corruption-during-hugepage-migration.patch
-mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
-mm-vmap-area-cache.patch
-
+diff -puN mm/memory-failure.c~mm-migration-fix-page-corruption-during-hugepage-migration mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migration-fix-page-corruption-during-hugepage-migration
++++ a/mm/memory-failure.c
+@@ -1295,7 +1295,10 @@ static int soft_offline_huge_page(struct
+ 	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
+ 				true);
+ 	if (ret) {
+-		putback_lru_pages(&pagelist);
++		struct page *page1, *page2;
++		list_for_each_entry_safe(page1, page2, &pagelist, lru)
++			put_page(page1);
++
+ 		pr_debug("soft offline: %#lx: migration failed %d, type %lx\n",
+ 			 pfn, ret, page->flags);
+ 		if (ret > 0)
+diff -puN mm/migrate.c~mm-migration-fix-page-corruption-during-hugepage-migration mm/migrate.c
+--- a/mm/migrate.c~mm-migration-fix-page-corruption-during-hugepage-migration
++++ a/mm/migrate.c
+@@ -980,10 +980,6 @@ int migrate_huge_pages(struct list_head 
+ 	}
+ 	rc = 0;
+ out:
+-
+-	list_for_each_entry_safe(page, page2, from, lru)
+-		put_page(page);
