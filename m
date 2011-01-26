@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-allow-setting-default_message_level-via-kconfig.patch added to -mm tree
-Date: Wed, 26 Jan 2011 14:50:25 -0800
-Message-ID: <201101262250.p0QMoPad009332@imap1.linux-foundation.org>
+Subject: + mm-when-migrate_pages-returns-0-all-pages-must-have-been-released.patch added to -mm tree
+Date: Wed, 26 Jan 2011 15:10:32 -0800
+Message-ID: <201101262310.p0QNAXwG010228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754092Ab1AZWvF (ORCPT
+	by vger.kernel.org with ESMTP id S1753537Ab1AZXLh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 17:51:05 -0500
+	Wed, 26 Jan 2011 18:11:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: msb@chromium.org, joe@perches.com, mingo@elte.hu, olofj@chromium.org
+Cc: aarcange@redhat.com, cl@linux.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     printk: allow setting DEFAULT_MESSAGE_LEVEL via Kconfig
+     mm: when migrate_pages returns 0, all pages must have been released
 has been added to the -mm tree.  Its filename is
-     printk-allow-setting-default_message_level-via-kconfig.patch
+     mm-when-migrate_pages-returns-0-all-pages-must-have-been-released.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: allow setting DEFAULT_MESSAGE_LEVEL via Kconfig
-From: Mandeep Singh Baines <msb@chromium.org>
+Subject: mm: when migrate_pages returns 0, all pages must have been released
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-We've been burned by regressions/bugs which we later realized could have
-been triaged quicker if only we'd paid closer attention to dmesg.  To make
-it easier to audit dmesg, we'd like to make DEFAULT_MESSAGE_LEVEL
-Kconfig-settable.  That way we can set it to KERN_NOTICE and audit any
-messages <= KERN_WARNING.
+In some cases migrate_pages could return zero while still leaving a few
+pages in the pagelist (and some caller wouldn't notice it has to call
+putback_lru_pages after commit cf608ac19c9 ("mm: compaction: fix
+COMPACTPAGEFAILED counting")).
 
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joe Perches <joe@perches.com>
-Cc: Olof Johansson <olofj@chromium.org>
+Add one missing putback_lru_pages not added by commit cf608ac19c95 ("mm:
+compaction: fix COMPACTPAGEFAILED counting").
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c   |    2 +-
- lib/Kconfig.debug |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    1 +
+ mm/migrate.c        |    3 +--
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~printk-allow-setting-default_message_level-via-kconfig kernel/printk.c
---- a/kernel/printk.c~printk-allow-setting-default_message_level-via-kconfig
-+++ a/kernel/printk.c
-@@ -53,7 +53,7 @@ void asmlinkage __attribute__((weak)) ea
- #define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
+diff -puN mm/memory-failure.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released
++++ a/mm/memory-failure.c
+@@ -1419,6 +1419,7 @@ int soft_offline_page(struct page *page,
+ 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
+ 								0, true);
+ 		if (ret) {
++			putback_lru_pages(&pagelist);
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 				pfn, ret, page->flags);
+ 			if (ret > 0)
+diff -puN mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released mm/migrate.c
+--- a/mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released
++++ a/mm/migrate.c
+@@ -772,6 +772,7 @@ uncharge:
+ unlock:
+ 	unlock_page(page);
  
- /* printk's without a loglevel use this.. */
--#define DEFAULT_MESSAGE_LOGLEVEL 4 /* KERN_WARNING */
-+#define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
++move_newpage:
+ 	if (rc != -EAGAIN) {
+  		/*
+  		 * A page that has been migrated has all references
+@@ -785,8 +786,6 @@ unlock:
+ 		putback_lru_page(page);
+ 	}
  
- /* We show everything that is MORE important than this.. */
- #define MINIMUM_CONSOLE_LOGLEVEL 1 /* Minimum loglevel we let people use */
-diff -puN lib/Kconfig.debug~printk-allow-setting-default_message_level-via-kconfig lib/Kconfig.debug
---- a/lib/Kconfig.debug~printk-allow-setting-default_message_level-via-kconfig
-+++ a/lib/Kconfig.debug
-@@ -9,6 +9,18 @@ config PRINTK_TIME
- 	  operations.  This is useful for identifying long delays
- 	  in kernel startup.
- 
-+config DEFAULT_MESSAGE_LOGLEVEL
-+	int "Default message log level (1-7)"
-+	range 1 7
-+	depends on PRINTK
-+	default "4"
-+	help
-+	  Default log level for printk statements with no specified priority.
-+
-+	  This was hard-coded to KERN_WARNING since at least 2.6.10 but folks
-+	  that are auditing their logs closely may want to set it to a lower
-+	  priority.
-+
- config ENABLE_WARN_DEPRECATED
- 	bool "Enable __deprecated logic"
- 	default y
-_
-
-Patches currently in -mm which might be from msb@chromium.org are
-
-printk-allow-setting-default_message_level-via-kconfig.patch
-
+-move_newpage:
