@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-add-msm-smd_pkt-driver.patch added to -mm tree
-Date: Wed, 26 Jan 2011 15:34:19 -0800
-Message-ID: <201101262334.p0QNYJI5011246@imap1.linux-foundation.org>
+Subject: + mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update.patch added to -mm tree
+Date: Wed, 26 Jan 2011 15:37:22 -0800
+Message-ID: <201101262337.p0QNbM19011415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754367Ab1AZXfH (ORCPT
+	by vger.kernel.org with ESMTP id S1754147Ab1AZXiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 18:35:07 -0500
+	Wed, 26 Jan 2011 18:38:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nvishwan@codeaurora.org, alan@lxorguk.ukuu.org.uk, davidb@codeaurora.org, gregkh@suse.de, swetland@google.com
+Cc: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux.com, mel@csn.ul.ie
 
 
 The patch titled
-     drivers/char: add MSM smd_pkt driver
+     mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
 has been added to the -mm tree.  Its filename is
-     drivers-char-add-msm-smd_pkt-driver.patch
+     mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,526 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char: add MSM smd_pkt driver
-From: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
+Subject: mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Add smd_pkt driver which provides device interface to smd packet ports.
-
-Signed-off-by: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
-Cc: Brian Swetland <swetland@google.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Brown <davidb@codeaurora.org>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig       |    8 
- drivers/char/Makefile      |    1 
- drivers/char/msm_smd_pkt.c |  466 +++++++++++++++++++++++++++++++++++
- 3 files changed, 475 insertions(+)
+ mm/migrate.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/Kconfig~drivers-char-add-msm-smd_pkt-driver drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-add-msm-smd_pkt-driver
-+++ a/drivers/char/Kconfig
-@@ -1152,5 +1152,13 @@ config MSM_SMD_TTY
- 	  Enables userspace clients to read and write to some streaming SMD
- 	  ports via tty device interface for MSM chipset.
+diff -puN mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update mm/migrate.c
+--- a/mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
++++ a/mm/migrate.c
+@@ -611,6 +611,14 @@ static int move_to_new_page(struct page 
+ 	return rc;
+ }
  
-+config MSM_SMD_PKT
-+	bool "Enable device interface for some SMD packet ports"
-+	default n
-+	depends on MSM_SMD
-+	help
-+	  Enables userspace clients to read and write to some packet SMD
-+	  ports via device interface for MSM chipset.
++static void unmap_and_move_release_page(struct page *page)
++{
++	list_del(&page->lru);
++	dec_zone_page_state(page, NR_ISOLATED_ANON +
++			    page_is_file_cache(page));
++	putback_lru_page(page);
++}
 +
- endmenu
+ /*
+  * Obtain the lock on page, remove all ptes and migrate the page
+  * to the newly allocated page in newpage.
+@@ -631,11 +639,14 @@ static int unmap_and_move(new_page_t get
  
-diff -puN drivers/char/Makefile~drivers-char-add-msm-smd_pkt-driver drivers/char/Makefile
---- a/drivers/char/Makefile~drivers-char-add-msm-smd_pkt-driver
-+++ a/drivers/char/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_SX)		+= sx.o generic_serial
- obj-$(CONFIG_RIO)		+= rio/ generic_serial.o
- obj-$(CONFIG_RAW_DRIVER)	+= raw.o
- obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
-+obj-$(CONFIG_MSM_SMD_PKT)	+= msm_smd_pkt.o
- obj-$(CONFIG_MSPEC)		+= mspec.o
- obj-$(CONFIG_MMTIMER)		+= mmtimer.o
- obj-$(CONFIG_UV_MMTIMER)	+= uv_mmtimer.o
-diff -puN /dev/null drivers/char/msm_smd_pkt.c
---- /dev/null
-+++ a/drivers/char/msm_smd_pkt.c
-@@ -0,0 +1,466 @@
-+/* Copyright (c) 2008-2010, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ */
-+/*
-+ * SMD Packet Driver -- Provides userspace interface to SMD packet ports.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/cdev.h>
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/device.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/uaccess.h>
-+#include <linux/workqueue.h>
-+#include <linux/poll.h>
-+
-+#include <mach/msm_smd.h>
-+
-+#define NUM_SMD_PKT_PORTS 9
-+#define DEVICE_NAME "smdpkt"
-+#define MAX_BUF_SIZE 2048
-+
-+struct smd_pkt_dev {
-+	struct cdev cdev;
-+	struct device *devicep;
-+
-+	struct smd_channel *ch;
-+	int open_count;
-+	struct mutex ch_lock;
-+	struct mutex rx_lock;
-+	struct mutex tx_lock;
-+	wait_queue_head_t ch_read_wait_queue;
-+	wait_queue_head_t ch_opened_wait_queue;
-+
-+	int i;
-+
-+	unsigned char tx_buf[MAX_BUF_SIZE];
-+	unsigned char rx_buf[MAX_BUF_SIZE];
-+	int remote_open;
-+
-+} *smd_pkt_devp[NUM_SMD_PKT_PORTS];
-+
-+struct class *smd_pkt_classp;
-+static dev_t smd_pkt_number;
-+
-+static int msm_smd_pkt_debug_enable;
-+module_param_named(debug_enable, msm_smd_pkt_debug_enable,
-+		   int, S_IRUGO | S_IWUSR | S_IWGRP);
-+
-+#ifdef DEBUG
-+#define D_DUMP_BUFFER(prestr, cnt, buf) do {			\
-+		int i;						\
-+		if (msm_smd_pkt_debug_enable) {			\
-+			pr_debug("%s", prestr);			\
-+			for (i = 0; i < cnt; i++)		\
-+				pr_debug("%.2x", buf[i]);	\
-+			pr_debug("\n");				\
-+		}						\
-+	} while (0)
-+#else
-+#define D_DUMP_BUFFER(prestr, cnt, buf) do {} while (0)
-+#endif
-+
-+#ifdef DEBUG
-+#define DBG(x...) do {			\
-+	if (msm_smd_pkt_debug_enable)	\
-+		pr_debug(x);		\
-+	} while (0)
-+#else
-+#define DBG(x...) do {} while (0)
-+#endif
-+
-+static void check_and_wakeup_reader(struct smd_pkt_dev *smd_pkt_devp)
-+{
-+	int sz;
-+
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return;
-+
-+	sz = smd_cur_packet_size(smd_pkt_devp->ch);
-+	if (sz == 0) {
-+		DBG("no packet\n");
-+		return;
-+	}
-+	if (sz > smd_read_avail(smd_pkt_devp->ch)) {
-+		DBG("incomplete packet\n");
-+		return;
-+	}
-+
-+	DBG("waking up reader\n");
-+	wake_up_interruptible(&smd_pkt_devp->ch_read_wait_queue);
-+}
-+
-+static int smd_pkt_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	int r, bytes_read;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+	struct smd_channel *chl;
-+
-+	DBG("read %d bytes\n", count);
-+	if (count > MAX_BUF_SIZE)
-+		return -EINVAL;
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return -EINVAL;
-+
-+	chl = smd_pkt_devp->ch;
-+wait_for_packet:
-+	r = wait_event_interruptible(smd_pkt_devp->ch_read_wait_queue,
-+				     (smd_cur_packet_size(chl) > 0 &&
-+				      smd_read_avail(chl) >=
-+				      smd_cur_packet_size(chl)));
-+
-+	if (r < 0) {
-+		if (r != -ERESTARTSYS)
-+			pr_err("wait returned %d\n", r);
-+		return r;
-+	}
-+
-+	mutex_lock(&smd_pkt_devp->rx_lock);
-+
-+	bytes_read = smd_cur_packet_size(smd_pkt_devp->ch);
-+	if (bytes_read == 0 ||
-+	    bytes_read < smd_read_avail(smd_pkt_devp->ch)) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		DBG("Nothing to read\n");
-+		goto wait_for_packet;
-+	}
-+
-+	if (bytes_read > count) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		pr_info("packet size %d > buffer size %d", bytes_read, count);
-+		return -EINVAL;
-+	}
-+
-+	r = smd_read(smd_pkt_devp->ch, smd_pkt_devp->rx_buf, bytes_read);
-+	if (r != bytes_read) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		pr_err("smd_read failed to read %d bytes: %d\n", bytes_read, r);
-+		return -EIO;
-+	}
-+
-+	D_DUMP_BUFFER("read: ", bytes_read, smd_pkt_devp->rx_buf);
-+	r = copy_to_user(buf, smd_pkt_devp->rx_buf, bytes_read);
-+	mutex_unlock(&smd_pkt_devp->rx_lock);
-+	if (r) {
-+		pr_err("copy_to_user failed %d\n", r);
-+		return -EFAULT;
-+	}
-+
-+	DBG("read complete %d bytes\n", bytes_read);
-+	check_and_wakeup_reader(smd_pkt_devp);
-+
-+	return bytes_read;
-+}
-+
-+static int smd_pkt_write(struct file *file, const char __user *buf,
-+			 size_t count, loff_t *ppos)
-+{
-+	int r;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+
-+	if (count > MAX_BUF_SIZE)
-+		return -EINVAL;
-+
-+	DBG("writting %d bytes\n", count);
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return -EINVAL;
-+
-+	mutex_lock(&smd_pkt_devp->tx_lock);
-+	if (smd_write_avail(smd_pkt_devp->ch) < count) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		DBG("Not enough space to write\n");
-+		return -ENOMEM;
-+	}
-+
-+	D_DUMP_BUFFER("write: ", count, buf);
-+	r = copy_from_user(smd_pkt_devp->tx_buf, buf, count);
-+	if (r) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		pr_err("copy_from_user failed %d\n", r);
-+		return -EFAULT;
-+	}
-+
-+	r = smd_write(smd_pkt_devp->ch, smd_pkt_devp->tx_buf, count);
-+	if (r != count) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		pr_err("smd_write failed to write %d bytes: %d.\n", count, r);
-+		return -EIO;
-+	}
-+	mutex_unlock(&smd_pkt_devp->tx_lock);
-+
-+	DBG("wrote %d bytes\n", count);
-+	return count;
-+}
-+
-+static unsigned int smd_pkt_poll(struct file *file, poll_table *wait)
-+{
-+	struct smd_pkt_dev *smd_pkt_devp;
-+	unsigned int mask = 0;
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp)
-+		return POLLERR;
-+
-+	DBG("poll waiting\n");
-+	poll_wait(file, &smd_pkt_devp->ch_read_wait_queue, wait);
-+	if (smd_read_avail(smd_pkt_devp->ch))
-+		mask |= POLLIN | POLLRDNORM;
-+
-+	DBG("poll return\n");
-+	return mask;
-+}
-+
-+static void smd_pkt_ch_notify(void *priv, unsigned event)
-+{
-+	struct smd_pkt_dev *smd_pkt_devp = priv;
-+
-+	if (smd_pkt_devp->ch == 0)
-+		return;
-+
-+	switch (event) {
-+	case SMD_EVENT_DATA:
-+		DBG("data\n");
-+		check_and_wakeup_reader(smd_pkt_devp);
-+		break;
-+
-+	case SMD_EVENT_OPEN:
-+		DBG("remote open\n");
-+		smd_pkt_devp->remote_open = 1;
-+		wake_up_interruptible(&smd_pkt_devp->ch_opened_wait_queue);
-+		break;
-+
-+	case SMD_EVENT_CLOSE:
-+		smd_pkt_devp->remote_open = 0;
-+		pr_info("remote closed\n");
-+		break;
-+
-+	default:
-+		pr_err("unknown event %d\n", event);
-+		break;
-+	}
-+}
-+
-+static char *smd_pkt_dev_name[] = {
-+	"smdcntl0",
-+	"smdcntl1",
-+	"smdcntl2",
-+	"smdcntl3",
-+	"smdcntl4",
-+	"smdcntl5",
-+	"smdcntl6",
-+	"smdcntl7",
-+	"smd22",
-+};
-+
-+static char *smd_ch_name[] = {
-+	"DATA5_CNTL",
-+	"DATA6_CNTL",
-+	"DATA7_CNTL",
-+	"DATA8_CNTL",
-+	"DATA9_CNTL",
-+	"DATA12_CNTL",
-+	"DATA13_CNTL",
-+	"DATA14_CNTL",
-+	"DATA22",
-+};
-+
-+static int smd_pkt_open(struct inode *inode, struct file *file)
-+{
-+	int r = 0;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+
-+	smd_pkt_devp = container_of(inode->i_cdev, struct smd_pkt_dev, cdev);
-+	if (!smd_pkt_devp)
-+		return -EINVAL;
-+
-+	file->private_data = smd_pkt_devp;
-+
-+	mutex_lock(&smd_pkt_devp->ch_lock);
-+	if (smd_pkt_devp->open_count == 0) {
-+		r = smd_open(smd_ch_name[smd_pkt_devp->i],
-+			     &smd_pkt_devp->ch, smd_pkt_devp,
-+			     smd_pkt_ch_notify);
-+		if (r < 0) {
-+			pr_err("smd_open failed for %s, %d\n",
-+			       smd_ch_name[smd_pkt_devp->i], r);
-+			goto out;
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
++		unmap_and_move_release_page(page);
+ 		goto move_newpage;
+ 	}
+ 	if (unlikely(PageTransHuge(page)))
+-		if (unlikely(split_huge_page(page)))
++		if (unlikely(split_huge_page(page))) {
++			unmap_and_move_release_page(page);
+ 			goto move_newpage;
 +		}
+ 
+ 	/* prepare cgroup just returns 0 or -ENOMEM */
+ 	rc = -EAGAIN;
+@@ -772,7 +783,6 @@ uncharge:
+ unlock:
+ 	unlock_page(page);
+ 
+-move_newpage:
+ 	if (rc != -EAGAIN) {
+  		/*
+  		 * A page that has been migrated has all references
+@@ -780,12 +790,11 @@ move_newpage:
+  		 * migrated will have kepts its references and be
+  		 * restored.
+  		 */
+- 		list_del(&page->lru);
+-		dec_zone_page_state(page, NR_ISOLATED_ANON +
+-				page_is_file_cache(page));
+-		putback_lru_page(page);
++		unmap_and_move_release_page(page);
+ 	}
+ 
++move_newpage:
 +
-+		r = wait_event_interruptible_timeout(
-+				smd_pkt_devp->ch_opened_wait_queue,
-+				smd_pkt_devp->remote_open,
-+				msecs_to_jiffies(2 * HZ));
-+		if (r == 0)
-+			r = -ETIMEDOUT;
-+
-+		if (r < 0) {
-+			pr_err("wait returned %d\n", r);
-+			smd_close(smd_pkt_devp->ch);
-+			smd_pkt_devp->ch = 0;
-+		} else {
-+			smd_pkt_devp->open_count++;
-+			r = 0;
-+		}
-+	}
-+out:
-+	mutex_unlock(&smd_pkt_devp->ch_lock);
-+	return r;
-+}
-+
-+static int smd_pkt_release(struct inode *inode, struct file *file)
-+{
-+	int r = 0;
-+	struct smd_pkt_dev *smd_pkt_devp = file->private_data;
-+
-+	if (!smd_pkt_devp)
-+		return -EINVAL;
-+
-+	mutex_lock(&smd_pkt_devp->ch_lock);
-+	if (--smd_pkt_devp->open_count == 0) {
-+		r = smd_close(smd_pkt_devp->ch);
-+		smd_pkt_devp->ch = 0;
-+	}
-+	mutex_unlock(&smd_pkt_devp->ch_lock);
-+
-+	return r;
-+}
-+
-+static const struct file_operations smd_pkt_fops = {
-+	.owner = THIS_MODULE,
-+	.open = smd_pkt_open,
-+	.release = smd_pkt_release,
-+	.read = smd_pkt_read,
-+	.write = smd_pkt_write,
-+	.poll = smd_pkt_poll,
-+};
-+
-+static int __init smd_pkt_init(void)
-+{
-+	int i;
-+	int r;
-+
-+	r = alloc_chrdev_region(&smd_pkt_number, 0,
-+				NUM_SMD_PKT_PORTS, DEVICE_NAME);
-+	if (r) {
-+		pr_err("alloc_chrdev_region() failed %d\n", r);
-+		return r;
-+	}
-+
-+	smd_pkt_classp = class_create(THIS_MODULE, DEVICE_NAME);
-+	if (IS_ERR(smd_pkt_classp)) {
-+		r = PTR_ERR(smd_pkt_classp);
-+		pr_err("class_create() failed %d\n", r);
-+		goto unreg_chardev;
-+	}
-+
-+	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
-+		smd_pkt_devp[i] = kzalloc(sizeof(struct smd_pkt_dev),
-+					  GFP_KERNEL);
-+		if (IS_ERR(smd_pkt_devp[i])) {
-+			r = PTR_ERR(smd_pkt_devp[i]);
-+			pr_err("kmalloc() failed %d\n", r);
-+			goto clean_cdevs;
-+		}
-+
-+		smd_pkt_devp[i]->i = i;
-+
-+		init_waitqueue_head(&smd_pkt_devp[i]->ch_read_wait_queue);
-+		smd_pkt_devp[i]->remote_open = 0;
-+		init_waitqueue_head(&smd_pkt_devp[i]->ch_opened_wait_queue);
-+
-+		mutex_init(&smd_pkt_devp[i]->ch_lock);
-+		mutex_init(&smd_pkt_devp[i]->rx_lock);
-+		mutex_init(&smd_pkt_devp[i]->tx_lock);
-+
-+		cdev_init(&smd_pkt_devp[i]->cdev, &smd_pkt_fops);
-+		smd_pkt_devp[i]->cdev.owner = THIS_MODULE;
-+
-+		r = cdev_add(&smd_pkt_devp[i]->cdev,
-+			     (smd_pkt_number + i), 1);
-+		if (r) {
-+			pr_err("cdev_add() failed %d\n", r);
-+			kfree(smd_pkt_devp[i]);
-+			goto clean_cdevs;
-+		}
-+
-+		smd_pkt_devp[i]->devicep =
-+			device_create(smd_pkt_classp, NULL,
-+				      (smd_pkt_number + i), NULL,
-+				      smd_pkt_dev_name[i]);
-+		if (IS_ERR(smd_pkt_devp[i]->devicep)) {
-+			r = PTR_ERR(smd_pkt_devp[i]->devicep);
-+			pr_err("device_create() failed %d\n", r);
-+			cdev_del(&smd_pkt_devp[i]->cdev);
-+			kfree(smd_pkt_devp[i]);
-+			goto clean_cdevs;
-+		}
-+
-+	}
-+
-+	pr_info("SMD Packet Port Driver Initialized.\n");
-+	return 0;
-+
-+clean_cdevs:
-+	if (i > 0) {
-+		while (--i >= 0) {
-+			mutex_destroy(&smd_pkt_devp[i]->ch_lock);
-+			mutex_destroy(&smd_pkt_devp[i]->rx_lock);
-+			mutex_destroy(&smd_pkt_devp[i]->tx_lock);
-+			cdev_del(&smd_pkt_devp[i]->cdev);
-+			kfree(smd_pkt_devp[i]);
-+			device_destroy(smd_pkt_classp,
-+				       MKDEV(MAJOR(smd_pkt_number), i));
-+		}
-+	}
-+
-+	class_destroy(smd_pkt_classp);
-+unreg_chardev:
-+	unregister_chrdev_region(MAJOR(smd_pkt_number), NUM_SMD_PKT_PORTS);
-+	return r;
-+}
-+module_init(smd_pkt_init);
-+
-+static void __exit smd_pkt_cleanup(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
-+		mutex_destroy(&smd_pkt_devp[i]->ch_lock);
-+		mutex_destroy(&smd_pkt_devp[i]->rx_lock);
-+		mutex_destroy(&smd_pkt_devp[i]->tx_lock);
-+		cdev_del(&smd_pkt_devp[i]->cdev);
-+		kfree(smd_pkt_devp[i]);
-+		device_destroy(smd_pkt_classp,
-+			       MKDEV(MAJOR(smd_pkt_number), i));
-+	}
-+
-+	class_destroy(smd_pkt_classp);
-+	unregister_chrdev_region(MAJOR(smd_pkt_number), NUM_SMD_PKT_PORTS);
-+}
-+module_exit(smd_pkt_cleanup);
-+
-+MODULE_DESCRIPTION("MSM Shared Memory Packet Port");
-+MODULE_LICENSE("GPL v2");
+ 	/*
+ 	 * Move the new page to the LRU. If migration was not successful
+ 	 * then this will free the page.
 _
 
-Patches currently in -mm which might be from nvishwan@codeaurora.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-drivers-char-add-msm-smd_tty-driver.patch
-drivers-char-add-msm-smd_pkt-driver.patch
+origin.patch
+linux-next.patch
+mm-when-migrate_pages-returns-0-all-pages-must-have-been-released.patch
+mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update.patch
+mm-migration-fix-page-corruption-during-hugepage-migration.patch
+mm-vmap-area-cache.patch
+mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
 
