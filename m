@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-apple_bl-depends-on-acpi.patch added to -mm tree
-Date: Wed, 26 Jan 2011 13:56:54 -0800
-Message-ID: <201101262156.p0QLusgS006938@imap1.linux-foundation.org>
+Subject: + memsw-handle-swapaccount-kernel-parameter-correctly.patch added to -mm tree
+Date: Wed, 26 Jan 2011 14:06:56 -0800
+Message-ID: <201101262206.p0QM6uGk007433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753903Ab1AZV5P (ORCPT
+	by vger.kernel.org with ESMTP id S1754220Ab1AZWHf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 16:57:15 -0500
+	Wed, 26 Jan 2011 17:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mjg@redhat.com, rpurdie@rpsys.net
+Cc: mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, stable@kernel.org
 
 
 The patch titled
-     backlight: apple_bl depends on ACPI
+     memsw: handle swapaccount kernel parameter correctly
 has been added to the -mm tree.  Its filename is
-     backlight-apple_bl-depends-on-acpi.patch
+     memsw-handle-swapaccount-kernel-parameter-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: apple_bl depends on ACPI
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: memsw: handle swapaccount kernel parameter correctly
+From: Michal Hocko <mhocko@suse.cz>
 
-apple_bl uses ACPI interfaces (data & code), so it should depend on ACPI.
+__setup based kernel command line parameters handled in
+obsolete_checksetup provides the parameter value including = (more
+precisely everything right after the parameter name) so we have to check
+for =0 resp.  =1 here.  If no value is given then we get an empty string
+rather then NULL.
 
-drivers/video/backlight/apple_bl.c:142: warning: 'struct acpi_device' declared inside parameter list
-drivers/video/backlight/apple_bl.c:142: warning: its scope is only this definition or declaration, which is probably not what you want
-drivers/video/backlight/apple_bl.c:201: warning: 'struct acpi_device' declared inside parameter list
-drivers/video/backlight/apple_bl.c:215: error: variable 'apple_bl_driver' has initializer but incomplete type
-drivers/video/backlight/apple_bl.c:216: error: unknown field 'name' specified in initializer
-drivers/video/backlight/apple_bl.c:216: warning: excess elements in struct initializer
-drivers/video/backlight/apple_bl.c:216: warning: (near initialization for 'apple_bl_driver')
-drivers/video/backlight/apple_bl.c:217: error: unknown field 'ids' specified in initializer
-drivers/video/backlight/apple_bl.c:217: warning: excess elements in struct initializer
-drivers/video/backlight/apple_bl.c:217: warning: (near initialization for 'apple_bl_driver')
-drivers/video/backlight/apple_bl.c:218: error: unknown field 'ops' specified in initializer
-drivers/video/backlight/apple_bl.c:218: error: extra brace group at end of initializer
-drivers/video/backlight/apple_bl.c:218: error: (near initialization for 'apple_bl_driver')
-drivers/video/backlight/apple_bl.c:221: warning: excess elements in struct initializer
-drivers/video/backlight/apple_bl.c:221: warning: (near initialization for 'apple_bl_driver')
-drivers/video/backlight/apple_bl.c:226: error: implicit declaration of function 'acpi_bus_register_driver'
-drivers/video/backlight/apple_bl.c:231: error: implicit declaration of function 'acpi_bus_unregister_driver'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi
-+++ a/drivers/video/backlight/Kconfig
-@@ -238,10 +238,10 @@ config BACKLIGHT_MAX8925
+diff -puN mm/memcontrol.c~memsw-handle-swapaccount-kernel-parameter-correctly mm/memcontrol.c
+--- a/mm/memcontrol.c~memsw-handle-swapaccount-kernel-parameter-correctly
++++ a/mm/memcontrol.c
+@@ -5024,9 +5024,9 @@ struct cgroup_subsys mem_cgroup_subsys =
+ static int __init enable_swap_account(char *s)
+ {
+ 	/* consider enabled if no parameter or 1 is given */
+-	if (!s || !strcmp(s, "1"))
++	if (!(*s) || !strcmp(s, "=1"))
+ 		really_do_swap_account = 1;
+-	else if (!strcmp(s, "0"))
++	else if (!strcmp(s, "=0"))
+ 		really_do_swap_account = 0;
+ 	return 1;
+ }
+@@ -5034,7 +5034,7 @@ __setup("swapaccount", enable_swap_accou
  
- config BACKLIGHT_APPLE
-        tristate "Apple Backlight Driver"
--       depends on X86
-+       depends on X86 && ACPI
-        help
-          If you have an Intel-based Apple say Y to enable a driver for its
--	 backlight
-+	 backlight.
- 
- config BACKLIGHT_TOSA
- 	tristate "Sharp SL-6000 Backlight Driver"
+ static int __init disable_swap_account(char *s)
+ {
+-	enable_swap_account("0");
++	enable_swap_account("=0");
+ 	return 1;
+ }
+ __setup("noswapaccount", disable_swap_account);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-origin.patch
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-apple_bl-depends-on-acpi.patch
-tty-serial-fix-apbuart-build.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+memsw-handle-swapaccount-kernel-parameter-correctly.patch
 
