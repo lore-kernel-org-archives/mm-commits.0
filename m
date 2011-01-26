@@ -1,81 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent.patch removed from -mm tree
-Date: Wed, 26 Jan 2011 12:32:39 -0800
-Message-ID: <201101262032.p0QKWdv6003207@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-account-leak-at-failure-of-memsw-acconting.patch removed from -mm tree
+Date: Wed, 26 Jan 2011 12:32:46 -0800
+Message-ID: <201101262032.p0QKWkTE003219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754162Ab1AZUcv (ORCPT
+	by vger.kernel.org with ESMTP id S1754105Ab1AZUc5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 15:32:51 -0500
+	Wed, 26 Jan 2011 15:32:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jj@chaosbits.net, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/memcontrol.c: fix uninitialized variable use in mem_cgroup_move_parent()
+     memcg: fix account leak at failure of memsw acconting
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent.patch
+     memcg-fix-account-leak-at-failure-of-memsw-acconting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memcontrol.c: fix uninitialized variable use in mem_cgroup_move_parent()
-From: Jesper Juhl <jj@chaosbits.net>
+Subject: memcg: fix account leak at failure of memsw acconting
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In mm/memcontrol.c::mem_cgroup_move_parent() there's a path that jumps to
-the 'put_back' label
+4b53433468 ("memcg: clean up try_charge main loop") removes a cancel of
+charge at case: memory charge-> success.  mem+swap charge-> failure.
 
-  	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false, charge);
-  	if (ret || !parent)
-  		goto put_back;
-where we'll
+This leaks usage of memory. Fix it.
 
-  	if (charge > PAGE_SIZE)
-  		compound_unlock_irqrestore(page, flags);
-
-but, we have not assigned anything to 'flags' at this point, nor have we
-called 'compound_lock_irqsave()' (which is what sets 'flags').  The
-'put_back' label should be moved below the call to
-compound_unlock_irqrestore() as per this patch.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: <stable@kernel.org>	[2.6.36+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-fix-uninitialized-variable-use-in-mem_cgroup_move_parent
+diff -puN mm/memcontrol.c~memcg-fix-account-leak-at-failure-of-memsw-acconting mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-account-leak-at-failure-of-memsw-acconting
 +++ a/mm/memcontrol.c
-@@ -2292,9 +2292,10 @@ static int mem_cgroup_move_parent(struct
- 	ret = mem_cgroup_move_account(pc, child, parent, true, charge);
- 	if (ret)
- 		mem_cgroup_cancel_charge(parent, charge);
--put_back:
-+
- 	if (charge > PAGE_SIZE)
- 		compound_unlock_irqrestore(page, flags);
-+put_back:
- 	putback_lru_page(page);
- put:
- 	put_page(page);
+@@ -1832,6 +1832,7 @@ static int __mem_cgroup_do_charge(struct
+ 		if (likely(!ret))
+ 			return CHARGE_OK;
+ 
++		res_counter_uncharge(&mem->res, csize);
+ 		mem_over_limit = mem_cgroup_from_res_counter(fail_res, memsw);
+ 		flags |= MEM_CGROUP_RECLAIM_NOSWAP;
+ 	} else
 _
 
-Patches currently in -mm which might be from jj@chaosbits.net are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
-audit-always-follow-va_copy-with-va_end.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
 
