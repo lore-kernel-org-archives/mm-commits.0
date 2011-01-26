@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-nommuc-use-bug_on-correctly.patch added to -mm tree
-Date: Wed, 26 Jan 2011 13:55:47 -0800
-Message-ID: <201101262155.p0QLtl6i006911@imap1.linux-foundation.org>
+Subject: + backlight-apple_bl-depends-on-acpi.patch added to -mm tree
+Date: Wed, 26 Jan 2011 13:56:54 -0800
+Message-ID: <201101262156.p0QLusgS006938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753469Ab1AZV4y (ORCPT
+	by vger.kernel.org with ESMTP id S1753903Ab1AZV5P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 16:56:54 -0500
+	Wed, 26 Jan 2011 16:57:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bosong.ly@taobao.com, dhowells@redhat.com, gerg@snapgear.com
+Cc: randy.dunlap@oracle.com, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     mm/nommu.c: use BUG_ON correctly
+     backlight: apple_bl depends on ACPI
 has been added to the -mm tree.  Its filename is
-     mm-nommuc-use-bug_on-correctly.patch
+     backlight-apple_bl-depends-on-acpi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/nommu.c: use BUG_ON correctly
-From: Coly Li <bosong.ly@taobao.com>
+Subject: backlight: apple_bl depends on ACPI
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Coly Li <bosong.ly@taobao.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+apple_bl uses ACPI interfaces (data & code), so it should depend on ACPI.
+
+drivers/video/backlight/apple_bl.c:142: warning: 'struct acpi_device' declared inside parameter list
+drivers/video/backlight/apple_bl.c:142: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/video/backlight/apple_bl.c:201: warning: 'struct acpi_device' declared inside parameter list
+drivers/video/backlight/apple_bl.c:215: error: variable 'apple_bl_driver' has initializer but incomplete type
+drivers/video/backlight/apple_bl.c:216: error: unknown field 'name' specified in initializer
+drivers/video/backlight/apple_bl.c:216: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:216: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:217: error: unknown field 'ids' specified in initializer
+drivers/video/backlight/apple_bl.c:217: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:217: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:218: error: unknown field 'ops' specified in initializer
+drivers/video/backlight/apple_bl.c:218: error: extra brace group at end of initializer
+drivers/video/backlight/apple_bl.c:218: error: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:221: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:221: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:226: error: implicit declaration of function 'acpi_bus_register_driver'
+drivers/video/backlight/apple_bl.c:231: error: implicit declaration of function 'acpi_bus_unregister_driver'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/nommu.c~mm-nommuc-use-bug_on-correctly mm/nommu.c
---- a/mm/nommu.c~mm-nommuc-use-bug_on-correctly
-+++ a/mm/nommu.c
-@@ -534,16 +534,16 @@ static noinline void validate_nommu_regi
- 		return;
+diff -puN drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi
++++ a/drivers/video/backlight/Kconfig
+@@ -238,10 +238,10 @@ config BACKLIGHT_MAX8925
  
- 	last = rb_entry(lastp, struct vm_region, vm_rb);
--	BUG_ON(unlikely(last->vm_end <= last->vm_start));
--	BUG_ON(unlikely(last->vm_top < last->vm_end));
-+	BUG_ON(last->vm_end <= last->vm_start);
-+	BUG_ON(last->vm_top < last->vm_end);
+ config BACKLIGHT_APPLE
+        tristate "Apple Backlight Driver"
+-       depends on X86
++       depends on X86 && ACPI
+        help
+          If you have an Intel-based Apple say Y to enable a driver for its
+-	 backlight
++	 backlight.
  
- 	while ((p = rb_next(lastp))) {
- 		region = rb_entry(p, struct vm_region, vm_rb);
- 		last = rb_entry(lastp, struct vm_region, vm_rb);
- 
--		BUG_ON(unlikely(region->vm_end <= region->vm_start));
--		BUG_ON(unlikely(region->vm_top < region->vm_end));
--		BUG_ON(unlikely(region->vm_start < last->vm_top));
-+		BUG_ON(region->vm_end <= region->vm_start);
-+		BUG_ON(region->vm_top < region->vm_end);
-+		BUG_ON(region->vm_start < last->vm_top);
- 
- 		lastp = p;
- 	}
+ config BACKLIGHT_TOSA
+ 	tristate "Sharp SL-6000 Backlight Driver"
 _
 
-Patches currently in -mm which might be from bosong.ly@taobao.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mm-nommuc-use-bug_on-correctly.patch
+origin.patch
+linux-next.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-apple_bl-depends-on-acpi.patch
+tty-serial-fix-apbuart-build.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
