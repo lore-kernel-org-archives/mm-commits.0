@@ -1,77 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] langwell_gpio-modify-eoi-handling-following-change-of-kernel-irq-subsystem.patch removed from -mm tree
-Date: Wed, 26 Jan 2011 12:32:26 -0800
-Message-ID: <201101262032.p0QKWQBT003171@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-race-at-move_parent-around-compound_order.patch removed from -mm tree
+Date: Wed, 26 Jan 2011 12:32:50 -0800
+Message-ID: <201101262032.p0QKWokS003226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754122Ab1AZUcf (ORCPT
+	by vger.kernel.org with ESMTP id S1754179Ab1AZUdA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 15:32:35 -0500
+	Wed, 26 Jan 2011 15:33:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: feng.tang@intel.com, alan@lxorguk.ukuu.org.uk, alek.du@intel.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     langwell_gpio: modify EOI handling following change of kernel irq subsystem
+     memcg: fix race at move_parent around compound_order()
 has been removed from the -mm tree.  Its filename was
-     langwell_gpio-modify-eoi-handling-following-change-of-kernel-irq-subsystem.patch
+     memcg-fix-race-at-move_parent-around-compound_order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: langwell_gpio: modify EOI handling following change of kernel irq subsystem
-From: Feng Tang <feng.tang@intel.com>
+Subject: memcg: fix race at move_parent around compound_order()
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Latest kernel has many changes in IRQ subsystem and its interfaces, like
-adding "irq_eoi" for struct irq_chip, this patch is a follow up change for
-that.
+A fix up mem_cgroup_move_parent() which use compound_order() in
+asynchrnous manner.  This compound_order() may return unknown value
+because we don't take lock.  Use PageTransHuge() and HPAGE_SIZE instead of
+it.
 
-Also remove the unnecessary cast for a "void *".
+Also clean up for mem_cgroup_move_parent().
+ - remove unnecessary initialization of local variable.
+ - rename charge_size -> page_size
+ - remove unnecessary (wrong) comment.
+ - added a comment about THP.
 
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Alek Du <alek.du@intel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Note:
+ Current design take compound_page_lock() in caller of move_account().
+ This should be revisited when we implement direct move_task of hugepage
+ without splitting.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/langwell_gpio.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN drivers/gpio/langwell_gpio.c~langwell_gpio-modify-eoi-handling-following-change-of-kernel-irq-subsystem drivers/gpio/langwell_gpio.c
---- a/drivers/gpio/langwell_gpio.c~langwell_gpio-modify-eoi-handling-following-change-of-kernel-irq-subsystem
-+++ a/drivers/gpio/langwell_gpio.c
-@@ -187,7 +187,7 @@ MODULE_DEVICE_TABLE(pci, lnw_gpio_ids);
- 
- static void lnw_irq_handler(unsigned irq, struct irq_desc *desc)
+diff -puN mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-race-at-move_parent-around-compound_order
++++ a/mm/memcontrol.c
+@@ -2236,7 +2236,12 @@ static int mem_cgroup_move_account(struc
  {
--	struct lnw_gpio *lnw = (struct lnw_gpio *)get_irq_data(irq);
-+	struct lnw_gpio *lnw = get_irq_data(irq);
- 	u32 base, gpio;
- 	void __iomem *gedr;
- 	u32 gedr_v;
-@@ -206,7 +206,12 @@ static void lnw_irq_handler(unsigned irq
- 		/* clear the edge detect status bit */
- 		writel(gedr_v, gedr);
- 	}
--	desc->chip->eoi(irq);
-+
-+	if (desc->chip->irq_eoi)
-+		desc->chip->irq_eoi(irq_get_irq_data(irq));
-+	else
-+		dev_warn(lnw->chip.dev, "missing EOI handler for irq %d\n", irq);
-+
- }
+ 	int ret = -EINVAL;
+ 	unsigned long flags;
+-
++	/*
++	 * The page is isolated from LRU. So, collapse function
++	 * will not handle this page. But page splitting can happen.
++	 * Do this check under compound_page_lock(). The caller should
++	 * hold it.
++	 */
+ 	if ((charge_size > PAGE_SIZE) && !PageTransHuge(pc->page))
+ 		return -EBUSY;
  
- static int __devinit lnw_gpio_probe(struct pci_dev *pdev,
+@@ -2268,7 +2273,7 @@ static int mem_cgroup_move_parent(struct
+ 	struct cgroup *cg = child->css.cgroup;
+ 	struct cgroup *pcg = cg->parent;
+ 	struct mem_cgroup *parent;
+-	int charge = PAGE_SIZE;
++	int page_size = PAGE_SIZE;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -2281,22 +2286,24 @@ static int mem_cgroup_move_parent(struct
+ 		goto out;
+ 	if (isolate_lru_page(page))
+ 		goto put;
+-	/* The page is isolated from LRU and we have no race with splitting */
+-	charge = PAGE_SIZE << compound_order(page);
++
++	if (PageTransHuge(page))
++		page_size = HPAGE_SIZE;
+ 
+ 	parent = mem_cgroup_from_cont(pcg);
+-	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false, charge);
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask,
++				&parent, false, page_size);
+ 	if (ret || !parent)
+ 		goto put_back;
+ 
+-	if (charge > PAGE_SIZE)
++	if (page_size > PAGE_SIZE)
+ 		flags = compound_lock_irqsave(page);
+ 
+-	ret = mem_cgroup_move_account(pc, child, parent, true, charge);
++	ret = mem_cgroup_move_account(pc, child, parent, true, page_size);
+ 	if (ret)
+-		mem_cgroup_cancel_charge(parent, charge);
++		mem_cgroup_cancel_charge(parent, page_size);
+ 
+-	if (charge > PAGE_SIZE)
++	if (page_size > PAGE_SIZE)
+ 		compound_unlock_irqrestore(page, flags);
+ put_back:
+ 	putback_lru_page(page);
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
 
