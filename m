@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + gpio-add-new-altera-pio-driver.patch added to -mm tree
-Date: Wed, 26 Jan 2011 14:36:56 -0800
-Message-ID: <201101262236.p0QMau5g008716@imap1.linux-foundation.org>
+Date: Wed, 26 Jan 2011 14:37:09 -0800
+Message-ID: <201101262237.p0QMb95f008734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754112Ab1AZWh3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754164Ab1AZWhm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 17:37:29 -0500
+	Wed, 26 Jan 2011 17:37:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: thomas@wytron.com.tw
 
 
 The patch titled
-     From: Thomas Chou <thomas@wytron.com.tw>
+     gpio: add new Altera PIO driver
 has been added to the -mm tree.  Its filename is
      gpio-add-new-altera-pio-driver.patch
 
@@ -34,16 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Thomas Chou <thomas@wytron.com.tw>
-
+Subject: gpio: add new Altera PIO driver
+From: Thomas Chou <thomas@wytron.com.tw>
 
 This driver supports the Altera PIO core.
 
 Signed-off-by: Thomas Chou <thomas@wytron.com.tw>
----
- create mode 100644 drivers/gpio/altera_gpio.c
-
-index 664660e..40271f0 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
