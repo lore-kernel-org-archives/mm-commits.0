@@ -1,71 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-paravirt-x86-32bit-nopae.patch removed from -mm tree
-Date: Wed, 26 Jan 2011 12:32:17 -0800
-Message-ID: <201101262032.p0QKWHfV003152@imap1.linux-foundation.org>
+Subject: [merged] mm-pgtable-genericc-fix-config_swap=n-build.patch removed from -mm tree
+Date: Wed, 26 Jan 2011 12:32:20 -0800
+Message-ID: <201101262032.p0QKWKrV003157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069Ab1AZUcf (ORCPT
+	by vger.kernel.org with ESMTP id S1753999Ab1AZUcm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 15:32:35 -0500
+	Wed, 26 Jan 2011 15:32:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, minchan.kim@gmail.com, w.landgraf@ru.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, sam@ravnborg.org, sshtylyov@mvista.com, yuasa@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: fix PARAVIRT x86 32bit noPAE
+     mm/pgtable-generic.c: fix CONFIG_SWAP=n build
 has been removed from the -mm tree.  Its filename was
-     thp-fix-paravirt-x86-32bit-nopae.patch
+     mm-pgtable-genericc-fix-config_swap=n-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: fix PARAVIRT x86 32bit noPAE
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm/pgtable-generic.c: fix CONFIG_SWAP=n build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes TRANSPARENT_HUGEPAGE=y with PARAVIRT=y and HIGHMEM64=n.
+mips (and sparc32):
 
-The #ifdef that this patch removes was erratically introduced to fix a
-build error for noPAE (where pmd.pmd doesn't exist).  So then the kernel
-built but it failed at runtime because set_pmd_at was a noop.  This will
-correct it by enabling set_pmd_at for noPAE mode too.
+In file included from arch/mips/include/asm/tlb.h:21,
+                 from mm/pgtable-generic.c:9:
+include/asm-generic/tlb.h: In function `tlb_flush_mmu':
+include/asm-generic/tlb.h:76: error: implicit declaration of function `release_pages'
+include/asm-generic/tlb.h: In function `tlb_remove_page':
+include/asm-generic/tlb.h:105: error: implicit declaration of function `page_cache_release'
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: werner <w.landgraf@ru.ru>
-Reported-by: Minchan Kim <minchan.kim@gmail.com>
-Tested-by: Minchan Kim <minchan.kim@gmail.com>
+free_pages_and_swap_cache() and free_page_and_swap_cache() are macros
+which call release_pages() and page_cache_release().  The obvious fix is
+to include pagemap.h in swap.h, where those macros are defined.  But that
+breaks sparc for weird reasons.
+
+So fix it within mm/pgtable-generic.c instead.
+
+Reported-by: Yoichi Yuasa <yuasa@linux-mips.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/paravirt.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/pgtable-generic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/include/asm/paravirt.h~thp-fix-paravirt-x86-32bit-nopae arch/x86/include/asm/paravirt.h
---- a/arch/x86/include/asm/paravirt.h~thp-fix-paravirt-x86-32bit-nopae
-+++ a/arch/x86/include/asm/paravirt.h
-@@ -558,13 +558,12 @@ static inline void set_pte_at(struct mm_
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 			      pmd_t *pmdp, pmd_t pmd)
- {
--#if PAGETABLE_LEVELS >= 3
- 	if (sizeof(pmdval_t) > sizeof(long))
- 		/* 5 arg words */
- 		pv_mmu_ops.set_pmd_at(mm, addr, pmdp, pmd);
- 	else
--		PVOP_VCALL4(pv_mmu_ops.set_pmd_at, mm, addr, pmdp, pmd.pmd);
--#endif
-+		PVOP_VCALL4(pv_mmu_ops.set_pmd_at, mm, addr, pmdp,
-+			    native_pmd_val(pmd));
- }
- #endif
+diff -puN mm/pgtable-generic.c~mm-pgtable-genericc-fix-config_swap=n-build mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-pgtable-genericc-fix-config_swap=n-build
++++ a/mm/pgtable-generic.c
+@@ -6,6 +6,7 @@
+  *  Copyright (C) 2010  Linus Torvalds
+  */
+ 
++#include <linux/pagemap.h>
+ #include <asm/tlb.h>
+ #include <asm-generic/pgtable.h>
  
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
