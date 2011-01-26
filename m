@@ -1,88 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch added to -mm tree
-Date: Wed, 26 Jan 2011 11:08:26 -0800
-Message-ID: <201101261908.p0QJ8QnP031535@imap1.linux-foundation.org>
+Subject: [merged] pps-claim-parallel-port-exclusively.patch removed from -mm tree
+Date: Wed, 26 Jan 2011 12:32:33 -0800
+Message-ID: <201101262032.p0QKWXwD003193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751728Ab1AZTJG (ORCPT
+	by vger.kernel.org with ESMTP id S1754052Ab1AZUcr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:09:06 -0500
+	Wed, 26 Jan 2011 15:32:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, davidel@xmailserver.org, shawn.bohrer@gmail.com
+To: lasaine@lvk.cs.msu.su, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix
-has been added to the -mm tree.  Its filename is
-     epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+     pps: claim parallel port exclusively
+has been removed from the -mm tree.  Its filename was
+     pps-claim-parallel-port-exclusively.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: pps: claim parallel port exclusively
+From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-The non-blocking ep_poll path optimization introduced skipping over the
-return value setup.
+Both pps_parport and pps_gen_parport are written in a way that they can't
+share a port with any other driver.  This can result in locking up the
+process that loads modules or even the whole kernel if the modules are
+compiled in.  Use PARPORT_FLAG_EXCL to indicate this.
 
-Initialize it properly, my userspace gets upset by epoll_wait() returning
-random things.
-
-In addition, remove the reinitialization at the fetch_events label, the
-return value is garuanteed to be zero when execution reaches there.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pps/clients/pps_parport.c        |    2 +-
+ drivers/pps/generators/pps_gen_parport.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix
-+++ a/fs/eventpoll.c
-@@ -1147,7 +1147,7 @@ static int ep_send_events(struct eventpo
- static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
- 		   int maxevents, long timeout)
- {
--	int res, eavail, timed_out = 0;
-+	int res = 0, eavail, timed_out = 0;
- 	unsigned long flags;
- 	long slack = 0;
- 	wait_queue_t wait;
-@@ -1173,7 +1173,6 @@ static int ep_poll(struct eventpoll *ep,
- fetch_events:
- 	spin_lock_irqsave(&ep->lock, flags);
+diff -puN drivers/pps/clients/pps_parport.c~pps-claim-parallel-port-exclusively drivers/pps/clients/pps_parport.c
+--- a/drivers/pps/clients/pps_parport.c~pps-claim-parallel-port-exclusively
++++ a/drivers/pps/clients/pps_parport.c
+@@ -163,7 +163,7 @@ static void parport_attach(struct parpor
+ 	}
  
--	res = 0;
- 	if (!ep_events_available(ep)) {
- 		/*
- 		 * We don't have any available event to return to the caller.
+ 	device->pardev = parport_register_device(port, KBUILD_MODNAME,
+-			NULL, NULL, parport_irq, 0, device);
++			NULL, NULL, parport_irq, PARPORT_FLAG_EXCL, device);
+ 	if (!device->pardev) {
+ 		pr_err("couldn't register with %s\n", port->name);
+ 		goto err_free;
+diff -puN drivers/pps/generators/pps_gen_parport.c~pps-claim-parallel-port-exclusively drivers/pps/generators/pps_gen_parport.c
+--- a/drivers/pps/generators/pps_gen_parport.c~pps-claim-parallel-port-exclusively
++++ a/drivers/pps/generators/pps_gen_parport.c
+@@ -198,7 +198,7 @@ static void parport_attach(struct parpor
+ 	}
+ 
+ 	device.pardev = parport_register_device(port, KBUILD_MODNAME,
+-			NULL, NULL, NULL, 0, &device);
++			NULL, NULL, NULL, PARPORT_FLAG_EXCL, &device);
+ 	if (!device.pardev) {
+ 		pr_err("couldn't register with %s\n", port->name);
+ 		return;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
 
-mm-fix-deferred-congestion-timeout-if-preferred-zone-is-not-allowed.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator.patch
-memcg-fix-account-leak-at-failure-of-memsw-acconting.patch
-memcg-bugfix-check-mem_cgroup_disabled-at-split-fixup.patch
-memcg-fix-race-at-move_parent-around-compound_order.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+origin.patch
 
