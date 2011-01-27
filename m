@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch added to -mm tree
-Date: Thu, 27 Jan 2011 15:01:20 -0800
-Message-ID: <201101272301.p0RN1KGV004936@imap1.linux-foundation.org>
+Subject: + memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch added to -mm tree
+Date: Thu, 27 Jan 2011 15:15:42 -0800
+Message-ID: <201101272315.p0RNFg63005520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753802Ab1A0XBZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753750Ab1A0XPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 18:01:25 -0500
+	Thu, 27 Jan 2011 18:15:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memsw: deprecate noswapaccount kernel parameter and schedule it for removal
+     memcg: fix ugly initialization of return value is in caller
 has been added to the -mm tree.  Its filename is
-     memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
+     memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memsw: deprecate noswapaccount kernel parameter and schedule it for removal
-From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: fix ugly initialization of return value is in caller
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-noswapaccount couldn't be used to control memsw for both on/off cases so
-we have added swapaccount[=0|1] parameter.  This way we can turn the
-feature in two ways noswapaccount resp.  swapaccount=0.  We have kept the
-original noswapaccount but I think we should remove it after some time as
-it just makes more command line parameters without any advantages and also
-the code to handle parameters is uglier if we want both parameters.
+Remove initialization of vaiable in caller of memory cgroup function. 
+Actually, it's return value of memcg function but it's initialized in
+caller.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Requested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Some memory cgroup uses following style to bring the result of start
+function to the end function for avoiding races.
+
+   mem_cgroup_start_A(&(*ptr))
+   /* Something very complicated can happen here. */
+   mem_cgroup_end_A(*ptr)
+
+In some calls, *ptr should be initialized to NULL be caller.  But it's
+ugly.  This patch fixes that *ptr is initialized by _start function.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   16 ++++++++++++++++
- mm/memcontrol.c                            |    1 +
- 2 files changed, 17 insertions(+)
+ mm/memcontrol.c |    8 ++++++--
+ mm/memory.c     |    2 +-
+ mm/migrate.c    |    2 +-
+ mm/swapfile.c   |    2 +-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -603,3 +603,19 @@ Why:	The adm9240, w83792d and w83793 har
- Who:	Jean Delvare <khali@linux-fr.org>
- 
- ----------------------------
-+
-+What:	noswapaccount kernel command line parameter
-+When:	2.6.40
-+Why:	The original implementation of memsw feature enabled by
-+	CONFIG_CGROUP_MEM_RES_CTLR_SWAP could be disabled by the noswapaccount
-+	kernel parameter (introduced in 2.6.29-rc1). Later on, this decision
-+	turned out to be not ideal because we cannot have the feature compiled
-+	in and disabled by default and let only interested to enable it
-+	(e.g. general distribution kernels might need it). Therefore we have
-+	added swapaccount[=0|1] parameter (introduced in 2.6.37) which provides
-+	the both possibilities. If we remove noswapaccount we will have
-+	less command line parameters with the same functionality and we
-+	can also cleanup the parameter handling a bit ().
-+Who:	Michal Hocko <mhocko@suse.cz>
-+
-+----------------------------
-diff -puN mm/memcontrol.c~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal mm/memcontrol.c
---- a/mm/memcontrol.c~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal
+diff -puN mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
 +++ a/mm/memcontrol.c
-@@ -5034,6 +5034,7 @@ __setup("swapaccount", enable_swap_accou
+@@ -2413,7 +2413,7 @@ int mem_cgroup_cache_charge(struct page 
  
- static int __init disable_swap_account(char *s)
+ 	/* shmem */
+ 	if (PageSwapCache(page)) {
+-		struct mem_cgroup *mem = NULL;
++		struct mem_cgroup *mem;
+ 
+ 		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
+ 		if (!ret)
+@@ -2439,6 +2439,8 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	struct mem_cgroup *mem;
+ 	int ret;
+ 
++	*ptr = NULL;
++
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+ 
+@@ -2854,6 +2856,8 @@ int mem_cgroup_prepare_migration(struct 
+ 	enum charge_type ctype;
+ 	int ret = 0;
+ 
++	*ptr = NULL;
++
+ 	VM_BUG_ON(PageTransHuge(page));
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+@@ -2996,7 +3000,7 @@ int mem_cgroup_shmem_charge_fallback(str
+ 			    struct mm_struct *mm,
+ 			    gfp_t gfp_mask)
  {
-+	printk_once("noswapaccount is deprecated and will be removed in 2.6.40. Use swapaccount=0 instead\n");
- 	enable_swap_account("=0");
- 	return 1;
- }
+-	struct mem_cgroup *mem = NULL;
++	struct mem_cgroup *mem;
+ 	int ret;
+ 
+ 	if (mem_cgroup_disabled())
+diff -puN mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memory.c
+--- a/mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/memory.c
+@@ -2707,7 +2707,7 @@ static int do_swap_page(struct mm_struct
+ 	swp_entry_t entry;
+ 	pte_t pte;
+ 	int locked;
+-	struct mem_cgroup *ptr = NULL;
++	struct mem_cgroup *ptr;
+ 	int exclusive = 0;
+ 	int ret = 0;
+ 
+diff -puN mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/migrate.c
+@@ -623,7 +623,7 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int remap_swapcache = 1;
+ 	int charge = 0;
+-	struct mem_cgroup *mem = NULL;
++	struct mem_cgroup *mem;
+ 	struct anon_vma *anon_vma = NULL;
+ 
+ 	if (!newpage)
+diff -puN mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/swapfile.c
+--- a/mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/swapfile.c
+@@ -880,7 +880,7 @@ unsigned int count_swap_pages(int type, 
+ static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
+ {
+-	struct mem_cgroup *ptr = NULL;
++	struct mem_cgroup *ptr;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+ 	int ret = 1;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+origin.patch
 memsw-handle-swapaccount-kernel-parameter-correctly.patch
 memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 
