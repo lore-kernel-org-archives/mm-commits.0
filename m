@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch added to -mm tree
-Date: Thu, 27 Jan 2011 15:17:37 -0800
-Message-ID: <201101272317.p0RNHbPB005560@imap1.linux-foundation.org>
+Subject: + memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch added to -mm tree
+Date: Thu, 27 Jan 2011 15:20:32 -0800
+Message-ID: <201101272320.p0RNKWwJ005730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751734Ab1A0XRr (ORCPT
+	by vger.kernel.org with ESMTP id S1753750Ab1A0XUs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 18:17:47 -0500
+	Thu, 27 Jan 2011 18:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kees.cook@canonical.com, drosenberg@vsecurity.com, joe@perches.com, rusty@rustcorp.com.au
+Cc: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, rientjes@google.com
 
 
 The patch titled
-     printk: use %pK for /proc/kallsyms and /proc/modules
+     memcg: res_counter_read_u64(): fix potential races on 32-bit machines
 has been added to the -mm tree.  Its filename is
-     printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
+     memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: use %pK for /proc/kallsyms and /proc/modules
-From: Kees Cook <kees.cook@canonical.com>
+Subject: memcg: res_counter_read_u64(): fix potential races on 32-bit machines
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In an effort to reduce kernel address leaks that might be used to help
-target kernel privilege escalation exploits, this patch uses %pK when
-displaying addresses in /proc/kallsyms, /proc/modules, and
-/sys/module/*/sections/*.
+res_counter_read_u64 reads u64 value without lock.  It's dangerous in a
+32bit environment.  Add locking.
 
-Note that this changes %x to %p, so some legitimately 0 values in
-/proc/kallsyms would have changed from 00000000 to "(null)".  To avoid
-this, "(null)" is not used when using the "K" format.  Anything that was
-already successfully parsing "(null)" in addition to full hex digits
-should have no problem with this change.  (Thanks to Joe Perches for the
-suggestion.)
-
-Signed-off-by: Kees Cook <kees.cook@canonical.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    6 ++----
- kernel/module.c   |    4 ++--
- lib/vsprintf.c    |    2 +-
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ kernel/res_counter.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/kallsyms.c
---- a/kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
-+++ a/kernel/kallsyms.c
-@@ -477,12 +477,10 @@ static int s_show(struct seq_file *m, vo
- 		 */
- 		type = iter->exported ? toupper(iter->type) :
- 					tolower(iter->type);
--		seq_printf(m, "%0*lx %c %s\t[%s]\n",
--			   (int)(2 * sizeof(void *)),
-+		seq_printf(m, "%pK %c %s\t[%s]\n",
- 			   iter->value, type, iter->name, iter->module_name);
- 	} else
--		seq_printf(m, "%0*lx %c %s\n",
--			   (int)(2 * sizeof(void *)),
-+		seq_printf(m, "%pK %c %s\n",
- 			   iter->value, iter->type, iter->name);
- 	return 0;
- }
-diff -puN kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/module.c
---- a/kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
-+++ a/kernel/module.c
-@@ -1168,7 +1168,7 @@ static ssize_t module_sect_show(struct m
- {
- 	struct module_sect_attr *sattr =
- 		container_of(mattr, struct module_sect_attr, mattr);
--	return sprintf(buf, "0x%lx\n", sattr->address);
-+	return sprintf(buf, "0x%pK\n", sattr->address);
+diff -puN kernel/res_counter.c~memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines kernel/res_counter.c
+--- a/kernel/res_counter.c~memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines
++++ a/kernel/res_counter.c
+@@ -126,10 +126,24 @@ ssize_t res_counter_read(struct res_coun
+ 			pos, buf, s - buf);
  }
  
- static void free_sect_attrs(struct module_sect_attrs *sect_attrs)
-@@ -3224,7 +3224,7 @@ static int m_show(struct seq_file *m, vo
- 		   mod->state == MODULE_STATE_COMING ? "Loading":
- 		   "Live");
- 	/* Used by oprofile and other similar tools. */
--	seq_printf(m, " 0x%p", mod->module_core);
-+	seq_printf(m, " 0x%pK", mod->module_core);
- 
- 	/* Taints info */
- 	if (mod->taints)
-diff -puN lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules lib/vsprintf.c
---- a/lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
-+++ a/lib/vsprintf.c
-@@ -991,7 +991,7 @@ static noinline_for_stack
- char *pointer(const char *fmt, char *buf, char *end, void *ptr,
- 	      struct printf_spec spec)
++#if BITS_PER_LONG == 32
++u64 res_counter_read_u64(struct res_counter *counter, int member)
++{
++	unsigned long flags;
++	u64 ret;
++
++	spin_lock_irqsave(&counter->lock, flags);
++	ret = *res_counter_member(counter, member);
++	spin_unlock_irqrestore(&counter->lock, flags);
++
++	return ret;
++}
++#else
+ u64 res_counter_read_u64(struct res_counter *counter, int member)
  {
--	if (!ptr) {
-+	if (!ptr && *fmt != 'K') {
- 		/*
- 		 * Print (null) with the same width as a pointer so it makes
- 		 * tabular output look nice.
+ 	return *res_counter_member(counter, member);
+ }
++#endif
+ 
+ int res_counter_memparse_write_strategy(const char *buf,
+ 					unsigned long long *res)
 _
 
-Patches currently in -mm which might be from kees.cook@canonical.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-net-convert-%p-usage-to-%pk.patch
-printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
+memsw-handle-swapaccount-kernel-parameter-correctly.patch
+memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 
