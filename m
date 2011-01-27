@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch added to -mm tree
-Date: Thu, 27 Jan 2011 15:15:42 -0800
-Message-ID: <201101272315.p0RNFg63005520@imap1.linux-foundation.org>
+Subject: + printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch added to -mm tree
+Date: Thu, 27 Jan 2011 15:17:37 -0800
+Message-ID: <201101272317.p0RNHbPB005560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753750Ab1A0XPv (ORCPT
+	by vger.kernel.org with ESMTP id S1751734Ab1A0XRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 18:15:51 -0500
+	Thu, 27 Jan 2011 18:17:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp
+Cc: kees.cook@canonical.com, drosenberg@vsecurity.com, joe@perches.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     memcg: fix ugly initialization of return value is in caller
+     printk: use %pK for /proc/kallsyms and /proc/modules
 has been added to the -mm tree.  Its filename is
-     memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+     printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix ugly initialization of return value is in caller
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: printk: use %pK for /proc/kallsyms and /proc/modules
+From: Kees Cook <kees.cook@canonical.com>
 
-Remove initialization of vaiable in caller of memory cgroup function. 
-Actually, it's return value of memcg function but it's initialized in
-caller.
+In an effort to reduce kernel address leaks that might be used to help
+target kernel privilege escalation exploits, this patch uses %pK when
+displaying addresses in /proc/kallsyms, /proc/modules, and
+/sys/module/*/sections/*.
 
-Some memory cgroup uses following style to bring the result of start
-function to the end function for avoiding races.
+Note that this changes %x to %p, so some legitimately 0 values in
+/proc/kallsyms would have changed from 00000000 to "(null)".  To avoid
+this, "(null)" is not used when using the "K" format.  Anything that was
+already successfully parsing "(null)" in addition to full hex digits
+should have no problem with this change.  (Thanks to Joe Perches for the
+suggestion.)
 
-   mem_cgroup_start_A(&(*ptr))
-   /* Something very complicated can happen here. */
-   mem_cgroup_end_A(*ptr)
-
-In some calls, *ptr should be initialized to NULL be caller.  But it's
-ugly.  This patch fixes that *ptr is initialized by _start function.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++--
- mm/memory.c     |    2 +-
- mm/migrate.c    |    2 +-
- mm/swapfile.c   |    2 +-
- 4 files changed, 9 insertions(+), 5 deletions(-)
+ kernel/kallsyms.c |    6 ++----
+ kernel/module.c   |    4 ++--
+ lib/vsprintf.c    |    2 +-
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
-+++ a/mm/memcontrol.c
-@@ -2413,7 +2413,7 @@ int mem_cgroup_cache_charge(struct page 
- 
- 	/* shmem */
- 	if (PageSwapCache(page)) {
--		struct mem_cgroup *mem = NULL;
-+		struct mem_cgroup *mem;
- 
- 		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
- 		if (!ret)
-@@ -2439,6 +2439,8 @@ int mem_cgroup_try_charge_swapin(struct 
- 	struct mem_cgroup *mem;
- 	int ret;
- 
-+	*ptr = NULL;
-+
- 	if (mem_cgroup_disabled())
- 		return 0;
- 
-@@ -2854,6 +2856,8 @@ int mem_cgroup_prepare_migration(struct 
- 	enum charge_type ctype;
- 	int ret = 0;
- 
-+	*ptr = NULL;
-+
- 	VM_BUG_ON(PageTransHuge(page));
- 	if (mem_cgroup_disabled())
- 		return 0;
-@@ -2996,7 +3000,7 @@ int mem_cgroup_shmem_charge_fallback(str
- 			    struct mm_struct *mm,
- 			    gfp_t gfp_mask)
+diff -puN kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/kallsyms.c
+--- a/kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/kallsyms.c
+@@ -477,12 +477,10 @@ static int s_show(struct seq_file *m, vo
+ 		 */
+ 		type = iter->exported ? toupper(iter->type) :
+ 					tolower(iter->type);
+-		seq_printf(m, "%0*lx %c %s\t[%s]\n",
+-			   (int)(2 * sizeof(void *)),
++		seq_printf(m, "%pK %c %s\t[%s]\n",
+ 			   iter->value, type, iter->name, iter->module_name);
+ 	} else
+-		seq_printf(m, "%0*lx %c %s\n",
+-			   (int)(2 * sizeof(void *)),
++		seq_printf(m, "%pK %c %s\n",
+ 			   iter->value, iter->type, iter->name);
+ 	return 0;
+ }
+diff -puN kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/module.c
+--- a/kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/module.c
+@@ -1168,7 +1168,7 @@ static ssize_t module_sect_show(struct m
  {
--	struct mem_cgroup *mem = NULL;
-+	struct mem_cgroup *mem;
- 	int ret;
+ 	struct module_sect_attr *sattr =
+ 		container_of(mattr, struct module_sect_attr, mattr);
+-	return sprintf(buf, "0x%lx\n", sattr->address);
++	return sprintf(buf, "0x%pK\n", sattr->address);
+ }
  
- 	if (mem_cgroup_disabled())
-diff -puN mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memory.c
---- a/mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
-+++ a/mm/memory.c
-@@ -2707,7 +2707,7 @@ static int do_swap_page(struct mm_struct
- 	swp_entry_t entry;
- 	pte_t pte;
- 	int locked;
--	struct mem_cgroup *ptr = NULL;
-+	struct mem_cgroup *ptr;
- 	int exclusive = 0;
- 	int ret = 0;
+ static void free_sect_attrs(struct module_sect_attrs *sect_attrs)
+@@ -3224,7 +3224,7 @@ static int m_show(struct seq_file *m, vo
+ 		   mod->state == MODULE_STATE_COMING ? "Loading":
+ 		   "Live");
+ 	/* Used by oprofile and other similar tools. */
+-	seq_printf(m, " 0x%p", mod->module_core);
++	seq_printf(m, " 0x%pK", mod->module_core);
  
-diff -puN mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/migrate.c
---- a/mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
-+++ a/mm/migrate.c
-@@ -623,7 +623,7 @@ static int unmap_and_move(new_page_t get
- 	struct page *newpage = get_new_page(page, private, &result);
- 	int remap_swapcache = 1;
- 	int charge = 0;
--	struct mem_cgroup *mem = NULL;
-+	struct mem_cgroup *mem;
- 	struct anon_vma *anon_vma = NULL;
- 
- 	if (!newpage)
-diff -puN mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/swapfile.c
---- a/mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
-+++ a/mm/swapfile.c
-@@ -880,7 +880,7 @@ unsigned int count_swap_pages(int type, 
- static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
+ 	/* Taints info */
+ 	if (mod->taints)
+diff -puN lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules lib/vsprintf.c
+--- a/lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/lib/vsprintf.c
+@@ -991,7 +991,7 @@ static noinline_for_stack
+ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+ 	      struct printf_spec spec)
  {
--	struct mem_cgroup *ptr = NULL;
-+	struct mem_cgroup *ptr;
- 	spinlock_t *ptl;
- 	pte_t *pte;
- 	int ret = 1;
+-	if (!ptr) {
++	if (!ptr && *fmt != 'K') {
+ 		/*
+ 		 * Print (null) with the same width as a pointer so it makes
+ 		 * tabular output look nice.
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kees.cook@canonical.com are
 
 origin.patch
-memsw-handle-swapaccount-kernel-parameter-correctly.patch
-memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
-oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
-mm-add-replace_page_cache_page-function.patch
-memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+net-convert-%p-usage-to-%pk.patch
+printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
 
