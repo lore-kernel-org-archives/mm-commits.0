@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-add-msm-smd_tty-driver.patch added to -mm tree
-Date: Wed, 26 Jan 2011 15:32:48 -0800
-Message-ID: <201101262332.p0QNWmYV011194@imap1.linux-foundation.org>
+Subject: + crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch added to -mm tree
+Date: Wed, 26 Jan 2011 16:04:36 -0800
+Message-ID: <201101270004.p0R04aqc012596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754427Ab1AZXlA (ORCPT
+	by vger.kernel.org with ESMTP id S1754412Ab1A0AFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 18:41:00 -0500
+	Wed, 26 Jan 2011 19:05:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nvishwan@codeaurora.org, alan@lxorguk.ukuu.org.uk, davidb@codeaurora.org, gregkh@suse.de, swetland@google.com
+Cc: olaf@aepfle.de, benh@kernel.crashing.org, hannes@cmpxchg.org, hpa@zytor.com, lethal@linux-sh.org, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     drivers/char: add MSM smd_tty driver
+     crash_dump: export is_kdump_kernel to modules, consolidate elfcorehdr_addr, setup_elfcorehdr and saved_max_pfn
 has been added to the -mm tree.  Its filename is
-     drivers-char-add-msm-smd_tty-driver.patch
+     crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,285 +34,360 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char: add MSM smd_tty driver
-From: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
+Subject: crash_dump: export is_kdump_kernel to modules, consolidate elfcorehdr_addr, setup_elfcorehdr and saved_max_pfn
+From: Olaf Hering <olaf@aepfle.de>
 
-Add smd_tty driver which provides tty device interface to 'DS' and
-'GPSNMEA' streaming SMD ports.
+The Xen PV drivers in a crashed HVM guest can not connect to the dom0
+backend drivers because both frontend and backend drivers are still in
+connected state.  To run the connection reset function only in case of a
+crashdump, the is_kdump_kernel() function needs to be available for the PV
+driver modules.
 
-Signed-off-by: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
-Cc: Brian Swetland <swetland@google.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Brown <davidb@codeaurora.org>
+Consolidate elfcorehdr_addr, setup_elfcorehdr and saved_max_pfn into
+kernel/crash_dump.c Also export elfcorehdr_addr to make is_kdump_kernel()
+usable for modules.
+
+Leave 'elfcorehdr' as early_param().  This changes powerpc from __setup()
+to early_param().  It adds an address range check from x86 also on ia64
+and powerpc.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig       |    8 +
- drivers/char/Makefile      |    2 
- drivers/char/msm_smd_tty.c |  226 +++++++++++++++++++++++++++++++++++
- 3 files changed, 236 insertions(+)
+ arch/arm/kernel/crash_dump.c     |    3 --
+ arch/arm/kernel/setup.c          |   24 ---------------------
+ arch/ia64/kernel/crash_dump.c    |    3 --
+ arch/ia64/kernel/efi.c           |    1 
+ arch/ia64/kernel/setup.c         |   18 ---------------
+ arch/powerpc/kernel/crash_dump.c |   17 --------------
+ arch/sh/kernel/crash_dump.c      |   22 -------------------
+ arch/x86/kernel/crash_dump_32.c  |    3 --
+ arch/x86/kernel/crash_dump_64.c  |    3 --
+ arch/x86/kernel/e820.c           |    1 
+ arch/x86/kernel/setup.c          |   22 -------------------
+ include/linux/bootmem.h          |    4 ---
+ kernel/Makefile                  |    1 
+ kernel/crash_dump.c              |   33 +++++++++++++++++++++++++++++
+ mm/bootmem.c                     |    8 -------
+ 15 files changed, 36 insertions(+), 127 deletions(-)
 
-diff -puN drivers/char/Kconfig~drivers-char-add-msm-smd_tty-driver drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-add-msm-smd_tty-driver
-+++ a/drivers/char/Kconfig
-@@ -1144,5 +1144,13 @@ config RAMOOPS
- 	  This enables panic and oops messages to be logged to a circular
- 	  buffer in RAM where it can be read back at some later point.
+diff -puN arch/arm/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/arm/kernel/crash_dump.c
+--- a/arch/arm/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/arm/kernel/crash_dump.c
+@@ -18,9 +18,6 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
  
-+config MSM_SMD_TTY
-+	bool "Enable tty device interface for some SMD ports"
-+	default n
-+	depends on MSM_SMD
-+	help
-+	  Enables userspace clients to read and write to some streaming SMD
-+	  ports via tty device interface for MSM chipset.
-+
- endmenu
+-/* stores the physical address of elf header of crash image */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ /**
+  * copy_oldmem_page() - copy one page from old kernel memory
+  * @pfn: page frame number to be copied
+diff -puN arch/arm/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/arm/kernel/setup.c
+@@ -802,30 +802,6 @@ static void __init reserve_crashkernel(v
+ static inline void reserve_crashkernel(void) {}
+ #endif /* CONFIG_KEXEC */
  
-diff -puN drivers/char/Makefile~drivers-char-add-msm-smd_tty-driver drivers/char/Makefile
---- a/drivers/char/Makefile~drivers-char-add-msm-smd_tty-driver
-+++ a/drivers/char/Makefile
-@@ -85,3 +85,5 @@ obj-$(CONFIG_RAMOOPS)		+= ramoops.o
+-/*
+- * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
+- * is_kdump_kernel() to determine if we are booting after a panic. Hence
+- * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
+- */
+-
+-#ifdef CONFIG_CRASH_DUMP
+-/*
+- * elfcorehdr= specifies the location of elf core header stored by the crashed
+- * kernel. This option will be passed by kexec loader to the capture kernel.
+- */
+-static int __init setup_elfcorehdr(char *arg)
+-{
+-	char *end;
+-
+-	if (!arg)
+-		return -EINVAL;
+-
+-	elfcorehdr_addr = memparse(arg, &end);
+-	return end > arg ? 0 : -EINVAL;
+-}
+-early_param("elfcorehdr", setup_elfcorehdr);
+-#endif /* CONFIG_CRASH_DUMP */
+-
+ static void __init squash_mem_tags(struct tag *tag)
+ {
+ 	for (; tag->hdr.size; tag = tag_next(tag))
+diff -puN arch/ia64/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/ia64/kernel/crash_dump.c
+--- a/arch/ia64/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/ia64/kernel/crash_dump.c
+@@ -13,9 +13,6 @@
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
  
- obj-$(CONFIG_JS_RTC)		+= js-rtc.o
- js-rtc-y = rtc.o
-+
-+obj-$(CONFIG_MSM_SMD_TTY)	+= msm_smd_tty.o
-diff -puN /dev/null drivers/char/msm_smd_tty.c
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/ia64/kernel/efi.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/ia64/kernel/efi.c
+@@ -23,6 +23,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/bootmem.h>
++#include <linux/crash_dump.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+diff -puN arch/ia64/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/ia64/kernel/setup.c
+@@ -479,25 +479,7 @@ static __init int setup_nomca(char *s)
+ }
+ early_param("nomca", setup_nomca);
+ 
+-/*
+- * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
+- * is_kdump_kernel() to determine if we are booting after a panic. Hence
+- * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
+- */
+ #ifdef CONFIG_CRASH_DUMP
+-/* elfcorehdr= specifies the location of elf core header
+- * stored by the crashed kernel.
+- */
+-static int __init parse_elfcorehdr(char *arg)
+-{
+-	if (!arg)
+-		return -EINVAL;
+-
+-        elfcorehdr_addr = memparse(arg, &arg);
+-	return 0;
+-}
+-early_param("elfcorehdr", parse_elfcorehdr);
+-
+ int __init reserve_elfcorehdr(u64 *start, u64 *end)
+ {
+ 	u64 length;
+diff -puN arch/powerpc/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/powerpc/kernel/crash_dump.c
+--- a/arch/powerpc/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/powerpc/kernel/crash_dump.c
+@@ -28,9 +28,6 @@
+ #define DBG(fmt...)
+ #endif
+ 
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ #ifndef CONFIG_RELOCATABLE
+ void __init reserve_kdump_trampoline(void)
+ {
+@@ -72,20 +69,6 @@ void __init setup_kdump_trampoline(void)
+ }
+ #endif /* CONFIG_RELOCATABLE */
+ 
+-/*
+- * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
+- * is_kdump_kernel() to determine if we are booting after a panic. Hence
+- * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
+- */
+-static int __init parse_elfcorehdr(char *p)
+-{
+-	if (p)
+-		elfcorehdr_addr = memparse(p, &p);
+-
+-	return 1;
+-}
+-__setup("elfcorehdr=", parse_elfcorehdr);
+-
+ static int __init parse_savemaxmem(char *p)
+ {
+ 	if (p)
+diff -puN arch/sh/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/sh/kernel/crash_dump.c
+--- a/arch/sh/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/sh/kernel/crash_dump.c
+@@ -9,28 +9,6 @@
+ #include <linux/io.h>
+ #include <asm/uaccess.h>
+ 
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+-/*
+- * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
+- * is_kdump_kernel() to determine if we are booting after a panic. Hence
+- * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
+- *
+- * elfcorehdr= specifies the location of elf core header
+- * stored by the crashed kernel.
+- */
+-static int __init parse_elfcorehdr(char *arg)
+-{
+-	if (!arg)
+-		return -EINVAL;
+-
+-	elfcorehdr_addr = memparse(arg, &arg);
+-
+-	return 0;
+-}
+-early_param("elfcorehdr", parse_elfcorehdr);
+-
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/x86/kernel/crash_dump_32.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/x86/kernel/crash_dump_32.c
+--- a/arch/x86/kernel/crash_dump_32.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/x86/kernel/crash_dump_32.c
+@@ -14,9 +14,6 @@
+ 
+ static void *kdump_buf_page;
+ 
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ static inline bool is_crashed_pfn_valid(unsigned long pfn)
+ {
+ #ifndef CONFIG_X86_PAE
+diff -puN arch/x86/kernel/crash_dump_64.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/x86/kernel/crash_dump_64.c
+--- a/arch/x86/kernel/crash_dump_64.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/x86/kernel/crash_dump_64.c
+@@ -10,9 +10,6 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ 
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/x86/kernel/e820.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/x86/kernel/e820.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/init.h>
++#include <linux/crash_dump.h>
+ #include <linux/bootmem.h>
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
+diff -puN arch/x86/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/arch/x86/kernel/setup.c
+@@ -601,28 +601,6 @@ void __init reserve_standard_io_resource
+ 
+ }
+ 
+-/*
+- * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
+- * is_kdump_kernel() to determine if we are booting after a panic. Hence
+- * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
+- */
+-
+-#ifdef CONFIG_CRASH_DUMP
+-/* elfcorehdr= specifies the location of elf core header
+- * stored by the crashed kernel. This option will be passed
+- * by kexec loader to the capture kernel.
+- */
+-static int __init setup_elfcorehdr(char *arg)
+-{
+-	char *end;
+-	if (!arg)
+-		return -EINVAL;
+-	elfcorehdr_addr = memparse(arg, &end);
+-	return end > arg ? 0 : -EINVAL;
+-}
+-early_param("elfcorehdr", setup_elfcorehdr);
+-#endif
+-
+ static __init void reserve_ibft_region(void)
+ {
+ 	unsigned long addr, size = 0;
+diff -puN include/linux/bootmem.h~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn include/linux/bootmem.h
+--- a/include/linux/bootmem.h~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/include/linux/bootmem.h
+@@ -19,10 +19,6 @@ extern unsigned long min_low_pfn;
+  */
+ extern unsigned long max_pfn;
+ 
+-#ifdef CONFIG_CRASH_DUMP
+-extern unsigned long saved_max_pfn;
+-#endif
+-
+ #ifndef CONFIG_NO_BOOTMEM
+ /*
+  * node_bootmem_map is a map pointer - the bits represent all physical 
+diff -puN kernel/Makefile~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn kernel/Makefile
+--- a/kernel/Makefile~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/kernel/Makefile
+@@ -107,6 +107,7 @@ obj-$(CONFIG_PERF_EVENTS) += perf_event.
+ obj-$(CONFIG_HAVE_HW_BREAKPOINT) += hw_breakpoint.o
+ obj-$(CONFIG_USER_RETURN_NOTIFIER) += user-return-notifier.o
+ obj-$(CONFIG_PADATA) += padata.o
++obj-$(CONFIG_CRASH_DUMP) += crash_dump.o
+ 
+ ifneq ($(CONFIG_SCHED_OMIT_FRAME_POINTER),y)
+ # According to Alan Modra <alan@linuxcare.com.au>, the -fno-omit-frame-pointer is
+diff -puN /dev/null kernel/crash_dump.c
 --- /dev/null
-+++ a/drivers/char/msm_smd_tty.c
-@@ -0,0 +1,226 @@
-+/* arch/arm/mach-msm/smd_tty.c
-+ *
-+ * Copyright (C) 2007 Google, Inc.
-+ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
-+ * Author: Brian Swetland <swetland@google.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
++++ a/kernel/crash_dump.c
+@@ -0,0 +1,33 @@
++#include <linux/crash_dump.h>
++#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/cdev.h>
-+#include <linux/device.h>
-+#include <linux/wait.h>
 +
-+#include <linux/tty.h>
-+#include <linux/tty_driver.h>
-+#include <linux/tty_flip.h>
++/*
++ * If we have booted due to a crash, max_pfn will be a very low value. We need
++ * to know the amount of memory that the previous kernel used.
++ */
++unsigned long saved_max_pfn;
 +
-+#include <mach/msm_smd.h>
++/*
++ * stores the physical address of elf header of crash image
++ *
++ * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
++ * is_kdump_kernel() to determine if we are booting after a panic. Hence put
++ * it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
++ */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++EXPORT_SYMBOL_GPL(elfcorehdr_addr);
 +
-+#define MAX_SMD_TTYS 32
-+
-+static DEFINE_MUTEX(smd_tty_lock);
-+
-+struct smd_tty_info {
-+	smd_channel_t *ch;
-+	struct tty_struct *tty;
-+	int open_count;
-+};
-+
-+struct smd_tty_channel_desc {
-+	int id;
-+	const char *name;
-+};
-+
-+static struct smd_tty_info smd_tty[MAX_SMD_TTYS];
-+
-+static const struct smd_tty_channel_desc smd_default_tty_channels[] = {
-+	{ .id = 0, .name = "SMD_DS" },
-+	{ .id = 27, .name = "SMD_GPSNMEA" },
-+};
-+
-+static const struct smd_tty_channel_desc *smd_tty_channels =
-+		smd_default_tty_channels;
-+static int smd_tty_channels_len = ARRAY_SIZE(smd_default_tty_channels);
-+
-+static void smd_tty_notify(void *priv, unsigned event)
++/*
++ * elfcorehdr= specifies the location of elf core header stored by the crashed
++ * kernel. This option will be passed by kexec loader to the capture kernel.
++ */
++static int __init setup_elfcorehdr(char *arg)
 +{
-+	unsigned char *ptr;
-+	int avail;
-+	struct smd_tty_info *info = priv;
-+	struct tty_struct *tty = info->tty;
-+
-+	if (!tty)
-+		return;
-+
-+	if (event != SMD_EVENT_DATA)
-+		return;
-+
-+	for (;;) {
-+		if (test_bit(TTY_THROTTLED, &tty->flags))
-+			break;
-+		avail = smd_read_avail(info->ch);
-+		if (avail == 0)
-+			break;
-+
-+		avail = tty_prepare_flip_string(tty, &ptr, avail);
-+
-+		if (smd_read(info->ch, ptr, avail) != avail) {
-+			/* shouldn't be possible since we're in interrupt
-+			** context here and nobody else could 'steal' our
-+			** characters.
-+			*/
-+			printk(KERN_ERR "OOPS - smd_tty_buffer mismatch?!");
-+		}
-+
-+		tty_flip_buffer_push(tty);
-+	}
-+
-+	/* XXX only when writable and necessary */
-+	tty_wakeup(tty);
++	char *end;
++	if (!arg)
++		return -EINVAL;
++	elfcorehdr_addr = memparse(arg, &end);
++	return end > arg ? 0 : -EINVAL;
 +}
-+
-+static int smd_tty_open(struct tty_struct *tty, struct file *f)
-+{
-+	int res = 0;
-+	int n = tty->index;
-+	struct smd_tty_info *info;
-+	const char *name = NULL;
-+	int i;
-+
-+	for (i = 0; i < smd_tty_channels_len; i++) {
-+		if (smd_tty_channels[i].id == n) {
-+			name = smd_tty_channels[i].name;
-+			break;
-+		}
-+	}
-+	if (!name)
-+		return -ENODEV;
-+
-+	info = smd_tty + n;
-+
-+	mutex_lock(&smd_tty_lock);
-+	tty->driver_data = info;
-+
-+	if (info->open_count++ == 0) {
-+		info->tty = tty;
-+		if (info->ch)
-+			smd_kick(info->ch);
-+		else
-+			res = smd_open(name, &info->ch, info, smd_tty_notify);
-+	}
-+	mutex_unlock(&smd_tty_lock);
-+
-+	return res;
-+}
-+
-+static void smd_tty_close(struct tty_struct *tty, struct file *f)
-+{
-+	struct smd_tty_info *info = tty->driver_data;
-+
-+	if (info == 0)
-+		return;
-+
-+	mutex_lock(&smd_tty_lock);
-+	if (--info->open_count == 0) {
-+		info->tty = 0;
-+		tty->driver_data = 0;
-+		if (info->ch) {
-+			smd_close(info->ch);
-+			info->ch = 0;
-+		}
-+	}
-+	mutex_unlock(&smd_tty_lock);
-+}
-+
-+static int smd_tty_write(struct tty_struct *tty,
-+			 const unsigned char *buf, int len)
-+{
-+	struct smd_tty_info *info = tty->driver_data;
-+	int avail;
-+
-+	/* if we're writing to a packet channel we will
-+	** never be able to write more data than there
-+	** is currently space for
-+	*/
-+	avail = smd_write_avail(info->ch);
-+	if (len > avail)
-+		len = avail;
-+
-+	return smd_write(info->ch, buf, len);
-+}
-+
-+static int smd_tty_write_room(struct tty_struct *tty)
-+{
-+	struct smd_tty_info *info = tty->driver_data;
-+	return smd_write_avail(info->ch);
-+}
-+
-+static int smd_tty_chars_in_buffer(struct tty_struct *tty)
-+{
-+	struct smd_tty_info *info = tty->driver_data;
-+	return smd_read_avail(info->ch);
-+}
-+
-+static void smd_tty_unthrottle(struct tty_struct *tty)
-+{
-+	struct smd_tty_info *info = tty->driver_data;
-+	smd_kick(info->ch);
-+}
-+
-+static const struct tty_operations smd_tty_ops = {
-+	.open = smd_tty_open,
-+	.close = smd_tty_close,
-+	.write = smd_tty_write,
-+	.write_room = smd_tty_write_room,
-+	.chars_in_buffer = smd_tty_chars_in_buffer,
-+	.unthrottle = smd_tty_unthrottle,
-+};
-+
-+static struct tty_driver *smd_tty_driver;
-+
-+static int __init smd_tty_init(void)
-+{
-+	int ret, i;
-+
-+	smd_tty_driver = alloc_tty_driver(MAX_SMD_TTYS);
-+	if (smd_tty_driver == 0)
-+		return -ENOMEM;
-+
-+	smd_tty_driver->owner = THIS_MODULE;
-+	smd_tty_driver->driver_name = "smd_tty_driver";
-+	smd_tty_driver->name = "smd";
-+	smd_tty_driver->major = 0;
-+	smd_tty_driver->minor_start = 0;
-+	smd_tty_driver->type = TTY_DRIVER_TYPE_SERIAL;
-+	smd_tty_driver->subtype = SERIAL_TYPE_NORMAL;
-+	smd_tty_driver->init_termios = tty_std_termios;
-+	smd_tty_driver->init_termios.c_iflag = 0;
-+	smd_tty_driver->init_termios.c_oflag = 0;
-+	smd_tty_driver->init_termios.c_cflag = B38400 | CS8 | CREAD;
-+	smd_tty_driver->init_termios.c_lflag = 0;
-+	smd_tty_driver->flags = TTY_DRIVER_RESET_TERMIOS |
-+		TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-+	tty_set_operations(smd_tty_driver, &smd_tty_ops);
-+
-+	ret = tty_register_driver(smd_tty_driver);
-+	if (ret)
-+		return ret;
-+
-+	for (i = 0; i < smd_tty_channels_len; i++)
-+		tty_register_device(smd_tty_driver, smd_tty_channels[i].id, 0);
-+
-+	return 0;
-+}
-+
-+module_init(smd_tty_init);
-_
-
-Patches currently in -mm which might be from nvishwan@codeaurora.org are
-
-drivers-char-add-msm-smd_tty-driver.patch
-msm-smd-add-smd_pkt-driver.patch
-
++early_param("elfcorehdr", setup_elfcorehdr);
+diff -puN mm/bootmem.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn mm/bootmem.c
+--- a/mm/bootmem.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
++++ a/mm/bootmem.c
+@@ -27,14 +27,6 @@ unsigned long max_low_pfn;
+ unsigned long min_low_pfn;
+ unsigned long max_pfn;
+ 
+-#ifdef CONFIG_CRASH_DUMP
+-/*
+- * If we have booted due to a crash, max_pfn will be a very low value. We need
+- * to know the amount of memory that the previous kernel used.
+- */
+-unsigned long saved_max_pfn;
+-#endif
