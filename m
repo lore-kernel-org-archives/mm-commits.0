@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch added to -mm tree
-Date: Thu, 27 Jan 2011 14:48:46 -0800
-Message-ID: <201101272248.p0RMmkFm004317@imap1.linux-foundation.org>
+Subject: + memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch added to -mm tree
+Date: Thu, 27 Jan 2011 15:01:20 -0800
+Message-ID: <201101272301.p0RN1KGV004936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753834Ab1A0Wtx (ORCPT
+	by vger.kernel.org with ESMTP id S1753802Ab1A0XBZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 17:49:53 -0500
+	Thu, 27 Jan 2011 18:01:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, hannes@cmpxchg.org, hpa@zytor.com, lethal@linux-sh.org, mingo@elte.hu, olaf@aepfle.de, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com
+Cc: mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix
+     memsw: deprecate noswapaccount kernel parameter and schedule it for removal
 has been added to the -mm tree.  Its filename is
-     crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+     memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memsw: deprecate noswapaccount kernel parameter and schedule it for removal
+From: Michal Hocko <mhocko@suse.cz>
 
-additional #includes
+noswapaccount couldn't be used to control memsw for both on/off cases so
+we have added swapaccount[=0|1] parameter.  This way we can turn the
+feature in two ways noswapaccount resp.  swapaccount=0.  We have kept the
+original noswapaccount but I think we should remove it after some time as
+it just makes more command line parameters without any advantages and also
+the code to handle parameters is uglier if we want both parameters.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Requested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_dump.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/feature-removal-schedule.txt |   16 ++++++++++++++++
+ mm/memcontrol.c                            |    1 +
+ 2 files changed, 17 insertions(+)
 
-diff -puN kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix kernel/crash_dump.c
---- a/kernel/crash_dump.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix
-+++ a/kernel/crash_dump.c
-@@ -1,5 +1,7 @@
-+#include <linux/kernel.h>
- #include <linux/crash_dump.h>
- #include <linux/init.h>
-+#include <linux/errno.h>
- #include <linux/module.h>
+diff -puN Documentation/feature-removal-schedule.txt~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal
++++ a/Documentation/feature-removal-schedule.txt
+@@ -603,3 +603,19 @@ Why:	The adm9240, w83792d and w83793 har
+ Who:	Jean Delvare <khali@linux-fr.org>
  
- /*
+ ----------------------------
++
++What:	noswapaccount kernel command line parameter
++When:	2.6.40
++Why:	The original implementation of memsw feature enabled by
++	CONFIG_CGROUP_MEM_RES_CTLR_SWAP could be disabled by the noswapaccount
++	kernel parameter (introduced in 2.6.29-rc1). Later on, this decision
++	turned out to be not ideal because we cannot have the feature compiled
++	in and disabled by default and let only interested to enable it
++	(e.g. general distribution kernels might need it). Therefore we have
++	added swapaccount[=0|1] parameter (introduced in 2.6.37) which provides
++	the both possibilities. If we remove noswapaccount we will have
++	less command line parameters with the same functionality and we
++	can also cleanup the parameter handling a bit ().
++Who:	Michal Hocko <mhocko@suse.cz>
++
++----------------------------
+diff -puN mm/memcontrol.c~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal mm/memcontrol.c
+--- a/mm/memcontrol.c~memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal
++++ a/mm/memcontrol.c
+@@ -5034,6 +5034,7 @@ __setup("swapaccount", enable_swap_accou
+ 
+ static int __init disable_swap_account(char *s)
+ {
++	printk_once("noswapaccount is deprecated and will be removed in 2.6.40. Use swapaccount=0 instead\n");
+ 	enable_swap_account("=0");
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memsw-handle-swapaccount-kernel-parameter-correctly.patch
+memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
 
