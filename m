@@ -1,109 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update.patch removed from -mm tree
-Date: Wed, 26 Jan 2011 16:19:32 -0800
-Message-ID: <201101270019.p0R0JWbt013232@imap1.linux-foundation.org>
+Subject: [nacked] drivers-char-add-msm-smd_tty-driver.patch removed from -mm tree
+Date: Thu, 27 Jan 2011 12:52:07 -0800
+Message-ID: <201101272052.p0RKq7Gl031954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754459Ab1A0AUL (ORCPT
+	by vger.kernel.org with ESMTP id S1752877Ab1A0Uwy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Jan 2011 19:20:11 -0500
+	Thu, 27 Jan 2011 15:52:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: nvishwan@codeaurora.org, alan@lxorguk.ukuu.org.uk, davidb@codeaurora.org, gregkh@suse.de, swetland@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
+     drivers/char: add MSM smd_tty driver
 has been removed from the -mm tree.  Its filename was
-     mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update.patch
+     drivers-char-add-msm-smd_tty-driver.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: drivers/char: add MSM smd_tty driver
+From: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Add smd_tty driver which provides tty device interface to 'DS' and
+'GPSNMEA' streaming SMD ports.
+
+Signed-off-by: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
+Cc: Brian Swetland <swetland@google.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Brown <davidb@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ drivers/char/Kconfig       |    8 +
+ drivers/char/Makefile      |    2 
+ drivers/char/msm_smd_tty.c |  226 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 236 insertions(+)
 
-diff -puN mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update mm/migrate.c
---- a/mm/migrate.c~mm-when-migrate_pages-returns-0-all-pages-must-have-been-released-update
-+++ a/mm/migrate.c
-@@ -611,6 +611,14 @@ static int move_to_new_page(struct page 
- 	return rc;
- }
+diff -puN drivers/char/Kconfig~drivers-char-add-msm-smd_tty-driver drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-add-msm-smd_tty-driver
++++ a/drivers/char/Kconfig
+@@ -1144,5 +1144,13 @@ config RAMOOPS
+ 	  This enables panic and oops messages to be logged to a circular
+ 	  buffer in RAM where it can be read back at some later point.
  
-+static void unmap_and_move_release_page(struct page *page)
++config MSM_SMD_TTY
++	bool "Enable tty device interface for some SMD ports"
++	default n
++	depends on MSM_SMD
++	help
++	  Enables userspace clients to read and write to some streaming SMD
++	  ports via tty device interface for MSM chipset.
++
+ endmenu
+ 
+diff -puN drivers/char/Makefile~drivers-char-add-msm-smd_tty-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~drivers-char-add-msm-smd_tty-driver
++++ a/drivers/char/Makefile
+@@ -85,3 +85,5 @@ obj-$(CONFIG_RAMOOPS)		+= ramoops.o
+ 
+ obj-$(CONFIG_JS_RTC)		+= js-rtc.o
+ js-rtc-y = rtc.o
++
++obj-$(CONFIG_MSM_SMD_TTY)	+= msm_smd_tty.o
+diff -puN /dev/null drivers/char/msm_smd_tty.c
+--- /dev/null
++++ a/drivers/char/msm_smd_tty.c
+@@ -0,0 +1,226 @@
++/* arch/arm/mach-msm/smd_tty.c
++ *
++ * Copyright (C) 2007 Google, Inc.
++ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
++ * Author: Brian Swetland <swetland@google.com>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/fs.h>
++#include <linux/cdev.h>
++#include <linux/device.h>
++#include <linux/wait.h>
++
++#include <linux/tty.h>
++#include <linux/tty_driver.h>
++#include <linux/tty_flip.h>
++
++#include <mach/msm_smd.h>
++
++#define MAX_SMD_TTYS 32
++
++static DEFINE_MUTEX(smd_tty_lock);
++
++struct smd_tty_info {
++	smd_channel_t *ch;
++	struct tty_struct *tty;
++	int open_count;
++};
++
++struct smd_tty_channel_desc {
++	int id;
++	const char *name;
++};
++
++static struct smd_tty_info smd_tty[MAX_SMD_TTYS];
++
++static const struct smd_tty_channel_desc smd_default_tty_channels[] = {
++	{ .id = 0, .name = "SMD_DS" },
++	{ .id = 27, .name = "SMD_GPSNMEA" },
++};
++
++static const struct smd_tty_channel_desc *smd_tty_channels =
++		smd_default_tty_channels;
++static int smd_tty_channels_len = ARRAY_SIZE(smd_default_tty_channels);
++
++static void smd_tty_notify(void *priv, unsigned event)
 +{
-+	list_del(&page->lru);
-+	dec_zone_page_state(page, NR_ISOLATED_ANON +
-+			    page_is_file_cache(page));
-+	putback_lru_page(page);
++	unsigned char *ptr;
++	int avail;
++	struct smd_tty_info *info = priv;
++	struct tty_struct *tty = info->tty;
++
++	if (!tty)
++		return;
++
++	if (event != SMD_EVENT_DATA)
++		return;
++
++	for (;;) {
++		if (test_bit(TTY_THROTTLED, &tty->flags))
++			break;
++		avail = smd_read_avail(info->ch);
++		if (avail == 0)
++			break;
++
++		avail = tty_prepare_flip_string(tty, &ptr, avail);
++
++		if (smd_read(info->ch, ptr, avail) != avail) {
++			/* shouldn't be possible since we're in interrupt
++			** context here and nobody else could 'steal' our
++			** characters.
++			*/
++			printk(KERN_ERR "OOPS - smd_tty_buffer mismatch?!");
++		}
++
++		tty_flip_buffer_push(tty);
++	}
++
++	/* XXX only when writable and necessary */
++	tty_wakeup(tty);
 +}
 +
- /*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-@@ -631,11 +639,14 @@ static int unmap_and_move(new_page_t get
- 
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
-+		unmap_and_move_release_page(page);
- 		goto move_newpage;
- 	}
- 	if (unlikely(PageTransHuge(page)))
--		if (unlikely(split_huge_page(page)))
-+		if (unlikely(split_huge_page(page))) {
-+			unmap_and_move_release_page(page);
- 			goto move_newpage;
-+		}
- 
- 	/* prepare cgroup just returns 0 or -ENOMEM */
- 	rc = -EAGAIN;
-@@ -772,7 +783,6 @@ uncharge:
- unlock:
- 	unlock_page(page);
- 
--move_newpage:
- 	if (rc != -EAGAIN) {
-  		/*
-  		 * A page that has been migrated has all references
-@@ -780,12 +790,11 @@ move_newpage:
-  		 * migrated will have kepts its references and be
-  		 * restored.
-  		 */
-- 		list_del(&page->lru);
--		dec_zone_page_state(page, NR_ISOLATED_ANON +
--				page_is_file_cache(page));
--		putback_lru_page(page);
-+		unmap_and_move_release_page(page);
- 	}
- 
-+move_newpage:
++static int smd_tty_open(struct tty_struct *tty, struct file *f)
++{
++	int res = 0;
++	int n = tty->index;
++	struct smd_tty_info *info;
++	const char *name = NULL;
++	int i;
 +
- 	/*
- 	 * Move the new page to the LRU. If migration was not successful
- 	 * then this will free the page.
++	for (i = 0; i < smd_tty_channels_len; i++) {
++		if (smd_tty_channels[i].id == n) {
++			name = smd_tty_channels[i].name;
++			break;
++		}
++	}
++	if (!name)
++		return -ENODEV;
++
++	info = smd_tty + n;
++
++	mutex_lock(&smd_tty_lock);
++	tty->driver_data = info;
++
++	if (info->open_count++ == 0) {
++		info->tty = tty;
++		if (info->ch)
++			smd_kick(info->ch);
++		else
++			res = smd_open(name, &info->ch, info, smd_tty_notify);
++	}
++	mutex_unlock(&smd_tty_lock);
++
++	return res;
++}
++
++static void smd_tty_close(struct tty_struct *tty, struct file *f)
++{
++	struct smd_tty_info *info = tty->driver_data;
++
++	if (info == 0)
++		return;
++
++	mutex_lock(&smd_tty_lock);
++	if (--info->open_count == 0) {
++		info->tty = 0;
++		tty->driver_data = 0;
++		if (info->ch) {
++			smd_close(info->ch);
++			info->ch = 0;
++		}
++	}
++	mutex_unlock(&smd_tty_lock);
++}
++
++static int smd_tty_write(struct tty_struct *tty,
++			 const unsigned char *buf, int len)
++{
++	struct smd_tty_info *info = tty->driver_data;
++	int avail;
++
++	/* if we're writing to a packet channel we will
++	** never be able to write more data than there
++	** is currently space for
++	*/
++	avail = smd_write_avail(info->ch);
++	if (len > avail)
++		len = avail;
++
++	return smd_write(info->ch, buf, len);
++}
++
++static int smd_tty_write_room(struct tty_struct *tty)
++{
++	struct smd_tty_info *info = tty->driver_data;
++	return smd_write_avail(info->ch);
++}
++
++static int smd_tty_chars_in_buffer(struct tty_struct *tty)
++{
++	struct smd_tty_info *info = tty->driver_data;
++	return smd_read_avail(info->ch);
++}
++
++static void smd_tty_unthrottle(struct tty_struct *tty)
++{
++	struct smd_tty_info *info = tty->driver_data;
++	smd_kick(info->ch);
++}
++
++static const struct tty_operations smd_tty_ops = {
++	.open = smd_tty_open,
++	.close = smd_tty_close,
++	.write = smd_tty_write,
++	.write_room = smd_tty_write_room,
++	.chars_in_buffer = smd_tty_chars_in_buffer,
++	.unthrottle = smd_tty_unthrottle,
++};
++
++static struct tty_driver *smd_tty_driver;
++
++static int __init smd_tty_init(void)
++{
++	int ret, i;
++
++	smd_tty_driver = alloc_tty_driver(MAX_SMD_TTYS);
++	if (smd_tty_driver == 0)
++		return -ENOMEM;
++
++	smd_tty_driver->owner = THIS_MODULE;
++	smd_tty_driver->driver_name = "smd_tty_driver";
++	smd_tty_driver->name = "smd";
++	smd_tty_driver->major = 0;
++	smd_tty_driver->minor_start = 0;
++	smd_tty_driver->type = TTY_DRIVER_TYPE_SERIAL;
++	smd_tty_driver->subtype = SERIAL_TYPE_NORMAL;
++	smd_tty_driver->init_termios = tty_std_termios;
++	smd_tty_driver->init_termios.c_iflag = 0;
++	smd_tty_driver->init_termios.c_oflag = 0;
++	smd_tty_driver->init_termios.c_cflag = B38400 | CS8 | CREAD;
++	smd_tty_driver->init_termios.c_lflag = 0;
++	smd_tty_driver->flags = TTY_DRIVER_RESET_TERMIOS |
++		TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
++	tty_set_operations(smd_tty_driver, &smd_tty_ops);
++
++	ret = tty_register_driver(smd_tty_driver);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < smd_tty_channels_len; i++)
++		tty_register_device(smd_tty_driver, smd_tty_channels[i].id, 0);
++
++	return 0;
++}
++
++module_init(smd_tty_init);
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from nvishwan@codeaurora.org are
 
-origin.patch
-linux-next.patch
-mm-when-migrate_pages-returns-0-all-pages-must-have-been-released.patch
-mm-migration-fix-page-corruption-during-hugepage-migration.patch
-mm-vmap-area-cache.patch
-mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
+drivers-char-add-msm-smd_pkt-driver.patch
 
