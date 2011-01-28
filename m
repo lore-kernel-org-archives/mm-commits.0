@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch added to -mm tree
-Date: Thu, 27 Jan 2011 16:28:00 -0800
-Message-ID: <201101280028.p0S0S0O5008698@imap1.linux-foundation.org>
+Subject: + pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge.patch added to -mm tree
+Date: Thu, 27 Jan 2011 16:41:00 -0800
+Message-ID: <201101280041.p0S0f0to009236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753420Ab1A1A2g (ORCPT
+	by vger.kernel.org with ESMTP id S1753404Ab1A1AlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 19:28:36 -0500
+	Thu, 27 Jan 2011 19:41:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, eric.dumazet@gmail.com, shawn.bohrer@gmail.com, sim@hostway.ca, stable@kernel.org
+Cc: jj@chaosbits.net, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     epoll-epoll_wait-should-not-use-timespec_add_ns-fix
+     pci: avoid potential NULL pointer dereference in pci_scan_bridge()
 has been added to the -mm tree.  Its filename is
-     epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
+     pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-epoll_wait-should-not-use-timespec_add_ns-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pci: avoid potential NULL pointer dereference in pci_scan_bridge()
+From: Jesper Juhl <jj@chaosbits.net>
 
-s/epoll_set_mstimeout/ep_set_mstimeout/, per Davide
+pci_add_new_bus() returns NULL on ENOMEM.
 
-Cc: <stable@kernel.org>		[2.6.37.x]
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>
-Cc: Simon Kirby <sim@hostway.ca>
+Also remove some trailing whitespace.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/probe.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-epoll_wait-should-not-use-timespec_add_ns-fix fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-epoll_wait-should-not-use-timespec_add_ns-fix
-+++ a/fs/eventpoll.c
-@@ -1114,7 +1114,7 @@ static int ep_send_events(struct eventpo
- 	return ep_scan_ready_list(ep, ep_send_events_proc, &esed);
- }
- 
--static inline struct timespec epoll_set_mstimeout(long ms)
-+static inline struct timespec ep_set_mstimeout(long ms)
- {
- 	struct timespec now, ts = {
- 		.tv_sec = ms / MSEC_PER_SEC,
-@@ -1135,7 +1135,7 @@ static int ep_poll(struct eventpoll *ep,
- 	ktime_t expires, *to = NULL;
- 
- 	if (timeout > 0) {
--		struct timespec end_time = epoll_set_mstimeout(timeout);
-+		struct timespec end_time = ep_set_mstimeout(timeout);
- 
- 		slack = select_estimate_accuracy(&end_time);
- 		to = &expires;
+diff -puN drivers/pci/probe.c~pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge
++++ a/drivers/pci/probe.c
+@@ -764,6 +764,8 @@ int __devinit pci_scan_bridge(struct pci
+ 		if (pci_find_bus(pci_domain_nr(bus), max+1))
+ 			goto out;
+ 		child = pci_add_new_bus(bus, dev, ++max);
++		if (!child)
++			goto out;
+ 		buses = (buses & 0xff000000)
+ 		      | ((unsigned int)(child->primary)     <<  0)
+ 		      | ((unsigned int)(child->secondary)   <<  8)
+@@ -777,7 +779,7 @@ int __devinit pci_scan_bridge(struct pci
+ 			buses &= ~0xff000000;
+ 			buses |= CARDBUS_LATENCY_TIMER << 24;
+ 		}
+-			
++
+ 		/*
+ 		 * We need to blast all three values with a single write.
+ 		 */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
-maintainers-fixup-simtec-support-email-entries-fix.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
+audit-always-follow-va_copy-with-va_end.patch
+pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge.patch
 
