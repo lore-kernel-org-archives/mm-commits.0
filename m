@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xattrh-expose-string-defines-to-userspace.patch added to -mm tree
-Date: Thu, 27 Jan 2011 16:43:50 -0800
-Message-ID: <201101280043.p0S0hoe6009289@imap1.linux-foundation.org>
+Subject: + fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch added to -mm tree
+Date: Thu, 27 Jan 2011 17:09:53 -0800
+Message-ID: <201101280109.p0S19rM3010310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752576Ab1A1AoJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754003Ab1A1BJ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 19:44:09 -0500
+	Thu, 27 Jan 2011 20:09:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, jmorris@namei.org, ozan@pardus.org.tr, serue@us.ibm.com, zohar@us.ibm.com
+Cc: akpm@linux-foundation.org, Joel.Becker@oracle.com, dsterba@suse.cz, mfasheh@suse.com
 
 
 The patch titled
-     xattr.h: expose string defines to userspace
+     fs/ocfs2/dlm/dlmdomain.c: avoid a GFP_ATOMIC allocation
 has been added to the -mm tree.  Its filename is
-     xattrh-expose-string-defines-to-userspace.patch
+     fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,88 +26,119 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xattr.h: expose string defines to userspace
-=46rom: Eric Paris <eparis@redhat.com>
+Subject: fs/ocfs2/dlm/dlmdomain.c: avoid a GFP_ATOMIC allocation
+From: Andrew Morton <akpm@linux-foundation.org>
 
-af4f136056c9 ("security: move LSM xattrnames to xattr.h") moved the
-XATTR_CAPS_SUFFIX define from capability.h to xattr.h.  This makes sens=
-e
-except it was previously exports to userspace but xattr.h does not expo=
-rt
-it to userspace.  This patch exports these headers to userspace to fix =
-the
-ABI regression.
+GFP_ATOMIC is unreliable.  Use a statically-allocated buffer protceted by
+the global lock.
 
-There is some slight possibility that this will cause problems in other
-applications which used these #defines differently (wrongly) and I coul=
-d
-JUST export the capabilities xattr name that we broke.  Does anyonehave=
- an
-idea how exposing these headers could cause a problem?
-
-Below is what is being exposed to userspace, included here since it isn=
-'t
-clear exactly what is going to be made available from the patch.
-
-/* Namespaces */
-#define XATTR_OS2_PREFIX "os2."
-#define XATTR_OS2_PREFIX_LEN (sizeof (XATTR_OS2_PREFIX) - 1)
-
-#define XATTR_SECURITY_PREFIX   "security."
-#define XATTR_SECURITY_PREFIX_LEN (sizeof (XATTR_SECURITY_PREFIX) - 1)
-
-#define XATTR_SYSTEM_PREFIX "system."
-#define XATTR_SYSTEM_PREFIX_LEN (sizeof (XATTR_SYSTEM_PREFIX) - 1)
-
-#define XATTR_TRUSTED_PREFIX "trusted."
-#define XATTR_TRUSTED_PREFIX_LEN (sizeof (XATTR_TRUSTED_PREFIX) - 1)
-
-#define XATTR_USER_PREFIX "user."
-#define XATTR_USER_PREFIX_LEN (sizeof (XATTR_USER_PREFIX) - 1)
-
-/* Security namespace */
-#define XATTR_SELINUX_SUFFIX "selinux"
-#define XATTR_NAME_SELINUX XATTR_SECURITY_PREFIX XATTR_SELINUX_SUFFIX
-
-#define XATTR_SMACK_SUFFIX "SMACK64"
-#define XATTR_SMACK_IPIN "SMACK64IPIN"
-#define XATTR_SMACK_IPOUT "SMACK64IPOUT"
-#define XATTR_NAME_SMACK XATTR_SECURITY_PREFIX XATTR_SMACK_SUFFIX
-#define XATTR_NAME_SMACKIPIN    XATTR_SECURITY_PREFIX XATTR_SMACK_IPIN
-#define XATTR_NAME_SMACKIPOUT   XATTR_SECURITY_PREFIX XATTR_SMACK_IPOUT
-
-#define XATTR_CAPS_SUFFIX "capability"
-#define XATTR_NAME_CAPS XATTR_SECURITY_PREFIX XATTR_CAPS_SUFFIX
-
-Reported-by: Ozan =C7aglayan <ozan@pardus.org.tr>
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xattr.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/xattr.h~xattrh-expose-string-defines-to-userspa=
-ce include/linux/xattr.h
---- a/include/linux/xattr.h~xattrh-expose-string-defines-to-userspace
-+++ a/include/linux/xattr.h
-@@ -13,10 +13,6 @@
- #define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
- #define XATTR_REPLACE	0x2	/* set value, fail if attr does not exist */
-=20
--#ifdef  __KERNEL__
+diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -926,9 +926,9 @@ static int dlm_assert_joined_handler(str
+ }
+ 
+ static int dlm_match_regions(struct dlm_ctxt *dlm,
+-			     struct dlm_query_region *qr)
++			     struct dlm_query_region *qr, u8 *local)
+ {
+-	char *local = NULL, *remote = qr->qr_regions;
++	char *remote = qr->qr_regions;
+ 	char *l, *r;
+ 	int localnr, i, j, foundit;
+ 	int status = 0;
+@@ -957,12 +957,6 @@ static int dlm_match_regions(struct dlm_
+ 		r += O2HB_MAX_REGION_NAME_LEN;
+ 	}
+ 
+-	local = kmalloc(sizeof(qr->qr_regions), GFP_ATOMIC);
+-	if (!local) {
+-		status = -ENOMEM;
+-		goto bail;
+-	}
 -
--#include <linux/types.h>
+ 	localnr = o2hb_get_all_regions(local, O2NM_MAX_REGIONS);
+ 
+ 	/* compare local regions with remote */
+@@ -1012,8 +1006,6 @@ static int dlm_match_regions(struct dlm_
+ 	}
+ 
+ bail:
+-	kfree(local);
+-
+ 	return status;
+ }
+ 
+@@ -1077,6 +1069,7 @@ static int dlm_query_region_handler(stru
+ 	struct dlm_ctxt *dlm = NULL;
+ 	int status = 0;
+ 	int locked = 0;
++	static u8 local[sizeof(qr->qr_regions)]; /* locked by dlm_domain_lock */
+ 
+ 	qr = (struct dlm_query_region *) msg->buf;
+ 
+@@ -1112,7 +1105,7 @@ static int dlm_query_region_handler(stru
+ 		goto bail;
+ 	}
+ 
+-	status = dlm_match_regions(dlm, qr);
++	status = dlm_match_regions(dlm, qr, local);
+ 
+ bail:
+ 	if (locked)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
+maintainers-fixup-simtec-support-email-entries-fix.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
