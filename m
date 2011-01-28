@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-use-apply_to_page_range_batch-in-alloc_vm_area.patch added to -mm tree
-Date: Thu, 27 Jan 2011 16:17:53 -0800
-Message-ID: <201101280017.p0S0HrJD008246@imap1.linux-foundation.org>
+Subject: + xen-mmu-use-apply_to_page_range_batch-in-xen_remap_domain_mfn_range.patch added to -mm tree
+Date: Thu, 27 Jan 2011 16:17:55 -0800
+Message-ID: <201101280017.p0S0Htc9008249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752780Ab1A1AVH (ORCPT
+	by vger.kernel.org with ESMTP id S1752576Ab1A1AVZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 19:21:07 -0500
+	Thu, 27 Jan 2011 19:21:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeremy.fitzhardinge@citrix.com, hugh.dickins@tiscali.co.uk, npiggin@kernel.d
 
 
 The patch titled
-     vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
+     xen/mmu: use apply_to_page_range_batch() in xen_remap_domain_mfn_range()
 has been added to the -mm tree.  Its filename is
-     vmalloc-use-apply_to_page_range_batch-in-alloc_vm_area.patch
+     xen-mmu-use-apply_to_page_range_batch-in-xen_remap_domain_mfn_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: use apply_to_page_range_batch() in alloc_vm_area()
+Subject: xen/mmu: use apply_to_page_range_batch() in xen_remap_domain_mfn_range()
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
@@ -43,35 +43,48 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/xen/mmu.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-use-apply_to_page_range_batch-in-alloc_vm_area mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-use-apply_to_page_range_batch-in-alloc_vm_area
-+++ a/mm/vmalloc.c
-@@ -2045,9 +2045,9 @@ void  __attribute__((weak)) vmalloc_sync
- }
+diff -puN arch/x86/xen/mmu.c~xen-mmu-use-apply_to_page_range_batch-in-xen_remap_domain_mfn_range arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~xen-mmu-use-apply_to_page_range_batch-in-xen_remap_domain_mfn_range
++++ a/arch/x86/xen/mmu.c
+@@ -2292,14 +2292,19 @@ struct remap_data {
+ 	struct mmu_update *mmu_update;
+ };
  
- 
--static int f(pte_t *pte, unsigned long addr, void *data)
-+static int f(pte_t *pte, unsigned count, unsigned long addr, void *data)
+-static int remap_area_mfn_pte_fn(pte_t *ptep, unsigned long addr, void *data)
++static int remap_area_mfn_pte_fn(pte_t *ptep, unsigned count,
++				 unsigned long addr, void *data)
  {
--	/* apply_to_page_range() does all the hard work. */
-+	/* apply_to_page_range_batch() does all the hard work. */
+ 	struct remap_data *rmd = data;
+-	pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
+ 
+-	rmd->mmu_update->ptr = arbitrary_virt_to_machine(ptep).maddr;
+-	rmd->mmu_update->val = pte_val_ma(pte);
+-	rmd->mmu_update++;
++	while (count--) {
++		pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
++
++		rmd->mmu_update->ptr = arbitrary_virt_to_machine(ptep).maddr;
++		rmd->mmu_update->val = pte_val_ma(pte);
++		rmd->mmu_update++;
++		ptep++;
++	}
+ 
  	return 0;
  }
+@@ -2328,8 +2333,8 @@ int xen_remap_domain_mfn_range(struct vm
+ 		range = (unsigned long)batch << PAGE_SHIFT;
  
-@@ -2076,8 +2076,8 @@ struct vm_struct *alloc_vm_area(size_t s
- 	 * This ensures that page tables are constructed for this region
- 	 * of kernel virtual address space and mapped into init_mm.
- 	 */
--	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
--				area->size, f, NULL)) {
-+	if (apply_to_page_range_batch(&init_mm, (unsigned long)area->addr,
-+				      area->size, f, NULL)) {
- 		free_vm_area(area);
- 		return NULL;
- 	}
+ 		rmd.mmu_update = mmu_update;
+-		err = apply_to_page_range(vma->vm_mm, addr, range,
+-					  remap_area_mfn_pte_fn, &rmd);
++		err = apply_to_page_range_batch(vma->vm_mm, addr, range,
++						remap_area_mfn_pte_fn, &rmd);
+ 		if (err)
+ 			goto out;
+ 
 _
 
 Patches currently in -mm which might be from jeremy.fitzhardinge@citrix.com are
