@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch added to -mm tree
-Date: Fri, 28 Jan 2011 15:29:48 -0800
-Message-ID: <201101282329.p0SNTmVB001034@imap1.linux-foundation.org>
+Subject: + thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch added to -mm tree
+Date: Fri, 28 Jan 2011 15:29:50 -0800
+Message-ID: <201101282329.p0SNToah001037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706Ab1A1Xad (ORCPT
+	by vger.kernel.org with ESMTP id S1751964Ab1A1Xac (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Jan 2011 18:30:33 -0500
+	Fri, 28 Jan 2011 18:30:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jin.dongming@np.css.fujitsu.com, aarcange@redhat.com, andi@firstfloor.org, seto.hidetoshi@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, jin.dongming@np.css.fujitsu.com, seto.hidetoshi@jp.fujitsu.com
 
 
 The patch titled
-     thp: fix unsuitable behavior for hwpoisoned tail page
+     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
 has been added to the -mm tree.  Its filename is
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
+     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: fix unsuitable behavior for hwpoisoned tail page
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When a tail page of THP is poisoned, memory-failure will do nothing except
-setting PG_hwpoison, while the expected behavior is that the process, who
-is using the poisoned tail page, should be killed.
+fix unrelated typo in shake_page() comment
 
-The above problem is caused by lru check of the poisoned tail page of THP.
-Because PG_lru flag is only set on the head page of THP, the check always
-consider the poisoned tail page as NON lru page.
-
-So the lru check for the tail page of THP should be avoided, as like as
-hugetlb.
-
-This patch adds !PageTransCompound() before lru check for THP, because of
-the check (!PageHuge() && !PageTransCompound()) the whole branch could be
-optimized away at build time when both hugetlbfs and THP are set with "N"
-(or in archs not supporting either of those).
-
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page
+diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
 +++ a/mm/memory-failure.c
-@@ -1065,19 +1065,22 @@ int __memory_failure(unsigned long pfn, 
- 	 * The check (unnecessarily) ignores LRU pages being isolated and
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
--	if (!PageLRU(p) && !PageHuge(p))
--		shake_page(p, 0);
--	if (!PageLRU(p) && !PageHuge(p)) {
--		/*
--		 * shake_page could have turned it free.
--		 */
--		if (is_free_buddy_page(p)) {
--			action_result(pfn, "free buddy, 2nd try", DELAYED);
--			return 0;
-+	if (!PageHuge(p) && !PageTransCompound(p)) {
-+		if (!PageLRU(p))
-+			shake_page(p, 0);
-+		if (!PageLRU(p)) {
-+			/*
-+			 * shake_page could have turned it free.
-+			 */
-+			if (is_free_buddy_page(p)) {
-+				action_result(pfn, "free buddy, 2nd try",
-+						DELAYED);
-+				return 0;
-+			}
-+			action_result(pfn, "non LRU", IGNORED);
-+			put_page(p);
-+			return -EBUSY;
- 		}
--		action_result(pfn, "non LRU", IGNORED);
--		put_page(p);
--		return -EBUSY;
+@@ -233,8 +233,8 @@ void shake_page(struct page *p, int acce
  	}
  
  	/*
+-	 * Only all shrink_slab here (which would also
+-	 * shrink other caches) if access is not potentially fatal.
++	 * Only call shrink_slab here (which would also shrink other caches) if
++	 * access is not potentially fatal.
+ 	 */
+ 	if (access) {
+ 		int nr;
 _
 
-Patches currently in -mm which might be from jin.dongming@np.css.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-fix-splitting-of-hwpoisoned-hugepages.patch
-thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
+maintainers-fixup-simtec-support-email-entries-fix.patch
 thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch
-thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
 thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
