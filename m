@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + xen-grant-table-use-apply_to_page_range_batch.patch added to -mm tree
-Date: Thu, 27 Jan 2011 16:17:57 -0800
-Message-ID: <201101280017.p0S0HvcO008252@imap1.linux-foundation.org>
+Subject: + vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range.patch added to -mm tree
+Date: Thu, 27 Jan 2011 16:17:49 -0800
+Message-ID: <201101280017.p0S0HnQd008236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751674Ab1A1AVn (ORCPT
+	by vger.kernel.org with ESMTP id S1751674Ab1A1AWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Jan 2011 19:21:43 -0500
+	Thu, 27 Jan 2011 19:22:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeremy.fitzhardinge@citrix.com, hugh.dickins@tiscali.co.uk, npiggin@kernel.d
 
 
 The patch titled
-     xen/grant-table: use apply_to_page_range_batch()
+     vmalloc: use apply_to_page_range_batch() for vunmap_page_range()
 has been added to the -mm tree.  Its filename is
-     xen-grant-table-use-apply_to_page_range_batch.patch
+     vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen/grant-table: use apply_to_page_range_batch()
+Subject: vmalloc: use apply_to_page_range_batch() for vunmap_page_range()
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 
-No need to call the callback per-pte.
+There's no need to open-code it when there's helpful utility function to
+do the job.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -45,66 +46,81 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/grant-table.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |   53 ++++++++-----------------------------------------
+ 1 file changed, 9 insertions(+), 44 deletions(-)
 
-diff -puN arch/x86/xen/grant-table.c~xen-grant-table-use-apply_to_page_range_batch arch/x86/xen/grant-table.c
---- a/arch/x86/xen/grant-table.c~xen-grant-table-use-apply_to_page_range_batch
-+++ a/arch/x86/xen/grant-table.c
-@@ -44,19 +44,27 @@
+diff -puN mm/vmalloc.c~vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range
++++ a/mm/vmalloc.c
+@@ -33,59 +33,24 @@
  
- #include <asm/pgtable.h>
+ /*** Page table manipulation functions ***/
  
--static int map_pte_fn(pte_t *pte, unsigned long addr, void *data)
-+static int map_pte_fn(pte_t *pte, unsigned count, unsigned long addr, void *data)
+-static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
++static int vunmap_pte(pte_t *pte, unsigned count,
++		      unsigned long addr, void *data)
  {
- 	unsigned long **frames = (unsigned long **)data;
- 
--	set_pte_at(&init_mm, addr, pte, mfn_pte((*frames)[0], PAGE_KERNEL));
--	(*frames)++;
+-	pte_t *pte;
+-
+-	pte = pte_offset_kernel(pmd, addr);
+-	do {
 +	while (count--) {
-+		set_pte_at(&init_mm, addr, pte, mfn_pte((*frames)[0], PAGE_KERNEL));
-+		(*frames)++;
-+		pte++;
+ 		pte_t ptent = *pte;
+-		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+-		pte_clear(&init_mm, addr, pte);
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-}
+-
+-static void vunmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+ 
+-	pmd = pmd_offset(pud, addr);
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none_or_clear_bad(pmd))
+-			continue;
+-		vunmap_pte_range(pmd, addr, next);
+-	} while (pmd++, addr = next, addr != end);
+-}
++		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+ 
+-static void vunmap_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++		pte_clear(&init_mm, addr, pte++);
 +		addr += PAGE_SIZE;
 +	}
- 	return 0;
+ 
+-	pud = pud_offset(pgd, addr);
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (pud_none_or_clear_bad(pud))
+-			continue;
+-		vunmap_pmd_range(pud, addr, next);
+-	} while (pud++, addr = next, addr != end);
++	return 0;
  }
  
--static int unmap_pte_fn(pte_t *pte, unsigned long addr, void *data)
-+static int unmap_pte_fn(pte_t *pte, unsigned count, unsigned long addr, void *data)
+ static void vunmap_page_range(unsigned long addr, unsigned long end)
  {
-+	while (count--) {
-+		pte_clear(&init_mm, addr, pte);
-+		addr += PAGE_SIZE;
-+		pte++;
-+	}
- 
--	set_pte_at(&init_mm, addr, pte, __pte(0));
- 	return 0;
+-	pgd_t *pgd;
+-	unsigned long next;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none_or_clear_bad(pgd))
+-			continue;
+-		vunmap_pud_range(pgd, addr, next);
+-	} while (pgd++, addr = next, addr != end);
++	apply_to_page_range_batch(&init_mm, addr, end - addr, vunmap_pte, NULL);
  }
  
-@@ -75,15 +83,15 @@ int arch_gnttab_map_shared(unsigned long
- 		*__shared = shared;
- 	}
- 
--	rc = apply_to_page_range(&init_mm, (unsigned long)shared,
--				 PAGE_SIZE * nr_gframes,
--				 map_pte_fn, &frames);
-+	rc = apply_to_page_range_batch(&init_mm, (unsigned long)shared,
-+				       PAGE_SIZE * nr_gframes,
-+				       map_pte_fn, &frames);
- 	return rc;
- }
- 
- void arch_gnttab_unmap_shared(struct grant_entry *shared,
- 			      unsigned long nr_gframes)
- {
--	apply_to_page_range(&init_mm, (unsigned long)shared,
--			    PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
-+	apply_to_page_range_batch(&init_mm, (unsigned long)shared,
-+				  PAGE_SIZE * nr_gframes, unmap_pte_fn, NULL);
- }
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 _
 
 Patches currently in -mm which might be from jeremy.fitzhardinge@citrix.com are
