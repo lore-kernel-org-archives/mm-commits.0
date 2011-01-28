@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch added to -mm tree
-Date: Fri, 28 Jan 2011 15:29:50 -0800
-Message-ID: <201101282329.p0SNToah001037@imap1.linux-foundation.org>
+Subject: + thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch added to -mm tree
+Date: Fri, 28 Jan 2011 15:29:46 -0800
+Message-ID: <201101282329.p0SNTkYP001031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964Ab1A1Xac (ORCPT
+	by vger.kernel.org with ESMTP id S1752706Ab1A1Xaf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Jan 2011 18:30:32 -0500
+	Fri, 28 Jan 2011 18:30:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, jin.don
 
 
 The patch titled
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
+     thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
 has been added to the -mm tree.  Its filename is
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
+     thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
+Subject: thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix unrelated typo in shake_page() comment
+fix spello in comment
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -46,23 +46,21 @@ Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
-+++ a/mm/memory-failure.c
-@@ -233,8 +233,8 @@ void shake_page(struct page *p, int acce
- 	}
+diff -puN mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
++++ a/mm/huge_memory.c
+@@ -1163,7 +1163,7 @@ static void __split_huge_page_refcount(s
+ 		smp_mb();
  
- 	/*
--	 * Only all shrink_slab here (which would also
--	 * shrink other caches) if access is not potentially fatal.
-+	 * Only call shrink_slab here (which would also shrink other caches) if
-+	 * access is not potentially fatal.
- 	 */
- 	if (access) {
- 		int nr;
+ 		/*
+-		 * remain hwpoison flag of the poisoned tail page:
++		 * retain hwpoison flag of the poisoned tail page:
+ 		 *   fix for the unsuitable process killed on Guest Machine(KVM)
+ 		 *   by the memory-failure.
+ 		 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
