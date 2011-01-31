@@ -1,127 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 28 Jan 2011 15:32:33 -0800
-Message-ID: <201101282332.p0SNWYxh001195@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 31 Jan 2011 11:13:02 -0800
+Message-ID: <201101311913.p0VJD20P027664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706Ab1A1XdJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753429Ab1AaTNi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Jan 2011 18:33:09 -0500
+	Mon, 31 Jan 2011 14:13:38 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p0VJD34r004604
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2011 11:13:03 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, jin.dongming@np.css.fujitsu.com, seto.hidetoshi@jp.fujitsu.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
+DESC
+memblock-add-input-size-checking-to-memblock_find_region-fix-git-rejects
+EDESC
 
-WARNING: line over 80 characters
-#49: FILE: mm/memory-failure.c:900:
-+		 * PageAnon is just for avoid tripping a split_huge_page internal
-
-WARNING: line over 80 characters
-#54: FILE: mm/memory-failure.c:905:
-+		 * in the first place, having a refcount on the tail isn't enough
-
-WARNING: line over 80 characters
-#60: FILE: mm/memory-failure.c:911:
-+				 * FIXME: if splitting THP is failed, it is better
-
-WARNING: line over 80 characters
-#62: FILE: mm/memory-failure.c:913:
-+				 * causing panic by unmapping. System might survive
-
-total: 0 errors, 4 warnings, 42 lines checked
-
-./patches/thp-fix-splitting-of-hwpoisoned-hugepages.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/mach-realview/Kconfig   |    5 -----
+ arch/arm/mach-realview/platsmp.c |   23 -----------------------
+ arch/arm/mach-vexpress/platsmp.c |   23 -----------------------
+ arch/arm/mach-vexpress/v2m.c     |   10 ----------
+ arch/x86/xen/p2m.c               |   12 ------------
+ 5 files changed, 73 deletions(-)
 
-diff -puN mm/memory-failure.c~thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes
-+++ a/mm/memory-failure.c
-@@ -897,21 +897,21 @@ static int hwpoison_user_mappings(struct
- 	if (PageTransHuge(hpage)) {
- 		/*
- 		 * Verify that this isn't a hugetlbfs head page, the check for
--		 * PageAnon is just for avoid tripping a split_huge_page internal
--		 * debug check, as split_huge_page refuses to deal with anything
--		 * that isn't an anon page. PageAnon can't go away from under us
--		 * because we hold a refcount on the hpage, without a refcount
--		 * on the hpage. split_huge_page can't be safely called
--		 * in the first place, having a refcount on the tail isn't enough
--		 * to be safe.
-+		 * PageAnon is just for avoid tripping a split_huge_page
-+		 * internal debug check, as split_huge_page refuses to deal with
-+		 * anything that isn't an anon page. PageAnon can't go away fro
-+		 * under us because we hold a refcount on the hpage, without a
-+		 * refcount on the hpage. split_huge_page can't be safely called
-+		 * in the first place, having a refcount on the tail isn't
-+		 * enough * to be safe.
- 		 */
- 		if (!PageHuge(hpage) && PageAnon(hpage)) {
- 			if (unlikely(split_huge_page(hpage))) {
- 				/*
--				 * FIXME: if splitting THP is failed, it is better
--				 * to stop the following operation rather than
--				 * causing panic by unmapping. System might survive
--				 * if the page is freed later.
-+				 * FIXME: if splitting THP is failed, it is
-+				 * better to stop the following operation rather
-+				 * than causing panic by unmapping. System might
-+				 * survive if the page is freed later.
- 				 */
- 				printk(KERN_INFO
- 					"MCE %#lx: failed to split THP\n", pfn);
+diff -puN arch/x86/xen/p2m.c~linux-next-git-rejects arch/x86/xen/p2m.c
+--- a/arch/x86/xen/p2m.c~linux-next-git-rejects
++++ a/arch/x86/xen/p2m.c
+@@ -241,17 +241,6 @@ void __init xen_build_dynamic_phys_to_ma
+ 		 * As long as the mfn_list has enough entries to completely
+ 		 * fill a p2m page, pointing into the array is ok. But if
+ 		 * not the entries beyond the last pfn will be undefined.
+-<<<<<<< HEAD
+-		 */
+-		if (unlikely(pfn + P2M_PER_PAGE > max_pfn)) {
+-			unsigned long p2midx;
+-
+-			p2midx = max_pfn % P2M_PER_PAGE;
+-			for ( ; p2midx < P2M_PER_PAGE; p2midx++)
+-				mfn_list[pfn + p2midx] = INVALID_P2M_ENTRY;
+-		}
+-		p2m_top[topidx][mididx] = &mfn_list[pfn];
+-=======
+ 		 * And guessing that the 'what-ever-there-is' does not take it
+ 		 * too kindly when changing it to invalid markers, a new page
+ 		 * is allocated, initialized and filled with the valid part.
+@@ -267,7 +256,6 @@ void __init xen_build_dynamic_phys_to_ma
+ 			p2m_top[topidx][mididx] = p2m;
+ 		} else
+ 			p2m_top[topidx][mididx] = &mfn_list[pfn];
+->>>>>>> FETCH_HEAD
+ 	}
+ 
+ 	m2p_override_init();
+diff -puN arch/arm/mach-realview/Kconfig~linux-next-git-rejects arch/arm/mach-realview/Kconfig
+--- a/arch/arm/mach-realview/Kconfig~linux-next-git-rejects
++++ a/arch/arm/mach-realview/Kconfig
+@@ -35,13 +35,8 @@ config REALVIEW_EB_ARM11MP_REVB
+ 	  not compatible with other revisions of the ARM11MPCore tile.
+ 
+ config MACH_REALVIEW_PB11MP
+-<<<<<<< HEAD
+-	bool "Support RealView(R) Platform Baseboard for ARM11MPCore"
+-	select CPU_V6
+-=======
+ 	bool "Support RealView/PB11MPCore platform"
+ 	select CPU_V6K
+->>>>>>> FETCH_HEAD
+ 	select ARM_GIC
+ 	select HAVE_PATA_PLATFORM
+ 	select ARCH_HAS_BARRIERS if SMP
+diff -puN arch/arm/mach-realview/platsmp.c~linux-next-git-rejects arch/arm/mach-realview/platsmp.c
+--- a/arch/arm/mach-realview/platsmp.c~linux-next-git-rejects
++++ a/arch/arm/mach-realview/platsmp.c
+@@ -24,30 +24,7 @@
+ 
+ #include "core.h"
+ 
+-<<<<<<< HEAD
+-extern void realview_secondary_startup(void);
+-
+-/*
+- * control for which core is the next to come out of the secondary
+- * boot "holding pen"
+- */
+-volatile int __cpuinitdata pen_release = -1;
+-
+-/*
+- * Write pen_release in a way that is guaranteed to be visible to all
+- * observers, irrespective of whether they're taking part in coherency
+- * or not.  This is necessary for the hotplug code to work reliably.
+- */
+-static void __cpuinit write_pen_release(int val)
+-{
+-	pen_release = val;
+-	smp_wmb();
+-	__cpuc_flush_dcache_area((void *)&pen_release, sizeof(pen_release));
+-	outer_clean_range(__pa(&pen_release), __pa(&pen_release + 1));
+-}
+-=======
+ extern void versatile_secondary_startup(void);
+->>>>>>> FETCH_HEAD
+ 
+ static void __iomem *scu_base_addr(void)
+ {
+diff -puN arch/arm/mach-vexpress/platsmp.c~linux-next-git-rejects arch/arm/mach-vexpress/platsmp.c
+--- a/arch/arm/mach-vexpress/platsmp.c~linux-next-git-rejects
++++ a/arch/arm/mach-vexpress/platsmp.c
+@@ -22,30 +22,7 @@
+ 
+ #include "core.h"
+ 
+-<<<<<<< HEAD
+-extern void vexpress_secondary_startup(void);
+-
+-/*
+- * control for which core is the next to come out of the secondary
+- * boot "holding pen"
+- */
+-volatile int __cpuinitdata pen_release = -1;
+-
+-/*
+- * Write pen_release in a way that is guaranteed to be visible to all
+- * observers, irrespective of whether they're taking part in coherency
+- * or not.  This is necessary for the hotplug code to work reliably.
+- */
+-static void __cpuinit write_pen_release(int val)
+-{
+-	pen_release = val;
+-	smp_wmb();
+-	__cpuc_flush_dcache_area((void *)&pen_release, sizeof(pen_release));
+-	outer_clean_range(__pa(&pen_release), __pa(&pen_release + 1));
+-}
+-=======
+ extern void versatile_secondary_startup(void);
+->>>>>>> FETCH_HEAD
+ 
+ static void __iomem *scu_base_addr(void)
+ {
+diff -puN arch/arm/mach-vexpress/v2m.c~linux-next-git-rejects arch/arm/mach-vexpress/v2m.c
+--- a/arch/arm/mach-vexpress/v2m.c~linux-next-git-rejects
++++ a/arch/arm/mach-vexpress/v2m.c
+@@ -56,18 +56,8 @@ void __init v2m_init_early(void)
+ 	versatile_sched_clock_init(MMIO_P2V(V2M_SYS_24MHZ), 24000000);
+ }
+ 
+-
+-<<<<<<< HEAD
+-	/* Select 1MHz TIMCLK as the reference clock for SP804 timers */
+-	scctrl = readl(MMIO_P2V(V2M_SYSCTL + SCCTRL));
+-	scctrl |= SCCTRL_TIMEREN0SEL_TIMCLK;
+-	scctrl |= SCCTRL_TIMEREN1SEL_TIMCLK;
+-	writel(scctrl, MMIO_P2V(V2M_SYSCTL + SCCTRL));
+-
+-=======
+ static void __init v2m_timer_init(void)
+ {
+->>>>>>> FETCH_HEAD
+ 	writel(0, MMIO_P2V(V2M_TIMER0) + TIMER_CTRL);
+ 	writel(0, MMIO_P2V(V2M_TIMER1) + TIMER_CTRL);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
 maintainers-fixup-simtec-support-email-entries-fix.patch
-thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes.patch
-thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch
-thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
 mm-vmap-area-cache.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
