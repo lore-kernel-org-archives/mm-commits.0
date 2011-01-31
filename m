@@ -1,70 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tty-serial-fix-apbuart-build.patch removed from -mm tree
-Date: Mon, 31 Jan 2011 11:14:47 -0800
-Message-ID: <201101311914.p0VJElBl027718@imap1.linux-foundation.org>
+Subject: [merged] n_hdlc-fix-read-and-write-locking.patch removed from -mm tree
+Date: Mon, 31 Jan 2011 11:14:49 -0800
+Message-ID: <201101311914.p0VJEnpI027721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755844Ab1AaTPD (ORCPT
+	by vger.kernel.org with ESMTP id S1753429Ab1AaTPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Jan 2011 14:15:03 -0500
+	Mon, 31 Jan 2011 14:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, daniel@gaisler.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty/serial: fix apbuart build
+     n_hdlc: fix read and write locking
 has been removed from the -mm tree.  Its filename was
-     tty-serial-fix-apbuart-build.patch
+     n_hdlc-fix-read-and-write-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty/serial: fix apbuart build
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: n_hdlc: fix read and write locking
+From: Paul Fulghum <paulkf@microgate.com>
 
-Fix build errors by selecting SERIAL_CORE:
+Fix locking in read and write code of n_hdlc line discipline.
 
-ERROR: "uart_register_driver" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_write_wakeup" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_update_timeout" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_get_divisor" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_get_baud_rate" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_add_one_port" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_unregister_driver" [drivers/tty/serial/apbuart.ko] undefined!
-ERROR: "uart_remove_one_port" [drivers/tty/serial/apbuart.ko] undefined!
+2.6.36 replaced lock_kernel() with tty_lock().  The tty mutex is not
+dropped automatically when the thread sleeps like the BKL.  This results
+in a blocked read or write holding the tty mutex and stalling operations
+by other devices that use the tty mutex.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
-Cc: Greg KH <gregkh@suse.de>
+A review of n_hdlc read and write code shows:
+1. neither BKL or tty mutex are required for correct operation
+2. read can block while read data is available if data is posted
+   between availability check and call to interruptible_sleep_on()
+3. write does not set process state to TASK_INTERRUPTIBLE
+   on each pass through the processing loop which can cause
+   unneeded scheduling of the thread
+
+The unnecessary tty mutex references have been removed.
+
+Read changed to use same code as n_tty read
+for completing reads and blocking.
+
+Write corrected to set process state to TASK_INTERRUPTIBLE on each pass
+through processing loop.
+
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/tty/n_hdlc.c |   90 ++++++++++++++++++++---------------------
+ 1 file changed, 45 insertions(+), 45 deletions(-)
 
-diff -puN drivers/tty/serial/Kconfig~tty-serial-fix-apbuart-build drivers/tty/serial/Kconfig
---- a/drivers/tty/serial/Kconfig~tty-serial-fix-apbuart-build
-+++ a/drivers/tty/serial/Kconfig
-@@ -1518,6 +1518,7 @@ config SERIAL_BCM63XX_CONSOLE
- config SERIAL_GRLIB_GAISLER_APBUART
- 	tristate "GRLIB APBUART serial support"
- 	depends on OF
-+	select SERIAL_CORE
- 	---help---
- 	Add support for the GRLIB APBUART serial port.
+diff -puN drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking drivers/tty/n_hdlc.c
+--- a/drivers/tty/n_hdlc.c~n_hdlc-fix-read-and-write-locking
++++ a/drivers/tty/n_hdlc.c
+@@ -581,8 +581,9 @@ static ssize_t n_hdlc_tty_read(struct tt
+ 			   __u8 __user *buf, size_t nr)
+ {
+ 	struct n_hdlc *n_hdlc = tty2n_hdlc(tty);
+-	int ret;
++	int ret = 0;
+ 	struct n_hdlc_buf *rbuf;
++	DECLARE_WAITQUEUE(wait, current);
  
+ 	if (debuglevel >= DEBUG_LEVEL_INFO)	
+ 		printk("%s(%d)n_hdlc_tty_read() called\n",__FILE__,__LINE__);
+@@ -598,57 +599,55 @@ static ssize_t n_hdlc_tty_read(struct tt
+ 		return -EFAULT;
+ 	}
+ 
+-	tty_lock();
++	add_wait_queue(&tty->read_wait, &wait);
+ 
+ 	for (;;) {
+ 		if (test_bit(TTY_OTHER_CLOSED, &tty->flags)) {
+-			tty_unlock();
+-			return -EIO;
++			ret = -EIO;
++			break;
+ 		}
++		if (tty_hung_up_p(file))
++			break;
+ 
+-		n_hdlc = tty2n_hdlc (tty);
+-		if (!n_hdlc || n_hdlc->magic != HDLC_MAGIC ||
+-			 tty != n_hdlc->tty) {
+-			tty_unlock();
+-			return 0;
+-		}
++		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		rbuf = n_hdlc_buf_get(&n_hdlc->rx_buf_list);
+-		if (rbuf)
++		if (rbuf) {
++			if (rbuf->count > nr) {
++				/* too large for caller's buffer */
++				ret = -EOVERFLOW;
++			} else {
++				if (copy_to_user(buf, rbuf->buf, rbuf->count))
++					ret = -EFAULT;
++				else
++					ret = rbuf->count;
++			}
++
++			if (n_hdlc->rx_free_buf_list.count >
++			    DEFAULT_RX_BUF_COUNT)
++				kfree(rbuf);
++			else
++				n_hdlc_buf_put(&n_hdlc->rx_free_buf_list, rbuf);
+ 			break;
++		}
+ 			
+ 		/* no data */
+ 		if (file->f_flags & O_NONBLOCK) {
+-			tty_unlock();
+-			return -EAGAIN;
++			ret = -EAGAIN;
++			break;
+ 		}
+-			
+-		interruptible_sleep_on (&tty->read_wait);
++
++		schedule();
++
+ 		if (signal_pending(current)) {
+-			tty_unlock();
+-			return -EINTR;
++			ret = -EINTR;
++			break;
+ 		}
+ 	}
+-		
+-	if (rbuf->count > nr)
+-		/* frame too large for caller's buffer (discard frame) */
+-		ret = -EOVERFLOW;
+-	else {
+-		/* Copy the data to the caller's buffer */
+-		if (copy_to_user(buf, rbuf->buf, rbuf->count))
+-			ret = -EFAULT;
+-		else
+-			ret = rbuf->count;
+-	}
+-	
+-	/* return HDLC buffer to free list unless the free list */
+-	/* count has exceeded the default value, in which case the */
+-	/* buffer is freed back to the OS to conserve memory */
+-	if (n_hdlc->rx_free_buf_list.count > DEFAULT_RX_BUF_COUNT)
+-		kfree(rbuf);
+-	else	
+-		n_hdlc_buf_put(&n_hdlc->rx_free_buf_list,rbuf);
+-	tty_unlock();
++
++	remove_wait_queue(&tty->read_wait, &wait);
++	__set_current_state(TASK_RUNNING);
++
+ 	return ret;
+ 	
+ }	/* end of n_hdlc_tty_read() */
+@@ -691,14 +690,15 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		count = maxframe;
+ 	}
+ 	
+-	tty_lock();
+-
+ 	add_wait_queue(&tty->write_wait, &wait);
+-	set_current_state(TASK_INTERRUPTIBLE);
++
++	for (;;) {
++		set_current_state(TASK_INTERRUPTIBLE);
+ 	
+-	/* Allocate transmit buffer */
+-	/* sleep until transmit buffer available */		
+-	while (!(tbuf = n_hdlc_buf_get(&n_hdlc->tx_free_buf_list))) {
++		tbuf = n_hdlc_buf_get(&n_hdlc->tx_free_buf_list);
++		if (tbuf)
++			break;
++
+ 		if (file->f_flags & O_NONBLOCK) {
+ 			error = -EAGAIN;
+ 			break;
+@@ -719,7 +719,7 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		}
+ 	}
+ 
+-	set_current_state(TASK_RUNNING);
++	__set_current_state(TASK_RUNNING);
+ 	remove_wait_queue(&tty->write_wait, &wait);
+ 
+ 	if (!error) {		
+@@ -731,7 +731,7 @@ static ssize_t n_hdlc_tty_write(struct t
+ 		n_hdlc_buf_put(&n_hdlc->tx_buf_list,tbuf);
+ 		n_hdlc_send_frames(n_hdlc,tty);
+ 	}
+-	tty_unlock();
++
+ 	return error;
+ 	
+ }	/* end of n_hdlc_tty_write() */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-origin.patch
 linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-apple_bl-depends-on-acpi.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
