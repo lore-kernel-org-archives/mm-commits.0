@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + agp-ensure-gart-has-an-address-before-enabling-it.patch added to -mm tree
-Date: Mon, 31 Jan 2011 14:25:43 -0800
-Message-ID: <201101312225.p0VMPh9o005459__17484.956168528$1296512774$gmane$org@imap1.linux-foundation.org>
+Subject: + memcg-prevent-endless-loop-when-charging-huge-pages.patch added to -mm tree
+Date: Mon, 31 Jan 2011 14:30:31 -0800
+Message-ID: <201101312230.p0VMUVYY005690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753451Ab1AaW0E (ORCPT
+	by vger.kernel.org with ESMTP id S1753857Ab1AaWau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Jan 2011 17:26:04 -0500
+	Mon, 31 Jan 2011 17:30:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steve@sk2.org, airlied@redhat.com, bjorn.helgaas@hp.com, florian@mickler.org, maciej.rutecki@gmail.com, rjw@sisk.pl, segooon@gmail.com, stable@kernel.org
+Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     agp: ensure GART has an address before enabling it
+     memcg: prevent endless loop when charging huge pages
 has been added to the -mm tree.  Its filename is
-     agp-ensure-gart-has-an-address-before-enabling-it.patch
+     memcg-prevent-endless-loop-when-charging-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: ensure GART has an address before enabling it
-From: Stephen Kitt <steve@sk2.org>
+Subject: memcg: prevent endless loop when charging huge pages
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Some BIOSs (eg.  the AMI BIOS on the Asus P4P800 motherboard) don't
-initialise the GART address, and pcibios_assign_resources() can ignore it
-because it can be marked as a host bridge (see
-https://bugzilla.kernel.org/show_bug.cgi?id=24392#c5 for details).  This
-was handled correctly up to 2.6.35, but the pci_enable_device() cleanup in
-2.6.36 96576a9e1a0cdb8 ("agp: intel-agp: do not use PCI resources before
-pci_enable_device()") means that the kernel tries to enable the GART
-before assigning it an address; in such cases the GART overlaps with other
-device assignments and ends up being disabled.
+The charging code can encounter a charge size that is bigger than a
+regular page in two situations: one is a batched charge to fill the
+per-cpu stocks, the other is a huge page charge.
 
-This patch fixes https://bugzilla.kernel.org/show_bug.cgi?id=24392
+This code is distributed over two functions, however, and only the outer
+one is aware of huge pages.  In case the charging fails, the inner
+function will tell the outer function to retry if the charge size is
+bigger than regular pages--assuming batched charging is the only case. 
+And the outer function will retry forever charging a huge page.
 
-Note that I imagine efficeon-agp.c probably has the same problem, but
-I can't test that and I'd like to make sure this patch is suitable for
--stable (since 2.6.36 and 2.6.37 are affected).
+This patch makes sure the inner function can distinguish between batch
+charging and a single huge page charge.  It will only signal another
+attempt if batch charging failed, and go into regular reclaim when it is
+called on behalf of a huge page.
 
-Signed-off-by: Stephen Kitt <steve@sk2.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kulikov Vasiliy <segooon@gmail.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Florian Mickler <florian@mickler.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~agp-ensure-gart-has-an-address-before-enabling-it drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~agp-ensure-gart-has-an-address-before-enabling-it
-+++ a/drivers/char/agp/intel-agp.c
-@@ -774,20 +774,14 @@ static int __devinit agp_intel_probe(str
- 	dev_info(&pdev->dev, "Intel %s Chipset\n", intel_agp_chipsets[i].name);
- 
- 	/*
--	* If the device has not been properly setup, the following will catch
--	* the problem and should stop the system from crashing.
--	* 20030610 - hamish@zot.org
--	*/
--	if (pci_enable_device(pdev)) {
--		dev_err(&pdev->dev, "can't enable PCI device\n");
--		agp_put_bridge(bridge);
--		return -ENODEV;
--	}
+diff -puN mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages
++++ a/mm/memcontrol.c
+@@ -1837,8 +1837,15 @@ static int __mem_cgroup_do_charge(struct
+ 		flags |= MEM_CGROUP_RECLAIM_NOSWAP;
+ 	} else
+ 		mem_over_limit = mem_cgroup_from_res_counter(fail_res, res);
 -
--	/*
- 	* The following fixes the case where the BIOS has "forgotten" to
- 	* provide an address range for the GART.
- 	* 20030610 - hamish@zot.org
-+	* This happens before pci_enable_device() intentionally;
-+	* calling pci_enable_device() before assigning the resource
-+	* will result in the GART being disabled on machines with such
-+	* BIOSs (the GART ends up with a BAR starting at 0, which
-+	* conflicts a lot of other devices).
- 	*/
- 	r = &pdev->resource[0];
- 	if (!r->start && r->end) {
-@@ -798,6 +792,17 @@ static int __devinit agp_intel_probe(str
- 		}
- 	}
- 
+-	if (csize > PAGE_SIZE) /* change csize and retry */
 +	/*
-+	* If the device has not been properly setup, the following will catch
-+	* the problem and should stop the system from crashing.
-+	* 20030610 - hamish@zot.org
-+	*/
-+	if (pci_enable_device(pdev)) {
-+		dev_err(&pdev->dev, "can't enable PCI device\n");
-+		agp_put_bridge(bridge);
-+		return -ENODEV;
-+	}
-+
- 	/* Fill in the mode register */
- 	if (cap_ptr) {
- 		pci_read_config_dword(pdev,
++	 * csize can be either a huge page (HPAGE_SIZE), a batch of
++	 * regular pages (CHARGE_SIZE), or a single regular page
++	 * (PAGE_SIZE).
++	 *
++	 * Never reclaim on behalf of optional batching, retry with a
++	 * single page instead.
++	 */
++	if (csize == CHARGE_SIZE)
+ 		return CHARGE_RETRY;
+ 
+ 	if (!(gfp_mask & __GFP_WAIT))
 _
 
-Patches currently in -mm which might be from steve@sk2.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-agp-ensure-gart-has-an-address-before-enabling-it.patch
+origin.patch
+memcg-prevent-endless-loop-when-charging-huge-pages.patch
+memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch
+memcg-never-oom-when-charging-huge-pages.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
