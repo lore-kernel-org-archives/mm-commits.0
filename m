@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch added to -mm tree
-Date: Mon, 31 Jan 2011 14:30:33 -0800
-Message-ID: <201101312230.p0VMUXAu005693@imap1.linux-foundation.org>
+Subject: + memcg-fix-event-counting-breakage-by-recent-thp-update.patch added to -mm tree
+Date: Mon, 31 Jan 2011 16:26:18 -0800
+Message-ID: <201102010026.p110QIGj011065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754129Ab1AaWap (ORCPT
+	by vger.kernel.org with ESMTP id S1754297Ab1BAA0a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Jan 2011 17:30:45 -0500
+	Mon, 31 Jan 2011 19:26:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: prevent endless loop when charging huge pages to near-limit group
+     memcg: fix event counting breakage from recent THP update
 has been added to the -mm tree.  Its filename is
-     memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch
+     memcg-fix-event-counting-breakage-by-recent-thp-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: prevent endless loop when charging huge pages to near-limit group
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: memcg: fix event counting breakage from recent THP update
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-If reclaim after a failed charging was unsuccessful, the limits are
-checked again, just in case they settled by means of other tasks.
+Changes in e401f1761 ("memcg: modify accounting function for supporting
+THP better") adds nr_pages to support multiple page size in
+memory_cgroup_charge_statistics.
 
-This is all fine as long as every charge is of size PAGE_SIZE, because in
-that case, being below the limit means having at least PAGE_SIZE bytes
-available.
+But counting the number of event nees abs(nr_pages) for increasing
+counters.  This patch fixes event counting.
 
-But with transparent huge pages, we may end up in an endless loop where
-charging and reclaim fail, but we keep going because the limits are not
-yet exceeded, although not allowing for a huge page.
-
-Fix this up by explicitely checking for enough room, not just whether we
-are within limits.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   12 ++++++++++++
- mm/memcontrol.c             |   27 ++++++++++++++++++++-------
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group include/linux/res_counter.h
---- a/include/linux/res_counter.h~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group
-+++ a/include/linux/res_counter.h
-@@ -182,6 +182,18 @@ static inline bool res_counter_check_und
- 	return ret;
- }
- 
-+static inline bool res_counter_check_margin(struct res_counter *cnt,
-+					    unsigned long bytes)
-+{
-+	bool ret;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	ret = cnt->limit - cnt->usage >= bytes;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return ret;
-+}
-+
- static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
- {
- 	bool ret;
-diff -puN mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group
+diff -puN mm/memcontrol.c~memcg-fix-event-counting-breakage-by-recent-thp-update mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-event-counting-breakage-by-recent-thp-update
 +++ a/mm/memcontrol.c
-@@ -1111,6 +1111,15 @@ static bool mem_cgroup_check_under_limit
- 	return false;
- }
+@@ -612,8 +612,10 @@ static void mem_cgroup_charge_statistics
+ 	/* pagein of a big page is an event. So, ignore page size */
+ 	if (nr_pages > 0)
+ 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGIN_COUNT]);
+-	else
++	else {
+ 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGOUT_COUNT]);
++		nr_pages = -nr_pages; /* for event */
++	}
  
-+static bool mem_cgroup_check_margin(struct mem_cgroup *mem, unsigned long bytes)
-+{
-+	if (!res_counter_check_margin(&mem->res, bytes))
-+		return false;
-+	if (do_swap_account && !res_counter_check_margin(&mem->memsw, bytes))
-+		return false;
-+	return true;
-+}
-+
- static unsigned int get_swappiness(struct mem_cgroup *memcg)
- {
- 	struct cgroup *cgrp = memcg->css.cgroup;
-@@ -1852,15 +1861,19 @@ static int __mem_cgroup_do_charge(struct
- 		return CHARGE_WOULDBLOCK;
+ 	__this_cpu_add(mem->stat->count[MEM_CGROUP_EVENTS], nr_pages);
  
- 	ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, NULL,
--					gfp_mask, flags);
-+					      gfp_mask, flags);
-+	if (mem_cgroup_check_margin(mem_over_limit, csize))
-+		return CHARGE_RETRY;
- 	/*
--	 * try_to_free_mem_cgroup_pages() might not give us a full
--	 * picture of reclaim. Some pages are reclaimed and might be
--	 * moved to swap cache or just unmapped from the cgroup.
--	 * Check the limit again to see if the reclaim reduced the
--	 * current usage of the cgroup before giving up
-+	 * Even though the limit is exceeded at this point, reclaim
-+	 * may have been able to free some pages.  Retry the charge
-+	 * before killing the task.
-+	 *
-+	 * Only for regular pages, though: huge pages are rather
-+	 * unlikely to succeed so close to the limit, and we fall back
-+	 * to regular pages anyway in case of failure.
- 	 */
--	if (ret || mem_cgroup_check_under_limit(mem_over_limit))
-+	if (csize == PAGE_SIZE && ret)
- 		return CHARGE_RETRY;
- 
- 	/*
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+memsw-handle-swapaccount-kernel-parameter-correctly.patch
+memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
 memcg-prevent-endless-loop-when-charging-huge-pages.patch
 memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch
 memcg-never-oom-when-charging-huge-pages.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-fix-event-counting-breakage-by-recent-thp-update.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
 memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
 memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
