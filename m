@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch removed from -mm tree
-Date: Tue, 01 Feb 2011 15:46:10 -0800
-Message-ID: <201102012346.p11NkAV3005575@imap1.linux-foundation.org>
+Subject: [folded] thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch removed from -mm tree
+Date: Tue, 01 Feb 2011 15:46:35 -0800
+Message-ID: <201102012346.p11NkZao005579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751266Ab1BAXq6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:46:58 -0500
+	by vger.kernel.org with ESMTP id S1751266Ab1BAXrR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:47:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, jin.dongming@np.css.fujitsu.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
+     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
 has been removed from the -mm tree.  Its filename was
-     thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch
+     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
 
-This patch was dropped because it was folded into thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
+This patch was dropped because it was folded into thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
+Subject: thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix spello in comment
+fix unrelated typo in shake_page() comment
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -35,21 +35,23 @@ Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix
-+++ a/mm/huge_memory.c
-@@ -1163,7 +1163,7 @@ static void __split_huge_page_refcount(s
- 		smp_mb();
+diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
++++ a/mm/memory-failure.c
+@@ -233,8 +233,8 @@ void shake_page(struct page *p, int acce
+ 	}
  
- 		/*
--		 * remain hwpoison flag of the poisoned tail page:
-+		 * retain hwpoison flag of the poisoned tail page:
- 		 *   fix for the unsuitable process killed on Guest Machine(KVM)
- 		 *   by the memory-failure.
- 		 */
+ 	/*
+-	 * Only all shrink_slab here (which would also
+-	 * shrink other caches) if access is not potentially fatal.
++	 * Only call shrink_slab here (which would also shrink other caches) if
++	 * access is not potentially fatal.
+ 	 */
+ 	if (access) {
+ 		int nr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +60,7 @@ epoll-epoll_wait-should-not-use-timespec_add_ns.patch
 maintainers-fixup-simtec-support-email-entries.patch
 thp-fix-splitting-of-hwpoisoned-hugepages.patch
 thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
-thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
+thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
