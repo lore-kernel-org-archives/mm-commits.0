@@ -1,71 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch removed from -mm tree
-Date: Tue, 01 Feb 2011 15:44:22 -0800
-Message-ID: <201102012344.p11NiMf6005506@imap1.linux-foundation.org>
+Subject: [folded] maintainers-fixup-simtec-support-email-entries-fix.patch removed from -mm tree
+Date: Tue, 01 Feb 2011 15:45:00 -0800
+Message-ID: <201102012345.p11Nj0Ug005518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307Ab1BAXo5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:44:57 -0500
+	by vger.kernel.org with ESMTP id S1751422Ab1BAXp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:45:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, eric.dumazet@gmail.com, shawn.bohrer@gmail.com, sim@hostway.ca, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, jwjstone@fastmail.fm, linux@simtec.co.uk, support@simtec.co.uk, vince@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll-epoll_wait-should-not-use-timespec_add_ns-fix
+     maintainers-fixup-simtec-support-email-entries-fix
 has been removed from the -mm tree.  Its filename was
-     epoll-epoll_wait-should-not-use-timespec_add_ns-fix.patch
+     maintainers-fixup-simtec-support-email-entries-fix.patch
 
-This patch was dropped because it was folded into epoll-epoll_wait-should-not-use-timespec_add_ns.patch
+This patch was dropped because it was folded into maintainers-fixup-simtec-support-email-entries.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-epoll_wait-should-not-use-timespec_add_ns-fix
+Subject: maintainers-fixup-simtec-support-email-entries-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-s/epoll_set_mstimeout/ep_set_mstimeout/, per Davide
-
-Cc: <stable@kernel.org>		[2.6.37.x]
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>
-Cc: Simon Kirby <sim@hostway.ca>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Jack Stone <jwjstone@fastmail.fm>
+Cc: Simtec Linux Team <linux@simtec.co.uk>
+Cc: Simtec Support <support@simtec.co.uk>
+Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-epoll_wait-should-not-use-timespec_add_ns-fix fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-epoll_wait-should-not-use-timespec_add_ns-fix
-+++ a/fs/eventpoll.c
-@@ -1114,7 +1114,7 @@ static int ep_send_events(struct eventpo
- 	return ep_scan_ready_list(ep, ep_send_events_proc, &esed);
- }
+diff -puN MAINTAINERS~maintainers-fixup-simtec-support-email-entries-fix MAINTAINERS
+--- a/MAINTAINERS~maintainers-fixup-simtec-support-email-entries-fix
++++ a/MAINTAINERS
+@@ -5622,7 +5622,7 @@ F:	include/linux/sfi*.h
  
--static inline struct timespec epoll_set_mstimeout(long ms)
-+static inline struct timespec ep_set_mstimeout(long ms)
- {
- 	struct timespec now, ts = {
- 		.tv_sec = ms / MSEC_PER_SEC,
-@@ -1135,7 +1135,7 @@ static int ep_poll(struct eventpoll *ep,
- 	ktime_t expires, *to = NULL;
- 
- 	if (timeout > 0) {
--		struct timespec end_time = epoll_set_mstimeout(timeout);
-+		struct timespec end_time = ep_set_mstimeout(timeout);
- 
- 		slack = select_estimate_accuracy(&end_time);
- 		to = &expires;
+ SIMTEC EB110ATX (Chalice CATS)
+ P:	Ben Dooks
+-P:	Vincent Sanders <support@simtec.co.uk>
++P:	Vincent Sanders <vince@simtec.co.uk>
+ M:	Simtec Linux Team <linux@simtec.co.uk>
+ W:	http://www.simtec.co.uk/products/EB110ATX/
+ S:	Supported
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 epoll-epoll_wait-should-not-use-timespec_add_ns.patch
-maintainers-fixup-simtec-support-email-entries-fix.patch
+maintainers-fixup-simtec-support-email-entries.patch
 thp-fix-splitting-of-hwpoisoned-hugepages-checkpatch-fixes.patch
 thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages-fix.patch
 thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
