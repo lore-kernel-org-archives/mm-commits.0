@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-event-counting-breakage-by-recent-thp-update.patch added to -mm tree
-Date: Mon, 31 Jan 2011 16:26:18 -0800
-Message-ID: <201102010026.p110QIGj011065@imap1.linux-foundation.org>
+Subject: + memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix.patch added to -mm tree
+Date: Mon, 31 Jan 2011 16:52:52 -0800
+Message-ID: <201102010052.p110qqbE012248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40472 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754297Ab1BAA0a (ORCPT
+	by vger.kernel.org with ESMTP id S1753147Ab1BAAxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Jan 2011 19:26:30 -0500
+	Mon, 31 Jan 2011 19:53:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: fix event counting breakage from recent THP update
+     memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-event-counting-breakage-by-recent-thp-update.patch
+     memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix event counting breakage from recent THP update
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Changes in e401f1761 ("memcg: modify accounting function for supporting
-THP better") adds nr_pages to support multiple page size in
-memory_cgroup_charge_statistics.
+*oink*
 
-But counting the number of event nees abs(nr_pages) for increasing
-counters.  This patch fixes event counting.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-event-counting-breakage-by-recent-thp-update mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-event-counting-breakage-by-recent-thp-update
+diff -puN mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix
 +++ a/mm/memcontrol.c
-@@ -612,8 +612,10 @@ static void mem_cgroup_charge_statistics
- 	/* pagein of a big page is an event. So, ignore page size */
- 	if (nr_pages > 0)
- 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGIN_COUNT]);
--	else
-+	else {
- 		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGOUT_COUNT]);
-+		nr_pages = -nr_pages; /* for event */
-+	}
+@@ -1111,6 +1111,14 @@ static bool mem_cgroup_check_under_limit
+ 	return false;
+ }
  
- 	__this_cpu_add(mem->stat->count[MEM_CGROUP_EVENTS], nr_pages);
- 
++/**
++ * mem_cgroup_check_margin - check if the memory cgroup allows charging
++ * @mem: memory cgroup to check
++ * @bytes: the number of bytes the caller intends to charge
++ *
++ * Returns a boolean value on whether @mem can be charged @bytes or
++ * whether this would exceed the limit.
++ */
+ static bool mem_cgroup_check_margin(struct mem_cgroup *mem, unsigned long bytes)
+ {
+ 	if (!res_counter_check_margin(&mem->res, bytes))
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-memsw-handle-swapaccount-kernel-parameter-correctly.patch
-memsw-deprecate-noswapaccount-kernel-parameter-and-schedule-it-for-removal.patch
 memcg-prevent-endless-loop-when-charging-huge-pages.patch
 memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch
+memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix.patch
+memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix.patch
 memcg-never-oom-when-charging-huge-pages.patch
 memcg-fix-event-counting-breakage-by-recent-thp-update.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
-oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
-mm-add-replace_page_cache_page-function.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
 memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
 memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
