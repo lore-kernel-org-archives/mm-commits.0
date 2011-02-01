@@ -1,94 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch removed from -mm tree
-Date: Tue, 01 Feb 2011 15:46:35 -0800
-Message-ID: <201102012346.p11NkZao005579@imap1.linux-foundation.org>
+Subject: [folded] memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch removed from -mm tree
+Date: Tue, 01 Feb 2011 15:47:03 -0800
+Message-ID: <201102012347.p11Nl3VW005594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751266Ab1BAXrR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:47:17 -0500
+	by vger.kernel.org with ESMTP id S1751266Ab1BAXrq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 18:47:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, andi@firstfloor.org, jin.dongming@np.css.fujitsu.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
+     memcg: prevent endless loop when charging huge pages to near-limit group
 has been removed from the -mm tree.  Its filename was
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix.patch
+     memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group.patch
 
-This patch was dropped because it was folded into thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
+This patch was dropped because it was folded into memcg-prevent-endless-loop-when-charging-huge-pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: prevent endless loop when charging huge pages to near-limit group
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-fix unrelated typo in shake_page() comment
+If reclaim after a failed charging was unsuccessful, the limits are
+checked again, just in case they settled by means of other tasks.
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+This is all fine as long as every charge is of size PAGE_SIZE, because in
+that case, being below the limit means having at least PAGE_SIZE bytes
+available.
+
+But with transparent huge pages, we may end up in an endless loop where
+charging and reclaim fail, but we keep going because the limits are not
+yet exceeded, although not allowing for a huge page.
+
+Fix this up by explicitely checking for enough room, not just whether we
+are within limits.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/res_counter.h |   12 ++++++++++++
+ mm/memcontrol.c             |   27 ++++++++++++++++++++-------
+ 2 files changed, 32 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page-fix
-+++ a/mm/memory-failure.c
-@@ -233,8 +233,8 @@ void shake_page(struct page *p, int acce
- 	}
+diff -puN include/linux/res_counter.h~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group
++++ a/include/linux/res_counter.h
+@@ -182,6 +182,18 @@ static inline bool res_counter_check_und
+ 	return ret;
+ }
+ 
++static inline bool res_counter_check_margin(struct res_counter *cnt,
++					    unsigned long bytes)
++{
++	bool ret;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	ret = cnt->limit - cnt->usage >= bytes;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return ret;
++}
++
+ static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
+ {
+ 	bool ret;
+diff -puN mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group
++++ a/mm/memcontrol.c
+@@ -1111,6 +1111,15 @@ static bool mem_cgroup_check_under_limit
+ 	return false;
+ }
+ 
++static bool mem_cgroup_check_margin(struct mem_cgroup *mem, unsigned long bytes)
++{
++	if (!res_counter_check_margin(&mem->res, bytes))
++		return false;
++	if (do_swap_account && !res_counter_check_margin(&mem->memsw, bytes))
++		return false;
++	return true;
++}
++
+ static unsigned int get_swappiness(struct mem_cgroup *memcg)
+ {
+ 	struct cgroup *cgrp = memcg->css.cgroup;
+@@ -1852,15 +1861,19 @@ static int __mem_cgroup_do_charge(struct
+ 		return CHARGE_WOULDBLOCK;
+ 
+ 	ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, NULL,
+-					gfp_mask, flags);
++					      gfp_mask, flags);
++	if (mem_cgroup_check_margin(mem_over_limit, csize))
++		return CHARGE_RETRY;
+ 	/*
+-	 * try_to_free_mem_cgroup_pages() might not give us a full
+-	 * picture of reclaim. Some pages are reclaimed and might be
+-	 * moved to swap cache or just unmapped from the cgroup.
+-	 * Check the limit again to see if the reclaim reduced the
+-	 * current usage of the cgroup before giving up
++	 * Even though the limit is exceeded at this point, reclaim
++	 * may have been able to free some pages.  Retry the charge
++	 * before killing the task.
++	 *
++	 * Only for regular pages, though: huge pages are rather
++	 * unlikely to succeed so close to the limit, and we fall back
++	 * to regular pages anyway in case of failure.
+ 	 */
+-	if (ret || mem_cgroup_check_under_limit(mem_over_limit))
++	if (csize == PAGE_SIZE && ret)
+ 		return CHARGE_RETRY;
  
  	/*
--	 * Only all shrink_slab here (which would also
--	 * shrink other caches) if access is not potentially fatal.
-+	 * Only call shrink_slab here (which would also shrink other caches) if
-+	 * access is not potentially fatal.
- 	 */
- 	if (access) {
- 		int nr;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-epoll-epoll_wait-should-not-use-timespec_add_ns.patch
-maintainers-fixup-simtec-support-email-entries.patch
-thp-fix-splitting-of-hwpoisoned-hugepages.patch
-thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
-thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
+memcg-prevent-endless-loop-when-charging-huge-pages.patch
+memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix.patch
+memcg-prevent-endless-loop-when-charging-huge-pages-to-near-limit-group-fix-fix.patch
+memcg-never-oom-when-charging-huge-pages.patch
+memcg-fix-event-counting-breakage-by-recent-thp-update.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
