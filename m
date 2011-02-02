@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-operate-on-any-regions-with-protection-=-prot_none.patch added to -mm tree
-Date: Tue, 01 Feb 2011 16:21:20 -0800
-Message-ID: <201102020021.p120LKme007091@imap1.linux-foundation.org>
+Subject: + kexec-remove-kmsg_dump_kexec.patch added to -mm tree
+Date: Tue, 01 Feb 2011 16:23:33 -0800
+Message-ID: <201102020023.p120NXfm007214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751622Ab1BBAVk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 19:21:40 -0500
+	by vger.kernel.org with ESMTP id S1751522Ab1BBAXk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 19:23:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, tm@tao.ma, torvalds@linux-foundation.org
+Cc: xiyou.wangcong@gmail.com, ebiederm@xmission.com, jarod@redhat.com, kosaki.motohiro@jp.fujitsu.com, vgoyal@redhat.com
 
 
 The patch titled
-     mlock: operate on any regions with protection != PROT_NONE
+     kexec: remove KMSG_DUMP_KEXEC
 has been added to the -mm tree.  Its filename is
-     mlock-operate-on-any-regions-with-protection-=-prot_none.patch
+     kexec-remove-kmsg_dump_kexec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: operate on any regions with protection != PROT_NONE
-From: Michel Lespinasse <walken@google.com>
+Subject: kexec: remove KMSG_DUMP_KEXEC
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-As Tao Ma noticed, 5ecfda0 ("mlock: avoid dirtying pages and triggering
-writeback") breaks blktrace.  This is because blktrace mmaps a file with
-PROT_WRITE permissions but without PROT_READ, so my attempt to not
-unnecessarity break COW during mlock ended up causing mlock to fail with a
-permission problem.
+KMSG_DUMP_KEXEC is useless because we already save kernel messages inside
+/proc/vmcore, and it is unsafe to allow modules to do other stuffs in a
+crash dump scenario.
 
-Let mlock ignore vma protection in all cases except PROT_NONE.  In
-particular, mlock should not fail for PROT_WRITE regions (as in the
-blktrace case, which broke at 5ecfda0) or for PROT_EXEC regions (which
-seem to me like they were always broken).
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reported-by: Tao Ma <tm@tao.ma>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Reported-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/char/ramoops.c    |    3 +--
+ drivers/mtd/mtdoops.c     |    3 +--
+ include/linux/kmsg_dump.h |    1 -
+ kernel/kexec.c            |    3 ---
+ 4 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN mm/mlock.c~mlock-operate-on-any-regions-with-protection-=-prot_none mm/mlock.c
---- a/mm/mlock.c~mlock-operate-on-any-regions-with-protection-=-prot_none
-+++ a/mm/mlock.c
-@@ -178,6 +178,13 @@ static long __mlock_vma_pages_range(stru
- 	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
- 		gup_flags |= FOLL_WRITE;
+diff -puN drivers/char/ramoops.c~kexec-remove-kmsg_dump_kexec drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~kexec-remove-kmsg_dump_kexec
++++ a/drivers/char/ramoops.c
+@@ -69,8 +69,7 @@ static void ramoops_do_dump(struct kmsg_
+ 	struct timeval timestamp;
  
-+	/*
-+	 * We want mlock to succeed for regions that have any permissions
-+	 * other than PROT_NONE.
-+	 */
-+	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
-+		gup_flags |= FOLL_FORCE;
-+
- 	if (vma->vm_flags & VM_LOCKED)
- 		gup_flags |= FOLL_MLOCK;
+ 	if (reason != KMSG_DUMP_OOPS &&
+-	    reason != KMSG_DUMP_PANIC &&
+-	    reason != KMSG_DUMP_KEXEC)
++	    reason != KMSG_DUMP_PANIC)
+ 		return;
  
-_
-
-Patches currently in -mm which might be from walken@google.com are
-
-mlock-operate-on-any-regions-with-protection-=-prot_none.patch
-
+ 	/* Only dump oopses if dump_oops is set */
+diff -puN drivers/mtd/mtdoops.c~kexec-remove-kmsg_dump_kexec drivers/mtd/mtdoops.c
+--- a/drivers/mtd/mtdoops.c~kexec-remove-kmsg_dump_kexec
++++ a/drivers/mtd/mtdoops.c
+@@ -308,8 +308,7 @@ static void mtdoops_do_dump(struct kmsg_
+ 	char *dst;
+ 
+ 	if (reason != KMSG_DUMP_OOPS &&
+-	    reason != KMSG_DUMP_PANIC &&
+-	    reason != KMSG_DUMP_KEXEC)
++	    reason != KMSG_DUMP_PANIC)
+ 		return;
+ 
+ 	/* Only dump oopses if dump_oops is set */
+diff -puN include/linux/kmsg_dump.h~kexec-remove-kmsg_dump_kexec include/linux/kmsg_dump.h
+--- a/include/linux/kmsg_dump.h~kexec-remove-kmsg_dump_kexec
++++ a/include/linux/kmsg_dump.h
+@@ -17,7 +17,6 @@
+ enum kmsg_dump_reason {
+ 	KMSG_DUMP_OOPS,
+ 	KMSG_DUMP_PANIC,
+-	KMSG_DUMP_KEXEC,
+ 	KMSG_DUMP_RESTART,
+ 	KMSG_DUMP_HALT,
+ 	KMSG_DUMP_POWEROFF,
+diff -puN kernel/kexec.c~kexec-remove-kmsg_dump_kexec kernel/kexec.c
+--- a/kernel/kexec.c~kexec-remove-kmsg_dump_kexec
++++ a/kernel/kexec.c
+@@ -32,7 +32,6 @@
+ #include <linux/console.h>
+ #include <linux/vmalloc.h>
+ #include <linux/swap.h>
+-#include <linux/kmsg_dump.h>
+ 
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1078,8 +1077,6 @@ void crash_kexec(struct pt_regs *regs)
+ 		if (kexec_crash_image) {
+ 			struct pt_regs fixed_regs;
+ 
+-			kmsg_dump(KMSG_DUMP_KEXEC);
