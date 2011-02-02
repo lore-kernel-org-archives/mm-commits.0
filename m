@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-checkpatchpl-reset-rpt_cleaners-warnings.patch added to -mm tree
-Date: Tue, 01 Feb 2011 16:49:42 -0800
-Message-ID: <201102020049.p120ngZs008355@imap1.linux-foundation.org>
+Subject: + mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch added to -mm tree
+Date: Tue, 01 Feb 2011 16:42:53 -0800
+Message-ID: <201102020042.p120grNi008040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753971Ab1BBAuV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 19:50:21 -0500
+	by vger.kernel.org with ESMTP id S1752815Ab1BBAnm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2011 19:43:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, apw@canonical.com
+Cc: akpm@linux-foundation.org, avi@redhat.com, gleb@redhat.com, hughd@google.com, mtosatti@redhat.com, riel@redhat.com, torvalds@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     scripts/checkpatch.pl: reset rpt_cleaners warnings
+     mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
 has been added to the -mm tree.  Its filename is
-     scripts-checkpatchpl-reset-rpt_cleaners-warnings.patch
+     mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/checkpatch.pl: reset rpt_cleaners warnings
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If you run checkpatch against multiple patches, and one of them has a
-whitespace issue which can be helped via a script (rpt_cleaners), you will
-see the same NOTE over and over for all subsequent patches.  It makes it
-seem like those patches also have whitespace problems when in reality,
-there's only one or two bad apples.
-
-So reset rpt_cleaners back to 0 after we've issued the note so that it
-only shows up near the patch with the actual problems.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Gleb Natapov <gleb@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-reset-rpt_cleaners-warnings scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~scripts-checkpatchpl-reset-rpt_cleaners-warnings
-+++ a/scripts/checkpatch.pl
-@@ -2944,6 +2944,7 @@ sub process {
- 		if ($rpt_cleaners) {
- 			print "NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or\n";
- 			print "      scripts/cleanfile\n\n";
-+			$rpt_cleaners = 0;
- 		}
- 	}
+diff -puN include/linux/mm.h~mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
++++ a/include/linux/mm.h
+@@ -1537,7 +1537,8 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_GET	0x04	/* do get_page on page */
+ #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+ #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+-#define FOLL_NOWAIT	0x20	/* return if disk transfer is needed */
++#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
++				 * and return without waiting upon it */
+ #define FOLL_MLOCK	0x40	/* mark page as mlocked */
+ #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
  
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-epoll_wait-should-not-use-timespec_add_ns.patch
+maintainers-fixup-simtec-support-email-entries.patch
+thp-fix-splitting-of-hwpoisoned-hugepages.patch
+thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
+thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
 linux-next.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
 backlight-add-backlight-type-fix.patch
 backlight-add-backlight-type-fix-fix.patch
-llist-add-kconfig-option-arch_have_nmi_safe_cmpxchg.patch
-llist-lib-add-lock-less-null-terminated-single-list.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
-sigma-firmware-loader-for-analog-devices-sigmastudio.patch
-sigma-firmware-loader-for-analog-devices-sigmastudio-v2.patch
-scripts-checkpatchpl-reset-rpt_cleaners-warnings.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
