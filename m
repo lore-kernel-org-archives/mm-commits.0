@@ -1,76 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mlock-operate-on-any-regions-with-protection-=-prot_none.patch removed from -mm tree
-Date: Wed, 02 Feb 2011 11:41:19 -0800
-Message-ID: <201102021941.p12JfJwa023901@imap1.linux-foundation.org>
+Subject: [merged] gpu-stub-fix-acpi_video-build-error-fix-stub-kconfig-dependencies.patch removed from -mm tree
+Date: Wed, 02 Feb 2011 11:41:22 -0800
+Message-ID: <201102021941.p12JfMuJ023907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751489Ab1BBTlj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Feb 2011 14:41:39 -0500
+	by vger.kernel.org with ESMTP id S1751489Ab1BBTmJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Feb 2011 14:42:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, tm@tao.ma, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, airlied@redhat.com, lenb@kernel.org, luming.yu@intel.com, mingo@elte.hu, rjw@sisk.pl, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock: operate on any regions with protection != PROT_NONE
+     gpu/stub: fix acpi_video build error, fix stub kconfig dependencies
 has been removed from the -mm tree.  Its filename was
-     mlock-operate-on-any-regions-with-protection-=-prot_none.patch
+     gpu-stub-fix-acpi_video-build-error-fix-stub-kconfig-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: operate on any regions with protection != PROT_NONE
-From: Michel Lespinasse <walken@google.com>
+Subject: gpu/stub: fix acpi_video build error, fix stub kconfig dependencies
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-As Tao Ma noticed, 5ecfda0 ("mlock: avoid dirtying pages and triggering
-writeback") breaks blktrace.  This is because blktrace mmaps a file with
-PROT_WRITE permissions but without PROT_READ, so my attempt to not
-unnecessarity break COW during mlock ended up causing mlock to fail with a
-permission problem.
+The comments under "config STUB_POULSBO" are close to correct, but they
+are not being followed.  This patch updates them to reflect the
+requirements for THERMAL.
 
-Let mlock ignore vma protection in all cases except PROT_NONE.  In
-particular, mlock should not fail for PROT_WRITE regions (as in the
-blktrace case, which broke at 5ecfda0) or for PROT_EXEC regions (which
-seem to me like they were always broken).
+This build error is caused by STUB_POULSBO selecting ACPI_VIDEO when
+ACPI_VIDEO's config requirements are not met.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reported-by: Tao Ma <tm@tao.ma>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+ERROR: "thermal_cooling_device_register" [drivers/acpi/video.ko] undefined!
+ERROR: "thermal_cooling_device_unregister" [drivers/acpi/video.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Luming Yu <luming.yu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/gpu/stub/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/mlock.c~mlock-operate-on-any-regions-with-protection-=-prot_none mm/mlock.c
---- a/mm/mlock.c~mlock-operate-on-any-regions-with-protection-=-prot_none
-+++ a/mm/mlock.c
-@@ -178,6 +178,13 @@ static long __mlock_vma_pages_range(stru
- 	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
- 		gup_flags |= FOLL_WRITE;
- 
-+	/*
-+	 * We want mlock to succeed for regions that have any permissions
-+	 * other than PROT_NONE.
-+	 */
-+	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
-+		gup_flags |= FOLL_FORCE;
-+
- 	if (vma->vm_flags & VM_LOCKED)
- 		gup_flags |= FOLL_MLOCK;
- 
+diff -puN drivers/gpu/stub/Kconfig~gpu-stub-fix-acpi_video-build-error-fix-stub-kconfig-dependencies drivers/gpu/stub/Kconfig
+--- a/drivers/gpu/stub/Kconfig~gpu-stub-fix-acpi_video-build-error-fix-stub-kconfig-dependencies
++++ a/drivers/gpu/stub/Kconfig
+@@ -1,11 +1,13 @@
+ config STUB_POULSBO
+ 	tristate "Intel GMA500 Stub Driver"
+ 	depends on PCI
++	depends on NET # for THERMAL
+ 	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
+ 	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+ 	select BACKLIGHT_CLASS_DEVICE if ACPI
+ 	select INPUT if ACPI
+ 	select ACPI_VIDEO if ACPI
++	select THERMAL if ACPI
+ 	help
+ 	  Choose this option if you have a system that has Intel GMA500
+ 	  (Poulsbo) integrated graphics. If M is selected, the module will
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+linux-next.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-apple_bl-depends-on-acpi.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
