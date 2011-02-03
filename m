@@ -1,110 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch removed from -mm tree
-Date: Thu, 03 Feb 2011 11:46:19 -0800
-Message-ID: <201102031946.p13JkJZD020999@imap1.linux-foundation.org>
+Subject: [merged] memcg-never-oom-when-charging-huge-pages.patch removed from -mm tree
+Date: Thu, 03 Feb 2011 11:46:26 -0800
+Message-ID: <201102031946.p13JkQFl021008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756453Ab1BCTqe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 14:46:34 -0500
+	by vger.kernel.org with ESMTP id S1756731Ab1BCTqn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 14:46:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jin.dongming@np.css.fujitsu.com, aarcange@redhat.com, andi@firstfloor.org, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: fix unsuitable behavior for hwpoisoned tail page
+     memcg: never OOM when charging huge pages
 has been removed from the -mm tree.  Its filename was
-     thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page.patch
+     memcg-never-oom-when-charging-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: fix unsuitable behavior for hwpoisoned tail page
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: memcg: never OOM when charging huge pages
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-When a tail page of THP is poisoned, memory-failure will do nothing except
-setting PG_hwpoison, while the expected behavior is that the process, who
-is using the poisoned tail page, should be killed.
+Huge page coverage should obviously have less priority than the continued
+execution of a process.
 
-The above problem is caused by lru check of the poisoned tail page of THP.
-Because PG_lru flag is only set on the head page of THP, the check always
-consider the poisoned tail page as NON lru page.
+Never kill a process when charging it a huge page fails.  Instead, give up
+after the first failed reclaim attempt and fall back to regular pages.
 
-So the lru check for the tail page of THP should be avoided, as like as
-hugetlb.
-
-This patch adds !PageTransCompound() before lru check for THP, because of
-the check (!PageHuge() && !PageTransCompound()) the whole branch could be
-optimized away at build time when both hugetlbfs and THP are set with "N"
-(or in archs not supporting either of those).
-
-[akpm@linux-foundation.org: fix unrelated typo in shake_page() comment]
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-unsuitable-behavior-for-hwpoisoned-tail-page
-+++ a/mm/memory-failure.c
-@@ -233,8 +233,8 @@ void shake_page(struct page *p, int acce
+diff -puN mm/memcontrol.c~memcg-never-oom-when-charging-huge-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-never-oom-when-charging-huge-pages
++++ a/mm/memcontrol.c
+@@ -2351,13 +2351,19 @@ static int mem_cgroup_charge_common(stru
+ 				gfp_t gfp_mask, enum charge_type ctype)
+ {
+ 	struct mem_cgroup *mem = NULL;
++	int page_size = PAGE_SIZE;
+ 	struct page_cgroup *pc;
++	bool oom = true;
+ 	int ret;
+-	int page_size = PAGE_SIZE;
+ 
+ 	if (PageTransHuge(page)) {
+ 		page_size <<= compound_order(page);
+ 		VM_BUG_ON(!PageTransHuge(page));
++		/*
++		 * Never OOM-kill a process for a huge page.  The
++		 * fault handler will fall back to regular pages.
++		 */
++		oom = false;
  	}
  
- 	/*
--	 * Only all shrink_slab here (which would also
--	 * shrink other caches) if access is not potentially fatal.
-+	 * Only call shrink_slab here (which would also shrink other caches) if
-+	 * access is not potentially fatal.
- 	 */
- 	if (access) {
- 		int nr;
-@@ -1065,19 +1065,22 @@ int __memory_failure(unsigned long pfn, 
- 	 * The check (unnecessarily) ignores LRU pages being isolated and
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
--	if (!PageLRU(p) && !PageHuge(p))
--		shake_page(p, 0);
--	if (!PageLRU(p) && !PageHuge(p)) {
--		/*
--		 * shake_page could have turned it free.
--		 */
--		if (is_free_buddy_page(p)) {
--			action_result(pfn, "free buddy, 2nd try", DELAYED);
--			return 0;
-+	if (!PageHuge(p) && !PageTransCompound(p)) {
-+		if (!PageLRU(p))
-+			shake_page(p, 0);
-+		if (!PageLRU(p)) {
-+			/*
-+			 * shake_page could have turned it free.
-+			 */
-+			if (is_free_buddy_page(p)) {
-+				action_result(pfn, "free buddy, 2nd try",
-+						DELAYED);
-+				return 0;
-+			}
-+			action_result(pfn, "non LRU", IGNORED);
-+			put_page(p);
-+			return -EBUSY;
- 		}
--		action_result(pfn, "non LRU", IGNORED);
--		put_page(p);
--		return -EBUSY;
- 	}
+ 	pc = lookup_page_cgroup(page);
+@@ -2366,7 +2372,7 @@ static int mem_cgroup_charge_common(stru
+ 		return 0;
+ 	prefetchw(pc);
  
- 	/*
+-	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true, page_size);
++	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, oom, page_size);
+ 	if (ret || !mem)
+ 		return ret;
+ 
 _
 
-Patches currently in -mm which might be from jin.dongming@np.css.fujitsu.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
