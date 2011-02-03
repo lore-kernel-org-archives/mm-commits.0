@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:36:43 -0800
-Message-ID: <201102032036.p13Kah29023235@imap1.linux-foundation.org>
+Subject: + gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch added to -mm tree
+Date: Thu, 03 Feb 2011 12:38:09 -0800
+Message-ID: <201102032038.p13Kc9Pv023348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751640Ab1BCUhF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:37:05 -0500
+	by vger.kernel.org with ESMTP id S1751640Ab1BCUid (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:38:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stigge@antcom.de, bgardner@wabtec.com, eric.y.miao@gmail.com, grant.likely@secretlab.ca, maz@misterjones.org
+Cc: lars@metafoo.de, eric.y.miao@gmail.com, w.sang@pengutronix.de
 
 
 The patch titled
-     drivers/gpio/pca953x.c: add a mutex to fix race condition
+     gpio: make gpio_{request,free}_array gpio array parameter const
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch
+     gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,132 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/pca953x.c: add a mutex to fix race condition
+Subject: gpio: make gpio_{request,free}_array gpio array parameter const
+From: Lars-Peter Clausen <lars@metafoo.de>
 
+gpio_{request,free}_array should not (and do not) modify the passed gpio
+array, so make the parameter const.
 
-Add a mutex to register communication and handling.  Without the mutex,
-GPIOs didn't switch as expected when toggled in a fast sequence of status
-changes of multiple outputs.
-
-Signed-off-by: Roland Stigge <stigge@antcom.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: eric miao <eric.y.miao@gmail.com>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Eric Miao <eric.y.miao@gmail.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ drivers/gpio/gpiolib.c     |    4 ++--
+ include/asm-generic/gpio.h |    4 ++--
+ include/linux/gpio.h       |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition
-+++ a/drivers/gpio/pca953x.c
-@@ -60,6 +60,7 @@ struct pca953x_chip {
- 	unsigned gpio_start;
- 	uint16_t reg_output;
- 	uint16_t reg_direction;
-+	struct mutex i2c_lock;
+diff -puN drivers/gpio/gpiolib.c~gpio-make-gpio_requestfree_array-gpio-array-parameter-const drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/drivers/gpio/gpiolib.c
+@@ -1293,7 +1293,7 @@ EXPORT_SYMBOL_GPL(gpio_request_one);
+  * @array:	array of the 'struct gpio'
+  * @num:	how many GPIOs in the array
+  */
+-int gpio_request_array(struct gpio *array, size_t num)
++int gpio_request_array(const struct gpio *array, size_t num)
+ {
+ 	int i, err;
  
- #ifdef CONFIG_GPIO_PCA953X_IRQ
- 	struct mutex irq_lock;
-@@ -119,13 +120,17 @@ static int pca953x_gpio_direction_input(
+@@ -1316,7 +1316,7 @@ EXPORT_SYMBOL_GPL(gpio_request_array);
+  * @array:	array of the 'struct gpio'
+  * @num:	how many GPIOs in the array
+  */
+-void gpio_free_array(struct gpio *array, size_t num)
++void gpio_free_array(const struct gpio *array, size_t num)
+ {
+ 	while (num--)
+ 		gpio_free((array++)->gpio);
+diff -puN include/asm-generic/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/include/asm-generic/gpio.h
+@@ -193,8 +193,8 @@ struct gpio {
+ };
  
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+ extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
+-extern int gpio_request_array(struct gpio *array, size_t num);
+-extern void gpio_free_array(struct gpio *array, size_t num);
++extern int gpio_request_array(const struct gpio *array, size_t num);
++extern void gpio_free_array(const struct gpio *array, size_t num);
  
-+	mutex_lock(&chip->i2c_lock);
- 	reg_val = chip->reg_direction | (1u << off);
- 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
+ #ifdef CONFIG_GPIO_SYSFS
  
- 	chip->reg_direction = reg_val;
--	return 0;
-+	ret = 0;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
-+	return ret;
+diff -puN include/linux/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const include/linux/gpio.h
+--- a/include/linux/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/include/linux/gpio.h
+@@ -41,7 +41,7 @@ static inline int gpio_request_one(unsig
+ 	return -ENOSYS;
  }
  
- static int pca953x_gpio_direction_output(struct gpio_chip *gc,
-@@ -137,6 +142,7 @@ static int pca953x_gpio_direction_output
- 
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	/* set output level */
- 	if (val)
- 		reg_val = chip->reg_output | (1u << off);
-@@ -145,7 +151,7 @@ static int pca953x_gpio_direction_output
- 
- 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
- 
- 	chip->reg_output = reg_val;
- 
-@@ -153,10 +159,13 @@ static int pca953x_gpio_direction_output
- 	reg_val = chip->reg_direction & ~(1u << off);
- 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
- 
- 	chip->reg_direction = reg_val;
--	return 0;
-+	ret = 0;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
-+	return ret;
+-static inline int gpio_request_array(struct gpio *array, size_t num)
++static inline int gpio_request_array(const struct gpio *array, size_t num)
+ {
+ 	return -ENOSYS;
+ }
+@@ -54,7 +54,7 @@ static inline void gpio_free(unsigned gp
+ 	WARN_ON(1);
  }
  
- static int pca953x_gpio_get_value(struct gpio_chip *gc, unsigned off)
-@@ -167,7 +176,9 @@ static int pca953x_gpio_get_value(struct
+-static inline void gpio_free_array(struct gpio *array, size_t num)
++static inline void gpio_free_array(const struct gpio *array, size_t num)
+ {
+ 	might_sleep();
  
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
-+	mutex_unlock(&chip->i2c_lock);
- 	if (ret < 0) {
- 		/* NOTE:  diagnostic already emitted; that's all we should
- 		 * do unless gpio_*_value_cansleep() calls become different
-@@ -187,6 +198,7 @@ static void pca953x_gpio_set_value(struc
- 
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	if (val)
- 		reg_val = chip->reg_output | (1u << off);
- 	else
-@@ -194,9 +206,11 @@ static void pca953x_gpio_set_value(struc
- 
- 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
- 	if (ret)
--		return;
-+		goto exit;
- 
- 	chip->reg_output = reg_val;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
- }
- 
- static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
-@@ -517,6 +531,8 @@ static int __devinit pca953x_probe(struc
- 
- 	chip->names = pdata->names;
- 
-+	mutex_init(&chip->i2c_lock);
-+
- 	/* initialize cached registers from their original values.
- 	 * we can't share this chip with another i2c master.
- 	 */
 _
 
-Patches currently in -mm which might be from stigge@antcom.de are
+Patches currently in -mm which might be from lars@metafoo.de are
 
-linux-next.patch
-drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch
+gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch
 
