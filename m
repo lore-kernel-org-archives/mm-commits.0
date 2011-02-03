@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-condense-page_cgroup-to-page-lookup-points.patch added to -mm tree
-Date: Thu, 03 Feb 2011 15:31:15 -0800
-Message-ID: <201102032331.p13NVFjC031219@imap1.linux-foundation.org>
+Subject: + memcg-change-page_cgroup_zoneinfo-signature.patch added to -mm tree
+Date: Thu, 03 Feb 2011 15:31:11 -0800
+Message-ID: <201102032331.p13NVBr2031211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752227Ab1BCXb0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 18:31:26 -0500
+	by vger.kernel.org with ESMTP id S1752665Ab1BCXb2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 18:31:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.co
 
 
 The patch titled
-     memcg: condense page_cgroup-to-page lookup points
+     memcg: change page_cgroup_zoneinfo signature
 has been added to the -mm tree.  Its filename is
-     memcg-condense-page_cgroup-to-page-lookup-points.patch
+     memcg-change-page_cgroup_zoneinfo-signature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: condense page_cgroup-to-page lookup points
+Subject: memcg: change page_cgroup_zoneinfo signature
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-The per-cgroup LRU lists string up 'struct page_cgroup's.  To get from
-those structures to the page they represent, a lookup is required. 
-Currently, the lookup is done through a direct pointer in struct
-page_cgroup, so a lot of functions down the callchain do this lookup by
-themselves instead of receiving the page pointer from their callers.
+Instead of passing a whole struct page_cgroup to this function, let it
+take only what it really needs from it: the struct mem_cgroup and the
+page.
 
-The next patch removes this pointer, however, and the lookup is no longer
-that straight-forward.  In preparation for that, this patch only leaves
-the non-optional lookups when coming directly from the LRU list and passes
-the page down the stack.
+This has the advantage that reading pc->mem_cgroup is now done at the same
+place where the ordering rules for this pointer are enforced and
+explained.
+
+It is also in preparation for removing the pc->page backpointer.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -55,167 +54,93 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ include/linux/page_cgroup.h |   10 ----------
+ mm/memcontrol.c             |   17 ++++++++---------
+ 2 files changed, 8 insertions(+), 19 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points
+diff -puN include/linux/page_cgroup.h~memcg-change-page_cgroup_zoneinfo-signature include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-change-page_cgroup_zoneinfo-signature
++++ a/include/linux/page_cgroup.h
+@@ -85,16 +85,6 @@ SETPCGFLAG(Migration, MIGRATION)
+ CLEARPCGFLAG(Migration, MIGRATION)
+ TESTPCGFLAG(Migration, MIGRATION)
+ 
+-static inline int page_cgroup_nid(struct page_cgroup *pc)
+-{
+-	return page_to_nid(pc->page);
+-}
+-
+-static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
+-{
+-	return page_zonenum(pc->page);
+-}
+-
+ static inline void lock_page_cgroup(struct page_cgroup *pc)
+ {
+ 	/*
+diff -puN mm/memcontrol.c~memcg-change-page_cgroup_zoneinfo-signature mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-change-page_cgroup_zoneinfo-signature
 +++ a/mm/memcontrol.c
-@@ -1051,9 +1051,11 @@ unsigned long mem_cgroup_isolate_pages(u
- 		if (scan >= nr_to_scan)
- 			break;
- 
--		page = pc->page;
- 		if (unlikely(!PageCgroupUsed(pc)))
- 			continue;
-+
-+		page = pc->page;
-+
- 		if (unlikely(!PageLRU(page)))
- 			continue;
- 
-@@ -2082,6 +2084,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+@@ -364,11 +364,10 @@ struct cgroup_subsys_state *mem_cgroup_c
  }
  
- static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
-+				       struct page *page,
- 				       struct page_cgroup *pc,
- 				       enum charge_type ctype,
- 				       int page_size)
-@@ -2128,7 +2131,7 @@ static void __mem_cgroup_commit_charge(s
- 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
- 	 * if they exceeds softlimit.
- 	 */
--	memcg_check_events(mem, pc->page);
-+	memcg_check_events(mem, page);
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -2175,6 +2178,7 @@ void mem_cgroup_split_huge_fixup(struct 
- 
- /**
-  * mem_cgroup_move_account - move account of the page
-+ * @page: the page
-  * @pc:	page_cgroup of the page.
-  * @from: mem_cgroup which the page is moved from.
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-@@ -2190,7 +2194,7 @@ void mem_cgroup_split_huge_fixup(struct 
-  * true, this function does "uncharge" from old cgroup, but it doesn't if
-  * @uncharge is false, so a caller should do "uncharge".
-  */
--static int mem_cgroup_move_account(struct page_cgroup *pc,
-+static int mem_cgroup_move_account(struct page *page, struct page_cgroup *pc,
- 				   struct mem_cgroup *from, struct mem_cgroup *to,
- 				   bool uncharge, int charge_size)
+ static struct mem_cgroup_per_zone *
+-page_cgroup_zoneinfo(struct page_cgroup *pc)
++page_cgroup_zoneinfo(struct mem_cgroup *mem, struct page *page)
  {
-@@ -2199,7 +2203,7 @@ static int mem_cgroup_move_account(struc
- 	int ret;
+-	struct mem_cgroup *mem = pc->mem_cgroup;
+-	int nid = page_cgroup_nid(pc);
+-	int zid = page_cgroup_zid(pc);
++	int nid = page_to_nid(page);
++	int zid = page_zonenum(page);
  
- 	VM_BUG_ON(from == to);
--	VM_BUG_ON(PageLRU(pc->page));
-+	VM_BUG_ON(PageLRU(page));
- 	/*
- 	 * The page is isolated from LRU. So, collapse function
- 	 * will not handle this page. But page splitting can happen.
-@@ -2207,7 +2211,7 @@ static int mem_cgroup_move_account(struc
- 	 * hold it.
+ 	return mem_cgroup_zoneinfo(mem, nid, zid);
+ }
+@@ -800,7 +799,7 @@ void mem_cgroup_del_lru_list(struct page
+ 	 * We don't check PCG_USED bit. It's cleared when the "page" is finally
+ 	 * removed from global LRU.
  	 */
- 	ret = -EBUSY;
--	if (charge_size > PAGE_SIZE && !PageTransHuge(pc->page))
-+	if (charge_size > PAGE_SIZE && !PageTransHuge(page))
- 		goto out;
- 
- 	lock_page_cgroup(pc);
-@@ -2247,8 +2251,8 @@ unlock:
- 	/*
- 	 * check events
- 	 */
--	memcg_check_events(to, pc->page);
--	memcg_check_events(from, pc->page);
-+	memcg_check_events(to, page);
-+	memcg_check_events(from, page);
- out:
- 	return ret;
- }
-@@ -2257,11 +2261,11 @@ out:
-  * move charges to its parent.
-  */
- 
--static int mem_cgroup_move_parent(struct page_cgroup *pc,
-+static int mem_cgroup_move_parent(struct page *page,
-+				  struct page_cgroup *pc,
- 				  struct mem_cgroup *child,
- 				  gfp_t gfp_mask)
- {
--	struct page *page = pc->page;
- 	struct cgroup *cg = child->css.cgroup;
- 	struct cgroup *pcg = cg->parent;
- 	struct mem_cgroup *parent;
-@@ -2291,7 +2295,7 @@ static int mem_cgroup_move_parent(struct
- 	if (page_size > PAGE_SIZE)
- 		flags = compound_lock_irqsave(page);
- 
--	ret = mem_cgroup_move_account(pc, child, parent, true, page_size);
-+	ret = mem_cgroup_move_account(page, pc, child, parent, true, page_size);
- 	if (ret)
- 		mem_cgroup_cancel_charge(parent, page_size);
- 
-@@ -2337,7 +2341,7 @@ static int mem_cgroup_charge_common(stru
- 	if (ret || !mem)
- 		return ret;
- 
--	__mem_cgroup_commit_charge(mem, pc, ctype, page_size);
-+	__mem_cgroup_commit_charge(mem, page, pc, ctype, page_size);
- 	return 0;
+-	mz = page_cgroup_zoneinfo(pc);
++	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+ 	/* huge page split is done under lru_lock. so, we have no races. */
+ 	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
+ 	if (mem_cgroup_is_root(pc->mem_cgroup))
+@@ -830,7 +829,7 @@ void mem_cgroup_rotate_lru_list(struct p
+ 	smp_rmb();
+ 	if (mem_cgroup_is_root(pc->mem_cgroup))
+ 		return;
+-	mz = page_cgroup_zoneinfo(pc);
++	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+ 	list_move(&pc->lru, &mz->lists[lru]);
  }
  
-@@ -2475,7 +2479,7 @@ __mem_cgroup_commit_charge_swapin(struct
- 	cgroup_exclude_rmdir(&ptr->css);
- 	pc = lookup_page_cgroup(page);
- 	mem_cgroup_lru_del_before_commit_swapcache(page);
--	__mem_cgroup_commit_charge(ptr, pc, ctype, PAGE_SIZE);
-+	__mem_cgroup_commit_charge(ptr, page, pc, ctype, PAGE_SIZE);
- 	mem_cgroup_lru_add_after_commit_swapcache(page);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
-@@ -2930,7 +2934,7 @@ int mem_cgroup_prepare_migration(struct 
- 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	else
- 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
--	__mem_cgroup_commit_charge(mem, pc, ctype, PAGE_SIZE);
-+	__mem_cgroup_commit_charge(mem, page, pc, ctype, PAGE_SIZE);
- 	return ret;
- }
+@@ -847,7 +846,7 @@ void mem_cgroup_add_lru_list(struct page
+ 		return;
+ 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+ 	smp_rmb();
+-	mz = page_cgroup_zoneinfo(pc);
++	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+ 	/* huge page split is done under lru_lock. so, we have no races. */
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
+ 	SetPageCgroupAcctLRU(pc);
+@@ -1017,7 +1016,7 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ 		return NULL;
+ 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+ 	smp_rmb();
+-	mz = page_cgroup_zoneinfo(pc);
++	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+ 	if (!mz)
+ 		return NULL;
  
-@@ -3281,6 +3285,8 @@ static int mem_cgroup_force_empty_list(s
- 	loop += 256;
- 	busy = NULL;
- 	while (loop--) {
-+		struct page *page;
-+
- 		ret = 0;
- 		spin_lock_irqsave(&zone->lru_lock, flags);
- 		if (list_empty(list)) {
-@@ -3296,7 +3302,9 @@ static int mem_cgroup_force_empty_list(s
- 		}
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
--		ret = mem_cgroup_move_parent(pc, mem, GFP_KERNEL);
-+		page = pc->page;
-+
-+		ret = mem_cgroup_move_parent(page, pc, mem, GFP_KERNEL);
- 		if (ret == -ENOMEM)
- 			break;
- 
-@@ -4913,7 +4921,7 @@ retry:
- 			if (isolate_lru_page(page))
- 				goto put;
- 			pc = lookup_page_cgroup(page);
--			if (!mem_cgroup_move_account(pc,
-+			if (!mem_cgroup_move_account(page, pc,
- 					mc.from, mc.to, false, PAGE_SIZE)) {
- 				mc.precharge--;
- 				/* we uncharge from mc.from later. */
+@@ -2166,7 +2165,7 @@ void mem_cgroup_split_huge_fixup(struct 
+ 		 * We hold lru_lock, then, reduce counter directly.
+ 		 */
+ 		lru = page_lru(head);
+-		mz = page_cgroup_zoneinfo(head_pc);
++		mz = page_cgroup_zoneinfo(head_pc->mem_cgroup, head);
+ 		MEM_CGROUP_ZSTAT(mz, lru) -= 1;
+ 	}
+ 	tail_pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
