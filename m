@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-apds9802alsc-put-the-device-into-runtime-suspend-after-resume-probe-is-handled.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:12:35 -0800
-Message-ID: <201102032012.p13KCamm022262@imap1.linux-foundation.org>
+Subject: + x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch added to -mm tree
+Date: Thu, 03 Feb 2011 12:16:41 -0800
+Message-ID: <201102032016.p13KGflj022371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38297 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754986Ab1BCUNJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:13:09 -0500
+	by vger.kernel.org with ESMTP id S1751060Ab1BCURc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:17:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hong.liu@intel.com, alan@linux.intel.com, stable@kernel.org
+Cc: rientjes@google.com, bjorn.helgaas@hp.com, hpa@zytor.com, linux@arm.linux.org.uk, mingo@redhat.com, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     drivers/misc/apds9802als.c: put the device into runtime suspend after resume()/probe() is handled
+     x86: only compile floppy driver if CONFIG_ISA_DMA_API is enabled
 has been added to the -mm tree.  Its filename is
-     drivers-misc-apds9802alsc-put-the-device-into-runtime-suspend-after-resume-probe-is-handled.patch
+     x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/apds9802als.c: put the device into runtime suspend after resume()/probe() is handled
-From: Hong Liu <hong.liu@intel.com>
+Subject: x86: only compile floppy driver if CONFIG_ISA_DMA_API is enabled
+From: David Rientjes <rientjes@google.com>
 
-Put the device into runtime suspend after resume()/probe() is handled by
-the PM core and the device core code.  No need to manually add them in
-each single driver.  And correct the runtime state in remove().
+The generic floppy disk driver utilizies the interface provided by
+CONFIG_ISA_DMA_API, specifically claim_dma_lock(), release_dma_lock(),
+request_dma(), and free_dma().  Thus, there's a strict dependency on the
+config option and the driver should only be loaded if the kernel supports
+ISA-style DMA.
 
-Signed-off-by: Hong Liu <hong.liu@intel.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/apds9802als.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/apds9802als.c~drivers-misc-apds9802alsc-put-the-device-into-runtime-suspend-after-resume-probe-is-handled drivers/misc/apds9802als.c
---- a/drivers/misc/apds9802als.c~drivers-misc-apds9802alsc-put-the-device-into-runtime-suspend-after-resume-probe-is-handled
-+++ a/drivers/misc/apds9802als.c
-@@ -245,9 +245,8 @@ static int apds9802als_probe(struct i2c_
- 	als_set_default_config(client);
- 	mutex_init(&data->mutex);
+diff -puN arch/x86/Kconfig~x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled
++++ a/arch/x86/Kconfig
+@@ -140,7 +140,7 @@ config GENERIC_GPIO
+ 	bool
  
-+	pm_runtime_set_active(&client->dev);
- 	pm_runtime_enable(&client->dev);
--	pm_runtime_get(&client->dev);
--	pm_runtime_put(&client->dev);
+ config ARCH_MAY_HAVE_PC_FDC
+-	def_bool y
++	def_bool ISA_DMA_API
  
- 	return res;
- als_error1:
-@@ -255,12 +254,19 @@ als_error1:
- 	return res;
- }
- 
--static int apds9802als_remove(struct i2c_client *client)
-+static int __devexit apds9802als_remove(struct i2c_client *client)
- {
- 	struct als_data *data = i2c_get_clientdata(client);
- 
-+	pm_runtime_get_sync(&client->dev);
-+
- 	als_set_power_state(client, false);
- 	sysfs_remove_group(&client->dev.kobj, &m_als_gr);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+
- 	kfree(data);
- 	return 0;
- }
-@@ -275,9 +281,6 @@ static int apds9802als_suspend(struct i2
- static int apds9802als_resume(struct i2c_client *client)
- {
- 	als_set_default_config(client);
+ config RWSEM_GENERIC_SPINLOCK
+ 	def_bool !X86_XADD
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
+x86-allow-config_isa_dma_api-to-be-disabled.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+
