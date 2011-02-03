@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpuc-fix-many-errors-related-to-style-fix.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:40:39 -0800
-Message-ID: <201102032040.p13KedRN023447@imap1.linux-foundation.org>
+Subject: + drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch added to -mm tree
+Date: Thu, 03 Feb 2011 13:05:27 -0800
+Message-ID: <201102032105.p13L5RDV024594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752032Ab1BCUlL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:41:11 -0500
+	by vger.kernel.org with ESMTP id S1752247Ab1BCVFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 16:05:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dkingston02@gmail.com
+Cc: julia@diku.dk, torbenh@gmx.de
 
 
 The patch titled
-     kernel-cpuc-fix-many-errors-related-to-style-fix
+     drivers/char/bfin_jtag_comm.c: avoid calling put_tty_driver on NULL
 has been added to the -mm tree.  Its filename is
-     kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+     drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-cpuc-fix-many-errors-related-to-style-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/char/bfin_jtag_comm.c: avoid calling put_tty_driver on NULL
+From: Julia Lawall <julia@diku.dk>
 
-revert the bits I disagree with ;)
+put_tty_driver calls tty_driver_kref_put on its argument, and then
+tty_driver_kref_put calls kref_put on the address of a field of this
+argument.  kref_put checks for NULL, but in this case the field is likely
+to have some offset and so the result of taking its address will not be
+NULL.  Labels are added to be able to skip over the call to put_tty_driver
+when the argument will be NULL.
 
-Cc: Michael Rodriguez <dkingston02@gmail.com>
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression *x;
+@@
+
+*if (x == NULL)
+{ ...
+* put_tty_driver(x);
+  ...
+  return ...;
+}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Torben Hohn <torbenh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/char/bfin_jtag_comm.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style-fix kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style-fix
-+++ a/kernel/cpu.c
-@@ -200,7 +200,6 @@ static int __ref take_cpu_down(void *_pa
+diff -puN drivers/char/bfin_jtag_comm.c~drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null drivers/char/bfin_jtag_comm.c
+--- a/drivers/char/bfin_jtag_comm.c~drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null
++++ a/drivers/char/bfin_jtag_comm.c
+@@ -251,11 +251,11 @@ static int __init bfin_jc_init(void)
+ 	bfin_jc_write_buf.head = bfin_jc_write_buf.tail = 0;
+ 	bfin_jc_write_buf.buf = kmalloc(CIRC_SIZE, GFP_KERNEL);
+ 	if (!bfin_jc_write_buf.buf)
+-		goto err;
++		goto err_buf;
  
- 	/* Ensure this CPU doesn't handle any more interrupts. */
- 	err = __cpu_disable();
--
- 	if (err < 0)
- 		return err;
+ 	bfin_jc_driver = alloc_tty_driver(1);
+ 	if (!bfin_jc_driver)
+-		goto err;
++		goto err_driver;
  
-@@ -228,7 +227,6 @@ static int __ref _cpu_down(unsigned int 
- 	cpu_hotplug_begin();
+ 	bfin_jc_driver->owner        = THIS_MODULE;
+ 	bfin_jc_driver->driver_name  = DRV_NAME;
+@@ -275,7 +275,9 @@ static int __init bfin_jc_init(void)
  
- 	err = __cpu_notify(CPU_DOWN_PREPARE | mod, hcpu, -1, &nr_calls);
--
- 	if (err) {
- 		nr_calls--;
- 		__cpu_notify(CPU_DOWN_FAILED | mod, hcpu, nr_calls, NULL);
+  err:
+ 	put_tty_driver(bfin_jc_driver);
++ err_driver:
+ 	kfree(bfin_jc_write_buf.buf);
++ err_buf:
+ 	kthread_stop(bfin_jc_kthread);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
+drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
 
