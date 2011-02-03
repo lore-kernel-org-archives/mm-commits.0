@@ -1,160 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch removed from -mm tree
-Date: Thu, 03 Feb 2011 11:46:17 -0800
-Message-ID: <201102031946.p13JkHOL020996@imap1.linux-foundation.org>
+Subject: [merged] maintainers-fixup-file-entries-for-simtec-eb2410itx-bast.patch removed from -mm tree
+Date: Thu, 03 Feb 2011 11:46:10 -0800
+Message-ID: <201102031946.p13JkATq020987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756714Ab1BCTqe (ORCPT
+	by vger.kernel.org with ESMTP id S1756715Ab1BCTqe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 14:46:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jin.dongming@np.css.fujitsu.com, aarcange@redhat.com, andi@firstfloor.org, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, jwjstone@fastmail.fm, linux@simtec.co.uk, support@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thp: fix the wrong reported address of hwpoisoned hugepages
+     MAINTAINERS: fixup file entries for "SIMTEC EB2410ITX (BAST)"
 has been removed from the -mm tree.  Its filename was
-     thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages.patch
+     maintainers-fixup-file-entries-for-simtec-eb2410itx-bast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: fix the wrong reported address of hwpoisoned hugepages
-From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: MAINTAINERS: fixup file entries for "SIMTEC EB2410ITX (BAST)"
+From: Ben Dooks <ben-linux@fluff.org>
 
-When the tail page of THP is poisoned, the head page will be poisoned too.
- And the wrong address, address of head page, will be sent with sigbus
-always.
+Add the correct files for the Simtec BAST machine, ensuring the IDE and
+IRQ routing are added, and move to the machine specific file instead of
+trying to catch all of arch/arm/mach-s3c2410
 
-So when the poisoned page is used by Guest OS which is running on KVM,
-after the address changing(hva->gpa) by qemu, the unexpected process on
-Guest OS will be killed by sigbus.
-
-What we expected is that the process using the poisoned tail page could be
-killed on Guest OS, but not that the process using the healthy head page
-is killed.
-
-Since it is not good to poison the healthy page, avoid poisoning other
-than the page which is really poisoned.
-  (While we poison all pages in a huge page in case of hugetlb,
-   we can do this for THP thanks to split_huge_page().)
-
-Here we fix two parts:
-  1. Isolate the poisoned page only to make sure
-     the reported address is the address of poisoned page.
-  2. make the poisoned page work as the poisoned regular page.
-
-[akpm@linux-foundation.org: fix spello in comment]
-Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Reviewed-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Simtec Linux Team <linux@simtec.co.uk>
+Cc: Simtec Support <support@simtec.co.uk>
+Cc: Jack Stone <jwjstone@fastmail.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c    |    7 ++++++-
- mm/memory-failure.c |   27 ++++++++++++++++++++++-----
- 2 files changed, 28 insertions(+), 6 deletions(-)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages
-+++ a/mm/huge_memory.c
-@@ -1162,7 +1162,12 @@ static void __split_huge_page_refcount(s
- 		/* after clearing PageTail the gup refcount can be released */
- 		smp_mb();
+diff -puN MAINTAINERS~maintainers-fixup-file-entries-for-simtec-eb2410itx-bast MAINTAINERS
+--- a/MAINTAINERS~maintainers-fixup-file-entries-for-simtec-eb2410itx-bast
++++ a/MAINTAINERS
+@@ -5625,7 +5625,9 @@ P:	Ben Dooks
+ M:	Vincent Sanders <support@simtec.co.uk>
+ W:	http://www.simtec.co.uk/products/EB2410ITX/
+ S:	Supported
+-F:	arch/arm/mach-s3c2410/
++F:	arch/arm/mach-s3c2410/mach-bast.c
++F:	arch/arm/mach-s3c2410/bast-ide.c
++F:	arch/arm/mach-s3c2410/bast-irq.c
  
--		page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+		/*
-+		 * retain hwpoison flag of the poisoned tail page:
-+		 *   fix for the unsuitable process killed on Guest Machine(KVM)
-+		 *   by the memory-failure.
-+		 */
-+		page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP | __PG_HWPOISON;
- 		page_tail->flags |= (page->flags &
- 				     ((1L << PG_referenced) |
- 				      (1L << PG_swapbacked) |
-diff -puN mm/memory-failure.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages mm/memory-failure.c
---- a/mm/memory-failure.c~thp-fix-the-wrong-reported-address-of-hwpoisoned-hugepages
-+++ a/mm/memory-failure.c
-@@ -854,6 +854,7 @@ static int hwpoison_user_mappings(struct
- 	int ret;
- 	int kill = 1;
- 	struct page *hpage = compound_head(p);
-+	struct page *ppage;
- 
- 	if (PageReserved(p) || PageSlab(p))
- 		return SWAP_SUCCESS;
-@@ -894,6 +895,14 @@ static int hwpoison_user_mappings(struct
- 		}
- 	}
- 
-+	/*
-+	 * ppage: poisoned page
-+	 *   if p is regular page(4k page)
-+	 *        ppage == real poisoned page;
-+	 *   else p is hugetlb or THP, ppage == head page.
-+	 */
-+	ppage = hpage;
-+
- 	if (PageTransHuge(hpage)) {
- 		/*
- 		 * Verify that this isn't a hugetlbfs head page, the check for
-@@ -919,6 +928,8 @@ static int hwpoison_user_mappings(struct
- 				BUG_ON(!PageHWPoison(p));
- 				return SWAP_FAIL;
- 			}
-+			/* THP is split, so ppage should be the real poisoned page. */
-+			ppage = p;
- 		}
- 	}
- 
-@@ -931,12 +942,18 @@ static int hwpoison_user_mappings(struct
- 	 * there's nothing that can be done.
- 	 */
- 	if (kill)
--		collect_procs(hpage, &tokill);
-+		collect_procs(ppage, &tokill);
- 
--	ret = try_to_unmap(hpage, ttu);
-+	if (hpage != ppage)
-+		lock_page_nosync(ppage);
-+
-+	ret = try_to_unmap(ppage, ttu);
- 	if (ret != SWAP_SUCCESS)
- 		printk(KERN_ERR "MCE %#lx: failed to unmap page (mapcount=%d)\n",
--				pfn, page_mapcount(hpage));
-+				pfn, page_mapcount(ppage));
-+
-+	if (hpage != ppage)
-+		unlock_page(ppage);
- 
- 	/*
- 	 * Now that the dirty bit has been propagated to the
-@@ -947,7 +964,7 @@ static int hwpoison_user_mappings(struct
- 	 * use a more force-full uncatchable kill to prevent
- 	 * any accesses to the poisoned memory.
- 	 */
--	kill_procs_ao(&tokill, !!PageDirty(hpage), trapno,
-+	kill_procs_ao(&tokill, !!PageDirty(ppage), trapno,
- 		      ret != SWAP_SUCCESS, p, pfn);
- 
- 	return ret;
-@@ -1090,7 +1107,7 @@ int __memory_failure(unsigned long pfn, 
- 	 * For error on the tail page, we should set PG_hwpoison
- 	 * on the head page to show that the hugepage is hwpoisoned
- 	 */
--	if (PageTail(p) && TestSetPageHWPoison(hpage)) {
-+	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
- 		action_result(pfn, "hugepage already hardware poisoned",
- 				IGNORED);
- 		unlock_page(hpage);
+ TI DAVINCI MACHINE SUPPORT
+ M:	Kevin Hilman <khilman@deeprootsystems.com>
 _
 
-Patches currently in -mm which might be from jin.dongming@np.css.fujitsu.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
+linux-next.patch
 
