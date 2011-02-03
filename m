@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + nbd-remove-module-level-ioctl-mutex.patch added to -mm tree
-Date: Thu, 03 Feb 2011 13:40:38 -0800
-Message-ID: <201102032140.p13LecBh026335@imap1.linux-foundation.org>
+Date: Thu, 03 Feb 2011 13:41:23 -0800
+Message-ID: <201102032141.p13LfOQu026356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753213Ab1BCVkz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 16:40:55 -0500
+	by vger.kernel.org with ESMTP id S1753213Ab1BCVlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 16:41:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: soren@linux2go.dk, arnd@arndb.de, axboe@kernel.dk, paul.clements@steeleye.com, serge.hallyn@canonical.com
+Cc: soren@linux2go.dk, arnd@arndb.de, axboe@kernel.dk, paul.clements@steeleye.com, serge.hallyn@canonical.com, stable@kernel.org
 
 
 The patch titled
@@ -74,6 +74,7 @@ Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
 Acked-by: Paul Clements <paul.clements@steeleye.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@kernel.org>		[2.6.37.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
