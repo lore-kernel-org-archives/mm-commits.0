@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-dont-adjust-size-in-memblock_find_base.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:25:22 -0800
-Message-ID: <201102032025.p13KPMWa022800@imap1.linux-foundation.org>
+Subject: + drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch added to -mm tree
+Date: Thu, 03 Feb 2011 12:36:43 -0800
+Message-ID: <201102032036.p13Kah29023235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561Ab1BCU0K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:26:10 -0500
+	by vger.kernel.org with ESMTP id S1751640Ab1BCUhF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:37:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, airlied@linux.ie, benh@kernel.crashing.org, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu
+Cc: stigge@antcom.de, bgardner@wabtec.com, eric.y.miao@gmail.com, grant.likely@secretlab.ca, maz@misterjones.org
 
 
 The patch titled
-     memblock: don't adjust size in memblock_find_base()
+     drivers/gpio/pca953x.c: add a mutex to fix race condition
 has been added to the -mm tree.  Its filename is
-     memblock-dont-adjust-size-in-memblock_find_base.patch
+     drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock: don't adjust size in memblock_find_base()
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: drivers/gpio/pca953x.c: add a mutex to fix race condition
 
-While applying patch to use memblock to find aperture for 64bit x86.
-Ingo found system with 1g + force_iommu
 
-> No AGP bridge found
-> Node 0: aperture @ 38000000 size 32 MB
-> Aperture pointing to e820 RAM. Ignoring.
-> Your BIOS doesn't leave a aperture memory hole
-> Please enable the IOMMU option in the BIOS setup
-> This costs you 64 MB of RAM
-> Cannot allocate aperture memory hole (0,65536K)
+Add a mutex to register communication and handling.  Without the mutex,
+GPIOs didn't switch as expected when toggled in a fast sequence of status
+changes of multiple outputs.
 
-the corresponding code:
-	addr = memblock_find_in_range(0, 1ULL<<32, aper_size, 512ULL<<20);
-	if (addr == MEMBLOCK_ERROR || addr + aper_size > 0xffffffff) {
-		printk(KERN_ERR
-			"Cannot allocate aperture memory hole (%lx,%uK)\n",
-				addr, aper_size>>10);
-		return 0;
-	}
-	memblock_x86_reserve_range(addr, addr + aper_size, "aperture64")
-
-it fails because memblock core code align the size with 512M. that could make
-size way too big.
-
-So don't align the size in that case.
-
-actually __memblock_alloc_base, the another caller already align that before calling that function.
-
-BTW. x86 does not use __memblock_alloc_base...
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Roland Stigge <stigge@antcom.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Marc Zyngier <maz@misterjones.org>
+Cc: Ben Gardner <bgardner@wabtec.com>
+Cc: eric miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/gpio/pca953x.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base mm/memblock.c
---- a/mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base
-+++ a/mm/memblock.c
-@@ -137,8 +137,6 @@ static phys_addr_t __init_memblock membl
+diff -puN drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition
++++ a/drivers/gpio/pca953x.c
+@@ -60,6 +60,7 @@ struct pca953x_chip {
+ 	unsigned gpio_start;
+ 	uint16_t reg_output;
+ 	uint16_t reg_direction;
++	struct mutex i2c_lock;
  
- 	BUG_ON(0 == size);
+ #ifdef CONFIG_GPIO_PCA953X_IRQ
+ 	struct mutex irq_lock;
+@@ -119,13 +120,17 @@ static int pca953x_gpio_direction_input(
  
--	size = memblock_align_up(size, align);
+ 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+ 
++	mutex_lock(&chip->i2c_lock);
+ 	reg_val = chip->reg_direction | (1u << off);
+ 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
+ 	if (ret)
+-		return ret;
++		goto exit;
+ 
+ 	chip->reg_direction = reg_val;
+-	return 0;
++	ret = 0;
++exit:
++	mutex_unlock(&chip->i2c_lock);
++	return ret;
+ }
+ 
+ static int pca953x_gpio_direction_output(struct gpio_chip *gc,
+@@ -137,6 +142,7 @@ static int pca953x_gpio_direction_output
+ 
+ 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+ 
++	mutex_lock(&chip->i2c_lock);
+ 	/* set output level */
+ 	if (val)
+ 		reg_val = chip->reg_output | (1u << off);
+@@ -145,7 +151,7 @@ static int pca953x_gpio_direction_output
+ 
+ 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
+ 	if (ret)
+-		return ret;
++		goto exit;
+ 
+ 	chip->reg_output = reg_val;
+ 
+@@ -153,10 +159,13 @@ static int pca953x_gpio_direction_output
+ 	reg_val = chip->reg_direction & ~(1u << off);
+ 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
+ 	if (ret)
+-		return ret;
++		goto exit;
+ 
+ 	chip->reg_direction = reg_val;
+-	return 0;
++	ret = 0;
++exit:
++	mutex_unlock(&chip->i2c_lock);
++	return ret;
+ }
+ 
+ static int pca953x_gpio_get_value(struct gpio_chip *gc, unsigned off)
+@@ -167,7 +176,9 @@ static int pca953x_gpio_get_value(struct
+ 
+ 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+ 
++	mutex_lock(&chip->i2c_lock);
+ 	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
++	mutex_unlock(&chip->i2c_lock);
+ 	if (ret < 0) {
+ 		/* NOTE:  diagnostic already emitted; that's all we should
+ 		 * do unless gpio_*_value_cansleep() calls become different
+@@ -187,6 +198,7 @@ static void pca953x_gpio_set_value(struc
+ 
+ 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+ 
++	mutex_lock(&chip->i2c_lock);
+ 	if (val)
+ 		reg_val = chip->reg_output | (1u << off);
+ 	else
+@@ -194,9 +206,11 @@ static void pca953x_gpio_set_value(struc
+ 
+ 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
+ 	if (ret)
+-		return;
++		goto exit;
+ 
+ 	chip->reg_output = reg_val;
++exit:
++	mutex_unlock(&chip->i2c_lock);
+ }
+ 
+ static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
+@@ -517,6 +531,8 @@ static int __devinit pca953x_probe(struc
+ 
+ 	chip->names = pdata->names;
+ 
++	mutex_init(&chip->i2c_lock);
++
+ 	/* initialize cached registers from their original values.
+ 	 * we can't share this chip with another i2c master.
+ 	 */
+_
+
+Patches currently in -mm which might be from stigge@antcom.de are
+
+linux-next.patch
+drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch
+
