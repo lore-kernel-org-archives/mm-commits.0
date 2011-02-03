@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpuc-fix-many-errors-related-to-style.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:40:37 -0800
-Message-ID: <201102032040.p13KebI7023443@imap1.linux-foundation.org>
+Subject: + kernel-cpuc-fix-many-errors-related-to-style-fix.patch added to -mm tree
+Date: Thu, 03 Feb 2011 12:40:39 -0800
+Message-ID: <201102032040.p13KedRN023447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752032Ab1BCUlK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:41:10 -0500
+	by vger.kernel.org with ESMTP id S1752032Ab1BCUlL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:41:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dkingston02@gmail.com
+Cc: akpm@linux-foundation.org, dkingston02@gmail.com
 
 
 The patch titled
-     kernel/cpu.c: fix many errors related to style.
+     kernel-cpuc-fix-many-errors-related-to-style-fix
 has been added to the -mm tree.  Its filename is
-     kernel-cpuc-fix-many-errors-related-to-style.patch
+     kernel-cpuc-fix-many-errors-related-to-style-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/cpu.c: fix many errors related to style.
-From: Michael Rodriguez <dkingston02@gmail.com>
+Subject: kernel-cpuc-fix-many-errors-related-to-style-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Change the printk() calls to have the KERN_INFO/KERN_ERROR stuff, and
-fixes other coding style errors.  Not _all_ of them are gone, though.
+revert the bits I disagree with ;)
 
-Signed-off-by: Michael Rodriguez <dkingston02@gmail.com>
+Cc: Michael Rodriguez <dkingston02@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ kernel/cpu.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style
+diff -puN kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style-fix kernel/cpu.c
+--- a/kernel/cpu.c~kernel-cpuc-fix-many-errors-related-to-style-fix
 +++ a/kernel/cpu.c
-@@ -160,7 +160,6 @@ static void cpu_notify_nofail(unsigned l
- {
- 	BUG_ON(cpu_notify(val, v));
- }
--
- EXPORT_SYMBOL(register_cpu_notifier);
- 
- void __ref unregister_cpu_notifier(struct notifier_block *nb)
-@@ -201,11 +200,11 @@ static int __ref take_cpu_down(void *_pa
+@@ -200,7 +200,6 @@ static int __ref take_cpu_down(void *_pa
  
  	/* Ensure this CPU doesn't handle any more interrupts. */
  	err = __cpu_disable();
-+
+-
  	if (err < 0)
  		return err;
  
- 	cpu_notify(CPU_DYING | param->mod, param->hcpu);
--
- 	return 0;
- }
- 
-@@ -227,7 +226,9 @@ static int __ref _cpu_down(unsigned int 
- 		return -EINVAL;
- 
+@@ -228,7 +227,6 @@ static int __ref _cpu_down(unsigned int 
  	cpu_hotplug_begin();
-+
+ 
  	err = __cpu_notify(CPU_DOWN_PREPARE | mod, hcpu, -1, &nr_calls);
-+
+-
  	if (err) {
  		nr_calls--;
  		__cpu_notify(CPU_DOWN_FAILED | mod, hcpu, nr_calls, NULL);
-@@ -304,7 +305,7 @@ static int __cpuinit _cpu_up(unsigned in
- 	ret = __cpu_notify(CPU_UP_PREPARE | mod, hcpu, -1, &nr_calls);
- 	if (ret) {
- 		nr_calls--;
--		printk("%s: attempt to bring up CPU %u failed\n",
-+		printk(KERN_WARNING "%s: attempt to bring up CPU %u failed\n",
- 				__func__, cpu);
- 		goto out_notify;
- 	}
-@@ -450,14 +451,14 @@ void __ref enable_nonboot_cpus(void)
- 	if (cpumask_empty(frozen_cpus))
- 		goto out;
- 
--	printk("Enabling non-boot CPUs ...\n");
-+	printk(KERN_INFO "Enabling non-boot CPUs ...\n");
- 
- 	arch_enable_nonboot_cpus_begin();
- 
- 	for_each_cpu(cpu, frozen_cpus) {
- 		error = _cpu_up(cpu, 1);
- 		if (!error) {
--			printk("CPU%d is up\n", cpu);
-+			printk(KERN_INFO "CPU%d is up\n", cpu);
- 			continue;
- 		}
- 		printk(KERN_WARNING "Error taking CPU%d up: %d\n", cpu, error);
-@@ -509,7 +510,7 @@ void __cpuinit notify_cpu_starting(unsig
-  */
- 
- /* cpu_bit_bitmap[0] is empty - so we can back into it */
--#define MASK_DECLARE_1(x)	[x+1][0] = 1UL << (x)
-+#define MASK_DECLARE_1(x)	[x+1][0] = (1UL << (x))
- #define MASK_DECLARE_2(x)	MASK_DECLARE_1(x), MASK_DECLARE_1(x+1)
- #define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
- #define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
 _
 
-Patches currently in -mm which might be from dkingston02@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-cpuc-fix-many-errors-related-to-style.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
