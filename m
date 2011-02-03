@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open.patch added to -mm tree
-Date: Thu, 03 Feb 2011 12:20:04 -0800
-Message-ID: <201102032020.p13KK45m022567@imap1.linux-foundation.org>
+Subject: + memblock-dont-adjust-size-in-memblock_find_base.patch added to -mm tree
+Date: Thu, 03 Feb 2011 12:25:22 -0800
+Message-ID: <201102032025.p13KPMWa022800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750920Ab1BCUUf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:20:35 -0500
+	by vger.kernel.org with ESMTP id S1751561Ab1BCU0K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 15:26:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cromlehg@gmail.com, a.zummo@towertech.it, strakh@ispras.ru
+Cc: yinghai@kernel.org, airlied@linux.ie, benh@kernel.crashing.org, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu
 
 
 The patch titled
-     drivers/rtc/rtc-proc.c: add module_put on error path in rtc_proc_open()
+     memblock: don't adjust size in memblock_find_base()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open.patch
+     memblock-dont-adjust-size-in-memblock_find_base.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-proc.c: add module_put on error path in rtc_proc_open()
-From: Alexander Strakh <cromlehg@gmail.com>
+Subject: memblock: don't adjust size in memblock_find_base()
+From: Yinghai Lu <yinghai@kernel.org>
 
-In file drivers/rtc/rtc-proc.c seq_open() can return -ENOMEM.
+While applying patch to use memblock to find aperture for 64bit x86.
+Ingo found system with 1g + force_iommu
 
- 86        if (!try_module_get(THIS_MODULE))
- 87                return -ENODEV;
- 88
- 89        return single_open(file, rtc_proc_show, rtc);
+> No AGP bridge found
+> Node 0: aperture @ 38000000 size 32 MB
+> Aperture pointing to e820 RAM. Ignoring.
+> Your BIOS doesn't leave a aperture memory hole
+> Please enable the IOMMU option in the BIOS setup
+> This costs you 64 MB of RAM
+> Cannot allocate aperture memory hole (0,65536K)
 
-In this case before exiting (line 89) from rtc_proc_open
-the module_put(THIS_MODULE) must be called.
+the corresponding code:
+	addr = memblock_find_in_range(0, 1ULL<<32, aper_size, 512ULL<<20);
+	if (addr == MEMBLOCK_ERROR || addr + aper_size > 0xffffffff) {
+		printk(KERN_ERR
+			"Cannot allocate aperture memory hole (%lx,%uK)\n",
+				addr, aper_size>>10);
+		return 0;
+	}
+	memblock_x86_reserve_range(addr, addr + aper_size, "aperture64")
 
-Found by Linux Device Drivers Verification Project
+it fails because memblock core code align the size with 512M. that could make
+size way too big.
 
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+So don't align the size in that case.
+
+actually __memblock_alloc_base, the another caller already align that before calling that function.
+
+BTW. x86 does not use __memblock_alloc_base...
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-proc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memblock.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-proc.c~drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open drivers/rtc/rtc-proc.c
---- a/drivers/rtc/rtc-proc.c~drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open
-+++ a/drivers/rtc/rtc-proc.c
-@@ -81,12 +81,16 @@ static int rtc_proc_show(struct seq_file
+diff -puN mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base mm/memblock.c
+--- a/mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base
++++ a/mm/memblock.c
+@@ -137,8 +137,6 @@ static phys_addr_t __init_memblock membl
  
- static int rtc_proc_open(struct inode *inode, struct file *file)
- {
-+	int ret;
- 	struct rtc_device *rtc = PDE(inode)->data;
+ 	BUG_ON(0 == size);
  
- 	if (!try_module_get(THIS_MODULE))
- 		return -ENODEV;
- 
--	return single_open(file, rtc_proc_show, rtc);
-+	ret = single_open(file, rtc_proc_show, rtc);
-+	if (ret)
-+		module_put(THIS_MODULE);
-+	return ret;
- }
- 
- static int rtc_proc_release(struct inode *inode, struct file *file)
-_
-
-Patches currently in -mm which might be from cromlehg@gmail.com are
-
-drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open.patch
-
+-	size = memblock_align_up(size, align);
