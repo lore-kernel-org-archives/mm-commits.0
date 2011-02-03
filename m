@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch added to -mm tree
-Date: Thu, 03 Feb 2011 15:27:40 -0800
-Message-ID: <201102032327.p13NRelh031124@imap1.linux-foundation.org>
+Subject: + memcg-condense-page_cgroup-to-page-lookup-points.patch added to -mm tree
+Date: Thu, 03 Feb 2011 15:31:15 -0800
+Message-ID: <201102032331.p13NVFjC031219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752210Ab1BCX2W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 18:28:22 -0500
+	by vger.kernel.org with ESMTP id S1752227Ab1BCXb0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 18:31:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com
+Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: add memcg sanity checks at allocating and freeing pages
+     memcg: condense page_cgroup-to-page lookup points
 has been added to the -mm tree.  Its filename is
-     memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+     memcg-condense-page_cgroup-to-page-lookup-points.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,147 +33,196 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add memcg sanity checks at allocating and freeing pages
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: memcg: condense page_cgroup-to-page lookup points
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Add checks at allocating or freeing a page whether the page is used (iow,
-charged) from the view point of memcg.
+The per-cgroup LRU lists string up 'struct page_cgroup's.  To get from
+those structures to the page they represent, a lookup is required. 
+Currently, the lookup is done through a direct pointer in struct
+page_cgroup, so a lot of functions down the callchain do this lookup by
+themselves instead of receiving the page pointer from their callers.
 
-This check may be useful in debugging a problem and we did similar checks
-before the commit 52d4b9ac(memcg: allocate all page_cgroup at boot).
+The next patch removes this pointer, however, and the lookup is no longer
+that straight-forward.  In preparation for that, this patch only leaves
+the non-optional lookups when coming directly from the LRU list and passes
+the page down the stack.
 
-This patch adds some overheads at allocating or freeing memory, so it's
-enabled only when CONFIG_DEBUG_VM is enabled.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   17 +++++++++++++++++
- mm/memcontrol.c            |   30 ++++++++++++++++++++++++++++++
- mm/page_alloc.c            |    8 ++++++--
- 3 files changed, 53 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages
-+++ a/include/linux/memcontrol.h
-@@ -150,6 +150,10 @@ u64 mem_cgroup_get_limit(struct mem_cgro
- void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
- #endif
- 
-+#ifdef CONFIG_DEBUG_VM
-+bool mem_cgroup_bad_page_check(struct page *page);
-+void mem_cgroup_print_bad_page(struct page *page);
-+#endif
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct mem_cgroup;
- 
-@@ -346,5 +350,18 @@ static inline void mem_cgroup_split_huge
- 
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
-+#if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
-+static inline bool
-+mem_cgroup_bad_page_check(struct page *page)
-+{
-+	return false;
-+}
-+
-+static inline void
-+mem_cgroup_print_bad_page(struct page *page)
-+{
-+}
-+#endif
-+
- #endif /* _LINUX_MEMCONTROL_H */
- 
-diff -puN mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages
+diff -puN mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points
 +++ a/mm/memcontrol.c
-@@ -3020,6 +3020,36 @@ int mem_cgroup_shmem_charge_fallback(str
+@@ -1051,9 +1051,11 @@ unsigned long mem_cgroup_isolate_pages(u
+ 		if (scan >= nr_to_scan)
+ 			break;
+ 
+-		page = pc->page;
+ 		if (unlikely(!PageCgroupUsed(pc)))
+ 			continue;
++
++		page = pc->page;
++
+ 		if (unlikely(!PageLRU(page)))
+ 			continue;
+ 
+@@ -2082,6 +2084,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ }
+ 
+ static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
++				       struct page *page,
+ 				       struct page_cgroup *pc,
+ 				       enum charge_type ctype,
+ 				       int page_size)
+@@ -2128,7 +2131,7 @@ static void __mem_cgroup_commit_charge(s
+ 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
+ 	 * if they exceeds softlimit.
+ 	 */
+-	memcg_check_events(mem, pc->page);
++	memcg_check_events(mem, page);
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -2175,6 +2178,7 @@ void mem_cgroup_split_huge_fixup(struct 
+ 
+ /**
+  * mem_cgroup_move_account - move account of the page
++ * @page: the page
+  * @pc:	page_cgroup of the page.
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+@@ -2190,7 +2194,7 @@ void mem_cgroup_split_huge_fixup(struct 
+  * true, this function does "uncharge" from old cgroup, but it doesn't if
+  * @uncharge is false, so a caller should do "uncharge".
+  */
+-static int mem_cgroup_move_account(struct page_cgroup *pc,
++static int mem_cgroup_move_account(struct page *page, struct page_cgroup *pc,
+ 				   struct mem_cgroup *from, struct mem_cgroup *to,
+ 				   bool uncharge, int charge_size)
+ {
+@@ -2199,7 +2203,7 @@ static int mem_cgroup_move_account(struc
+ 	int ret;
+ 
+ 	VM_BUG_ON(from == to);
+-	VM_BUG_ON(PageLRU(pc->page));
++	VM_BUG_ON(PageLRU(page));
+ 	/*
+ 	 * The page is isolated from LRU. So, collapse function
+ 	 * will not handle this page. But page splitting can happen.
+@@ -2207,7 +2211,7 @@ static int mem_cgroup_move_account(struc
+ 	 * hold it.
+ 	 */
+ 	ret = -EBUSY;
+-	if (charge_size > PAGE_SIZE && !PageTransHuge(pc->page))
++	if (charge_size > PAGE_SIZE && !PageTransHuge(page))
+ 		goto out;
+ 
+ 	lock_page_cgroup(pc);
+@@ -2247,8 +2251,8 @@ unlock:
+ 	/*
+ 	 * check events
+ 	 */
+-	memcg_check_events(to, pc->page);
+-	memcg_check_events(from, pc->page);
++	memcg_check_events(to, page);
++	memcg_check_events(from, page);
+ out:
+ 	return ret;
+ }
+@@ -2257,11 +2261,11 @@ out:
+  * move charges to its parent.
+  */
+ 
+-static int mem_cgroup_move_parent(struct page_cgroup *pc,
++static int mem_cgroup_move_parent(struct page *page,
++				  struct page_cgroup *pc,
+ 				  struct mem_cgroup *child,
+ 				  gfp_t gfp_mask)
+ {
+-	struct page *page = pc->page;
+ 	struct cgroup *cg = child->css.cgroup;
+ 	struct cgroup *pcg = cg->parent;
+ 	struct mem_cgroup *parent;
+@@ -2291,7 +2295,7 @@ static int mem_cgroup_move_parent(struct
+ 	if (page_size > PAGE_SIZE)
+ 		flags = compound_lock_irqsave(page);
+ 
+-	ret = mem_cgroup_move_account(pc, child, parent, true, page_size);
++	ret = mem_cgroup_move_account(page, pc, child, parent, true, page_size);
+ 	if (ret)
+ 		mem_cgroup_cancel_charge(parent, page_size);
+ 
+@@ -2337,7 +2341,7 @@ static int mem_cgroup_charge_common(stru
+ 	if (ret || !mem)
+ 		return ret;
+ 
+-	__mem_cgroup_commit_charge(mem, pc, ctype, page_size);
++	__mem_cgroup_commit_charge(mem, page, pc, ctype, page_size);
+ 	return 0;
+ }
+ 
+@@ -2475,7 +2479,7 @@ __mem_cgroup_commit_charge_swapin(struct
+ 	cgroup_exclude_rmdir(&ptr->css);
+ 	pc = lookup_page_cgroup(page);
+ 	mem_cgroup_lru_del_before_commit_swapcache(page);
+-	__mem_cgroup_commit_charge(ptr, pc, ctype, PAGE_SIZE);
++	__mem_cgroup_commit_charge(ptr, page, pc, ctype, PAGE_SIZE);
+ 	mem_cgroup_lru_add_after_commit_swapcache(page);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+@@ -2930,7 +2934,7 @@ int mem_cgroup_prepare_migration(struct 
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	else
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+-	__mem_cgroup_commit_charge(mem, pc, ctype, PAGE_SIZE);
++	__mem_cgroup_commit_charge(mem, page, pc, ctype, PAGE_SIZE);
  	return ret;
  }
  
-+#ifdef CONFIG_DEBUG_VM
-+static struct page_cgroup *lookup_page_cgroup_used(struct page *page)
-+{
-+	struct page_cgroup *pc;
+@@ -3281,6 +3285,8 @@ static int mem_cgroup_force_empty_list(s
+ 	loop += 256;
+ 	busy = NULL;
+ 	while (loop--) {
++		struct page *page;
 +
-+	pc = lookup_page_cgroup(page);
-+	if (likely(pc) && PageCgroupUsed(pc))
-+		return pc;
-+	return NULL;
-+}
-+
-+bool mem_cgroup_bad_page_check(struct page *page)
-+{
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	return lookup_page_cgroup_used(page) != NULL;
-+}
-+
-+void mem_cgroup_print_bad_page(struct page *page)
-+{
-+	struct page_cgroup *pc;
-+
-+	pc = lookup_page_cgroup_used(page);
-+	if (pc)
-+		printk(KERN_ALERT "pc:%p pc->flags:%ld pc->mem_cgroup:%p\n",
-+		       pc, pc->flags, pc->mem_cgroup);
-+}
-+#endif
-+
- static DEFINE_MUTEX(set_limit_mutex);
+ 		ret = 0;
+ 		spin_lock_irqsave(&zone->lru_lock, flags);
+ 		if (list_empty(list)) {
+@@ -3296,7 +3302,9 @@ static int mem_cgroup_force_empty_list(s
+ 		}
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
  
- static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
-diff -puN mm/page_alloc.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages mm/page_alloc.c
---- a/mm/page_alloc.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages
-+++ a/mm/page_alloc.c
-@@ -53,6 +53,7 @@
- #include <linux/compaction.h>
- #include <trace/events/kmem.h>
- #include <linux/ftrace_event.h>
-+#include <linux/memcontrol.h>
+-		ret = mem_cgroup_move_parent(pc, mem, GFP_KERNEL);
++		page = pc->page;
++
++		ret = mem_cgroup_move_parent(page, pc, mem, GFP_KERNEL);
+ 		if (ret == -ENOMEM)
+ 			break;
  
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -565,7 +566,8 @@ static inline int free_pages_check(struc
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
- 		(atomic_read(&page->_count) != 0) |
--		(page->flags & PAGE_FLAGS_CHECK_AT_FREE))) {
-+		(page->flags & PAGE_FLAGS_CHECK_AT_FREE) |
-+		(mem_cgroup_bad_page_check(page)))) {
- 		bad_page(page);
- 		return 1;
- 	}
-@@ -750,7 +752,8 @@ static inline int check_new_page(struct 
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
- 		(atomic_read(&page->_count) != 0)  |
--		(page->flags & PAGE_FLAGS_CHECK_AT_PREP))) {
-+		(page->flags & PAGE_FLAGS_CHECK_AT_PREP) |
-+		(mem_cgroup_bad_page_check(page)))) {
- 		bad_page(page);
- 		return 1;
- 	}
-@@ -5687,4 +5690,5 @@ void dump_page(struct page *page)
- 		page, atomic_read(&page->_count), page_mapcount(page),
- 		page->mapping, page->index);
- 	dump_page_flags(page->flags);
-+	mem_cgroup_print_bad_page(page);
- }
+@@ -4913,7 +4921,7 @@ retry:
+ 			if (isolate_lru_page(page))
+ 				goto put;
+ 			pc = lookup_page_cgroup(page);
+-			if (!mem_cgroup_move_account(pc,
++			if (!mem_cgroup_move_account(page, pc,
+ 					mc.from, mc.to, false, PAGE_SIZE)) {
+ 				mc.precharge--;
+ 				/* we uncharge from mc.from later. */
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-memsw-remove-noswapaccount-kernel-parameter.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
 memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
 memcg-simplify-the-way-memory-limits-are-checked.patch
@@ -181,4 +230,12 @@ memcg-remove-unused-page-flag-bitfield-defines.patch
 memcg-remove-impossible-conditional-when-committing.patch
 memcg-remove-null-check-from-lookup_page_cgroup-result.patch
 memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
