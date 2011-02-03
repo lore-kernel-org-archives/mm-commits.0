@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch added to -mm tree
-Date: Thu, 03 Feb 2011 13:05:27 -0800
-Message-ID: <201102032105.p13L5RDV024594@imap1.linux-foundation.org>
+Subject: + nbd-remove-module-level-ioctl-mutex.patch added to -mm tree
+Date: Thu, 03 Feb 2011 13:40:38 -0800
+Message-ID: <201102032140.p13LecBh026335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752247Ab1BCVFe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 16:05:34 -0500
+	by vger.kernel.org with ESMTP id S1753213Ab1BCVkz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2011 16:40:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, torbenh@gmx.de
+Cc: soren@linux2go.dk, arnd@arndb.de, axboe@kernel.dk, paul.clements@steeleye.com, serge.hallyn@canonical.com
 
 
 The patch titled
-     drivers/char/bfin_jtag_comm.c: avoid calling put_tty_driver on NULL
+     nbd: remove module-level ioctl mutex
 has been added to the -mm tree.  Its filename is
-     drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
+     nbd-remove-module-level-ioctl-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/bfin_jtag_comm.c: avoid calling put_tty_driver on NULL
-From: Julia Lawall <julia@diku.dk>
+Subject: nbd: remove module-level ioctl mutex
+From: Soren Hansen <soren@linux2go.dk>
 
-put_tty_driver calls tty_driver_kref_put on its argument, and then
-tty_driver_kref_put calls kref_put on the address of a field of this
-argument.  kref_put checks for NULL, but in this case the field is likely
-to have some offset and so the result of taking its address will not be
-NULL.  Labels are added to be able to skip over the call to put_tty_driver
-when the argument will be NULL.
+2a48fc0ab242417 ("block: autoconvert trivial BKL users to private mutex")
+replaced uses of the BKL in the nbd driver with mutex operations.  Since
+then, I've been been seeing these lock ups:
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+ INFO: task qemu-nbd:16115 blocked for more than 120 seconds.
+ "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+ qemu-nbd      D 0000000000000001     0 16115  16114 0x00000004
+  ffff88007d775d98 0000000000000082 ffff88007d775fd8 ffff88007d774000
+  0000000000013a80 ffff8800020347e0 ffff88007d775fd8 0000000000013a80
+  ffff880133730000 ffff880002034440 ffffea0004333db8 ffffffffa071c020
+ Call Trace:
+  [<ffffffff815b9997>] __mutex_lock_slowpath+0xf7/0x180
+  [<ffffffff81132f13>] ? handle_mm_fault+0x1c3/0x410
+  [<ffffffff815b93eb>] mutex_lock+0x2b/0x50
+  [<ffffffffa071a21c>] nbd_ioctl+0x6c/0x1c0 [nbd]
+  [<ffffffff812cb970>] blkdev_ioctl+0x230/0x730
+  [<ffffffff811967a1>] block_ioctl+0x41/0x50
+  [<ffffffff81175c03>] do_vfs_ioctl+0x93/0x370
+  [<ffffffff8116fa83>] ? putname+0x33/0x50
+  [<ffffffff81175f61>] sys_ioctl+0x81/0xa0
+  [<ffffffff8100c0c2>] system_call_fastpath+0x16/0x1b
 
-// <smpl>
-@@
-expression *x;
-@@
+Instrumenting the nbd module's ioctl handler with some extra logging
+clearly shows the NBD_DO_IT ioctl being invoked which is a long-lived
+ioctl in the sense that it doesn't return until another ioctl asks the
+driver to disconnect.  However, that other ioctl blocks, waiting for the
+module-level mutex that replaced the BKL, and then we're stuck.
 
-*if (x == NULL)
-{ ...
-* put_tty_driver(x);
-  ...
-  return ...;
-}
-// </smpl>
+This patch removes the module-level mutex altogether.  It's clearly wrong,
+and as far as I can see, it's entirely unnecessary, since the nbd driver
+maintains per-device mutexes, and I don't see anything that would require
+a module-level (or kernel-level, for that matter) mutex.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Torben Hohn <torbenh@gmx.de>
+Signed-off-by: Soren Hansen <soren@linux2go.dk>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/bfin_jtag_comm.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/bfin_jtag_comm.c~drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null drivers/char/bfin_jtag_comm.c
---- a/drivers/char/bfin_jtag_comm.c~drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null
-+++ a/drivers/char/bfin_jtag_comm.c
-@@ -251,11 +251,11 @@ static int __init bfin_jc_init(void)
- 	bfin_jc_write_buf.head = bfin_jc_write_buf.tail = 0;
- 	bfin_jc_write_buf.buf = kmalloc(CIRC_SIZE, GFP_KERNEL);
- 	if (!bfin_jc_write_buf.buf)
--		goto err;
-+		goto err_buf;
+diff -puN drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex
++++ a/drivers/block/nbd.c
+@@ -53,7 +53,6 @@
+ #define DBG_BLKDEV      0x0100
+ #define DBG_RX          0x0200
+ #define DBG_TX          0x0400
+-static DEFINE_MUTEX(nbd_mutex);
+ static unsigned int debugflags;
+ #endif /* NDEBUG */
  
- 	bfin_jc_driver = alloc_tty_driver(1);
- 	if (!bfin_jc_driver)
--		goto err;
-+		goto err_driver;
+@@ -718,11 +717,9 @@ static int nbd_ioctl(struct block_device
+ 	dprintk(DBG_IOCTL, "%s: nbd_ioctl cmd=%s(0x%x) arg=%lu\n",
+ 			lo->disk->disk_name, ioctl_cmd_to_ascii(cmd), cmd, arg);
  
- 	bfin_jc_driver->owner        = THIS_MODULE;
- 	bfin_jc_driver->driver_name  = DRV_NAME;
-@@ -275,7 +275,9 @@ static int __init bfin_jc_init(void)
+-	mutex_lock(&nbd_mutex);
+ 	mutex_lock(&lo->tx_lock);
+ 	error = __nbd_ioctl(bdev, lo, cmd, arg);
+ 	mutex_unlock(&lo->tx_lock);
+-	mutex_unlock(&nbd_mutex);
  
-  err:
- 	put_tty_driver(bfin_jc_driver);
-+ err_driver:
- 	kfree(bfin_jc_write_buf.buf);
-+ err_buf:
- 	kthread_stop(bfin_jc_kthread);
- 	return ret;
+ 	return error;
  }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from soren@linux2go.dk are
 
-linux-next.patch
-fs-btrfs-inodec-eliminate-memory-leak.patch
-drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
+nbd-remove-module-level-ioctl-mutex.patch
 
