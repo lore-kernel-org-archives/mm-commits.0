@@ -1,133 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch added to -mm tree
-Date: Fri, 04 Feb 2011 13:10:10 -0800
-Message-ID: <201102042110.p14LAAbF019078@imap1.linux-foundation.org>
+Subject: [failures] printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch removed from -mm tree
+Date: Fri, 04 Feb 2011 13:30:02 -0800
+Message-ID: <201102042204.p14M4Cb6021596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752243Ab1BDVKT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Feb 2011 16:10:19 -0500
+	by vger.kernel.org with ESMTP id S1752116Ab1BDWES (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Feb 2011 17:04:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+To: kees.cook@canonical.com, drosenberg@vsecurity.com, joe@perches.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix
-has been added to the -mm tree.  Its filename is
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+     printk: use %pK for /proc/kallsyms and /proc/modules
+has been removed from the -mm tree.  Its filename was
+     printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-direct-page_cgroup-to-page-pointer-fix
+Subject: printk: use %pK for /proc/kallsyms and /proc/modules
+From: Kees Cook <kees.cook@canonical.com>
 
+In an effort to reduce kernel address leaks that might be used to help
+target kernel privilege escalation exploits, this patch uses %pK when
+displaying addresses in /proc/kallsyms, /proc/modules, and
+/sys/module/*/sections/*.
 
-Move pc -> page linkage checks to the lookup function itself.  I no longer
-plan on removing them again, so there is no point in keeping them visible
-at the callsites.
+Note that this changes %x to %p, so some legitimately 0 values in
+/proc/kallsyms would have changed from 00000000 to "(null)".  To avoid
+this, "(null)" is not used when using the "K" format.  Anything that was
+already successfully parsing "(null)" in addition to full hex digits
+should have no problem with this change.  (Thanks to Joe Perches for the
+suggestion.)
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c  |    2 --
- mm/page_cgroup.c |   10 ++++++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ kernel/kallsyms.c |    6 ++----
+ kernel/module.c   |    4 ++--
+ lib/vsprintf.c    |    2 +-
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-direct-page_cgroup-to-page-pointer-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-direct-page_cgroup-to-page-pointer-fix
-+++ a/mm/memcontrol.c
-@@ -1055,7 +1055,6 @@ unsigned long mem_cgroup_isolate_pages(u
- 			continue;
- 
- 		page = lookup_cgroup_page(pc);
--		VM_BUG_ON(pc != lookup_page_cgroup(page));
- 
- 		if (unlikely(!PageLRU(page)))
- 			continue;
-@@ -3320,7 +3319,6 @@ static int mem_cgroup_force_empty_list(s
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
- 		page = lookup_cgroup_page(pc);
--		VM_BUG_ON(pc != lookup_page_cgroup(page));
- 
- 		ret = mem_cgroup_move_parent(page, pc, mem, GFP_KERNEL);
- 		if (ret == -ENOMEM)
-diff -puN mm/page_cgroup.c~memcg-remove-direct-page_cgroup-to-page-pointer-fix mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-remove-direct-page_cgroup-to-page-pointer-fix
-+++ a/mm/page_cgroup.c
-@@ -45,11 +45,14 @@ struct page_cgroup *lookup_page_cgroup(s
- struct page *lookup_cgroup_page(struct page_cgroup *pc)
+diff -puN kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/kallsyms.c
+--- a/kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/kallsyms.c
+@@ -477,12 +477,10 @@ static int s_show(struct seq_file *m, vo
+ 		 */
+ 		type = iter->exported ? toupper(iter->type) :
+ 					tolower(iter->type);
+-		seq_printf(m, "%0*lx %c %s\t[%s]\n",
+-			   (int)(2 * sizeof(void *)),
++		seq_printf(m, "%pK %c %s\t[%s]\n",
+ 			   iter->value, type, iter->name, iter->module_name);
+ 	} else
+-		seq_printf(m, "%0*lx %c %s\n",
+-			   (int)(2 * sizeof(void *)),
++		seq_printf(m, "%pK %c %s\n",
+ 			   iter->value, iter->type, iter->name);
+ 	return 0;
+ }
+diff -puN kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/module.c
+--- a/kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/module.c
+@@ -1168,7 +1168,7 @@ static ssize_t module_sect_show(struct m
  {
- 	unsigned long pfn;
-+	struct page *page;
- 	pg_data_t *pgdat;
- 
- 	pgdat = NODE_DATA(page_cgroup_array_id(pc));
- 	pfn = pc - pgdat->node_page_cgroup + pgdat->node_start_pfn;
--	return pfn_to_page(pfn);
-+	page = pfn_to_page(pfn);
-+	VM_BUG_ON(pc != lookup_page_cgroup(page));
-+	return page;
+ 	struct module_sect_attr *sattr =
+ 		container_of(mattr, struct module_sect_attr, mattr);
+-	return sprintf(buf, "0x%lx\n", sattr->address);
++	return sprintf(buf, "0x%pK\n", sattr->address);
  }
  
- static int __init alloc_node_page_cgroup(int nid)
-@@ -117,11 +120,14 @@ struct page_cgroup *lookup_page_cgroup(s
- struct page *lookup_cgroup_page(struct page_cgroup *pc)
+ static void free_sect_attrs(struct module_sect_attrs *sect_attrs)
+@@ -3224,7 +3224,7 @@ static int m_show(struct seq_file *m, vo
+ 		   mod->state == MODULE_STATE_COMING ? "Loading":
+ 		   "Live");
+ 	/* Used by oprofile and other similar tools. */
+-	seq_printf(m, " 0x%p", mod->module_core);
++	seq_printf(m, " 0x%pK", mod->module_core);
+ 
+ 	/* Taints info */
+ 	if (mod->taints)
+diff -puN lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules lib/vsprintf.c
+--- a/lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/lib/vsprintf.c
+@@ -991,7 +991,7 @@ static noinline_for_stack
+ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+ 	      struct printf_spec spec)
  {
- 	struct mem_section *section;
-+	struct page *page;
- 	unsigned long nr;
- 
- 	nr = page_cgroup_array_id(pc);
- 	section = __nr_to_section(nr);
--	return pfn_to_page(pc - section->page_cgroup);
-+	page = pfn_to_page(pc - section->page_cgroup);
-+	VM_BUG_ON(pc != lookup_page_cgroup(page));
-+	return page;
- }
- 
- /* __alloc_bootmem...() is protected by !slab_available() */
+-	if (!ptr) {
++	if (!ptr && *fmt != 'K') {
+ 		/*
+ 		 * Print (null) with the same width as a pointer so it makes
+ 		 * tabular output look nice.
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from kees.cook@canonical.com are
 
-origin.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+net-convert-%p-usage-to-%pk.patch
 
