@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-__remove_from_page_cache.patch added to -mm tree
-Date: Mon, 07 Feb 2011 17:43:47 -0800
-Message-ID: <201102080143.p181hmBY007749@imap1.linux-foundation.org>
+Subject: + mm-truncate-change-remove_from_page_cache.patch added to -mm tree
+Date: Mon, 07 Feb 2011 17:43:42 -0800
+Message-ID: <201102080143.p181hg8d007743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754425Ab1BHBoz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:44:55 -0500
+	by vger.kernel.org with ESMTP id S1753313Ab1BHBoy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:44:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, hch@infradead.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: minchan.kim@gmail.com, andi@firstfloor.org, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     mm: change __remove_from_page_cache
+     mm: truncate: Change remove_from_page_cache
 has been added to the -mm tree.  Its filename is
-     mm-change-__remove_from_page_cache.patch
+     mm-truncate-change-remove_from_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: change __remove_from_page_cache
+Subject: mm: truncate: Change remove_from_page_cache
 From: Minchan Kim <minchan.kim@gmail.com>
 
-Now we renamed remove_from_page_cache with delete_from_page_cache.  As
-consistency of __remove_from_swap_cache and remove_from_swap_cache, we
-change internal page cache handling function name, too.
+This patch series changes remove_from_page_cache()'s page ref counting
+rule.  Page cache ref count is decreased in delete_from_page_cache().  So
+we don't need to decrease the page reference in callers.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -50,95 +53,27 @@ Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- mm/filemap.c            |    8 ++++----
- mm/memory-failure.c     |    2 +-
- mm/truncate.c           |    2 +-
- mm/vmscan.c             |    2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ mm/truncate.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-change-__remove_from_page_cache include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-change-__remove_from_page_cache
-+++ a/include/linux/pagemap.h
-@@ -455,7 +455,7 @@ int add_to_page_cache_locked(struct page
- 				pgoff_t index, gfp_t gfp_mask);
- int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
- 				pgoff_t index, gfp_t gfp_mask);
--extern void __remove_from_page_cache(struct page *page);
-+extern void __delete_from_page_cache(struct page *page);
- extern void delete_from_page_cache(struct page *page);
- int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
- 
-diff -puN mm/filemap.c~mm-change-__remove_from_page_cache mm/filemap.c
---- a/mm/filemap.c~mm-change-__remove_from_page_cache
-+++ a/mm/filemap.c
-@@ -109,11 +109,11 @@
-  */
- 
- /*
-- * Remove a page from the page cache and free it. Caller has to make
-+ * Delete a page from the page cache and free it. Caller has to make
-  * sure the page is locked and that nobody else uses it - or that usage
-  * is safe.  The caller must hold the mapping's tree_lock.
-  */
--void __remove_from_page_cache(struct page *page)
-+void __delete_from_page_cache(struct page *page)
- {
- 	struct address_space *mapping = page->mapping;
- 
-@@ -166,7 +166,7 @@ void delete_from_page_cache(struct page 
- 
- 	freepage = mapping->a_ops->freepage;
- 	spin_lock_irq(&mapping->tree_lock);
--	__remove_from_page_cache(page);
-+	__delete_from_page_cache(page);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	mem_cgroup_uncharge_cache_page(page);
- 
-@@ -456,7 +456,7 @@ int replace_page_cache_page(struct page 
- 		new->index = offset;
- 
- 		spin_lock_irq(&mapping->tree_lock);
--		__remove_from_page_cache(old);
-+		__delete_from_page_cache(old);
- 		error = radix_tree_insert(&mapping->page_tree, offset, new);
- 		BUG_ON(error);
- 		mapping->nrpages++;
-diff -puN mm/memory-failure.c~mm-change-__remove_from_page_cache mm/memory-failure.c
---- a/mm/memory-failure.c~mm-change-__remove_from_page_cache
-+++ a/mm/memory-failure.c
-@@ -1130,7 +1130,7 @@ int __memory_failure(unsigned long pfn, 
- 
- 	/*
- 	 * Now take care of user space mappings.
--	 * Abort on fail: __remove_from_page_cache() assumes unmapped page.
-+	 * Abort on fail: __delete_from_page_cache() assumes unmapped page.
- 	 */
- 	if (hwpoison_user_mappings(p, pfn, trapno) != SWAP_SUCCESS) {
- 		printk(KERN_ERR "MCE %#lx: cannot unmap page, give up\n", pfn);
-diff -puN mm/truncate.c~mm-change-__remove_from_page_cache mm/truncate.c
---- a/mm/truncate.c~mm-change-__remove_from_page_cache
+diff -puN mm/truncate.c~mm-truncate-change-remove_from_page_cache mm/truncate.c
+--- a/mm/truncate.c~mm-truncate-change-remove_from_page_cache
 +++ a/mm/truncate.c
-@@ -394,7 +394,7 @@ invalidate_complete_page2(struct address
+@@ -108,13 +108,12 @@ truncate_complete_page(struct address_sp
+ 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
  
  	clear_page_mlock(page);
- 	BUG_ON(page_has_private(page));
--	__remove_from_page_cache(page);
-+	__delete_from_page_cache(page);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	mem_cgroup_uncharge_cache_page(page);
- 
-diff -puN mm/vmscan.c~mm-change-__remove_from_page_cache mm/vmscan.c
---- a/mm/vmscan.c~mm-change-__remove_from_page_cache
-+++ a/mm/vmscan.c
-@@ -514,7 +514,7 @@ static int __remove_mapping(struct addre
- 
- 		freepage = mapping->a_ops->freepage;
- 
--		__remove_from_page_cache(page);
-+		__delete_from_page_cache(page);
- 		spin_unlock_irq(&mapping->tree_lock);
- 		mem_cgroup_uncharge_cache_page(page);
+-	remove_from_page_cache(page);
++	delete_from_page_cache(page);
+ 	ClearPageMappedToDisk(page);
+-	/* this must be after the remove_from_page_cache which
++	/* this must be after the delete_from_page_cache which
+ 	 * calls cleancache_put_page (and note page->mapping is now NULL)
+ 	 */
+ 	cleancache_flush_page(mapping, page);
+-	page_cache_release(page);	/* pagecache ref */
+ 	return 0;
+ }
  
 _
 
