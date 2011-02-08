@@ -1,84 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] staging-easycap-fix-build-when-snd-is-not-enabled.patch removed from -mm tree
-Date: Tue, 08 Feb 2011 14:25:21 -0800
-Message-ID: <201102082225.p18MPLHu029290@imap1.linux-foundation.org>
+Subject: + acpi-remove-the-wakeuprun_wake_count-device-field.patch added to -mm tree
+Date: Tue, 08 Feb 2011 14:30:12 -0800
+Message-ID: <201102082230.p18MUCDT029494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753515Ab1BHWZ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 17:25:58 -0500
+	by vger.kernel.org with ESMTP id S1753725Ab1BHWau (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 17:30:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, gregkh@suse.de, rmthomas@sciolus.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg59@srcf.ucam.org
 
 
 The patch titled
-     staging/easycap: fix build when SND is not enabled
-has been removed from the -mm tree.  Its filename was
-     staging-easycap-fix-build-when-snd-is-not-enabled.patch
+     acpi: remove the wakeup.run_wake_count device field
+has been added to the -mm tree.  Its filename is
+     acpi-remove-the-wakeuprun_wake_count-device-field.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging/easycap: fix build when SND is not enabled
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: acpi: remove the wakeup.run_wake_count device field
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fix easycap build when CONFIG_SOUND is enabled but CONFIG_SND is
-not enabled.
+The wakeup.run_wake_count ACPI device field is only used by the PCI
+runtime PM code to "protect" devices from being prepared for generating
+wakeup signals more than once in a row.  However, it really doesn't
+provide any protection, because (1) all of the functions it is supposed to
+protect use their own reference counters effectively ensuring that the
+device will be set up for generating wakeup signals just once and (2) the
+PCI runtime PM code uses wakeup.run_wake_count in a racy way, since
+nothing prevents acpi_dev_run_wake() from being called concurrently from
+two different threads for the same device.
 
-These functions are only built when CONFIG_SND is enabled, so the
-driver should depend on SND.
-This means that having SND enabled is required for the (obsolete)
-EASYCAP_OSS config option.
+Remove the wakeup.run_wake_count ACPI device field which is unnecessary,
+confusing and used in a wrong way.
 
-drivers/built-in.o: In function `easycap_usb_disconnect':
-easycap_main.c:(.text+0x2aba20): undefined reference to `snd_card_free'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b784b): undefined reference to `snd_card_create'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b78fb): undefined reference to `snd_pcm_new'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b7916): undefined reference to `snd_pcm_set_ops'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b795b): undefined reference to `snd_card_register'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b79d8): undefined reference to `snd_card_free'
-drivers/built-in.o: In function `easycap_alsa_probe':
-(.text+0x2b7a78): undefined reference to `snd_card_free'
-drivers/built-in.o: In function `easycap_alsa_complete':
-(.text+0x2b7e68): undefined reference to `snd_pcm_period_elapsed'
-drivers/built-in.o:(.data+0x2cae8): undefined reference to `snd_pcm_lib_ioctl'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: R.M. Thomas <rmthomas@sciolus.org>
-Cc: Greg KH <gregkh@suse.de>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/easycap/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/button.c   |    2 --
+ drivers/acpi/scan.c     |    1 -
+ drivers/pci/pci-acpi.c  |   16 ++++------------
+ include/acpi/acpi_bus.h |    1 -
+ 4 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN drivers/staging/easycap/Kconfig~staging-easycap-fix-build-when-snd-is-not-enabled drivers/staging/easycap/Kconfig
---- a/drivers/staging/easycap/Kconfig~staging-easycap-fix-build-when-snd-is-not-enabled
-+++ a/drivers/staging/easycap/Kconfig
-@@ -1,6 +1,6 @@
- config EASYCAP
- 	tristate "EasyCAP USB ID 05e1:0408 support"
--	depends on USB && VIDEO_DEV && SOUND
-+	depends on USB && VIDEO_DEV && SND
+diff -puN drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/button.c
+--- a/drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/acpi/button.c
+@@ -430,7 +430,6 @@ static int acpi_button_add(struct acpi_d
+ 		/* Button's GPE is run-wake GPE */
+ 		acpi_enable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device->wakeup.run_wake_count++;
+ 		device_set_wakeup_enable(&device->dev, true);
+ 	}
  
- 	---help---
- 	  This is an integrated audio/video driver for EasyCAP cards with
+@@ -453,7 +452,6 @@ static int acpi_button_remove(struct acp
+ 	if (device->wakeup.flags.valid) {
+ 		acpi_disable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device->wakeup.run_wake_count--;
+ 		device_set_wakeup_enable(&device->dev, false);
+ 	}
+ 
+diff -puN drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/acpi/scan.c
+@@ -797,7 +797,6 @@ static void acpi_bus_set_run_wake_flags(
+ 	acpi_status status;
+ 	acpi_event_status event_status;
+ 
+-	device->wakeup.run_wake_count = 0;
+ 	device->wakeup.flags.notifier_present = 0;
+ 
+ 	/* Power button, Lid switch always enable wakeup */
+diff -puN drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/pci/pci-acpi.c
+@@ -293,19 +293,11 @@ static int acpi_dev_run_wake(struct devi
+ 	}
+ 
+ 	if (enable) {
+-		if (!dev->wakeup.run_wake_count++) {
+-			acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
+-			acpi_enable_gpe(dev->wakeup.gpe_device,
+-					dev->wakeup.gpe_number);
+-		}
+-	} else if (dev->wakeup.run_wake_count > 0) {
+-		if (!--dev->wakeup.run_wake_count) {
+-			acpi_disable_gpe(dev->wakeup.gpe_device,
+-					 dev->wakeup.gpe_number);
+-			acpi_disable_wakeup_device_power(dev);
+-		}
++		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
++		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
+ 	} else {
+-		error = -EALREADY;
++		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
++		acpi_disable_wakeup_device_power(dev);
+ 	}
+ 
+ 	return error;
+diff -puN include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/include/acpi/acpi_bus.h
+@@ -250,7 +250,6 @@ struct acpi_device_wakeup {
+ 	struct acpi_handle_list resources;
+ 	struct acpi_device_wakeup_flags flags;
+ 	int prepare_count;
+-	int run_wake_count;
+ };
+ 
+ /* Device */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-apple_bl-depends-on-acpi.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+acpi-remove-the-wakeuprun_wake_count-device-field.patch
+usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
 
