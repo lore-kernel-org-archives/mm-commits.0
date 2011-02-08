@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl_check-drop-table-procname-checks.patch added to -mm tree
-Date: Tue, 08 Feb 2011 13:39:23 -0800
-Message-ID: <201102082139.p18LdN4f026977@imap1.linux-foundation.org>
+Subject: + printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch added to -mm tree
+Date: Tue, 08 Feb 2011 13:40:32 -0800
+Message-ID: <201102082140.p18LeWFU027046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751846Ab1BHVkM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 16:40:12 -0500
+	by vger.kernel.org with ESMTP id S1751846Ab1BHVlU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 16:41:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dkirjanov@kernel.org, ebiederm@xmission.com
+Cc: kees.cook@canonical.com, drosenberg@vsecurity.com, eugene@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     sysctl_check: drop table->procname checks
+     printk: use %pK for /proc/kallsyms and /proc/modules
 has been added to the -mm tree.  Its filename is
-     sysctl_check-drop-table-procname-checks.patch
+     printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl_check: drop table->procname checks
-From: Denis Kirjanov <dkirjanov@kernel.org>
+Subject: printk: use %pK for /proc/kallsyms and /proc/modules
+From: Kees Cook <kees.cook@canonical.com>
 
-Since the for loop checks for the table->procname drop useless
-table->procname checks inside the loop body
+In an effort to reduce kernel address leaks that might be used to help
+target kernel privilege escalation exploits, this patch uses %pK when
+displaying addresses in /proc/kallsyms, /proc/modules, and
+/sys/module/*/sections/*.
 
-Signed-off-by: Denis Kirjanov <dkirjanov@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Note that this changes %x to %p, so some legitimately 0 values in
+/proc/kallsyms would have changed from 00000000 to "(null)".  To avoid
+this, "(null)" is not used when using the "K" format.  Anything that was
+already successfully parsing "(null)" in addition to full hex digits
+should have no problem with this change.  (Thanks to Joe Perches for the
+suggestion.) Due to the %x to %p, "void *" casts are needed since these
+addresses are already "unsigned long" everywhere internally, due to their
+starting life as ELF section offsets.
+
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Cc: Eugene Teo <eugene@redhat.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/kallsyms.c |   10 ++++------
+ kernel/module.c   |    4 ++--
+ lib/vsprintf.c    |    2 +-
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN kernel/sysctl_check.c~sysctl_check-drop-table-procname-checks kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl_check-drop-table-procname-checks
-+++ a/kernel/sysctl_check.c
-@@ -111,11 +111,9 @@ int sysctl_check_table(struct nsproxy *n
- 		const char *fail = NULL;
+diff -puN kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/kallsyms.c
+--- a/kernel/kallsyms.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/kallsyms.c
+@@ -477,13 +477,11 @@ static int s_show(struct seq_file *m, vo
+ 		 */
+ 		type = iter->exported ? toupper(iter->type) :
+ 					tolower(iter->type);
+-		seq_printf(m, "%0*lx %c %s\t[%s]\n",
+-			   (int)(2 * sizeof(void *)),
+-			   iter->value, type, iter->name, iter->module_name);
++		seq_printf(m, "%pK %c %s\t[%s]\n", (void *)iter->value,
++			   type, iter->name, iter->module_name);
+ 	} else
+-		seq_printf(m, "%0*lx %c %s\n",
+-			   (int)(2 * sizeof(void *)),
+-			   iter->value, iter->type, iter->name);
++		seq_printf(m, "%pK %c %s\n", (void *)iter->value,
++			   iter->type, iter->name);
+ 	return 0;
+ }
  
- 		if (table->parent) {
--			if (table->procname && !table->parent->procname)
-+			if (!table->parent->procname)
- 				set_fail(&fail, table, "Parent without procname");
- 		}
--		if (!table->procname)
--			set_fail(&fail, table, "No procname");
- 		if (table->child) {
- 			if (table->data)
- 				set_fail(&fail, table, "Directory with data?");
-@@ -144,7 +142,7 @@ int sysctl_check_table(struct nsproxy *n
- 					set_fail(&fail, table, "No maxlen");
- 			}
- #ifdef CONFIG_PROC_SYSCTL
--			if (table->procname && !table->proc_handler)
-+			if (!table->proc_handler)
- 				set_fail(&fail, table, "No proc_handler");
- #endif
- #if 0
+diff -puN kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules kernel/module.c
+--- a/kernel/module.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/kernel/module.c
+@@ -1168,7 +1168,7 @@ static ssize_t module_sect_show(struct m
+ {
+ 	struct module_sect_attr *sattr =
+ 		container_of(mattr, struct module_sect_attr, mattr);
+-	return sprintf(buf, "0x%lx\n", sattr->address);
++	return sprintf(buf, "0x%pK\n", (void *)sattr->address);
+ }
+ 
+ static void free_sect_attrs(struct module_sect_attrs *sect_attrs)
+@@ -3224,7 +3224,7 @@ static int m_show(struct seq_file *m, vo
+ 		   mod->state == MODULE_STATE_COMING ? "Loading":
+ 		   "Live");
+ 	/* Used by oprofile and other similar tools. */
+-	seq_printf(m, " 0x%p", mod->module_core);
++	seq_printf(m, " 0x%pK", mod->module_core);
+ 
+ 	/* Taints info */
+ 	if (mod->taints)
+diff -puN lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules lib/vsprintf.c
+--- a/lib/vsprintf.c~printk-use-%pk-for-proc-kallsyms-and-proc-modules
++++ a/lib/vsprintf.c
+@@ -991,7 +991,7 @@ static noinline_for_stack
+ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+ 	      struct printf_spec spec)
+ {
+-	if (!ptr) {
++	if (!ptr && *fmt != 'K') {
+ 		/*
+ 		 * Print (null) with the same width as a pointer so it makes
+ 		 * tabular output look nice.
 _
 
-Patches currently in -mm which might be from dkirjanov@kernel.org are
+Patches currently in -mm which might be from kees.cook@canonical.com are
 
-linux-next.patch
-sysctl_check-drop-table-procname-checks.patch
-sysctl_check-drop-dead-code.patch
+net-convert-%p-usage-to-%pk.patch
+printk-use-%pk-for-proc-kallsyms-and-proc-modules.patch
 
