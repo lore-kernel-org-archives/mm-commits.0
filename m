@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-replace_page_cache_page-function-add-freepage-hook.patch added to -mm tree
-Date: Mon, 07 Feb 2011 17:48:06 -0800
-Message-ID: <201102080148.p181m6UD007909@imap1.linux-foundation.org>
+Subject: + memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch added to -mm tree
+Date: Mon, 07 Feb 2011 23:07:49 -0800
+Message-ID: <201102080707.p1877nwb020218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46839 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754612Ab1BHBs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:48:56 -0500
+	by vger.kernel.org with ESMTP id S1751108Ab1BHHIB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 02:08:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mszeredi@suse.cz, riel@redhat.com
+Cc: hannes@cmpxchg.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     mm-add-replace_page_cache_page-function-add-freepage-hook
+     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-replace_page_cache_page-function-add-freepage-hook
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-6072d13c ("Call the filesystem back whenever a page is removed from the
-page cache") added new freepage hook in page cache drop function.
+include/linux/page_cgroup.h:144: warning: left shift count >= width of type
+include/linux/page_cgroup.h:145: warning: left shift count >= width of type
+include/linux/page_cgroup.h:150: warning: right shift count >= width of type
 
-So, replace_page_cache_page should call freepage to support page cleanup
-to fs.
+Since the non-flags field for pc array ids in pc->flags is offset from the
+end of the word, we end up with a shift count of BITS_PER_LONG in case the
+field width is zero.
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This results in a compiler warning as we shift in both directions a long
+int by BITS_PER_LONG.
+
+There is no real harm -- the mask is zero -- but fix up the compiler
+warning by also making the shift count zero for a non-existant field.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/page_cgroup.h |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/filemap.c~mm-add-replace_page_cache_page-function-add-freepage-hook mm/filemap.c
---- a/mm/filemap.c~mm-add-replace_page_cache_page-function-add-freepage-hook
-+++ a/mm/filemap.c
-@@ -436,7 +436,10 @@ int replace_page_cache_page(struct page 
- 	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
- 	if (!error) {
- 		struct address_space *mapping = old->mapping;
-+		void (*freepage)(struct page *);
-+
- 		pgoff_t offset = old->index;
-+		freepage = mapping->a_ops->freepage;
+diff -puN include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
++++ a/include/linux/page_cgroup.h
+@@ -123,31 +123,36 @@ static inline void move_unlock_page_cgro
+ }
  
- 		page_cache_get(new);
- 		new->mapping = mapping;
-@@ -452,6 +455,8 @@ int replace_page_cache_page(struct page 
- 			__inc_zone_page_state(new, NR_SHMEM);
- 		spin_unlock_irq(&mapping->tree_lock);
- 		radix_tree_preload_end();
-+		if (freepage)
-+			freepage(old);
- 		page_cache_release(old);
- 		mem_cgroup_end_migration(memcg, old, new, true);
- 	} else {
+ #ifdef CONFIG_SPARSEMEM
+-#define PCG_ARRAYID_SHIFT	SECTIONS_SHIFT
++#define PCG_ARRAYID_WIDTH	SECTIONS_SHIFT
+ #else
+-#define PCG_ARRAYID_SHIFT	NODES_SHIFT
++#define PCG_ARRAYID_WIDTH	NODES_SHIFT
+ #endif
+ 
+-#if (PCG_ARRAYID_SHIFT > BITS_PER_LONG - NR_PCG_FLAGS)
++#if (PCG_ARRAYID_WIDTH > BITS_PER_LONG - NR_PCG_FLAGS)
+ #error Not enough space left in pc->flags to store page_cgroup array IDs
+ #endif
+ 
+ /* pc->flags: ARRAY-ID | FLAGS */
+ 
+-#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_SHIFT) - 1)
++#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_WIDTH) - 1)
+ 
+-#define PCG_ARRAYID_OFFSET	(sizeof(unsigned long) * 8 - PCG_ARRAYID_SHIFT)
++#define PCG_ARRAYID_OFFSET	(BITS_PER_LONG - PCG_ARRAYID_WIDTH)
++/*
++ * Zero the shift count for non-existant fields, to prevent compiler
++ * warnings and ensure references are optimized away.
++ */
++#define PCG_ARRAYID_SHIFT	(PCG_ARRAYID_OFFSET * (PCG_ARRAYID_WIDTH != 0))
+ 
+ static inline void set_page_cgroup_array_id(struct page_cgroup *pc,
+ 					    unsigned long id)
+ {
+-	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_OFFSET);
+-	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_OFFSET;
++	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_SHIFT);
++	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_SHIFT;
+ }
+ 
+ static inline unsigned long page_cgroup_array_id(struct page_cgroup *pc)
+ {
+-	return (pc->flags >> PCG_ARRAYID_OFFSET) & PCG_ARRAYID_MASK;
++	return (pc->flags >> PCG_ARRAYID_SHIFT) & PCG_ARRAYID_MASK;
+ }
+ 
+ #else /* CONFIG_CGROUP_MEM_RES_CTLR */
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
-mm-vmap-area-cache.patch
-mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
-mm-add-replace_page_cache_page-function-add-freepage-hook.patch
 mm-introduce-delete_from_page_cache.patch
 mm-hugetlbfs-change-remove_from_page_cache.patch
 mm-shmem-change-remove_from_page_cache.patch
 mm-truncate-change-remove_from_page_cache.patch
 mm-good-bye-remove_from_page_cache.patch
 mm-change-__remove_from_page_cache.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
 memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
 memcg-simplify-the-way-memory-limits-are-checked.patch
 memcg-remove-unused-page-flag-bitfield-defines.patch
@@ -105,4 +133,8 @@ memcg-fold-__mem_cgroup_move_account-into-caller.patch
 memcg-condense-page_cgroup-to-page-lookup-points.patch
 memcg-remove-direct-page_cgroup-to-page-pointer.patch
 memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
