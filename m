@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch added to -mm tree
-Date: Mon, 07 Feb 2011 17:21:11 -0800
-Message-ID: <201102080121.p181LBeq006802@imap1.linux-foundation.org>
+Subject: + mm-introduce-delete_from_page_cache.patch added to -mm tree
+Date: Mon, 07 Feb 2011 17:41:50 -0800
+Message-ID: <201102080141.p181fp4w007627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752594Ab1BHBWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:22:05 -0500
+	by vger.kernel.org with ESMTP id S1753299Ab1BHBmp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:42:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arighi@develer.com, geert@linux-m68k.org, peter.nordstrom@palm.com, stable@kernel.org
+Cc: minchan.kim@gmail.com, edward.shishkin@gmail.com, hannes@cmpxchg.org, hch@infradead.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     fb: fix potential deadlock between lock_fb_info and console_lock
+     mm: introduce delete_from_page_cache()
 has been added to the -mm tree.  Its filename is
-     fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.pa=
-tch
+     mm-introduce-delete_from_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,116 +25,120 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: fix potential deadlock between lock_fb_info and console_lo=
-ck
-=46rom: Andrea Righi <arighi@develer.com>
+Subject: mm: introduce delete_from_page_cache()
+From: Minchan Kim <minchan.kim@gmail.com>
 
-fb_set_suspend() must be called with the console semaphore held, which
-means the code path coming in here will first take the console_lock() a=
-nd
-then call lock_fb_info().
+Presently we increase the page refcount in add_to_page_cache() but don't
+decrease it in remove_from_page_cache().  Such asymmetry adds confusion,
+requiring that callers notice it and a comment explaining why they release
+a page reference.  It's not a good API.
 
-However several framebuffer ioctl commands acquire these locks in rever=
-se
-order (lock_fb_info() and then console_lock()).  This gives rise to
-potential AB-BA deadlock.
+A long time ago, Hugh tried it (http://lkml.org/lkml/2004/10/24/140) but
+gave up because reiser4's drop_page() had to unlock the page between
+removing it from page cache and doing the page_cache_release().  But now
+the situation is changed.  I think at least things in current mainline
+don't have any obstacles.  The problem is for out-of-mainline filesystems
+- if they have done such things as reiser4, this patch could be a problem
+but they will discover this at compile time since we remove
+remove_from_page_cache().
 
-=46ix this by changing the order of acquisition in the ioctl commands t=
-hat
-make use of console_lock().
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Reported-by: Peter Nordstr=F6m (Palm GBU) <peter.nordstrom@palm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: <stable@kernel.org>
 
+This patch:
+
+This function works as just wrapper remove_from_page_cache().  The
+difference is that it decreases page references in itself.  So caller have
+to make sure it has a page reference before calling.
+
+This patch is ready for removing remove_from_page_cache().
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ include/linux/pagemap.h |    1 +
+ mm/filemap.c            |   16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
 
-diff -puN drivers/video/fbmem.c~fb-fix-potential-deadlock-between-lock_=
-fb_info-and-console_lock drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-fix-potential-deadlock-between-lock_fb_i=
-nfo-and-console_lock
-+++ a/drivers/video/fbmem.c
-@@ -1034,14 +1034,16 @@ static long do_fb_ioctl(struct fb_info *
- 	case FBIOPUT_VSCREENINFO:
- 		if (copy_from_user(&var, argp, sizeof(var)))
- 			return -EFAULT;
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		info->flags |=3D FBINFO_MISC_USEREVENT;
- 		ret =3D fb_set_var(info, &var);
- 		info->flags &=3D ~FBINFO_MISC_USEREVENT;
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		if (!ret && copy_to_user(argp, &var, sizeof(var)))
- 			ret =3D -EFAULT;
- 		break;
-@@ -1070,12 +1072,14 @@ static long do_fb_ioctl(struct fb_info *
- 	case FBIOPAN_DISPLAY:
- 		if (copy_from_user(&var, argp, sizeof(var)))
- 			return -EFAULT;
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		ret =3D fb_pan_display(info, &var);
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		if (ret =3D=3D 0 && copy_to_user(argp, &var, sizeof(var)))
- 			return -EFAULT;
- 		break;
-@@ -1117,14 +1121,16 @@ static long do_fb_ioctl(struct fb_info *
- 		unlock_fb_info(info);
- 		break;
- 	case FBIOBLANK:
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		info->flags |=3D FBINFO_MISC_USEREVENT;
- 		ret =3D fb_blank(info, arg);
- 		info->flags &=3D ~FBINFO_MISC_USEREVENT;
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		break;
- 	default:
- 		if (!lock_fb_info(info))
+diff -puN include/linux/pagemap.h~mm-introduce-delete_from_page_cache include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-introduce-delete_from_page_cache
++++ a/include/linux/pagemap.h
+@@ -457,6 +457,7 @@ int add_to_page_cache_lru(struct page *p
+ 				pgoff_t index, gfp_t gfp_mask);
+ extern void remove_from_page_cache(struct page *page);
+ extern void __remove_from_page_cache(struct page *page);
++extern void delete_from_page_cache(struct page *page);
+ int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
+ 
+ /*
+diff -puN mm/filemap.c~mm-introduce-delete_from_page_cache mm/filemap.c
+--- a/mm/filemap.c~mm-introduce-delete_from_page_cache
++++ a/mm/filemap.c
+@@ -166,6 +166,22 @@ void remove_from_page_cache(struct page 
+ }
+ EXPORT_SYMBOL(remove_from_page_cache);
+ 
++/**
++ * delete_from_page_cache - delete page from page cache
++ * @page: the page which the kernel is trying to remove from page cache
++ *
++ * This must be called only on pages that have
++ * been verified to be in the page cache and locked.
++ * It will never put the page into the free list,
++ * the caller has a reference on the page.
++ */
++void delete_from_page_cache(struct page *page)
++{
++	remove_from_page_cache(page);
++	page_cache_release(page);
++}
++EXPORT_SYMBOL(delete_from_page_cache);
++
+ static int sync_page(void *word)
+ {
+ 	struct address_space *mapping;
 _
 
-Patches currently in -mm which might be from arighi@develer.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
+origin.patch
+linux-next.patch
+mm-vmap-area-cache.patch
+mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
+mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
