@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nameic-fix-filp_cachep-memory-corruption.patch added to -mm tree
-Date: Tue, 08 Feb 2011 15:26:50 -0800
-Message-ID: <201102082326.p18NQovm031862@imap1.linux-foundation.org>
+Subject: + drivers-char-specialixc-convert-func_enter-to-func_exit.patch added to -mm tree
+Date: Tue, 08 Feb 2011 15:28:24 -0800
+Message-ID: <201102082328.p18NSO4E031978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45471 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754091Ab1BHX0x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 18:26:53 -0500
+	by vger.kernel.org with ESMTP id S1754091Ab1BHX2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 18:28:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hooanon05@yahoo.co.jp, npiggin@kernel.dk, viro@zeniv.linux.org.uk
+Cc: julia@diku.dk, R.E.Wolff@BitWizard.nl
 
 
 The patch titled
-     fs/namei.c: fix filp_cachep memory corruption
+     drivers/char/specialix.c: convert func_enter to func_exit
 has been added to the -mm tree.  Its filename is
-     fs-nameic-fix-filp_cachep-memory-corruption.patch
+     drivers-char-specialixc-convert-func_enter-to-func_exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/namei.c: fix filp_cachep memory corruption
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: drivers/char/specialix.c: convert func_enter to func_exit
+From: Julia Lawall <julia@diku.dk>
 
-In 31e6b01 ("fs: rcu-walk for path lookup") the condition "-ESTALE &&
-!LOOKUP_REVAL" is added to "goto reval" in do_filp_open(), and it looks up
-again with LOOKUP_REVAL _after_ release_open_intent().  Since
-release_open_intent() is called by do_last() and finish_open() too, add
-the same condition to all of them.
+Convert calls to func_enter on leaving a function to func_exit.
 
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The semantic patch that fixes this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+@@
+
+- func_enter();
++ func_exit();
+  return...;
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Roger Wolff <R.E.Wolff@BitWizard.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/char/specialix.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/namei.c~fs-nameic-fix-filp_cachep-memory-corruption fs/namei.c
---- a/fs/namei.c~fs-nameic-fix-filp_cachep-memory-corruption
-+++ a/fs/namei.c
-@@ -2265,7 +2265,8 @@ static struct file *finish_open(struct n
- 	return filp;
+diff -puN drivers/char/specialix.c~drivers-char-specialixc-convert-func_enter-to-func_exit drivers/char/specialix.c
+--- a/drivers/char/specialix.c~drivers-char-specialixc-convert-func_enter-to-func_exit
++++ a/drivers/char/specialix.c
+@@ -1416,7 +1416,7 @@ static int sx_open(struct tty_struct *tt
+ 				 board, bp, port, SX_PORT(tty->index));
  
- exit:
--	if (!IS_ERR(nd->intent.open.file))
-+	if (!(error == -ESTALE && !(nd->flags & LOOKUP_REVAL))
-+	    && !IS_ERR(nd->intent.open.file))
- 		release_open_intent(nd);
- 	path_put(&nd->path);
- 	return ERR_PTR(error);
-@@ -2389,7 +2390,8 @@ exit_mutex_unlock:
- exit_dput:
- 	path_put_conditional(path, nd);
- exit:
--	if (!IS_ERR(nd->intent.open.file))
-+	if (!(error == -ESTALE && !(nd->flags & LOOKUP_REVAL))
-+	    && !IS_ERR(nd->intent.open.file))
- 		release_open_intent(nd);
- 	path_put(&nd->path);
- 	return ERR_PTR(error);
-@@ -2560,7 +2562,8 @@ exit_dput:
- out_path:
- 	path_put(&nd.path);
- out_filp:
--	if (!IS_ERR(nd.intent.open.file))
-+	if (!(error == -ESTALE && !(flags & LOOKUP_REVAL))
-+	    && !IS_ERR(nd.intent.open.file))
- 		release_open_intent(&nd);
- 	filp = ERR_PTR(error);
- 	goto out;
+ 	if (sx_paranoia_check(port, tty->name, "sx_open")) {
+-		func_enter();
++		func_exit();
+ 		return -ENODEV;
+ 	}
+ 
+@@ -1435,13 +1435,13 @@ static int sx_open(struct tty_struct *tt
+ 
+ 	error = sx_setup_port(bp, port);
+ 	if (error) {
+-		func_enter();
++		func_exit();
+ 		return error;
+ 	}
+ 
+ 	error = block_til_ready(tty, filp, port);
+ 	if (error) {
+-		func_enter();
++		func_exit();
+ 		return error;
+ 	}
+ 
+@@ -1860,7 +1860,7 @@ static int sx_set_serial_info(struct spe
+ 	func_enter();
+ 
+ 	if (copy_from_user(&tmp, newinfo, sizeof(tmp))) {
+-		func_enter();
++		func_exit();
+ 		return -EFAULT;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
+Patches currently in -mm which might be from julia@diku.dk are
 
-fs-nameic-fix-filp_cachep-memory-corruption.patch
+linux-next.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
+drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
+drivers-char-specialixc-convert-func_enter-to-func_exit.patch
+drivers-w1-masters-omap_hdqc-add-missing-clk_put.patch
 
