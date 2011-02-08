@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-truncate-change-remove_from_page_cache.patch added to -mm tree
-Date: Mon, 07 Feb 2011 17:43:42 -0800
-Message-ID: <201102080143.p181hg8d007743@imap1.linux-foundation.org>
+Subject: + mm-hugetlbfs-change-remove_from_page_cache.patch added to -mm tree
+Date: Mon, 07 Feb 2011 17:41:53 -0800
+Message-ID: <201102080141.p181fsLf007630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753313Ab1BHBoy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:44:54 -0500
+	by vger.kernel.org with ESMTP id S1754425Ab1BHBqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, andi@firstfloor.org, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, viro@zeniv.linux.org.uk
+Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, wli@holomorphy.com
 
 
 The patch titled
-     mm: truncate: Change remove_from_page_cache
+     mm: hugetlbfs: Change remove_from_page_cache
 has been added to the -mm tree.  Its filename is
-     mm-truncate-change-remove_from_page_cache.patch
+     mm-hugetlbfs-change-remove_from_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: truncate: Change remove_from_page_cache
+Subject: mm: hugetlbfs: Change remove_from_page_cache
 From: Minchan Kim <minchan.kim@gmail.com>
 
 This patch series changes remove_from_page_cache()'s page ref counting
@@ -41,10 +41,7 @@ rule.  Page cache ref count is decreased in delete_from_page_cache().  So
 we don't need to decrease the page reference in callers.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: William Irwin <wli@holomorphy.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -53,28 +50,22 @@ Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/truncate.c~mm-truncate-change-remove_from_page_cache mm/truncate.c
---- a/mm/truncate.c~mm-truncate-change-remove_from_page_cache
-+++ a/mm/truncate.c
-@@ -108,13 +108,12 @@ truncate_complete_page(struct address_sp
- 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
- 
- 	clear_page_mlock(page);
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-change-remove_from_page_cache fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-change-remove_from_page_cache
++++ a/fs/hugetlbfs/inode.c
+@@ -332,8 +332,7 @@ static void truncate_huge_page(struct pa
+ {
+ 	cancel_dirty_page(page, /* No IO accounting for huge pages? */0);
+ 	ClearPageUptodate(page);
 -	remove_from_page_cache(page);
+-	put_page(page);
 +	delete_from_page_cache(page);
- 	ClearPageMappedToDisk(page);
--	/* this must be after the remove_from_page_cache which
-+	/* this must be after the delete_from_page_cache which
- 	 * calls cleancache_put_page (and note page->mapping is now NULL)
- 	 */
- 	cleancache_flush_page(mapping, page);
--	page_cache_release(page);	/* pagecache ref */
- 	return 0;
  }
  
+ static void truncate_hugepages(struct inode *inode, loff_t lstart)
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
