@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-remove-the-wakeuprun_wake_count-device-field.patch added to -mm tree
-Date: Tue, 08 Feb 2011 14:30:12 -0800
-Message-ID: <201102082230.p18MUCDT029494@imap1.linux-foundation.org>
+Subject: + fs-nameic-fix-filp_cachep-memory-corruption.patch added to -mm tree
+Date: Tue, 08 Feb 2011 15:26:50 -0800
+Message-ID: <201102082326.p18NQovm031862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753725Ab1BHWau (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 17:30:50 -0500
+	by vger.kernel.org with ESMTP id S1754091Ab1BHX0x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 18:26:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg59@srcf.ucam.org
+Cc: hooanon05@yahoo.co.jp, npiggin@kernel.dk, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     acpi: remove the wakeup.run_wake_count device field
+     fs/namei.c: fix filp_cachep memory corruption
 has been added to the -mm tree.  Its filename is
-     acpi-remove-the-wakeuprun_wake_count-device-field.patch
+     fs-nameic-fix-filp_cachep-memory-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,108 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove the wakeup.run_wake_count device field
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: fs/namei.c: fix filp_cachep memory corruption
+From: J. R. Okajima <hooanon05@yahoo.co.jp>
 
-The wakeup.run_wake_count ACPI device field is only used by the PCI
-runtime PM code to "protect" devices from being prepared for generating
-wakeup signals more than once in a row.  However, it really doesn't
-provide any protection, because (1) all of the functions it is supposed to
-protect use their own reference counters effectively ensuring that the
-device will be set up for generating wakeup signals just once and (2) the
-PCI runtime PM code uses wakeup.run_wake_count in a racy way, since
-nothing prevents acpi_dev_run_wake() from being called concurrently from
-two different threads for the same device.
+In 31e6b01 ("fs: rcu-walk for path lookup") the condition "-ESTALE &&
+!LOOKUP_REVAL" is added to "goto reval" in do_filp_open(), and it looks up
+again with LOOKUP_REVAL _after_ release_open_intent().  Since
+release_open_intent() is called by do_last() and finish_open() too, add
+the same condition to all of them.
 
-Remove the wakeup.run_wake_count ACPI device field which is unnecessary,
-confusing and used in a wrong way.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/button.c   |    2 --
- drivers/acpi/scan.c     |    1 -
- drivers/pci/pci-acpi.c  |   16 ++++------------
- include/acpi/acpi_bus.h |    1 -
- 4 files changed, 4 insertions(+), 16 deletions(-)
+ fs/namei.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/button.c
---- a/drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/acpi/button.c
-@@ -430,7 +430,6 @@ static int acpi_button_add(struct acpi_d
- 		/* Button's GPE is run-wake GPE */
- 		acpi_enable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
--		device->wakeup.run_wake_count++;
- 		device_set_wakeup_enable(&device->dev, true);
- 	}
+diff -puN fs/namei.c~fs-nameic-fix-filp_cachep-memory-corruption fs/namei.c
+--- a/fs/namei.c~fs-nameic-fix-filp_cachep-memory-corruption
++++ a/fs/namei.c
+@@ -2265,7 +2265,8 @@ static struct file *finish_open(struct n
+ 	return filp;
  
-@@ -453,7 +452,6 @@ static int acpi_button_remove(struct acp
- 	if (device->wakeup.flags.valid) {
- 		acpi_disable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
--		device->wakeup.run_wake_count--;
- 		device_set_wakeup_enable(&device->dev, false);
- 	}
- 
-diff -puN drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/acpi/scan.c
-@@ -797,7 +797,6 @@ static void acpi_bus_set_run_wake_flags(
- 	acpi_status status;
- 	acpi_event_status event_status;
- 
--	device->wakeup.run_wake_count = 0;
- 	device->wakeup.flags.notifier_present = 0;
- 
- 	/* Power button, Lid switch always enable wakeup */
-diff -puN drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/pci/pci-acpi.c
-@@ -293,19 +293,11 @@ static int acpi_dev_run_wake(struct devi
- 	}
- 
- 	if (enable) {
--		if (!dev->wakeup.run_wake_count++) {
--			acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
--			acpi_enable_gpe(dev->wakeup.gpe_device,
--					dev->wakeup.gpe_number);
--		}
--	} else if (dev->wakeup.run_wake_count > 0) {
--		if (!--dev->wakeup.run_wake_count) {
--			acpi_disable_gpe(dev->wakeup.gpe_device,
--					 dev->wakeup.gpe_number);
--			acpi_disable_wakeup_device_power(dev);
--		}
-+		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
-+		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
- 	} else {
--		error = -EALREADY;
-+		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
-+		acpi_disable_wakeup_device_power(dev);
- 	}
- 
- 	return error;
-diff -puN include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/include/acpi/acpi_bus.h
-@@ -250,7 +250,6 @@ struct acpi_device_wakeup {
- 	struct acpi_handle_list resources;
- 	struct acpi_device_wakeup_flags flags;
- 	int prepare_count;
--	int run_wake_count;
- };
- 
- /* Device */
+ exit:
+-	if (!IS_ERR(nd->intent.open.file))
++	if (!(error == -ESTALE && !(nd->flags & LOOKUP_REVAL))
++	    && !IS_ERR(nd->intent.open.file))
+ 		release_open_intent(nd);
+ 	path_put(&nd->path);
+ 	return ERR_PTR(error);
+@@ -2389,7 +2390,8 @@ exit_mutex_unlock:
+ exit_dput:
+ 	path_put_conditional(path, nd);
+ exit:
+-	if (!IS_ERR(nd->intent.open.file))
++	if (!(error == -ESTALE && !(nd->flags & LOOKUP_REVAL))
++	    && !IS_ERR(nd->intent.open.file))
+ 		release_open_intent(nd);
+ 	path_put(&nd->path);
+ 	return ERR_PTR(error);
+@@ -2560,7 +2562,8 @@ exit_dput:
+ out_path:
+ 	path_put(&nd.path);
+ out_filp:
+-	if (!IS_ERR(nd.intent.open.file))
++	if (!(error == -ESTALE && !(flags & LOOKUP_REVAL))
++	    && !IS_ERR(nd.intent.open.file))
+ 		release_open_intent(&nd);
+ 	filp = ERR_PTR(error);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
 
-linux-next.patch
-acpi-remove-the-wakeuprun_wake_count-device-field.patch
-usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
+fs-nameic-fix-filp_cachep-memory-corruption.patch
 
