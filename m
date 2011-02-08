@@ -1,87 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [failures] printk-allow-setting-default_message_level-via-kconfig.patch removed from -mm tree
-Date: Tue, 08 Feb 2011 13:49:10 -0800
-Message-ID: <201102082149.p18LnB8j027405@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-microcode_corec-do-not-warn_oncpu-=-0-during-resume.patch added to -mm tree
+Date: Tue, 08 Feb 2011 14:04:37 -0800
+Message-ID: <201102082204.p18M4bqc028043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751846Ab1BHVtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 16:49:46 -0500
+	by vger.kernel.org with ESMTP id S1752586Ab1BHWE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 17:04:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: msb@chromium.org, joe@perches.com, mingo@elte.hu, olofj@chromium.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ian.campbell@citrix.com, anton@redhat.com, dmitry.adamushko@gmail.com, hugh@veritas.com, jeremy@goop.org, mingo@elte.hu
 
 
 The patch titled
-     printk: allow setting DEFAULT_MESSAGE_LEVEL via Kconfig
-has been removed from the -mm tree.  Its filename was
-     printk-allow-setting-default_message_level-via-kconfig.patch
+     arch/x86/kernel/microcode_core.c: do not WARN_ON(cpu != 0) during resume
+has been added to the -mm tree.  Its filename is
+     arch-x86-kernel-microcode_corec-do-not-warn_oncpu-=-0-during-resume.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: allow setting DEFAULT_MESSAGE_LEVEL via Kconfig
-From: Mandeep Singh Baines <msb@chromium.org>
+Subject: arch/x86/kernel/microcode_core.c: do not WARN_ON(cpu != 0) during resume
+From: Ian Campbell <ian.campbell@citrix.com>
 
-We've been burned by regressions/bugs which we later realized could have
-been triaged quicker if only we'd paid closer attention to dmesg.  To make
-it easier to audit dmesg, we'd like to make DEFAULT_MESSAGE_LEVEL
-Kconfig-settable.  That way we can set it to KERN_NOTICE and audit any
-messages <= KERN_WARNING.
+871b72dd "x86: microcode: use smp_call_function_single instead of
+set_cpus_allowed, cleanup of synchronization logic" included:
 
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+ static int mc_sysdev_resume(struct sys_device *dev)
+ {
+[...]
++       /*
++        * All non-bootup cpus are still disabled,
++        * so only CPU 0 will apply ucode here.
++        *
++        * Moreover, there can be no concurrent
++        * updates from any other places at this point.
++        */
++       WARN_ON(cpu != 0);
+
+However suspend/resume under Xen doesn't need to hot unplug all the CPUs,
+so we don't; the hypervisor can manage the context save/restore for all
+CPUs.
+
+It would be unnecessary to load microcode.ko in a Xen domU but if it does
+occur (e.g.  because a distro installs the tools by default) we would like
+to avoid the warning on resume.
+
+Since the real constraint here is that we are running on the CPU for which
+we would like to load microcode (which in all practical circumstances is
+CPU0) just check for that and return if we are resuming a different CPU.
+
+There is no danger of concurrent updates, even if we ignore the fact that
+all but one CPUs are unplugged on native, because sysdev_resume() is
+single threaded.
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joe Perches <joe@perches.com>
-Cc: Olof Johansson <olofj@chromium.org>
+Acked-by: Anton Arapov <anton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c   |    2 +-
- lib/Kconfig.debug |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ arch/x86/kernel/microcode_core.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN kernel/printk.c~printk-allow-setting-default_message_level-via-kconfig kernel/printk.c
---- a/kernel/printk.c~printk-allow-setting-default_message_level-via-kconfig
-+++ a/kernel/printk.c
-@@ -53,7 +53,7 @@ void asmlinkage __attribute__((weak)) ea
- #define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
+diff -puN arch/x86/kernel/microcode_core.c~arch-x86-kernel-microcode_corec-do-not-warn_oncpu-=-0-during-resume arch/x86/kernel/microcode_core.c
+--- a/arch/x86/kernel/microcode_core.c~arch-x86-kernel-microcode_corec-do-not-warn_oncpu-=-0-during-resume
++++ a/arch/x86/kernel/microcode_core.c
+@@ -441,18 +441,9 @@ static int mc_sysdev_resume(struct sys_d
+ 	int cpu = dev->id;
+ 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
  
- /* printk's without a loglevel use this.. */
--#define DEFAULT_MESSAGE_LOGLEVEL 4 /* KERN_WARNING */
-+#define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
+-	if (!cpu_online(cpu))
++	if (cpu != smp_processor_id())
+ 		return 0;
  
- /* We show everything that is MORE important than this.. */
- #define MINIMUM_CONSOLE_LOGLEVEL 1 /* Minimum loglevel we let people use */
-diff -puN lib/Kconfig.debug~printk-allow-setting-default_message_level-via-kconfig lib/Kconfig.debug
---- a/lib/Kconfig.debug~printk-allow-setting-default_message_level-via-kconfig
-+++ a/lib/Kconfig.debug
-@@ -9,6 +9,18 @@ config PRINTK_TIME
- 	  operations.  This is useful for identifying long delays
- 	  in kernel startup.
- 
-+config DEFAULT_MESSAGE_LOGLEVEL
-+	int "Default message log level (1-7)"
-+	range 1 7
-+	depends on PRINTK
-+	default "4"
-+	help
-+	  Default log level for printk statements with no specified priority.
-+
-+	  This was hard-coded to KERN_WARNING since at least 2.6.10 but folks
-+	  that are auditing their logs closely may want to set it to a lower
-+	  priority.
-+
- config ENABLE_WARN_DEPRECATED
- 	bool "Enable __deprecated logic"
- 	default y
-_
-
-Patches currently in -mm which might be from msb@chromium.org are
-
-linux-next.patch
-fs-use-appropriate-printk-priority-level.patch
-taskstats-use-appropriate-printk-priority-level.patch
-
+-	/*
+-	 * All non-bootup cpus are still disabled,
+-	 * so only CPU 0 will apply ucode here.
+-	 *
+-	 * Moreover, there can be no concurrent
+-	 * updates from any other places at this point.
+-	 */
+-	WARN_ON(cpu != 0);
