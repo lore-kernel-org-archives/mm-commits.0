@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cred-fix-bug-upon-security_cred_alloc_blank-failure.patch added to -mm tree
-Date: Mon, 07 Feb 2011 15:24:01 -0800
-Message-ID: <201102072324.p17NO1lV001871@imap1.linux-foundation.org>
+Subject: + mlock-do-not-munlock-pages-in-__do_fault.patch added to -mm tree
+Date: Mon, 07 Feb 2011 17:18:08 -0800
+Message-ID: <201102080118.p181I8JL006699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60867 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755092Ab1BGXYq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 18:24:46 -0500
+	by vger.kernel.org with ESMTP id S1752011Ab1BHBS0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2011 20:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penguin-kernel@I-love.SAKURA.ne.jp, dhowells@redhat.com, jmorris@namei.org
+Cc: walken@google.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     cred: fix BUG() upon security_cred_alloc_blank() failure
+     mlock: do not munlock pages in __do_fault()
 has been added to the -mm tree.  Its filename is
-     cred-fix-bug-upon-security_cred_alloc_blank-failure.patch
+     mlock-do-not-munlock-pages-in-__do_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cred: fix BUG() upon security_cred_alloc_blank() failure
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mlock: do not munlock pages in __do_fault()
+From: Michel Lespinasse <walken@google.com>
 
-In cred_alloc_blank() since 2.6.32, abort_creds(new) is called with
-new->security == NULL and new->magic == 0 when security_cred_alloc_blank()
-returns an error.  As a result, BUG() will be triggered if SELinux is
-enabled or CONFIG_DEBUG_CREDENTIALS=y.
+If the page is going to be written to, __do_page needs to break COW. 
+However, the old page (before breaking COW) was never mapped mapped into
+the current pte (__do_fault is only called when the pte is not present),
+so vmscan can't have marked the old page as PageMlocked due to being
+mapped in __do_fault's VMA.  Therefore, __do_fault() does not need to
+worry about clearing PageMlocked() on the old page.
 
-If CONFIG_DEBUG_CREDENTIALS=y, BUG() is called from __invalid_creds()
-because cred->magic == 0.  Failing that, BUG() is called from
-selinux_cred_free() because selinux_cred_free() is not expecting
-cred->security == NULL.  This does not affect smack_cred_free(),
-tomoyo_cred_free() or apparmor_cred_free().
-
-Fix these bugs by
-
-(1) Set new->magic before calling security_cred_alloc_blank().
-
-(2) Handle null cred->security in creds_are_invalid() and selinux_cred_free().
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cred.c            |   12 ++++++++----
- security/selinux/hooks.c |    6 +++++-
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ mm/memory.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN kernel/cred.c~cred-fix-bug-upon-security_cred_alloc_blank-failure kernel/cred.c
---- a/kernel/cred.c~cred-fix-bug-upon-security_cred_alloc_blank-failure
-+++ a/kernel/cred.c
-@@ -252,13 +252,13 @@ struct cred *cred_alloc_blank(void)
- #endif
- 
- 	atomic_set(&new->usage, 1);
-+#ifdef CONFIG_DEBUG_CREDENTIALS
-+	new->magic = CRED_MAGIC;
-+#endif
- 
- 	if (security_cred_alloc_blank(new, GFP_KERNEL) < 0)
- 		goto error;
- 
--#ifdef CONFIG_DEBUG_CREDENTIALS
--	new->magic = CRED_MAGIC;
--#endif
- 	return new;
- 
- error:
-@@ -748,7 +748,11 @@ bool creds_are_invalid(const struct cred
- 	if (cred->magic != CRED_MAGIC)
- 		return true;
- #ifdef CONFIG_SECURITY_SELINUX
--	if (selinux_is_enabled()) {
-+	/*
-+	 * cred->security == NULL if security_cred_alloc_blank() or
-+	 * security_prepare_creds() returned an error.
-+	 */
-+	if (selinux_is_enabled() && cred->security) {
- 		if ((unsigned long) cred->security < PAGE_SIZE)
- 			return true;
- 		if ((*(u32 *)cred->security & 0xffffff00) ==
-diff -puN security/selinux/hooks.c~cred-fix-bug-upon-security_cred_alloc_blank-failure security/selinux/hooks.c
---- a/security/selinux/hooks.c~cred-fix-bug-upon-security_cred_alloc_blank-failure
-+++ a/security/selinux/hooks.c
-@@ -3198,7 +3198,11 @@ static void selinux_cred_free(struct cre
- {
- 	struct task_security_struct *tsec = cred->security;
- 
--	BUG_ON((unsigned long) cred->security < PAGE_SIZE);
-+	/*
-+	 * cred->security == NULL if security_cred_alloc_blank() or
-+	 * security_prepare_creds() returned an error.
-+	 */
-+	BUG_ON(cred->security && (unsigned long) cred->security < PAGE_SIZE);
- 	cred->security = (void *) 0x7UL;
- 	kfree(tsec);
- }
+diff -puN mm/memory.c~mlock-do-not-munlock-pages-in-__do_fault mm/memory.c
+--- a/mm/memory.c~mlock-do-not-munlock-pages-in-__do_fault
++++ a/mm/memory.c
+@@ -3051,12 +3051,6 @@ static int __do_fault(struct mm_struct *
+ 				goto out;
+ 			}
+ 			charged = 1;
+-			/*
+-			 * Don't let another task, with possibly unlocked vma,
+-			 * keep the mlocked page.
+-			 */
+-			if (vma->vm_flags & VM_LOCKED)
+-				clear_page_mlock(vmf.page);
+ 			copy_user_highpage(page, vmf.page, address, vma);
+ 			__SetPageUptodate(page);
+ 		} else {
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-cred-fix-bug-upon-security_cred_alloc_blank-failure.patch
-cred-fix-memory-and-refcount-leaks-upon-security_prepare_creds-failure.patch
+mlock-fix-race-when-munlocking-pages-in-do_wp_page.patch
+mlock-do-not-munlock-pages-in-__do_fault.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
 
