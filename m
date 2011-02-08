@@ -1,140 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch added to -mm tree
-Date: Mon, 07 Feb 2011 23:07:49 -0800
-Message-ID: <201102080707.p1877nwb020218@imap1.linux-foundation.org>
+Subject: [merged] cred-fix-bug-upon-security_cred_alloc_blank-failure.patch removed from -mm tree
+Date: Tue, 08 Feb 2011 12:14:45 -0800
+Message-ID: <201102082014.p18KEj2b023124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751108Ab1BHHIB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 02:08:01 -0500
+	by vger.kernel.org with ESMTP id S1755570Ab1BHUPC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2011 15:15:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, randy.dunlap@oracle.com
+To: penguin-kernel@I-love.SAKURA.ne.jp, dhowells@redhat.com, jmorris@namei.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
-has been added to the -mm tree.  Its filename is
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+     cred: fix BUG() upon security_cred_alloc_blank() failure
+has been removed from the -mm tree.  Its filename was
+     cred-fix-bug-upon-security_cred_alloc_blank-failure.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: cred: fix BUG() upon security_cred_alloc_blank() failure
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 
-include/linux/page_cgroup.h:144: warning: left shift count >= width of type
-include/linux/page_cgroup.h:145: warning: left shift count >= width of type
-include/linux/page_cgroup.h:150: warning: right shift count >= width of type
+In cred_alloc_blank() since 2.6.32, abort_creds(new) is called with
+new->security == NULL and new->magic == 0 when security_cred_alloc_blank()
+returns an error.  As a result, BUG() will be triggered if SELinux is
+enabled or CONFIG_DEBUG_CREDENTIALS=y.
 
-Since the non-flags field for pc array ids in pc->flags is offset from the
-end of the word, we end up with a shift count of BITS_PER_LONG in case the
-field width is zero.
+If CONFIG_DEBUG_CREDENTIALS=y, BUG() is called from __invalid_creds()
+because cred->magic == 0.  Failing that, BUG() is called from
+selinux_cred_free() because selinux_cred_free() is not expecting
+cred->security == NULL.  This does not affect smack_cred_free(),
+tomoyo_cred_free() or apparmor_cred_free().
 
-This results in a compiler warning as we shift in both directions a long
-int by BITS_PER_LONG.
+Fix these bugs by
 
-There is no real harm -- the mask is zero -- but fix up the compiler
-warning by also making the shift count zero for a non-existant field.
+(1) Set new->magic before calling security_cred_alloc_blank().
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+(2) Handle null cred->security in creds_are_invalid() and selinux_cred_free().
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ kernel/cred.c            |   12 ++++++++----
+ security/selinux/hooks.c |    6 +++++-
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
-+++ a/include/linux/page_cgroup.h
-@@ -123,31 +123,36 @@ static inline void move_unlock_page_cgro
- }
- 
- #ifdef CONFIG_SPARSEMEM
--#define PCG_ARRAYID_SHIFT	SECTIONS_SHIFT
-+#define PCG_ARRAYID_WIDTH	SECTIONS_SHIFT
- #else
--#define PCG_ARRAYID_SHIFT	NODES_SHIFT
-+#define PCG_ARRAYID_WIDTH	NODES_SHIFT
+diff -puN kernel/cred.c~cred-fix-bug-upon-security_cred_alloc_blank-failure kernel/cred.c
+--- a/kernel/cred.c~cred-fix-bug-upon-security_cred_alloc_blank-failure
++++ a/kernel/cred.c
+@@ -252,13 +252,13 @@ struct cred *cred_alloc_blank(void)
  #endif
  
--#if (PCG_ARRAYID_SHIFT > BITS_PER_LONG - NR_PCG_FLAGS)
-+#if (PCG_ARRAYID_WIDTH > BITS_PER_LONG - NR_PCG_FLAGS)
- #error Not enough space left in pc->flags to store page_cgroup array IDs
- #endif
+ 	atomic_set(&new->usage, 1);
++#ifdef CONFIG_DEBUG_CREDENTIALS
++	new->magic = CRED_MAGIC;
++#endif
  
- /* pc->flags: ARRAY-ID | FLAGS */
+ 	if (security_cred_alloc_blank(new, GFP_KERNEL) < 0)
+ 		goto error;
  
--#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_SHIFT) - 1)
-+#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_WIDTH) - 1)
+-#ifdef CONFIG_DEBUG_CREDENTIALS
+-	new->magic = CRED_MAGIC;
+-#endif
+ 	return new;
  
--#define PCG_ARRAYID_OFFSET	(sizeof(unsigned long) * 8 - PCG_ARRAYID_SHIFT)
-+#define PCG_ARRAYID_OFFSET	(BITS_PER_LONG - PCG_ARRAYID_WIDTH)
-+/*
-+ * Zero the shift count for non-existant fields, to prevent compiler
-+ * warnings and ensure references are optimized away.
-+ */
-+#define PCG_ARRAYID_SHIFT	(PCG_ARRAYID_OFFSET * (PCG_ARRAYID_WIDTH != 0))
- 
- static inline void set_page_cgroup_array_id(struct page_cgroup *pc,
- 					    unsigned long id)
+ error:
+@@ -748,7 +748,11 @@ bool creds_are_invalid(const struct cred
+ 	if (cred->magic != CRED_MAGIC)
+ 		return true;
+ #ifdef CONFIG_SECURITY_SELINUX
+-	if (selinux_is_enabled()) {
++	/*
++	 * cred->security == NULL if security_cred_alloc_blank() or
++	 * security_prepare_creds() returned an error.
++	 */
++	if (selinux_is_enabled() && cred->security) {
+ 		if ((unsigned long) cred->security < PAGE_SIZE)
+ 			return true;
+ 		if ((*(u32 *)cred->security & 0xffffff00) ==
+diff -puN security/selinux/hooks.c~cred-fix-bug-upon-security_cred_alloc_blank-failure security/selinux/hooks.c
+--- a/security/selinux/hooks.c~cred-fix-bug-upon-security_cred_alloc_blank-failure
++++ a/security/selinux/hooks.c
+@@ -3198,7 +3198,11 @@ static void selinux_cred_free(struct cre
  {
--	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_OFFSET);
--	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_OFFSET;
-+	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_SHIFT);
-+	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_SHIFT;
- }
+ 	struct task_security_struct *tsec = cred->security;
  
- static inline unsigned long page_cgroup_array_id(struct page_cgroup *pc)
- {
--	return (pc->flags >> PCG_ARRAYID_OFFSET) & PCG_ARRAYID_MASK;
-+	return (pc->flags >> PCG_ARRAYID_SHIFT) & PCG_ARRAYID_MASK;
+-	BUG_ON((unsigned long) cred->security < PAGE_SIZE);
++	/*
++	 * cred->security == NULL if security_cred_alloc_blank() or
++	 * security_prepare_creds() returned an error.
++	 */
++	BUG_ON(cred->security && (unsigned long) cred->security < PAGE_SIZE);
+ 	cred->security = (void *) 0x7UL;
+ 	kfree(tsec);
  }
- 
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-origin.patch
-mm-introduce-delete_from_page_cache.patch
-mm-hugetlbfs-change-remove_from_page_cache.patch
-mm-shmem-change-remove_from_page_cache.patch
-mm-truncate-change-remove_from_page_cache.patch
-mm-good-bye-remove_from_page_cache.patch
-mm-change-__remove_from_page_cache.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
