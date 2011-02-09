@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch added to -mm tree
-Date: Wed, 09 Feb 2011 12:16:47 -0800
-Message-ID: <201102092016.p19KGlEl020080@imap1.linux-foundation.org>
+Subject: + mm-batch-free-pcp-list-if-possible-fix.patch added to -mm tree
+Date: Wed, 09 Feb 2011 12:39:00 -0800
+Message-ID: <201102092039.p19Kd0bE021101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825Ab1BIUQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:16:49 -0500
+	by vger.kernel.org with ESMTP id S1751364Ab1BIUjJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:39:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ozaki.ryota@gmail.com
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie, namhyung@gmail.com
 
 
 The patch titled
-     mm: fix out-of-date comments which refers non-existent functions
+     mm-batch-free-pcp-list-if-possible-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch
+     mm-batch-free-pcp-list-if-possible-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix out-of-date comments which refers non-existent functions
-From: Ryota Ozaki <ozaki.ryota@gmail.com>
+Subject: mm-batch-free-pcp-list-if-possible-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-do_file_page() and do_no_page() don't exist anymore, but some comments
-still refers them.  The patch fixes them by replacing them with existing
-ones.
+fix comment
 
-Signed-off-by: Ryota Ozaki <ozaki.ryota@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions mm/memory.c
---- a/mm/memory.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions
-+++ a/mm/memory.c
-@@ -2143,10 +2143,10 @@ EXPORT_SYMBOL_GPL(apply_to_page_range);
-  * handle_pte_fault chooses page fault handler according to an entry
-  * which was read non-atomically.  Before making any commitment, on
-  * those architectures or configurations (e.g. i386 with PAE) which
-- * might give a mix of unmatched parts, do_swap_page and do_file_page
-+ * might give a mix of unmatched parts, do_swap_page and do_nonlinear_fault
-  * must check under lock before unmapping the pte and proceeding
-  * (but do_wp_page is only called after already making such a check;
-- * and do_anonymous_page and do_no_page can safely check later on).
-+ * and do_anonymous_page can safely check later on).
-  */
- static inline int pte_unmap_same(struct mm_struct *mm, pmd_t *pmd,
- 				pte_t *page_table, pte_t orig_pte)
-@@ -2342,7 +2342,7 @@ reuse:
- 		 * bit after it clear all dirty ptes, but before a racing
- 		 * do_wp_page installs a dirty pte.
- 		 *
--		 * do_no_page is protected similarly.
-+		 * __do_fault is protected similarly.
- 		 */
- 		if (!page_mkwrite) {
- 			wait_on_page_locked(dirty_page);
+diff -puN mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix
++++ a/mm/page_alloc.c
+@@ -614,7 +614,7 @@ static void free_pcppages_bulk(struct zo
+ 			list = &pcp->lists[migratetype];
+ 		} while (list_empty(list));
+ 
+-		/* This is an only non-empty list. Free them all. */
++		/* This is the only non-empty list. Free them all. */
+ 		if (batch_free == MIGRATE_PCPTYPES)
+ 			batch_free = to_free;
+ 
 _
 
-Patches currently in -mm which might be from ozaki.ryota@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
