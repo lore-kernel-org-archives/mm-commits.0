@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch added to -mm tree
-Date: Wed, 09 Feb 2011 13:35:25 -0800
-Message-ID: <201102092135.p19LZPJu023526@imap1.linux-foundation.org>
+Subject: + memcg-remove-memcg-reclaim_param_lock.patch added to -mm tree
+Date: Wed, 09 Feb 2011 13:39:55 -0800
+Message-ID: <201102092139.p19Ldt6O023698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754958Ab1BIVf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 16:35:59 -0500
+	by vger.kernel.org with ESMTP id S1755823Ab1BIVkG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 16:40:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.co
 
 
 The patch titled
-     memcg: convert per-cpu stock from bytes to page granularity
+     memcg: remove memcg->reclaim_param_lock
 has been added to the -mm tree.  Its filename is
-     memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+     memcg-remove-memcg-reclaim_param_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: convert per-cpu stock from bytes to page granularity
+Subject: memcg: remove memcg->reclaim_param_lock
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-We never keep subpage quantities in the per-cpu stock.
+The reclaim_param_lock is only taken around single reads and writes to
+integer variables and is thus superfluous.  Drop it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -45,87 +46,76 @@ Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-convert-per-cpu-stock-from-bytes-to-page-granularity mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-convert-per-cpu-stock-from-bytes-to-page-granularity
+diff -puN mm/memcontrol.c~memcg-remove-memcg-reclaim_param_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-memcg-reclaim_param_lock
 +++ a/mm/memcontrol.c
-@@ -1640,14 +1640,14 @@ EXPORT_SYMBOL(mem_cgroup_update_page_sta
- #define CHARGE_SIZE	(32 * PAGE_SIZE)
- struct memcg_stock_pcp {
- 	struct mem_cgroup *cached; /* this never be root cgroup */
--	int charge;
-+	unsigned int nr_pages;
- 	struct work_struct work;
- };
- static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
- static atomic_t memcg_drain_count;
- 
- /*
-- * Try to consume stocked charge on this cpu. If success, PAGE_SIZE is consumed
-+ * Try to consume stocked charge on this cpu. If success, one page is consumed
-  * from local stock and true is returned. If the stock is 0 or charges from a
-  * cgroup which is not current target, returns false. This stock will be
-  * refilled.
-@@ -1658,8 +1658,8 @@ static bool consume_stock(struct mem_cgr
- 	bool ret = true;
- 
- 	stock = &get_cpu_var(memcg_stock);
--	if (mem == stock->cached && stock->charge)
--		stock->charge -= PAGE_SIZE;
-+	if (mem == stock->cached && stock->nr_pages)
-+		stock->nr_pages--;
- 	else /* need to call res_counter_charge */
- 		ret = false;
- 	put_cpu_var(memcg_stock);
-@@ -1673,13 +1673,15 @@ static void drain_stock(struct memcg_sto
+@@ -218,12 +218,6 @@ struct mem_cgroup {
+ 	 * per zone LRU lists.
+ 	 */
+ 	struct mem_cgroup_lru_info info;
+-
+-	/*
+-	  protect against reclaim related member.
+-	*/
+-	spinlock_t reclaim_param_lock;
+-
+ 	/*
+ 	 * While reclaiming in a hierarchy, we cache the last child we
+ 	 * reclaimed from.
+@@ -1104,17 +1098,12 @@ static unsigned long long mem_cgroup_mar
+ static unsigned int get_swappiness(struct mem_cgroup *memcg)
  {
- 	struct mem_cgroup *old = stock->cached;
+ 	struct cgroup *cgrp = memcg->css.cgroup;
+-	unsigned int swappiness;
  
--	if (stock->charge) {
--		res_counter_uncharge(&old->res, stock->charge);
-+	if (stock->nr_pages) {
-+		unsigned long bytes = stock->nr_pages * PAGE_SIZE;
-+
-+		res_counter_uncharge(&old->res, bytes);
- 		if (do_swap_account)
--			res_counter_uncharge(&old->memsw, stock->charge);
-+			res_counter_uncharge(&old->memsw, bytes);
-+		stock->nr_pages = 0;
- 	}
- 	stock->cached = NULL;
--	stock->charge = 0;
+ 	/* root ? */
+ 	if (cgrp->parent == NULL)
+ 		return vm_swappiness;
+ 
+-	spin_lock(&memcg->reclaim_param_lock);
+-	swappiness = memcg->swappiness;
+-	spin_unlock(&memcg->reclaim_param_lock);
+-
+-	return swappiness;
++	return memcg->swappiness;
  }
  
- /*
-@@ -1696,7 +1698,7 @@ static void drain_local_stock(struct wor
-  * Cache charges(val) which is from res_counter, to local per_cpu area.
-  * This will be consumed by consume_stock() function, later.
-  */
--static void refill_stock(struct mem_cgroup *mem, int val)
-+static void refill_stock(struct mem_cgroup *mem, unsigned int nr_pages)
- {
- 	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
+ static void mem_cgroup_start_move(struct mem_cgroup *mem)
+@@ -1330,13 +1319,11 @@ mem_cgroup_select_victim(struct mem_cgro
  
-@@ -1704,7 +1706,7 @@ static void refill_stock(struct mem_cgro
- 		drain_stock(stock);
- 		stock->cached = mem;
+ 		rcu_read_unlock();
+ 		/* Updates scanning parameter */
+-		spin_lock(&root_mem->reclaim_param_lock);
+ 		if (!css) {
+ 			/* this means start scan from ID:1 */
+ 			root_mem->last_scanned_child = 0;
+ 		} else
+ 			root_mem->last_scanned_child = found;
+-		spin_unlock(&root_mem->reclaim_param_lock);
  	}
--	stock->charge += val;
-+	stock->nr_pages += nr_pages;
- 	put_cpu_var(memcg_stock);
- }
  
-@@ -2002,7 +2004,7 @@ again:
- 	} while (ret != CHARGE_OK);
+ 	return ret;
+@@ -3842,9 +3829,7 @@ static int mem_cgroup_swappiness_write(s
+ 		return -EINVAL;
+ 	}
  
- 	if (csize > page_size)
--		refill_stock(mem, csize - page_size);
-+		refill_stock(mem, (csize - page_size) >> PAGE_SHIFT);
- 	css_put(&mem->css);
- done:
- 	*memcg = mem;
+-	spin_lock(&memcg->reclaim_param_lock);
+ 	memcg->swappiness = val;
+-	spin_unlock(&memcg->reclaim_param_lock);
+ 
+ 	cgroup_unlock();
+ 
+@@ -4500,7 +4485,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		res_counter_init(&mem->memsw, NULL);
+ 	}
+ 	mem->last_scanned_child = 0;
+-	spin_lock_init(&mem->reclaim_param_lock);
+ 	INIT_LIST_HEAD(&mem->oom_notify);
+ 
+ 	if (parent)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -156,6 +146,8 @@ memcg-condense-page_cgroup-to-page-lookup-points.patch
 memcg-remove-direct-page_cgroup-to-page-pointer.patch
 memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
 memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
 memcg-keep-only-one-charge-cancelling-function.patch
 memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
 memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
