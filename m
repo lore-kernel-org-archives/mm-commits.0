@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch added to -mm tree
-Date: Wed, 09 Feb 2011 12:05:57 -0800
-Message-ID: <201102092005.p19K5w86019521@imap1.linux-foundation.org>
+Subject: + mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch added to -mm tree
+Date: Wed, 09 Feb 2011 12:16:47 -0800
+Message-ID: <201102092016.p19KGlEl020080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751075Ab1BIUGj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:06:39 -0500
+	by vger.kernel.org with ESMTP id S1750825Ab1BIUQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:16:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, aarcange@redhat.com, kent.overstreet@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, riel@redhat.com
+Cc: ozaki.ryota@gmail.com
 
 
 The patch titled
-     vmscan: fix zone shrinking exit when scan work is done
+     mm: fix out-of-date comments which refers non-existent functions
 has been added to the -mm tree.  Its filename is
-     vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch
+     mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix zone shrinking exit when scan work is done
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fix out-of-date comments which refers non-existent functions
+From: Ryota Ozaki <ozaki.ryota@gmail.com>
 
-3e7d344 ("mm: vmscan: reclaim order-0 and use compaction instead of lumpy
-reclaim") introduced an indefinite loop in shrink_zone().
+do_file_page() and do_no_page() don't exist anymore, but some comments
+still refers them.  The patch fixes them by replacing them with existing
+ones.
 
-It meant to break out of this loop when no pages had been reclaimed and
-not a single page was even scanned.  The way it would detect the latter is
-by taking a snapshot of sc->nr_scanned at the beginning of the function
-and comparing it against the new sc->nr_scanned after the scan loop.  But
-it would re-iterate without updating that snapshot, looping forever if
-sc->nr_scanned changed at least once since shrink_zone() was invoked.
-
-This is not the sole condition that would exit that loop, but it requires
-other processes to change the zone state, as the reclaimer that is stuck
-obviously can not anymore.
-
-This is only happening for higher-order allocations, where reclaim is run
-back to back with compaction.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Michal Hocko <mhocko@suse.cz>
-Tested-by: Kent Overstreet<kent.overstreet@gmail.com>
-Reported-by: Kent Overstreet <kent.overstreet@gmail.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Ryota Ozaki <ozaki.ryota@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done
-+++ a/mm/vmscan.c
-@@ -1882,12 +1882,12 @@ static void shrink_zone(int priority, st
- 	unsigned long nr[NR_LRU_LISTS];
- 	unsigned long nr_to_scan;
- 	enum lru_list l;
--	unsigned long nr_reclaimed;
-+	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
--	unsigned long nr_scanned = sc->nr_scanned;
- 
- restart:
- 	nr_reclaimed = 0;
-+	nr_scanned = sc->nr_scanned;
- 	get_scan_count(zone, sc, nr, priority);
- 
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+diff -puN mm/memory.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions mm/memory.c
+--- a/mm/memory.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions
++++ a/mm/memory.c
+@@ -2143,10 +2143,10 @@ EXPORT_SYMBOL_GPL(apply_to_page_range);
+  * handle_pte_fault chooses page fault handler according to an entry
+  * which was read non-atomically.  Before making any commitment, on
+  * those architectures or configurations (e.g. i386 with PAE) which
+- * might give a mix of unmatched parts, do_swap_page and do_file_page
++ * might give a mix of unmatched parts, do_swap_page and do_nonlinear_fault
+  * must check under lock before unmapping the pte and proceeding
+  * (but do_wp_page is only called after already making such a check;
+- * and do_anonymous_page and do_no_page can safely check later on).
++ * and do_anonymous_page can safely check later on).
+  */
+ static inline int pte_unmap_same(struct mm_struct *mm, pmd_t *pmd,
+ 				pte_t *page_table, pte_t orig_pte)
+@@ -2342,7 +2342,7 @@ reuse:
+ 		 * bit after it clear all dirty ptes, but before a racing
+ 		 * do_wp_page installs a dirty pte.
+ 		 *
+-		 * do_no_page is protected similarly.
++		 * __do_fault is protected similarly.
+ 		 */
+ 		if (!page_mkwrite) {
+ 			wait_on_page_locked(dirty_page);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ozaki.ryota@gmail.com are
 
-vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch
-mm-introduce-delete_from_page_cache.patch
-mm-hugetlbfs-change-remove_from_page_cache.patch
-mm-shmem-change-remove_from_page_cache.patch
-mm-truncate-change-remove_from_page_cache.patch
-mm-good-bye-remove_from_page_cache.patch
-mm-change-__remove_from_page_cache.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch
 
