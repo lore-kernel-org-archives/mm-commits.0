@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-call-rcu_barrier-after-kill_sb.patch added to -mm tree
-Date: Wed, 09 Feb 2011 13:57:09 -0800
-Message-ID: <201102092157.p19Lv99l024449@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Wed, 09 Feb 2011 13:58:40 -0800
+Message-ID: <201102092158.p19LweaF024497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755544Ab1BIV5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 16:57:52 -0500
+	by vger.kernel.org with ESMTP id S1752396Ab1BIV7I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 16:59:08 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p19LwehP021813
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 9 Feb 2011 13:58:40 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bharrosh@panasas.com, boyu.mt@taobao.com, chris.mason@oracle.com, npiggin@kernel.dk, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     vfs: call rcu_barrier after ->kill_sb()
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     vfs-call-rcu_barrier-after-kill_sb.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +37,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: call rcu_barrier after ->kill_sb()
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In fa0d7e3 ("fs: icache RCU free inodes"), we use rcu free inode instead
-of freeing the inode directly.  It causes a crash when we rmmod
-immediately after we umount the volume[1].
-
-So we need to call rcu_barrier after we kill_sb so that the inode is freed
-before we do rmmod.  The idea is inspired by Aneesh Kumar.  rcu_barrier
-will wait for all callbacks to end before preceding.  The original patch
-was done by Tao Ma, but synchronize_rcu() is not enough here.
-
-1. http://marc.info/?l=linux-fsdevel&m=129680863330185&w=2
-
-Tested-by: Tao Ma <boyu.mt@taobao.com>
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/super.c~vfs-call-rcu_barrier-after-kill_sb fs/super.c
---- a/fs/super.c~vfs-call-rcu_barrier-after-kill_sb
+diff -puN fs/super.c~linux-next-rejects fs/super.c
+--- a/fs/super.c~linux-next-rejects
 +++ a/fs/super.c
-@@ -177,6 +177,11 @@ void deactivate_locked_super(struct supe
+@@ -179,6 +179,7 @@ void deactivate_locked_super(struct supe
  	struct file_system_type *fs = s->s_type;
  	if (atomic_dec_and_test(&s->s_active)) {
  		fs->kill_sb(s);
-+		/*
-+		 * We need to call rcu_barrier so all the delayed rcu free
-+		 * inodes are flushed before we release the fs module.
-+		 */
-+		rcu_barrier();
- 		put_filesystem(fs);
- 		put_super(s);
- 	} else {
++		cleancache_flush_fs(s);
+ 		/*
+ 		 * We need to call rcu_barrier so all the delayed rcu free
+ 		 * inodes are flushed before we release the fs module.
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-call-rcu_barrier-after-kill_sb.patch
 linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
