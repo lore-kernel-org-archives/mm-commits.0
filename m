@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-batch-free-pcp-list-if-possible-fix.patch added to -mm tree
-Date: Wed, 09 Feb 2011 12:39:00 -0800
-Message-ID: <201102092039.p19Kd0bE021101@imap1.linux-foundation.org>
+Subject: + mm-batch-free-pcp-list-if-possible.patch added to -mm tree
+Date: Wed, 09 Feb 2011 12:38:19 -0800
+Message-ID: <201102092038.p19KcJ7R021080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364Ab1BIUjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:39:09 -0500
+	by vger.kernel.org with ESMTP id S1755229Ab1BIUir (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 15:38:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie, namhyung@gmail.com
+Cc: namhyung@gmail.com, hannes@cmpxchg.org, mel@csn.ul.ie
 
 
 The patch titled
-     mm-batch-free-pcp-list-if-possible-fix
+     mm: batch-free pcp list if possible
 has been added to the -mm tree.  Its filename is
-     mm-batch-free-pcp-list-if-possible-fix.patch
+     mm-batch-free-pcp-list-if-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-batch-free-pcp-list-if-possible-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: batch-free pcp list if possible
+From: Namhyung Kim <namhyung@gmail.com>
 
-fix comment
+free_pcppages_bulk() frees pages from pcp lists in a round-robin fashion
+by keeping batch_free counter.  But it doesn't need to spin if there is
+only one non-empty list.  This can be checked by batch_free ==
+MIGRATE_PCPTYPES.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix
+diff -puN mm/page_alloc.c~mm-batch-free-pcp-list-if-possible mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-batch-free-pcp-list-if-possible
 +++ a/mm/page_alloc.c
-@@ -614,7 +614,7 @@ static void free_pcppages_bulk(struct zo
+@@ -614,6 +614,10 @@ static void free_pcppages_bulk(struct zo
  			list = &pcp->lists[migratetype];
  		} while (list_empty(list));
  
--		/* This is an only non-empty list. Free them all. */
-+		/* This is the only non-empty list. Free them all. */
- 		if (batch_free == MIGRATE_PCPTYPES)
- 			batch_free = to_free;
- 
++		/* This is an only non-empty list. Free them all. */
++		if (batch_free == MIGRATE_PCPTYPES)
++			batch_free = to_free;
++
+ 		do {
+ 			page = list_entry(list->prev, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-batch-free-pcp-list-if-possible.patch
+select-remove-unused-max_select_seconds.patch
 
