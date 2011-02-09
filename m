@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 09 Feb 2011 13:58:40 -0800
-Message-ID: <201102092158.p19LweaF024497@imap1.linux-foundation.org>
+Subject: + memcg-fix-leak-of-accounting-at-failure-path-of-hugepage-collapsing.patch added to -mm tree
+Date: Wed, 09 Feb 2011 14:30:01 -0800
+Message-ID: <201102092230.p19MU1It025827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752396Ab1BIV7I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 16:59:08 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p19LwehP021813
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 9 Feb 2011 13:58:40 -0800
+	by vger.kernel.org with ESMTP id S1750822Ab1BIWar (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2011 17:30:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     linux-next-rejects
+     memcg: fix leak of accounting at failure path of hugepage collapsing
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     memcg-fix-leak-of-accounting-at-failure-path-of-hugepage-collapsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,62 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix leak of accounting at failure path of hugepage collapsing
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
+mem_cgroup_uncharge_page() should be called in all failure case
+after mem_cgroup_charge_newpage() is called in
+huge_memory.c::collapse_huge_page()
+
+ [ 4209.076861] BUG: Bad page state in process khugepaged  pfn:1e9800
+ [ 4209.077601] page:ffffea0006b14000 count:0 mapcount:0 mapping:          (null) index:0x2800
+ [ 4209.078674] page flags: 0x40000000004000(head)
+ [ 4209.079294] pc:ffff880214a30000 pc->flags:2146246697418756 pc->mem_cgroup:ffffc9000177a000
+ [ 4209.082177] (/A)
+ [ 4209.082500] Pid: 31, comm: khugepaged Not tainted 2.6.38-rc3-mm1 #1
+ [ 4209.083412] Call Trace:
+ [ 4209.083678]  [<ffffffff810f4454>] ? bad_page+0xe4/0x140
+ [ 4209.084240]  [<ffffffff810f53e6>] ? free_pages_prepare+0xd6/0x120
+ [ 4209.084837]  [<ffffffff8155621d>] ? rwsem_down_failed_common+0xbd/0x150
+ [ 4209.085509]  [<ffffffff810f5462>] ? __free_pages_ok+0x32/0xe0
+ [ 4209.086110]  [<ffffffff810f552b>] ? free_compound_page+0x1b/0x20
+ [ 4209.086699]  [<ffffffff810fad6c>] ? __put_compound_page+0x1c/0x30
+ [ 4209.087333]  [<ffffffff810fae1d>] ? put_compound_page+0x4d/0x200
+ [ 4209.087935]  [<ffffffff810fb015>] ? put_page+0x45/0x50
+ [ 4209.097361]  [<ffffffff8113f779>] ? khugepaged+0x9e9/0x1430
+ [ 4209.098364]  [<ffffffff8107c870>] ? autoremove_wake_function+0x0/0x40
+ [ 4209.099121]  [<ffffffff8113ed90>] ? khugepaged+0x0/0x1430
+ [ 4209.099780]  [<ffffffff8107c236>] ? kthread+0x96/0xa0
+ [ 4209.100452]  [<ffffffff8100dda4>] ? kernel_thread_helper+0x4/0x10
+ [ 4209.101214]  [<ffffffff8107c1a0>] ? kthread+0x0/0xa0
+ [ 4209.101842]  [<ffffffff8100dda0>] ? kernel_thread_helper+0x0/0x10
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/super.c~linux-next-rejects fs/super.c
---- a/fs/super.c~linux-next-rejects
-+++ a/fs/super.c
-@@ -179,6 +179,7 @@ void deactivate_locked_super(struct supe
- 	struct file_system_type *fs = s->s_type;
- 	if (atomic_dec_and_test(&s->s_active)) {
- 		fs->kill_sb(s);
-+		cleancache_flush_fs(s);
- 		/*
- 		 * We need to call rcu_barrier so all the delayed rcu free
- 		 * inodes are flushed before we release the fs module.
+diff -puN mm/huge_memory.c~memcg-fix-leak-of-accounting-at-failure-path-of-hugepage-collapsing mm/huge_memory.c
+--- a/mm/huge_memory.c~memcg-fix-leak-of-accounting-at-failure-path-of-hugepage-collapsing
++++ a/mm/huge_memory.c
+@@ -1852,7 +1852,6 @@ static void collapse_huge_page(struct mm
+ 		set_pmd_at(mm, address, pmd, _pmd);
+ 		spin_unlock(&mm->page_table_lock);
+ 		anon_vma_unlock(vma->anon_vma);
+-		mem_cgroup_uncharge_page(new_page);
+ 		goto out;
+ 	}
+ 
+@@ -1898,6 +1897,7 @@ out_up_write:
+ 	return;
+ 
+ out:
++	mem_cgroup_uncharge_page(new_page);
+ #ifdef CONFIG_NUMA
+ 	put_page(new_page);
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-exec_domain-establish-a-linux32-domain-on-config_compat-systems.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mlock-fix-race-when-munlocking-pages-in-do_wp_page.patch
+mlock-do-not-munlock-pages-in-__do_fault.patch
+memcg-fix-leak-of-accounting-at-failure-path-of-hugepage-collapsing.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
+mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
 
