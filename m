@@ -1,96 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] lockdep-timers-explain-in-detail-the-locking-problems-del_timer_sync-may-cause.patch removed from -mm tree
-Date: Thu, 10 Feb 2011 12:14:40 -0800
-Message-ID: <201102102014.p1AKEeJP016182@imap1.linux-foundation.org>
+Subject: [merged] pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge.patch removed from -mm tree
+Date: Thu, 10 Feb 2011 12:16:05 -0800
+Message-ID: <201102102016.p1AKG5Go016263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753306Ab1BJUPF (ORCPT
+	by vger.kernel.org with ESMTP id S1756877Ab1BJUQK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Feb 2011 15:15:05 -0500
+	Thu, 10 Feb 2011 15:16:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, nbowler@elliptictech.com, peterz@infradead.org, tglx@linutronix.de, yong.zhang0@gmail.com, mm-commits@vger.kernel.org
+To: jj@chaosbits.net, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep/timers: explain in detail the locking problems del_timer_sync() may cause
+     pci: avoid potential NULL pointer dereference in pci_scan_bridge()
 has been removed from the -mm tree.  Its filename was
-     lockdep-timers-explain-in-detail-the-locking-problems-del_timer_sync-may-cause.patch
+     pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep/timers: explain in detail the locking problems del_timer_sync() may cause
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: pci: avoid potential NULL pointer dereference in pci_scan_bridge()
+From: Jesper Juhl <jj@chaosbits.net>
 
-Twice I had to explain the output about why lockdep gives an error with
-locks in IRQ context and with del_timer_sync().  Might as well write it up
-and place it in the comments above the code in del_timer_sync().  Perhaps
-the next time this lockdep dump triggers people will understand the
-issues.
+pci_add_new_bus() returns NULL on ENOMEM.
 
-It is a tricky issue and very subtle, explaining it in detail in the code
-may help others understand the issue when they stumble upon the bug again.
+Also remove some trailing whitespace.
 
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Yong Zhang <yong.zhang0@gmail.com>
-Cc: Nick Bowler <nbowler@elliptictech.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/pci/probe.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~lockdep-timers-explain-in-detail-the-locking-problems-del_timer_sync-may-cause kernel/timer.c
---- a/kernel/timer.c~lockdep-timers-explain-in-detail-the-locking-problems-del_timer_sync-may-cause
-+++ a/kernel/timer.c
-@@ -964,6 +964,25 @@ EXPORT_SYMBOL(try_to_del_timer_sync);
-  * add_timer_on(). Upon exit the timer is not queued and the handler is
-  * not running on any CPU.
-  *
-+ * Note: You must not hold locks that are held in interrupt context
-+ *   while calling this function. Even if the lock has nothing to do
-+ *   with the timer in question.  Here's why:
-+ *
-+ *    CPU0                             CPU1
-+ *    ----                             ----
-+ *                                   <SOFTIRQ>
-+ *                                   call_timer_fn();
-+ *                                     base->running_timer = mytimer;
-+ *  spin_lock_irq(somelock);
-+ *                                     <IRQ>
-+ *                                        spin_lock(somelock);
-+ *  del_timer_sync(mytimer);
-+ *   while (base->running_timer == mytimer);
-+ *
-+ * Now del_timer_sync() will never return and never release somelock.
-+ * The interrupt on the other CPU is waiting to grab somelock but
-+ * it has interrupted the softirq that CPU0 is waiting to finish.
-+ *
-  * The function returns whether it has deactivated a pending timer or not.
-  */
- int del_timer_sync(struct timer_list *timer)
-@@ -971,6 +990,10 @@ int del_timer_sync(struct timer_list *ti
- #ifdef CONFIG_LOCKDEP
- 	unsigned long flags;
- 
-+	/*
-+	 * If lockdep gives a backtrace here, please reference
-+	 * the synchronization rules above.
-+	 */
- 	raw_local_irq_save(flags);
- 	local_bh_disable();
- 	lock_map_acquire(&timer->lockdep_map);
+diff -puN drivers/pci/probe.c~pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-avoid-potential-null-pointer-dereference-in-pci_scan_bridge
++++ a/drivers/pci/probe.c
+@@ -764,6 +764,8 @@ int __devinit pci_scan_bridge(struct pci
+ 		if (pci_find_bus(pci_domain_nr(bus), max+1))
+ 			goto out;
+ 		child = pci_add_new_bus(bus, dev, ++max);
++		if (!child)
++			goto out;
+ 		buses = (buses & 0xff000000)
+ 		      | ((unsigned int)(child->primary)     <<  0)
+ 		      | ((unsigned int)(child->secondary)   <<  8)
+@@ -777,7 +779,7 @@ int __devinit pci_scan_bridge(struct pci
+ 			buses &= ~0xff000000;
+ 			buses |= CARDBUS_LATENCY_TIMER << 24;
+ 		}
+-			
++
+ 		/*
+ 		 * We need to blast all three values with a single write.
+ 		 */
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
-origin.patch
 linux-next.patch
+x86-numa-add-error-handling-for-bad-cpu-to-node-mappings.patch
+audit-always-follow-va_copy-with-va_end.patch
 
