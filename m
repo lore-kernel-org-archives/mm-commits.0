@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch added to -mm tree
-Date: Thu, 10 Feb 2011 13:37:14 -0800
-Message-ID: <201102102211.p1AMBVPW021422@imap1.linux-foundation.org>
+Subject: + drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch added to -mm tree
+Date: Thu, 10 Feb 2011 15:21:21 -0800
+Message-ID: <201102102355.p1ANtcX7026130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757161Ab1BJWLt (ORCPT
+	by vger.kernel.org with ESMTP id S1757240Ab1BJX4Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Feb 2011 17:11:49 -0500
+	Thu, 10 Feb 2011 18:56:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     arch/x86/include/asm/delay.h: fix udelay() and ndelay() for 8-bit args
+     drivers/platform/x86/intel_pmic_gpio.c: fix big mess with i386 allmodconfig
 has been added to the -mm tree.  Its filename is
-     arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+     drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/include/asm/delay.h: fix udelay() and ndelay() for 8-bit args
+Subject: drivers/platform/x86/intel_pmic_gpio.c: fix big mess with i386 allmodconfig
 From: Andrew Morton <akpm@linux-foundation.org>
 
-With a non-constant 8-bit argument, a call to udelay() generates a warning:
+Fix build error:
 
-drivers/gpu/drm/radeon/atom.c: In function 'atom_op_delay':
-drivers/gpu/drm/radeon/atom.c:654: warning: comparison is always false due to limited range of data type
+drivers/platform/x86/intel_pmic_gpio.c:285: error: 'KERN_WARN' undeclared (first use in this function)
 
-The code looks like it works OK with an 8-bit arg, and the calling code is
-doing nothing wrong, so udelay() needs fixing.
+And a bunch of warnings:
 
-Fixing it was rather tricky.  Simply typecasting `n' in the comparison with
-20000 didn't change anything.  Hence the divide-by-20000 trick.
+drivers/platform/x86/intel_pmic_gpio.c: In function 'pmic_irq_handler':
+drivers/platform/x86/intel_pmic_gpio.c:226: warning: no return statement in function returning non-void
+drivers/platform/x86/intel_pmic_gpio.c: In function 'platform_pmic_gpio_probe':
+drivers/platform/x86/intel_pmic_gpio.c:283: warning: passing argument 2 of 'request_irq' from incompatible pointer type
+drivers/platform/x86/intel_pmic_gpio.c: At top level:
+drivers/platform/x86/intel_pmic_gpio.c:183: warning: 'pmic_bus_lock' defined but not used
+drivers/platform/x86/intel_pmic_gpio.c:190: warning: 'pmic_bus_sync_unlock' defined but not used
 
-Using a do{}while loop didn't work because udelay() is used in ?: statements,
-hence the ({...}) construct.
+This repairs linux-next's "platform-drivers: x86: pmic: Use request_irq
+instead of chained handler".  Please don't introduce bisection holes into
+mainlin!
 
-While I was there I replaced the brain-bending ?:?:?: mess with nice if/else
-code.
-
-Probably other architectures are generating the same warning and can use a
-similar change.
-
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/delay.h |   33 +++++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ drivers/platform/x86/intel_pmic_gpio.c |   40 ++---------------------
+ 1 file changed, 5 insertions(+), 35 deletions(-)
 
-diff -puN arch/x86/include/asm/delay.h~arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args arch/x86/include/asm/delay.h
---- a/arch/x86/include/asm/delay.h~arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args
-+++ a/arch/x86/include/asm/delay.h
-@@ -16,15 +16,36 @@ extern void __ndelay(unsigned long nsecs
- extern void __const_udelay(unsigned long xloops);
- extern void __delay(unsigned long loops);
+diff -puN drivers/platform/x86/intel_pmic_gpio.c~drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig drivers/platform/x86/intel_pmic_gpio.c
+--- a/drivers/platform/x86/intel_pmic_gpio.c~drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig
++++ a/drivers/platform/x86/intel_pmic_gpio.c
+@@ -74,19 +74,6 @@ struct pmic_gpio {
+ 	u32			trigger_type;
+ };
  
-+/*
-+ * The weird n/20000 thing suppresses a "comparison is always false due to
-+ * limited range of data type" warning with non-const 8-bit arguments.
-+ */
-+
- /* 0x10c7 is 2**32 / 1000000 (rounded up) */
--#define udelay(n) (__builtin_constant_p(n) ? \
--	((n) > 20000 ? __bad_udelay() : __const_udelay((n) * 0x10c7ul)) : \
--	__udelay(n))
-+#define udelay(n)							\
-+	({								\
-+		if (__builtin_constant_p(n)) {				\
-+			if ((n) / 20000 >= 1)				\
-+				 __bad_udelay();			\
-+			else						\
-+				__const_udelay((n) * 0x10c7ul);		\
-+		} else {						\
-+			__udelay(n);					\
-+		}							\
-+	})
+-static void pmic_program_irqtype(int gpio, int type)
+-{
+-	if (type & IRQ_TYPE_EDGE_RISING)
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x20, 0x20);
+-	else
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x20);
+-
+-	if (type & IRQ_TYPE_EDGE_FALLING)
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x10, 0x10);
+-	else
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x10);
+-};
+-
+ static int pmic_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
+ {
+ 	if (offset > 8) {
+@@ -179,26 +166,6 @@ static int pmic_gpio_to_irq(struct gpio_
+ 	return pg->irq_base + offset;
+ }
  
- /* 0x5 is 2**32 / 1000000000 (rounded up) */
--#define ndelay(n) (__builtin_constant_p(n) ? \
--	((n) > 20000 ? __bad_ndelay() : __const_udelay((n) * 5ul)) : \
--	__ndelay(n))
-+#define ndelay(n)							\
-+	({								\
-+		if (__builtin_constant_p(n)) {				\
-+			if ((n) / 20000 >= 1)				\
-+				__bad_ndelay();				\
-+			else						\
-+				__const_udelay((n) * 5ul);		\
-+		} else {						\
-+			__ndelay(n);					\
-+		}							\
-+	})
+-static void pmic_bus_lock(struct irq_data *data)
+-{
+-	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
+-
+-	mutex_lock(&pg->buslock);
+-}
+-
+-static void pmic_bus_sync_unlock(struct irq_data *data)
+-{
+-	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
+-
+-	if (pg->update_type) {
+-		unsigned int gpio = pg->update_type & ~GPIO_UPDATE_TYPE;
+-
+-		pmic_program_irqtype(gpio, pg->trigger_type);
+-		pg->update_type = 0;
+-	}
+-	mutex_unlock(&pg->buslock);
+-}
+-
+ /* the gpiointr register is read-clear, so just do nothing. */
+ static void pmic_irq_unmask(struct irq_data *data) { }
  
- void use_tsc_delay(void);
+@@ -211,18 +178,21 @@ static struct irq_chip pmic_irqchip = {
+ 	.irq_set_type	= pmic_irq_type,
+ };
+ 
+-static irqreturn_t pmic_irq_handler(unsigned int irq, void *data)
++static irqreturn_t pmic_irq_handler(int irq, void *data)
+ {
+ 	struct pmic_gpio *pg = data;
+ 	u8 intsts = *((u8 *)pg->gpiointr + 4);
+ 	int gpio;
++	irqreturn_t ret = IRQ_NONE;
+ 
+ 	for (gpio = 0; gpio < 8; gpio++) {
+ 		if (intsts & (1 << gpio)) {
+ 			pr_debug("pmic pin %d triggered\n", gpio);
+ 			generic_handle_irq(pg->irq_base + gpio);
++			ret = IRQ_HANDLED;
+ 		}
+ 	}
++	return ret;
+ }
+ 
+ static int __devinit platform_pmic_gpio_probe(struct platform_device *pdev)
+@@ -282,7 +252,7 @@ static int __devinit platform_pmic_gpio_
+ 
+ 	retval = request_irq(pg->irq, pmic_irq_handler, 0, "pmic", pg);
+ 	if (retval) {
+-		printk(KERN_WARN "pmic: Interrupt request failed\n");
++		printk(KERN_WARNING "pmic: Interrupt request failed\n");
+ 		goto err;
+ 	}
  
 _
 
@@ -125,6 +158,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-vmap-area-cache.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
