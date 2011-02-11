@@ -1,98 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch added to -mm tree
-Date: Fri, 11 Feb 2011 09:15:35 -0800
-Message-ID: <201102111715.p1BHFZ8k004730@imap1.linux-foundation.org>
+Subject: [merged] init-calibratec-fix-jiffy-calculations-in-calibrate_delay_direct-to-handle-overflow.patch removed from -mm tree
+Date: Fri, 11 Feb 2011 09:18:07 -0800
+Message-ID: <201102111718.p1BHI8kG004859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757769Ab1BKRQO (ORCPT
+	by vger.kernel.org with ESMTP id S1757775Ab1BKRSt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Feb 2011 12:16:14 -0500
+	Fri, 11 Feb 2011 12:18:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com
+To: Tim.Deegan@citrix.com, jbeulich@novell.com, jeremy@goop.org, jslaby@suse.cz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
-has been added to the -mm tree.  Its filename is
-     block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch
+     init/calibrate.c: fix jiffy calculations in calibrate_delay_direct to handle overflow
+has been removed from the -mm tree.  Its filename was
+     init-calibratec-fix-jiffy-calculations-in-calibrate_delay_direct-to-handle-overflow.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: init/calibrate.c: fix jiffy calculations in calibrate_delay_direct to handle overflow
+From: Tim Deegan <Tim.Deegan@citrix.com>
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
- IP: [<ffffffff812479d4>] do_raw_spin_lock+0x14/0x122
- Process modprobe (pid: 6189, threadinfo ffff88009a898000, task
- ffff880154a88000)
- Call Trace:
-  [<ffffffff81486788>] _raw_spin_lock_irq+0x4a/0x51
-  [<ffffffff8123404b>] ? blk_throtl_exit+0x3b/0xa0
-  [<ffffffff8105b120>] ? cancel_delayed_work_sync+0xd/0xf
-  [<ffffffff8123404b>] blk_throtl_exit+0x3b/0xa0
-  [<ffffffff81229bc8>] blk_release_queue+0x21/0x65
-  [<ffffffff8123bb06>] kobject_release+0x51/0x66
-  [<ffffffff8123bab5>] ? kobject_release+0x0/0x66
-  [<ffffffff8123ce1e>] kref_put+0x43/0x4d
-  [<ffffffff8123ba27>] kobject_put+0x47/0x4b
-  [<ffffffff8122717c>] blk_cleanup_queue+0x56/0x5b
-  [<ffffffffa01c3824>] loop_exit+0x68/0x844 [loop]
-  [<ffffffff8107cccc>] sys_delete_module+0x1e8/0x25b
-  [<ffffffff814864c9>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-  [<ffffffff81002112>] system_call_fastpath+0x16/0x1b
+Fixes a hang when booting as dom0 under Xen, when jiffies can be quite
+large by the time the kernel init gets this far.
 
-because of an attempt to acquire NULL queue_lock.  Added the same lines as
-in blk_queue_make_request: 'fall back to embedded per-queue lock' - when
-call blk_release_queue on allocated but never initialized queue.
-
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+[jbeulich@novell.com: !time_after() -> time_before_eq() as suggested by Jiri Slaby]
+Signed-off-by: Tim Deegan <Tim.Deegan@citrix.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-sysfs.c    |    6 ++++++
- drivers/block/loop.c |    3 ---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ init/calibrate.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 block/blk-sysfs.c
---- a/block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
-+++ a/block/blk-sysfs.c
-@@ -471,6 +471,12 @@ static void blk_release_queue(struct kob
+diff -puN init/calibrate.c~init-calibratec-fix-jiffy-calculations-in-calibrate_delay_direct-to-handle-overflow init/calibrate.c
+--- a/init/calibrate.c~init-calibratec-fix-jiffy-calculations-in-calibrate_delay_direct-to-handle-overflow
++++ a/init/calibrate.c
+@@ -66,7 +66,7 @@ static unsigned long __cpuinit calibrate
+ 		pre_start = 0;
+ 		read_current_timer(&start);
+ 		start_jiffies = jiffies;
+-		while (jiffies <= (start_jiffies + 1)) {
++		while (time_before_eq(jiffies, start_jiffies + 1)) {
+ 			pre_start = start;
+ 			read_current_timer(&start);
+ 		}
+@@ -74,8 +74,8 @@ static unsigned long __cpuinit calibrate
  
- 	blk_sync_queue(q);
- 
-+	/* It's possible that blk_release_queue will be called on allocated
-+	 * but never initialized queue. Fall back to our embedded per-queue
-+	 * locks in this case. */
-+	if (!q->queue_lock)
-+		q->queue_lock = &q->__queue_lock;
-+
- 	blk_throtl_exit(q);
- 
- 	if (rl->rq_pool)
-diff -puN drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 drivers/block/loop.c
---- a/drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
-+++ a/drivers/block/loop.c
-@@ -1641,9 +1641,6 @@ out:
- 
- static void loop_free(struct loop_device *lo)
- {
--	if (!lo->lo_queue->queue_lock)
--		lo->lo_queue->queue_lock = &lo->lo_queue->__queue_lock;
+ 		pre_end = 0;
+ 		end = post_start;
+-		while (jiffies <=
+-		       (start_jiffies + 1 + DELAY_CALIBRATION_TICKS)) {
++		while (time_before_eq(jiffies, start_jiffies + 1 +
++					       DELAY_CALIBRATION_TICKS)) {
+ 			pre_end = end;
+ 			read_current_timer(&end);
+ 		}
+_
+
+Patches currently in -mm which might be from Tim.Deegan@citrix.com are
+
+origin.patch
+
