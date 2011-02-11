@@ -1,44 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3.patch removed from -mm tree
-Date: Fri, 11 Feb 2011 09:13:58 -0800
-Message-ID: <201102111713.p1BHDwc3004678@imap1.linux-foundation.org>
+Subject: + block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch added to -mm tree
+Date: Fri, 11 Feb 2011 09:15:35 -0800
+Message-ID: <201102111715.p1BHFZ8k004730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757114Ab1BKROl (ORCPT
+	by vger.kernel.org with ESMTP id S1757769Ab1BKRQO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Feb 2011 12:14:41 -0500
+	Fri, 11 Feb 2011 12:16:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com
 
 
 The patch titled
-     loop: queue_lock NULL pointer dereference in blk_throtl_exit
-has been removed from the -mm tree.  Its filename was
-     loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3.patch
+     block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
+has been added to the -mm tree.  Its filename is
+     block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: queue_lock NULL pointer dereference in blk_throtl_exit
+Subject: block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-Performing
-$ sudo mount -o loop -o umask=0 /dev/sdb1 /mnt/
-mount: wrong fs type, bad option, bad superblock on /dev/loop0,
-       missing codepage or helper program, or other error
-       In some cases useful info is found in syslog - try
-       dmesg | tail  or so
-
-$ sudo modprobe -r loop
-
-results in oops:
-
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
  IP: [<ffffffff812479d4>] do_raw_spin_lock+0x14/0x122
  Process modprobe (pid: 6189, threadinfo ffff88009a898000, task
  ffff880154a88000)
@@ -59,27 +58,28 @@ results in oops:
   [<ffffffff81002112>] system_call_fastpath+0x16/0x1b
 
 because of an attempt to acquire NULL queue_lock.  Added the same lines as
-in blk_queue_make_request - `fall back to embedded per-queue lock' - when
-call blk_release_queue on allocated but not initialized queue.
+in blk_queue_make_request: 'fall back to embedded per-queue lock' - when
+call blk_release_queue on allocated but never initialized queue.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Jens Axboe <jaxboe@fusionio.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-sysfs.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ block/blk-sysfs.c    |    6 ++++++
+ drivers/block/loop.c |    3 ---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN block/blk-sysfs.c~loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3 block/blk-sysfs.c
---- a/block/blk-sysfs.c~loop-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v3
+diff -puN block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 block/blk-sysfs.c
+--- a/block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
 +++ a/block/blk-sysfs.c
 @@ -471,6 +471,12 @@ static void blk_release_queue(struct kob
  
  	blk_sync_queue(q);
  
 +	/* It's possible that blk_release_queue will be called on allocated
-+	 * but never initilalized queue. Fall back to our embedded per-queue
++	 * but never initialized queue. Fall back to our embedded per-queue
 +	 * locks in this case. */
 +	if (!q->queue_lock)
 +		q->queue_lock = &q->__queue_lock;
@@ -87,10 +87,12 @@ diff -puN block/blk-sysfs.c~loop-queue_lock-null-pointer-derefence-in-blk_throtl
  	blk_throtl_exit(q);
  
  	if (rl->rq_pool)
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-origin.patch
-block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch
-
+diff -puN drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 drivers/block/loop.c
+--- a/drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
++++ a/drivers/block/loop.c
+@@ -1641,9 +1641,6 @@ out:
+ 
+ static void loop_free(struct loop_device *lo)
+ {
+-	if (!lo->lo_queue->queue_lock)
+-		lo->lo_queue->queue_lock = &lo->lo_queue->__queue_lock;
