@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-convert-ds1374-to-dev_pm_ops.patch added to -mm tree
-Date: Mon, 14 Feb 2011 14:50:15 -0800
-Message-ID: <201102142250.p1EMoFMA030551@imap1.linux-foundation.org>
+Subject: + epoll-prevent-creating-circular-epoll-structures.patch added to -mm tree
+Date: Mon, 14 Feb 2011 14:47:12 -0800
+Message-ID: <201102142247.p1EMlCbH030456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753400Ab1BNXNl (ORCPT
+	by vger.kernel.org with ESMTP id S1753461Ab1BNXpU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:13:41 -0500
+	Mon, 14 Feb 2011 18:45:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, johnstul@us.ibm.com
+Cc: davidel@xmailserver.org, nelhage@ksplice.com, stable@kernel.org
 
 
 The patch titled
-     rtc: convert DS1374 to dev_pm_ops
+     epoll: prevent creating circular epoll structures.
 has been added to the -mm tree.  Its filename is
-     rtc-convert-ds1374-to-dev_pm_ops.patch
+     epoll-prevent-creating-circular-epoll-structures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,211 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: convert DS1374 to dev_pm_ops
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: epoll: prevent creating circular epoll structures.
+From: Davide Libenzi <davidel@xmailserver.org>
 
-There is a general move to replace bus-specific PM ops with dev_pm_ops in
-order to facilitate core improvements. Do this conversion for DS1374.
+In several places, an epoll fd can call another file's ->f_op->poll()
+method with ep->mtx held.  This is in general unsafe, because that other
+file could itself be an epoll fd that contains the original epoll fd.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: john stultz <johnstul@us.ibm.com>
+The code defends against this possibility in its own ->poll() method using
+ep_call_nested, but there are several other unsafe calls to ->poll
+elsewhere that can be made to deadlock.  For example, the following simple
+program causes the call in ep_insert recursively call the original fd's
+->poll, leading to deadlock:
+
+ #include <unistd.h>
+ #include <sys/epoll.h>
+
+ int main(void) {
+     int e1, e2, p[2];
+     struct epoll_event evt = {
+         .events = EPOLLIN
+     };
+
+     e1 = epoll_create(1);
+     e2 = epoll_create(2);
+     pipe(p);
+
+     epoll_ctl(e2, EPOLL_CTL_ADD, e1, &evt);
+     epoll_ctl(e1, EPOLL_CTL_ADD, p[0], &evt);
+     write(p[1], p, sizeof p);
+     epoll_ctl(e1, EPOLL_CTL_ADD, e2, &evt);
+
+     return 0;
+ }
+
+
+
+On insertion, check whether the inserted file is itself a struct epoll,
+and if so, do a recursive walk to detect whether inserting this file would
+create a loop of epoll structures, which could lead to deadlock.
+
+[nelhage@ksplice.com: Use epmutex to serialize concurrent inserts]
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Nelson Elhage <nelhage@ksplice.com>
+Reported-by: Nelson Elhage <nelhage@ksplice.com>
+Tested-by: Nelson Elhage <nelhage@ksplice.com>
+Cc: <stable@kernel.org>		[2.6.34+, possibly earlier]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ fs/eventpoll.c |   95 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-convert-ds1374-to-dev_pm_ops drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-convert-ds1374-to-dev_pm_ops
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -25,6 +25,7 @@
- #include <linux/bcd.h>
- #include <linux/workqueue.h>
- #include <linux/slab.h>
-+#include <linux/pm.h>
+diff -puN fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures
++++ a/fs/eventpoll.c
+@@ -63,6 +63,13 @@
+  * cleanup path and it is also acquired by eventpoll_release_file()
+  * if a file has been pushed inside an epoll set and it is then
+  * close()d without a previous call toepoll_ctl(EPOLL_CTL_DEL).
++ * It is also acquired when inserting an epoll fd onto another epoll
++ * fd. We do this so that we walk the epoll tree and ensure that this
++ * insertion does not create a cycle of epoll file descriptors, which
++ * could lead to deadlock. We need a global mutex to prevent two
++ * simultaneous inserts (A into B and B into A) from racing and
++ * constructing a cycle without either insert observing that it is
++ * going to.
+  * It is possible to drop the "ep->mtx" and to use the global
+  * mutex "epmutex" (together with "ep->lock") to have it working,
+  * but having "ep->mtx" will make the interface more scalable.
+@@ -224,6 +231,9 @@ static long max_user_watches __read_most
+  */
+ static DEFINE_MUTEX(epmutex);
  
- #define DS1374_REG_TOD0		0x00 /* Time of Day */
- #define DS1374_REG_TOD1		0x01
-@@ -426,32 +427,38 @@ static int __devexit ds1374_remove(struc
++/* Used to check for epoll file descriptor inclusion loops */
++static struct nested_calls poll_loop_ncalls;
++
+ /* Used for safe wake up implementation */
+ static struct nested_calls poll_safewake_ncalls;
+ 
+@@ -1198,6 +1208,62 @@ retry:
+ 	return res;
  }
  
- #ifdef CONFIG_PM
--static int ds1374_suspend(struct i2c_client *client, pm_message_t state)
-+static int ds1374_suspend(struct device *dev)
++/**
++ * ep_loop_check_proc - Callback function to be passed to the @ep_call_nested()
++ *                      API, to verify that adding an epoll file inside another
++ *                      epoll structure, does not violate the constraints, in
++ *                      terms of closed loops, or too deep chains (which can
++ *                      result in excessive stack usage).
++ *
++ * @priv: Pointer to the epoll file to be currently checked.
++ * @cookie: Original cookie for this call. This is the top-of-the-chain epoll
++ *          data structure pointer.
++ * @call_nests: Current dept of the @ep_call_nested() call stack.
++ *
++ * Returns: Returns zero if adding the epoll @file inside current epoll
++ *          structure @ep does not violate the constraints, or -1 otherwise.
++ */
++static int ep_loop_check_proc(void *priv, void *cookie, int call_nests)
++{
++	int error = 0;
++	struct file *file = priv;
++	struct eventpoll *ep = file->private_data;
++	struct rb_node *rbp;
++	struct epitem *epi;
++
++	mutex_lock(&ep->mtx);
++	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++		epi = rb_entry(rbp, struct epitem, rbn);
++		if (unlikely(is_file_epoll(epi->ffd.file))) {
++			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
++					       ep_loop_check_proc, epi->ffd.file,
++					       epi->ffd.file->private_data, current);
++			if (error != 0)
++				break;
++		}
++	}
++	mutex_unlock(&ep->mtx);
++
++	return error;
++}
++
++/**
++ * ep_loop_check - Performs a check to verify that adding an epoll file (@file)
++ *                 another epoll file (represented by @ep) does not create
++ *                 closed loops or too deep chains.
++ *
++ * @ep: Pointer to the epoll private data structure.
++ * @file: Pointer to the epoll file to be checked.
++ *
++ * Returns: Returns zero if adding the epoll @file inside current epoll
++ *          structure @ep does not violate the constraints, or -1 otherwise.
++ */
++static int ep_loop_check(struct eventpoll *ep, struct file *file)
++{
++	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
++			      ep_loop_check_proc, file, ep, current);
++}
++
+ /*
+  * Open an eventpoll file descriptor.
+  */
+@@ -1246,6 +1312,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 		struct epoll_event __user *, event)
  {
-+	struct i2c_client *client = to_i2c_client(dev);
-+
- 	if (client->irq >= 0 && device_may_wakeup(&client->dev))
- 		enable_irq_wake(client->irq);
- 	return 0;
- }
+ 	int error;
++	int did_lock_epmutex = 0;
+ 	struct file *file, *tfile;
+ 	struct eventpoll *ep;
+ 	struct epitem *epi;
+@@ -1287,6 +1354,25 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 	 */
+ 	ep = file->private_data;
  
--static int ds1374_resume(struct i2c_client *client)
-+static int ds1374_resume(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
++	/*
++	 * When we insert an epoll file descriptor, inside another epoll file
++	 * descriptor, there is the change of creating closed loops, which are
++	 * better be handled here, than in more critical paths.
++	 *
++	 * We hold epmutex across the loop check and the insert in this case, in
++	 * order to prevent two separate inserts from racing and each doing the
++	 * insert "at the same time" such that ep_loop_check passes on both
++	 * before either one does the insert, thereby creating a cycle.
++	 */
++	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
++		mutex_lock(&epmutex);
++		did_lock_epmutex = 1;
++		error = -ELOOP;
++		if (ep_loop_check(ep, tfile) != 0)
++			goto error_tgt_fput;
++	}
 +
- 	if (client->irq >= 0 && device_may_wakeup(&client->dev))
- 		disable_irq_wake(client->irq);
- 	return 0;
- }
 +
-+static SIMPLE_DEV_PM_OPS(ds1374_pm, ds1374_suspend, ds1374_resume);
-+
-+#define DS1374_PM (&ds1374_pm)
- #else
--#define ds1374_suspend	NULL
--#define ds1374_resume	NULL
-+#define DS1374_PM NULL
- #endif
+ 	mutex_lock(&ep->mtx);
  
- static struct i2c_driver ds1374_driver = {
- 	.driver = {
- 		.name = "rtc-ds1374",
- 		.owner = THIS_MODULE,
-+		.pm = DS1374_PM,
- 	},
- 	.probe = ds1374_probe,
--	.suspend = ds1374_suspend,
--	.resume = ds1374_resume,
- 	.remove = __devexit_p(ds1374_remove),
- 	.id_table = ds1374_id,
- };
+ 	/*
+@@ -1322,6 +1408,9 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 	mutex_unlock(&ep->mtx);
+ 
+ error_tgt_fput:
++	if (unlikely(did_lock_epmutex))
++		mutex_unlock(&epmutex);
++
+ 	fput(tfile);
+ error_fput:
+ 	fput(file);
+@@ -1441,6 +1530,12 @@ static int __init eventpoll_init(void)
+ 		EP_ITEM_COST;
+ 	BUG_ON(max_user_watches < 0);
+ 
++	/*
++	 * Initialize the structure used to perform epoll file descriptor
++	 * inclusion loops checks.
++	 */
++	ep_nested_calls_init(&poll_loop_ncalls);
++
+ 	/* Initialize the structure used to perform safe poll wait head wake ups */
+ 	ep_nested_calls_init(&poll_safewake_ncalls);
+ 
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-origin.patch
-linux-next.patch
-leds-convert-bd2802-driver-to-dev_pm_ops.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-rtc-convert-ds1374-to-dev_pm_ops.patch
+epoll-prevent-creating-circular-epoll-structures.patch
+epoll-move-ready-event-check-into-proper-inline.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
 
