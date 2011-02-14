@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-prevent-creating-circular-epoll-structures.patch added to -mm tree
-Date: Mon, 14 Feb 2011 14:47:12 -0800
-Message-ID: <201102142247.p1EMlCbH030456@imap1.linux-foundation.org>
+Subject: + pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch added to -mm tree
+Date: Mon, 14 Feb 2011 15:52:50 -0800
+Message-ID: <201102142352.p1ENqoqd001107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753461Ab1BNXpU (ORCPT
+	by vger.kernel.org with ESMTP id S1751456Ab1BNXxa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:45:20 -0500
+	Mon, 14 Feb 2011 18:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, nelhage@ksplice.com, stable@kernel.org
+Cc: ebiederm@xmission.com, adobriyan@gmail.com, daniel.lezcano@free.fr, oleg@redhat.com
 
 
 The patch titled
-     epoll: prevent creating circular epoll structures.
+     pidns: call pid_ns_prepare_proc() from create_pid_namespace()
 has been added to the -mm tree.  Its filename is
-     epoll-prevent-creating-circular-epoll-structures.patch
+     pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,211 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: prevent creating circular epoll structures.
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: pidns: call pid_ns_prepare_proc() from create_pid_namespace()
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-In several places, an epoll fd can call another file's ->f_op->poll()
-method with ep->mtx held.  This is in general unsafe, because that other
-file could itself be an epoll fd that contains the original epoll fd.
+Reorganize proc_get_sb() so it can be called before the struct pid of the
+first process is allocated.
 
-The code defends against this possibility in its own ->poll() method using
-ep_call_nested, but there are several other unsafe calls to ->poll
-elsewhere that can be made to deadlock.  For example, the following simple
-program causes the call in ep_insert recursively call the original fd's
-->poll, leading to deadlock:
-
- #include <unistd.h>
- #include <sys/epoll.h>
-
- int main(void) {
-     int e1, e2, p[2];
-     struct epoll_event evt = {
-         .events = EPOLLIN
-     };
-
-     e1 = epoll_create(1);
-     e2 = epoll_create(2);
-     pipe(p);
-
-     epoll_ctl(e2, EPOLL_CTL_ADD, e1, &evt);
-     epoll_ctl(e1, EPOLL_CTL_ADD, p[0], &evt);
-     write(p[1], p, sizeof p);
-     epoll_ctl(e1, EPOLL_CTL_ADD, e2, &evt);
-
-     return 0;
- }
-
-
-
-On insertion, check whether the inserted file is itself a struct epoll,
-and if so, do a recursive walk to detect whether inserting this file would
-create a loop of epoll structures, which could lead to deadlock.
-
-[nelhage@ksplice.com: Use epmutex to serialize concurrent inserts]
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Nelson Elhage <nelhage@ksplice.com>
-Reported-by: Nelson Elhage <nelhage@ksplice.com>
-Tested-by: Nelson Elhage <nelhage@ksplice.com>
-Cc: <stable@kernel.org>		[2.6.34+, possibly earlier]
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   95 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ fs/proc/root.c         |   25 +++++++------------------
+ kernel/fork.c          |    6 ------
+ kernel/pid_namespace.c |   11 +++++++++--
+ 3 files changed, 16 insertions(+), 26 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures
-+++ a/fs/eventpoll.c
-@@ -63,6 +63,13 @@
-  * cleanup path and it is also acquired by eventpoll_release_file()
-  * if a file has been pushed inside an epoll set and it is then
-  * close()d without a previous call toepoll_ctl(EPOLL_CTL_DEL).
-+ * It is also acquired when inserting an epoll fd onto another epoll
-+ * fd. We do this so that we walk the epoll tree and ensure that this
-+ * insertion does not create a cycle of epoll file descriptors, which
-+ * could lead to deadlock. We need a global mutex to prevent two
-+ * simultaneous inserts (A into B and B into A) from racing and
-+ * constructing a cycle without either insert observing that it is
-+ * going to.
-  * It is possible to drop the "ep->mtx" and to use the global
-  * mutex "epmutex" (together with "ep->lock") to have it working,
-  * but having "ep->mtx" will make the interface more scalable.
-@@ -224,6 +231,9 @@ static long max_user_watches __read_most
-  */
- static DEFINE_MUTEX(epmutex);
+diff -puN fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace fs/proc/root.c
+--- a/fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
++++ a/fs/proc/root.c
+@@ -43,17 +43,6 @@ static struct dentry *proc_mount(struct 
+ 	struct pid_namespace *ns;
+ 	struct proc_inode *ei;
  
-+/* Used to check for epoll file descriptor inclusion loops */
-+static struct nested_calls poll_loop_ncalls;
+-	if (proc_mnt) {
+-		/* Seed the root directory with a pid so it doesn't need
+-		 * to be special in base.c.  I would do this earlier but
+-		 * the only task alive when /proc is mounted the first time
+-		 * is the init_task and it doesn't have any pids.
+-		 */
+-		ei = PROC_I(proc_mnt->mnt_sb->s_root->d_inode);
+-		if (!ei->pid)
+-			ei->pid = find_get_pid(1);
+-	}
+-
+ 	if (flags & MS_KERNMOUNT)
+ 		ns = (struct pid_namespace *)data;
+ 	else
+@@ -71,16 +60,16 @@ static struct dentry *proc_mount(struct 
+ 			return ERR_PTR(err);
+ 		}
+ 
+-		ei = PROC_I(sb->s_root->d_inode);
+-		if (!ei->pid) {
+-			rcu_read_lock();
+-			ei->pid = get_pid(find_pid_ns(1, ns));
+-			rcu_read_unlock();
+-		}
+-
+ 		sb->s_flags |= MS_ACTIVE;
+ 	}
+ 
++	ei = PROC_I(sb->s_root->d_inode);
++	if (!ei->pid) {
++		rcu_read_lock();
++		ei->pid = get_pid(find_pid_ns(1, ns));
++		rcu_read_unlock();
++	}
 +
- /* Used for safe wake up implementation */
- static struct nested_calls poll_safewake_ncalls;
- 
-@@ -1198,6 +1208,62 @@ retry:
- 	return res;
+ 	return dget(sb->s_root);
  }
  
-+/**
-+ * ep_loop_check_proc - Callback function to be passed to the @ep_call_nested()
-+ *                      API, to verify that adding an epoll file inside another
-+ *                      epoll structure, does not violate the constraints, in
-+ *                      terms of closed loops, or too deep chains (which can
-+ *                      result in excessive stack usage).
-+ *
-+ * @priv: Pointer to the epoll file to be currently checked.
-+ * @cookie: Original cookie for this call. This is the top-of-the-chain epoll
-+ *          data structure pointer.
-+ * @call_nests: Current dept of the @ep_call_nested() call stack.
-+ *
-+ * Returns: Returns zero if adding the epoll @file inside current epoll
-+ *          structure @ep does not violate the constraints, or -1 otherwise.
-+ */
-+static int ep_loop_check_proc(void *priv, void *cookie, int call_nests)
-+{
-+	int error = 0;
-+	struct file *file = priv;
-+	struct eventpoll *ep = file->private_data;
-+	struct rb_node *rbp;
-+	struct epitem *epi;
-+
-+	mutex_lock(&ep->mtx);
-+	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+		epi = rb_entry(rbp, struct epitem, rbn);
-+		if (unlikely(is_file_epoll(epi->ffd.file))) {
-+			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+					       ep_loop_check_proc, epi->ffd.file,
-+					       epi->ffd.file->private_data, current);
-+			if (error != 0)
-+				break;
-+		}
-+	}
-+	mutex_unlock(&ep->mtx);
-+
-+	return error;
-+}
-+
-+/**
-+ * ep_loop_check - Performs a check to verify that adding an epoll file (@file)
-+ *                 another epoll file (represented by @ep) does not create
-+ *                 closed loops or too deep chains.
-+ *
-+ * @ep: Pointer to the epoll private data structure.
-+ * @file: Pointer to the epoll file to be checked.
-+ *
-+ * Returns: Returns zero if adding the epoll @file inside current epoll
-+ *          structure @ep does not violate the constraints, or -1 otherwise.
-+ */
-+static int ep_loop_check(struct eventpoll *ep, struct file *file)
-+{
-+	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+			      ep_loop_check_proc, file, ep, current);
-+}
-+
- /*
-  * Open an eventpoll file descriptor.
-  */
-@@ -1246,6 +1312,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 		struct epoll_event __user *, event)
+diff -puN kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/fork.c
+--- a/kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
++++ a/kernel/fork.c
+@@ -1186,12 +1186,6 @@ static struct task_struct *copy_process(
+ 		pid = alloc_pid(p->nsproxy->pid_ns);
+ 		if (!pid)
+ 			goto bad_fork_cleanup_io;
+-
+-		if (clone_flags & CLONE_NEWPID) {
+-			retval = pid_ns_prepare_proc(p->nsproxy->pid_ns);
+-			if (retval < 0)
+-				goto bad_fork_free_pid;
+-		}
+ 	}
+ 
+ 	p->pid = pid_nr(pid);
+diff -puN kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
++++ a/kernel/pid_namespace.c
+@@ -14,6 +14,7 @@
+ #include <linux/err.h>
+ #include <linux/acct.h>
+ #include <linux/slab.h>
++#include <linux/proc_fs.h>
+ 
+ #define BITS_PER_PAGE		(PAGE_SIZE*8)
+ 
+@@ -72,7 +73,7 @@ static struct pid_namespace *create_pid_
  {
- 	int error;
-+	int did_lock_epmutex = 0;
- 	struct file *file, *tfile;
- 	struct eventpoll *ep;
- 	struct epitem *epi;
-@@ -1287,6 +1354,25 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	 */
- 	ep = file->private_data;
+ 	struct pid_namespace *ns;
+ 	unsigned int level = parent_pid_ns->level + 1;
+-	int i;
++	int i, err = -ENOMEM;
  
-+	/*
-+	 * When we insert an epoll file descriptor, inside another epoll file
-+	 * descriptor, there is the change of creating closed loops, which are
-+	 * better be handled here, than in more critical paths.
-+	 *
-+	 * We hold epmutex across the loop check and the insert in this case, in
-+	 * order to prevent two separate inserts from racing and each doing the
-+	 * insert "at the same time" such that ep_loop_check passes on both
-+	 * before either one does the insert, thereby creating a cycle.
-+	 */
-+	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
-+		mutex_lock(&epmutex);
-+		did_lock_epmutex = 1;
-+		error = -ELOOP;
-+		if (ep_loop_check(ep, tfile) != 0)
-+			goto error_tgt_fput;
-+	}
+ 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
+ 	if (ns == NULL)
+@@ -96,14 +97,20 @@ static struct pid_namespace *create_pid_
+ 	for (i = 1; i < PIDMAP_ENTRIES; i++)
+ 		atomic_set(&ns->pidmap[i].nr_free, BITS_PER_PAGE);
+ 
++	err = pid_ns_prepare_proc(ns);
++	if (err)
++		goto out_put_parent_pid_ns;
 +
-+
- 	mutex_lock(&ep->mtx);
+ 	return ns;
  
- 	/*
-@@ -1322,6 +1408,9 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	mutex_unlock(&ep->mtx);
++out_put_parent_pid_ns:
++	put_pid_ns(parent_pid_ns);
+ out_free_map:
+ 	kfree(ns->pidmap[0].page);
+ out_free:
+ 	kmem_cache_free(pid_ns_cachep, ns);
+ out:
+-	return ERR_PTR(-ENOMEM);
++	return ERR_PTR(err);
+ }
  
- error_tgt_fput:
-+	if (unlikely(did_lock_epmutex))
-+		mutex_unlock(&epmutex);
-+
- 	fput(tfile);
- error_fput:
- 	fput(file);
-@@ -1441,6 +1530,12 @@ static int __init eventpoll_init(void)
- 		EP_ITEM_COST;
- 	BUG_ON(max_user_watches < 0);
- 
-+	/*
-+	 * Initialize the structure used to perform epoll file descriptor
-+	 * inclusion loops checks.
-+	 */
-+	ep_nested_calls_init(&poll_loop_ncalls);
-+
- 	/* Initialize the structure used to perform safe poll wait head wake ups */
- 	ep_nested_calls_init(&poll_safewake_ncalls);
- 
+ static void destroy_pid_namespace(struct pid_namespace *ns)
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-epoll-prevent-creating-circular-epoll-structures.patch
-epoll-move-ready-event-check-into-proper-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+cgroup-remove-the-ns_cgroup.patch
+sysctl_check-drop-table-procname-checks.patch
+sysctl_check-drop-dead-code.patch
+pid-remove-the-child_reaper-special-case-in-init-mainc.patch
+pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
+procfs-kill-the-global-proc_mnt-variable.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
+kexec-remove-kmsg_dump_kexec.patch
 
