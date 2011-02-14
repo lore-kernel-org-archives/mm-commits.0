@@ -1,124 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mlock-fix-race-when-munlocking-pages-in-do_wp_page.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:35 -0800
-Message-ID: <201102142019.p1EKJZXi023000@imap1.linux-foundation.org>
+Subject: [merged] drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:26 -0800
+Message-ID: <201102142019.p1EKJQLv022986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUUJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752046Ab1BNUUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:20:09 -0500
+	Mon, 14 Feb 2011 15:20:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: cromlehg@gmail.com, a.zummo@towertech.it, strakh@ispras.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock: fix race when munlocking pages in do_wp_page()
+     drivers/rtc/rtc-proc.c: add module_put on error path in rtc_proc_open()
 has been removed from the -mm tree.  Its filename was
-     mlock-fix-race-when-munlocking-pages-in-do_wp_page.patch
+     drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: fix race when munlocking pages in do_wp_page()
-From: Michel Lespinasse <walken@google.com>
+Subject: drivers/rtc/rtc-proc.c: add module_put on error path in rtc_proc_open()
+From: Alexander Strakh <cromlehg@gmail.com>
 
-vmscan can lazily find pages that are mapped within VM_LOCKED vmas, and
-set the PageMlocked bit on these pages, transfering them onto the
-unevictable list.  When do_wp_page() breaks COW within a VM_LOCKED vma, it
-may need to clear PageMlocked on the old page and set it on the new page
-instead.
+In file drivers/rtc/rtc-proc.c seq_open() can return -ENOMEM.
 
-This change fixes an issue where do_wp_page() was clearing PageMlocked on
-the old page while the pte was still pointing to it (as well as rmap). 
-Therefore, we were not protected against vmscan immediately transfering
-the old page back onto the unevictable list.  This could cause pages to
-get stranded there forever.
+ 86        if (!try_module_get(THIS_MODULE))
+ 87                return -ENODEV;
+ 88
+ 89        return single_open(file, rtc_proc_show, rtc);
 
-I propose to move the corresponding code to the end of do_wp_page(), after
-the pte (and rmap) have been pointed to the new page.  Additionally, we
-can use munlock_vma_page() instead of clear_page_mlock(), so that the old
-page stays mlocked if there are still other VM_LOCKED vmas mapping it.
+In this case before exiting (line 89) from rtc_proc_open
+the module_put(THIS_MODULE) must be called.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Found by Linux Device Drivers Verification Project
+
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-proc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mlock-fix-race-when-munlocking-pages-in-do_wp_page mm/memory.c
---- a/mm/memory.c~mlock-fix-race-when-munlocking-pages-in-do_wp_page
-+++ a/mm/memory.c
-@@ -2219,7 +2219,6 @@ static int do_wp_page(struct mm_struct *
- 							 &ptl);
- 			if (!pte_same(*page_table, orig_pte)) {
- 				unlock_page(old_page);
--				page_cache_release(old_page);
- 				goto unlock;
- 			}
- 			page_cache_release(old_page);
-@@ -2289,7 +2288,6 @@ static int do_wp_page(struct mm_struct *
- 							 &ptl);
- 			if (!pte_same(*page_table, orig_pte)) {
- 				unlock_page(old_page);
--				page_cache_release(old_page);
- 				goto unlock;
- 			}
+diff -puN drivers/rtc/rtc-proc.c~drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open drivers/rtc/rtc-proc.c
+--- a/drivers/rtc/rtc-proc.c~drivers-rtc-add-module_put-on-error-path-in-rtc_proc_open
++++ a/drivers/rtc/rtc-proc.c
+@@ -81,12 +81,16 @@ static int rtc_proc_show(struct seq_file
  
-@@ -2367,16 +2365,6 @@ gotten:
- 	}
- 	__SetPageUptodate(new_page);
+ static int rtc_proc_open(struct inode *inode, struct file *file)
+ {
++	int ret;
+ 	struct rtc_device *rtc = PDE(inode)->data;
  
--	/*
--	 * Don't let another task, with possibly unlocked vma,
--	 * keep the mlocked page.
--	 */
--	if ((vma->vm_flags & VM_LOCKED) && old_page) {
--		lock_page(old_page);	/* for LRU manipulation */
--		clear_page_mlock(old_page);
--		unlock_page(old_page);
--	}
--
- 	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
+ 	if (!try_module_get(THIS_MODULE))
+ 		return -ENODEV;
  
-@@ -2444,10 +2432,20 @@ gotten:
+-	return single_open(file, rtc_proc_show, rtc);
++	ret = single_open(file, rtc_proc_show, rtc);
++	if (ret)
++		module_put(THIS_MODULE);
++	return ret;
+ }
  
- 	if (new_page)
- 		page_cache_release(new_page);
--	if (old_page)
--		page_cache_release(old_page);
- unlock:
- 	pte_unmap_unlock(page_table, ptl);
-+	if (old_page) {
-+		/*
-+		 * Don't let another task, with possibly unlocked vma,
-+		 * keep the mlocked page.
-+		 */
-+		if ((ret & VM_FAULT_WRITE) && (vma->vm_flags & VM_LOCKED)) {
-+			lock_page(old_page);	/* LRU manipulation */
-+			munlock_vma_page(old_page);
-+			unlock_page(old_page);
-+		}
-+		page_cache_release(old_page);
-+	}
- 	return ret;
- oom_free_new:
- 	page_cache_release(new_page);
+ static int rtc_proc_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from cromlehg@gmail.com are
 
 origin.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+linux-next.patch
 
