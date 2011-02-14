@@ -1,73 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-call-rcu_barrier-after-kill_sb.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:17 -0800
-Message-ID: <201102142019.p1EKJHWv022977@imap1.linux-foundation.org>
+Subject: [merged] ptrace-use-safer-wake-up-on-ptrace_detach.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:20 -0800
+Message-ID: <201102142019.p1EKJKrp022980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUTo (ORCPT
+	by vger.kernel.org with ESMTP id S1751129Ab1BNUTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:19:44 -0500
+	Mon, 14 Feb 2011 15:19:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharrosh@panasas.com, boyu.mt@taobao.com, chris.mason@oracle.com, npiggin@kernel.dk, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: tj@kernel.org, oleg@redhat.com, roland@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: call rcu_barrier after ->kill_sb()
+     ptrace: use safer wake up on ptrace_detach()
 has been removed from the -mm tree.  Its filename was
-     vfs-call-rcu_barrier-after-kill_sb.patch
+     ptrace-use-safer-wake-up-on-ptrace_detach.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: call rcu_barrier after ->kill_sb()
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: ptrace: use safer wake up on ptrace_detach()
+From: Tejun Heo <tj@kernel.org>
 
-In fa0d7e3 ("fs: icache RCU free inodes"), we use rcu free inode instead
-of freeing the inode directly.  It causes a crash when we rmmod
-immediately after we umount the volume[1].
+The wake_up_process() call in ptrace_detach() is spurious and not
+interlocked with the tracee state.  IOW, the tracee could be running or
+sleeping in any place in the kernel by the time wake_up_process() is
+called.  This can lead to the tracee waking up unexpectedly which can be
+dangerous.
 
-So we need to call rcu_barrier after we kill_sb so that the inode is freed
-before we do rmmod.  The idea is inspired by Aneesh Kumar.  rcu_barrier
-will wait for all callbacks to end before preceding.  The original patch
-was done by Tao Ma, but synchronize_rcu() is not enough here.
+The wake_up is spurious and should be removed but for now reduce its
+toxicity by only waking up if the tracee is in TRACED or STOPPED state.
 
-1. http://marc.info/?l=linux-fsdevel&m=129680863330185&w=2
+This bug can possibly be used as an attack vector.  I don't think it will
+take too much effort to come up with an attack which triggers oops
+somewhere.  Most sleeps are wrapped in condition test loops and should be
+safe but we have quite a number of places where sleep and wakeup
+conditions are expected to be interlocked.  Although the window of
+opportunity is tiny, ptrace can be used by non-privileged users and with
+some loading the window can definitely be extended and exploited.
 
-Tested-by: Tao Ma <boyu.mt@taobao.com>
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Roland McGrath <roland@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/super.c~vfs-call-rcu_barrier-after-kill_sb fs/super.c
---- a/fs/super.c~vfs-call-rcu_barrier-after-kill_sb
-+++ a/fs/super.c
-@@ -177,6 +177,11 @@ void deactivate_locked_super(struct supe
- 	struct file_system_type *fs = s->s_type;
- 	if (atomic_dec_and_test(&s->s_active)) {
- 		fs->kill_sb(s);
-+		/*
-+		 * We need to call rcu_barrier so all the delayed rcu free
-+		 * inodes are flushed before we release the fs module.
-+		 */
-+		rcu_barrier();
- 		put_filesystem(fs);
- 		put_super(s);
- 	} else {
+diff -puN kernel/ptrace.c~ptrace-use-safer-wake-up-on-ptrace_detach kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-use-safer-wake-up-on-ptrace_detach
++++ a/kernel/ptrace.c
+@@ -313,7 +313,7 @@ int ptrace_detach(struct task_struct *ch
+ 		child->exit_code = data;
+ 		dead = __ptrace_detach(current, child);
+ 		if (!child->exit_state)
+-			wake_up_process(child);
++			wake_up_state(child, TASK_TRACED | TASK_STOPPED);
+ 	}
+ 	write_unlock_irq(&tasklist_lock);
+ 
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
+smp-move-smp-setup-functions-to-kernel-smpc.patch
+scatterlist-new-helper-functions.patch
+fs-devpts_pty_new-return-enomem-if-dentry-allocation-failed.patch
 
