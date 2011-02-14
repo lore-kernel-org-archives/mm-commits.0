@@ -1,103 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-remove-module-level-ioctl-mutex.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:29 -0800
-Message-ID: <201102142019.p1EKJTvx022990@imap1.linux-foundation.org>
+Subject: [merged] memblock-dont-adjust-size-in-memblock_find_base.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:32 -0800
+Message-ID: <201102142019.p1EKJWWa022994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUUA (ORCPT
+	by vger.kernel.org with ESMTP id S1751129Ab1BNUUI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:20:00 -0500
+	Mon, 14 Feb 2011 15:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: soren@linux2go.dk, arnd@arndb.de, axboe@kernel.dk, paul.clements@steeleye.com, serge.hallyn@canonical.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, airlied@linux.ie, benh@kernel.crashing.org, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd: remove module-level ioctl mutex
+     memblock: don't adjust size in memblock_find_base()
 has been removed from the -mm tree.  Its filename was
-     nbd-remove-module-level-ioctl-mutex.patch
+     memblock-dont-adjust-size-in-memblock_find_base.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd: remove module-level ioctl mutex
-From: Soren Hansen <soren@linux2go.dk>
+Subject: memblock: don't adjust size in memblock_find_base()
+From: Yinghai Lu <yinghai@kernel.org>
 
-2a48fc0ab242417 ("block: autoconvert trivial BKL users to private mutex")
-replaced uses of the BKL in the nbd driver with mutex operations.  Since
-then, I've been been seeing these lock ups:
+While applying patch to use memblock to find aperture for 64bit x86.
+Ingo found system with 1g + force_iommu
 
- INFO: task qemu-nbd:16115 blocked for more than 120 seconds.
- "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
- qemu-nbd      D 0000000000000001     0 16115  16114 0x00000004
-  ffff88007d775d98 0000000000000082 ffff88007d775fd8 ffff88007d774000
-  0000000000013a80 ffff8800020347e0 ffff88007d775fd8 0000000000013a80
-  ffff880133730000 ffff880002034440 ffffea0004333db8 ffffffffa071c020
- Call Trace:
-  [<ffffffff815b9997>] __mutex_lock_slowpath+0xf7/0x180
-  [<ffffffff81132f13>] ? handle_mm_fault+0x1c3/0x410
-  [<ffffffff815b93eb>] mutex_lock+0x2b/0x50
-  [<ffffffffa071a21c>] nbd_ioctl+0x6c/0x1c0 [nbd]
-  [<ffffffff812cb970>] blkdev_ioctl+0x230/0x730
-  [<ffffffff811967a1>] block_ioctl+0x41/0x50
-  [<ffffffff81175c03>] do_vfs_ioctl+0x93/0x370
-  [<ffffffff8116fa83>] ? putname+0x33/0x50
-  [<ffffffff81175f61>] sys_ioctl+0x81/0xa0
-  [<ffffffff8100c0c2>] system_call_fastpath+0x16/0x1b
+> No AGP bridge found
+> Node 0: aperture @ 38000000 size 32 MB
+> Aperture pointing to e820 RAM. Ignoring.
+> Your BIOS doesn't leave a aperture memory hole
+> Please enable the IOMMU option in the BIOS setup
+> This costs you 64 MB of RAM
+> Cannot allocate aperture memory hole (0,65536K)
 
-Instrumenting the nbd module's ioctl handler with some extra logging
-clearly shows the NBD_DO_IT ioctl being invoked which is a long-lived
-ioctl in the sense that it doesn't return until another ioctl asks the
-driver to disconnect.  However, that other ioctl blocks, waiting for the
-module-level mutex that replaced the BKL, and then we're stuck.
+the corresponding code:
+	addr = memblock_find_in_range(0, 1ULL<<32, aper_size, 512ULL<<20);
+	if (addr == MEMBLOCK_ERROR || addr + aper_size > 0xffffffff) {
+		printk(KERN_ERR
+			"Cannot allocate aperture memory hole (%lx,%uK)\n",
+				addr, aper_size>>10);
+		return 0;
+	}
+	memblock_x86_reserve_range(addr, addr + aper_size, "aperture64")
 
-This patch removes the module-level mutex altogether.  It's clearly wrong,
-and as far as I can see, it's entirely unnecessary, since the nbd driver
-maintains per-device mutexes, and I don't see anything that would require
-a module-level (or kernel-level, for that matter) mutex.
+it fails because memblock core code align the size with 512M. that could make
+size way too big.
 
-Signed-off-by: Soren Hansen <soren@linux2go.dk>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Acked-by: Paul Clements <paul.clements@steeleye.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@kernel.org>		[2.6.37.x]
+So don't align the size in that case.
+
+actually __memblock_alloc_base, the another caller already align that before calling that function.
+
+BTW. x86 does not use __memblock_alloc_base...
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/memblock.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex
-+++ a/drivers/block/nbd.c
-@@ -53,7 +53,6 @@
- #define DBG_BLKDEV      0x0100
- #define DBG_RX          0x0200
- #define DBG_TX          0x0400
--static DEFINE_MUTEX(nbd_mutex);
- static unsigned int debugflags;
- #endif /* NDEBUG */
+diff -puN mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base mm/memblock.c
+--- a/mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base
++++ a/mm/memblock.c
+@@ -137,8 +137,6 @@ static phys_addr_t __init_memblock membl
  
-@@ -718,11 +717,9 @@ static int nbd_ioctl(struct block_device
- 	dprintk(DBG_IOCTL, "%s: nbd_ioctl cmd=%s(0x%x) arg=%lu\n",
- 			lo->disk->disk_name, ioctl_cmd_to_ascii(cmd), cmd, arg);
+ 	BUG_ON(0 == size);
  
--	mutex_lock(&nbd_mutex);
- 	mutex_lock(&lo->tx_lock);
- 	error = __nbd_ioctl(bdev, lo, cmd, arg);
- 	mutex_unlock(&lo->tx_lock);
--	mutex_unlock(&nbd_mutex);
- 
- 	return error;
- }
-_
-
-Patches currently in -mm which might be from soren@linux2go.dk are
-
-origin.patch
-
+-	size = memblock_align_up(size, align);
