@@ -1,79 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-dont-adjust-size-in-memblock_find_base.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:32 -0800
-Message-ID: <201102142019.p1EKJWWa022994@imap1.linux-foundation.org>
+Subject: [merged] mlock-do-not-munlock-pages-in-__do_fault.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:37 -0800
+Message-ID: <201102142019.p1EKJbtR023003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUUI (ORCPT
+	by vger.kernel.org with ESMTP id S1752046Ab1BNUUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:20:08 -0500
+	Mon, 14 Feb 2011 15:20:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, airlied@linux.ie, benh@kernel.crashing.org, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: walken@google.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memblock: don't adjust size in memblock_find_base()
+     mlock: do not munlock pages in __do_fault()
 has been removed from the -mm tree.  Its filename was
-     memblock-dont-adjust-size-in-memblock_find_base.patch
+     mlock-do-not-munlock-pages-in-__do_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock: don't adjust size in memblock_find_base()
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: mlock: do not munlock pages in __do_fault()
+From: Michel Lespinasse <walken@google.com>
 
-While applying patch to use memblock to find aperture for 64bit x86.
-Ingo found system with 1g + force_iommu
+If the page is going to be written to, __do_page needs to break COW. 
+However, the old page (before breaking COW) was never mapped mapped into
+the current pte (__do_fault is only called when the pte is not present),
+so vmscan can't have marked the old page as PageMlocked due to being
+mapped in __do_fault's VMA.  Therefore, __do_fault() does not need to
+worry about clearing PageMlocked() on the old page.
 
-> No AGP bridge found
-> Node 0: aperture @ 38000000 size 32 MB
-> Aperture pointing to e820 RAM. Ignoring.
-> Your BIOS doesn't leave a aperture memory hole
-> Please enable the IOMMU option in the BIOS setup
-> This costs you 64 MB of RAM
-> Cannot allocate aperture memory hole (0,65536K)
-
-the corresponding code:
-	addr = memblock_find_in_range(0, 1ULL<<32, aper_size, 512ULL<<20);
-	if (addr == MEMBLOCK_ERROR || addr + aper_size > 0xffffffff) {
-		printk(KERN_ERR
-			"Cannot allocate aperture memory hole (%lx,%uK)\n",
-				addr, aper_size>>10);
-		return 0;
-	}
-	memblock_x86_reserve_range(addr, addr + aper_size, "aperture64")
-
-it fails because memblock core code align the size with 512M. that could make
-size way too big.
-
-So don't align the size in that case.
-
-actually __memblock_alloc_base, the another caller already align that before calling that function.
-
-BTW. x86 does not use __memblock_alloc_base...
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memory.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base mm/memblock.c
---- a/mm/memblock.c~memblock-dont-adjust-size-in-memblock_find_base
-+++ a/mm/memblock.c
-@@ -137,8 +137,6 @@ static phys_addr_t __init_memblock membl
- 
- 	BUG_ON(0 == size);
- 
--	size = memblock_align_up(size, align);
+diff -puN mm/memory.c~mlock-do-not-munlock-pages-in-__do_fault mm/memory.c
+--- a/mm/memory.c~mlock-do-not-munlock-pages-in-__do_fault
++++ a/mm/memory.c
+@@ -3051,12 +3051,6 @@ static int __do_fault(struct mm_struct *
+ 				goto out;
+ 			}
+ 			charged = 1;
+-			/*
+-			 * Don't let another task, with possibly unlocked vma,
+-			 * keep the mlocked page.
+-			 */
+-			if (vma->vm_flags & VM_LOCKED)
+-				clear_page_mlock(vmf.page);
+ 			copy_user_highpage(page, vmf.page, address, vma);
+ 			__SetPageUptodate(page);
+ 		} else {
+_
+
+Patches currently in -mm which might be from walken@google.com are
+
+origin.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+
