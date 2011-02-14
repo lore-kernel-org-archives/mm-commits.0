@@ -1,130 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-remove-the-wakeuprun_wake_count-device-field.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:48 -0800
-Message-ID: <201102142019.p1EKJmD3023017@imap1.linux-foundation.org>
+Subject: + mm-fix-out-of-date-comments-which-refers-non-existent-functions-update.patch added to -mm tree
+Date: Mon, 14 Feb 2011 13:57:09 -0800
+Message-ID: <201102142157.p1ELv9c2028005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753137Ab1BNUlc (ORCPT
+	by vger.kernel.org with ESMTP id S1751467Ab1BNV5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:41:32 -0500
+	Mon, 14 Feb 2011 16:57:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ozaki.ryota@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, trivial@kernel.org
 
 
 The patch titled
-     acpi: remove the wakeup.run_wake_count device field
-has been removed from the -mm tree.  Its filename was
-     acpi-remove-the-wakeuprun_wake_count-device-field.patch
+     mm-fix-out-of-date-comments-which-refers-non-existent-functions-update
+has been added to the -mm tree.  Its filename is
+     mm-fix-out-of-date-comments-which-refers-non-existent-functions-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove the wakeup.run_wake_count device field
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: mm-fix-out-of-date-comments-which-refers-non-existent-functions-update
+From: Ryota Ozaki <ozaki.ryota@gmail.com>
 
-The wakeup.run_wake_count ACPI device field is only used by the PCI
-runtime PM code to "protect" devices from being prepared for generating
-wakeup signals more than once in a row.  However, it really doesn't
-provide any protection, because (1) all of the functions it is supposed to
-protect use their own reference counters effectively ensuring that the
-device will be set up for generating wakeup signals just once and (2) the
-PCI runtime PM code uses wakeup.run_wake_count in a racy way, since
-nothing prevents acpi_dev_run_wake() from being called concurrently from
-two different threads for the same device.
+do_file_page and do_no_page don't exist anymore, but some comments still
+refers them.  The patch fixes them by replacing them with existing ones.
 
-Remove the wakeup.run_wake_count ACPI device field which is unnecessary,
-confusing and used in a wrong way.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Signed-off-by: Ryota Ozaki <ozaki.ryota@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jiri Kosina <trivial@kernel.org>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/button.c   |    2 --
- drivers/acpi/scan.c     |    1 -
- drivers/pci/pci-acpi.c  |   16 ++++------------
- include/acpi/acpi_bus.h |    1 -
- 4 files changed, 4 insertions(+), 16 deletions(-)
+ arch/alpha/include/asm/cacheflush.h |    2 +-
+ arch/avr32/mm/cache.c               |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/button.c
---- a/drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/acpi/button.c
-@@ -430,7 +430,6 @@ static int acpi_button_add(struct acpi_d
- 		/* Button's GPE is run-wake GPE */
- 		acpi_enable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
--		device->wakeup.run_wake_count++;
- 		device_set_wakeup_enable(&device->dev, true);
- 	}
+diff -puN arch/alpha/include/asm/cacheflush.h~mm-fix-out-of-date-comments-which-refers-non-existent-functions-update arch/alpha/include/asm/cacheflush.h
+--- a/arch/alpha/include/asm/cacheflush.h~mm-fix-out-of-date-comments-which-refers-non-existent-functions-update
++++ a/arch/alpha/include/asm/cacheflush.h
+@@ -63,7 +63,7 @@ extern void flush_icache_user_range(stru
+ 		struct page *page, unsigned long addr, int len);
+ #endif
  
-@@ -453,7 +452,6 @@ static int acpi_button_remove(struct acp
- 	if (device->wakeup.flags.valid) {
- 		acpi_disable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
--		device->wakeup.run_wake_count--;
- 		device_set_wakeup_enable(&device->dev, false);
- 	}
+-/* This is used only in do_no_page and do_swap_page.  */
++/* This is used only in __do_fault and do_swap_page.  */
+ #define flush_icache_page(vma, page) \
+   flush_icache_user_range((vma), (page), 0, 0)
  
-diff -puN drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/acpi/scan.c
-@@ -797,7 +797,6 @@ static void acpi_bus_set_run_wake_flags(
- 	acpi_status status;
- 	acpi_event_status event_status;
+diff -puN arch/avr32/mm/cache.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions-update arch/avr32/mm/cache.c
+--- a/arch/avr32/mm/cache.c~mm-fix-out-of-date-comments-which-refers-non-existent-functions-update
++++ a/arch/avr32/mm/cache.c
+@@ -113,7 +113,7 @@ void flush_icache_range(unsigned long st
+ }
  
--	device->wakeup.run_wake_count = 0;
- 	device->wakeup.flags.notifier_present = 0;
- 
- 	/* Power button, Lid switch always enable wakeup */
-diff -puN drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/drivers/pci/pci-acpi.c
-@@ -293,19 +293,11 @@ static int acpi_dev_run_wake(struct devi
- 	}
- 
- 	if (enable) {
--		if (!dev->wakeup.run_wake_count++) {
--			acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
--			acpi_enable_gpe(dev->wakeup.gpe_device,
--					dev->wakeup.gpe_number);
--		}
--	} else if (dev->wakeup.run_wake_count > 0) {
--		if (!--dev->wakeup.run_wake_count) {
--			acpi_disable_gpe(dev->wakeup.gpe_device,
--					 dev->wakeup.gpe_number);
--			acpi_disable_wakeup_device_power(dev);
--		}
-+		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
-+		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
- 	} else {
--		error = -EALREADY;
-+		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
-+		acpi_disable_wakeup_device_power(dev);
- 	}
- 
- 	return error;
-diff -puN include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field
-+++ a/include/acpi/acpi_bus.h
-@@ -250,7 +250,6 @@ struct acpi_device_wakeup {
- 	struct acpi_handle_list resources;
- 	struct acpi_device_wakeup_flags flags;
- 	int prepare_count;
--	int run_wake_count;
- };
- 
- /* Device */
+ /*
+- * This one is called from do_no_page(), do_swap_page() and install_page().
++ * This one is called from __do_fault() and do_swap_page().
+  */
+ void flush_icache_page(struct vm_area_struct *vma, struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from ozaki.ryota@gmail.com are
 
-linux-next.patch
-usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
+mm-fix-out-of-date-comments-which-refers-non-existent-functions.patch
+mm-fix-out-of-date-comments-which-refers-non-existent-functions-update.patch
 
