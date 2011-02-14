@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-pca9532c-add-gpio-capability.patch added to -mm tree
-Date: Mon, 14 Feb 2011 15:33:42 -0800
-Message-ID: <201102142333.p1ENXgnV032579@imap1.linux-foundation.org>
+Subject: + procfs-kill-the-global-proc_mnt-variable.patch added to -mm tree
+Date: Mon, 14 Feb 2011 15:52:52 -0800
+Message-ID: <201102142352.p1ENqqdg001110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865Ab1BNX7y (ORCPT
+	by vger.kernel.org with ESMTP id S1751997Ab1BOACI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:59:54 -0500
+	Mon, 14 Feb 2011 19:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: manabian@gmail.com, grant.likely@secretlab.ca, hsweeten@visionengravers.com, joachim.eastwood@jotron.com, rpurdie@rpsys.net, w.sang@pengutronix.de
+Cc: oleg@redhat.com, adobriyan@gmail.com, daniel.lezcano@free.fr, ebiederm@xmission.com
 
 
 The patch titled
-     drivers/leds/leds-pca9532.c: add gpio capability
+     procfs: kill the global proc_mnt variable
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-pca9532c-add-gpio-capability.patch
+     procfs-kill-the-global-proc_mnt-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,256 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-pca9532.c: add gpio capability
-From: Joachim Eastwood <manabian@gmail.com>
+Subject: procfs: kill the global proc_mnt variable
+From: Oleg Nesterov <oleg@redhat.com>
 
-Allow unused leds on pca9532 to be used as gpio.  The board I am working
-on now has no less than 6 pca9532 chips.  One chips is used for only leds,
-one has 14 leds and 2 gpio and the rest of the chips are gpio only.
+After the previous cleanup in proc_get_sb() the global proc_mnt has no
+reasons to exists, kill it.
 
-There is also one board in mainline which could use this capabilty;
-arch/arm/mach-iop32x/n2100.c
- 232         {       .type = PCA9532_TYPE_NONE }, /* power OFF gpio */
- 233         {       .type = PCA9532_TYPE_NONE }, /* reset gpio */
-
-This patch defines a new pin type, PCA9532_TYPE_GPIO, and registers a
-gpiochip if any pin has this type set.  The gpio will registers all chip
-pins but will filter on gpio_request.
-
-Signed-off-by: Joachim Eastwood <joachim.eastwood@jotron.com>
-Reviewed-by: Wolfram Sang <w.sang@pengutronix.de>
-Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig         |   10 ++
- drivers/leds/leds-pca9532.c  |  111 ++++++++++++++++++++++++++++++++-
- include/linux/leds-pca9532.h |    3 
- 3 files changed, 120 insertions(+), 4 deletions(-)
+ fs/proc/inode.c    |    2 --
+ fs/proc/internal.h |    1 -
+ fs/proc/root.c     |    7 ++++---
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/leds/Kconfig~drivers-leds-leds-pca9532c-add-gpio-capability drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~drivers-leds-leds-pca9532c-add-gpio-capability
-+++ a/drivers/leds/Kconfig
-@@ -162,6 +162,16 @@ config LEDS_PCA9532
- 	  LED controller. It is generally only useful
- 	  as a platform driver
- 
-+config LEDS_PCA9532_GPIO
-+	bool "Enable GPIO support for PCA9532"
-+	depends on LEDS_PCA9532
-+	depends on GPIOLIB
-+	help
-+	  Allow unused pins on PCA9532 to be used as gpio.
-+
-+	  To use a pin as gpio pca9532_type in pca9532_platform data needs to
-+	  set to PCA9532_TYPE_GPIO.
-+
- config LEDS_GPIO
- 	tristate "LED Support for GPIO connected LEDs"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-add-gpio-capability drivers/leds/leds-pca9532.c
---- a/drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-add-gpio-capability
-+++ a/drivers/leds/leds-pca9532.c
-@@ -19,7 +19,9 @@
- #include <linux/mutex.h>
- #include <linux/workqueue.h>
- #include <linux/leds-pca9532.h>
-+#include <linux/gpio.h>
- 
-+#define PCA9532_REG_INPUT(i) ((i)/8)
- #define PCA9532_REG_PSC(i) (0x2+(i)*2)
- #define PCA9532_REG_PWM(i) (0x3+(i)*2)
- #define PCA9532_REG_LS0  0x6
-@@ -34,6 +36,7 @@ struct pca9532_data {
- 	struct mutex update_lock;
- 	struct input_dev *idev;
- 	struct work_struct work;
-+	struct gpio_chip gpio;
- 	u8 pwm[2];
- 	u8 psc[2];
- };
-@@ -200,16 +203,68 @@ static void pca9532_led_work(struct work
- 	pca9532_setled(led);
+diff -puN fs/proc/inode.c~procfs-kill-the-global-proc_mnt-variable fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-kill-the-global-proc_mnt-variable
++++ a/fs/proc/inode.c
+@@ -42,8 +42,6 @@ static void proc_evict_inode(struct inod
+ 		sysctl_head_put(PROC_I(inode)->sysctl);
  }
  
--static void pca9532_destroy_devices(struct pca9532_data *data, int n_devs)
-+#ifdef CONFIG_LEDS_PCA9532_GPIO
-+static int pca9532_gpio_request_pin(struct gpio_chip *gc, unsigned offset)
-+{
-+	struct pca9532_data *data = container_of(gc, struct pca9532_data, gpio);
-+	struct pca9532_led *led = &data->leds[offset];
-+
-+	if (led->type == PCA9532_TYPE_GPIO)
-+		return 0;
-+
-+	return -EBUSY;
-+}
-+
-+static void pca9532_gpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
-+{
-+	struct pca9532_data *data = container_of(gc, struct pca9532_data, gpio);
-+	struct pca9532_led *led = &data->leds[offset];
-+
-+	if (val)
-+		led->state = PCA9532_ON;
-+	else
-+		led->state = PCA9532_OFF;
-+
-+	pca9532_setled(led);
-+}
-+
-+static int pca9532_gpio_get_value(struct gpio_chip *gc, unsigned offset)
-+{
-+	struct pca9532_data *data = container_of(gc, struct pca9532_data, gpio);
-+	unsigned char reg;
-+
-+	reg = i2c_smbus_read_byte_data(data->client, PCA9532_REG_INPUT(offset));
-+
-+	return !!(reg & (1 << (offset % 8)));
-+}
-+
-+static int pca9532_gpio_direction_input(struct gpio_chip *gc, unsigned offset)
-+{
-+	/* To use as input ensure pin is not driven */
-+	pca9532_gpio_set_value(gc, offset, 0);
-+
-+	return 0;
-+}
-+
-+static int pca9532_gpio_direction_output(struct gpio_chip *gc, unsigned offset, int val)
-+{
-+	pca9532_gpio_set_value(gc, offset, val);
-+
-+	return 0;
-+}
-+#endif /* CONFIG_LEDS_PCA9532_GPIO */
-+
-+static int pca9532_destroy_devices(struct pca9532_data *data, int n_devs)
+-struct vfsmount *proc_mnt;
+-
+ static struct kmem_cache * proc_inode_cachep;
+ 
+ static struct inode *proc_alloc_inode(struct super_block *sb)
+diff -puN fs/proc/internal.h~procfs-kill-the-global-proc_mnt-variable fs/proc/internal.h
+--- a/fs/proc/internal.h~procfs-kill-the-global-proc_mnt-variable
++++ a/fs/proc/internal.h
+@@ -107,7 +107,6 @@ static inline struct proc_dir_entry *pde
+ }
+ void pde_put(struct proc_dir_entry *pde);
+ 
+-extern struct vfsmount *proc_mnt;
+ int proc_fill_super(struct super_block *);
+ struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
+ 
+diff -puN fs/proc/root.c~procfs-kill-the-global-proc_mnt-variable fs/proc/root.c
+--- a/fs/proc/root.c~procfs-kill-the-global-proc_mnt-variable
++++ a/fs/proc/root.c
+@@ -90,19 +90,20 @@ static struct file_system_type proc_fs_t
+ 
+ void __init proc_root_init(void)
  {
- 	int i = n_devs;
++	struct vfsmount *mnt;
+ 	int err;
  
- 	if (!data)
--		return;
-+		return -EINVAL;
- 
- 	while (--i >= 0) {
- 		switch (data->leds[i].type) {
- 		case PCA9532_TYPE_NONE:
-+		case PCA9532_TYPE_GPIO:
- 			break;
- 		case PCA9532_TYPE_LED:
- 			led_classdev_unregister(&data->leds[i].ldev);
-@@ -224,12 +279,26 @@ static void pca9532_destroy_devices(stru
- 			break;
- 		}
+ 	proc_init_inodecache();
+ 	err = register_filesystem(&proc_fs_type);
+ 	if (err)
+ 		return;
+-	proc_mnt = kern_mount_data(&proc_fs_type, &init_pid_ns);
+-	if (IS_ERR(proc_mnt)) {
++	mnt = kern_mount_data(&proc_fs_type, &init_pid_ns);
++	if (IS_ERR(mnt)) {
+ 		unregister_filesystem(&proc_fs_type);
+ 		return;
  	}
-+
-+#ifdef CONFIG_LEDS_PCA9532_GPIO
-+	if (data->gpio.dev) {
-+		int err = gpiochip_remove(&data->gpio);
-+		if (err) {
-+			dev_err(&data->client->dev, "%s failed, %d\n",
-+						"gpiochip_remove()", err);
-+			return err;
-+		}
-+	}
-+#endif
-+
-+	return 0;
- }
  
- static int pca9532_configure(struct i2c_client *client,
- 	struct pca9532_data *data, struct pca9532_platform_data *pdata)
- {
- 	int i, err = 0;
-+	int gpios = 0;
+-	init_pid_ns.proc_mnt = proc_mnt;
++	init_pid_ns.proc_mnt = mnt;
+ 	proc_symlink("mounts", NULL, "self/mounts");
  
- 	for (i = 0; i < 2; i++)	{
- 		data->pwm[i] = pdata->pwm[i];
-@@ -249,6 +318,9 @@ static int pca9532_configure(struct i2c_
- 		switch (led->type) {
- 		case PCA9532_TYPE_NONE:
- 			break;
-+		case PCA9532_TYPE_GPIO:
-+			gpios++;
-+			break;
- 		case PCA9532_TYPE_LED:
- 			led->state = pled->state;
- 			led->name = pled->name;
-@@ -297,6 +369,34 @@ static int pca9532_configure(struct i2c_
- 			break;
- 		}
- 	}
-+
-+#ifdef CONFIG_LEDS_PCA9532_GPIO
-+	if (gpios) {
-+		data->gpio.label = "gpio-pca9532";
-+		data->gpio.direction_input = pca9532_gpio_direction_input;
-+		data->gpio.direction_output = pca9532_gpio_direction_output;
-+		data->gpio.set = pca9532_gpio_set_value;
-+		data->gpio.get = pca9532_gpio_get_value;
-+		data->gpio.request = pca9532_gpio_request_pin;
-+		data->gpio.can_sleep = 1;
-+		data->gpio.base = pdata->gpio_base;
-+		data->gpio.ngpio = 16;
-+		data->gpio.dev = &client->dev;
-+		data->gpio.owner = THIS_MODULE;
-+
-+		err = gpiochip_add(&data->gpio);
-+		if (err) {
-+			/* Use data->gpio.dev as a flag for freeing gpiochip */
-+			data->gpio.dev = NULL;
-+			dev_warn(&client->dev, "could not add gpiochip\n");
-+		} else {
-+			dev_info(&client->dev, "gpios %i...%i\n",
-+				data->gpio.base, data->gpio.base +
-+				data->gpio.ngpio - 1);
-+		}
-+	}
-+#endif
-+
- 	return 0;
- 
- exit:
-@@ -337,7 +437,12 @@ static int pca9532_probe(struct i2c_clie
- static int pca9532_remove(struct i2c_client *client)
- {
- 	struct pca9532_data *data = i2c_get_clientdata(client);
--	pca9532_destroy_devices(data, 16);
-+	int err;
-+
-+	err = pca9532_destroy_devices(data, 16);
-+	if (err)
-+		return err;
-+
- 	kfree(data);
- 	return 0;
- }
-diff -puN include/linux/leds-pca9532.h~drivers-leds-leds-pca9532c-add-gpio-capability include/linux/leds-pca9532.h
---- a/include/linux/leds-pca9532.h~drivers-leds-leds-pca9532c-add-gpio-capability
-+++ a/include/linux/leds-pca9532.h
-@@ -25,7 +25,7 @@ enum pca9532_state {
- };
- 
- enum pca9532_type { PCA9532_TYPE_NONE, PCA9532_TYPE_LED,
--	PCA9532_TYPE_N2100_BEEP };
-+	PCA9532_TYPE_N2100_BEEP, PCA9532_TYPE_GPIO };
- 
- struct pca9532_led {
- 	u8 id;
-@@ -41,6 +41,7 @@ struct pca9532_platform_data {
- 	struct pca9532_led leds[16];
- 	u8 pwm[2];
- 	u8 psc[2];
-+	int gpio_base;
- };
- 
- #endif /* __LINUX_PCA9532_H */
+ 	proc_net_init();
 _
 
-Patches currently in -mm which might be from manabian@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-drivers-leds-leds-pca9532c-add-gpio-capability.patch
+origin.patch
+linux-next.patch
+pid-remove-the-child_reaper-special-case-in-init-mainc.patch
+pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
+procfs-kill-the-global-proc_mnt-variable.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
