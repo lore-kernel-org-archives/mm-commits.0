@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-convert-ds1374-to-dev_pm_ops.patch added to -mm tree
-Date: Mon, 14 Feb 2011 14:50:02 -0800
-Message-ID: <201102142250.p1EMo2xE030524@imap1.linux-foundation.org>
+Date: Mon, 14 Feb 2011 14:50:15 -0800
+Message-ID: <201102142250.p1EMoFMA030551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997Ab1BNXMz (ORCPT
+	by vger.kernel.org with ESMTP id S1753400Ab1BNXNl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:12:55 -0500
+	Mon, 14 Feb 2011 18:13:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, johnstul@us.ibm.c
 
 
 The patch titled
-     From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+     rtc: convert DS1374 to dev_pm_ops
 has been added to the -mm tree.  Its filename is
      rtc-convert-ds1374-to-dev_pm_ops.patch
 
@@ -34,8 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
+Subject: rtc: convert DS1374 to dev_pm_ops
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
 There is a general move to replace bus-specific PM ops with dev_pm_ops in
 order to facilitate core improvements. Do this conversion for DS1374.
