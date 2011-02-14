@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-remove-the-child_reaper-special-case-in-init-mainc.patch added to -mm tree
-Date: Mon, 14 Feb 2011 15:52:48 -0800
-Message-ID: <201102142352.p1ENqmDK001104@imap1.linux-foundation.org>
+Subject: + mm-grab-rcu-read-lock-in-move_pages.patch added to -mm tree
+Date: Mon, 14 Feb 2011 15:54:26 -0800
+Message-ID: <201102142354.p1ENsQnD001146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753858Ab1BNXxb (ORCPT
+	by vger.kernel.org with ESMTP id S1753783Ab1BNXzs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:53:31 -0500
+	Mon, 14 Feb 2011 18:55:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@gmail.com, daniel.lezcano@free.fr, oleg@redhat.com
+Cc: gthelen@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, sergey.senozhatsky@gmail.com, zengzm.kernel@gmail.com
 
 
 The patch titled
-     pid: remove the child_reaper special case in init/main.c
+     mm: grab rcu read lock in move_pages()
 has been added to the -mm tree.  Its filename is
-     pid-remove-the-child_reaper-special-case-in-init-mainc.patch
+     mm-grab-rcu-read-lock-in-move_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pid: remove the child_reaper special case in init/main.c
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: mm: grab rcu read lock in move_pages()
+From: Greg Thelen <gthelen@google.com>
 
-This patchset is a cleanup and a preparation to unshare the pid namespace.
-These prerequisites prepare for Eric's patchset to give a file descriptor
-to a namespace and join an existing namespace.
+The move_pages() usage of find_task_by_vpid() requires rcu_read_lock() to
+prevent free_pid() from reclaiming the pid.
 
+Without this patch, RCU warnings are printed in v2.6.38-rc4 move_pages()
+with:
 
-This patch:
+  CONFIG_LOCKUP_DETECTOR=y
+  CONFIG_PREEMPT=y
+  CONFIG_LOCKDEP=y
+  CONFIG_PROVE_LOCKING=y
+  CONFIG_PROVE_RCU=y
 
-It turns out that the existing assignment in copy_process of the
-child_reaper can handle the initial assignment of child_reaper we just
-need to generalize the test in kernel/fork.c
+Previously, migrate_pages() went through a similar transformation
+replacing usage of tasklist_lock with rcu read lock:
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+  commit 55cfaa3cbdd29c4919ecb5fb8965c310f357e48c
+  Author: Zeng Zhaoming <zengzm.kernel@gmail.com>
+  Date:   Thu Dec 2 14:31:13 2010 -0800
+
+      mm/mempolicy.c: add rcu read lock to protect pid structure
+
+  commit 1e50df39f6e2c3a4a3394df62baa8a213df16c54
+  Author: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+  Date:   Thu Jan 13 15:46:14 2011 -0800
+
+      mempolicy: remove tasklist_lock from migrate_pages
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Zeng Zhaoming <zengzm.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |   11 +++++++++++
- init/main.c         |    9 ---------
- kernel/fork.c       |    2 +-
- 3 files changed, 12 insertions(+), 10 deletions(-)
+ mm/migrate.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc include/linux/pid.h
---- a/include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc
-+++ a/include/linux/pid.h
-@@ -141,6 +141,17 @@ static inline struct pid_namespace *ns_o
- }
+diff -puN mm/migrate.c~mm-grab-rcu-read-lock-in-move_pages mm/migrate.c
+--- a/mm/migrate.c~mm-grab-rcu-read-lock-in-move_pages
++++ a/mm/migrate.c
+@@ -1287,14 +1287,14 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
+ 		return -EPERM;
  
- /*
-+ * is_child_reaper returns true if the pid is the init process
-+ * of the current namespace. As this one could be checked before
-+ * pid_ns->child_reaper is assigned in copy_process, we check
-+ * with the pid number.
-+ */
-+static inline bool is_child_reaper(struct pid *pid)
-+{
-+	return pid->numbers[pid->level].nr == 1;
-+}
-+
-+/*
-  * the helpers to get the pid's id seen from different namespaces
-  *
-  * pid_nr()    : global id, i.e. the id seen from the init namespace;
-diff -puN init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc init/main.c
---- a/init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc
-+++ a/init/main.c
-@@ -787,15 +787,6 @@ static int __init kernel_init(void * unu
- 	 * init can run on any cpu.
- 	 */
- 	set_cpus_allowed_ptr(current, cpu_all_mask);
--	/*
--	 * Tell the world that we're going to be the grim
--	 * reaper of innocent orphaned children.
--	 *
--	 * We don't want people to have to make incorrect
--	 * assumptions about where in the task array this
--	 * can be found.
--	 */
--	init_pid_ns.child_reaper = current;
+ 	/* Find the mm_struct */
+-	read_lock(&tasklist_lock);
++	rcu_read_lock();
+ 	task = pid ? find_task_by_vpid(pid) : current;
+ 	if (!task) {
+-		read_unlock(&tasklist_lock);
++		rcu_read_unlock();
+ 		return -ESRCH;
+ 	}
+ 	mm = get_task_mm(task);
+-	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
  
- 	cad_pid = task_pid(current);
- 
-diff -puN kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc kernel/fork.c
---- a/kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc
-+++ a/kernel/fork.c
-@@ -1289,7 +1289,7 @@ static struct task_struct *copy_process(
- 		tracehook_finish_clone(p, clone_flags, trace);
- 
- 		if (thread_group_leader(p)) {
--			if (clone_flags & CLONE_NEWPID)
-+			if (is_child_reaper(pid))
- 				p->nsproxy->pid_ns->child_reaper = p;
- 
- 			p->signal->leader_pid = pid;
+ 	if (!mm)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-cgroup-remove-the-ns_cgroup.patch
-sysctl_check-drop-table-procname-checks.patch
-sysctl_check-drop-dead-code.patch
-pid-remove-the-child_reaper-special-case-in-init-mainc.patch
-pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
-procfs-kill-the-global-proc_mnt-variable.patch
-fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
-kexec-remove-kmsg_dump_kexec.patch
+mm-grab-rcu-read-lock-in-move_pages.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
 
