@@ -1,119 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:39 -0800
-Message-ID: <201102142019.p1EKJdX1023008@imap1.linux-foundation.org>
+Subject: [merged] acpi-remove-the-wakeuprun_wake_count-device-field.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:48 -0800
+Message-ID: <201102142019.p1EKJmD3023017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUUs (ORCPT
+	by vger.kernel.org with ESMTP id S1753137Ab1BNUlc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:20:48 -0500
+	Mon, 14 Feb 2011 15:41:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, aarcange@redhat.com, kent.overstreet@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: fix zone shrinking exit when scan work is done
+     acpi: remove the wakeup.run_wake_count device field
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch
+     acpi-remove-the-wakeuprun_wake_count-device-field.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix zone shrinking exit when scan work is done
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: acpi: remove the wakeup.run_wake_count device field
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-3e7d344 ("mm: vmscan: reclaim order-0 and use compaction instead of lumpy
-reclaim") introduced an indefinite loop in shrink_zone().
+The wakeup.run_wake_count ACPI device field is only used by the PCI
+runtime PM code to "protect" devices from being prepared for generating
+wakeup signals more than once in a row.  However, it really doesn't
+provide any protection, because (1) all of the functions it is supposed to
+protect use their own reference counters effectively ensuring that the
+device will be set up for generating wakeup signals just once and (2) the
+PCI runtime PM code uses wakeup.run_wake_count in a racy way, since
+nothing prevents acpi_dev_run_wake() from being called concurrently from
+two different threads for the same device.
 
-It meant to break out of this loop when no pages had been reclaimed and
-not a single page was even scanned.  The way it would detect the latter is
-by taking a snapshot of sc->nr_scanned at the beginning of the function
-and comparing it against the new sc->nr_scanned after the scan loop.  But
-it would re-iterate without updating that snapshot, looping forever if
-sc->nr_scanned changed at least once since shrink_zone() was invoked.
+Remove the wakeup.run_wake_count ACPI device field which is unnecessary,
+confusing and used in a wrong way.
 
-This is not the sole condition that would exit that loop, but it requires
-other processes to change the zone state, as the reclaimer that is stuck
-obviously can not anymore.
-
-This is only happening for higher-order allocations, where reclaim is run
-back to back with compaction.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Michal Hocko <mhocko@suse.cz>
-Tested-by: Kent Overstreet<kent.overstreet@gmail.com>
-Reported-by: Kent Overstreet <kent.overstreet@gmail.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/button.c   |    2 --
+ drivers/acpi/scan.c     |    1 -
+ drivers/pci/pci-acpi.c  |   16 ++++------------
+ include/acpi/acpi_bus.h |    1 -
+ 4 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done
-+++ a/mm/vmscan.c
-@@ -1882,12 +1882,12 @@ static void shrink_zone(int priority, st
- 	unsigned long nr[NR_LRU_LISTS];
- 	unsigned long nr_to_scan;
- 	enum lru_list l;
--	unsigned long nr_reclaimed;
-+	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
--	unsigned long nr_scanned = sc->nr_scanned;
+diff -puN drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/button.c
+--- a/drivers/acpi/button.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/acpi/button.c
+@@ -430,7 +430,6 @@ static int acpi_button_add(struct acpi_d
+ 		/* Button's GPE is run-wake GPE */
+ 		acpi_enable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device->wakeup.run_wake_count++;
+ 		device_set_wakeup_enable(&device->dev, true);
+ 	}
  
- restart:
- 	nr_reclaimed = 0;
-+	nr_scanned = sc->nr_scanned;
- 	get_scan_count(zone, sc, nr, priority);
+@@ -453,7 +452,6 @@ static int acpi_button_remove(struct acp
+ 	if (device->wakeup.flags.valid) {
+ 		acpi_disable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
+-		device->wakeup.run_wake_count--;
+ 		device_set_wakeup_enable(&device->dev, false);
+ 	}
  
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+diff -puN drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/acpi/scan.c
+@@ -797,7 +797,6 @@ static void acpi_bus_set_run_wake_flags(
+ 	acpi_status status;
+ 	acpi_event_status event_status;
+ 
+-	device->wakeup.run_wake_count = 0;
+ 	device->wakeup.flags.notifier_present = 0;
+ 
+ 	/* Power button, Lid switch always enable wakeup */
+diff -puN drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/drivers/pci/pci-acpi.c
+@@ -293,19 +293,11 @@ static int acpi_dev_run_wake(struct devi
+ 	}
+ 
+ 	if (enable) {
+-		if (!dev->wakeup.run_wake_count++) {
+-			acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
+-			acpi_enable_gpe(dev->wakeup.gpe_device,
+-					dev->wakeup.gpe_number);
+-		}
+-	} else if (dev->wakeup.run_wake_count > 0) {
+-		if (!--dev->wakeup.run_wake_count) {
+-			acpi_disable_gpe(dev->wakeup.gpe_device,
+-					 dev->wakeup.gpe_number);
+-			acpi_disable_wakeup_device_power(dev);
+-		}
++		acpi_enable_wakeup_device_power(dev, ACPI_STATE_S0);
++		acpi_enable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
+ 	} else {
+-		error = -EALREADY;
++		acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
++		acpi_disable_wakeup_device_power(dev);
+ 	}
+ 
+ 	return error;
+diff -puN include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-remove-the-wakeuprun_wake_count-device-field
++++ a/include/acpi/acpi_bus.h
+@@ -250,7 +250,6 @@ struct acpi_device_wakeup {
+ 	struct acpi_handle_list resources;
+ 	struct acpi_device_wakeup_flags flags;
+ 	int prepare_count;
+-	int run_wake_count;
+ };
+ 
+ /* Device */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-origin.patch
-mm-introduce-delete_from_page_cache.patch
-mm-hugetlbfs-change-remove_from_page_cache.patch
-mm-shmem-change-remove_from_page_cache.patch
-mm-truncate-change-remove_from_page_cache.patch
-mm-good-bye-remove_from_page_cache.patch
-mm-change-__remove_from_page_cache.patch
-mm-batch-free-pcp-list-if-possible.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
-memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
-memcg-remove-memcg-reclaim_param_lock.patch
-memcg-keep-only-one-charge-cancelling-function.patch
-memcg-keep-only-one-charge-cancelling-function-fix.patch
-memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
-memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
-memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+linux-next.patch
+usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
 
