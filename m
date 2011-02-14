@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch added to -mm tree
-Date: Mon, 14 Feb 2011 15:52:50 -0800
-Message-ID: <201102142352.p1ENqoqd001107@imap1.linux-foundation.org>
+Subject: + pid-remove-the-child_reaper-special-case-in-init-mainc.patch added to -mm tree
+Date: Mon, 14 Feb 2011 15:52:48 -0800
+Message-ID: <201102142352.p1ENqmDK001104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54368 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751456Ab1BNXxa (ORCPT
+	by vger.kernel.org with ESMTP id S1753858Ab1BNXxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:53:30 -0500
+	Mon, 14 Feb 2011 18:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ebiederm@xmission.com, adobriyan@gmail.com, daniel.lezcano@free.fr, oleg@red
 
 
 The patch titled
-     pidns: call pid_ns_prepare_proc() from create_pid_namespace()
+     pid: remove the child_reaper special case in init/main.c
 has been added to the -mm tree.  Its filename is
-     pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
+     pid-remove-the-child_reaper-special-case-in-init-mainc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pidns: call pid_ns_prepare_proc() from create_pid_namespace()
+Subject: pid: remove the child_reaper special case in init/main.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Reorganize proc_get_sb() so it can be called before the struct pid of the
-first process is allocated.
+This patchset is a cleanup and a preparation to unshare the pid namespace.
+These prerequisites prepare for Eric's patchset to give a file descriptor
+to a namespace and join an existing namespace.
+
+
+This patch:
+
+It turns out that the existing assignment in copy_process of the
+child_reaper can handle the initial assignment of child_reaper we just
+need to generalize the test in kernel/fork.c
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
@@ -47,114 +55,63 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c         |   25 +++++++------------------
- kernel/fork.c          |    6 ------
- kernel/pid_namespace.c |   11 +++++++++--
- 3 files changed, 16 insertions(+), 26 deletions(-)
+ include/linux/pid.h |   11 +++++++++++
+ init/main.c         |    9 ---------
+ kernel/fork.c       |    2 +-
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace fs/proc/root.c
---- a/fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
-+++ a/fs/proc/root.c
-@@ -43,17 +43,6 @@ static struct dentry *proc_mount(struct 
- 	struct pid_namespace *ns;
- 	struct proc_inode *ei;
- 
--	if (proc_mnt) {
--		/* Seed the root directory with a pid so it doesn't need
--		 * to be special in base.c.  I would do this earlier but
--		 * the only task alive when /proc is mounted the first time
--		 * is the init_task and it doesn't have any pids.
--		 */
--		ei = PROC_I(proc_mnt->mnt_sb->s_root->d_inode);
--		if (!ei->pid)
--			ei->pid = find_get_pid(1);
--	}
--
- 	if (flags & MS_KERNMOUNT)
- 		ns = (struct pid_namespace *)data;
- 	else
-@@ -71,16 +60,16 @@ static struct dentry *proc_mount(struct 
- 			return ERR_PTR(err);
- 		}
- 
--		ei = PROC_I(sb->s_root->d_inode);
--		if (!ei->pid) {
--			rcu_read_lock();
--			ei->pid = get_pid(find_pid_ns(1, ns));
--			rcu_read_unlock();
--		}
--
- 		sb->s_flags |= MS_ACTIVE;
- 	}
- 
-+	ei = PROC_I(sb->s_root->d_inode);
-+	if (!ei->pid) {
-+		rcu_read_lock();
-+		ei->pid = get_pid(find_pid_ns(1, ns));
-+		rcu_read_unlock();
-+	}
-+
- 	return dget(sb->s_root);
+diff -puN include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc include/linux/pid.h
+--- a/include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc
++++ a/include/linux/pid.h
+@@ -141,6 +141,17 @@ static inline struct pid_namespace *ns_o
  }
  
-diff -puN kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/fork.c
---- a/kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
+ /*
++ * is_child_reaper returns true if the pid is the init process
++ * of the current namespace. As this one could be checked before
++ * pid_ns->child_reaper is assigned in copy_process, we check
++ * with the pid number.
++ */
++static inline bool is_child_reaper(struct pid *pid)
++{
++	return pid->numbers[pid->level].nr == 1;
++}
++
++/*
+  * the helpers to get the pid's id seen from different namespaces
+  *
+  * pid_nr()    : global id, i.e. the id seen from the init namespace;
+diff -puN init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc init/main.c
+--- a/init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc
++++ a/init/main.c
+@@ -787,15 +787,6 @@ static int __init kernel_init(void * unu
+ 	 * init can run on any cpu.
+ 	 */
+ 	set_cpus_allowed_ptr(current, cpu_all_mask);
+-	/*
+-	 * Tell the world that we're going to be the grim
+-	 * reaper of innocent orphaned children.
+-	 *
+-	 * We don't want people to have to make incorrect
+-	 * assumptions about where in the task array this
+-	 * can be found.
+-	 */
+-	init_pid_ns.child_reaper = current;
+ 
+ 	cad_pid = task_pid(current);
+ 
+diff -puN kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc kernel/fork.c
+--- a/kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc
 +++ a/kernel/fork.c
-@@ -1186,12 +1186,6 @@ static struct task_struct *copy_process(
- 		pid = alloc_pid(p->nsproxy->pid_ns);
- 		if (!pid)
- 			goto bad_fork_cleanup_io;
--
--		if (clone_flags & CLONE_NEWPID) {
--			retval = pid_ns_prepare_proc(p->nsproxy->pid_ns);
--			if (retval < 0)
--				goto bad_fork_free_pid;
--		}
- 	}
+@@ -1289,7 +1289,7 @@ static struct task_struct *copy_process(
+ 		tracehook_finish_clone(p, clone_flags, trace);
  
- 	p->pid = pid_nr(pid);
-diff -puN kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
-+++ a/kernel/pid_namespace.c
-@@ -14,6 +14,7 @@
- #include <linux/err.h>
- #include <linux/acct.h>
- #include <linux/slab.h>
-+#include <linux/proc_fs.h>
+ 		if (thread_group_leader(p)) {
+-			if (clone_flags & CLONE_NEWPID)
++			if (is_child_reaper(pid))
+ 				p->nsproxy->pid_ns->child_reaper = p;
  
- #define BITS_PER_PAGE		(PAGE_SIZE*8)
- 
-@@ -72,7 +73,7 @@ static struct pid_namespace *create_pid_
- {
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
--	int i;
-+	int i, err = -ENOMEM;
- 
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
- 	if (ns == NULL)
-@@ -96,14 +97,20 @@ static struct pid_namespace *create_pid_
- 	for (i = 1; i < PIDMAP_ENTRIES; i++)
- 		atomic_set(&ns->pidmap[i].nr_free, BITS_PER_PAGE);
- 
-+	err = pid_ns_prepare_proc(ns);
-+	if (err)
-+		goto out_put_parent_pid_ns;
-+
- 	return ns;
- 
-+out_put_parent_pid_ns:
-+	put_pid_ns(parent_pid_ns);
- out_free_map:
- 	kfree(ns->pidmap[0].page);
- out_free:
- 	kmem_cache_free(pid_ns_cachep, ns);
- out:
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(err);
- }
- 
- static void destroy_pid_namespace(struct pid_namespace *ns)
+ 			p->signal->leader_pid = pid;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
