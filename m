@@ -1,135 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-w1-masters-omap_hdqc-add-missing-clk_put.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:45 -0800
-Message-ID: <201102142019.p1EKJjHF023014@imap1.linux-foundation.org>
+Subject: [merged] vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:39 -0800
+Message-ID: <201102142019.p1EKJdX1023008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752015Ab1BNUUo (ORCPT
+	by vger.kernel.org with ESMTP id S1751129Ab1BNUUs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:20:44 -0500
+	Mon, 14 Feb 2011 15:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, amit.kucheria@canonical.com, johnpol@2ka.mipt.ru, tony@atomide.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, aarcange@redhat.com, kent.overstreet@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/w1/masters/omap_hdq.c: add missing clk_put
+     vmscan: fix zone shrinking exit when scan work is done
 has been removed from the -mm tree.  Its filename was
-     drivers-w1-masters-omap_hdqc-add-missing-clk_put.patch
+     vmscan-fix-zone-shrinking-exit-when-scan-work-is-done.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/w1/masters/omap_hdq.c: add missing clk_put
-From: Julia Lawall <julia@diku.dk>
+Subject: vmscan: fix zone shrinking exit when scan work is done
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-This code makes two calls to clk_get, then test both return values and
-fails if either failed.  The problem is that in the first inner if, where
-the first call to clk_get has failed, it don't know if the second call has
-failed as well.  So it don't know whether clk_get should be called on the
-result of the second call.  Of course, it would be possible to test that
-value again.  A simpler solution is just to test the result of calling
-clk_get directly after each call.
+3e7d344 ("mm: vmscan: reclaim order-0 and use compaction instead of lumpy
+reclaim") introduced an indefinite loop in shrink_zone().
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+It meant to break out of this loop when no pages had been reclaimed and
+not a single page was even scanned.  The way it would detect the latter is
+by taking a snapshot of sc->nr_scanned at the beginning of the function
+and comparing it against the new sc->nr_scanned after the scan loop.  But
+it would re-iterate without updating that snapshot, looping forever if
+sc->nr_scanned changed at least once since shrink_zone() was invoked.
 
-// <smpl>
-@r@
-position p1,p2;
-expression e;
-statement S;
-@@
+This is not the sole condition that would exit that loop, but it requires
+other processes to change the zone state, as the reclaimer that is stuck
+obviously can not anymore.
 
-e = clk_get@p1(...)
-...
-if@p2 (IS_ERR(e)) S
+This is only happening for higher-order allocations, where reclaim is run
+back to back with compaction.
 
-@@
-expression e;
-statement S;
-identifier l;
-position r.p1, p2 != r.p2;
-@@
-
-*e = clk_get@p1(...)
-... when != clk_put(e)
-*if@p2 (...)
-{
-  ... when != clk_put(e)
-* return ...;
-}// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Amit Kucheria <amit.kucheria@canonical.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Michal Hocko <mhocko@suse.cz>
+Tested-by: Kent Overstreet<kent.overstreet@gmail.com>
+Reported-by: Kent Overstreet <kent.overstreet@gmail.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/omap_hdq.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/masters/omap_hdq.c~drivers-w1-masters-omap_hdqc-add-missing-clk_put drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~drivers-w1-masters-omap_hdqc-add-missing-clk_put
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -593,19 +593,17 @@ static int __devinit omap_hdq_probe(stru
+diff -puN mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-zone-shrinking-exit-when-scan-work-is-done
++++ a/mm/vmscan.c
+@@ -1882,12 +1882,12 @@ static void shrink_zone(int priority, st
+ 	unsigned long nr[NR_LRU_LISTS];
+ 	unsigned long nr_to_scan;
+ 	enum lru_list l;
+-	unsigned long nr_reclaimed;
++	unsigned long nr_reclaimed, nr_scanned;
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+-	unsigned long nr_scanned = sc->nr_scanned;
  
- 	/* get interface & functional clock objects */
- 	hdq_data->hdq_ick = clk_get(&pdev->dev, "ick");
--	hdq_data->hdq_fck = clk_get(&pdev->dev, "fck");
-+	if (IS_ERR(hdq_data->hdq_ick)) {
-+		dev_dbg(&pdev->dev, "Can't get HDQ ick clock object\n");
-+		ret = PTR_ERR(hdq_data->hdq_ick);
-+		goto err_ick;
-+	}
+ restart:
+ 	nr_reclaimed = 0;
++	nr_scanned = sc->nr_scanned;
+ 	get_scan_count(zone, sc, nr, priority);
  
--	if (IS_ERR(hdq_data->hdq_ick) || IS_ERR(hdq_data->hdq_fck)) {
--		dev_dbg(&pdev->dev, "Can't get HDQ clock objects\n");
--		if (IS_ERR(hdq_data->hdq_ick)) {
--			ret = PTR_ERR(hdq_data->hdq_ick);
--			goto err_clk;
--		}
--		if (IS_ERR(hdq_data->hdq_fck)) {
--			ret = PTR_ERR(hdq_data->hdq_fck);
--			clk_put(hdq_data->hdq_ick);
--			goto err_clk;
--		}
-+	hdq_data->hdq_fck = clk_get(&pdev->dev, "fck");
-+	if (IS_ERR(hdq_data->hdq_fck)) {
-+		dev_dbg(&pdev->dev, "Can't get HDQ fck clock object\n");
-+		ret = PTR_ERR(hdq_data->hdq_fck);
-+		goto err_fck;
- 	}
- 
- 	hdq_data->hdq_usecount = 0;
-@@ -665,10 +663,12 @@ err_fnclk:
- 	clk_disable(hdq_data->hdq_ick);
- 
- err_intfclk:
--	clk_put(hdq_data->hdq_ick);
- 	clk_put(hdq_data->hdq_fck);
- 
--err_clk:
-+err_fck:
-+	clk_put(hdq_data->hdq_ick);
-+
-+err_ick:
- 	iounmap(hdq_data->hdq_base);
- 
- err_ioremap:
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
-fs-btrfs-inodec-eliminate-memory-leak.patch
-drivers-mtd-maps-ts5500_flashc-avoid-calling-map_destroy-on-null.patch
-drivers-char-bfin_jtag_commc-avoid-calling-put_tty_driver-on-null.patch
-drivers-char-specialixc-convert-func_enter-to-func_exit.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+mm-batch-free-pcp-list-if-possible.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-keep-only-one-charge-cancelling-function-fix.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
 
