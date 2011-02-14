@@ -1,155 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch removed from -mm tree
-Date: Mon, 14 Feb 2011 12:19:22 -0800
-Message-ID: <201102142019.p1EKJMbD022983@imap1.linux-foundation.org>
+Subject: [merged] nbd-remove-module-level-ioctl-mutex.patch removed from -mm tree
+Date: Mon, 14 Feb 2011 12:19:29 -0800
+Message-ID: <201102142019.p1EKJTvx022990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1BNUT5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751129Ab1BNUUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Feb 2011 15:19:57 -0500
+	Mon, 14 Feb 2011 15:20:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stigge@antcom.de, bgardner@wabtec.com, eric.y.miao@gmail.com, grant.likely@secretlab.ca, maz@misterjones.org, mm-commits@vger.kernel.org
+To: soren@linux2go.dk, arnd@arndb.de, axboe@kernel.dk, paul.clements@steeleye.com, serge.hallyn@canonical.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpio/pca953x.c: add a mutex to fix race condition
+     nbd: remove module-level ioctl mutex
 has been removed from the -mm tree.  Its filename was
-     drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition.patch
+     nbd-remove-module-level-ioctl-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/pca953x.c: add a mutex to fix race condition
-From: Roland Stigge <stigge@antcom.de>
+Subject: nbd: remove module-level ioctl mutex
+From: Soren Hansen <soren@linux2go.dk>
 
-Add a mutex to register communication and handling.  Without the mutex,
-GPIOs didn't switch as expected when toggled in a fast sequence of status
-changes of multiple outputs.
+2a48fc0ab242417 ("block: autoconvert trivial BKL users to private mutex")
+replaced uses of the BKL in the nbd driver with mutex operations.  Since
+then, I've been been seeing these lock ups:
 
-Signed-off-by: Roland Stigge <stigge@antcom.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: eric miao <eric.y.miao@gmail.com>
+ INFO: task qemu-nbd:16115 blocked for more than 120 seconds.
+ "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+ qemu-nbd      D 0000000000000001     0 16115  16114 0x00000004
+  ffff88007d775d98 0000000000000082 ffff88007d775fd8 ffff88007d774000
+  0000000000013a80 ffff8800020347e0 ffff88007d775fd8 0000000000013a80
+  ffff880133730000 ffff880002034440 ffffea0004333db8 ffffffffa071c020
+ Call Trace:
+  [<ffffffff815b9997>] __mutex_lock_slowpath+0xf7/0x180
+  [<ffffffff81132f13>] ? handle_mm_fault+0x1c3/0x410
+  [<ffffffff815b93eb>] mutex_lock+0x2b/0x50
+  [<ffffffffa071a21c>] nbd_ioctl+0x6c/0x1c0 [nbd]
+  [<ffffffff812cb970>] blkdev_ioctl+0x230/0x730
+  [<ffffffff811967a1>] block_ioctl+0x41/0x50
+  [<ffffffff81175c03>] do_vfs_ioctl+0x93/0x370
+  [<ffffffff8116fa83>] ? putname+0x33/0x50
+  [<ffffffff81175f61>] sys_ioctl+0x81/0xa0
+  [<ffffffff8100c0c2>] system_call_fastpath+0x16/0x1b
+
+Instrumenting the nbd module's ioctl handler with some extra logging
+clearly shows the NBD_DO_IT ioctl being invoked which is a long-lived
+ioctl in the sense that it doesn't return until another ioctl asks the
+driver to disconnect.  However, that other ioctl blocks, waiting for the
+module-level mutex that replaced the BKL, and then we're stuck.
+
+This patch removes the module-level mutex altogether.  It's clearly wrong,
+and as far as I can see, it's entirely unnecessary, since the nbd driver
+maintains per-device mutexes, and I don't see anything that would require
+a module-level (or kernel-level, for that matter) mutex.
+
+Signed-off-by: Soren Hansen <soren@linux2go.dk>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@kernel.org>		[2.6.37.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ drivers/block/nbd.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-a-mutex-to-fix-race-condition
-+++ a/drivers/gpio/pca953x.c
-@@ -60,6 +60,7 @@ struct pca953x_chip {
- 	unsigned gpio_start;
- 	uint16_t reg_output;
- 	uint16_t reg_direction;
-+	struct mutex i2c_lock;
+diff -puN drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-remove-module-level-ioctl-mutex
++++ a/drivers/block/nbd.c
+@@ -53,7 +53,6 @@
+ #define DBG_BLKDEV      0x0100
+ #define DBG_RX          0x0200
+ #define DBG_TX          0x0400
+-static DEFINE_MUTEX(nbd_mutex);
+ static unsigned int debugflags;
+ #endif /* NDEBUG */
  
- #ifdef CONFIG_GPIO_PCA953X_IRQ
- 	struct mutex irq_lock;
-@@ -119,13 +120,17 @@ static int pca953x_gpio_direction_input(
+@@ -718,11 +717,9 @@ static int nbd_ioctl(struct block_device
+ 	dprintk(DBG_IOCTL, "%s: nbd_ioctl cmd=%s(0x%x) arg=%lu\n",
+ 			lo->disk->disk_name, ioctl_cmd_to_ascii(cmd), cmd, arg);
  
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
+-	mutex_lock(&nbd_mutex);
+ 	mutex_lock(&lo->tx_lock);
+ 	error = __nbd_ioctl(bdev, lo, cmd, arg);
+ 	mutex_unlock(&lo->tx_lock);
+-	mutex_unlock(&nbd_mutex);
  
-+	mutex_lock(&chip->i2c_lock);
- 	reg_val = chip->reg_direction | (1u << off);
- 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
- 
- 	chip->reg_direction = reg_val;
--	return 0;
-+	ret = 0;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
-+	return ret;
+ 	return error;
  }
- 
- static int pca953x_gpio_direction_output(struct gpio_chip *gc,
-@@ -137,6 +142,7 @@ static int pca953x_gpio_direction_output
- 
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	/* set output level */
- 	if (val)
- 		reg_val = chip->reg_output | (1u << off);
-@@ -145,7 +151,7 @@ static int pca953x_gpio_direction_output
- 
- 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
- 
- 	chip->reg_output = reg_val;
- 
-@@ -153,10 +159,13 @@ static int pca953x_gpio_direction_output
- 	reg_val = chip->reg_direction & ~(1u << off);
- 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
- 	if (ret)
--		return ret;
-+		goto exit;
- 
- 	chip->reg_direction = reg_val;
--	return 0;
-+	ret = 0;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
-+	return ret;
- }
- 
- static int pca953x_gpio_get_value(struct gpio_chip *gc, unsigned off)
-@@ -167,7 +176,9 @@ static int pca953x_gpio_get_value(struct
- 
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
-+	mutex_unlock(&chip->i2c_lock);
- 	if (ret < 0) {
- 		/* NOTE:  diagnostic already emitted; that's all we should
- 		 * do unless gpio_*_value_cansleep() calls become different
-@@ -187,6 +198,7 @@ static void pca953x_gpio_set_value(struc
- 
- 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
- 
-+	mutex_lock(&chip->i2c_lock);
- 	if (val)
- 		reg_val = chip->reg_output | (1u << off);
- 	else
-@@ -194,9 +206,11 @@ static void pca953x_gpio_set_value(struc
- 
- 	ret = pca953x_write_reg(chip, PCA953X_OUTPUT, reg_val);
- 	if (ret)
--		return;
-+		goto exit;
- 
- 	chip->reg_output = reg_val;
-+exit:
-+	mutex_unlock(&chip->i2c_lock);
- }
- 
- static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
-@@ -517,6 +531,8 @@ static int __devinit pca953x_probe(struc
- 
- 	chip->names = pdata->names;
- 
-+	mutex_init(&chip->i2c_lock);
-+
- 	/* initialize cached registers from their original values.
- 	 * we can't share this chip with another i2c master.
- 	 */
 _
 
-Patches currently in -mm which might be from stigge@antcom.de are
+Patches currently in -mm which might be from soren@linux2go.dk are
 
 origin.patch
-linux-next.patch
 
