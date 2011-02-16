@@ -1,59 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Wed, 16 Feb 2011 12:20:33 -0800
-Message-ID: <201102162020.p1GKKXcn010144@imap1.linux-foundation.org>
+Subject: + linux-next-rejects-git-rejects.patch added to -mm tree
+Date: Wed, 16 Feb 2011 12:19:15 -0800
+Message-ID: <201102162019.p1GKJFXg010064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34411 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754299Ab1BPUo2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754301Ab1BPUpA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Feb 2011 15:44:28 -0500
+	Wed, 16 Feb 2011 15:45:00 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1GKf2w8018436
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1GKf2wE018436
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2011 12:44:01 -0800
+	for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2011 12:44:59 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     linux-next-rejects-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects
+Subject: linux-next-rejects-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/tty/serial/68328serial.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN fs/super.c~linux-next-rejects fs/super.c
---- a/fs/super.c~linux-next-rejects
-+++ a/fs/super.c
-@@ -179,6 +179,7 @@ void deactivate_locked_super(struct supe
- 	struct file_system_type *fs = s->s_type;
- 	if (atomic_dec_and_test(&s->s_active)) {
- 		fs->kill_sb(s);
-+		cleancache_flush_fs(s);
- 		/*
- 		 * We need to call rcu_barrier so all the delayed rcu free
- 		 * inodes are flushed before we release the fs module.
+diff -puN drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects drivers/tty/serial/68328serial.c
+--- a/drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects
++++ a/drivers/tty/serial/68328serial.c
+@@ -393,31 +393,6 @@ static void do_softint(struct work_struc
+ #endif   
+ }
+ 
+-<<<<<<< HEAD
+-/*
+- * This routine is called from the scheduler tqueue when the interrupt
+- * routine has signalled that a hangup has occurred.  The path of
+- * hangup processing is:
+- *
+- * 	serial interrupt routine -> (scheduler tqueue) ->
+- * 	do_serial_hangup() -> tty->hangup() -> rs_hangup()
+- * 
+- */
+-static void do_serial_hangup(struct work_struct *work)
+-{
+-	struct m68k_serial	*info = container_of(work, struct m68k_serial, tqueue_hangup);
+-	struct tty_struct	*tty;
+-	
+-	tty = info->tty;
+-	if (!tty)
+-		return;
+-
+-	tty_hangup(tty);
+-}
+-
+-
+-=======
+->>>>>>> FETCH_HEAD
+ static int startup(struct m68k_serial * info)
+ {
+ 	m68328_uart *uart = &uart_addr[info->line];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
 linux-next-rejects-git-rejects.patch
+linux-next-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
