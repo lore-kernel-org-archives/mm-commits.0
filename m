@@ -1,135 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + mm-debug-pagealloc-fix-kconfig-dependency-warning.patch added to -mm tree
-Date: Wed, 16 Feb 2011 16:09:43 -0800
-Message-ID: <201102170009.p1H09hmT022932@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-rejects-git-rejects.patch removed from -mm tree
+Date: Thu, 17 Feb 2011 12:45:47 -0800
+Message-ID: <201102172045.p1HKjllZ010859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751139Ab1BQAKd (ORCPT
+	by vger.kernel.org with ESMTP id S1757977Ab1BQUqT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Feb 2011 19:10:33 -0500
+	Thu, 17 Feb 2011 15:46:19 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1HKjmnd018775
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2011 12:45:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, randy.dunlap@oracle.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: debug-pagealloc: fix kconfig dependency warning
-has been added to the -mm tree.  Its filename is
-     mm-debug-pagealloc-fix-kconfig-dependency-warning.patch
+     linux-next-rejects-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: debug-pagealloc: fix kconfig dependency warning
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: linux-next-rejects-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix kconfig dependency warning to satisfy dependencies:
-
-warning: (PAGE_POISONING) selects DEBUG_PAGEALLOC which has unmet
-direct dependencies (DEBUG_KERNEL && ARCH_SUPPORTS_DEBUG_PAGEALLOC &&
-(!HIBERNATION || !PPC && !SPARC) && !KMEMCHECK)
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ drivers/tty/serial/68328serial.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN mm/Kconfig.debug~mm-debug-pagealloc-fix-kconfig-dependency-warning mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-debug-pagealloc-fix-kconfig-dependency-warning
-+++ a/mm/Kconfig.debug
-@@ -1,27 +1,24 @@
- config DEBUG_PAGEALLOC
- 	bool "Debug page memory allocations"
--	depends on DEBUG_KERNEL && ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	depends on !HIBERNATION || !PPC && !SPARC
-+	depends on DEBUG_KERNEL
-+	depends on !HIBERNATION || ARCH_SUPPORTS_DEBUG_PAGEALLOC && !PPC && !SPARC
- 	depends on !KMEMCHECK
-+	select PAGE_POISONING if !ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	---help---
- 	  Unmap pages from the kernel linear mapping after free_pages().
- 	  This results in a large slowdown, but helps to find certain types
- 	  of memory corruption.
+diff -puN drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects drivers/tty/serial/68328serial.c
+--- a/drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects
++++ a/drivers/tty/serial/68328serial.c
+@@ -393,31 +393,6 @@ static void do_softint(struct work_struc
+ #endif   
+ }
  
-+	  For architectures which don't enable ARCH_SUPPORTS_DEBUG_PAGEALLOC,
-+	  fill the pages with poison patterns after free_pages() and verify
-+	  the patterns before alloc_pages().  Additionally,
-+	  this option cannot be enabled in combination with hibernation as
-+	  that would result in incorrect warnings of memory corruption after
-+	  a resume because free pages are not saved to the suspend image.
-+
- config WANT_PAGE_DEBUG_FLAGS
- 	bool
- 
- config PAGE_POISONING
--	bool "Debug page memory allocations"
--	depends on DEBUG_KERNEL && !ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	depends on !HIBERNATION
--	select DEBUG_PAGEALLOC
-+	bool
- 	select WANT_PAGE_DEBUG_FLAGS
--	---help---
--	   Fill the pages with poison patterns after free_pages() and verify
--	   the patterns before alloc_pages(). This results in a large slowdown,
--	   but helps to find certain types of memory corruption.
+-<<<<<<< HEAD
+-/*
+- * This routine is called from the scheduler tqueue when the interrupt
+- * routine has signalled that a hangup has occurred.  The path of
+- * hangup processing is:
+- *
+- * 	serial interrupt routine -> (scheduler tqueue) ->
+- * 	do_serial_hangup() -> tty->hangup() -> rs_hangup()
+- * 
+- */
+-static void do_serial_hangup(struct work_struct *work)
+-{
+-	struct m68k_serial	*info = container_of(work, struct m68k_serial, tqueue_hangup);
+-	struct tty_struct	*tty;
+-	
+-	tty = info->tty;
+-	if (!tty)
+-		return;
 -
--	   This option cannot be enabled in combination with hibernation as
--	   that would result in incorrect warnings of memory corruption after
--	   a resume because free pages are not saved to the suspend image.
+-	tty_hangup(tty);
+-}
+-
+-
+-=======
+->>>>>>> FETCH_HEAD
+ static int startup(struct m68k_serial * info)
+ {
+ 	m68328_uart *uart = &uart_addr[info->line];
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-debug-pagealloc-fix-kconfig-dependency-warning.patch
-smp-move-smp-setup-functions-to-kernel-smpc.patch
-kvm-stop-including-asm-generic-bitops-leh-directly.patch
-rds-stop-including-asm-generic-bitops-leh-directly.patch
-bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
-asm-generic-rename-generic-little-endian-bitops-functions.patch
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-powerpc-introduce-little-endian-bitops.patch
-powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-s390-introduce-little-endian-bitops.patch
-s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-arm-introduce-little-endian-bitops.patch
-arm-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-m68k-introduce-little-endian-bitops.patch
-m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-bitops-introduce-config_generic_find_bit_le.patch
-m68knommu-introduce-little-endian-bitops.patch
-m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-asm-generic-use-little-endian-bitops.patch
-kvm-use-little-endian-bitops.patch
-rds-use-little-endian-bitops.patch
-ext3-use-little-endian-bitops.patch
-ext4-use-little-endian-bitops.patch
-ocfs2-use-little-endian-bitops.patch
-nilfs2-use-little-endian-bitops.patch
-reiserfs-use-little-endian-bitops.patch
-udf-use-little-endian-bitops.patch
-ufs-use-little-endian-bitops.patch
-md-use-little-endian-bitops.patch
-dm-use-little-endian-bitops.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
-m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch
+drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
