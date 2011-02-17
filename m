@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swiotlb-fix-wrong-panic.patch added to -mm tree
-Date: Thu, 17 Feb 2011 13:09:18 -0800
-Message-ID: <201102172109.p1HL9IE0011859__21543.9618252733$1297976996$gmane$org@imap1.linux-foundation.org>
+Subject: + memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch added to -mm tree
+Date: Thu, 17 Feb 2011 13:10:45 -0800
+Message-ID: <201102172110.p1HLAjqO011891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757349Ab1BQVJt (ORCPT
+	by vger.kernel.org with ESMTP id S1754105Ab1BQVM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Feb 2011 16:09:49 -0500
+	Thu, 17 Feb 2011 16:12:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, arekm@maven.pl, cebbert@redhat.com, stable@kernel.org
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com
 
 
 The patch titled
-     swiotlb: fix wrong panic
+     memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix
 has been added to the -mm tree.  Its filename is
-     swiotlb-fix-wrong-panic.patch
+     memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swiotlb: fix wrong panic
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-swiotlb's map_page wrongly calls panic() when it can't find a buffer fit
-for device's dma mask.  It should return an error instead.
+- print pc->flags in hex.
+- print the path of the cgroup in the same line as pc->mem_cgroup.
 
-Devices with an odd dma mask (i.e.  under 4G) like b44 network card hit
-this bug (the system crashes):
-
-http://marc.info/?l=linux-kernel&m=129648943830106&w=2
-
-If swiotlb returns an error, b44 driver can use the own bouncing
-mechanism.
-
-Reported-by: Chuck Ebbert <cebbert@redhat.com>
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Tested-by: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: <stable@kernel.org>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/swiotlb.c~swiotlb-fix-wrong-panic lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-fix-wrong-panic
-+++ a/lib/swiotlb.c
-@@ -686,8 +686,10 @@ dma_addr_t swiotlb_map_page(struct devic
- 	/*
- 	 * Ensure that the address returned is DMA'ble
- 	 */
--	if (!dma_capable(dev, dev_addr, size))
--		panic("map_single: bounce buffer is not DMA'ble");
-+	if (!dma_capable(dev, dev_addr, size)) {
-+		swiotlb_tbl_unmap_single(dev, map, size, dir);
-+		dev_addr = swiotlb_virt_to_bus(dev, io_tlb_overflow_buffer);
-+	}
+diff -puN mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix
++++ a/mm/memcontrol.c
+@@ -3048,7 +3048,7 @@ void mem_cgroup_print_bad_page(struct pa
+ 		int ret = -1;
+ 		char *path;
  
- 	return dev_addr;
- }
+-		printk(KERN_ALERT "pc:%p pc->flags:%ld pc->mem_cgroup:%p",
++		printk(KERN_ALERT "pc:%p pc->flags:%lx pc->mem_cgroup:%p",
+ 		       pc, pc->flags, pc->mem_cgroup);
+ 
+ 		path = kmalloc(PATH_MAX, GFP_KERNEL);
+@@ -3059,7 +3059,7 @@ void mem_cgroup_print_bad_page(struct pa
+ 			rcu_read_unlock();
+ 		}
+ 
+-		printk(KERN_ALERT "(%s)\n",
++		printk(KERN_CONT "(%s)\n",
+ 				(ret < 0) ? "cannot get the path" : path);
+ 		kfree(path);
+ 	}
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-linux-next.patch
-swiotlb-fix-wrong-panic.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-remove-dma64_addr_t.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-keep-only-one-charge-cancelling-function-fix.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
 
