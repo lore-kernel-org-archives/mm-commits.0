@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-fix-unchecked-calls-to-nodemask_alloc.patch added to -mm tree
-Date: Thu, 17 Feb 2011 14:47:49 -0800
-Message-ID: <201102172247.p1HMlnoj020474@imap1.linux-foundation.org>
+Subject: + cpuset-hold-callback_mutex-in-cpuset_clone.patch added to -mm tree
+Date: Thu, 17 Feb 2011 14:47:53 -0800
+Message-ID: <201102172247.p1HMlr8c020481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754351Ab1BQWs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753703Ab1BQWsb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Feb 2011 17:48:27 -0500
+	Thu, 17 Feb 2011 17:48:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@googl
 
 
 The patch titled
-     cpuset: fix unchecked calls to NODEMASK_ALLOC()
+     cpuset: hold callback_mutex in cpuset_clone()
 has been added to the -mm tree.  Its filename is
-     cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+     cpuset-hold-callback_mutex-in-cpuset_clone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: fix unchecked calls to NODEMASK_ALLOC()
+Subject: cpuset: hold callback_mutex in cpuset_clone()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Those functions that use NODEMASK_ALLOC() can't propagate errno
-to users, but will fail silently.
+Chaning cpuset->mems/cpuset->cpus should be protected under
+callback_mutex.
 
-Since all of them are called with cgroup_mutex held, here we use
-a global nodemask_t variable.
+cpuset_clone() doesn't follow this rule. It's ok because it's
+called when creating and initializing a cgroup, but we'd better
+hold the lock to avoid subtil break in the future.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -50,133 +51,23 @@ Cc: Miao Xie <miaox@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   45 +++++++++++++++------------------------------
- 1 file changed, 15 insertions(+), 30 deletions(-)
+ kernel/cpuset.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc
+diff -puN kernel/cpuset.c~cpuset-hold-callback_mutex-in-cpuset_clone kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-hold-callback_mutex-in-cpuset_clone
 +++ a/kernel/cpuset.c
-@@ -79,6 +79,15 @@ int number_of_cpusets __read_mostly;
- struct cgroup_subsys cpuset_subsys;
- struct cpuset;
+@@ -1840,8 +1840,10 @@ static void cpuset_post_clone(struct cgr
+ 	cs = cgroup_cs(cgroup);
+ 	parent_cs = cgroup_cs(parent);
  
-+/*
-+ * In functions that can't propogate errno to users, to avoid declaring a
-+ * nodemask_t variable, and avoid using NODEMASK_ALLOC that can return
-+ * -ENOMEM, we use this global cpuset_mems.
-+ *
-+ * It should be used with cgroup_lock held.
-+ */
-+static nodemask_t cpuset_mems;
-+
- /* See "Frequency meter" comments, below. */
- 
- struct fmeter {
-@@ -1015,17 +1024,11 @@ static void cpuset_change_nodemask(struc
- 	struct cpuset *cs;
- 	int migrate;
- 	const nodemask_t *oldmem = scan->data;
--	NODEMASK_ALLOC(nodemask_t, newmems, GFP_KERNEL);
--
--	if (!newmems)
--		return;
- 
- 	cs = cgroup_cs(scan->cg);
--	guarantee_online_mems(cs, newmems);
--
--	cpuset_change_task_nodemask(p, newmems);
-+	guarantee_online_mems(cs, &cpuset_mems);
- 
--	NODEMASK_FREE(newmems);
-+	cpuset_change_task_nodemask(p, &cpuset_mems);
- 
- 	mm = get_task_mm(p);
- 	if (!mm)
-@@ -1096,13 +1099,10 @@ static void update_tasks_nodemask(struct
- static int update_nodemask(struct cpuset *cs, struct cpuset *trialcs,
- 			   const char *buf)
- {
--	NODEMASK_ALLOC(nodemask_t, oldmem, GFP_KERNEL);
-+	nodemask_t *oldmem = &cpuset_mems;
- 	int retval;
- 	struct ptr_heap heap;
- 
--	if (!oldmem)
--		return -ENOMEM;
--
- 	/*
- 	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
- 	 * it's read-only
-@@ -1152,7 +1152,6 @@ static int update_nodemask(struct cpuset
- 
- 	heap_free(&heap);
- done:
--	NODEMASK_FREE(oldmem);
- 	return retval;
++	mutex_lock(&callback_mutex);
+ 	cs->mems_allowed = parent_cs->mems_allowed;
+ 	cpumask_copy(cs->cpus_allowed, parent_cs->cpus_allowed);
++	mutex_unlock(&callback_mutex);
+ 	return;
  }
  
-@@ -1438,10 +1437,7 @@ static void cpuset_attach(struct cgroup_
- 	struct mm_struct *mm;
- 	struct cpuset *cs = cgroup_cs(cont);
- 	struct cpuset *oldcs = cgroup_cs(oldcont);
--	NODEMASK_ALLOC(nodemask_t, to, GFP_KERNEL);
--
--	if (to == NULL)
--		goto alloc_fail;
-+	nodemask_t *to = &cpuset_mems;
- 
- 	if (cs == &top_cpuset) {
- 		cpumask_copy(cpus_attach, cpu_possible_mask);
-@@ -1470,9 +1466,6 @@ static void cpuset_attach(struct cgroup_
- 			cpuset_migrate_mm(mm, &oldcs->mems_allowed, to);
- 		mmput(mm);
- 	}
--
--alloc_fail:
--	NODEMASK_FREE(to);
- }
- 
- /* The various types of files and directories in a cpuset file system */
-@@ -2051,10 +2044,7 @@ static void scan_for_empty_cpusets(struc
- 	struct cpuset *cp;	/* scans cpusets being updated */
- 	struct cpuset *child;	/* scans child cpusets of cp */
- 	struct cgroup *cont;
--	NODEMASK_ALLOC(nodemask_t, oldmems, GFP_KERNEL);
--
--	if (oldmems == NULL)
--		return;
-+	nodemask_t *oldmems = &cpuset_mems;
- 
- 	list_add_tail((struct list_head *)&root->stack_list, &queue);
- 
-@@ -2090,7 +2080,6 @@ static void scan_for_empty_cpusets(struc
- 			update_tasks_nodemask(cp, oldmems, NULL);
- 		}
- 	}
--	NODEMASK_FREE(oldmems);
- }
- 
- /*
-@@ -2132,10 +2121,7 @@ void cpuset_update_active_cpus(void)
- static int cpuset_track_online_nodes(struct notifier_block *self,
- 				unsigned long action, void *arg)
- {
--	NODEMASK_ALLOC(nodemask_t, oldmems, GFP_KERNEL);
--
--	if (oldmems == NULL)
--		return NOTIFY_DONE;
-+	nodemask_t *oldmems = &cpuset_mems;
- 
- 	cgroup_lock();
- 	switch (action) {
-@@ -2158,7 +2144,6 @@ static int cpuset_track_online_nodes(str
- 	}
- 	cgroup_unlock();
- 
--	NODEMASK_FREE(oldmems);
- 	return NOTIFY_OK;
- }
- #endif
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
