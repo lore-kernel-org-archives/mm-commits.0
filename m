@@ -1,114 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects-git-rejects.patch removed from -mm tree
-Date: Thu, 17 Feb 2011 12:45:47 -0800
-Message-ID: <201102172045.p1HKjllZ010859@imap1.linux-foundation.org>
+Subject: + leds-make-struct-gpio_led_platform_dataleds-const.patch added to -mm tree
+Date: Thu, 17 Feb 2011 13:08:07 -0800
+Message-ID: <201102172108.p1HL88k5011822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757977Ab1BQUqT (ORCPT
+	by vger.kernel.org with ESMTP id S1753282Ab1BQVIs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Feb 2011 15:46:19 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1HKjmnd018775
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2011 12:45:48 -0800
+	Thu, 17 Feb 2011 16:08:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: u.kleine-koenig@pengutronix.de, lars@metafoo.de, rpurdie@rpsys.net
 
 
 The patch titled
-     linux-next-rejects-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects-git-rejects.patch
+     leds: make *struct gpio_led_platform_data.leds const
+has been added to the -mm tree.  Its filename is
+     leds-make-struct-gpio_led_platform_dataleds-const.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: linux-next-rejects-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: make *struct gpio_led_platform_data.leds const
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
+And fix a typo.
+
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/68328serial.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/leds/leds-net5501.c |    2 +-
+ include/linux/leds.h        |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects drivers/tty/serial/68328serial.c
---- a/drivers/tty/serial/68328serial.c~linux-next-rejects-git-rejects
-+++ a/drivers/tty/serial/68328serial.c
-@@ -393,31 +393,6 @@ static void do_softint(struct work_struc
- #endif   
- }
- 
--<<<<<<< HEAD
--/*
-- * This routine is called from the scheduler tqueue when the interrupt
-- * routine has signalled that a hangup has occurred.  The path of
-- * hangup processing is:
-- *
-- * 	serial interrupt routine -> (scheduler tqueue) ->
-- * 	do_serial_hangup() -> tty->hangup() -> rs_hangup()
-- * 
-- */
--static void do_serial_hangup(struct work_struct *work)
--{
--	struct m68k_serial	*info = container_of(work, struct m68k_serial, tqueue_hangup);
--	struct tty_struct	*tty;
--	
--	tty = info->tty;
--	if (!tty)
--		return;
--
--	tty_hangup(tty);
--}
--
--
--=======
-->>>>>>> FETCH_HEAD
- static int startup(struct m68k_serial * info)
- {
- 	m68328_uart *uart = &uart_addr[info->line];
+diff -puN drivers/leds/leds-net5501.c~leds-make-struct-gpio_led_platfor=
+m_dataleds-const drivers/leds/leds-net5501.c
+--- a/drivers/leds/leds-net5501.c~leds-make-struct-gpio_led_platform_da=
+taleds-const
++++ a/drivers/leds/leds-net5501.c
+@@ -19,7 +19,7 @@
+=20
+ #include <asm/geode.h>
+=20
+-static struct gpio_led net5501_leds[] =3D {
++static const struct gpio_led net5501_leds[] =3D {
+ 	{
+ 		.name =3D "error",
+ 		.gpio =3D 6,
+diff -puN include/linux/leds.h~leds-make-struct-gpio_led_platform_datal=
+eds-const include/linux/leds.h
+--- a/include/linux/leds.h~leds-make-struct-gpio_led_platform_dataleds-=
+const
++++ a/include/linux/leds.h
+@@ -197,11 +197,11 @@ struct gpio_led {
+=20
+ struct gpio_led_platform_data {
+ 	int 		num_leds;
+-	struct gpio_led *leds;
++	const struct gpio_led *leds;
+=20
+ #define GPIO_LED_NO_BLINK_LOW	0	/* No blink GPIO state low */
+ #define GPIO_LED_NO_BLINK_HIGH	1	/* No blink GPIO state high */
+-#define GPIO_LED_BLINK		2	/* Plase, blink */
++#define GPIO_LED_BLINK		2	/* Please, blink */
+ 	int		(*gpio_blink_set)(unsigned gpio, int state,
+ 					unsigned long *delay_on,
+ 					unsigned long *delay_off);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch
-drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+leds-make-struct-gpio_led_platform_dataleds-const.patch
+include-linux-errh-add-a-function-to-cast-error-pointers-to-a-return-va=
+lue.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
