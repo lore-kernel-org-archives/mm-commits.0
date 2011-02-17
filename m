@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch added to -mm tree
-Date: Thu, 17 Feb 2011 14:47:51 -0800
-Message-ID: <201102172247.p1HMlpHG020477@imap1.linux-foundation.org>
+Subject: + cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch added to -mm tree
+Date: Thu, 17 Feb 2011 14:47:47 -0800
+Message-ID: <201102172247.p1HMllFl020471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754271Ab1BQWsY (ORCPT
+	by vger.kernel.org with ESMTP id S1754271Ab1BQWsX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Feb 2011 17:48:24 -0500
+	Thu, 17 Feb 2011 17:48:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com
+Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com
 
 
 The patch titled
-     cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
+     cpuset: remove unneeded NODEMASK_ALLOC() in cpuset_attch()
 has been added to the -mm tree.  Its filename is
-     cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch
+     cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpuset: remove unneeded NODEMASK_ALLOC() in cpuset_attch()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-fix comment spelling, strengthen cgroup_lock comment
+oldcs->mems_allowed is not modified during cpuset_attach(), so we don't
+have to copy it to a buffer allocated by NODEMASK_ALLOC().  Just pass it
+to cpuset_migrate_mm().
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
+diff -puN kernel/cpuset.c~cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch
 +++ a/kernel/cpuset.c
-@@ -80,11 +80,11 @@ struct cgroup_subsys cpuset_subsys;
- struct cpuset;
+@@ -1438,10 +1438,9 @@ static void cpuset_attach(struct cgroup_
+ 	struct mm_struct *mm;
+ 	struct cpuset *cs = cgroup_cs(cont);
+ 	struct cpuset *oldcs = cgroup_cs(oldcont);
+-	NODEMASK_ALLOC(nodemask_t, from, GFP_KERNEL);
+ 	NODEMASK_ALLOC(nodemask_t, to, GFP_KERNEL);
  
- /*
-- * In functions that can't propogate errno to users, to avoid declaring a
-+ * In functions that can't propagate errno to users, to avoid declaring a
-  * nodemask_t variable, and avoid using NODEMASK_ALLOC that can return
-  * -ENOMEM, we use this global cpuset_mems.
-  *
-- * It should be used with cgroup_lock held.
-+ * It must called under cgroup_lock().
-  */
- static nodemask_t cpuset_mems;
+-	if (from == NULL || to == NULL)
++	if (to == NULL)
+ 		goto alloc_fail;
+ 
+ 	if (cs == &top_cpuset) {
+@@ -1463,18 +1462,16 @@ static void cpuset_attach(struct cgroup_
+ 	}
+ 
+ 	/* change mm; only needs to be done once even if threadgroup */
+-	*from = oldcs->mems_allowed;
+ 	*to = cs->mems_allowed;
+ 	mm = get_task_mm(tsk);
+ 	if (mm) {
+ 		mpol_rebind_mm(mm, to);
+ 		if (is_memory_migrate(cs))
+-			cpuset_migrate_mm(mm, from, to);
++			cpuset_migrate_mm(mm, &oldcs->mems_allowed, to);
+ 		mmput(mm);
+ 	}
+ 
+ alloc_fail:
+-	NODEMASK_FREE(from);
+ 	NODEMASK_FREE(to);
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-platform-x86-intel_pmic_gpioc-fix-big-mess-with-i386-allmodconfig.patch
-drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+mm-notifier_from_errno-cleanup.patch
+cgroup-remove-the-ns_cgroup.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+cpuset-hold-callback_mutex-in-cpuset_clone.patch
 
