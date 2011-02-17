@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch added to -mm tree
-Date: Wed, 16 Feb 2011 15:58:37 -0800
-Message-ID: <201102162358.p1GNwbwq022377@imap1.linux-foundation.org>
+Subject: + mm-debug-pagealloc-fix-kconfig-dependency-warning.patch added to -mm tree
+Date: Wed, 16 Feb 2011 16:09:43 -0800
+Message-ID: <201102170009.p1H09hmT022932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755610Ab1BPX7W (ORCPT
+	by vger.kernel.org with ESMTP id S1751139Ab1BQAKd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Feb 2011 18:59:22 -0500
+	Wed, 16 Feb 2011 19:10:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, kristoffer.ericson@gmail.com, rpurdie@rpsys.net
+Cc: akinobu.mita@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
+     mm: debug-pagealloc: fix kconfig dependency warning
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+     mm-debug-pagealloc-fix-kconfig-dependency-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
-From: Axel Lin <axel.lin@gmail.com>
+Subject: mm: debug-pagealloc: fix kconfig dependency warning
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The following symbols are needlessly defined global:
-jornada_bl_init
-jornada_bl_exit
-jornada_lcd_init
-jornada_lcd_exit
+Fix kconfig dependency warning to satisfy dependencies:
 
-Make them static.
+warning: (PAGE_POISONING) selects DEBUG_PAGEALLOC which has unmet
+direct dependencies (DEBUG_KERNEL && ARCH_SUPPORTS_DEBUG_PAGEALLOC &&
+(!HIBERNATION || !PPC && !SPARC) && !KMEMCHECK)
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/jornada720_bl.c  |    4 ++--
- drivers/video/backlight/jornada720_lcd.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/Kconfig.debug |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_bl.c
---- a/drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
-+++ a/drivers/video/backlight/jornada720_bl.c
-@@ -147,12 +147,12 @@ static struct platform_driver jornada_bl
- 	},
- };
+diff -puN mm/Kconfig.debug~mm-debug-pagealloc-fix-kconfig-dependency-warning mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-debug-pagealloc-fix-kconfig-dependency-warning
++++ a/mm/Kconfig.debug
+@@ -1,27 +1,24 @@
+ config DEBUG_PAGEALLOC
+ 	bool "Debug page memory allocations"
+-	depends on DEBUG_KERNEL && ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	depends on !HIBERNATION || !PPC && !SPARC
++	depends on DEBUG_KERNEL
++	depends on !HIBERNATION || ARCH_SUPPORTS_DEBUG_PAGEALLOC && !PPC && !SPARC
+ 	depends on !KMEMCHECK
++	select PAGE_POISONING if !ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	---help---
+ 	  Unmap pages from the kernel linear mapping after free_pages().
+ 	  This results in a large slowdown, but helps to find certain types
+ 	  of memory corruption.
  
--int __init jornada_bl_init(void)
-+static int __init jornada_bl_init(void)
- {
- 	return platform_driver_register(&jornada_bl_driver);
- }
++	  For architectures which don't enable ARCH_SUPPORTS_DEBUG_PAGEALLOC,
++	  fill the pages with poison patterns after free_pages() and verify
++	  the patterns before alloc_pages().  Additionally,
++	  this option cannot be enabled in combination with hibernation as
++	  that would result in incorrect warnings of memory corruption after
++	  a resume because free pages are not saved to the suspend image.
++
+ config WANT_PAGE_DEBUG_FLAGS
+ 	bool
  
--void __exit jornada_bl_exit(void)
-+static void __exit jornada_bl_exit(void)
- {
- 	platform_driver_unregister(&jornada_bl_driver);
- }
-diff -puN drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_lcd.c
---- a/drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
-+++ a/drivers/video/backlight/jornada720_lcd.c
-@@ -135,12 +135,12 @@ static struct platform_driver jornada_lc
- 	},
- };
- 
--int __init jornada_lcd_init(void)
-+static int __init jornada_lcd_init(void)
- {
- 	return platform_driver_register(&jornada_lcd_driver);
- }
- 
--void __exit jornada_lcd_exit(void)
-+static void __exit jornada_lcd_exit(void)
- {
- 	platform_driver_unregister(&jornada_lcd_driver);
- }
+ config PAGE_POISONING
+-	bool "Debug page memory allocations"
+-	depends on DEBUG_KERNEL && !ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	depends on !HIBERNATION
+-	select DEBUG_PAGEALLOC
++	bool
+ 	select WANT_PAGE_DEBUG_FLAGS
+-	---help---
+-	   Fill the pages with poison patterns after free_pages() and verify
+-	   the patterns before alloc_pages(). This results in a large slowdown,
+-	   but helps to find certain types of memory corruption.
+-
+-	   This option cannot be enabled in combination with hibernation as
+-	   that would result in incorrect warnings of memory corruption after
+-	   a resume because free pages are not saved to the suspend image.
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+mm-debug-pagealloc-fix-kconfig-dependency-warning.patch
+smp-move-smp-setup-functions-to-kernel-smpc.patch
+kvm-stop-including-asm-generic-bitops-leh-directly.patch
+rds-stop-including-asm-generic-bitops-leh-directly.patch
+bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
+asm-generic-rename-generic-little-endian-bitops-functions.patch
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+powerpc-introduce-little-endian-bitops.patch
+powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+s390-introduce-little-endian-bitops.patch
+s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+arm-introduce-little-endian-bitops.patch
+arm-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+m68k-introduce-little-endian-bitops.patch
+m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+bitops-introduce-config_generic_find_bit_le.patch
+m68knommu-introduce-little-endian-bitops.patch
+m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+asm-generic-use-little-endian-bitops.patch
+kvm-use-little-endian-bitops.patch
+rds-use-little-endian-bitops.patch
+ext3-use-little-endian-bitops.patch
+ext4-use-little-endian-bitops.patch
+ocfs2-use-little-endian-bitops.patch
+nilfs2-use-little-endian-bitops.patch
+reiserfs-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+ufs-use-little-endian-bitops.patch
+md-use-little-endian-bitops.patch
+dm-use-little-endian-bitops.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
 
