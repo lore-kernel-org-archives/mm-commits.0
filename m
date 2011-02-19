@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch added to -mm tree
-Date: Fri, 18 Feb 2011 16:01:36 -0800
-Message-ID: <201102190001.p1J01b4c025209@imap1.linux-foundation.org>
+Subject: + userns-allow-ptrace-from-non-init-user-namespaces.patch added to -mm tree
+Date: Fri, 18 Feb 2011 16:00:22 -0800
+Message-ID: <201102190000.p1J00NmU025148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755470Ab1BSACK (ORCPT
+	by vger.kernel.org with ESMTP id S1758679Ab1BSAHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Feb 2011 19:02:10 -0500
+	Fri, 18 Feb 2011 19:07:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: serge@hallyn.com, adobriyan@gmail.com, ebiederm@xmission.com, jmorris@namei.
 
 
 The patch titled
-     userns: userns: check user namespace for task->file uid equivalence checks
+     userns: allow ptrace from non-init user namespaces
 has been added to the -mm tree.  Its filename is
-     userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch
+     userns-allow-ptrace-from-non-init-user-namespaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: userns: check user namespace for task->file uid equivalence checks
+Subject: userns: allow ptrace from non-init user namespaces
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
-Cheat for now and say all files belong to init_user_ns.  Next step will be
-to let superblocks belong to a user_ns, and derive inode_userns(inode)
-from inode->i_sb->s_user_ns.  Finally we'll introduce more flexible
-arrangements.
+ptrace is allowed to tasks in the same user namespace according to the
+usual rules (i.e.  the same rules as for two tasks in the init user
+namespace).  ptrace is also allowed to a user namespace to which the
+current task the has CAP_SYS_PTRACE capability.
 
 Changelog:
-	Feb 15: make is_owner_or_cap take const struct inode
+	Dec 31: Address feedback by Eric:
+		. Correct ptrace uid check
+		. Rename may_ptrace_ns to ptrace_capable
+		. Also fix the cap_ptrace checks.
+	Jan  1: Use const cred struct
+	Jan 11: use task_ns_capable() in place of ptrace_capable().
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Kees Cook <kees.cook@canonical.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -54,144 +59,206 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c         |   17 +++++++++++++++++
- fs/namei.c         |   20 +++++++++++++++-----
- include/linux/fs.h |    9 +++++++--
- 3 files changed, 39 insertions(+), 7 deletions(-)
+ include/linux/capability.h     |    2 +
+ include/linux/user_namespace.h |    9 +++++
+ kernel/ptrace.c                |   27 +++++++++--------
+ kernel/user_namespace.c        |   16 ++++++++++
+ security/commoncap.c           |   48 +++++++++++++++++++++++++------
+ 5 files changed, 82 insertions(+), 20 deletions(-)
 
-diff -puN fs/inode.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks fs/inode.c
---- a/fs/inode.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/fs/inode.c
-@@ -25,6 +25,7 @@
- #include <linux/async.h>
- #include <linux/posix_acl.h>
- #include <linux/ima.h>
-+#include <linux/cred.h>
+diff -puN include/linux/capability.h~userns-allow-ptrace-from-non-init-user-namespaces include/linux/capability.h
+--- a/include/linux/capability.h~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/include/linux/capability.h
+@@ -546,6 +546,8 @@ extern const kernel_cap_t __cap_init_eff
+  */
+ #define has_capability(t, cap) (security_real_capable((t), &init_user_ns, (cap)) == 0)
  
- /*
-  * This is needed for the following functions:
-@@ -1722,3 +1723,19 @@ void inode_init_owner(struct inode *inod
- 	inode->i_mode = mode;
- }
- EXPORT_SYMBOL(inode_init_owner);
++#define has_ns_capability(t, ns, cap) (security_real_capable((t), (ns), (cap)) == 0)
 +
-+/*
-+ * return 1 if current either has CAP_FOWNER to the
-+ * file, or owns the file.
-+ */
-+int is_owner_or_cap(const struct inode *inode)
+ /**
+  * has_capability_noaudit - Determine if a task has a superior capability available (unaudited)
+  * @t: The task in question
+diff -puN include/linux/user_namespace.h~userns-allow-ptrace-from-non-init-user-namespaces include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/include/linux/user_namespace.h
+@@ -39,6 +39,9 @@ static inline void put_user_ns(struct us
+ uid_t user_ns_map_uid(struct user_namespace *to, const struct cred *cred, uid_t uid);
+ gid_t user_ns_map_gid(struct user_namespace *to, const struct cred *cred, gid_t gid);
+ 
++int same_or_ancestor_user_ns(struct task_struct *task,
++	struct task_struct *victim);
++
+ #else
+ 
+ static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
+@@ -66,6 +69,12 @@ static inline gid_t user_ns_map_gid(stru
+ 	return gid;
+ }
+ 
++static inline int same_or_ancestor_user_ns(struct task_struct *task,
++	struct task_struct *victim)
 +{
-+	struct user_namespace *ns = inode_userns(inode);
-+
-+	if (current_user_ns() == ns && current_fsuid() == inode->i_uid)
-+		return 1;
-+	if (ns_capable(ns, CAP_FOWNER))
-+		return 1;
-+	return 0;
++	return 1;
 +}
-+EXPORT_SYMBOL(is_owner_or_cap);
-diff -puN fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks fs/namei.c
---- a/fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/fs/namei.c
-@@ -176,6 +176,9 @@ static int acl_permission_check(struct i
- 
- 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
- 
-+	if (current_user_ns() != inode_userns(inode))
-+		goto other_perms;
 +
- 	if (current_fsuid() == inode->i_uid)
- 		mode >>= 6;
- 	else {
-@@ -189,6 +192,7 @@ static int acl_permission_check(struct i
- 			mode >>= 3;
- 	}
+ #endif
  
-+other_perms:
- 	/*
- 	 * If the DACs are ok we don't need any capability check.
- 	 */
-@@ -230,7 +234,7 @@ int generic_permission(struct inode *ino
- 	 * Executable DACs are overridable if at least one exec bit is set.
- 	 */
- 	if (!(mask & MAY_EXEC) || execute_ok(inode))
--		if (capable(CAP_DAC_OVERRIDE))
-+		if (ns_capable(inode_userns(inode), CAP_DAC_OVERRIDE))
- 			return 0;
- 
- 	/*
-@@ -238,7 +242,7 @@ int generic_permission(struct inode *ino
- 	 */
- 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
- 	if (mask == MAY_READ || (S_ISDIR(inode->i_mode) && !(mask & MAY_WRITE)))
--		if (capable(CAP_DAC_READ_SEARCH))
-+		if (ns_capable(inode_userns(inode), CAP_DAC_READ_SEARCH))
- 			return 0;
- 
- 	return -EACCES;
-@@ -675,6 +679,7 @@ force_reval_path(struct path *path, stru
- static inline int exec_permission(struct inode *inode, unsigned int flags)
- {
- 	int ret;
-+	struct user_namespace *ns = inode_userns(inode);
- 
- 	if (inode->i_op->permission) {
- 		ret = inode->i_op->permission(inode, MAY_EXEC, flags);
-@@ -687,7 +692,7 @@ static inline int exec_permission(struct
- 	if (ret == -ECHILD)
- 		return ret;
- 
--	if (capable(CAP_DAC_OVERRIDE) || capable(CAP_DAC_READ_SEARCH))
-+	if (ns_capable(ns, CAP_DAC_OVERRIDE) || ns_capable(ns, CAP_DAC_READ_SEARCH))
- 		goto ok;
- 
- 	return ret;
-@@ -1939,11 +1944,15 @@ static inline int check_sticky(struct in
- 
- 	if (!(dir->i_mode & S_ISVTX))
+ #endif /* _LINUX_USER_H */
+diff -puN kernel/ptrace.c~userns-allow-ptrace-from-non-init-user-namespaces kernel/ptrace.c
+--- a/kernel/ptrace.c~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/kernel/ptrace.c
+@@ -134,21 +134,24 @@ int __ptrace_may_access(struct task_stru
  		return 0;
-+	if (current_user_ns() != inode_userns(inode))
-+		goto other_userns;
- 	if (inode->i_uid == fsuid)
- 		return 0;
- 	if (dir->i_uid == fsuid)
- 		return 0;
--	return !capable(CAP_FOWNER);
-+
-+other_userns:
-+	return !ns_capable(inode_userns(inode), CAP_FOWNER);
- }
- 
- /*
-@@ -2634,7 +2643,8 @@ int vfs_mknod(struct inode *dir, struct 
- 	if (error)
- 		return error;
- 
--	if ((S_ISCHR(mode) || S_ISBLK(mode)) && !capable(CAP_MKNOD))
-+	if ((S_ISCHR(mode) || S_ISBLK(mode)) &&
-+	    !ns_capable(inode_userns(dir), CAP_MKNOD))
+ 	rcu_read_lock();
+ 	tcred = __task_cred(task);
+-	if ((cred->uid != tcred->euid ||
+-	     cred->uid != tcred->suid ||
+-	     cred->uid != tcred->uid  ||
+-	     cred->gid != tcred->egid ||
+-	     cred->gid != tcred->sgid ||
+-	     cred->gid != tcred->gid) &&
+-	    !capable(CAP_SYS_PTRACE)) {
+-		rcu_read_unlock();
+-		return -EPERM;
+-	}
++	if (cred->user->user_ns == tcred->user->user_ns &&
++	    (cred->uid == tcred->euid &&
++	     cred->uid == tcred->suid &&
++	     cred->uid == tcred->uid  &&
++	     cred->gid == tcred->egid &&
++	     cred->gid == tcred->sgid &&
++	     cred->gid == tcred->gid))
++		goto ok;
++	if (ns_capable(tcred->user->user_ns, CAP_SYS_PTRACE))
++		goto ok;
++	rcu_read_unlock();
++	return -EPERM;
++ok:
+ 	rcu_read_unlock();
+ 	smp_rmb();
+ 	if (task->mm)
+ 		dumpable = get_dumpable(task->mm);
+-	if (!dumpable && !capable(CAP_SYS_PTRACE))
++	if (!dumpable && !task_ns_capable(task, CAP_SYS_PTRACE))
  		return -EPERM;
  
- 	if (!dir->i_op->mknod)
-diff -puN include/linux/fs.h~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks include/linux/fs.h
---- a/include/linux/fs.h~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/include/linux/fs.h
-@@ -1454,8 +1454,13 @@ enum {
- #define put_fs_excl() atomic_dec(&current->fs_excl)
- #define has_fs_excl() atomic_read(&current->fs_excl)
+ 	return security_ptrace_access_check(task, mode);
+@@ -198,7 +201,7 @@ int ptrace_attach(struct task_struct *ta
+ 		goto unlock_tasklist;
  
--#define is_owner_or_cap(inode)	\
--	((current_fsuid() == (inode)->i_uid) || capable(CAP_FOWNER))
-+/*
-+ * until VFS tracks user namespaces for inodes, just make all files
-+ * belong to init_user_ns
-+ */
-+extern struct user_namespace init_user_ns;
-+#define inode_userns(inode) (&init_user_ns)
-+extern int is_owner_or_cap(const struct inode *inode);
+ 	task->ptrace = PT_PTRACED;
+-	if (capable(CAP_SYS_PTRACE))
++	if (task_ns_capable(task, CAP_SYS_PTRACE))
+ 		task->ptrace |= PT_PTRACE_CAP;
  
- /* not quite ready to be deprecated, but... */
- extern void lock_super(struct super_block *);
+ 	__ptrace_link(task, current);
+diff -puN kernel/user_namespace.c~userns-allow-ptrace-from-non-init-user-namespaces kernel/user_namespace.c
+--- a/kernel/user_namespace.c~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/kernel/user_namespace.c
+@@ -129,6 +129,22 @@ gid_t user_ns_map_gid(struct user_namesp
+ 	return overflowgid;
+ }
+ 
++int same_or_ancestor_user_ns(struct task_struct *task,
++	struct task_struct *victim)
++{
++	struct user_namespace *u1 = task_cred_xxx(task, user)->user_ns;
++	struct user_namespace *u2 = task_cred_xxx(victim, user)->user_ns;
++	for (;;) {
++		if (u1 == u2)
++			return 1;
++		if (u1 == &init_user_ns)
++			return 0;
++		u1 = u1->creator->user_ns;
++	}
++	/* We never get here */
++	return 0;
++}
++
+ static __init int user_namespaces_init(void)
+ {
+ 	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
+diff -puN security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces security/commoncap.c
+--- a/security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/security/commoncap.c
+@@ -130,18 +130,34 @@ int cap_settime(const struct timespec *t
+  * @child: The process to be accessed
+  * @mode: The mode of attachment.
+  *
++ * If we are in the same or an ancestor user_ns and have all the target
++ * task's capabilities, then ptrace access is allowed.
++ * If we have the ptrace capability to the target user_ns, then ptrace
++ * access is allowed.
++ * Else denied.
++ *
+  * Determine whether a process may access another, returning 0 if permission
+  * granted, -ve if denied.
+  */
+ int cap_ptrace_access_check(struct task_struct *child, unsigned int mode)
+ {
+ 	int ret = 0;
++	const struct cred *cred, *tcred;
+ 
+ 	rcu_read_lock();
+-	if (!cap_issubset(__task_cred(child)->cap_permitted,
+-			  current_cred()->cap_permitted) &&
+-	    !capable(CAP_SYS_PTRACE))
+-		ret = -EPERM;
++	cred = current_cred();
++	tcred = __task_cred(child);
++	/*
++	 * The ancestor user_ns check may be gratuitous, as I think
++	 * we've already guaranteed that in kernel/ptrace.c.
++	 */
++	if (same_or_ancestor_user_ns(current, child) &&
++	    cap_issubset(tcred->cap_permitted, cred->cap_permitted))
++		goto out;
++	if (ns_capable(tcred->user->user_ns, CAP_SYS_PTRACE))
++		goto out;
++	ret = -EPERM;
++out:
+ 	rcu_read_unlock();
+ 	return ret;
+ }
+@@ -150,18 +166,34 @@ int cap_ptrace_access_check(struct task_
+  * cap_ptrace_traceme - Determine whether another process may trace the current
+  * @parent: The task proposed to be the tracer
+  *
++ * If parent is in the same or an ancestor user_ns and has all current's
++ * capabilities, then ptrace access is allowed.
++ * If parent has the ptrace capability to current's user_ns, then ptrace
++ * access is allowed.
++ * Else denied.
++ *
+  * Determine whether the nominated task is permitted to trace the current
+  * process, returning 0 if permission is granted, -ve if denied.
+  */
+ int cap_ptrace_traceme(struct task_struct *parent)
+ {
+ 	int ret = 0;
++	const struct cred *cred, *tcred;
+ 
+ 	rcu_read_lock();
+-	if (!cap_issubset(current_cred()->cap_permitted,
+-			  __task_cred(parent)->cap_permitted) &&
+-	    !has_capability(parent, CAP_SYS_PTRACE))
+-		ret = -EPERM;
++	cred = __task_cred(parent);
++	tcred = current_cred();
++	/*
++	 * The ancestor user_ns check may be gratuitous, as I think
++	 * we've already guaranteed that in kernel/ptrace.c.
++	 */
++	if (same_or_ancestor_user_ns(parent, current) &&
++	    cap_issubset(tcred->cap_permitted, cred->cap_permitted))
++		goto out;
++	if (has_ns_capability(parent, tcred->user->user_ns, CAP_SYS_PTRACE))
++		goto out;
++	ret = -EPERM;
++out:
+ 	rcu_read_unlock();
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
