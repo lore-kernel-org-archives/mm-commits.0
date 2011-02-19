@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + userns-add-a-user-namespace-owner-of-ipc-ns.patch added to -mm tree
-Date: Fri, 18 Feb 2011 16:01:27 -0800
-Message-ID: <201102190001.p1J01RWj025203@imap1.linux-foundation.org>
+Subject: + userns-user-namespaces-convert-several-capable-calls.patch added to -mm tree
+Date: Fri, 18 Feb 2011 16:01:32 -0800
+Message-ID: <201102190001.p1J01XJp025206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753290Ab1BSACC (ORCPT
+	by vger.kernel.org with ESMTP id S1753290Ab1BSACI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Feb 2011 19:02:02 -0500
+	Fri, 18 Feb 2011 19:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: serge@hallyn.com, adobriyan@gmail.com, ebiederm@xmission.com, jmorris@namei.
 
 
 The patch titled
-     userns: add a user namespace owner of ipc ns
+     userns: user namespaces: convert several capable() calls
 has been added to the -mm tree.  Its filename is
-     userns-add-a-user-namespace-owner-of-ipc-ns.patch
+     userns-user-namespaces-convert-several-capable-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: add a user namespace owner of ipc ns
+Subject: userns: user namespaces: convert several capable() calls
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
+CAP_IPC_OWNER and CAP_IPC_LOCK can be checked against current_user_ns(),
+because the resource comes from current's own ipc namespace.
+
+setuid/setgid are to uids in own namespace, so again checks can be against
+current_user_ns().
+
 Changelog:
-	Feb 15: Don't set new ipc->user_ns if we didn't create a new
-		ipc_ns.
+	Jan 11: Use task_ns_capable() in place of sched_capable().
+	Jan 11: Use nsown_capable() as suggested by Bastian Blank.
+	Jan 11: Clarify (hopefully) some logic in futex and sched.c
+	Feb 15: use ns_capable for ipc, not nsown_capable
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -50,110 +58,147 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    3 +++
- ipc/msgutil.c                 |    3 +++
- ipc/namespace.c               |    9 +++++++--
- kernel/nsproxy.c              |    5 +++++
- 4 files changed, 18 insertions(+), 2 deletions(-)
+ ipc/shm.c             |    2 +-
+ ipc/util.c            |    5 +++--
+ kernel/futex.c        |   11 ++++++++++-
+ kernel/futex_compat.c |   11 ++++++++++-
+ kernel/groups.c       |    2 +-
+ kernel/sched.c        |    9 ++++++---
+ kernel/uid16.c        |    2 +-
+ 7 files changed, 32 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~userns-add-a-user-namespace-owner-of-ipc-ns include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~userns-add-a-user-namespace-owner-of-ipc-ns
-+++ a/include/linux/ipc_namespace.h
-@@ -24,6 +24,7 @@ struct ipc_ids {
- 	struct idr ipcs_idr;
- };
+diff -puN ipc/shm.c~userns-user-namespaces-convert-several-capable-calls ipc/shm.c
+--- a/ipc/shm.c~userns-user-namespaces-convert-several-capable-calls
++++ a/ipc/shm.c
+@@ -773,7 +773,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
  
-+struct user_namespace;
- struct ipc_namespace {
- 	atomic_t	count;
- 	struct ipc_ids	ids[3];
-@@ -56,6 +57,8 @@ struct ipc_namespace {
- 	unsigned int    mq_msg_max;      /* initialized to DFLT_MSGMAX */
- 	unsigned int    mq_msgsize_max;  /* initialized to DFLT_MSGSIZEMAX */
+ 		audit_ipc_obj(&(shp->shm_perm));
  
-+	/* user_ns which owns the ipc ns */
-+	struct user_namespace *user_ns;
- };
+-		if (!capable(CAP_IPC_LOCK)) {
++		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
+ 			uid_t euid = current_euid();
+ 			err = -EPERM;
+ 			if (euid != shp->shm_perm.uid &&
+diff -puN ipc/util.c~userns-user-namespaces-convert-several-capable-calls ipc/util.c
+--- a/ipc/util.c~userns-user-namespaces-convert-several-capable-calls
++++ a/ipc/util.c
+@@ -627,7 +627,7 @@ int ipcperms (struct kern_ipc_perm *ipcp
+ 		granted_mode >>= 3;
+ 	/* is there some bit set in requested_mode but not in granted_mode? */
+ 	if ((requested_mode & ~granted_mode & 0007) && 
+-	    !capable(CAP_IPC_OWNER))
++	    !ns_capable(current->nsproxy->ipc_ns->user_ns, CAP_IPC_OWNER))
+ 		return -1;
  
- extern struct ipc_namespace init_ipc_ns;
-diff -puN ipc/msgutil.c~userns-add-a-user-namespace-owner-of-ipc-ns ipc/msgutil.c
---- a/ipc/msgutil.c~userns-add-a-user-namespace-owner-of-ipc-ns
-+++ a/ipc/msgutil.c
-@@ -20,6 +20,8 @@
+ 	return security_ipc_permission(ipcp, flag);
+@@ -800,7 +800,8 @@ struct kern_ipc_perm *ipcctl_pre_down(st
  
- DEFINE_SPINLOCK(mq_lock);
+ 	euid = current_euid();
+ 	if (euid == ipcp->cuid ||
+-	    euid == ipcp->uid  || capable(CAP_SYS_ADMIN))
++	    euid == ipcp->uid  ||
++	    ns_capable(current->nsproxy->ipc_ns->user_ns, CAP_SYS_ADMIN))
+ 		return ipcp;
  
-+extern struct user_namespace init_user_ns;
-+
- /*
-  * The next 2 defines are here bc this is the only file
-  * compiled when either CONFIG_SYSVIPC and CONFIG_POSIX_MQUEUE
-@@ -32,6 +34,7 @@ struct ipc_namespace init_ipc_ns = {
- 	.mq_msg_max      = DFLT_MSGMAX,
- 	.mq_msgsize_max  = DFLT_MSGSIZEMAX,
- #endif
-+	.user_ns = &init_user_ns,
- };
- 
- atomic_t nr_ipc_ns = ATOMIC_INIT(1);
-diff -puN ipc/namespace.c~userns-add-a-user-namespace-owner-of-ipc-ns ipc/namespace.c
---- a/ipc/namespace.c~userns-add-a-user-namespace-owner-of-ipc-ns
-+++ a/ipc/namespace.c
-@@ -11,10 +11,11 @@
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/mount.h>
-+#include <linux/user_namespace.h>
- 
- #include "util.h"
- 
--static struct ipc_namespace *create_ipc_ns(void)
-+static struct ipc_namespace *create_ipc_ns(struct ipc_namespace *old_ns)
- {
- 	struct ipc_namespace *ns;
- 	int err;
-@@ -43,6 +44,9 @@ static struct ipc_namespace *create_ipc_
- 	ipcns_notify(IPCNS_CREATED);
- 	register_ipcns_notifier(ns);
- 
-+	ns->user_ns = old_ns->user_ns;
-+	get_user_ns(ns->user_ns);
-+
- 	return ns;
- }
- 
-@@ -50,7 +54,7 @@ struct ipc_namespace *copy_ipcs(unsigned
- {
- 	if (!(flags & CLONE_NEWIPC))
- 		return get_ipc_ns(ns);
--	return create_ipc_ns();
-+	return create_ipc_ns(ns);
- }
- 
- /*
-@@ -105,6 +109,7 @@ static void free_ipc_ns(struct ipc_names
- 	 * order to have a correct value when recomputing msgmni.
- 	 */
- 	ipcns_notify(IPCNS_REMOVED);
-+	put_user_ns(ns->user_ns);
- }
- 
- /*
-diff -puN kernel/nsproxy.c~userns-add-a-user-namespace-owner-of-ipc-ns kernel/nsproxy.c
---- a/kernel/nsproxy.c~userns-add-a-user-namespace-owner-of-ipc-ns
-+++ a/kernel/nsproxy.c
-@@ -85,6 +85,11 @@ static struct nsproxy *create_new_namesp
- 		err = PTR_ERR(new_nsp->ipc_ns);
- 		goto out_ipc;
+ 	err = -EPERM;
+diff -puN kernel/futex.c~userns-user-namespaces-convert-several-capable-calls kernel/futex.c
+--- a/kernel/futex.c~userns-user-namespaces-convert-several-capable-calls
++++ a/kernel/futex.c
+@@ -2423,10 +2423,19 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
+ 			goto err_unlock;
+ 		ret = -EPERM;
+ 		pcred = __task_cred(p);
++		/* If victim is in different user_ns, then uids are not
++		   comparable, so we must have CAP_SYS_PTRACE */
++		if (cred->user->user_ns != pcred->user->user_ns) {
++			if (!ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
++				goto err_unlock;
++			goto ok;
++		}
++		/* If victim is in same user_ns, then uids are comparable */
+ 		if (cred->euid != pcred->euid &&
+ 		    cred->euid != pcred->uid &&
+-		    !capable(CAP_SYS_PTRACE))
++		    !ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
+ 			goto err_unlock;
++ok:
+ 		head = p->robust_list;
+ 		rcu_read_unlock();
  	}
-+	if (new_nsp->ipc_ns != tsk->nsproxy->ipc_ns) {
-+		put_user_ns(new_nsp->ipc_ns->user_ns);
-+		new_nsp->ipc_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
-+		get_user_ns(new_nsp->ipc_ns->user_ns);
-+	}
+diff -puN kernel/futex_compat.c~userns-user-namespaces-convert-several-capable-calls kernel/futex_compat.c
+--- a/kernel/futex_compat.c~userns-user-namespaces-convert-several-capable-calls
++++ a/kernel/futex_compat.c
+@@ -153,10 +153,19 @@ compat_sys_get_robust_list(int pid, comp
+ 			goto err_unlock;
+ 		ret = -EPERM;
+ 		pcred = __task_cred(p);
++		/* If victim is in different user_ns, then uids are not
++		   comparable, so we must have CAP_SYS_PTRACE */
++		if (cred->user->user_ns != pcred->user->user_ns) {
++			if (!ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
++				goto err_unlock;
++			goto ok;
++		}
++		/* If victim is in same user_ns, then uids are comparable */
+ 		if (cred->euid != pcred->euid &&
+ 		    cred->euid != pcred->uid &&
+-		    !capable(CAP_SYS_PTRACE))
++		    !ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
+ 			goto err_unlock;
++ok:
+ 		head = p->compat_robust_list;
+ 		rcu_read_unlock();
+ 	}
+diff -puN kernel/groups.c~userns-user-namespaces-convert-several-capable-calls kernel/groups.c
+--- a/kernel/groups.c~userns-user-namespaces-convert-several-capable-calls
++++ a/kernel/groups.c
+@@ -233,7 +233,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
+ 	struct group_info *group_info;
+ 	int retval;
  
- 	new_nsp->pid_ns = copy_pid_ns(flags, task_active_pid_ns(tsk));
- 	if (IS_ERR(new_nsp->pid_ns)) {
+-	if (!capable(CAP_SETGID))
++	if (!nsown_capable(CAP_SETGID))
+ 		return -EPERM;
+ 	if ((unsigned)gidsetsize > NGROUPS_MAX)
+ 		return -EINVAL;
+diff -puN kernel/sched.c~userns-user-namespaces-convert-several-capable-calls kernel/sched.c
+--- a/kernel/sched.c~userns-user-namespaces-convert-several-capable-calls
++++ a/kernel/sched.c
+@@ -4899,8 +4899,11 @@ static bool check_same_owner(struct task
+ 
+ 	rcu_read_lock();
+ 	pcred = __task_cred(p);
+-	match = (cred->euid == pcred->euid ||
+-		 cred->euid == pcred->uid);
++	if (cred->user->user_ns == pcred->user->user_ns)
++		match = (cred->euid == pcred->euid ||
++			 cred->euid == pcred->uid);
++	else
++		match = false;
+ 	rcu_read_unlock();
+ 	return match;
+ }
+@@ -5225,7 +5228,7 @@ long sched_setaffinity(pid_t pid, const 
+ 		goto out_free_cpus_allowed;
+ 	}
+ 	retval = -EPERM;
+-	if (!check_same_owner(p) && !capable(CAP_SYS_NICE))
++	if (!check_same_owner(p) && !task_ns_capable(p, CAP_SYS_NICE))
+ 		goto out_unlock;
+ 
+ 	retval = security_task_setscheduler(p);
+diff -puN kernel/uid16.c~userns-user-namespaces-convert-several-capable-calls kernel/uid16.c
+--- a/kernel/uid16.c~userns-user-namespaces-convert-several-capable-calls
++++ a/kernel/uid16.c
+@@ -189,7 +189,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
+ 	struct group_info *group_info;
+ 	int retval;
+ 
+-	if (!capable(CAP_SETGID))
++	if (!nsown_capable(CAP_SETGID))
+ 		return -EPERM;
+ 	if ((unsigned)gidsetsize > NGROUPS_MAX)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
