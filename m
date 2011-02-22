@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rename-drop_anon_vma-to-put_anon_vma.patch added to -mm tree
-Date: Tue, 22 Feb 2011 15:29:33 -0800
-Message-ID: <201102222329.p1MNTZrb031426@imap1.linux-foundation.org>
+Subject: + mm-move-anon_vma-ref-out-from-under-config_foo.patch added to -mm tree
+Date: Tue, 22 Feb 2011 15:29:39 -0800
+Message-ID: <201102222329.p1MNTd4g031429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753431Ab1BVXbI (ORCPT
+	by vger.kernel.org with ESMTP id S1754447Ab1BVXbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Feb 2011 18:31:08 -0500
+	Tue, 22 Feb 2011 18:31:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, me
 
 
 The patch titled
-     mm: rename drop_anon_vma to put_anon_vma
+     mm: move anon_vma ref out from under CONFIG_foo
 has been added to the -mm tree.  Its filename is
-     mm-rename-drop_anon_vma-to-put_anon_vma.patch
+     mm-move-anon_vma-ref-out-from-under-config_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,149 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: rename drop_anon_vma to put_anon_vma
+Subject: mm: move anon_vma ref out from under CONFIG_foo
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-The normal code pattern used in the kernel is: get/put.
+We need the anon_vma refcount unconditionally to simplify the anon_vma
+lifetime rules.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    4 ++--
- mm/ksm.c             |   23 +++++------------------
- mm/migrate.c         |    4 ++--
- mm/rmap.c            |    4 ++--
- 4 files changed, 11 insertions(+), 24 deletions(-)
+ include/linux/rmap.h |   40 ++++------------------------------------
+ mm/rmap.c            |   14 ++++++--------
+ 2 files changed, 10 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-rename-drop_anon_vma-to-put_anon_vma include/linux/rmap.h
---- a/include/linux/rmap.h~mm-rename-drop_anon_vma-to-put_anon_vma
+diff -puN include/linux/rmap.h~mm-move-anon_vma-ref-out-from-under-config_foo include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-move-anon_vma-ref-out-from-under-config_foo
 +++ a/include/linux/rmap.h
-@@ -87,7 +87,7 @@ static inline void get_anon_vma(struct a
- 	atomic_inc(&anon_vma->external_refcount);
- }
- 
--void drop_anon_vma(struct anon_vma *);
-+void put_anon_vma(struct anon_vma *);
- #else
- static inline void anonvma_external_refcount_init(struct anon_vma *anon_vma)
- {
-@@ -102,7 +102,7 @@ static inline void get_anon_vma(struct a
- {
- }
- 
--static inline void drop_anon_vma(struct anon_vma *anon_vma)
-+static inline void put_anon_vma(struct anon_vma *anon_vma)
- {
- }
- #endif /* CONFIG_KSM */
-diff -puN mm/ksm.c~mm-rename-drop_anon_vma-to-put_anon_vma mm/ksm.c
---- a/mm/ksm.c~mm-rename-drop_anon_vma-to-put_anon_vma
-+++ a/mm/ksm.c
-@@ -301,20 +301,6 @@ static inline int in_stable_tree(struct 
- 	return rmap_item->address & STABLE_FLAG;
- }
- 
--static void hold_anon_vma(struct rmap_item *rmap_item,
--			  struct anon_vma *anon_vma)
--{
--	rmap_item->anon_vma = anon_vma;
--	get_anon_vma(anon_vma);
--}
+@@ -27,18 +27,15 @@
+ struct anon_vma {
+ 	struct anon_vma *root;	/* Root of this anon_vma tree */
+ 	spinlock_t lock;	/* Serialize access to vma list */
+-#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
 -
--static void ksm_drop_anon_vma(struct rmap_item *rmap_item)
--{
--	struct anon_vma *anon_vma = rmap_item->anon_vma;
--
--	drop_anon_vma(anon_vma);
--}
--
- /*
-  * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
-  * page tables after it has passed through ksm_exit() - which, if necessary,
-@@ -397,7 +383,7 @@ static void break_cow(struct rmap_item *
- 	 * It is not an accident that whenever we want to break COW
- 	 * to undo, we also need to drop a reference to the anon_vma.
+ 	/*
+-	 * The external_refcount is taken by either KSM or page migration
+-	 * to take a reference to an anon_vma when there is no
++	 * The refcount is taken on an anon_vma when there is no
+ 	 * guarantee that the vma of page tables will exist for
+ 	 * the duration of the operation. A caller that takes
+ 	 * the reference is responsible for clearing up the
+ 	 * anon_vma if they are the last user on release
  	 */
--	ksm_drop_anon_vma(rmap_item);
-+	put_anon_vma(rmap_item->anon_vma);
+-	atomic_t external_refcount;
+-#endif
++	atomic_t refcount;
++
+ 	/*
+ 	 * NOTE: the LSB of the head.next is set by
+ 	 * mm_take_all_locks() _after_ taking the above lock. So the
+@@ -71,41 +68,12 @@ struct anon_vma_chain {
+ };
  
- 	down_read(&mm->mmap_sem);
- 	if (ksm_test_exit(mm))
-@@ -466,7 +452,7 @@ static void remove_node_from_stable_tree
- 			ksm_pages_sharing--;
- 		else
- 			ksm_pages_shared--;
--		ksm_drop_anon_vma(rmap_item);
-+		put_anon_vma(rmap_item->anon_vma);
- 		rmap_item->address &= PAGE_MASK;
- 		cond_resched();
- 	}
-@@ -554,7 +540,7 @@ static void remove_rmap_item_from_tree(s
- 		else
- 			ksm_pages_shared--;
+ #ifdef CONFIG_MMU
+-#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
+-static inline void anonvma_external_refcount_init(struct anon_vma *anon_vma)
+-{
+-	atomic_set(&anon_vma->external_refcount, 0);
+-}
+-
+-static inline int anonvma_external_refcount(struct anon_vma *anon_vma)
+-{
+-	return atomic_read(&anon_vma->external_refcount);
+-}
+-
+ static inline void get_anon_vma(struct anon_vma *anon_vma)
+ {
+-	atomic_inc(&anon_vma->external_refcount);
++	atomic_inc(&anon_vma->refcount);
+ }
  
--		ksm_drop_anon_vma(rmap_item);
-+		put_anon_vma(rmap_item->anon_vma);
- 		rmap_item->address &= PAGE_MASK;
+ void put_anon_vma(struct anon_vma *);
+-#else
+-static inline void anonvma_external_refcount_init(struct anon_vma *anon_vma)
+-{
+-}
+-
+-static inline int anonvma_external_refcount(struct anon_vma *anon_vma)
+-{
+-	return 0;
+-}
+-
+-static inline void get_anon_vma(struct anon_vma *anon_vma)
+-{
+-}
+-
+-static inline void put_anon_vma(struct anon_vma *anon_vma)
+-{
+-}
+-#endif /* CONFIG_KSM */
  
- 	} else if (rmap_item->address & UNSTABLE_FLAG) {
-@@ -949,7 +935,8 @@ static int try_to_merge_with_ksm_page(st
- 		goto out;
- 
- 	/* Must get reference to anon_vma while still holding mmap_sem */
--	hold_anon_vma(rmap_item, vma->anon_vma);
-+	rmap_item->anon_vma = vma->anon_vma;
-+	get_anon_vma(vma->anon_vma);
- out:
- 	up_read(&mm->mmap_sem);
- 	return err;
-diff -puN mm/migrate.c~mm-rename-drop_anon_vma-to-put_anon_vma mm/migrate.c
---- a/mm/migrate.c~mm-rename-drop_anon_vma-to-put_anon_vma
-+++ a/mm/migrate.c
-@@ -764,7 +764,7 @@ skip_unmap:
- 
- 	/* Drop an anon_vma reference if we took one */
- 	if (anon_vma)
--		drop_anon_vma(anon_vma);
-+		put_anon_vma(anon_vma);
- 
- uncharge:
- 	if (!charge)
-@@ -856,7 +856,7 @@ static int unmap_and_move_huge_page(new_
- 		remove_migration_ptes(hpage, hpage);
- 
- 	if (anon_vma)
--		drop_anon_vma(anon_vma);
-+		put_anon_vma(anon_vma);
- out:
- 	unlock_page(hpage);
- 
-diff -puN mm/rmap.c~mm-rename-drop_anon_vma-to-put_anon_vma mm/rmap.c
---- a/mm/rmap.c~mm-rename-drop_anon_vma-to-put_anon_vma
+ static inline struct anon_vma *page_anon_vma(struct page *page)
+ {
+diff -puN mm/rmap.c~mm-move-anon_vma-ref-out-from-under-config_foo mm/rmap.c
+--- a/mm/rmap.c~mm-move-anon_vma-ref-out-from-under-config_foo
 +++ a/mm/rmap.c
-@@ -278,7 +278,7 @@ static void anon_vma_unlink(struct anon_
+@@ -272,7 +272,7 @@ static void anon_vma_unlink(struct anon_
+ 	list_del(&anon_vma_chain->same_anon_vma);
+ 
+ 	/* We must garbage collect the anon_vma if it's empty */
+-	empty = list_empty(&anon_vma->head) && !anonvma_external_refcount(anon_vma);
++	empty = list_empty(&anon_vma->head) && !atomic_read(&anon_vma->refcount);
+ 	anon_vma_unlock(anon_vma);
+ 
  	if (empty) {
- 		/* We no longer need the root anon_vma */
- 		if (anon_vma->root != anon_vma)
--			drop_anon_vma(anon_vma->root);
-+			put_anon_vma(anon_vma->root);
- 		anon_vma_free(anon_vma);
+@@ -303,7 +303,7 @@ static void anon_vma_ctor(void *data)
+ 	struct anon_vma *anon_vma = data;
+ 
+ 	spin_lock_init(&anon_vma->lock);
+-	anonvma_external_refcount_init(anon_vma);
++	atomic_set(&anon_vma->refcount, 0);
+ 	INIT_LIST_HEAD(&anon_vma->head);
+ }
+ 
+@@ -1470,7 +1470,6 @@ int try_to_munlock(struct page *page)
+ 		return try_to_unmap_file(page, TTU_MUNLOCK);
+ }
+ 
+-#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
+ /*
+  * Drop an anon_vma refcount, freeing the anon_vma and anon_vma->root
+  * if necessary.  Be careful to do all the tests under the lock.  Once
+@@ -1479,8 +1478,8 @@ int try_to_munlock(struct page *page)
+  */
+ void put_anon_vma(struct anon_vma *anon_vma)
+ {
+-	BUG_ON(atomic_read(&anon_vma->external_refcount) <= 0);
+-	if (atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->root->lock)) {
++	BUG_ON(atomic_read(&anon_vma->refcount) <= 0);
++	if (atomic_dec_and_lock(&anon_vma->refcount, &anon_vma->root->lock)) {
+ 		struct anon_vma *root = anon_vma->root;
+ 		int empty = list_empty(&anon_vma->head);
+ 		int last_root_user = 0;
+@@ -1491,8 +1490,8 @@ void put_anon_vma(struct anon_vma *anon_
+ 		 * the refcount on the root and check if we need to free it.
+ 		 */
+ 		if (empty && anon_vma != root) {
+-			BUG_ON(atomic_read(&root->external_refcount) <= 0);
+-			last_root_user = atomic_dec_and_test(&root->external_refcount);
++			BUG_ON(atomic_read(&root->refcount) <= 0);
++			last_root_user = atomic_dec_and_test(&root->refcount);
+ 			root_empty = list_empty(&root->head);
+ 		}
+ 		anon_vma_unlock(anon_vma);
+@@ -1504,7 +1503,6 @@ void put_anon_vma(struct anon_vma *anon_
+ 		}
  	}
  }
-@@ -1477,7 +1477,7 @@ int try_to_munlock(struct page *page)
-  * we know we are the last user, nobody else can get a reference and we
-  * can do the freeing without the lock.
-  */
--void drop_anon_vma(struct anon_vma *anon_vma)
-+void put_anon_vma(struct anon_vma *anon_vma)
- {
- 	BUG_ON(atomic_read(&anon_vma->external_refcount) <= 0);
- 	if (atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->root->lock)) {
+-#endif
+ 
+ #ifdef CONFIG_MIGRATION
+ /*
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
