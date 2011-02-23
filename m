@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ldm-corrupted-partition-table-can-cause-kernel-oops.patch added to -mm tree
-Date: Tue, 22 Feb 2011 16:29:31 -0800
-Message-ID: <201102230029.p1N0TVm2003381@imap1.linux-foundation.org>
+Subject: + mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch added to -mm tree
+Date: Tue, 22 Feb 2011 16:59:47 -0800
+Message-ID: <201102230059.p1N0xlXd005917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751525Ab1BWAar (ORCPT
+	by vger.kernel.org with ESMTP id S1752138Ab1BWBA4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Feb 2011 19:30:47 -0500
+	Tue, 22 Feb 2011 20:00:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, ldm@flatcap.org, stable@kernel.org, warns@pre-sense.de
+Cc: richard@rsk.demon.co.uk
 
 
 The patch titled
-     ldm: corrupted partition table can cause kernel oops
+     mm: mm_struct remove 16 bytes of alignment padding on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     ldm-corrupted-partition-table-can-cause-kernel-oops.patch
+     mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ldm: corrupted partition table can cause kernel oops
-From: Timo Warns <Warns@pre-sense.de>
+Subject: mm: mm_struct remove 16 bytes of alignment padding on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-The kernel automatically evaluates partition tables of storage devices. 
-The code for evaluating LDM partitions (in fs/partitions/ldm.c) contains a
-bug that causes a kernel oops on certain corrupted LDM partitions.  A
-kernel subsystem seems to crash, because, after the oops, the kernel no
-longer recognizes newly connected storage devices.
+Reorder mm_struct to remove 16 bytes of alignment padding on 64 bit
+builds.  On my config this shrinks mm_struct by enough to fit in one fewer
+cache lines and allows more objects per slab in mm_struct kmem_cache under
+SLUB.
 
-The patch changes ldm_parse_vmdb() to Validate the value of vblk_size.
+slabinfo before patch :-
+    Sizes (bytes)     Slabs
+    --------------------------------
+    Object :     848  Total  :       9
+    SlabObj:     896  Full   :       2
+    SlabSiz:   16384  Partial:       5
+    Loss   :      48  CpuSlab:       2
+    Align  :      64  Objects:      18
 
-Signed-off-by: Timo Warns <warns@pre-sense.de>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Acked-by: Richard Russon <ldm@flatcap.org>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: <stable@kernel.org>
+ slabinfo after :-
+    Sizes (bytes)     Slabs
+    --------------------------------
+    Object :     832  Total  :       7
+    SlabObj:     832  Full   :       2
+    SlabSiz:   16384  Partial:       3
+    Loss   :       0  CpuSlab:       2
+    Align  :      64  Objects:      19
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/ldm.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/mm_types.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops fs/partitions/ldm.c
---- a/fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops
-+++ a/fs/partitions/ldm.c
-@@ -251,6 +251,11 @@ static bool ldm_parse_vmdb (const u8 *da
- 	}
- 
- 	vm->vblk_size     = get_unaligned_be32(data + 0x08);
-+	if (vm->vblk_size == 0) {
-+		ldm_error ("Illegal VBLK size");
-+		return false;
-+	}
+diff -puN include/linux/mm_types.h~mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds
++++ a/include/linux/mm_types.h
+@@ -237,8 +237,9 @@ struct mm_struct {
+ 	atomic_t mm_users;			/* How many users with user space? */
+ 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
+ 	int map_count;				/* number of VMAs */
+-	struct rw_semaphore mmap_sem;
 +
- 	vm->vblk_offset   = get_unaligned_be32(data + 0x0C);
- 	vm->last_vblk_seq = get_unaligned_be32(data + 0x04);
+ 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
++	struct rw_semaphore mmap_sem;
  
+ 	struct list_head mmlist;		/* List of maybe swapped mm's.	These are globally strung
+ 						 * together off init_mm.mmlist, and are protected
+@@ -281,6 +282,9 @@ struct mm_struct {
+ 	unsigned int token_priority;
+ 	unsigned int last_interval;
+ 
++	/* How many tasks sharing this mm are OOM_DISABLE */
++	atomic_t oom_disable_count;
++
+ 	unsigned long flags; /* Must use atomic bitops to access the bits */
+ 
+ 	struct core_state *core_state; /* coredumping support */
+@@ -313,8 +317,6 @@ struct mm_struct {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	pgtable_t pmd_huge_pte; /* protected by page_table_lock */
+ #endif
+-	/* How many tasks sharing this mm are OOM_DISABLE */
+-	atomic_t oom_disable_count;
+ };
+ 
+ /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
 _
 
-Patches currently in -mm which might be from Warns@pre-sense.de are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-ldm-corrupted-partition-table-can-cause-kernel-oops.patch
+mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch
 
