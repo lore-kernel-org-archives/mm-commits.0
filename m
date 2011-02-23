@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-deactivate-invalidated-pages.patch added to -mm tree
-Date: Wed, 23 Feb 2011 15:46:45 -0800
-Message-ID: <201102232346.p1NNkjpd030721@imap1.linux-foundation.org>
+Subject: + mm-reclaim-invalidated-page-asap.patch added to -mm tree
+Date: Wed, 23 Feb 2011 15:46:52 -0800
+Message-ID: <201102232346.p1NNkqiL030731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753516Ab1BWXsn (ORCPT
+	by vger.kernel.org with ESMTP id S1753549Ab1BWXso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 18:48:43 -0500
+	Wed, 23 Feb 2011 18:48:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, aarcange@redhat.com, bgamari.foss@gmail.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, peterz@infradead.org, riel@redhat.com
+Cc: minchan.kim@gmail.com, aarcange@redhat.com, damentz@liquorix.net, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, riel@redhat.com
 
 
 The patch titled
-     mm: deactivate invalidated pages
+     mm: Reclaim invalidated page ASAP
 has been added to the -mm tree.  Its filename is
-     mm-deactivate-invalidated-pages.patch
+     mm-reclaim-invalidated-page-asap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,213 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: deactivate invalidated pages
+Subject: mm: Reclaim invalidated page ASAP
 From: Minchan Kim <minchan.kim@gmail.com>
 
-Recently, there are reported problem about thrashing. 
-(http://marc.info/?l=rsync&m=128885034930933&w=2) It happens by backup
-workloads(ex, nightly rsync).  That's because the workload makes just
-use-once pages and touches pages twice.  It promotes the page into active
-list so that it results in working set page eviction.
+invalidate_mapping_pages is very big hint to reclaimer.  It means user
+doesn't want to use the page any more.  So in order to prevent working set
+page eviction, this patch move the page into tail of inactive list by
+PG_reclaim.
 
-Some app developer want to support POSIX_FADV_NOREUSE.  But other OSes
-don't support it, either. 
-(http://marc.info/?l=linux-mm&m=128928979512086&w=2)
+Please, remember that pages in inactive list are working set as well as
+active list.  If we don't move pages into inactive list's tail, pages near
+by tail of inactive list can be evicted although we have a big clue about
+useless pages.  It's totally bad.
 
-By other approach, app developers use POSIX_FADV_DONTNEED.  But it has a
-problem.  If kernel meets page is writing during invalidate_mapping_pages,
-it can't work.  It makes for application programmer to use it since they
-always have to sync data before calling fadivse(..POSIX_FADV_DONTNEED) to
-make sure the pages could be discardable.  At last, they can't use
-deferred write of kernel so that they could see performance loss. 
-(http://insights.oetiker.ch/linux/fadvise.html)
+Now PG_readahead/PG_reclaim is shared.  fe3cba17 added ClearPageReclaim
+into clear_page_dirty_for_io for preventing fast reclaiming readahead
+marker page.
 
-In fact, invalidation is very big hint to reclaimer.  It means we don't
-use the page any more.  So let's move the writing page into inactive
-list's head if we can't truncate it right now.
+In this series, PG_reclaim is used by invalidated page, too.  If VM find
+the page is invalidated and it's dirty, it sets PG_reclaim to reclaim
+asap.  Then, when the dirty page will be writeback,
+clear_page_dirty_for_io will clear PG_reclaim unconditionally.  It
+disturbs this serie's goal.
 
-Why I move page to head of lru on this patch, Dirty/Writeback page would
-be flushed sooner or later.  It can prevent writeout of pageout which is
-less effective than flusher's writeout.
+I think it's okay to clear PG_readahead when the page is dirty, not
+writeback time.  So this patch moves ClearPageReadahead.  In v4,
+ClearPageReadahead in set_page_dirty has a problem which is reported by
+Steven Barrett.  It's due to compound page.  Some driver(ex, audio) calls
+set_page_dirty with compound page which isn't on LRU.  but my patch does
+ClearPageRelcaim on compound page.  In non-CONFIG_PAGEFLAGS_EXTENDED, it
+breaks PageTail flag.
 
-Originally, I reused lru_demote of Peter with some change so added his
-Signed-off-by.
+I think it doesn't affect THP and pass my test with THP enabling but Cced
+Andrea for double check.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reported-by: Ben Gamari <bgamari.foss@gmail.com>
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Reported-by: Steven Barrett <damentz@liquorix.net>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swap.c            |   78 +++++++++++++++++++++++++++++++++++++++++
- mm/truncate.c        |   17 ++++++--
- 3 files changed, 91 insertions(+), 5 deletions(-)
+ mm/page-writeback.c |   12 +++++++++++-
+ mm/swap.c           |   41 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 49 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/swap.h~mm-deactivate-invalidated-pages include/linux/swap.h
---- a/include/linux/swap.h~mm-deactivate-invalidated-pages
-+++ a/include/linux/swap.h
-@@ -215,6 +215,7 @@ extern void mark_page_accessed(struct pa
- extern void lru_add_drain(void);
- extern int lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
-+extern void deactivate_page(struct page *page);
- extern void swap_setup(void);
+diff -puN mm/page-writeback.c~mm-reclaim-invalidated-page-asap mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-reclaim-invalidated-page-asap
++++ a/mm/page-writeback.c
+@@ -1211,6 +1211,17 @@ int set_page_dirty(struct page *page)
  
- extern void add_page_to_unevictable_list(struct page *page);
-diff -puN mm/swap.c~mm-deactivate-invalidated-pages mm/swap.c
---- a/mm/swap.c~mm-deactivate-invalidated-pages
+ 	if (likely(mapping)) {
+ 		int (*spd)(struct page *) = mapping->a_ops->set_page_dirty;
++		/*
++		 * readahead/lru_deactivate_page could remain
++		 * PG_readahead/PG_reclaim due to race with end_page_writeback
++		 * About readahead, if the page is written, the flags would be
++		 * reset. So no problem.
++		 * About lru_deactivate_page, if the page is redirty, the flag
++		 * will be reset. So no problem. but if the page is used by readahead
++		 * it will confuse readahead and make it restart the size rampup
++		 * process. But it's a trivial problem.
++		 */
++		ClearPageReclaim(page);
+ #ifdef CONFIG_BLOCK
+ 		if (!spd)
+ 			spd = __set_page_dirty_buffers;
+@@ -1266,7 +1277,6 @@ int clear_page_dirty_for_io(struct page 
+ 
+ 	BUG_ON(!PageLocked(page));
+ 
+-	ClearPageReclaim(page);
+ 	if (mapping && mapping_cap_account_dirty(mapping)) {
+ 		/*
+ 		 * Yes, Virginia, this is indeed insane.
+diff -puN mm/swap.c~mm-reclaim-invalidated-page-asap mm/swap.c
+--- a/mm/swap.c~mm-reclaim-invalidated-page-asap
 +++ a/mm/swap.c
-@@ -39,6 +39,7 @@ int page_cluster;
- 
- static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
- static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
-+static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
- 
- /*
-  * This path almost never happens for VM activity - pages are normally
-@@ -347,6 +348,60 @@ void add_page_to_unevictable_list(struct
- }
- 
- /*
-+ * If the page can not be invalidated, it is moved to the
-+ * inactive list to speed up its reclaim.  It is moved to the
-+ * head of the list, rather than the tail, to give the flusher
-+ * threads some time to write it out, as this is much more
-+ * effective than the single-page writeout from reclaim.
-+ */
-+static void lru_deactivate(struct page *page, struct zone *zone)
-+{
-+	int lru, file;
-+
-+	if (!PageLRU(page) || !PageActive(page))
-+		return;
-+
-+	/* Some processes are using the page */
-+	if (page_mapped(page))
-+		return;
-+
-+	file = page_is_file_cache(page);
-+	lru = page_lru_base_type(page);
-+	del_page_from_lru_list(zone, page, lru + LRU_ACTIVE);
-+	ClearPageActive(page);
-+	ClearPageReferenced(page);
-+	add_page_to_lru_list(zone, page, lru);
-+	__count_vm_event(PGDEACTIVATE);
-+
-+	update_page_reclaim_stat(zone, page, file, 0);
-+}
-+
-+static void ____pagevec_lru_deactivate(struct pagevec *pvec)
-+{
-+	int i;
-+	struct zone *zone = NULL;
-+
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+		struct zone *pagezone = page_zone(page);
-+
-+		if (pagezone != zone) {
-+			if (zone)
-+				spin_unlock_irq(&zone->lru_lock);
-+			zone = pagezone;
-+			spin_lock_irq(&zone->lru_lock);
-+		}
-+		lru_deactivate(page, zone);
-+	}
-+	if (zone)
-+		spin_unlock_irq(&zone->lru_lock);
-+
-+	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+	pagevec_reinit(pvec);
-+}
-+
-+
-+/*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
-  * disabled; or "cpu" is being hot-unplugged, and is already dead.
-@@ -372,6 +427,29 @@ static void drain_cpu_pagevecs(int cpu)
- 		pagevec_move_tail(pvec);
- 		local_irq_restore(flags);
- 	}
-+
-+	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
-+	if (pagevec_count(pvec))
-+		____pagevec_lru_deactivate(pvec);
-+}
-+
-+/**
-+ * deactivate_page - forcefully deactivate a page
-+ * @page: page to deactivate
+@@ -354,26 +354,61 @@ void add_page_to_unevictable_list(struct
+  * head of the list, rather than the tail, to give the flusher
+  * threads some time to write it out, as this is much more
+  * effective than the single-page writeout from reclaim.
 + *
-+ * This function hints the VM that @page is a good reclaim candidate,
-+ * for example if its invalidation fails due to the page being dirty
-+ * or under writeback.
-+ */
-+void deactivate_page(struct page *page)
-+{
-+	if (likely(get_page_unless_zero(page))) {
-+		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
-+
-+		if (!pagevec_add(pvec, page))
-+			____pagevec_lru_deactivate(pvec);
-+		put_cpu_var(lru_deactivate_pvecs);
-+	}
- }
- 
- void lru_add_drain(void)
-diff -puN mm/truncate.c~mm-deactivate-invalidated-pages mm/truncate.c
---- a/mm/truncate.c~mm-deactivate-invalidated-pages
-+++ a/mm/truncate.c
-@@ -327,11 +327,12 @@ EXPORT_SYMBOL(truncate_inode_pages);
-  * pagetables.
++ * If the page isn't page_mapped and dirty/writeback, the page
++ * could reclaim asap using PG_reclaim.
++ *
++ * 1. active, mapped page -> none
++ * 2. active, dirty/writeback page -> inactive, head, PG_reclaim
++ * 3. inactive, mapped page -> none
++ * 4. inactive, dirty/writeback page -> inactive, head, PG_reclaim
++ * 5. inactive, clean -> inactive, tail
++ * 6. Others -> none
++ *
++ * In 4, why it moves inactive's head, the VM expects the page would
++ * be write it out by flusher threads as this is much more effective
++ * than the single-page writeout from reclaim.
   */
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
--				       pgoff_t start, pgoff_t end)
-+		pgoff_t start, pgoff_t end)
+ static void lru_deactivate(struct page *page, struct zone *zone)
  {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
--	unsigned long ret = 0;
-+	unsigned long ret;
-+	unsigned long count = 0;
- 	int i;
+ 	int lru, file;
++	bool active;
  
- 	pagevec_init(&pvec, 0);
-@@ -358,9 +359,15 @@ unsigned long invalidate_mapping_pages(s
- 			if (lock_failed)
- 				continue;
+-	if (!PageLRU(page) || !PageActive(page))
++	if (!PageLRU(page))
+ 		return;
  
--			ret += invalidate_inode_page(page);
--
-+			ret = invalidate_inode_page(page);
- 			unlock_page(page);
-+			/*
-+			 * Invalidation is a hint that the page is no longer
-+			 * of interest and try to speed up its reclaim.
-+			 */
-+			if (!ret)
-+				deactivate_page(page);
-+			count += ret;
- 			if (next > end)
- 				break;
- 		}
-@@ -368,7 +375,7 @@ unsigned long invalidate_mapping_pages(s
- 		mem_cgroup_uncharge_end();
- 		cond_resched();
- 	}
--	return ret;
-+	return count;
+ 	/* Some processes are using the page */
+ 	if (page_mapped(page))
+ 		return;
+ 
++	active = PageActive(page);
++
+ 	file = page_is_file_cache(page);
+ 	lru = page_lru_base_type(page);
+-	del_page_from_lru_list(zone, page, lru + LRU_ACTIVE);
++	del_page_from_lru_list(zone, page, lru + active);
+ 	ClearPageActive(page);
+ 	ClearPageReferenced(page);
+ 	add_page_to_lru_list(zone, page, lru);
+-	__count_vm_event(PGDEACTIVATE);
+ 
++	if (PageWriteback(page) || PageDirty(page)) {
++		/*
++		 * PG_reclaim could be raced with end_page_writeback
++		 * It can make readahead confusing.  But race window
++		 * is _really_ small and  it's non-critical problem.
++		 */
++		SetPageReclaim(page);
++	} else {
++		/*
++		 * The page's writeback ends up during pagevec
++		 * We moves tha page into tail of inactive.
++		 */
++		list_move_tail(&page->lru, &zone->lru[lru].list);
++		mem_cgroup_rotate_reclaimable_page(page);
++		__count_vm_event(PGROTATED);
++	}
++
++	if (active)
++		__count_vm_event(PGDEACTIVATE);
+ 	update_page_reclaim_stat(zone, page, file, 0);
  }
- EXPORT_SYMBOL(invalidate_mapping_pages);
  
 _
 
