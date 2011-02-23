@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch added to -mm tree
-Date: Tue, 22 Feb 2011 16:59:47 -0800
-Message-ID: <201102230059.p1N0xlXd005917@imap1.linux-foundation.org>
+Subject: + pps-make-pps_gen_parport-depend-on-broken.patch added to -mm tree
+Date: Tue, 22 Feb 2011 17:03:01 -0800
+Message-ID: <201102230103.p1N131wk006205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138Ab1BWBA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751517Ab1BWBEJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Feb 2011 20:00:56 -0500
+	Tue, 22 Feb 2011 20:04:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk
+Cc: tglx@linutronix.de, giometti@linux.it, johnstul@us.ibm.com, lasaine@lvk.cs.msu.su, mingo@elte.hu
 
 
 The patch titled
-     mm: mm_struct remove 16 bytes of alignment padding on 64 bit builds
+     pps: make pps_gen_parport depend on BROKEN
 has been added to the -mm tree.  Its filename is
-     mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch
+     pps-make-pps_gen_parport-depend-on-broken.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: mm_struct remove 16 bytes of alignment padding on 64 bit builds
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: pps: make pps_gen_parport depend on BROKEN
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Reorder mm_struct to remove 16 bytes of alignment padding on 64 bit
-builds.  On my config this shrinks mm_struct by enough to fit in one fewer
-cache lines and allows more objects per slab in mm_struct kmem_cache under
-SLUB.
+This driver causes hard lockups, when the active clock soure is jiffies. 
+The reason is that it loops with interrupts disabled waiting for a
+timestamp to be reached by polling getnstimeofday().  Though with a
+jiffies clocksource, when that code runs on the same CPU which is
+responsible for updating jiffies, then we loop in circles for ever simply
+because the timer interrupt cannot update jiffies.  So both UP and SMP can
+be affected.
 
-slabinfo before patch :-
-    Sizes (bytes)     Slabs
-    --------------------------------
-    Object :     848  Total  :       9
-    SlabObj:     896  Full   :       2
-    SlabSiz:   16384  Partial:       5
-    Loss   :      48  CpuSlab:       2
-    Align  :      64  Objects:      18
+There is no easy fix for that problem so make it depend on BROKEN for now.
 
- slabinfo after :-
-    Sizes (bytes)     Slabs
-    --------------------------------
-    Object :     832  Total  :       7
-    SlabObj:     832  Full   :       2
-    SlabSiz:   16384  Partial:       3
-    Loss   :       0  CpuSlab:       2
-    Align  :      64  Objects:      19
-
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Rodolfo Giometti <giometti@linux.it>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/pps/generators/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds
-+++ a/include/linux/mm_types.h
-@@ -237,8 +237,9 @@ struct mm_struct {
- 	atomic_t mm_users;			/* How many users with user space? */
- 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
- 	int map_count;				/* number of VMAs */
--	struct rw_semaphore mmap_sem;
-+
- 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
-+	struct rw_semaphore mmap_sem;
+diff -puN drivers/pps/generators/Kconfig~pps-make-pps_gen_parport-depend-on-broken drivers/pps/generators/Kconfig
+--- a/drivers/pps/generators/Kconfig~pps-make-pps_gen_parport-depend-on-broken
++++ a/drivers/pps/generators/Kconfig
+@@ -6,7 +6,7 @@ comment "PPS generators support"
  
- 	struct list_head mmlist;		/* List of maybe swapped mm's.	These are globally strung
- 						 * together off init_mm.mmlist, and are protected
-@@ -281,6 +282,9 @@ struct mm_struct {
- 	unsigned int token_priority;
- 	unsigned int last_interval;
- 
-+	/* How many tasks sharing this mm are OOM_DISABLE */
-+	atomic_t oom_disable_count;
-+
- 	unsigned long flags; /* Must use atomic bitops to access the bits */
- 
- 	struct core_state *core_state; /* coredumping support */
-@@ -313,8 +317,6 @@ struct mm_struct {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	pgtable_t pmd_huge_pte; /* protected by page_table_lock */
- #endif
--	/* How many tasks sharing this mm are OOM_DISABLE */
--	atomic_t oom_disable_count;
- };
- 
- /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
+ config PPS_GENERATOR_PARPORT
+ 	tristate "Parallel port PPS signal generator"
+-	depends on PARPORT
++	depends on PARPORT && BROKEN
+ 	help
+ 	  If you say yes here you get support for a PPS signal generator which
+ 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-mm-mm_struct-remove-16-bytes-of-alignment-padding-on-64-bit-builds.patch
+origin.patch
+linux-next.patch
+pps-make-pps_gen_parport-depend-on-broken.patch
+x86-fix-pgd_lock-deadlock.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-dma-ipu-ipu_irqc-irq_data-conversion.patch
+hpet-factor-timer-allocate-from-open.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+move-x86-specific-oops=panic-to-generic-code.patch
+pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
+x86-allow-config_isa_dma_api-to-be-disabled.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
