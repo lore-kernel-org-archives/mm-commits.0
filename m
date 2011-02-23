@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-make-pps_gen_parport-depend-on-broken.patch added to -mm tree
-Date: Tue, 22 Feb 2011 17:03:01 -0800
-Message-ID: <201102230103.p1N131wk006205@imap1.linux-foundation.org>
+Subject: + documentation-codingstyle-flesh-out-if-else-examples.patch added to -mm tree
+Date: Tue, 22 Feb 2011 17:15:47 -0800
+Message-ID: <201102230115.p1N1FlGW007114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751517Ab1BWBEJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755549Ab1BWBQZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Feb 2011 20:04:09 -0500
+	Tue, 22 Feb 2011 20:16:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, giometti@linux.it, johnstul@us.ibm.com, lasaine@lvk.cs.msu.su, mingo@elte.hu
+Cc: jiaweiwei.xiyou@gmail.com, harryxiyou@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     pps: make pps_gen_parport depend on BROKEN
+     Documentation/CodingStyle: flesh out if-else examples
 has been added to the -mm tree.  Its filename is
-     pps-make-pps_gen_parport-depend-on-broken.patch
+     documentation-codingstyle-flesh-out-if-else-examples.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: make pps_gen_parport depend on BROKEN
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Documentation/CodingStyle: flesh out if-else examples
+From: Harry Wei <jiaweiwei.xiyou@gmail.com>
 
-This driver causes hard lockups, when the active clock soure is jiffies. 
-The reason is that it loops with interrupts disabled waiting for a
-timestamp to be reached by polling getnstimeofday().  Though with a
-jiffies clocksource, when that code runs on the same CPU which is
-responsible for updating jiffies, then we loop in circles for ever simply
-because the timer interrupt cannot update jiffies.  So both UP and SMP can
-be affected.
+There is a missing case for "Chapter 3: Placing Braces and Spaces".  We
+often know we should not use braces where a single statement.  The first
+case is:
 
-There is no easy fix for that problem so make it depend on BROKEN for now.
+	if (condition)
+		action();
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Another case is:
+
+	if (condition)
+		do_this();
+	else
+		do_that();
+
+However, I can not find a description of the second case.
+
+Signed-off-by: Harry Wei <harryxiyou@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/generators/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/CodingStyle |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/pps/generators/Kconfig~pps-make-pps_gen_parport-depend-on-broken drivers/pps/generators/Kconfig
---- a/drivers/pps/generators/Kconfig~pps-make-pps_gen_parport-depend-on-broken
-+++ a/drivers/pps/generators/Kconfig
-@@ -6,7 +6,7 @@ comment "PPS generators support"
+diff -puN Documentation/CodingStyle~documentation-codingstyle-flesh-out-if-else-examples Documentation/CodingStyle
+--- a/Documentation/CodingStyle~documentation-codingstyle-flesh-out-if-else-examples
++++ a/Documentation/CodingStyle
+@@ -168,6 +168,13 @@ Do not unnecessarily use braces where a 
+ if (condition)
+ 	action();
  
- config PPS_GENERATOR_PARPORT
- 	tristate "Parallel port PPS signal generator"
--	depends on PARPORT
-+	depends on PARPORT && BROKEN
- 	help
- 	  If you say yes here you get support for a PPS signal generator which
- 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
++and
++
++if (condition)
++	do_this();
++else
++	do_that();
++
+ This does not apply if one branch of a conditional statement is a single
+ statement. Use braces in both branches.
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from jiaweiwei.xiyou@gmail.com are
 
-origin.patch
 linux-next.patch
-pps-make-pps_gen_parport-depend-on-broken.patch
-x86-fix-pgd_lock-deadlock.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-dma-ipu-ipu_irqc-irq_data-conversion.patch
-hpet-factor-timer-allocate-from-open.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-move-x86-specific-oops=panic-to-generic-code.patch
-pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
-x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
-x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
-x86-allow-config_isa_dma_api-to-be-disabled.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+maintainers-add-chinese-documentation-maintainer.patch
+maintainers-add-topgit-for-t.patch
+documentation-codingstyle-flesh-out-if-else-examples.patch
 
