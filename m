@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unused-testsetpagelocked-interface.patch added to -mm tree
-Date: Tue, 22 Feb 2011 16:22:27 -0800
-Message-ID: <201102230022.p1N0MR9S002975@imap1.linux-foundation.org>
+Subject: + ldm-corrupted-partition-table-can-cause-kernel-oops.patch added to -mm tree
+Date: Tue, 22 Feb 2011 16:29:31 -0800
+Message-ID: <201102230029.p1N0TVm2003381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751216Ab1BWAXC (ORCPT
+	by vger.kernel.org with ESMTP id S1751525Ab1BWAar (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Feb 2011 19:23:02 -0500
+	Tue, 22 Feb 2011 19:30:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com
+Cc: Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, ldm@flatcap.org, stable@kernel.org, warns@pre-sense.de
 
 
 The patch titled
-     mm: remove unused TestSetPageLocked() interface
+     ldm: corrupted partition table can cause kernel oops
 has been added to the -mm tree.  Its filename is
-     mm-remove-unused-testsetpagelocked-interface.patch
+     ldm-corrupted-partition-table-can-cause-kernel-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove unused TestSetPageLocked() interface
-From: Michel Lespinasse <walken@google.com>
+Subject: ldm: corrupted partition table can cause kernel oops
+From: Timo Warns <Warns@pre-sense.de>
 
-TestSetPageLocked() isn't being used anywhere.  Also, using it would
-likely be an error, since the proper interface trylock_page() provides
-stronger ordering guarantees.
+The kernel automatically evaluates partition tables of storage devices. 
+The code for evaluating LDM partitions (in fs/partitions/ldm.c) contains a
+bug that causes a kernel oops on certain corrupted LDM partitions.  A
+kernel subsystem seems to crash, because, after the oops, the kernel no
+longer recognizes newly connected storage devices.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
+The patch changes ldm_parse_vmdb() to Validate the value of vblk_size.
+
+Signed-off-by: Timo Warns <warns@pre-sense.de>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Acked-by: Richard Russon <ldm@flatcap.org>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/partitions/ldm.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/page-flags.h~mm-remove-unused-testsetpagelocked-interface include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-remove-unused-testsetpagelocked-interface
-+++ a/include/linux/page-flags.h
-@@ -196,7 +196,7 @@ static inline int __TestClearPage##uname
+diff -puN fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops fs/partitions/ldm.c
+--- a/fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops
++++ a/fs/partitions/ldm.c
+@@ -251,6 +251,11 @@ static bool ldm_parse_vmdb (const u8 *da
+ 	}
  
- struct page;	/* forward declaration */
+ 	vm->vblk_size     = get_unaligned_be32(data + 0x08);
++	if (vm->vblk_size == 0) {
++		ldm_error ("Illegal VBLK size");
++		return false;
++	}
++
+ 	vm->vblk_offset   = get_unaligned_be32(data + 0x0C);
+ 	vm->last_vblk_seq = get_unaligned_be32(data + 0x04);
  
--TESTPAGEFLAG(Locked, locked) TESTSETFLAG(Locked, locked)
-+TESTPAGEFLAG(Locked, locked)
- PAGEFLAG(Error, error) TESTCLEARFLAG(Error, error)
- PAGEFLAG(Referenced, referenced) TESTCLEARFLAG(Referenced, referenced)
- PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty, dirty)
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from Warns@pre-sense.de are
 
-linux-next.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-remove-unused-testsetpagelocked-interface.patch
+ldm-corrupted-partition-table-can-cause-kernel-oops.patch
 
