@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-rcu-ioctx-lookup.patch added to -mm tree
-Date: Wed, 23 Feb 2011 16:20:51 -0800
-Message-ID: <201102240020.p1O0Kpr6000837@imap1.linux-foundation.org>
+Subject: + thp-fix-interleaving-for-transparent-hugepages.patch added to -mm tree
+Date: Wed, 23 Feb 2011 16:35:32 -0800
+Message-ID: <201102240035.p1O0ZWRA001509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755328Ab1BXAVg (ORCPT
+	by vger.kernel.org with ESMTP id S1752006Ab1BXAgO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 19:21:36 -0500
+	Wed, 23 Feb 2011 19:36:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@gmail.com, jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk
+Cc: ak@linux.intel.com, aarcange@redhat.com, cl@linux.com
 
 
 The patch titled
-     aio: fix rcu ioctx lookup
+     thp: fix interleaving for transparent hugepages
 has been added to the -mm tree.  Its filename is
-     aio-fix-rcu-ioctx-lookup.patch
+     thp-fix-interleaving-for-transparent-hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix rcu ioctx lookup
-From: Nick Piggin <npiggin@gmail.com>
+Subject: thp: fix interleaving for transparent hugepages
+From: Andi Kleen <ak@linux.intel.com>
 
-aio-dio-invalidate-failure GPFs in aio_put_req from io_submit.
+The THP code didn't pass the correct interleaving shift to the memory
+policy code. Fix this here by adjusting for the order.
 
-lookup_ioctx doesn't implement the rcu lookup pattern properly. 
-rcu_read_lock does not prevent refcount going to zero, so we might take a
-refcount on a zero count ioctx.
-
-Fix the bug by atomically testing for zero refcount before incrementing.
-
-[jack@suse.cz: added comment into the code]
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Nick Piggin <npiggin@kernel.dk>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   35 ++++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-fix-rcu-ioctx-lookup fs/aio.c
---- a/fs/aio.c~aio-fix-rcu-ioctx-lookup
-+++ a/fs/aio.c
-@@ -239,15 +239,23 @@ static void __put_ioctx(struct kioctx *c
- 	call_rcu(&ctx->rcu_head, ctx_rcu_free);
- }
+diff -puN mm/mempolicy.c~thp-fix-interleaving-for-transparent-hugepages mm/mempolicy.c
+--- a/mm/mempolicy.c~thp-fix-interleaving-for-transparent-hugepages
++++ a/mm/mempolicy.c
+@@ -1830,7 +1830,7 @@ alloc_pages_vma(gfp_t gfp, int order, st
+ 	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
+ 		unsigned nid;
  
--#define get_ioctx(kioctx) do {						\
--	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
--	atomic_inc(&(kioctx)->users);					\
--} while (0)
--#define put_ioctx(kioctx) do {						\
--	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
--	if (unlikely(atomic_dec_and_test(&(kioctx)->users))) 		\
--		__put_ioctx(kioctx);					\
--} while (0)
-+static inline void get_ioctx(struct kioctx *kioctx)
-+{
-+	BUG_ON(atomic_read(&kioctx->users) <= 0);
-+	atomic_inc(&kioctx->users);
-+}
-+
-+static inline int try_get_ioctx(struct kioctx *kioctx)
-+{
-+	return atomic_inc_not_zero(&kioctx->users);
-+}
-+
-+static inline void put_ioctx(struct kioctx *kioctx)
-+{
-+	BUG_ON(atomic_read(&kioctx->users) <= 0);
-+	if (unlikely(atomic_dec_and_test(&kioctx->users)))
-+		__put_ioctx(kioctx);
-+}
- 
- /* ioctx_alloc
-  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
-@@ -601,8 +609,13 @@ static struct kioctx *lookup_ioctx(unsig
- 	rcu_read_lock();
- 
- 	hlist_for_each_entry_rcu(ctx, n, &mm->ioctx_list, list) {
--		if (ctx->user_id == ctx_id && !ctx->dead) {
--			get_ioctx(ctx);
-+		/*
-+		 * RCU protects us against accessing freed memory but
-+		 * we have to be careful not to get a reference when the
-+		 * reference count already dropped to 0 (ctx->dead test
-+		 * is unreliable because of races).
-+		 */
-+		if (ctx->user_id == ctx_id && !ctx->dead && try_get_ioctx(ctx)){
- 			ret = ctx;
- 			break;
- 		}
+-		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT);
++		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT << order);
+ 		mpol_cond_put(pol);
+ 		page = alloc_page_interleave(gfp, order, nid);
+ 		put_mems_allowed();
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 linux-next.patch
-aio-fix-rcu-ioctx-lookup.patch
+thp-fix-interleaving-for-transparent-hugepages.patch
+fix-interleaving-for-transparent-hugepages-v2.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
+llist-lib-add-lock-less-null-terminated-single-list.patch
+llist-irq_work-use-llist-in-irq_work.patch
+llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
 
