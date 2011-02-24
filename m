@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unused-timekeeping-timekeepingh.patch added to -mm tree
-Date: Thu, 24 Feb 2011 14:34:01 -0800
-Message-ID: <201102242234.p1OMY1ta030747@imap1.linux-foundation.org>
+Subject: + maintainers-update-scx200-file-pattern.patch added to -mm tree
+Date: Thu, 24 Feb 2011 14:34:03 -0800
+Message-ID: <201102242234.p1OMY3PJ030753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756221Ab1BXWeH (ORCPT
+	by vger.kernel.org with ESMTP id S1756221Ab1BXWeJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 17:34:07 -0500
+	Thu, 24 Feb 2011 17:34:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: remove unused TIMEKEEPING timekeeping.h
+     MAINTAINERS: update SCX200 file pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unused-timekeeping-timekeepingh.patch
+     maintainers-update-scx200-file-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove unused TIMEKEEPING timekeeping.h
+Subject: MAINTAINERS: update SCX200 file pattern
 From: Joe Perches <joe@perches.com>
 
-Commit 88606e80da0 ("MAINTAINERS: Update timer related entries") added a
-file pattern that didn't actually exist.
+commit 3b3da9d25ae ("x86: Move scx200 to platform") moved it, convert the
+pattern too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-timekeeping-timekeepingh MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-timekeeping-timekeepingh
+diff -puN MAINTAINERS~maintainers-update-scx200-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-scx200-file-pattern
 +++ a/MAINTAINERS
-@@ -5384,7 +5384,6 @@ S:	Supported
- F:	include/linux/clocksource.h
- F:	include/linux/time.h
- F:	include/linux/timex.h
--F:	include/linux/timekeeping.h
- F:	kernel/time/clocksource.c
- F:	kernel/time/time*.c
- F:	kernel/time/ntp.c
+@@ -5471,7 +5471,7 @@ SCx200 CPU SUPPORT
+ M:	Jim Cromie <jim.cromie@gmail.com>
+ S:	Odd Fixes
+ F:	Documentation/i2c/busses/scx200_acb
+-F:	arch/x86/kernel/scx200_32.c
++F:	arch/x86/platform/scx200/
+ F:	drivers/watchdog/scx200_wdt.c
+ F:	drivers/i2c/busses/scx200*
+ F:	drivers/mtd/maps/scx200_docflash.c
 _
 
 Patches currently in -mm which might be from joe@perches.com are
