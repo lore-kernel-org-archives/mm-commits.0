@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-tipc-patterns.patch added to -mm tree
-Date: Thu, 24 Feb 2011 14:34:09 -0800
-Message-ID: <201102242234.p1OMY9Ia030763@imap1.linux-foundation.org>
+Subject: + maintainers-remove-unused-clockeventsh.patch added to -mm tree
+Date: Thu, 24 Feb 2011 14:33:56 -0800
+Message-ID: <201102242233.p1OMXulK030735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756535Ab1BXWeL (ORCPT
+	by vger.kernel.org with ESMTP id S1756223Ab1BXWeN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 17:34:11 -0500
+	Thu, 24 Feb 2011 17:34:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, allan.stephens@windriver.com
+Cc: joe@perches.com, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: update TIPC patterns
+     MAINTAINERS: remove unused clockevents.h
 has been added to the -mm tree.  Its filename is
-     maintainers-update-tipc-patterns.patch
+     maintainers-remove-unused-clockeventsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update TIPC patterns
+Subject: MAINTAINERS: remove unused clockevents.h
 From: Joe Perches <joe@perches.com>
 
-commit d265fef6ddf ("tipc: Remove obsolete native API files and exports")
-removed the files, remove the patterns.
+commit 88606e80da0 ("MAINTAINERS: Update timer related entries") added a
+file that doesn't exist.  Remove it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Allan Stephens <allan.stephens@windriver.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-tipc-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-tipc-patterns
+diff -puN MAINTAINERS~maintainers-remove-unused-clockeventsh MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-unused-clockeventsh
 +++ a/MAINTAINERS
-@@ -6081,7 +6081,6 @@ W:	http://tipc.cslab.ericsson.net/
- T:	git git://tipc.cslab.ericsson.net/pub/git/tipc.git
- S:	Maintained
- F:	include/linux/tipc*.h
--F:	include/net/tipc/
- F:	net/tipc/
+@@ -2977,7 +2977,6 @@ F:	kernel/hrtimer.c
+ F:	kernel/time/clockevents.c
+ F:	kernel/time/tick*.*
+ F:	kernel/time/timer_*.c
+-F:	include/linux/clockevents.h
+ F:	include/linux/hrtimer.h
  
- TILE ARCHITECTURE
+ HIGH-SPEED SCC DRIVER FOR AX.25
 _
 
 Patches currently in -mm which might be from joe@perches.com are
