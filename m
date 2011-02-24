@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-memc-clean-up-the-code.patch added to -mm tree
-Date: Wed, 23 Feb 2011 15:49:31 -0800
-Message-ID: <201102232349.p1NNnViX030937@imap1.linux-foundation.org>
+Subject: + aio-fix-race-between-io_destroy-and-io_submit.patch added to -mm tree
+Date: Wed, 23 Feb 2011 16:20:53 -0800
+Message-ID: <201102240020.p1O0Krk7000840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752006Ab1BXANR (ORCPT
+	by vger.kernel.org with ESMTP id S1755328Ab1BXAVh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 19:13:17 -0500
+	Wed, 23 Feb 2011 19:21:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaosuo@gmail.com
+Cc: jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk
 
 
 The patch titled
-     drivers/char/mem.c: clean up the code
+     aio: fix race between io_destroy() and io_submit()
 has been added to the -mm tree.  Its filename is
-     drivers-char-memc-clean-up-the-code.patch
+     aio-fix-race-between-io_destroy-and-io_submit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mem.c: clean up the code
-From: Changli Gao <xiaosuo@gmail.com>
+Subject: aio: fix race between io_destroy() and io_submit()
+From: Jan Kara <jack@suse.cz>
 
-Reduce the lines of code and simplify the logic.
+A race can occur when io_submit() races with io_destroy():
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+ CPU1						CPU2
+io_submit()
+  do_io_submit()
+    ...
+    ctx = lookup_ioctx(ctx_id);
+						io_destroy()
+    Now do_io_submit() holds the last reference to ctx.
+    ...
+    queue new AIO
+    put_ioctx(ctx) - frees ctx with active AIOs
+
+We solve this issue by checking whether ctx is being destroyed in AIO
+submission path after adding new AIO to ctx.  Then we are guaranteed that
+either io_destroy() waits for new AIO or we see that ctx is being
+destroyed and bail out.
+
+Cc: Nick Piggin <npiggin@kernel.dk>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/aio.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-clean-up-the-code drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-clean-up-the-code
-+++ a/drivers/char/mem.c
-@@ -47,10 +47,7 @@ static inline unsigned long size_inside_
- #ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
- static inline int valid_phys_addr_range(unsigned long addr, size_t count)
- {
--	if (addr + count > __pa(high_memory))
--		return 0;
+diff -puN fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit fs/aio.c
+--- a/fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit
++++ a/fs/aio.c
+@@ -1642,6 +1642,23 @@ static int io_submit_one(struct kioctx *
+ 		goto out_put_req;
+ 
+ 	spin_lock_irq(&ctx->ctx_lock);
++	/*
++	 * We could have raced with io_destroy() and are currently holding a
++	 * reference to ctx which should be destroyed. We cannot submit IO
++	 * since ctx gets freed as soon as io_submit() puts its reference.  The
++	 * check here is reliable: io_destroy() sets ctx->dead before waiting
++	 * for outstanding IO and the barrier between these two is realized by
++	 * unlock of mm->ioctx_lock and lock of ctx->ctx_lock.  Analogously we
++	 * increment ctx->reqs_active before checking for ctx->dead and the
++	 * barrier is realized by unlock and lock of ctx->ctx_lock. Thus if we
++	 * don't see ctx->dead set here, io_destroy() waits for our IO to
++	 * finish.
++	 */
++	if (ctx->dead) {
++		spin_unlock_irq(&ctx->ctx_lock);
++		ret = -EINVAL;
++		goto out_put_req;
++	}
+ 	aio_run_iocb(req);
+ 	if (!list_empty(&ctx->run_list)) {
+ 		/* drain the run list */
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+linux-next.patch
+aio-fix-rcu-ioctx-lookup.patch
+aio-fix-race-between-io_destroy-and-io_submit.patch
+ext3-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+
