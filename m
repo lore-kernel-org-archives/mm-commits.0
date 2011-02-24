@@ -1,139 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 24 Feb 2011 12:49:31 -0800
-Message-ID: <201102242049.p1OKnVOR025595@imap1.linux-foundation.org>
+Subject: [obsolete] drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch removed from -mm tree
+Date: Thu, 24 Feb 2011 12:50:36 -0800
+Message-ID: <201102242050.p1OKoakZ025640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354Ab1BXUtc (ORCPT
+	by vger.kernel.org with ESMTP id S1752935Ab1BXUus (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 15:49:32 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1OKnVFi012977
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2011 12:49:31 -0800
+	Thu, 24 Feb 2011 15:50:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@linux.intel.com, durgadoss.r@intel.com, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     drivers/platform/x86/Makefile: drivers/platform/x86/intel_mid_thermal.c doesn't exist
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/platform/x86/Makefile: drivers/platform/x86/intel_mid_thermal.c doesn't exist
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Durgadoss <durgadoss.r@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/intel_pmic_gpio.c |   53 -----------------------
- 1 file changed, 53 deletions(-)
+ drivers/platform/x86/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/platform/x86/intel_pmic_gpio.c~linux-next-git-rejects drivers/platform/x86/intel_pmic_gpio.c
---- a/drivers/platform/x86/intel_pmic_gpio.c~linux-next-git-rejects
-+++ a/drivers/platform/x86/intel_pmic_gpio.c
-@@ -74,22 +74,6 @@ struct pmic_gpio {
- 	u32			trigger_type;
- };
- 
--<<<<<<< HEAD
--=======
--static void pmic_program_irqtype(int gpio, int type)
--{
--	if (type & IRQ_TYPE_EDGE_RISING)
--		intel_scu_ipc_update_register(GPIO0 + gpio, 0x20, 0x20);
--	else
--		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x20);
--
--	if (type & IRQ_TYPE_EDGE_FALLING)
--		intel_scu_ipc_update_register(GPIO0 + gpio, 0x10, 0x10);
--	else
--		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x10);
--};
--
-->>>>>>> FETCH_HEAD
- static int pmic_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
- {
- 	if (offset > 8) {
-@@ -182,35 +166,9 @@ static int pmic_gpio_to_irq(struct gpio_
- 	return pg->irq_base + offset;
- }
- 
--<<<<<<< HEAD
--/* the gpiointr register is read-clear, so just do nothing. */
--static void pmic_irq_unmask(struct irq_data *data) { }
--
--=======
--static void pmic_bus_lock(struct irq_data *data)
--{
--	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
--
--	mutex_lock(&pg->buslock);
--}
--
--static void pmic_bus_sync_unlock(struct irq_data *data)
--{
--	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
--
--	if (pg->update_type) {
--		unsigned int gpio = pg->update_type & ~GPIO_UPDATE_TYPE;
--
--		pmic_program_irqtype(gpio, pg->trigger_type);
--		pg->update_type = 0;
--	}
--	mutex_unlock(&pg->buslock);
--}
--
- /* the gpiointr register is read-clear, so just do nothing. */
- static void pmic_irq_unmask(struct irq_data *data) { }
- 
-->>>>>>> FETCH_HEAD
- static void pmic_irq_mask(struct irq_data *data) { }
- 
- static struct irq_chip pmic_irqchip = {
-@@ -220,11 +178,7 @@ static struct irq_chip pmic_irqchip = {
- 	.irq_set_type	= pmic_irq_type,
- };
- 
--<<<<<<< HEAD
- static irqreturn_t pmic_irq_handler(int irq, void *data)
--=======
--static irqreturn_t pmic_irq_handler(unsigned int irq, void *data)
-->>>>>>> FETCH_HEAD
- {
- 	struct pmic_gpio *pg = data;
- 	u8 intsts = *((u8 *)pg->gpiointr + 4);
-@@ -238,10 +192,7 @@ static irqreturn_t pmic_irq_handler(unsi
- 			ret = IRQ_HANDLED;
- 		}
- 	}
--<<<<<<< HEAD
- 	return ret;
--=======
-->>>>>>> FETCH_HEAD
- }
- 
- static int __devinit platform_pmic_gpio_probe(struct platform_device *pdev)
-@@ -301,11 +252,7 @@ static int __devinit platform_pmic_gpio_
- 
- 	retval = request_irq(pg->irq, pmic_irq_handler, 0, "pmic", pg);
- 	if (retval) {
--<<<<<<< HEAD
- 		printk(KERN_WARNING "pmic: Interrupt request failed\n");
--=======
--		printk(KERN_WARN "pmic: Interrupt request failed\n");
-->>>>>>> FETCH_HEAD
- 		goto err;
- 	}
- 
+diff -puN drivers/platform/x86/Makefile~drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist drivers/platform/x86/Makefile
+--- a/drivers/platform/x86/Makefile~drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist
++++ a/drivers/platform/x86/Makefile
+@@ -37,4 +37,3 @@ obj-$(CONFIG_XO1_RFKILL)	+= xo1-rfkill.o
+ obj-$(CONFIG_XO15_EBOOK)	+= xo15-ebook.o
+ obj-$(CONFIG_IBM_RTL)		+= ibm_rtl.o
+ obj-$(CONFIG_INTEL_MID_POWER_BUTTON)	+= intel_mid_powerbtn.o
+-obj-$(CONFIG_INTEL_MFLD_THERMAL)	+= intel_mid_thermal.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +54,6 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-vmap-area-cache.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
