@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-teach-smaps_pte_range-about-thp-pmds.patch added to -mm tree
-Date: Wed, 23 Feb 2011 16:48:14 -0800
-Message-ID: <201102240048.p1O0mFGe002186@imap1.linux-foundation.org>
+Subject: + pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 23 Feb 2011 16:49:23 -0800
+Message-ID: <201102240049.p1O0nNPF002240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659Ab1BXAto (ORCPT
+	by vger.kernel.org with ESMTP id S1751659Ab1BXAt4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 19:49:44 -0500
+	Wed, 23 Feb 2011 19:49:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, aarcange@redhat.com, emunson@mgebm.net, hannes@cmpxchg.org, jeremy@goop.org, mel@csn.ul.ie, mjwolf@us.ibm.com, mpm@selenic.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     smaps: teach smaps_pte_range() about THP pmds
+     pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     smaps-teach-smaps_pte_range-about-thp-pmds.patch
+     pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smaps: teach smaps_pte_range() about THP pmds
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds code to explicitly detect and handle pmd_trans_huge() pmds.  It
-then passes HPAGE_SIZE units in to the smap_pte_entry() function instead
-of PAGE_SIZE.
+WARNING: please, no space before tabs
+#76: FILE: include/linux/mm.h:910:
++ * ^I       this handler is required to be able to handle$
 
-This means that using /proc/$pid/smaps now will no longer cause THPs to be
-broken down in to small pages.
+WARNING: please, no space before tabs
+#77: FILE: include/linux/mm.h:911:
++ * ^I       pmd_trans_huge() pmds.  They may simply choose to$
 
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Tested-by: Eric B Munson <emunson@mgebm.net>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michael J Wolf <mjwolf@us.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+WARNING: please, no space before tabs
+#78: FILE: include/linux/mm.h:912:
++ * ^I       split_huge_page() instead of handling it explicitly.$
+
+WARNING: labels should not be indented
+#112: FILE: mm/pagewalk.c:36:
++	again:
+
+total: 0 errors, 4 warnings, 90 lines checked
+
+./patches/pagewalk-only-split-huge-pages-when-necessary.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    6 +++---
+ mm/pagewalk.c      |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-teach-smaps_pte_range-about-thp-pmds fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-teach-smaps_pte_range-about-thp-pmds
-+++ a/fs/proc/task_mmu.c
-@@ -1,5 +1,6 @@
- #include <linux/mm.h>
- #include <linux/hugetlb.h>
-+#include <linux/huge_mm.h>
- #include <linux/mount.h>
- #include <linux/seq_file.h>
- #include <linux/highmem.h>
-@@ -7,6 +8,7 @@
- #include <linux/slab.h>
- #include <linux/pagemap.h>
- #include <linux/mempolicy.h>
-+#include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
+diff -puN include/linux/mm.h~pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes
++++ a/include/linux/mm.h
+@@ -907,9 +907,9 @@ unsigned long unmap_vmas(struct mmu_gath
+  * @pgd_entry: if set, called for each non-empty PGD (top-level) entry
+  * @pud_entry: if set, called for each non-empty PUD (2nd-level) entry
+  * @pmd_entry: if set, called for each non-empty PMD (3rd-level) entry
+- * 	       this handler is required to be able to handle
+- * 	       pmd_trans_huge() pmds.  They may simply choose to
+- * 	       split_huge_page() instead of handling it explicitly.
++ *	       this handler is required to be able to handle
++ *	       pmd_trans_huge() pmds.  They may simply choose to
++ *	       split_huge_page() instead of handling it explicitly.
+  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
+  * @pte_hole: if set, called for each hole at all levels
+  * @hugetlb_entry: if set, called for each hugetlb entry
+diff -puN mm/pagewalk.c~pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes mm/pagewalk.c
+--- a/mm/pagewalk.c~pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes
++++ a/mm/pagewalk.c
+@@ -33,7 +33,7 @@ static int walk_pmd_range(pud_t *pud, un
  
-@@ -385,8 +387,25 @@ static int smaps_pte_range(pmd_t *pmd, u
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	split_huge_page_pmd(walk->mm, pmd);
--
-+	spin_lock(&walk->mm->page_table_lock);
-+	if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_splitting(*pmd)) {
-+			spin_unlock(&walk->mm->page_table_lock);
-+			wait_split_huge_page(vma->anon_vma, pmd);
-+		} else {
-+			smaps_pte_entry(*(pte_t *)pmd, addr,
-+					HPAGE_PMD_SIZE, walk);
-+			spin_unlock(&walk->mm->page_table_lock);
-+			return 0;
-+		}
-+	} else {
-+		spin_unlock(&walk->mm->page_table_lock);
-+	}
-+	/*
-+	 * The mmap_sem held all the way back in m_start() is what
-+	 * keeps khugepaged out of here and from collapsing things
-+	 * in here.
-+	 */
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		smaps_pte_entry(*pte, addr, PAGE_SIZE, walk);
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+-	again:
++again:
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd)) {
+ 			if (walk->pte_hole)
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pagewalk-only-split-huge-pages-when-necessary.patch
-smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
-smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
-smaps-teach-smaps_pte_range-about-thp-pmds.patch
-smaps-have-smaps-show-transparent-huge-pages.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-platform-x86-makefile-drivers-platform-x86-intel_mid_thermalc-doesnt-exist.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+fs-ocfs2-dlm-dlmdomainc-avoid-a-gfp_atomic-allocation.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
