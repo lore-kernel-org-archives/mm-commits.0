@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-sharp-lh7a40x-section.patch added to -mm tree
-Date: Thu, 24 Feb 2011 14:34:05 -0800
-Message-ID: <201102242234.p1OMY5Pa030756@imap1.linux-foundation.org>
+Subject: + maintainers-remove-ieee1394-entry.patch added to -mm tree
+Date: Thu, 24 Feb 2011 14:33:58 -0800
+Message-ID: <201102242233.p1OMXwMS030738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756524Ab1BXWeL (ORCPT
+	by vger.kernel.org with ESMTP id S1756524Ab1BXWeJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 17:34:11 -0500
+	Thu, 24 Feb 2011 17:34:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, rmk+kernel@arm.linux.org.uk
+Cc: joe@perches.com, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     MAINTAINERS: remove SHARP LH7A40X section
+     MAINTAINERS: remove IEEE1394 entry
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-sharp-lh7a40x-section.patch
+     maintainers-remove-ieee1394-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove SHARP LH7A40X section
+Subject: MAINTAINERS: remove IEEE1394 entry
 From: Joe Perches <joe@perches.com>
 
-commit 82e6923e186 ("ARM: lh7a40x: remove unmaintained platform support")
-removed support, remove it from MAINTAINERS.
+commit 66fa12c571d ("ieee1394: remove the old IEEE 1394 driver stack")
+
+removed the code, remove the MAINTAINERS entry.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 -----------
- 1 file changed, 11 deletions(-)
+ MAINTAINERS |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-sharp-lh7a40x-section MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-sharp-lh7a40x-section
+diff -puN MAINTAINERS~maintainers-remove-ieee1394-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-ieee1394-entry
 +++ a/MAINTAINERS
-@@ -5615,17 +5615,6 @@ M:	Robin Holt <holt@sgi.com>
- S:	Maintained
- F:	drivers/misc/sgi-xp/
+@@ -3149,15 +3149,6 @@ L:	linux-pm@lists.linux-foundation.org
+ S:	Supported
+ F:	drivers/idle/i7300_idle.c
  
--SHARP LH SUPPORT (LH7952X & LH7A40X)
--M:	Marc Singer <elf@buici.com>
--W:	http://projects.buici.com/arm
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--F:	Documentation/arm/Sharp-LH/ADC-LH7-Touchscreen
--F:	arch/arm/mach-lh7a40x/
--F:	drivers/tty/serial/serial_lh7a40x.c
--F:	drivers/usb/gadget/lh7a40*
--F:	drivers/usb/host/ohci-lh7a40*
+-IEEE 1394 SUBSYSTEM
+-M:	Stefan Richter <stefanr@s5r6.in-berlin.de>
+-L:	linux1394-devel@lists.sourceforge.net
+-W:	http://ieee1394.wiki.kernel.org/
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394-2.6.git
+-S:	Obsolete
+-F:	Documentation/debugging-via-ohci1394.txt
+-F:	drivers/ieee1394/
 -
- SHM-SIGNAL LIBRARY
- M:	Gregory Haskins <ghaskins@novell.com>
- S:	Maintained
+ IEEE 802.15.4 SUBSYSTEM
+ M:	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+ M:	Sergey Lapin <slapin@ossfans.org>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
