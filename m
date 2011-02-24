@@ -1,78 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] arm-fix-config_swap=n-build.patch removed from -mm tree
-Date: Thu, 24 Feb 2011 00:55:28 -0800
-Message-ID: <201102240855.p1O8tSu6023466@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 24 Feb 2011 12:49:31 -0800
+Message-ID: <201102242049.p1OKnVOR025595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752397Ab1BXIzp (ORCPT
+	by vger.kernel.org with ESMTP id S1752354Ab1BXUtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 03:55:45 -0500
+	Thu, 24 Feb 2011 15:49:32 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p1OKnVFi012977
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2011 12:49:31 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, rmk@arm.linux.org.uk, stevec@couttsnet.com, yuasa@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: fix CONFIG_SWAP=n build
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     arm-fix-config_swap=n-build.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: fix CONFIG_SWAP=n build
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Thee files apparently need linux/pagemap.h to fix errors of the form
-
-include/asm-generic/tlb.h: In function `tlb_flush_mmu':
-include/asm-generic/tlb.h:76: error: implicit declaration of function `release_pages'
-include/asm-generic/tlb.h: In function `tlb_remove_page':
-include/asm-generic/tlb.h:105: error: implicit declaration of function `page_cache_release'
-
-Reported-by: Steven Coutts <stevec@couttsnet.com>
-Cc: Yoichi Yuasa <yuasa@linux-mips.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c |    1 +
- arch/arm/mm/mmu.c  |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/platform/x86/intel_pmic_gpio.c |   53 -----------------------
+ 1 file changed, 53 deletions(-)
 
-diff -puN arch/arm/mm/init.c~arm-fix-config_swap=n-build arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arm-fix-config_swap=n-build
-+++ a/arch/arm/mm/init.c
-@@ -17,6 +17,7 @@
- #include <linux/initrd.h>
- #include <linux/highmem.h>
- #include <linux/gfp.h>
-+#include <linux/pagemap.h>
- #include <linux/memblock.h>
- #include <linux/sort.h>
+diff -puN drivers/platform/x86/intel_pmic_gpio.c~linux-next-git-rejects drivers/platform/x86/intel_pmic_gpio.c
+--- a/drivers/platform/x86/intel_pmic_gpio.c~linux-next-git-rejects
++++ a/drivers/platform/x86/intel_pmic_gpio.c
+@@ -74,22 +74,6 @@ struct pmic_gpio {
+ 	u32			trigger_type;
+ };
  
-diff -puN arch/arm/mm/mmu.c~arm-fix-config_swap=n-build arch/arm/mm/mmu.c
---- a/arch/arm/mm/mmu.c~arm-fix-config_swap=n-build
-+++ a/arch/arm/mm/mmu.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/mman.h>
- #include <linux/nodemask.h>
-+#include <linux/pagemap.h>
- #include <linux/memblock.h>
- #include <linux/fs.h>
+-<<<<<<< HEAD
+-=======
+-static void pmic_program_irqtype(int gpio, int type)
+-{
+-	if (type & IRQ_TYPE_EDGE_RISING)
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x20, 0x20);
+-	else
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x20);
+-
+-	if (type & IRQ_TYPE_EDGE_FALLING)
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x10, 0x10);
+-	else
+-		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x10);
+-};
+-
+->>>>>>> FETCH_HEAD
+ static int pmic_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
+ {
+ 	if (offset > 8) {
+@@ -182,35 +166,9 @@ static int pmic_gpio_to_irq(struct gpio_
+ 	return pg->irq_base + offset;
+ }
+ 
+-<<<<<<< HEAD
+-/* the gpiointr register is read-clear, so just do nothing. */
+-static void pmic_irq_unmask(struct irq_data *data) { }
+-
+-=======
+-static void pmic_bus_lock(struct irq_data *data)
+-{
+-	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
+-
+-	mutex_lock(&pg->buslock);
+-}
+-
+-static void pmic_bus_sync_unlock(struct irq_data *data)
+-{
+-	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
+-
+-	if (pg->update_type) {
+-		unsigned int gpio = pg->update_type & ~GPIO_UPDATE_TYPE;
+-
+-		pmic_program_irqtype(gpio, pg->trigger_type);
+-		pg->update_type = 0;
+-	}
+-	mutex_unlock(&pg->buslock);
+-}
+-
+ /* the gpiointr register is read-clear, so just do nothing. */
+ static void pmic_irq_unmask(struct irq_data *data) { }
+ 
+->>>>>>> FETCH_HEAD
+ static void pmic_irq_mask(struct irq_data *data) { }
+ 
+ static struct irq_chip pmic_irqchip = {
+@@ -220,11 +178,7 @@ static struct irq_chip pmic_irqchip = {
+ 	.irq_set_type	= pmic_irq_type,
+ };
+ 
+-<<<<<<< HEAD
+ static irqreturn_t pmic_irq_handler(int irq, void *data)
+-=======
+-static irqreturn_t pmic_irq_handler(unsigned int irq, void *data)
+->>>>>>> FETCH_HEAD
+ {
+ 	struct pmic_gpio *pg = data;
+ 	u8 intsts = *((u8 *)pg->gpiointr + 4);
+@@ -238,10 +192,7 @@ static irqreturn_t pmic_irq_handler(unsi
+ 			ret = IRQ_HANDLED;
+ 		}
+ 	}
+-<<<<<<< HEAD
+ 	return ret;
+-=======
+->>>>>>> FETCH_HEAD
+ }
+ 
+ static int __devinit platform_pmic_gpio_probe(struct platform_device *pdev)
+@@ -301,11 +252,7 @@ static int __devinit platform_pmic_gpio_
+ 
+ 	retval = request_irq(pg->irq, pmic_irq_handler, 0, "pmic", pg);
+ 	if (retval) {
+-<<<<<<< HEAD
+ 		printk(KERN_WARNING "pmic: Interrupt request failed\n");
+-=======
+-		printk(KERN_WARN "pmic: Interrupt request failed\n");
+->>>>>>> FETCH_HEAD
+ 		goto err;
+ 	}
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
