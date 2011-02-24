@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-race-between-io_destroy-and-io_submit.patch added to -mm tree
-Date: Wed, 23 Feb 2011 16:20:53 -0800
-Message-ID: <201102240020.p1O0Krk7000840@imap1.linux-foundation.org>
+Subject: + aio-fix-rcu-ioctx-lookup.patch added to -mm tree
+Date: Wed, 23 Feb 2011 16:20:51 -0800
+Message-ID: <201102240020.p1O0Kpr6000837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755328Ab1BXAVh (ORCPT
+	by vger.kernel.org with ESMTP id S1755328Ab1BXAVg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 19:21:37 -0500
+	Wed, 23 Feb 2011 19:21:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk
+Cc: npiggin@gmail.com, jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk
 
 
 The patch titled
-     aio: fix race between io_destroy() and io_submit()
+     aio: fix rcu ioctx lookup
 has been added to the -mm tree.  Its filename is
-     aio-fix-race-between-io_destroy-and-io_submit.patch
+     aio-fix-rcu-ioctx-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix race between io_destroy() and io_submit()
-From: Jan Kara <jack@suse.cz>
+Subject: aio: fix rcu ioctx lookup
+From: Nick Piggin <npiggin@gmail.com>
 
-A race can occur when io_submit() races with io_destroy():
+aio-dio-invalidate-failure GPFs in aio_put_req from io_submit.
 
- CPU1						CPU2
-io_submit()
-  do_io_submit()
-    ...
-    ctx = lookup_ioctx(ctx_id);
-						io_destroy()
-    Now do_io_submit() holds the last reference to ctx.
-    ...
-    queue new AIO
-    put_ioctx(ctx) - frees ctx with active AIOs
+lookup_ioctx doesn't implement the rcu lookup pattern properly. 
+rcu_read_lock does not prevent refcount going to zero, so we might take a
+refcount on a zero count ioctx.
 
-We solve this issue by checking whether ctx is being destroyed in AIO
-submission path after adding new AIO to ctx.  Then we are guaranteed that
-either io_destroy() waits for new AIO or we see that ctx is being
-destroyed and bail out.
+Fix the bug by atomically testing for zero refcount before incrementing.
 
-Cc: Nick Piggin <npiggin@kernel.dk>
+[jack@suse.cz: added comment into the code]
 Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Nick Piggin <npiggin@kernel.dk>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ fs/aio.c |   35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit fs/aio.c
---- a/fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit
+diff -puN fs/aio.c~aio-fix-rcu-ioctx-lookup fs/aio.c
+--- a/fs/aio.c~aio-fix-rcu-ioctx-lookup
 +++ a/fs/aio.c
-@@ -1642,6 +1642,23 @@ static int io_submit_one(struct kioctx *
- 		goto out_put_req;
+@@ -239,15 +239,23 @@ static void __put_ioctx(struct kioctx *c
+ 	call_rcu(&ctx->rcu_head, ctx_rcu_free);
+ }
  
- 	spin_lock_irq(&ctx->ctx_lock);
-+	/*
-+	 * We could have raced with io_destroy() and are currently holding a
-+	 * reference to ctx which should be destroyed. We cannot submit IO
-+	 * since ctx gets freed as soon as io_submit() puts its reference.  The
-+	 * check here is reliable: io_destroy() sets ctx->dead before waiting
-+	 * for outstanding IO and the barrier between these two is realized by
-+	 * unlock of mm->ioctx_lock and lock of ctx->ctx_lock.  Analogously we
-+	 * increment ctx->reqs_active before checking for ctx->dead and the
-+	 * barrier is realized by unlock and lock of ctx->ctx_lock. Thus if we
-+	 * don't see ctx->dead set here, io_destroy() waits for our IO to
-+	 * finish.
-+	 */
-+	if (ctx->dead) {
-+		spin_unlock_irq(&ctx->ctx_lock);
-+		ret = -EINVAL;
-+		goto out_put_req;
-+	}
- 	aio_run_iocb(req);
- 	if (!list_empty(&ctx->run_list)) {
- 		/* drain the run list */
+-#define get_ioctx(kioctx) do {						\
+-	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
+-	atomic_inc(&(kioctx)->users);					\
+-} while (0)
+-#define put_ioctx(kioctx) do {						\
+-	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
+-	if (unlikely(atomic_dec_and_test(&(kioctx)->users))) 		\
+-		__put_ioctx(kioctx);					\
+-} while (0)
++static inline void get_ioctx(struct kioctx *kioctx)
++{
++	BUG_ON(atomic_read(&kioctx->users) <= 0);
++	atomic_inc(&kioctx->users);
++}
++
++static inline int try_get_ioctx(struct kioctx *kioctx)
++{
++	return atomic_inc_not_zero(&kioctx->users);
++}
++
++static inline void put_ioctx(struct kioctx *kioctx)
++{
++	BUG_ON(atomic_read(&kioctx->users) <= 0);
++	if (unlikely(atomic_dec_and_test(&kioctx->users)))
++		__put_ioctx(kioctx);
++}
+ 
+ /* ioctx_alloc
+  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
+@@ -601,8 +609,13 @@ static struct kioctx *lookup_ioctx(unsig
+ 	rcu_read_lock();
+ 
+ 	hlist_for_each_entry_rcu(ctx, n, &mm->ioctx_list, list) {
+-		if (ctx->user_id == ctx_id && !ctx->dead) {
+-			get_ioctx(ctx);
++		/*
++		 * RCU protects us against accessing freed memory but
++		 * we have to be careful not to get a reference when the
++		 * reference count already dropped to 0 (ctx->dead test
++		 * is unreliable because of races).
++		 */
++		if (ctx->user_id == ctx_id && !ctx->dead && try_get_ioctx(ctx)){
+ 			ret = ctx;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
 linux-next.patch
 aio-fix-rcu-ioctx-lookup.patch
-aio-fix-race-between-io_destroy-and-io_submit.patch
-ext3-use-little-endian-bitops.patch
-udf-use-little-endian-bitops.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
 
