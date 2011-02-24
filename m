@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-usb-se401-moved-to-staging-update-pattern.patch added to -mm tree
-Date: Thu, 24 Feb 2011 14:34:11 -0800
-Message-ID: <201102242234.p1OMYBi1030766@imap1.linux-foundation.org>
+Subject: + maintainers-update-winbond-cir-pattern.patch added to -mm tree
+Date: Thu, 24 Feb 2011 14:34:14 -0800
+Message-ID: <201102242234.p1OMYFgQ030770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756169Ab1BXWeZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754399Ab1BXWeb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 17:34:25 -0500
+	Thu, 24 Feb 2011 17:34:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, hverkuil@xs4all.nl, mchehab@redhat.com, pe1rxq@amsat.org
+Cc: joe@perches.com, david@hardeman.nu, mchehab@redhat.com
 
 
 The patch titled
-     MAINTAINERS: uSB SE401 moved to staging, update pattern
+     MAINTAINERS: update WINBOND CIR pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-usb-se401-moved-to-staging-update-pattern.patch
+     maintainers-update-winbond-cir-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,47 +29,44 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: uSB SE401 moved to staging, update pattern
-From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update WINBOND CIR pattern
+=46rom: Joe Perches <joe@perches.com>
 
-And set the status to Orphan.
+commit 5b2e303f6df ("[media] rc-core: convert winbond-cir") moved the
+files, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jeroen Vreeken <pe1rxq@amsat.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Acked-by: David H=E4rdeman <david@hardeman.nu>
 Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-usb-se401-moved-to-staging-update-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-usb-se401-moved-to-staging-update-pattern
+diff -puN MAINTAINERS~maintainers-update-winbond-cir-pattern MAINTAINER=
+S
+--- a/MAINTAINERS~maintainers-update-winbond-cir-pattern
 +++ a/MAINTAINERS
-@@ -6427,12 +6427,11 @@ S:	Maintained
- F:	drivers/net/usb/rtl8150.c
- 
- USB SE401 DRIVER
--M:	Jeroen Vreeken <pe1rxq@amsat.org>
- L:	linux-usb@vger.kernel.org
- W:	http://www.chello.nl/~j.vreeken/se401/
--S:	Maintained
-+S:	Orphan
- F:	Documentation/video4linux/se401.txt
--F:	drivers/media/video/se401.*
-+F:	drivers/staging/se401/
- 
- USB SERIAL BELKIN F5U103 DRIVER
- M:	William Greathouse <wgreathouse@smva.com>
+@@ -6794,7 +6794,7 @@ F:	drivers/scsi/wd7000.c
+ WINBOND CIR DRIVER
+ M:	David H=C3=A4rdeman <david@hardeman.nu>
+ S:	Maintained
+-F:	drivers/input/misc/winbond-cir.c
++F:	drivers/media/rc/winbond-cir.c
+=20
+ WIMAX STACK
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -95,3 +95,8 @@ maintainers-update-tipc-patterns.patch
 maintainers-usb-se401-moved-to-staging-update-pattern.patch
 maintainers-update-winbond-cir-pattern.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
