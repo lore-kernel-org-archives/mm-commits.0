@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-have-smaps-show-transparent-huge-pages.patch added to -mm tree
-Date: Wed, 23 Feb 2011 16:48:17 -0800
-Message-ID: <201102240048.p1O0mIGx002207@imap1.linux-foundation.org>
+Subject: + smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch added to -mm tree
+Date: Wed, 23 Feb 2011 16:48:09 -0800
+Message-ID: <201102240048.p1O0mAsN002175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754157Ab1BXAt1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754205Ab1BXAtf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Feb 2011 19:49:27 -0500
+	Wed, 23 Feb 2011 19:49:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dave@linux.vnet.ibm.com, aarcange@redhat.com, emunson@mgebm.net, hannes@cmpx
 
 
 The patch titled
-     smaps: have smaps show transparent huge pages
+     smaps: break out smaps_pte_entry() from smaps_pte_range()
 has been added to the -mm tree.  Its filename is
-     smaps-have-smaps-show-transparent-huge-pages.patch
+     smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smaps: have smaps show transparent huge pages
+Subject: smaps: break out smaps_pte_entry() from smaps_pte_range()
 From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Now that the mere act of _looking_ at /proc/$pid/smaps will not destroy
-transparent huge pages, tell how much of the VMA is actually mapped with
-them.
-
-This way, we can make sure that we're getting THPs where we
-expect to see them.
+We will use smaps_pte_entry() in a moment to handle both small and
+transparent large pages.  But, we must break it out of smaps_pte_range()
+first.
 
 Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David Rientjes <rientjes@google.com>
 Reviewed-by: Eric B Munson <emunson@mgebm.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
 Cc: Michael J Wolf <mjwolf@us.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/task_mmu.c |   85 +++++++++++++++++++++++--------------------
+ 1 file changed, 46 insertions(+), 39 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-have-smaps-show-transparent-huge-pages fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-have-smaps-show-transparent-huge-pages
+diff -puN fs/proc/task_mmu.c~smaps-break-out-smaps_pte_entry-from-smaps_pte_range fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-break-out-smaps_pte_entry-from-smaps_pte_range
 +++ a/fs/proc/task_mmu.c
-@@ -331,6 +331,7 @@ struct mem_size_stats {
- 	unsigned long private_dirty;
- 	unsigned long referenced;
- 	unsigned long anonymous;
-+	unsigned long anonymous_thp;
- 	unsigned long swap;
+@@ -333,56 +333,63 @@ struct mem_size_stats {
  	u64 pss;
  };
-@@ -396,6 +397,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 			smaps_pte_entry(*(pte_t *)pmd, addr,
- 					HPAGE_PMD_SIZE, walk);
- 			spin_unlock(&walk->mm->page_table_lock);
-+			mss->anonymous_thp += HPAGE_PMD_SIZE;
- 			return 0;
- 		}
- 	} else {
-@@ -444,6 +446,7 @@ static int show_smap(struct seq_file *m,
- 		   "Private_Dirty:  %8lu kB\n"
- 		   "Referenced:     %8lu kB\n"
- 		   "Anonymous:      %8lu kB\n"
-+		   "AnonHugePages:  %8lu kB\n"
- 		   "Swap:           %8lu kB\n"
- 		   "KernelPageSize: %8lu kB\n"
- 		   "MMUPageSize:    %8lu kB\n"
-@@ -457,6 +460,7 @@ static int show_smap(struct seq_file *m,
- 		   mss.private_dirty >> 10,
- 		   mss.referenced >> 10,
- 		   mss.anonymous >> 10,
-+		   mss.anonymous_thp >> 10,
- 		   mss.swap >> 10,
- 		   vma_kernel_pagesize(vma) >> 10,
- 		   vma_mmu_pagesize(vma) >> 10,
+ 
+-static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			   struct mm_walk *walk)
++
++static void smaps_pte_entry(pte_t ptent, unsigned long addr,
++		struct mm_walk *walk)
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = mss->vma;
+-	pte_t *pte, ptent;
+-	spinlock_t *ptl;
+ 	struct page *page;
+ 	int mapcount;
+ 
+-	split_huge_page_pmd(walk->mm, pmd);
+-
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE) {
+-		ptent = *pte;
++	if (is_swap_pte(ptent)) {
++		mss->swap += PAGE_SIZE;
++		return;
++	}
+ 
+-		if (is_swap_pte(ptent)) {
+-			mss->swap += PAGE_SIZE;
+-			continue;
+-		}
++	if (!pte_present(ptent))
++		return;
+ 
+-		if (!pte_present(ptent))
+-			continue;
++	page = vm_normal_page(vma, addr, ptent);
++	if (!page)
++		return;
++
++	if (PageAnon(page))
++		mss->anonymous += PAGE_SIZE;
++
++	mss->resident += PAGE_SIZE;
++	/* Accumulate the size in pages that have been accessed. */
++	if (pte_young(ptent) || PageReferenced(page))
++		mss->referenced += PAGE_SIZE;
++	mapcount = page_mapcount(page);
++	if (mapcount >= 2) {
++		if (pte_dirty(ptent) || PageDirty(page))
++			mss->shared_dirty += PAGE_SIZE;
++		else
++			mss->shared_clean += PAGE_SIZE;
++		mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
++	} else {
++		if (pte_dirty(ptent) || PageDirty(page))
++			mss->private_dirty += PAGE_SIZE;
++		else
++			mss->private_clean += PAGE_SIZE;
++		mss->pss += (PAGE_SIZE << PSS_SHIFT);
++	}
++}
+ 
+-		page = vm_normal_page(vma, addr, ptent);
+-		if (!page)
+-			continue;
++static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			   struct mm_walk *walk)
++{
++	struct mem_size_stats *mss = walk->private;
++	struct vm_area_struct *vma = mss->vma;
++	pte_t *pte;
++	spinlock_t *ptl;
+ 
+-		if (PageAnon(page))
+-			mss->anonymous += PAGE_SIZE;
++	split_huge_page_pmd(walk->mm, pmd);
+ 
+-		mss->resident += PAGE_SIZE;
+-		/* Accumulate the size in pages that have been accessed. */
+-		if (pte_young(ptent) || PageReferenced(page))
+-			mss->referenced += PAGE_SIZE;
+-		mapcount = page_mapcount(page);
+-		if (mapcount >= 2) {
+-			if (pte_dirty(ptent) || PageDirty(page))
+-				mss->shared_dirty += PAGE_SIZE;
+-			else
+-				mss->shared_clean += PAGE_SIZE;
+-			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
+-		} else {
+-			if (pte_dirty(ptent) || PageDirty(page))
+-				mss->private_dirty += PAGE_SIZE;
+-			else
+-				mss->private_clean += PAGE_SIZE;
+-			mss->pss += (PAGE_SIZE << PSS_SHIFT);
+-		}
+-	}
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (; addr != end; pte++, addr += PAGE_SIZE)
++		smaps_pte_entry(*pte, addr, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+ 	return 0;
 _
 
 Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
