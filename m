@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-remove-unreachable-code.patch added to -mm tree
-Date: Fri, 25 Feb 2011 12:47:20 -0800
-Message-ID: <201102252047.p1PKlKvh028821@imap1.linux-foundation.org>
+Subject: + rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch added to -mm tree
+Date: Fri, 25 Feb 2011 12:57:47 -0800
+Message-ID: <201102252057.p1PKvlxR029264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932620Ab1BYUr2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755065Ab1BYU6P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Feb 2011 15:47:28 -0500
+	Fri, 25 Feb 2011 15:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lasaine@lvk.cs.msu.su, giometti@linux.it, johnstul@us.ibm.com
+Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
 
 
 The patch titled
-     pps: remove unreachable code
+     rapidio: fix sysfs config attribute to access 16MB of maint space
 has been added to the -mm tree.  Its filename is
-     pps-remove-unreachable-code.patch
+     rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: remove unreachable code
-From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Subject: rapidio: fix sysfs config attribute to access 16MB of maint space
+From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Remove code enabled only when CONFIG_PREEMPT_RT is turned on because it is
-not used in the vanilla kernel.
+Fixes sysfs config attribute to allow access to entire 16MB maintenance
+space of RapidIO devices.
 
-Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Rodolfo Giometti <giometti@linux.it>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Thomas Moll <thomas.moll@sysgo.com>
+Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/generators/pps_gen_parport.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/rapidio/rio-sysfs.c |   12 ++++++------
+ include/linux/rio_regs.h    |    4 +++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pps/generators/pps_gen_parport.c~pps-remove-unreachable-code drivers/pps/generators/pps_gen_parport.c
---- a/drivers/pps/generators/pps_gen_parport.c~pps-remove-unreachable-code
-+++ a/drivers/pps/generators/pps_gen_parport.c
-@@ -216,11 +216,6 @@ static void parport_attach(struct parpor
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -110,9 +110,9 @@ rio_read_config(struct file *filp, struc
  
- 	hrtimer_init(&device.timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
- 	device.timer.function = hrtimer_event;
--#ifdef CONFIG_PREEMPT_RT
--	/* hrtimer interrupt will run in the interrupt context with this */
--	device.timer.irqsafe = 1;
--#endif
+ 	/* Several chips lock up trying to read undefined config space */
+ 	if (capable(CAP_SYS_ADMIN))
+-		size = 0x200000;
++		size = RIO_MAINT_SPACE_SZ;
+ 
+-	if (off > size)
++	if (off >= size)
+ 		return 0;
+ 	if (off + count > size) {
+ 		size -= off;
+@@ -180,10 +180,10 @@ rio_write_config(struct file *filp, stru
+ 	loff_t init_off = off;
+ 	u8 *data = (u8 *) buf;
+ 
+-	if (off > 0x200000)
++	if (off >= RIO_MAINT_SPACE_SZ)
+ 		return 0;
+-	if (off + count > 0x200000) {
+-		size = 0x200000 - off;
++	if (off + count > RIO_MAINT_SPACE_SZ) {
++		size = RIO_MAINT_SPACE_SZ - off;
+ 		count = size;
+ 	}
+ 
+@@ -233,7 +233,7 @@ static struct bin_attribute rio_config_a
+ 		 .name = "config",
+ 		 .mode = S_IRUGO | S_IWUSR,
+ 		 },
+-	.size = 0x200000,
++	.size = RIO_MAINT_SPACE_SZ,
+ 	.read = rio_read_config,
+ 	.write = rio_write_config,
+ };
+diff -puN include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space include/linux/rio_regs.h
+--- a/include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
++++ a/include/linux/rio_regs.h
+@@ -14,10 +14,12 @@
+ #define LINUX_RIO_REGS_H
+ 
+ /*
+- * In RapidIO, each device has a 2MB configuration space that is
++ * In RapidIO, each device has a 16MB configuration space that is
+  * accessed via maintenance transactions.  Portions of configuration
+  * space are standardized and/or reserved.
+  */
++#define RIO_MAINT_SPACE_SZ	0x1000000 /* 16MB of RapidIO mainenance space */
++
+ #define RIO_DEV_ID_CAR		0x00	/* [I] Device Identity CAR */
+ #define RIO_DEV_INFO_CAR	0x04	/* [I] Device Information CAR */
+ #define RIO_ASM_ID_CAR		0x08	/* [I] Assembly Identity CAR */
+_
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch
+rapidio-add-new-sysfs-attributes.patch
+rapidio-add-rapidio-documentation.patch
+
