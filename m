@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-return-0-too-early-from-find_get_pages.patch added to -mm tree
-Date: Thu, 24 Feb 2011 16:20:11 -0800
-Message-ID: <201102250020.p1P0KBpH003545@imap1.linux-foundation.org>
+Subject: + memcg-more-mem_cgroup_uncharge-batching.patch added to -mm tree
+Date: Thu, 24 Feb 2011 16:22:30 -0800
+Message-ID: <201102250022.p1P0MUHh003670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756664Ab1BYAUw (ORCPT
+	by vger.kernel.org with ESMTP id S1756694Ab1BYAXQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Feb 2011 19:20:52 -0500
+	Thu, 24 Feb 2011 19:23:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, a.p.zijlstra@chello.nl, fengguang.wu@intel.com, npiggin@kernel.dk, sqazi@google.com
+Cc: hughd@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm: don't return 0 too early from find_get_pages()
+     memcg: more mem_cgroup_uncharge() batching
 has been added to the -mm tree.  Its filename is
-     mm-dont-return-0-too-early-from-find_get_pages.patch
+     memcg-more-mem_cgroup_uncharge-batching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't return 0 too early from find_get_pages()
+Subject: memcg: more mem_cgroup_uncharge() batching
 From: Hugh Dickins <hughd@google.com>
 
-Callers of find_get_pages(), or its wrapper pagevec_lookup() - notably
-truncate_inode_pages_range() - stop looking further when it returns 0.
-
-But if an interrupt comes just after its radix_tree_gang_lookup_slot(),
-especially if we have preemptible RCU enabled, isn't it conceivable that
-all 14 pages returned could be removed from the page cache by
-shrink_page_list(), before find_get_pages() gets to process them?  So
-causing it to return 0 although there may be plenty more pages beyond.
-
-Make find_get_pages() and find_get_pages_tag() check for this unlikely
-case, and restart should it occur; but callers of find_get_pages_contig()
-have no such expectation, it's okay for that to return 0 early.
-
-I have not seen this in practice, just worried by the possibility.
+It seems odd that truncate_inode_pages_range(), called not only when
+truncating but also when evicting inodes, has mem_cgroup_uncharge_start
+and _end() batching in its second loop to clear up a few leftovers, but
+not in its first loop that does almost all the work: add them there too.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Salman Qazi <sqazi@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/truncate.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/filemap.c~mm-dont-return-0-too-early-from-find_get_pages mm/filemap.c
---- a/mm/filemap.c~mm-dont-return-0-too-early-from-find_get_pages
-+++ a/mm/filemap.c
-@@ -897,6 +897,13 @@ repeat:
- 		pages[ret] = page;
- 		ret++;
+diff -puN mm/truncate.c~memcg-more-mem_cgroup_uncharge-batching mm/truncate.c
+--- a/mm/truncate.c~memcg-more-mem_cgroup_uncharge-batching
++++ a/mm/truncate.c
+@@ -232,6 +232,7 @@ void truncate_inode_pages_range(struct a
+ 	next = start;
+ 	while (next <= end &&
+ 	       pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t page_index = page->index;
+@@ -254,6 +255,7 @@ void truncate_inode_pages_range(struct a
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
  	}
-+
-+	/*
-+	 * If all entries were removed before we could secure them,
-+	 * try again, because callers stop trying once 0 is returned.
-+	 */
-+	if (unlikely(!ret && nr_found))
-+		goto restart;
- 	rcu_read_unlock();
- 	return ret;
- }
-@@ -1016,6 +1023,13 @@ repeat:
- 		pages[ret] = page;
- 		ret++;
- 	}
-+
-+	/*
-+	 * If all entries were removed before we could secure them,
-+	 * try again, because callers stop trying once 0 is returned.
-+	 */
-+	if (unlikely(!ret && nr_found))
-+		goto restart;
- 	rcu_read_unlock();
  
- 	if (ret)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 linux-next.patch
+memcg-more-mem_cgroup_uncharge-batching.patch
 mm-vmap-area-cache.patch
 mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
 mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
