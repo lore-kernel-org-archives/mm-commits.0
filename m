@@ -1,88 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch removed from -mm tree
-Date: Fri, 25 Feb 2011 13:01:11 -0800
-Message-ID: <201102252135.p1PLZoAu030955@imap1.linux-foundation.org>
+Subject: [folded] mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2.patch removed from -mm tree
+Date: Fri, 25 Feb 2011 14:42:43 -0800
+Message-ID: <201102252242.p1PMghNr001718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753722Ab1BYVgd (ORCPT
+	by vger.kernel.org with ESMTP id S1754324Ab1BYWne (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Feb 2011 16:36:33 -0500
+	Fri, 25 Feb 2011 17:43:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, aarcange@redhat.com, hannes@cmpxchg.org, kent.overstreet@gmail.com, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
+     mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2
 has been removed from the -mm tree.  Its filename was
-     block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch
+     mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2
+From: Mel Gorman <mel@csn.ul.ie>
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
- IP: [<ffffffff812479d4>] do_raw_spin_lock+0x14/0x122
- Process modprobe (pid: 6189, threadinfo ffff88009a898000, task
- ffff880154a88000)
- Call Trace:
-  [<ffffffff81486788>] _raw_spin_lock_irq+0x4a/0x51
-  [<ffffffff8123404b>] ? blk_throtl_exit+0x3b/0xa0
-  [<ffffffff8105b120>] ? cancel_delayed_work_sync+0xd/0xf
-  [<ffffffff8123404b>] blk_throtl_exit+0x3b/0xa0
-  [<ffffffff81229bc8>] blk_release_queue+0x21/0x65
-  [<ffffffff8123bb06>] kobject_release+0x51/0x66
-  [<ffffffff8123bab5>] ? kobject_release+0x0/0x66
-  [<ffffffff8123ce1e>] kref_put+0x43/0x4d
-  [<ffffffff8123ba27>] kobject_put+0x47/0x4b
-  [<ffffffff8122717c>] blk_cleanup_queue+0x56/0x5b
-  [<ffffffffa01c3824>] loop_exit+0x68/0x844 [loop]
-  [<ffffffff8107cccc>] sys_delete_module+0x1e8/0x25b
-  [<ffffffff814864c9>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-  [<ffffffff81002112>] system_call_fastpath+0x16/0x1b
-
-because of an attempt to acquire NULL queue_lock.  Added the same lines as
-in blk_queue_make_request: 'fall back to embedded per-queue lock' - when
-call blk_release_queue on allocated but never initialized queue.
-
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-sysfs.c    |    6 ++++++
- drivers/block/loop.c |    3 ---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 block/blk-sysfs.c
---- a/block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
-+++ a/block/blk-sysfs.c
-@@ -471,6 +471,12 @@ static void blk_release_queue(struct kob
- 
- 	blk_sync_queue(q);
- 
-+	/* It's possible that blk_release_queue will be called on allocated
-+	 * but never initialized queue. Fall back to our embedded per-queue
-+	 * locks in this case. */
-+	if (!q->queue_lock)
-+		q->queue_lock = &q->__queue_lock;
-+
- 	blk_throtl_exit(q);
- 
- 	if (rl->rq_pool)
-diff -puN drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 drivers/block/loop.c
---- a/drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
-+++ a/drivers/block/loop.c
-@@ -1641,9 +1641,6 @@ out:
- 
- static void loop_free(struct loop_device *lo)
- {
--	if (!lo->lo_queue->queue_lock)
--		lo->lo_queue->queue_lock = &lo->lo_queue->__queue_lock;
+diff -puN mm/vmscan.c~mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2 mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat-v2
++++ a/mm/vmscan.c
+@@ -1844,16 +1844,16 @@ static inline bool should_continue_recla
+ 	/* Consider stopping depending on scan and reclaim activity */
+ 	if (sc->gfp_mask & __GFP_REPEAT) {
+ 		/*
+-		 * For GFP_REPEAT allocations, stop reclaiming if the
++		 * For __GFP_REPEAT allocations, stop reclaiming if the
+ 		 * full LRU list has been scanned and we are still failing
+ 		 * to reclaim pages. This full LRU scan is potentially
+-		 * expensive but a GFP_REPEAT caller really wants to succeed
++		 * expensive but a __GFP_REPEAT caller really wants to succeed
+ 		 */
+ 		if (!nr_reclaimed && !nr_scanned)
+ 			return false;
+ 	} else {
+ 		/*
+-		 * For non-GFP_REPEAT allocations which can presumably
++		 * For non-__GFP_REPEAT allocations which can presumably
+ 		 * fail without consequence, stop if we failed to reclaim
+ 		 * any pages from the last SWAP_CLUSTER_MAX number of
+ 		 * pages that were scanned. This will return to the
+_
+
+Patches currently in -mm which might be from mel@csn.ul.ie are
+
+mm-grab-rcu-read-lock-in-move_pages.patch
+mm-vmscan-stop-reclaim-compaction-earlier-due-to-insufficient-progress-if-__gfp_repeat.patch
+linux-next.patch
+mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
+mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+mm-batch-free-pcp-list-if-possible.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+mm-rename-drop_anon_vma-to-put_anon_vma.patch
+mm-move-anon_vma-ref-out-from-under-config_foo.patch
+mm-simplify-anon_vma-refcounts.patch
+mm-deactivate-invalidated-pages.patch
+mm-reclaim-invalidated-page-asap.patch
+pagewalk-only-split-huge-pages-when-necessary.patch
+smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
+smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
+smaps-teach-smaps_pte_range-about-thp-pmds.patch
+smaps-have-smaps-show-transparent-huge-pages.patch
+mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones.patch
+hugetlbfs-correct-handling-of-negative-input-to-proc-sys-vm-nr_hugepages.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+
