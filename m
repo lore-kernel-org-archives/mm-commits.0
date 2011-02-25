@@ -1,118 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch added to -mm tree
-Date: Fri, 25 Feb 2011 12:57:47 -0800
-Message-ID: <201102252057.p1PKvlxR029264@imap1.linux-foundation.org>
+Subject: [obsolete] block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch removed from -mm tree
+Date: Fri, 25 Feb 2011 13:01:11 -0800
+Message-ID: <201102252135.p1PLZoAu030955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755065Ab1BYU6P (ORCPT
+	by vger.kernel.org with ESMTP id S1753722Ab1BYVgd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Feb 2011 15:58:15 -0500
+	Fri, 25 Feb 2011 16:36:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+To: sergey.senozhatsky@gmail.com, jaxboe@fusionio.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: fix sysfs config attribute to access 16MB of maint space
-has been added to the -mm tree.  Its filename is
-     rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch
+     block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
+has been removed from the -mm tree.  Its filename was
+     block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: fix sysfs config attribute to access 16MB of maint space
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: block: fix queue_lock NULL pointer derefence in blk_throtl_exit()
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-Fixes sysfs config attribute to allow access to entire 16MB maintenance
-space of RapidIO devices.
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+ IP: [<ffffffff812479d4>] do_raw_spin_lock+0x14/0x122
+ Process modprobe (pid: 6189, threadinfo ffff88009a898000, task
+ ffff880154a88000)
+ Call Trace:
+  [<ffffffff81486788>] _raw_spin_lock_irq+0x4a/0x51
+  [<ffffffff8123404b>] ? blk_throtl_exit+0x3b/0xa0
+  [<ffffffff8105b120>] ? cancel_delayed_work_sync+0xd/0xf
+  [<ffffffff8123404b>] blk_throtl_exit+0x3b/0xa0
+  [<ffffffff81229bc8>] blk_release_queue+0x21/0x65
+  [<ffffffff8123bb06>] kobject_release+0x51/0x66
+  [<ffffffff8123bab5>] ? kobject_release+0x0/0x66
+  [<ffffffff8123ce1e>] kref_put+0x43/0x4d
+  [<ffffffff8123ba27>] kobject_put+0x47/0x4b
+  [<ffffffff8122717c>] blk_cleanup_queue+0x56/0x5b
+  [<ffffffffa01c3824>] loop_exit+0x68/0x844 [loop]
+  [<ffffffff8107cccc>] sys_delete_module+0x1e8/0x25b
+  [<ffffffff814864c9>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+  [<ffffffff81002112>] system_call_fastpath+0x16/0x1b
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+because of an attempt to acquire NULL queue_lock.  Added the same lines as
+in blk_queue_make_request: 'fall back to embedded per-queue lock' - when
+call blk_release_queue on allocated but never initialized queue.
+
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Jens Axboe <jaxboe@fusionio.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-sysfs.c |   12 ++++++------
- include/linux/rio_regs.h    |    4 +++-
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ block/blk-sysfs.c    |    6 ++++++
+ drivers/block/loop.c |    3 ---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -110,9 +110,9 @@ rio_read_config(struct file *filp, struc
+diff -puN block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 block/blk-sysfs.c
+--- a/block/blk-sysfs.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
++++ a/block/blk-sysfs.c
+@@ -471,6 +471,12 @@ static void blk_release_queue(struct kob
  
- 	/* Several chips lock up trying to read undefined config space */
- 	if (capable(CAP_SYS_ADMIN))
--		size = 0x200000;
-+		size = RIO_MAINT_SPACE_SZ;
+ 	blk_sync_queue(q);
  
--	if (off > size)
-+	if (off >= size)
- 		return 0;
- 	if (off + count > size) {
- 		size -= off;
-@@ -180,10 +180,10 @@ rio_write_config(struct file *filp, stru
- 	loff_t init_off = off;
- 	u8 *data = (u8 *) buf;
- 
--	if (off > 0x200000)
-+	if (off >= RIO_MAINT_SPACE_SZ)
- 		return 0;
--	if (off + count > 0x200000) {
--		size = 0x200000 - off;
-+	if (off + count > RIO_MAINT_SPACE_SZ) {
-+		size = RIO_MAINT_SPACE_SZ - off;
- 		count = size;
- 	}
- 
-@@ -233,7 +233,7 @@ static struct bin_attribute rio_config_a
- 		 .name = "config",
- 		 .mode = S_IRUGO | S_IWUSR,
- 		 },
--	.size = 0x200000,
-+	.size = RIO_MAINT_SPACE_SZ,
- 	.read = rio_read_config,
- 	.write = rio_write_config,
- };
-diff -puN include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space include/linux/rio_regs.h
---- a/include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
-+++ a/include/linux/rio_regs.h
-@@ -14,10 +14,12 @@
- #define LINUX_RIO_REGS_H
- 
- /*
-- * In RapidIO, each device has a 2MB configuration space that is
-+ * In RapidIO, each device has a 16MB configuration space that is
-  * accessed via maintenance transactions.  Portions of configuration
-  * space are standardized and/or reserved.
-  */
-+#define RIO_MAINT_SPACE_SZ	0x1000000 /* 16MB of RapidIO mainenance space */
++	/* It's possible that blk_release_queue will be called on allocated
++	 * but never initialized queue. Fall back to our embedded per-queue
++	 * locks in this case. */
++	if (!q->queue_lock)
++		q->queue_lock = &q->__queue_lock;
 +
- #define RIO_DEV_ID_CAR		0x00	/* [I] Device Identity CAR */
- #define RIO_DEV_INFO_CAR	0x04	/* [I] Device Information CAR */
- #define RIO_ASM_ID_CAR		0x08	/* [I] Assembly Identity CAR */
-_
-
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
-
-rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch
-rapidio-add-new-sysfs-attributes.patch
-rapidio-add-rapidio-documentation.patch
-
+ 	blk_throtl_exit(q);
+ 
+ 	if (rl->rq_pool)
+diff -puN drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4 drivers/block/loop.c
+--- a/drivers/block/loop.c~block-fix-queue_lock-null-pointer-derefence-in-blk_throtl_exit-v4
++++ a/drivers/block/loop.c
+@@ -1641,9 +1641,6 @@ out:
+ 
+ static void loop_free(struct loop_device *lo)
+ {
+-	if (!lo->lo_queue->queue_lock)
+-		lo->lo_queue->queue_lock = &lo->lo_queue->__queue_lock;
