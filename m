@@ -1,100 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 15:24:26 -0800
-Message-ID: <201102282324.p1SNORiX003723@imap1.linux-foundation.org>
+Subject: + cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch added to -mm tree
+Date: Mon, 28 Feb 2011 15:26:53 -0800
+Message-ID: <201102282326.p1SNQrqm003837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753635Ab1B1XZC (ORCPT
+	by vger.kernel.org with ESMTP id S1753678Ab1B1X13 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 18:25:02 -0500
+	Mon, 28 Feb 2011 18:27:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com
 
 
 The patch titled
-     cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
-has been removed from the -mm tree.  Its filename was
-     cpuset-fix-unchecked-calls-to-nodemask_alloc-fix.patch
+     cpuset-fix-unchecked-calls-to-nodemask_alloc-v2
+has been added to the -mm tree.  Its filename is
+     cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
 
-This patch was dropped because it was folded into cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpuset-fix-unchecked-calls-to-nodemask_alloc-v2
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-fix comment spelling, strengthen cgroup_lock comment
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Paul Menage <menage@google.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |   46 +++++++++++++++++++++-------------------------
+ 1 file changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-fix
+diff -puN kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-v2 kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-fix-unchecked-calls-to-nodemask_alloc-v2
 +++ a/kernel/cpuset.c
-@@ -80,11 +80,11 @@ struct cgroup_subsys cpuset_subsys;
+@@ -79,15 +79,6 @@ int number_of_cpusets __read_mostly;
+ struct cgroup_subsys cpuset_subsys;
  struct cpuset;
  
- /*
-- * In functions that can't propogate errno to users, to avoid declaring a
-+ * In functions that can't propagate errno to users, to avoid declaring a
-  * nodemask_t variable, and avoid using NODEMASK_ALLOC that can return
-  * -ENOMEM, we use this global cpuset_mems.
-  *
-- * It should be used with cgroup_lock held.
-+ * It must called under cgroup_lock().
-  */
- static nodemask_t cpuset_mems;
+-/*
+- * In functions that can't propagate errno to users, to avoid declaring a
+- * nodemask_t variable, and avoid using NODEMASK_ALLOC that can return
+- * -ENOMEM, we use this global cpuset_mems.
+- *
+- * It must called under cgroup_lock().
+- */
+-static nodemask_t cpuset_mems;
+-
+ /* See "Frequency meter" comments, below. */
  
+ struct fmeter {
+@@ -1024,11 +1015,12 @@ static void cpuset_change_nodemask(struc
+ 	struct cpuset *cs;
+ 	int migrate;
+ 	const nodemask_t *oldmem = scan->data;
++	static nodemask_t newmems;	/* protected by cgroup_mutex */
+ 
+ 	cs = cgroup_cs(scan->cg);
+-	guarantee_online_mems(cs, &cpuset_mems);
++	guarantee_online_mems(cs, &newmems);
+ 
+-	cpuset_change_task_nodemask(p, &cpuset_mems);
++	cpuset_change_task_nodemask(p, &newmems);
+ 
+ 	mm = get_task_mm(p);
+ 	if (!mm)
+@@ -1099,10 +1091,13 @@ static void update_tasks_nodemask(struct
+ static int update_nodemask(struct cpuset *cs, struct cpuset *trialcs,
+ 			   const char *buf)
+ {
+-	nodemask_t *oldmem = &cpuset_mems;
++	NODEMASK_ALLOC(nodemask_t, oldmem, GFP_KERNEL);
+ 	int retval;
+ 	struct ptr_heap heap;
+ 
++	if (!oldmem)
++		return -ENOMEM;
++
+ 	/*
+ 	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
+ 	 * it's read-only
+@@ -1152,6 +1147,7 @@ static int update_nodemask(struct cpuset
+ 
+ 	heap_free(&heap);
+ done:
++	NODEMASK_FREE(oldmem);
+ 	return retval;
+ }
+ 
+@@ -1437,33 +1433,33 @@ static void cpuset_attach(struct cgroup_
+ 	struct mm_struct *mm;
+ 	struct cpuset *cs = cgroup_cs(cont);
+ 	struct cpuset *oldcs = cgroup_cs(oldcont);
+-	nodemask_t *to = &cpuset_mems;
++	static nodemask_t to;		/* protected by cgroup_mutex */
+ 
+ 	if (cs == &top_cpuset) {
+ 		cpumask_copy(cpus_attach, cpu_possible_mask);
+ 	} else {
+ 		guarantee_online_cpus(cs, cpus_attach);
+ 	}
+-	guarantee_online_mems(cs, to);
++	guarantee_online_mems(cs, &to);
+ 
+ 	/* do per-task migration stuff possibly for each in the threadgroup */
+-	cpuset_attach_task(tsk, to, cs);
++	cpuset_attach_task(tsk, &to, cs);
+ 	if (threadgroup) {
+ 		struct task_struct *c;
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(c, &tsk->thread_group, thread_group) {
+-			cpuset_attach_task(c, to, cs);
++			cpuset_attach_task(c, &to, cs);
+ 		}
+ 		rcu_read_unlock();
+ 	}
+ 
+ 	/* change mm; only needs to be done once even if threadgroup */
+-	*to = cs->mems_allowed;
++	to = cs->mems_allowed;
+ 	mm = get_task_mm(tsk);
+ 	if (mm) {
+-		mpol_rebind_mm(mm, to);
++		mpol_rebind_mm(mm, &to);
+ 		if (is_memory_migrate(cs))
+-			cpuset_migrate_mm(mm, &oldcs->mems_allowed, to);
++			cpuset_migrate_mm(mm, &oldcs->mems_allowed, &to);
+ 		mmput(mm);
+ 	}
+ }
+@@ -2044,7 +2040,7 @@ static void scan_for_empty_cpusets(struc
+ 	struct cpuset *cp;	/* scans cpusets being updated */
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+ 	struct cgroup *cont;
+-	nodemask_t *oldmems = &cpuset_mems;
++	static nodemask_t oldmems;	/* protected by cgroup_mutex */
+ 
+ 	list_add_tail((struct list_head *)&root->stack_list, &queue);
+ 
+@@ -2061,7 +2057,7 @@ static void scan_for_empty_cpusets(struc
+ 		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
+ 			continue;
+ 
+-		*oldmems = cp->mems_allowed;
++		oldmems = cp->mems_allowed;
+ 
+ 		/* Remove offline cpus and mems from this cpuset. */
+ 		mutex_lock(&callback_mutex);
+@@ -2077,7 +2073,7 @@ static void scan_for_empty_cpusets(struc
+ 			remove_tasks_in_empty_cpuset(cp);
+ 		else {
+ 			update_tasks_cpumask(cp, NULL);
+-			update_tasks_nodemask(cp, oldmems, NULL);
++			update_tasks_nodemask(cp, &oldmems, NULL);
+ 		}
+ 	}
+ }
+@@ -2121,16 +2117,16 @@ void cpuset_update_active_cpus(void)
+ static int cpuset_track_online_nodes(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
+-	nodemask_t *oldmems = &cpuset_mems;
++	static nodemask_t oldmems;	/* protected by cgroup_mutex */
+ 
+ 	cgroup_lock();
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-		*oldmems = top_cpuset.mems_allowed;
++		oldmems = top_cpuset.mems_allowed;
+ 		mutex_lock(&callback_mutex);
+ 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 		mutex_unlock(&callback_mutex);
+-		update_tasks_nodemask(&top_cpuset, oldmems, NULL);
++		update_tasks_nodemask(&top_cpuset, &oldmems, NULL);
+ 		break;
+ 	case MEM_OFFLINE:
+ 		/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-lib-vsprintf-optimised-put_dec-function-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+mm-notifier_from_errno-cleanup.patch
+cgroup-remove-the-ns_cgroup.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
+cpuset-hold-callback_mutex-in-cpuset_clone.patch
 
