@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-include-information-about-uie-and-pie-in-rtc-driver-proc.patch added to -mm tree
-Date: Mon, 28 Feb 2011 14:48:44 -0800
-Message-ID: <201102282248.p1SMmiWZ001733@imap1.linux-foundation.org>
+Subject: + char-ipmi-fix-cleanup_one_si-section-mismatch.patch added to -mm tree
+Date: Mon, 28 Feb 2011 14:52:43 -0800
+Message-ID: <201102282252.p1SMqhqX001831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753212Ab1B1WtI (ORCPT
+	by vger.kernel.org with ESMTP id S1752667Ab1B1Wwq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 17:49:08 -0500
+	Mon, 28 Feb 2011 17:52:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mroberto@cpti.cetuc.puc-rio.br, a.zummo@towertech.it, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: sergey.senozhatsky@gmail.com, cminyard@mvista.com
 
 
 The patch titled
-     rtc: include information about UIE and PIE in RTC driver proc.
+     drivers/char/ipmi/ipmi_si_intf.c: fix cleanup_one_si section mismatch
 has been added to the -mm tree.  Its filename is
-     rtc-include-information-about-uie-and-pie-in-rtc-driver-proc.patch
+     char-ipmi-fix-cleanup_one_si-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: include information about UIE and PIE in RTC driver proc.
-From: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
+Subject: drivers/char/ipmi/ipmi_si_intf.c: fix cleanup_one_si section mismatch
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-Generic RTC code is always able to provide the necessary information about
-update and periodic interrupts.  This patch add such information to the
-proc interface.
+commit d2478521afc2022 ("char/ipmi: fix OOPS caused by
+pnp_unregister_driver on unregistered driver") introduced a section
+mismatch by calling __exit cleanup_ipmi_si from __devinit init_ipmi_si. 
 
-Signed-off-by: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Remove __exit annotation from cleanup_ipmi_si.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-proc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/char/ipmi/ipmi_si_intf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-proc.c~rtc-include-information-about-uie-and-pie-in-rtc-driver-proc drivers/rtc/rtc-proc.c
---- a/drivers/rtc/rtc-proc.c~rtc-include-information-about-uie-and-pie-in-rtc-driver-proc
-+++ a/drivers/rtc/rtc-proc.c
-@@ -69,6 +69,14 @@ static int rtc_proc_show(struct seq_file
- 				alrm.enabled ? "yes" : "no");
- 		seq_printf(seq, "alrm_pending\t: %s\n",
- 				alrm.pending ? "yes" : "no");
-+		seq_printf(seq, "update IRQ enabled\t: %s\n",
-+			(rtc->uie_rtctimer.enabled) ? "yes" : "no");
-+		seq_printf(seq, "periodic IRQ enabled\t: %s\n",
-+			(rtc->pie_enabled) ? "yes" : "no");
-+		seq_printf(seq, "periodic IRQ frequency\t: %d\n",
-+			rtc->irq_freq);
-+		seq_printf(seq, "max user IRQ frequency\t: %d\n",
-+			rtc->max_user_freq);
- 	}
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~char-ipmi-fix-cleanup_one_si-section-mismatch drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~char-ipmi-fix-cleanup_one_si-section-mismatch
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -3532,7 +3532,7 @@ static void cleanup_one_si(struct smi_in
+ 	kfree(to_clean);
+ }
  
- 	seq_printf(seq, "24hr\t\t: yes\n");
+-static void __exit cleanup_ipmi_si(void)
++static void cleanup_ipmi_si(void)
+ {
+ 	struct smi_info *e, *tmp_e;
+ 
 _
 
-Patches currently in -mm which might be from mroberto@cpti.cetuc.puc-rio.br are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-rtc-include-information-about-uie-and-pie-in-rtc-driver-proc.patch
+origin.patch
+char-ipmi-fix-cleanup_one_si-section-mismatch.patch
 
