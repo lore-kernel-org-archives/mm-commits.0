@@ -1,106 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-fix-rcu-ioctx-lookup.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 13:10:53 -0800
-Message-ID: <201102282110.p1SLAr8r029341@imap1.linux-foundation.org>
+Subject: [merged] ldm-corrupted-partition-table-can-cause-kernel-oops.patch removed from -mm tree
+Date: Mon, 28 Feb 2011 13:10:44 -0800
+Message-ID: <201102282110.p1SLAi4a029328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58548 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755186Ab1B1VNi (ORCPT
+	by vger.kernel.org with ESMTP id S1754662Ab1B1VOK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 16:13:38 -0500
+	Mon, 28 Feb 2011 16:14:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@gmail.com, jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk, mm-commits@vger.kernel.org
+To: Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, ldm@flatcap.org, stable@kernel.org, warns@pre-sense.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: fix rcu ioctx lookup
+     ldm: corrupted partition table can cause kernel oops
 has been removed from the -mm tree.  Its filename was
-     aio-fix-rcu-ioctx-lookup.patch
+     ldm-corrupted-partition-table-can-cause-kernel-oops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix rcu ioctx lookup
-From: Nick Piggin <npiggin@gmail.com>
+Subject: ldm: corrupted partition table can cause kernel oops
+From: Timo Warns <Warns@pre-sense.de>
 
-aio-dio-invalidate-failure GPFs in aio_put_req from io_submit.
+The kernel automatically evaluates partition tables of storage devices. 
+The code for evaluating LDM partitions (in fs/partitions/ldm.c) contains a
+bug that causes a kernel oops on certain corrupted LDM partitions.  A
+kernel subsystem seems to crash, because, after the oops, the kernel no
+longer recognizes newly connected storage devices.
 
-lookup_ioctx doesn't implement the rcu lookup pattern properly. 
-rcu_read_lock does not prevent refcount going to zero, so we might take a
-refcount on a zero count ioctx.
+The patch changes ldm_parse_vmdb() to Validate the value of vblk_size.
 
-Fix the bug by atomically testing for zero refcount before incrementing.
-
-[jack@suse.cz: added comment into the code]
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Nick Piggin <npiggin@kernel.dk>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Timo Warns <warns@pre-sense.de>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Acked-by: Richard Russon <ldm@flatcap.org>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   35 ++++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
+ fs/partitions/ldm.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/aio.c~aio-fix-rcu-ioctx-lookup fs/aio.c
---- a/fs/aio.c~aio-fix-rcu-ioctx-lookup
-+++ a/fs/aio.c
-@@ -239,15 +239,23 @@ static void __put_ioctx(struct kioctx *c
- 	call_rcu(&ctx->rcu_head, ctx_rcu_free);
- }
+diff -puN fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops fs/partitions/ldm.c
+--- a/fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops
++++ a/fs/partitions/ldm.c
+@@ -251,6 +251,11 @@ static bool ldm_parse_vmdb (const u8 *da
+ 	}
  
--#define get_ioctx(kioctx) do {						\
--	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
--	atomic_inc(&(kioctx)->users);					\
--} while (0)
--#define put_ioctx(kioctx) do {						\
--	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
--	if (unlikely(atomic_dec_and_test(&(kioctx)->users))) 		\
--		__put_ioctx(kioctx);					\
--} while (0)
-+static inline void get_ioctx(struct kioctx *kioctx)
-+{
-+	BUG_ON(atomic_read(&kioctx->users) <= 0);
-+	atomic_inc(&kioctx->users);
-+}
+ 	vm->vblk_size     = get_unaligned_be32(data + 0x08);
++	if (vm->vblk_size == 0) {
++		ldm_error ("Illegal VBLK size");
++		return false;
++	}
 +
-+static inline int try_get_ioctx(struct kioctx *kioctx)
-+{
-+	return atomic_inc_not_zero(&kioctx->users);
-+}
-+
-+static inline void put_ioctx(struct kioctx *kioctx)
-+{
-+	BUG_ON(atomic_read(&kioctx->users) <= 0);
-+	if (unlikely(atomic_dec_and_test(&kioctx->users)))
-+		__put_ioctx(kioctx);
-+}
+ 	vm->vblk_offset   = get_unaligned_be32(data + 0x0C);
+ 	vm->last_vblk_seq = get_unaligned_be32(data + 0x04);
  
- /* ioctx_alloc
-  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
-@@ -601,8 +609,13 @@ static struct kioctx *lookup_ioctx(unsig
- 	rcu_read_lock();
- 
- 	hlist_for_each_entry_rcu(ctx, n, &mm->ioctx_list, list) {
--		if (ctx->user_id == ctx_id && !ctx->dead) {
--			get_ioctx(ctx);
-+		/*
-+		 * RCU protects us against accessing freed memory but
-+		 * we have to be careful not to get a reference when the
-+		 * reference count already dropped to 0 (ctx->dead test
-+		 * is unreliable because of races).
-+		 */
-+		if (ctx->user_id == ctx_id && !ctx->dead && try_get_ioctx(ctx)){
- 			ret = ctx;
- 			break;
- 		}
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from Warns@pre-sense.de are
 
 origin.patch
-linux-next.patch
 
