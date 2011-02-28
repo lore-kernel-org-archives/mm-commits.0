@@ -1,104 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-grab-rcu-read-lock-in-move_pages.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 13:10:27 -0800
-Message-ID: <201102282110.p1SLARbw029308@imap1.linux-foundation.org>
+Subject: [merged] rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch removed from -mm tree
+Date: Mon, 28 Feb 2011 13:11:04 -0800
+Message-ID: <201102282111.p1SLB4Aj029386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755247Ab1B1VLs (ORCPT
+	by vger.kernel.org with ESMTP id S1755186Ab1B1VMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 16:11:48 -0500
+	Mon, 28 Feb 2011 16:12:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I
+To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: grab rcu read lock in move_pages()
+     rapidio: fix sysfs config attribute to access 16MB of maint space
 has been removed from the -mm tree.  Its filename was
-     mm-grab-rcu-read-lock-in-move_pages.patch
+     rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: grab rcu read lock in move_pages()
-From: Greg Thelen <gthelen@google.com>
+Subject: rapidio: fix sysfs config attribute to access 16MB of maint space
+From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-The move_pages() usage of find_task_by_vpid() requires rcu_read_lock() to
-prevent free_pid() from reclaiming the pid.
+Fixes sysfs config attribute to allow access to entire 16MB maintenance
+space of RapidIO devices.
 
-Without this patch, RCU warnings are printed in v2.6.38-rc4 move_pages()
-with:
-
-  CONFIG_LOCKUP_DETECTOR=y
-  CONFIG_PREEMPT=y
-  CONFIG_LOCKDEP=y
-  CONFIG_PROVE_LOCKING=y
-  CONFIG_PROVE_RCU=y
-
-Previously, migrate_pages() went through a similar transformation
-replacing usage of tasklist_lock with rcu read lock:
-
-  commit 55cfaa3cbdd29c4919ecb5fb8965c310f357e48c
-  Author: Zeng Zhaoming <zengzm.kernel@gmail.com>
-  Date:   Thu Dec 2 14:31:13 2010 -0800
-
-      mm/mempolicy.c: add rcu read lock to protect pid structure
-
-  commit 1e50df39f6e2c3a4a3394df62baa8a213df16c54
-  Author: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-  Date:   Thu Jan 13 15:46:14 2011 -0800
-
-      mempolicy: remove tasklist_lock from migrate_pages
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Zeng Zhaoming <zengzm.kernel@gmail.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Thomas Moll <thomas.moll@sysgo.com>
+Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rapidio/rio-sysfs.c |   12 ++++++------
+ include/linux/rio_regs.h    |    4 +++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN mm/migrate.c~mm-grab-rcu-read-lock-in-move_pages mm/migrate.c
---- a/mm/migrate.c~mm-grab-rcu-read-lock-in-move_pages
-+++ a/mm/migrate.c
-@@ -1287,14 +1287,14 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
- 		return -EPERM;
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -77,9 +77,9 @@ rio_read_config(struct file *filp, struc
  
- 	/* Find the mm_struct */
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	task = pid ? find_task_by_vpid(pid) : current;
- 	if (!task) {
--		read_unlock(&tasklist_lock);
-+		rcu_read_unlock();
- 		return -ESRCH;
+ 	/* Several chips lock up trying to read undefined config space */
+ 	if (capable(CAP_SYS_ADMIN))
+-		size = 0x200000;
++		size = RIO_MAINT_SPACE_SZ;
+ 
+-	if (off > size)
++	if (off >= size)
+ 		return 0;
+ 	if (off + count > size) {
+ 		size -= off;
+@@ -147,10 +147,10 @@ rio_write_config(struct file *filp, stru
+ 	loff_t init_off = off;
+ 	u8 *data = (u8 *) buf;
+ 
+-	if (off > 0x200000)
++	if (off >= RIO_MAINT_SPACE_SZ)
+ 		return 0;
+-	if (off + count > 0x200000) {
+-		size = 0x200000 - off;
++	if (off + count > RIO_MAINT_SPACE_SZ) {
++		size = RIO_MAINT_SPACE_SZ - off;
+ 		count = size;
  	}
- 	mm = get_task_mm(task);
--	read_unlock(&tasklist_lock);
-+	rcu_read_unlock();
  
- 	if (!mm)
- 		return -EINVAL;
+@@ -200,7 +200,7 @@ static struct bin_attribute rio_config_a
+ 		 .name = "config",
+ 		 .mode = S_IRUGO | S_IWUSR,
+ 		 },
+-	.size = 0x200000,
++	.size = RIO_MAINT_SPACE_SZ,
+ 	.read = rio_read_config,
+ 	.write = rio_write_config,
+ };
+diff -puN include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space include/linux/rio_regs.h
+--- a/include/linux/rio_regs.h~rapidio-fix-sysfs-config-attribute-to-access-16mb-of-maint-space
++++ a/include/linux/rio_regs.h
+@@ -14,10 +14,12 @@
+ #define LINUX_RIO_REGS_H
+ 
+ /*
+- * In RapidIO, each device has a 2MB configuration space that is
++ * In RapidIO, each device has a 16MB configuration space that is
+  * accessed via maintenance transactions.  Portions of configuration
+  * space are standardized and/or reserved.
+  */
++#define RIO_MAINT_SPACE_SZ	0x1000000 /* 16MB of RapidIO mainenance space */
++
+ #define RIO_DEV_ID_CAR		0x00	/* [I] Device Identity CAR */
+ #define RIO_DEV_INFO_CAR	0x04	/* [I] Device Information CAR */
+ #define RIO_ASM_ID_CAR		0x08	/* [I] Assembly Identity CAR */
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 origin.patch
-linux-next.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-break-out-event-counters-from-other-stats.patch
-memcg-use-native-word-page-statistics-counters.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+rapidio-add-new-sysfs-attributes.patch
+rapidio-add-new-sysfs-attributes-v2.patch
+rapidio-add-rapidio-documentation.patch
+rapidio-add-rapidio-documentation-v2.patch
 
