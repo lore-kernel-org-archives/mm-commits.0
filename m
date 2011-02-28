@@ -1,75 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swiotlb-fix-wrong-panic.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 13:10:34 -0800
-Message-ID: <201102282110.p1SLAY0u029315__30410.5220981457$1298927512$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] aio-fix-race-between-io_destroy-and-io_submit.patch removed from -mm tree
+Date: Mon, 28 Feb 2011 13:10:55 -0800
+Message-ID: <201102282110.p1SLAt2x029364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755186Ab1B1VLk (ORCPT
+	by vger.kernel.org with ESMTP id S1755194Ab1B1VLm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 16:11:40 -0500
+	Mon, 28 Feb 2011 16:11:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, arekm@maven.pl, cebbert@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, jmoyer@redhat.com, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swiotlb: fix wrong panic
+     aio: fix race between io_destroy() and io_submit()
 has been removed from the -mm tree.  Its filename was
-     swiotlb-fix-wrong-panic.patch
+     aio-fix-race-between-io_destroy-and-io_submit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swiotlb: fix wrong panic
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: aio: fix race between io_destroy() and io_submit()
+From: Jan Kara <jack@suse.cz>
 
-swiotlb's map_page wrongly calls panic() when it can't find a buffer fit
-for device's dma mask.  It should return an error instead.
+A race can occur when io_submit() races with io_destroy():
 
-Devices with an odd dma mask (i.e.  under 4G) like b44 network card hit
-this bug (the system crashes):
+ CPU1						CPU2
+io_submit()
+  do_io_submit()
+    ...
+    ctx = lookup_ioctx(ctx_id);
+						io_destroy()
+    Now do_io_submit() holds the last reference to ctx.
+    ...
+    queue new AIO
+    put_ioctx(ctx) - frees ctx with active AIOs
 
-http://marc.info/?l=linux-kernel&m=129648943830106&w=2
+We solve this issue by checking whether ctx is being destroyed in AIO
+submission path after adding new AIO to ctx.  Then we are guaranteed that
+either io_destroy() waits for new AIO or we see that ctx is being
+destroyed and bail out.
 
-If swiotlb returns an error, b44 driver can use the own bouncing
-mechanism.
-
-Reported-by: Chuck Ebbert <cebbert@redhat.com>
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Tested-by: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: <stable@kernel.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/aio.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN lib/swiotlb.c~swiotlb-fix-wrong-panic lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-fix-wrong-panic
-+++ a/lib/swiotlb.c
-@@ -686,8 +686,10 @@ dma_addr_t swiotlb_map_page(struct devic
- 	/*
- 	 * Ensure that the address returned is DMA'ble
- 	 */
--	if (!dma_capable(dev, dev_addr, size))
--		panic("map_single: bounce buffer is not DMA'ble");
-+	if (!dma_capable(dev, dev_addr, size)) {
-+		swiotlb_tbl_unmap_single(dev, map, size, dir);
-+		dev_addr = swiotlb_virt_to_bus(dev, io_tlb_overflow_buffer);
-+	}
+diff -puN fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit fs/aio.c
+--- a/fs/aio.c~aio-fix-race-between-io_destroy-and-io_submit
++++ a/fs/aio.c
+@@ -1642,6 +1642,23 @@ static int io_submit_one(struct kioctx *
+ 		goto out_put_req;
  
- 	return dev_addr;
- }
+ 	spin_lock_irq(&ctx->ctx_lock);
++	/*
++	 * We could have raced with io_destroy() and are currently holding a
++	 * reference to ctx which should be destroyed. We cannot submit IO
++	 * since ctx gets freed as soon as io_submit() puts its reference.  The
++	 * check here is reliable: io_destroy() sets ctx->dead before waiting
++	 * for outstanding IO and the barrier between these two is realized by
++	 * unlock of mm->ioctx_lock and lock of ctx->ctx_lock.  Analogously we
++	 * increment ctx->reqs_active before checking for ctx->dead and the
++	 * barrier is realized by unlock and lock of ctx->ctx_lock. Thus if we
++	 * don't see ctx->dead set here, io_destroy() waits for our IO to
++	 * finish.
++	 */
++	if (ctx->dead) {
++		spin_unlock_irq(&ctx->ctx_lock);
++		ret = -EINVAL;
++		goto out_put_req;
++	}
+ 	aio_run_iocb(req);
+ 	if (!list_empty(&ctx->run_list)) {
+ 		/* drain the run list */
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 linux-next.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-remove-dma64_addr_t.patch
+ext3-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
 
