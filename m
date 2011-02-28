@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch added to -mm tree
-Date: Mon, 28 Feb 2011 15:57:59 -0800
-Message-ID: <201102282357.p1SNvxav005453@imap1.linux-foundation.org>
+Subject: + cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch added to -mm tree
+Date: Mon, 28 Feb 2011 15:58:05 -0800
+Message-ID: <201102282358.p1SNw539005465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758Ab1B1X6f (ORCPT
+	by vger.kernel.org with ESMTP id S1754758Ab1B1X6m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 18:58:35 -0500
+	Mon, 28 Feb 2011 18:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com
 
 
 The patch titled
-     cpuset: add a missing unlock in cpuset_write_resmask()
+     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
 has been added to the -mm tree.  Its filename is
-     cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
+     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: add a missing unlock in cpuset_write_resmask()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't forget to release cgroup_mutex if alloc_trial_cpuset() fails.
+avoid multiple return points
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: <stable@kernel.org>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/cpuset.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask
+diff -puN kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
 +++ a/kernel/cpuset.c
-@@ -1575,8 +1575,10 @@ static int cpuset_write_resmask(struct c
- 		return -ENODEV;
+@@ -1576,8 +1576,8 @@ static int cpuset_write_resmask(struct c
  
  	trialcs = alloc_trial_cpuset(cs);
--	if (!trialcs)
-+	if (!trialcs) {
-+		cgroup_unlock();
- 		return -ENOMEM;
-+	}
+ 	if (!trialcs) {
+-		cgroup_unlock();
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto out;
+ 	}
  
  	switch (cft->private) {
- 	case FILE_CPULIST:
+@@ -1593,6 +1593,7 @@ static int cpuset_write_resmask(struct c
+ 	}
+ 
+ 	free_trial_cpuset(trialcs);
++out:
+ 	cgroup_unlock();
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
 cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
-mm-notifier_from_errno-cleanup.patch
-cgroup-remove-the-ns_cgroup.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+lib-vsprintf-optimised-put_dec-function-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
-cpuset-hold-callback_mutex-in-cpuset_clone.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
