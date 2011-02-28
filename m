@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-inode-fix-kernel-doc-format-for-inode_init_owner.patch added to -mm tree
-Date: Mon, 28 Feb 2011 15:08:39 -0800
-Message-ID: <201102282308.p1SN8dGl002991@imap1.linux-foundation.org>
+Subject: + x86-fix-mmap-random-address-range.patch added to -mm tree
+Date: Mon, 28 Feb 2011 15:18:43 -0800
+Message-ID: <201102282318.p1SNIh9P003449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753025Ab1B1XIt (ORCPT
+	by vger.kernel.org with ESMTP id S1753620Ab1B1XTb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 18:08:49 -0500
+	Mon, 28 Feb 2011 18:19:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@decadent.org.uk
+Cc: ludwig.nussel@suse.de, harvey.harrison@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fs/inode: fix kernel-doc format for inode_init_owner()
+     x86: fix mmap random address range
 has been added to the -mm tree.  Its filename is
-     fs-inode-fix-kernel-doc-format-for-inode_init_owner.patch
+     x86-fix-mmap-random-address-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/inode: fix kernel-doc format for inode_init_owner()
-From: Ben Hutchings <ben@decadent.org.uk>
+Subject: x86: fix mmap random address range
+From: Ludwig Nussel <ludwig.nussel@suse.de>
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+On x86 casting the unsigned int result of get_random_int() to long may
+result in a negative value.  On x86 the range of mmap_rnd() therefore was
+-255 to 255.  The 32bit mode on x86_64 used 0 to 255 as intended.
+
+The bug was introduced by 675a081 ("x86: unify mmap_{32|64}.c") in January
+2008.
+
+Signed-off-by: Ludwig Nussel <ludwig.nussel@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/inode.c~fs-inode-fix-kernel-doc-format-for-inode_init_owner fs/inode.c
---- a/fs/inode.c~fs-inode-fix-kernel-doc-format-for-inode_init_owner
-+++ a/fs/inode.c
-@@ -1719,7 +1719,7 @@ void init_special_inode(struct inode *in
- EXPORT_SYMBOL(init_special_inode);
- 
- /**
-- * Init uid,gid,mode for new inode according to posix standards
-+ * inode_init_owner - Init uid,gid,mode for new inode according to posix standards
-  * @inode: New inode
-  * @dir: Directory inode
-  * @mode: mode of the new inode
+diff -puN arch/x86/mm/mmap.c~x86-fix-mmap-random-address-range arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~x86-fix-mmap-random-address-range
++++ a/arch/x86/mm/mmap.c
+@@ -87,9 +87,9 @@ static unsigned long mmap_rnd(void)
+ 	*/
+ 	if (current->flags & PF_RANDOMIZE) {
+ 		if (mmap_is_ia32())
+-			rnd = (long)get_random_int() % (1<<8);
++			rnd = get_random_int() % (1<<8);
+ 		else
+-			rnd = (long)(get_random_int() % (1<<28));
++			rnd = get_random_int() % (1<<28);
+ 	}
+ 	return rnd << PAGE_SHIFT;
+ }
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from ludwig.nussel@suse.de are
 
-linux-next.patch
-block-fix-kernel-doc-format-for-blkdev_issue_zeroout.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-fs-inode-fix-kernel-doc-format-for-inode_init_owner.patch
+x86-fix-mmap-random-address-range.patch
 
