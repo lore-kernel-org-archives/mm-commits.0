@@ -1,234 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-prevent-creating-circular-epoll-structures.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 13:10:24 -0800
-Message-ID: <201102282110.p1SLAO78029305@imap1.linux-foundation.org>
+Subject: [merged] maintainers-add-chinese-documentation-maintainer.patch removed from -mm tree
+Date: Mon, 28 Feb 2011 13:10:31 -0800
+Message-ID: <201102282110.p1SLAV3f029312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755247Ab1B1VK7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755187Ab1B1VLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 16:10:59 -0500
+	Mon, 28 Feb 2011 16:11:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, nelhage@ksplice.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jiaweiwei.xiyou@gmail.com, greg@kroah.com, harryxiyou@gmail.com, joe@perches.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: prevent creating circular epoll structures
+     MAINTAINERS: add Chinese documentation maintainer
 has been removed from the -mm tree.  Its filename was
-     epoll-prevent-creating-circular-epoll-structures.patch
+     maintainers-add-chinese-documentation-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: prevent creating circular epoll structures
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: MAINTAINERS: add Chinese documentation maintainer
+From: Harry Wei <jiaweiwei.xiyou@gmail.com>
 
-In several places, an epoll fd can call another file's ->f_op->poll()
-method with ep->mtx held.  This is in general unsafe, because that other
-file could itself be an epoll fd that contains the original epoll fd.
+I have translated some kernel documentation so I wish to maintain the
+Chinese documentation in our kernel directories.
 
-The code defends against this possibility in its own ->poll() method using
-ep_call_nested, but there are several other unsafe calls to ->poll
-elsewhere that can be made to deadlock.  For example, the following simple
-program causes the call in ep_insert recursively call the original fd's
-->poll, leading to deadlock:
-
- #include <unistd.h>
- #include <sys/epoll.h>
-
- int main(void) {
-     int e1, e2, p[2];
-     struct epoll_event evt = {
-         .events = EPOLLIN
-     };
-
-     e1 = epoll_create(1);
-     e2 = epoll_create(2);
-     pipe(p);
-
-     epoll_ctl(e2, EPOLL_CTL_ADD, e1, &evt);
-     epoll_ctl(e1, EPOLL_CTL_ADD, p[0], &evt);
-     write(p[1], p, sizeof p);
-     epoll_ctl(e1, EPOLL_CTL_ADD, e2, &evt);
-
-     return 0;
- }
-
-
-
-On insertion, check whether the inserted file is itself a struct epoll,
-and if so, do a recursive walk to detect whether inserting this file would
-create a loop of epoll structures, which could lead to deadlock.
-
-[nelhage@ksplice.com: Use epmutex to serialize concurrent inserts]
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Nelson Elhage <nelhage@ksplice.com>
-Reported-by: Nelson Elhage <nelhage@ksplice.com>
-Tested-by: Nelson Elhage <nelhage@ksplice.com>
-Cc: <stable@kernel.org>		[2.6.34+, possibly earlier]
+Signed-off-by: Harry Wei <harryxiyou@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   95 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-prevent-creating-circular-epoll-structures
-+++ a/fs/eventpoll.c
-@@ -63,6 +63,13 @@
-  * cleanup path and it is also acquired by eventpoll_release_file()
-  * if a file has been pushed inside an epoll set and it is then
-  * close()d without a previous call toepoll_ctl(EPOLL_CTL_DEL).
-+ * It is also acquired when inserting an epoll fd onto another epoll
-+ * fd. We do this so that we walk the epoll tree and ensure that this
-+ * insertion does not create a cycle of epoll file descriptors, which
-+ * could lead to deadlock. We need a global mutex to prevent two
-+ * simultaneous inserts (A into B and B into A) from racing and
-+ * constructing a cycle without either insert observing that it is
-+ * going to.
-  * It is possible to drop the "ep->mtx" and to use the global
-  * mutex "epmutex" (together with "ep->lock") to have it working,
-  * but having "ep->mtx" will make the interface more scalable.
-@@ -224,6 +231,9 @@ static long max_user_watches __read_most
-  */
- static DEFINE_MUTEX(epmutex);
+diff -puN MAINTAINERS~maintainers-add-chinese-documentation-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-chinese-documentation-maintainer
++++ a/MAINTAINERS
+@@ -1692,6 +1692,13 @@ M:	Andy Whitcroft <apw@canonical.com>
+ S:	Supported
+ F:	scripts/checkpatch.pl
  
-+/* Used to check for epoll file descriptor inclusion loops */
-+static struct nested_calls poll_loop_ncalls;
++CHINESE DOCUMENTATION
++M:	Harry Wei <harryxiyou@gmail.com>
++L:	xiyoulinuxkernelgroup@googlegroups.com
++L:	linux-kernel@zh-kernel.org (moderated for non-subscribers)
++S:	Maintained
++F:	Documentation/zh_CN/
 +
- /* Used for safe wake up implementation */
- static struct nested_calls poll_safewake_ncalls;
- 
-@@ -1198,6 +1208,62 @@ retry:
- 	return res;
- }
- 
-+/**
-+ * ep_loop_check_proc - Callback function to be passed to the @ep_call_nested()
-+ *                      API, to verify that adding an epoll file inside another
-+ *                      epoll structure, does not violate the constraints, in
-+ *                      terms of closed loops, or too deep chains (which can
-+ *                      result in excessive stack usage).
-+ *
-+ * @priv: Pointer to the epoll file to be currently checked.
-+ * @cookie: Original cookie for this call. This is the top-of-the-chain epoll
-+ *          data structure pointer.
-+ * @call_nests: Current dept of the @ep_call_nested() call stack.
-+ *
-+ * Returns: Returns zero if adding the epoll @file inside current epoll
-+ *          structure @ep does not violate the constraints, or -1 otherwise.
-+ */
-+static int ep_loop_check_proc(void *priv, void *cookie, int call_nests)
-+{
-+	int error = 0;
-+	struct file *file = priv;
-+	struct eventpoll *ep = file->private_data;
-+	struct rb_node *rbp;
-+	struct epitem *epi;
-+
-+	mutex_lock(&ep->mtx);
-+	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+		epi = rb_entry(rbp, struct epitem, rbn);
-+		if (unlikely(is_file_epoll(epi->ffd.file))) {
-+			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+					       ep_loop_check_proc, epi->ffd.file,
-+					       epi->ffd.file->private_data, current);
-+			if (error != 0)
-+				break;
-+		}
-+	}
-+	mutex_unlock(&ep->mtx);
-+
-+	return error;
-+}
-+
-+/**
-+ * ep_loop_check - Performs a check to verify that adding an epoll file (@file)
-+ *                 another epoll file (represented by @ep) does not create
-+ *                 closed loops or too deep chains.
-+ *
-+ * @ep: Pointer to the epoll private data structure.
-+ * @file: Pointer to the epoll file to be checked.
-+ *
-+ * Returns: Returns zero if adding the epoll @file inside current epoll
-+ *          structure @ep does not violate the constraints, or -1 otherwise.
-+ */
-+static int ep_loop_check(struct eventpoll *ep, struct file *file)
-+{
-+	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+			      ep_loop_check_proc, file, ep, current);
-+}
-+
- /*
-  * Open an eventpoll file descriptor.
-  */
-@@ -1246,6 +1312,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 		struct epoll_event __user *, event)
- {
- 	int error;
-+	int did_lock_epmutex = 0;
- 	struct file *file, *tfile;
- 	struct eventpoll *ep;
- 	struct epitem *epi;
-@@ -1287,6 +1354,25 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	 */
- 	ep = file->private_data;
- 
-+	/*
-+	 * When we insert an epoll file descriptor, inside another epoll file
-+	 * descriptor, there is the change of creating closed loops, which are
-+	 * better be handled here, than in more critical paths.
-+	 *
-+	 * We hold epmutex across the loop check and the insert in this case, in
-+	 * order to prevent two separate inserts from racing and each doing the
-+	 * insert "at the same time" such that ep_loop_check passes on both
-+	 * before either one does the insert, thereby creating a cycle.
-+	 */
-+	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
-+		mutex_lock(&epmutex);
-+		did_lock_epmutex = 1;
-+		error = -ELOOP;
-+		if (ep_loop_check(ep, tfile) != 0)
-+			goto error_tgt_fput;
-+	}
-+
-+
- 	mutex_lock(&ep->mtx);
- 
- 	/*
-@@ -1322,6 +1408,9 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	mutex_unlock(&ep->mtx);
- 
- error_tgt_fput:
-+	if (unlikely(did_lock_epmutex))
-+		mutex_unlock(&epmutex);
-+
- 	fput(tfile);
- error_fput:
- 	fput(file);
-@@ -1441,6 +1530,12 @@ static int __init eventpoll_init(void)
- 		EP_ITEM_COST;
- 	BUG_ON(max_user_watches < 0);
- 
-+	/*
-+	 * Initialize the structure used to perform epoll file descriptor
-+	 * inclusion loops checks.
-+	 */
-+	ep_nested_calls_init(&poll_loop_ncalls);
-+
- 	/* Initialize the structure used to perform safe poll wait head wake ups */
- 	ep_nested_calls_init(&poll_safewake_ncalls);
- 
+ CISCO VIC ETHERNET NIC DRIVER
+ M:	Vasanthy Kolluri <vkolluri@cisco.com>
+ M:	Roopa Prabhu <roprabhu@cisco.com>
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from jiaweiwei.xiyou@gmail.com are
 
 origin.patch
-epoll-move-ready-event-check-into-proper-inline.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
+linux-next.patch
+maintainers-add-topgit-for-t.patch
+documentation-codingstyle-flesh-out-if-else-examples.patch
 
