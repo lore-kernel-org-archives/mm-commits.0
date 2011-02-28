@@ -1,69 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ldm-corrupted-partition-table-can-cause-kernel-oops.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 13:10:44 -0800
-Message-ID: <201102282110.p1SLAi4a029328@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie.patch added to -mm tree
+Date: Mon, 28 Feb 2011 14:28:00 -0800
+Message-ID: <201102282228.p1SMS13r000721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754662Ab1B1VOK (ORCPT
+	by vger.kernel.org with ESMTP id S1752190Ab1B1W25 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 16:14:10 -0500
+	Mon, 28 Feb 2011 17:28:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, ldm@flatcap.org, stable@kernel.org, warns@pre-sense.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: axel.lin@gmail.com, a.zummo@towertech.it, ben-linux@fluff.org
 
 
 The patch titled
-     ldm: corrupted partition table can cause kernel oops
-has been removed from the -mm tree.  Its filename was
-     ldm-corrupted-partition-table-can-cause-kernel-oops.patch
+     drivers/rtc/rtc-s3c.c: fix prototype for s3c_rtc_setaie()
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ldm: corrupted partition table can cause kernel oops
-From: Timo Warns <Warns@pre-sense.de>
+Subject: drivers/rtc/rtc-s3c.c: fix prototype for s3c_rtc_setaie()
+From: Axel Lin <axel.lin@gmail.com>
 
-The kernel automatically evaluates partition tables of storage devices. 
-The code for evaluating LDM partitions (in fs/partitions/ldm.c) contains a
-bug that causes a kernel oops on certain corrupted LDM partitions.  A
-kernel subsystem seems to crash, because, after the oops, the kernel no
-longer recognizes newly connected storage devices.
+Fix s3c_rtc_setaie() prototype to eliminate below compile warning.
+drivers/rtc/rtc-s3c.c:383: warning: initialization from incompatible pointer type
 
-The patch changes ldm_parse_vmdb() to Validate the value of vblk_size.
+(akpm: the rtc_class_ops.alarm_irq_enable() handler is being passed two
+arguments where it expects just one, presumably with undesired effects)
 
-Signed-off-by: Timo Warns <warns@pre-sense.de>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Acked-by: Richard Russon <ldm@flatcap.org>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/ldm.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/rtc/rtc-s3c.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops fs/partitions/ldm.c
---- a/fs/partitions/ldm.c~ldm-corrupted-partition-table-can-cause-kernel-oops
-+++ a/fs/partitions/ldm.c
-@@ -251,6 +251,11 @@ static bool ldm_parse_vmdb (const u8 *da
- 	}
+diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie
++++ a/drivers/rtc/rtc-s3c.c
+@@ -77,18 +77,20 @@ static irqreturn_t s3c_rtc_tickirq(int i
+ }
  
- 	vm->vblk_size     = get_unaligned_be32(data + 0x08);
-+	if (vm->vblk_size == 0) {
-+		ldm_error ("Illegal VBLK size");
-+		return false;
-+	}
+ /* Update control registers */
+-static void s3c_rtc_setaie(int to)
++static int s3c_rtc_setaie(struct device *dev, unsigned int enabled)
+ {
+ 	unsigned int tmp;
+ 
+-	pr_debug("%s: aie=%d\n", __func__, to);
++	pr_debug("%s: aie=%d\n", __func__, enabled);
+ 
+ 	tmp = readb(s3c_rtc_base + S3C2410_RTCALM) & ~S3C2410_RTCALM_ALMEN;
+ 
+-	if (to)
++	if (enabled)
+ 		tmp |= S3C2410_RTCALM_ALMEN;
+ 
+ 	writeb(tmp, s3c_rtc_base + S3C2410_RTCALM);
 +
- 	vm->vblk_offset   = get_unaligned_be32(data + 0x0C);
- 	vm->last_vblk_seq = get_unaligned_be32(data + 0x04);
++	return 0;
+ }
  
+ static int s3c_rtc_setpie(struct device *dev, int enabled)
+@@ -308,7 +310,7 @@ static int s3c_rtc_setalarm(struct devic
+ 
+ 	writeb(alrm_en, base + S3C2410_RTCALM);
+ 
+-	s3c_rtc_setaie(alrm->enabled);
++	s3c_rtc_setaie(dev, alrm->enabled);
+ 
+ 	return 0;
+ }
+@@ -440,7 +442,7 @@ static int __devexit s3c_rtc_remove(stru
+ 	rtc_device_unregister(rtc);
+ 
+ 	s3c_rtc_setpie(&dev->dev, 0);
+-	s3c_rtc_setaie(0);
++	s3c_rtc_setaie(&dev->dev, 0);
+ 
+ 	clk_disable(rtc_clk);
+ 	clk_put(rtc_clk);
 _
 
-Patches currently in -mm which might be from Warns@pre-sense.de are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-origin.patch
+drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie.patch
+linux-next.patch
+drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
 
