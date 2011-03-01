@@ -1,38 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 16:12:00 -0800
-Message-ID: <201103010012.p210C0cY006197@imap1.linux-foundation.org>
+Subject: [to-be-updated] userns-allow-killing-tasks-in-your-own-or-child-userns.patch removed from -mm tree
+Date: Mon, 28 Feb 2011 16:11:54 -0800
+Message-ID: <201103010011.p210Bsam006183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754406Ab1CAAMb (ORCPT
+	by vger.kernel.org with ESMTP id S1754068Ab1CAAMa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 19:12:31 -0500
+	Mon, 28 Feb 2011 19:12:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: serge@hallyn.com, adobriyan@gmail.com, ebiederm@xmission.com, jmorris@namei.org, kees.cook@canonical.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     userns: ptrace: incorporate feedback from Eric
+     userns: allow killing tasks in your own or child userns
 has been removed from the -mm tree.  Its filename was
-     userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric.patch
+     userns-allow-killing-tasks-in-your-own-or-child-userns.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: ptrace: incorporate feedback from Eric
+Subject: userns: allow killing tasks in your own or child userns
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
-same_or_ancestore_user_ns() was not an appropriate check to
-constrain cap_issubset.  Rather, cap_issubset() only is
-meaningful when both capsets are in the same user_ns.
+Changelog:
+	Dec  8: Fixed bug in my check_kill_permission pointed out by
+	        Eric Biederman.
+	Dec 13: Apply Eric's suggestion to pass target task into kill_ok_by_cred()
+	        for clarity
+	Dec 31: address comment by Eric Biederman:
+		don't need cred/tcred in check_kill_permission.
+	Jan  1: use const cred struct.
+	Jan 11: Per Bastian Blank's advice, clean up kill_ok_by_cred().
+	Feb 16: kill_ok_by_cred: fix bad parentheses
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Kees Cook <kees.cook@canonical.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -40,116 +47,63 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    9 ---------
- kernel/user_namespace.c        |   16 ----------------
- security/commoncap.c           |   28 ++++++++++------------------
- 3 files changed, 10 insertions(+), 43 deletions(-)
+ kernel/signal.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/user_namespace.h~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric
-+++ a/include/linux/user_namespace.h
-@@ -39,9 +39,6 @@ static inline void put_user_ns(struct us
- uid_t user_ns_map_uid(struct user_namespace *to, const struct cred *cred, uid_t uid);
- gid_t user_ns_map_gid(struct user_namespace *to, const struct cred *cred, gid_t gid);
- 
--int same_or_ancestor_user_ns(struct task_struct *task,
--	struct task_struct *victim);
--
- #else
- 
- static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
-@@ -69,12 +66,6 @@ static inline gid_t user_ns_map_gid(stru
- 	return gid;
+diff -puN kernel/signal.c~userns-allow-killing-tasks-in-your-own-or-child-userns kernel/signal.c
+--- a/kernel/signal.c~userns-allow-killing-tasks-in-your-own-or-child-userns
++++ a/kernel/signal.c
+@@ -636,13 +636,33 @@ static inline bool si_fromuser(const str
  }
  
--static inline int same_or_ancestor_user_ns(struct task_struct *task,
--	struct task_struct *victim)
--{
--	return 1;
--}
--
- #endif
- 
- #endif /* _LINUX_USER_H */
-diff -puN kernel/user_namespace.c~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric kernel/user_namespace.c
---- a/kernel/user_namespace.c~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric
-+++ a/kernel/user_namespace.c
-@@ -129,22 +129,6 @@ gid_t user_ns_map_gid(struct user_namesp
- 	return overflowgid;
- }
- 
--int same_or_ancestor_user_ns(struct task_struct *task,
--	struct task_struct *victim)
--{
--	struct user_namespace *u1 = task_cred_xxx(task, user)->user_ns;
--	struct user_namespace *u2 = task_cred_xxx(victim, user)->user_ns;
--	for (;;) {
--		if (u1 == u2)
--			return 1;
--		if (u1 == &init_user_ns)
--			return 0;
--		u1 = u1->creator->user_ns;
--	}
--	/* We never get here */
--	return 0;
--}
--
- static __init int user_namespaces_init(void)
+ /*
++ * called with RCU read lock from check_kill_permission()
++ */
++static inline int kill_ok_by_cred(struct task_struct *t)
++{
++	const struct cred *cred = current_cred();
++	const struct cred *tcred = __task_cred(t);
++
++	if (cred->user->user_ns == tcred->user->user_ns &&
++	    (cred->euid == tcred->suid ||
++	     cred->euid == tcred->uid ||
++	     cred->uid  == tcred->suid ||
++	     cred->uid  == tcred->uid))
++		return 1;
++
++	if (ns_capable(tcred->user->user_ns, CAP_KILL))
++		return 1;
++
++	return 0;
++}
++
++/*
+  * Bad permissions for sending the signal
+  * - the caller must hold the RCU read lock
+  */
+ static int check_kill_permission(int sig, struct siginfo *info,
+ 				 struct task_struct *t)
  {
- 	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
-diff -puN security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric security/commoncap.c
---- a/security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric
-+++ a/security/commoncap.c
-@@ -142,19 +142,15 @@ int cap_settime(const struct timespec *t
- int cap_ptrace_access_check(struct task_struct *child, unsigned int mode)
- {
- 	int ret = 0;
 -	const struct cred *cred, *tcred;
-+	const struct cred *cred, *child_cred;
+ 	struct pid *sid;
+ 	int error;
  
- 	rcu_read_lock();
- 	cred = current_cred();
--	tcred = __task_cred(child);
--	/*
--	 * The ancestor user_ns check may be gratuitous, as I think
--	 * we've already guaranteed that in kernel/ptrace.c.
--	 */
--	if (same_or_ancestor_user_ns(current, child) &&
--	    cap_issubset(tcred->cap_permitted, cred->cap_permitted))
-+	child_cred = __task_cred(child);
-+	if (cred->user->user_ns == child_cred->user->user_ns &&
-+	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
- 		goto out;
--	if (ns_capable(tcred->user->user_ns, CAP_SYS_PTRACE))
-+	if (ns_capable(child_cred->user->user_ns, CAP_SYS_PTRACE))
- 		goto out;
- 	ret = -EPERM;
- out:
-@@ -178,19 +174,15 @@ out:
- int cap_ptrace_traceme(struct task_struct *parent)
- {
- 	int ret = 0;
--	const struct cred *cred, *tcred;
-+	const struct cred *cred, *child_cred;
+@@ -656,14 +676,8 @@ static int check_kill_permission(int sig
+ 	if (error)
+ 		return error;
  
- 	rcu_read_lock();
- 	cred = __task_cred(parent);
--	tcred = current_cred();
--	/*
--	 * The ancestor user_ns check may be gratuitous, as I think
--	 * we've already guaranteed that in kernel/ptrace.c.
--	 */
--	if (same_or_ancestor_user_ns(parent, current) &&
--	    cap_issubset(tcred->cap_permitted, cred->cap_permitted))
-+	child_cred = current_cred();
-+	if (cred->user->user_ns == child_cred->user->user_ns &&
-+	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
- 		goto out;
--	if (has_ns_capability(parent, tcred->user->user_ns, CAP_SYS_PTRACE))
-+	if (has_ns_capability(parent, child_cred->user->user_ns, CAP_SYS_PTRACE))
- 		goto out;
- 	ret = -EPERM;
- out:
+-	cred = current_cred();
+-	tcred = __task_cred(t);
+ 	if (!same_thread_group(current, t) &&
+-	    (cred->euid ^ tcred->suid) &&
+-	    (cred->euid ^ tcred->uid) &&
+-	    (cred->uid  ^ tcred->suid) &&
+-	    (cred->uid  ^ tcred->uid) &&
+-	    !capable(CAP_KILL)) {
++	    !kill_ok_by_cred(t)) {
+ 		switch (sig) {
+ 		case SIGCONT:
+ 			sid = task_session(t);
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
@@ -161,6 +115,8 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 pid-remove-the-child_reaper-special-case-in-init-mainc.patch
 pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
 procfs-kill-the-global-proc_mnt-variable.patch
+userns-allow-ptrace-from-non-init-user-namespaces.patch
+userns-allow-ptrace-from-non-init-user-namespaces-incorporate-feedback-from-eric.patch
 userns-user-namespaces-convert-all-capable-checks-in-kernel-sysc.patch
 userns-add-a-user-namespace-owner-of-ipc-ns.patch
 userns-user-namespaces-convert-several-capable-calls.patch
