@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + userns-allow-sethostname-in-a-container.patch added to -mm tree
-Date: Mon, 28 Feb 2011 16:29:14 -0800
-Message-ID: <201103010029.p210TEDD007087@imap1.linux-foundation.org>
+Subject: + userns-allow-killing-tasks-in-your-own-or-child-userns.patch added to -mm tree
+Date: Mon, 28 Feb 2011 16:29:16 -0800
+Message-ID: <201103010029.p210THxD007090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754544Ab1CAA32 (ORCPT
+	by vger.kernel.org with ESMTP id S1753489Ab1CAA3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 19:29:28 -0500
+	Mon, 28 Feb 2011 19:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmis
 
 
 The patch titled
-     userns: allow sethostname in a container
+     userns: allow killing tasks in your own or child userns
 has been added to the -mm tree.  Its filename is
-     userns-allow-sethostname-in-a-container.patch
+     userns-allow-killing-tasks-in-your-own-or-child-userns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: allow sethostname in a container
+Subject: userns: allow killing tasks in your own or child userns
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
 Changelog:
-	Feb 23: let clone_uts_ns() handle setting uts->user_ns
-		To do so we need to pass in the task_struct who'll
-		get the utsname, so we can get its user_ns.
-	Feb 23: As per Oleg's coment, just pass in tsk, instead of two
-		of its members.
+	Dec  8: Fixed bug in my check_kill_permission pointed out by
+	        Eric Biederman.
+	Dec 13: Apply Eric's suggestion to pass target task into kill_ok_by_cred()
+	        for clarity
+	Dec 31: address comment by Eric Biederman:
+		don't need cred/tcred in check_kill_permission.
+	Jan  1: use const cred struct.
+	Jan 11: Per Bastian Blank's advice, clean up kill_ok_by_cred().
+	Feb 16: kill_ok_by_cred: fix bad parentheses
+	Feb 23: per akpm, let compiler inline kill_ok_by_cred
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -52,116 +57,63 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/utsname.h |    6 +++---
- kernel/nsproxy.c        |    7 +------
- kernel/sys.c            |    2 +-
- kernel/utsname.c        |   12 +++++++-----
- 4 files changed, 12 insertions(+), 15 deletions(-)
+ kernel/signal.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/utsname.h~userns-allow-sethostname-in-a-container include/linux/utsname.h
---- a/include/linux/utsname.h~userns-allow-sethostname-in-a-container
-+++ a/include/linux/utsname.h
-@@ -54,7 +54,7 @@ static inline void get_uts_ns(struct uts
+diff -puN kernel/signal.c~userns-allow-killing-tasks-in-your-own-or-child-userns kernel/signal.c
+--- a/kernel/signal.c~userns-allow-killing-tasks-in-your-own-or-child-userns
++++ a/kernel/signal.c
+@@ -636,13 +636,33 @@ static inline bool si_fromuser(const str
  }
  
- extern struct uts_namespace *copy_utsname(unsigned long flags,
--					struct uts_namespace *ns);
-+					  struct task_struct *tsk);
- extern void free_uts_ns(struct kref *kref);
- 
- static inline void put_uts_ns(struct uts_namespace *ns)
-@@ -71,12 +71,12 @@ static inline void put_uts_ns(struct uts
- }
- 
- static inline struct uts_namespace *copy_utsname(unsigned long flags,
--					struct uts_namespace *ns)
-+						 struct task_struct *tsk)
- {
- 	if (flags & CLONE_NEWUTS)
- 		return ERR_PTR(-EINVAL);
- 
--	return ns;
-+	return tsk->nsproxy->uts_ns;
- }
- #endif
- 
-diff -puN kernel/nsproxy.c~userns-allow-sethostname-in-a-container kernel/nsproxy.c
---- a/kernel/nsproxy.c~userns-allow-sethostname-in-a-container
-+++ a/kernel/nsproxy.c
-@@ -69,16 +69,11 @@ static struct nsproxy *create_new_namesp
- 		goto out_ns;
- 	}
- 
--	new_nsp->uts_ns = copy_utsname(flags, tsk->nsproxy->uts_ns);
-+	new_nsp->uts_ns = copy_utsname(flags, tsk);
- 	if (IS_ERR(new_nsp->uts_ns)) {
- 		err = PTR_ERR(new_nsp->uts_ns);
- 		goto out_uts;
- 	}
--	if (new_nsp->uts_ns != tsk->nsproxy->uts_ns) {
--		put_user_ns(new_nsp->uts_ns->user_ns);
--		new_nsp->uts_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
--		get_user_ns(new_nsp->uts_ns->user_ns);
--	}
- 
- 	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
- 	if (IS_ERR(new_nsp->ipc_ns)) {
-diff -puN kernel/sys.c~userns-allow-sethostname-in-a-container kernel/sys.c
---- a/kernel/sys.c~userns-allow-sethostname-in-a-container
-+++ a/kernel/sys.c
-@@ -1177,7 +1177,7 @@ SYSCALL_DEFINE2(sethostname, char __user
- 	int errno;
- 	char tmp[__NEW_UTS_LEN];
- 
--	if (!capable(CAP_SYS_ADMIN))
-+	if (!ns_capable(current->nsproxy->uts_ns->user_ns, CAP_SYS_ADMIN))
- 		return -EPERM;
- 	if (len < 0 || len > __NEW_UTS_LEN)
- 		return -EINVAL;
-diff -puN kernel/utsname.c~userns-allow-sethostname-in-a-container kernel/utsname.c
---- a/kernel/utsname.c~userns-allow-sethostname-in-a-container
-+++ a/kernel/utsname.c
-@@ -31,7 +31,8 @@ static struct uts_namespace *create_uts_
-  * @old_ns: namespace to clone
-  * Return NULL on error (failure to kmalloc), new ns otherwise
+ /*
++ * called with RCU read lock from check_kill_permission()
++ */
++static int kill_ok_by_cred(struct task_struct *t)
++{
++	const struct cred *cred = current_cred();
++	const struct cred *tcred = __task_cred(t);
++
++	if (cred->user->user_ns == tcred->user->user_ns &&
++	    (cred->euid == tcred->suid ||
++	     cred->euid == tcred->uid ||
++	     cred->uid  == tcred->suid ||
++	     cred->uid  == tcred->uid))
++		return 1;
++
++	if (ns_capable(tcred->user->user_ns, CAP_KILL))
++		return 1;
++
++	return 0;
++}
++
++/*
+  * Bad permissions for sending the signal
+  * - the caller must hold the RCU read lock
   */
--static struct uts_namespace *clone_uts_ns(struct uts_namespace *old_ns)
-+static struct uts_namespace *clone_uts_ns(struct task_struct *tsk,
-+					  struct uts_namespace *old_ns)
+ static int check_kill_permission(int sig, struct siginfo *info,
+ 				 struct task_struct *t)
  {
- 	struct uts_namespace *ns;
+-	const struct cred *cred, *tcred;
+ 	struct pid *sid;
+ 	int error;
  
-@@ -41,8 +42,7 @@ static struct uts_namespace *clone_uts_n
+@@ -656,14 +676,8 @@ static int check_kill_permission(int sig
+ 	if (error)
+ 		return error;
  
- 	down_read(&uts_sem);
- 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
--	ns->user_ns = old_ns->user_ns;
--	get_user_ns(ns->user_ns);
-+	ns->user_ns = get_user_ns(task_cred_xxx(tsk, user)->user_ns);
- 	up_read(&uts_sem);
- 	return ns;
- }
-@@ -53,8 +53,10 @@ static struct uts_namespace *clone_uts_n
-  * utsname of this process won't be seen by parent, and vice
-  * versa.
-  */
--struct uts_namespace *copy_utsname(unsigned long flags, struct uts_namespace *old_ns)
-+struct uts_namespace *copy_utsname(unsigned long flags,
-+				   struct task_struct *tsk)
- {
-+	struct uts_namespace *old_ns = tsk->nsproxy->uts_ns;
- 	struct uts_namespace *new_ns;
- 
- 	BUG_ON(!old_ns);
-@@ -63,7 +65,7 @@ struct uts_namespace *copy_utsname(unsig
- 	if (!(flags & CLONE_NEWUTS))
- 		return old_ns;
- 
--	new_ns = clone_uts_ns(old_ns);
-+	new_ns = clone_uts_ns(tsk, old_ns);
- 
- 	put_uts_ns(old_ns);
- 	return new_ns;
+-	cred = current_cred();
+-	tcred = __task_cred(t);
+ 	if (!same_thread_group(current, t) &&
+-	    (cred->euid ^ tcred->suid) &&
+-	    (cred->euid ^ tcred->uid) &&
+-	    (cred->uid  ^ tcred->suid) &&
+-	    (cred->uid  ^ tcred->uid) &&
+-	    !capable(CAP_KILL)) {
++	    !kill_ok_by_cred(t)) {
+ 		switch (sig) {
+ 		case SIGCONT:
+ 			sid = task_session(t);
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
