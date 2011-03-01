@@ -1,187 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch removed from -mm tree
-Date: Mon, 28 Feb 2011 16:12:12 -0800
-Message-ID: <201103010012.p210CCIC006228@imap1.linux-foundation.org>
+Subject: + userns-add-a-user_namespace-as-creator-owner-of-uts_namespace.patch added to -mm tree
+Date: Mon, 28 Feb 2011 16:29:09 -0800
+Message-ID: <201103010029.p210TAh3007079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752696Ab1CAAQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754332Ab1CAA3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Feb 2011 19:16:59 -0500
+	Mon, 28 Feb 2011 19:29:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serge@hallyn.com, adobriyan@gmail.com, ebiederm@xmission.com, jmorris@namei.org, kees.cook@canonical.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com
 
 
 The patch titled
-     userns: userns: check user namespace for task->file uid equivalence checks
-has been removed from the -mm tree.  Its filename was
-     userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch
+     userns: add a user_namespace as creator/owner of uts_namespace
+has been added to the -mm tree.  Its filename is
+     userns-add-a-user_namespace-as-creator-owner-of-uts_namespace.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: userns: check user namespace for task->file uid equivalence checks
+Subject: userns: add a user_namespace as creator/owner of uts_namespace
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
-Cheat for now and say all files belong to init_user_ns.  Next step will be
-to let superblocks belong to a user_ns, and derive inode_userns(inode)
-from inode->i_sb->s_user_ns.  Finally we'll introduce more flexible
-arrangements.
+The expected course of development for user namespaces targeted
+capabilities is laid out at https://wiki.ubuntu.com/UserNamespace.
+
+Goals:
+
+- Make it safe for an unprivileged user to unshare namespaces.  They
+  will be privileged with respect to the new namespace, but this should
+  only include resources which the unprivileged user already owns.
+
+- Provide separate limits and accounting for userids in different
+  namespaces.  
+
+Status:
+
+  Currently (as of 2.6.38) you can clone with the CLONE_NEWUSER flag to
+  get a new user namespace if you have the CAP_SYS_ADMIN, CAP_SETUID, and
+  CAP_SETGID capabilities.  What this gets you is a whole new set of
+  userids, meaning that user 500 will have a different 'struct user' in
+  your namespace than in other namespaces.  So any accounting information
+  stored in struct user will be unique to your namespace.
+
+  However, throughout the kernel there are checks which
+
+  - simply check for a capability.  Since root in a child namespace
+    has all capabilities, this means that a child namespace is not
+    constrained.
+
+  - simply compare uid1 == uid2.  Since these are the integer uids,
+    uid 500 in namespace 1 will be said to be equal to uid 500 in
+    namespace 2.  
+
+  As a result, the lxc implementation at lxc.sf.net does not use user
+  namespaces.  This is actually helpful because it leaves us free to
+  develop user namespaces in such a way that, for some time, user
+  namespaces may be unuseful.  
+
+
+Bugs aside, this patchset is supposed to not at all affect systems which
+are not actively using user namespaces, and only restrict what tasks in
+child user namespace can do.  They begin to limit privilege to a user
+namespace, so that root in a container cannot kill or ptrace tasks in the
+parent user namespace, and can only get world access rights to files. 
+Since all files currently belong to the initila user namespace, that means
+that child user namespaces can only get world access rights to *all*
+files.  While this temporarily makes user namespaces bad for system
+containers, it starts to get useful for some sandboxing.
+
+I've run the 'runltplite.sh' with and without this patchset and found no
+difference.
+
+
+
+This patch:
+
+copy_process() handles CLONE_NEWUSER before the rest of the namespaces. 
+So in the case of clone(CLONE_NEWUSER|CLONE_NEWUTS) the new uts namespace
+will have the new user namespace as its owner.  That is what we want,
+since we want root in that new userns to be able to have privilege over
+it.
 
 Changelog:
-	Feb 15: make is_owner_or_cap take const struct inode
+	Feb 15: don't set uts_ns->user_ns if we didn't create
+		a new uts_ns.
+	Feb 23: Move extern init_user_ns declaration from
+		init/version.c to utsname.h.
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: David Howells <dhowells@redhat.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Kees Cook <kees.cook@canonical.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c         |   17 +++++++++++++++++
- fs/namei.c         |   20 +++++++++++++++-----
- include/linux/fs.h |    9 +++++++--
- 3 files changed, 39 insertions(+), 7 deletions(-)
+ include/linux/utsname.h |    4 ++++
+ init/version.c          |    1 +
+ kernel/nsproxy.c        |    5 +++++
+ kernel/user.c           |    8 ++++++--
+ kernel/utsname.c        |    4 ++++
+ 5 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN fs/inode.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks fs/inode.c
---- a/fs/inode.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/fs/inode.c
-@@ -25,6 +25,7 @@
- #include <linux/async.h>
- #include <linux/posix_acl.h>
- #include <linux/ima.h>
-+#include <linux/cred.h>
+diff -puN include/linux/utsname.h~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace include/linux/utsname.h
+--- a/include/linux/utsname.h~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/include/linux/utsname.h
+@@ -37,9 +37,13 @@ struct new_utsname {
+ #include <linux/nsproxy.h>
+ #include <linux/err.h>
  
- /*
-  * This is needed for the following functions:
-@@ -1722,3 +1723,19 @@ void inode_init_owner(struct inode *inod
- 	inode->i_mode = mode;
- }
- EXPORT_SYMBOL(inode_init_owner);
-+
-+/*
-+ * return 1 if current either has CAP_FOWNER to the
-+ * file, or owns the file.
-+ */
-+int is_owner_or_cap(const struct inode *inode)
-+{
-+	struct user_namespace *ns = inode_userns(inode);
-+
-+	if (current_user_ns() == ns && current_fsuid() == inode->i_uid)
-+		return 1;
-+	if (ns_capable(ns, CAP_FOWNER))
-+		return 1;
-+	return 0;
-+}
-+EXPORT_SYMBOL(is_owner_or_cap);
-diff -puN fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks fs/namei.c
---- a/fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/fs/namei.c
-@@ -176,6 +176,9 @@ static int acl_permission_check(struct i
- 
- 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
- 
-+	if (current_user_ns() != inode_userns(inode))
-+		goto other_perms;
-+
- 	if (current_fsuid() == inode->i_uid)
- 		mode >>= 6;
- 	else {
-@@ -189,6 +192,7 @@ static int acl_permission_check(struct i
- 			mode >>= 3;
- 	}
- 
-+other_perms:
- 	/*
- 	 * If the DACs are ok we don't need any capability check.
- 	 */
-@@ -230,7 +234,7 @@ int generic_permission(struct inode *ino
- 	 * Executable DACs are overridable if at least one exec bit is set.
- 	 */
- 	if (!(mask & MAY_EXEC) || execute_ok(inode))
--		if (capable(CAP_DAC_OVERRIDE))
-+		if (ns_capable(inode_userns(inode), CAP_DAC_OVERRIDE))
- 			return 0;
- 
- 	/*
-@@ -238,7 +242,7 @@ int generic_permission(struct inode *ino
- 	 */
- 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
- 	if (mask == MAY_READ || (S_ISDIR(inode->i_mode) && !(mask & MAY_WRITE)))
--		if (capable(CAP_DAC_READ_SEARCH))
-+		if (ns_capable(inode_userns(inode), CAP_DAC_READ_SEARCH))
- 			return 0;
- 
- 	return -EACCES;
-@@ -675,6 +679,7 @@ force_reval_path(struct path *path, stru
- static inline int exec_permission(struct inode *inode, unsigned int flags)
- {
- 	int ret;
-+	struct user_namespace *ns = inode_userns(inode);
- 
- 	if (inode->i_op->permission) {
- 		ret = inode->i_op->permission(inode, MAY_EXEC, flags);
-@@ -687,7 +692,7 @@ static inline int exec_permission(struct
- 	if (ret == -ECHILD)
- 		return ret;
- 
--	if (capable(CAP_DAC_OVERRIDE) || capable(CAP_DAC_READ_SEARCH))
-+	if (ns_capable(ns, CAP_DAC_OVERRIDE) || ns_capable(ns, CAP_DAC_READ_SEARCH))
- 		goto ok;
- 
- 	return ret;
-@@ -1939,11 +1944,15 @@ static inline int check_sticky(struct in
- 
- 	if (!(dir->i_mode & S_ISVTX))
- 		return 0;
-+	if (current_user_ns() != inode_userns(inode))
-+		goto other_userns;
- 	if (inode->i_uid == fsuid)
- 		return 0;
- 	if (dir->i_uid == fsuid)
- 		return 0;
--	return !capable(CAP_FOWNER);
-+
-+other_userns:
-+	return !ns_capable(inode_userns(inode), CAP_FOWNER);
- }
- 
- /*
-@@ -2634,7 +2643,8 @@ int vfs_mknod(struct inode *dir, struct 
- 	if (error)
- 		return error;
- 
--	if ((S_ISCHR(mode) || S_ISBLK(mode)) && !capable(CAP_MKNOD))
-+	if ((S_ISCHR(mode) || S_ISBLK(mode)) &&
-+	    !ns_capable(inode_userns(dir), CAP_MKNOD))
- 		return -EPERM;
- 
- 	if (!dir->i_op->mknod)
-diff -puN include/linux/fs.h~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks include/linux/fs.h
---- a/include/linux/fs.h~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks
-+++ a/include/linux/fs.h
-@@ -1454,8 +1454,13 @@ enum {
- #define put_fs_excl() atomic_dec(&current->fs_excl)
- #define has_fs_excl() atomic_read(&current->fs_excl)
- 
--#define is_owner_or_cap(inode)	\
--	((current_fsuid() == (inode)->i_uid) || capable(CAP_FOWNER))
-+/*
-+ * until VFS tracks user namespaces for inodes, just make all files
-+ * belong to init_user_ns
-+ */
++struct user_namespace;
 +extern struct user_namespace init_user_ns;
-+#define inode_userns(inode) (&init_user_ns)
-+extern int is_owner_or_cap(const struct inode *inode);
++
+ struct uts_namespace {
+ 	struct kref kref;
+ 	struct new_utsname name;
++	struct user_namespace *user_ns;
+ };
+ extern struct uts_namespace init_uts_ns;
  
- /* not quite ready to be deprecated, but... */
- extern void lock_super(struct super_block *);
+diff -puN init/version.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace init/version.c
+--- a/init/version.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/init/version.c
+@@ -33,6 +33,7 @@ struct uts_namespace init_uts_ns = {
+ 		.machine	= UTS_MACHINE,
+ 		.domainname	= UTS_DOMAINNAME,
+ 	},
++	.user_ns = &init_user_ns,
+ };
+ EXPORT_SYMBOL_GPL(init_uts_ns);
+ 
+diff -puN kernel/nsproxy.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/nsproxy.c
+--- a/kernel/nsproxy.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/nsproxy.c
+@@ -74,6 +74,11 @@ static struct nsproxy *create_new_namesp
+ 		err = PTR_ERR(new_nsp->uts_ns);
+ 		goto out_uts;
+ 	}
++	if (new_nsp->uts_ns != tsk->nsproxy->uts_ns) {
++		put_user_ns(new_nsp->uts_ns->user_ns);
++		new_nsp->uts_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
++		get_user_ns(new_nsp->uts_ns->user_ns);
++	}
+ 
+ 	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
+ 	if (IS_ERR(new_nsp->ipc_ns)) {
+diff -puN kernel/user.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/user.c
+--- a/kernel/user.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/user.c
+@@ -17,9 +17,13 @@
+ #include <linux/module.h>
+ #include <linux/user_namespace.h>
+ 
++/*
++ * userns count is 1 for root user, 1 for init_uts_ns,
++ * and 1 for... ?
++ */
+ struct user_namespace init_user_ns = {
+ 	.kref = {
+-		.refcount	= ATOMIC_INIT(2),
++		.refcount	= ATOMIC_INIT(3),
+ 	},
+ 	.creator = &root_user,
+ };
+@@ -47,7 +51,7 @@ static struct kmem_cache *uid_cachep;
+  */
+ static DEFINE_SPINLOCK(uidhash_lock);
+ 
+-/* root_user.__count is 2, 1 for init task cred, 1 for init_user_ns->creator */
++/* root_user.__count is 2, 1 for init task cred, 1 for init_user_ns->user_ns */
+ struct user_struct root_user = {
+ 	.__count	= ATOMIC_INIT(2),
+ 	.processes	= ATOMIC_INIT(1),
+diff -puN kernel/utsname.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/utsname.c
+--- a/kernel/utsname.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/utsname.c
+@@ -14,6 +14,7 @@
+ #include <linux/utsname.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
++#include <linux/user_namespace.h>
+ 
+ static struct uts_namespace *create_uts_ns(void)
+ {
+@@ -40,6 +41,8 @@ static struct uts_namespace *clone_uts_n
+ 
+ 	down_read(&uts_sem);
+ 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
++	ns->user_ns = old_ns->user_ns;
++	get_user_ns(ns->user_ns);
+ 	up_read(&uts_sem);
+ 	return ns;
+ }
+@@ -71,5 +74,6 @@ void free_uts_ns(struct kref *kref)
+ 	struct uts_namespace *ns;
+ 
+ 	ns = container_of(kref, struct uts_namespace, kref);
++	put_user_ns(ns->user_ns);
+ 	kfree(ns);
+ }
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
@@ -193,4 +226,14 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 pid-remove-the-child_reaper-special-case-in-init-mainc.patch
 pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
 procfs-kill-the-global-proc_mnt-variable.patch
+userns-add-a-user_namespace-as-creator-owner-of-uts_namespace.patch
+userns-security-make-capabilities-relative-to-the-user-namespace.patch
+userns-allow-sethostname-in-a-container.patch
+userns-allow-killing-tasks-in-your-own-or-child-userns.patch
+userns-allow-ptrace-from-non-init-user-namespaces.patch
+userns-user-namespaces-convert-all-capable-checks-in-kernel-sysc.patch
+userns-add-a-user-namespace-owner-of-ipc-ns.patch
+userns-user-namespaces-convert-several-capable-calls.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable.patch
 
