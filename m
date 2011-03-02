@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch added to -mm tree
-Date: Wed, 02 Mar 2011 14:48:21 -0800
-Message-ID: <201103022323.p22NN60C007298@imap1.linux-foundation.org>
+Subject: + userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch added to -mm tree
+Date: Wed, 02 Mar 2011 15:06:40 -0800
+Message-ID: <201103022341.p22NfPbO008117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753250Ab1CBXXt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 18:23:49 -0500
+	by vger.kernel.org with ESMTP id S1754352Ab1CBXln (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 18:41:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, dhowells@redhat.com, ebie
 
 
 The patch titled
-     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
 has been added to the -mm tree.  Its filename is
-     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
+Subject: userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-btrfs changed in linux-next
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "Serge E. Hallyn" <serge@hallyn.com>
@@ -47,21 +45,21 @@ Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/ioctl.c |    2 +-
+ fs/nilfs2/ioctl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix fs/btrfs/ioctl.c
---- a/fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
-+++ a/fs/btrfs/ioctl.c
-@@ -1077,7 +1077,7 @@ static noinline int btrfs_ioctl_subvol_s
- 	if (flags & ~BTRFS_SUBVOL_RDONLY)
- 		return -EOPNOTSUPP;
+diff -puN fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
++++ a/fs/nilfs2/ioctl.c
+@@ -113,7 +113,7 @@ static int nilfs_ioctl_setflags(struct i
+ 	unsigned int flags, oldflags;
+ 	int ret;
  
 -	if (!is_owner_or_cap(inode))
 +	if (!inode_owner_or_capable(inode))
  		return -EACCES;
  
- 	down_write(&root->fs_info->subvol_sem);
+ 	if (get_user(flags, (int __user *)argp))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +101,7 @@ userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
 userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
 userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
 userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
 scatterlist-new-helper-functions.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
