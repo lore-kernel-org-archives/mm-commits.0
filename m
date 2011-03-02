@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + misc-bmp085-add-module_device_table.patch added to -mm tree
-Date: Tue, 01 Mar 2011 15:56:17 -0800
-Message-ID: <201103012356.p21NuHbC007167@imap1.linux-foundation.org>
+Subject: + bh1780gli-convert-to-dev-pm-ops-update.patch added to -mm tree
+Date: Tue, 01 Mar 2011 16:10:03 -0800
+Message-ID: <201103020010.p220A3DF007821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757082Ab1CBACo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2011 19:02:44 -0500
+	by vger.kernel.org with ESMTP id S1756679Ab1CBAKi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2011 19:10:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, christoph.mair@gmail.com, jic23@cam.ac.uk, shubhrajyoti@ti.com, stable@kernel.org
+Cc: shubhrajyoti@ti.com
 
 
 The patch titled
-     drivers/misc/bmp085.c: add MODULE_DEVICE_TABLE
+     bh1780gli-convert-to-dev-pm-ops-update
 has been added to the -mm tree.  Its filename is
-     misc-bmp085-add-module_device_table.patch
+     bh1780gli-convert-to-dev-pm-ops-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/bmp085.c: add MODULE_DEVICE_TABLE
-From: Axel Lin <axel.lin@gmail.com>
+Subject: bh1780gli-convert-to-dev-pm-ops-update
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-The device table is required to load modules based on modaliases.
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: Christoph Mair <christoph.mair@gmail.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/bmp085.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/misc/bh1780gli.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/bmp085.c~misc-bmp085-add-module_device_table drivers/misc/bmp085.c
---- a/drivers/misc/bmp085.c~misc-bmp085-add-module_device_table
-+++ a/drivers/misc/bmp085.c
-@@ -449,6 +449,7 @@ static const struct i2c_device_id bmp085
- 	{ "bmp085", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, bmp085_id);
+diff -puN drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops-update drivers/misc/bh1780gli.c
+--- a/drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops-update
++++ a/drivers/misc/bh1780gli.c
+@@ -235,6 +235,9 @@ static int bh1780_resume(struct device *
+ 	return 0;
+ }
+ static SIMPLE_DEV_PM_OPS(bh1780_pm, bh1780_suspend, bh1780_resume);
++#define BH1780_PMOPS (&bh1780_pm)
++#else
++#define BH1780_PMOPS NULL
+ #endif /* CONFIG_PM */
  
- static struct i2c_driver bmp085_driver = {
+ static const struct i2c_device_id bh1780_id[] = {
+@@ -248,9 +251,7 @@ static struct i2c_driver bh1780_driver =
+ 	.id_table	= bh1780_id,
  	.driver = {
+ 		.name = "bh1780",
+-#ifdef CONFIG_PM
+-		.pm	= &bh1780_pm,
+-#endif
++		.pm	= BH1780_PMOPS,
+ },
+ };
+ 
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from shubhrajyoti@ti.com are
 
-origin.patch
-drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie.patch
 misc-bmp085-add-module_device_table.patch
 linux-next.patch
-drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+bh1780gli-convert-to-dev-pm-ops.patch
+bh1780gli-convert-to-dev-pm-ops-update.patch
+drivers-misc-bmp085c-free-initmem-memory.patch
 
