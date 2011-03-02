@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-modify-subsystem-and-driver-initialization-sequence.patch added to -mm tree
-Date: Tue, 01 Mar 2011 16:24:05 -0800
-Message-ID: <201103020024.p220O6o5008463@imap1.linux-foundation.org>
+Subject: + rapidio-modify-configuration-to-support-pci-srio-controller.patch added to -mm tree
+Date: Tue, 01 Mar 2011 16:24:03 -0800
+Message-ID: <201103020024.p220O37V008460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755340Ab1CBAZa (ORCPT
+	by vger.kernel.org with ESMTP id S1755626Ab1CBAZa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2011 19:25:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.o
 
 
 The patch titled
-     rapidio: modify subsystem and driver initialization sequence
+     rapidio: modify configuration to support PCI-SRIO controller
 has been added to the -mm tree.  Its filename is
-     rapidio-modify-subsystem-and-driver-initialization-sequence.patch
+     rapidio-modify-configuration-to-support-pci-srio-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: modify subsystem and driver initialization sequence
+Subject: rapidio: modify configuration to support PCI-SRIO controller
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Subsystem initialization sequence modified to support presence of multiple
-RapidIO controllers in the system.  The new sequence is compatible with
-initialization of PCI devices.
+1. Add an option to include RapidIO support if the PCI is available.
+2. Add FSL_RIO configuration option to enable controller selection.
+3. Add RapidIO support option into x86 and MIPS architectures.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
@@ -50,83 +50,122 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   10 +---------
- drivers/net/rionet.c          |    2 +-
- drivers/rapidio/rio.c         |    6 ++++--
- include/linux/rio.h           |    1 -
- 4 files changed, 6 insertions(+), 13 deletions(-)
+ arch/mips/Kconfig            |   10 ++++++++++
+ arch/powerpc/Kconfig         |   10 +++++++++-
+ arch/powerpc/sysdev/Makefile |    2 +-
+ arch/x86/Kconfig             |   10 ++++++++++
+ drivers/net/rionet.c         |    4 ++--
+ drivers/rapidio/rio-sysfs.c  |    1 +
+ 6 files changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1574,18 +1574,10 @@ err_ops:
-  */
- static int __devinit fsl_of_rio_rpn_probe(struct platform_device *dev)
- {
--	int rc;
- 	printk(KERN_INFO "Setting up RapidIO peer-to-peer network %s\n",
- 			dev->dev.of_node->full_name);
+diff -puN arch/mips/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/mips/Kconfig
+--- a/arch/mips/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
++++ a/arch/mips/Kconfig
+@@ -2339,6 +2339,16 @@ source "drivers/pcmcia/Kconfig"
  
--	rc = fsl_rio_setup(dev);
--	if (rc)
--		goto out;
--
--	/* Enumerate all registered ports */
--	rc = rio_init_mports();
--out:
--	return rc;
-+	return fsl_rio_setup(dev);
- };
+ source "drivers/pci/hotplug/Kconfig"
  
- static const struct of_device_id fsl_of_rio_rpn_ids[] = {
-diff -puN drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence
++config RAPIDIO
++	bool "RapidIO support"
++	depends on PCI
++	default n
++	help
++	  If you say Y here, the kernel will include drivers and
++	  infrastructure code to support RapidIO interconnect devices.
++
++source "drivers/rapidio/Kconfig"
++
+ endmenu
+ 
+ menu "Executable file formats"
+diff -puN arch/powerpc/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
++++ a/arch/powerpc/Kconfig
+@@ -768,11 +768,19 @@ config HAS_RAPIDIO
+ 
+ config RAPIDIO
+ 	bool "RapidIO support"
+-	depends on HAS_RAPIDIO
++	depends on HAS_RAPIDIO || PCI
+ 	help
+ 	  If you say Y here, the kernel will include drivers and
+ 	  infrastructure code to support RapidIO interconnect devices.
+ 
++config FSL_RIO
++	bool "Freescale Embedded SRIO Controller support"
++	depends on RAPIDIO && HAS_RAPIDIO
++	default "n"
++	---help---
++	  Include support for RapidIO controller on Freescale embedded
++	  processors (MPC8548, MPC8641, etc).
++
+ source "drivers/rapidio/Kconfig"
+ 
+ endmenu
+diff -puN arch/powerpc/sysdev/Makefile~rapidio-modify-configuration-to-support-pci-srio-controller arch/powerpc/sysdev/Makefile
+--- a/arch/powerpc/sysdev/Makefile~rapidio-modify-configuration-to-support-pci-srio-controller
++++ a/arch/powerpc/sysdev/Makefile
+@@ -20,7 +20,7 @@ obj-$(CONFIG_FSL_GTM)		+= fsl_gtm.o
+ obj-$(CONFIG_MPC8xxx_GPIO)	+= mpc8xxx_gpio.o
+ obj-$(CONFIG_FSL_85XX_CACHE_SRAM)	+= fsl_85xx_l2ctlr.o fsl_85xx_cache_sram.o
+ obj-$(CONFIG_SIMPLE_GPIO)	+= simple_gpio.o
+-obj-$(CONFIG_RAPIDIO)		+= fsl_rio.o
++obj-$(CONFIG_FSL_RIO)		+= fsl_rio.o
+ obj-$(CONFIG_TSI108_BRIDGE)	+= tsi108_pci.o tsi108_dev.o
+ obj-$(CONFIG_QUICC_ENGINE)	+= qe_lib/
+ obj-$(CONFIG_PPC_BESTCOMM)	+= bestcomm/
+diff -puN arch/x86/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/x86/Kconfig
+--- a/arch/x86/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
++++ a/arch/x86/Kconfig
+@@ -2095,6 +2095,16 @@ source "drivers/pci/hotplug/Kconfig"
+ 
+ source "drivers/vbus/Kconfig"
+ 
++config RAPIDIO
++	bool "RapidIO support"
++	depends on PCI
++	default n
++	help
++	  If you say Y here, the kernel will include drivers and
++	  infrastructure code to support RapidIO interconnect devices.
++
++source "drivers/rapidio/Kconfig"
++
+ endmenu
+ 
+ 
+diff -puN drivers/net/rionet.c~rapidio-modify-configuration-to-support-pci-srio-controller drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-modify-configuration-to-support-pci-srio-controller
 +++ a/drivers/net/rionet.c
-@@ -571,5 +571,5 @@ static void __exit rionet_exit(void)
- 	rio_unregister_driver(&rionet_driver);
- }
+@@ -382,7 +382,7 @@ static void rionet_remove(struct rio_dev
+ 	struct rionet_peer *peer, *tmp;
  
--module_init(rionet_init);
-+late_initcall(rionet_init);
- module_exit(rionet_exit);
-diff -puN drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
-+++ a/drivers/rapidio/rio.c
-@@ -1134,8 +1134,6 @@ static int __devinit rio_init(void)
- 	return 0;
- }
+ 	free_pages((unsigned long)rionet_active, rdev->net->hport->sys_size ?
+-					__ilog2(sizeof(void *)) + 4 : 0);
++					__fls(sizeof(void *)) + 4 : 0);
+ 	unregister_netdev(ndev);
+ 	free_netdev(ndev);
  
--device_initcall(rio_init);
--
- int __devinit rio_init_mports(void)
- {
- 	int rc = 0;
-@@ -1158,10 +1156,14 @@ int __devinit rio_init_mports(void)
- 			rio_disc_mport(port);
+@@ -450,7 +450,7 @@ static int rionet_setup_netdev(struct ri
  	}
  
-+	rio_init();
-+
-       out:
- 	return rc;
- }
+ 	rionet_active = (struct rio_dev **)__get_free_pages(GFP_KERNEL,
+-			mport->sys_size ? __ilog2(sizeof(void *)) + 4 : 0);
++			mport->sys_size ? __fls(sizeof(void *)) + 4 : 0);
+ 	if (!rionet_active) {
+ 		rc = -ENOMEM;
+ 		goto out;
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-modify-configuration-to-support-pci-srio-controller drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-modify-configuration-to-support-pci-srio-controller
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -14,6 +14,7 @@
+ #include <linux/rio.h>
+ #include <linux/rio_drv.h>
+ #include <linux/stat.h>
++#include <linux/capability.h>
  
-+device_initcall_sync(rio_init_mports);
-+
- void rio_register_mport(struct rio_mport *port)
- {
- 	list_add_tail(&port->node, &rio_mports);
-diff -puN include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence include/linux/rio.h
---- a/include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence
-+++ a/include/linux/rio.h
-@@ -395,7 +395,6 @@ union rio_pw_msg {
- };
+ #include "rio.h"
  
- /* Architecture and hardware-specific functions */
--extern int rio_init_mports(void);
- extern void rio_register_mport(struct rio_mport *);
- extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
- extern void rio_close_inb_mbox(struct rio_mport *, int);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
