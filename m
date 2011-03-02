@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-remove-mport-resource-reservation-from-common-rio-code.patch added to -mm tree
-Date: Tue, 01 Mar 2011 16:24:09 -0800
-Message-ID: <201103020024.p220OAE9008472@imap1.linux-foundation.org>
+Subject: + rapidio-modify-subsystem-and-driver-initialization-sequence.patch added to -mm tree
+Date: Tue, 01 Mar 2011 16:24:05 -0800
+Message-ID: <201103020024.p220O6o5008463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754185Ab1CBAZa (ORCPT
+	by vger.kernel.org with ESMTP id S1755340Ab1CBAZa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2011 19:25:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.o
 
 
 The patch titled
-     rapidio: remove mport resource reservation from common RIO code
+     rapidio: modify subsystem and driver initialization sequence
 has been added to the -mm tree.  Its filename is
-     rapidio-remove-mport-resource-reservation-from-common-rio-code.patch
+     rapidio-modify-subsystem-and-driver-initialization-sequence.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: remove mport resource reservation from common RIO code
+Subject: rapidio: modify subsystem and driver initialization sequence
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Removes resource reservation from the common sybsystem initialization code
-and make it part of mport driver initialization.  This resolves conflict
-with resource reservation by device specific mport drivers.
+Subsystem initialization sequence modified to support presence of multiple
+RapidIO controllers in the system.  The new sequence is compatible with
+initialization of PCI devices.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
@@ -50,70 +50,83 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    9 +++++++++
- drivers/rapidio/rio.c         |   14 +-------------
- 2 files changed, 10 insertions(+), 13 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |   10 +---------
+ drivers/net/rionet.c          |    2 +-
+ drivers/rapidio/rio.c         |    6 ++++--
+ include/linux/rio.h           |    1 -
+ 4 files changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
 +++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1432,6 +1432,14 @@ int fsl_rio_setup(struct platform_device
- 	port->iores.flags = IORESOURCE_MEM;
- 	port->iores.name = "rio_io_win";
- 
-+	if (request_resource(&iomem_resource, &port->iores) < 0) {
-+		dev_err(&dev->dev, "RIO: Error requesting master port region"
-+			" 0x%016llx-0x%016llx\n",
-+			(u64)port->iores.start, (u64)port->iores.end);
-+			rc = -ENOMEM;
-+			goto err_res;
-+	}
-+
- 	priv->pwirq   = irq_of_parse_and_map(dev->dev.of_node, 0);
- 	priv->bellirq = irq_of_parse_and_map(dev->dev.of_node, 2);
- 	priv->txirq = irq_of_parse_and_map(dev->dev.of_node, 3);
-@@ -1536,6 +1544,7 @@ int fsl_rio_setup(struct platform_device
- 	return 0;
- err:
- 	iounmap(priv->regs_win);
-+err_res:
- 	kfree(priv);
- err_priv:
- 	kfree(port);
-diff -puN drivers/rapidio/rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code
-+++ a/drivers/rapidio/rio.c
-@@ -1137,20 +1137,9 @@ static int __devinit rio_init(void)
- 
- int __devinit rio_init_mports(void)
+@@ -1574,18 +1574,10 @@ err_ops:
+  */
+ static int __devinit fsl_of_rio_rpn_probe(struct platform_device *dev)
  {
--	int rc = 0;
- 	struct rio_mport *port;
+-	int rc;
+ 	printk(KERN_INFO "Setting up RapidIO peer-to-peer network %s\n",
+ 			dev->dev.of_node->full_name);
  
- 	list_for_each_entry(port, &rio_mports, node) {
--		if (!request_mem_region(port->iores.start,
--					resource_size(&port->iores),
--					port->name)) {
--			printk(KERN_ERR
--			       "RIO: Error requesting master port region 0x%016llx-0x%016llx\n",
--			       (u64)port->iores.start, (u64)port->iores.end);
--			rc = -ENOMEM;
--			goto out;
--		}
+-	rc = fsl_rio_setup(dev);
+-	if (rc)
+-		goto out;
 -
- 		if (port->host_deviceid >= 0)
- 			rio_enum_mport(port);
- 		else
-@@ -1159,8 +1148,7 @@ int __devinit rio_init_mports(void)
- 
- 	rio_init();
- 
--      out:
+-	/* Enumerate all registered ports */
+-	rc = rio_init_mports();
+-out:
 -	return rc;
-+	return 0;
++	return fsl_rio_setup(dev);
+ };
+ 
+ static const struct of_device_id fsl_of_rio_rpn_ids[] = {
+diff -puN drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence
++++ a/drivers/net/rionet.c
+@@ -571,5 +571,5 @@ static void __exit rionet_exit(void)
+ 	rio_unregister_driver(&rionet_driver);
  }
  
- device_initcall_sync(rio_init_mports);
+-module_init(rionet_init);
++late_initcall(rionet_init);
+ module_exit(rionet_exit);
+diff -puN drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
++++ a/drivers/rapidio/rio.c
+@@ -1134,8 +1134,6 @@ static int __devinit rio_init(void)
+ 	return 0;
+ }
+ 
+-device_initcall(rio_init);
+-
+ int __devinit rio_init_mports(void)
+ {
+ 	int rc = 0;
+@@ -1158,10 +1156,14 @@ int __devinit rio_init_mports(void)
+ 			rio_disc_mport(port);
+ 	}
+ 
++	rio_init();
++
+       out:
+ 	return rc;
+ }
+ 
++device_initcall_sync(rio_init_mports);
++
+ void rio_register_mport(struct rio_mport *port)
+ {
+ 	list_add_tail(&port->node, &rio_mports);
+diff -puN include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence
++++ a/include/linux/rio.h
+@@ -395,7 +395,6 @@ union rio_pw_msg {
+ };
+ 
+ /* Architecture and hardware-specific functions */
+-extern int rio_init_mports(void);
+ extern void rio_register_mport(struct rio_mport *);
+ extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
+ extern void rio_close_inb_mbox(struct rio_mport *, int);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
