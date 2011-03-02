@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch added to -mm tree
-Date: Wed, 02 Mar 2011 13:57:17 -0800
-Message-ID: <201103022232.p22MW4kw005044@imap1.linux-foundation.org>
+Subject: + ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch added to -mm tree
+Date: Wed, 02 Mar 2011 14:24:56 -0800
+Message-ID: <201103022259.p22MxfOF006296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758024Ab1CBWcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 17:32:21 -0500
+	by vger.kernel.org with ESMTP id S1756193Ab1CBW76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 17:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, aarcange@redhat.com, chrisw@sous-sol.org, hugh.di
 
 
 The patch titled
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix
+     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
 has been added to the -mm tree.  Its filename is
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix
+Subject: ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -45,79 +45,31 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c    |    5 +++--
- mm/memory.c |    2 ++
- mm/rmap.c   |    6 ++++--
- 3 files changed, 9 insertions(+), 4 deletions(-)
+ mm/ksm.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix mm/ksm.c
---- a/mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix
+diff -puN mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix mm/ksm.c
+--- a/mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
 +++ a/mm/ksm.c
-@@ -883,7 +883,6 @@ static int try_to_merge_one_page(struct 
- 	 */
- 	if (write_protect_page(vma, page, &orig_pte) == 0) {
- 		if (!kpage) {
--			long mapcount = page_mapcount(page);
- 			/*
- 			 * While we hold page lock, upgrade page from
- 			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
-@@ -891,10 +890,12 @@ static int try_to_merge_one_page(struct 
- 			 */
+@@ -891,10 +891,14 @@ static int try_to_merge_one_page(struct 
  			set_page_stable_node(page, NULL);
  			mark_page_accessed(page);
--			if (mapcount)
-+#ifdef CONFIG_KSM
-+			if (page_mapcount(page))
- 				add_zone_page_state(page_zone(page),
- 						    NR_KSM_PAGES_SHARING,
- 						    mapcount);
-+#endif
+ #ifdef CONFIG_KSM
+-			if (page_mapcount(page))
+-				add_zone_page_state(page_zone(page),
+-						    NR_KSM_PAGES_SHARING,
+-						    mapcount);
++			{
++				int mapcount = page_mapcount(page);
++
++				if (mapcount)
++					add_zone_page_state(page_zone(page),
++							NR_KSM_PAGES_SHARING,
++							mapcount);
++			}
+ #endif
  			err = 0;
  		} else if (pages_identical(page, kpage))
- 			err = replace_page(vma, page, kpage, orig_pte);
-diff -puN mm/memory.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix mm/memory.c
---- a/mm/memory.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix
-+++ a/mm/memory.c
-@@ -719,8 +719,10 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 			rss[MM_ANONPAGES]++;
- 		else
- 			rss[MM_FILEPAGES]++;
-+#ifdef CONFIG_KSM
- 		if (PageKsm(page)) /* follows page_dup_rmap() */
- 			inc_zone_page_state(page, NR_KSM_PAGES_SHARING);
-+#endif
- 	}
- 
- out_set_pte:
-diff -puN mm/rmap.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix mm/rmap.c
---- a/mm/rmap.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix
-+++ a/mm/rmap.c
-@@ -893,11 +893,12 @@ void do_page_add_anon_rmap(struct page *
- 			__inc_zone_page_state(page,
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 	}
-+#ifdef CONFIG_KSM
- 	if (unlikely(PageKsm(page))) {
- 		__inc_zone_page_state(page, NR_KSM_PAGES_SHARING);
- 		return;
- 	}
--
-+#endif
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	if (first)
-@@ -955,9 +956,10 @@ void page_add_file_rmap(struct page *pag
-  */
- void page_remove_rmap(struct page *page)
- {
-+#ifdef CONFIG_KSM
- 	if (PageKsm(page))
- 		__dec_zone_page_state(page, NR_KSM_PAGES_SHARING);
--
-+#endif
- 	/* page still mapped by someone else? */
- 	if (!atomic_add_negative(-1, &page->_mapcount))
- 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +95,7 @@ mm-batch-free-pcp-list-if-possible-fix.patch
 pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
 mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
 ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
