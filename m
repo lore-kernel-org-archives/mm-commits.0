@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch added to -mm tree
-Date: Wed, 02 Mar 2011 14:24:56 -0800
-Message-ID: <201103022259.p22MxfOF006296@imap1.linux-foundation.org>
+Subject: + userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch added to -mm tree
+Date: Wed, 02 Mar 2011 14:48:21 -0800
+Message-ID: <201103022323.p22NN60C007298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756193Ab1CBW76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 17:59:58 -0500
+	by vger.kernel.org with ESMTP id S1753250Ab1CBXXt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 18:23:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, chrisw@sous-sol.org, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nai.xia@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, serge@hallyn.com
 
 
 The patch titled
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
 has been added to the -mm tree.  Its filename is
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
+Subject: userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Nai Xia <nai.xia@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+btrfs changed in linux-next
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/btrfs/ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix mm/ksm.c
---- a/mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix
-+++ a/mm/ksm.c
-@@ -891,10 +891,14 @@ static int try_to_merge_one_page(struct 
- 			set_page_stable_node(page, NULL);
- 			mark_page_accessed(page);
- #ifdef CONFIG_KSM
--			if (page_mapcount(page))
--				add_zone_page_state(page_zone(page),
--						    NR_KSM_PAGES_SHARING,
--						    mapcount);
-+			{
-+				int mapcount = page_mapcount(page);
-+
-+				if (mapcount)
-+					add_zone_page_state(page_zone(page),
-+							NR_KSM_PAGES_SHARING,
-+							mapcount);
-+			}
- #endif
- 			err = 0;
- 		} else if (pages_identical(page, kpage))
+diff -puN fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix fs/btrfs/ioctl.c
+--- a/fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
++++ a/fs/btrfs/ioctl.c
+@@ -1077,7 +1077,7 @@ static noinline int btrfs_ioctl_subvol_s
+ 	if (flags & ~BTRFS_SUBVOL_RDONLY)
+ 		return -EOPNOTSUPP;
+ 
+-	if (!is_owner_or_cap(inode))
++	if (!inode_owner_or_capable(inode))
+ 		return -EACCES;
+ 
+ 	down_write(&root->fs_info->subvol_sem);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +102,7 @@ cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
 userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
 userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
 userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
 scatterlist-new-helper-functions.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
