@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch added to -mm tree
-Date: Wed, 02 Mar 2011 15:06:40 -0800
-Message-ID: <201103022341.p22NfPbO008117@imap1.linux-foundation.org>
+Subject: + crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch added to -mm tree
+Date: Wed, 02 Mar 2011 15:40:36 -0800
+Message-ID: <201103030015.p230FLXS009569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754352Ab1CBXln (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 18:41:43 -0500
+	by vger.kernel.org with ESMTP id S1753934Ab1CCAQA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 19:16:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, serge@hallyn.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, hannes@cmpxchg.org, hpa@zytor.com, lethal@linux-sh.org, mingo@elte.hu, olaf@aepfle.de, rmk@arm.linux.org.uk, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
+     crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+     crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
+Subject: crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
+fix
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn
+for Tejun's mm/nobootmem.c changes in linux-next
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nobootmem.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix
-+++ a/fs/nilfs2/ioctl.c
-@@ -113,7 +113,7 @@ static int nilfs_ioctl_setflags(struct i
- 	unsigned int flags, oldflags;
- 	int ret;
+diff -puN mm/nobootmem.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix mm/nobootmem.c
+--- a/mm/nobootmem.c~crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix
++++ a/mm/nobootmem.c
+@@ -32,14 +32,6 @@ unsigned long max_low_pfn;
+ unsigned long min_low_pfn;
+ unsigned long max_pfn;
  
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EACCES;
- 
- 	if (get_user(flags, (int __user *)argp))
+-#ifdef CONFIG_CRASH_DUMP
+-/*
+- * If we have booted due to a crash, max_pfn will be a very low value. We need
+- * to know the amount of memory that the previous kernel used.
+- */
+-unsigned long saved_max_pfn;
+-#endif
+-
+ static void * __init __alloc_memory_core_early(int nid, u64 size, u64 align,
+ 					u64 goal, u64 limit)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +119,7 @@ userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
 scatterlist-new-helper-functions.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
 journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
