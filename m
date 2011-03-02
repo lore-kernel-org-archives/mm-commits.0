@@ -1,211 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] adfs-remove-the-big-kernel-lock.patch removed from -mm tree
-Date: Wed, 02 Mar 2011 12:56:46 -0800
-Message-ID: <201103022056.p22KukuS032615@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-usb_wwanc-unbork.patch added to -mm tree
+Date: Wed, 02 Mar 2011 13:18:29 -0800
+Message-ID: <201103022153.p22LrEPM003034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756022Ab1CBU5h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 15:57:37 -0500
+	by vger.kernel.org with ESMTP id S1757405Ab1CBVxV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 16:53:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, rmk@arm.linux.org.uk, stuart.swales.croftnuisk@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, gregkh@suse.de, oneukum@suse.de
 
 
 The patch titled
-     adfs: remove the big kernel lock
-has been removed from the -mm tree.  Its filename was
-     adfs-remove-the-big-kernel-lock.patch
+     drivers/usb/serial/usb_wwan.c: unbork
+has been added to the -mm tree.  Its filename is
+     drivers-usb-serial-usb_wwanc-unbork.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: remove the big kernel lock
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/usb/serial/usb_wwan.c: unbork
+From: Andrew Morton <akpm@linux-foundation.org>
 
-According to Russell King, adfs was written to not require the big kernel
-lock, and all inode updates are done under adfs_dir_lock.
+linux-next x86_64 allmodconfig:
 
-All other metadata in adfs is read-only and does not require locking.  The
-use of the BKL is the result of various pushdowns from the VFS operations.
+drivers/usb/serial/usb_wwan.c: In function 'play_delayed':
+drivers/usb/serial/usb_wwan.c:702: error: 'struct dev_pm_info' has no member named 'usage_count'
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Cc: Oliver Neukum <oneukum@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir.c   |    6 ------
- fs/adfs/inode.c |    6 ------
- fs/adfs/super.c |   13 +------------
- 3 files changed, 1 insertion(+), 24 deletions(-)
+ drivers/usb/serial/usb_wwan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/adfs/dir.c~adfs-remove-the-big-kernel-lock fs/adfs/dir.c
---- a/fs/adfs/dir.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/dir.c
-@@ -9,7 +9,6 @@
-  *
-  *  Common directory handling for ADFS
-  */
--#include <linux/smp_lock.h>
- #include "adfs.h"
- 
- /*
-@@ -27,8 +26,6 @@ adfs_readdir(struct file *filp, void *di
- 	struct adfs_dir dir;
- 	int ret = 0;
- 
--	lock_kernel();	
--
- 	if (filp->f_pos >> 32)
- 		goto out;
- 
-@@ -70,7 +67,6 @@ free_out:
- 	ops->free(&dir);
- 
- out:
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -276,7 +272,6 @@ adfs_lookup(struct inode *dir, struct de
- 	struct object_info obj;
- 	int error;
- 
--	lock_kernel();
- 	error = adfs_dir_lookup_byname(dir, &dentry->d_name, &obj);
- 	if (error == 0) {
- 		error = -EACCES;
-@@ -288,7 +283,6 @@ adfs_lookup(struct inode *dir, struct de
- 		if (inode)
- 			error = 0;
- 	}
--	unlock_kernel();
- 	d_add(dentry, inode);
- 	return ERR_PTR(error);
- }
-diff -puN fs/adfs/inode.c~adfs-remove-the-big-kernel-lock fs/adfs/inode.c
---- a/fs/adfs/inode.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/inode.c
-@@ -7,7 +7,6 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#include <linux/smp_lock.h>
- #include <linux/buffer_head.h>
- #include <linux/writeback.h>
- #include "adfs.h"
-@@ -300,8 +299,6 @@ adfs_notify_change(struct dentry *dentry
- 	unsigned int ia_valid = attr->ia_valid;
- 	int error;
- 	
--	lock_kernel();
--
- 	error = inode_change_ok(inode, attr);
- 
- 	/*
-@@ -343,7 +340,6 @@ adfs_notify_change(struct dentry *dentry
- 	if (ia_valid & (ATTR_SIZE | ATTR_MTIME | ATTR_MODE))
- 		mark_inode_dirty(inode);
- out:
--	unlock_kernel();
- 	return error;
- }
- 
-@@ -358,7 +354,6 @@ int adfs_write_inode(struct inode *inode
- 	struct object_info obj;
- 	int ret;
- 
--	lock_kernel();
- 	obj.file_id	= inode->i_ino;
- 	obj.name_len	= 0;
- 	obj.parent_id	= ADFS_I(inode)->parent_id;
-@@ -368,6 +363,5 @@ int adfs_write_inode(struct inode *inode
- 	obj.size	= inode->i_size;
- 
- 	ret = adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
--	unlock_kernel();
- 	return ret;
- }
-diff -puN fs/adfs/super.c~adfs-remove-the-big-kernel-lock fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-remove-the-big-kernel-lock
-+++ a/fs/adfs/super.c
-@@ -14,7 +14,6 @@
- #include <linux/mount.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
--#include <linux/smp_lock.h>
- #include <linux/statfs.h>
- #include "adfs.h"
- #include "dir_f.h"
-@@ -120,15 +119,11 @@ static void adfs_put_super(struct super_
- 	int i;
- 	struct adfs_sb_info *asb = ADFS_SB(sb);
- 
--	lock_kernel();
--
- 	for (i = 0; i < asb->s_map_size; i++)
- 		brelse(asb->s_map[i].dm_bh);
- 	kfree(asb->s_map);
- 	kfree(asb);
- 	sb->s_fs_info = NULL;
--
--	unlock_kernel();
- }
- 
- static int adfs_show_options(struct seq_file *seq, struct vfsmount *mnt)
-@@ -367,15 +362,11 @@ static int adfs_fill_super(struct super_
- 	struct adfs_sb_info *asb;
- 	struct inode *root;
- 
--	lock_kernel();
--
- 	sb->s_flags |= MS_NODIRATIME;
- 
- 	asb = kzalloc(sizeof(*asb), GFP_KERNEL);
--	if (!asb) {
--		unlock_kernel();
-+	if (!asb)
- 		return -ENOMEM;
--	}
- 	sb->s_fs_info = asb;
- 
- 	/* set default options */
-@@ -502,7 +493,6 @@ static int adfs_fill_super(struct super_
- 		adfs_error(sb, "get root inode failed\n");
- 		goto error;
- 	}
--	unlock_kernel();
- 	return 0;
- 
- error_free_bh:
-@@ -510,7 +500,6 @@ error_free_bh:
- error:
- 	sb->s_fs_info = NULL;
- 	kfree(asb);
--	unlock_kernel();
- 	return -EINVAL;
- }
- 
+diff -puN drivers/usb/serial/usb_wwan.c~drivers-usb-serial-usb_wwanc-unbork drivers/usb/serial/usb_wwan.c
+--- a/drivers/usb/serial/usb_wwan.c~drivers-usb-serial-usb_wwanc-unbork
++++ a/drivers/usb/serial/usb_wwan.c
+@@ -699,7 +699,7 @@ static void play_delayed(struct usb_seri
+ 			do {
+ 				unbusy_queued_urb(urb, portdata);
+ 				//extremely dirty
+-				atomic_dec(&port->serial->interface->dev.power.usage_count);
++//				atomic_dec(&port->serial->interface->dev.power.usage_count);
+ 			} while ((urb = usb_get_from_anchor(&portdata->delayed)));
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-fs-locksc-remove-stale-fixme-left-over-from-bkl-conversion.patch
-smp-move-smp-setup-functions-to-kernel-smpc.patch
-bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
-asm-generic-rename-generic-little-endian-bitops-functions.patch
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
-s390-introduce-little-endian-bitops.patch
-s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-bitops-introduce-config_generic_find_bit_le.patch
-m68knommu-introduce-little-endian-bitops.patch
-asm-generic-use-little-endian-bitops.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+lib-vsprintf-optimised-put_dec-function-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
 
