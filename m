@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-usb_wwanc-unbork.patch added to -mm tree
-Date: Wed, 02 Mar 2011 13:18:29 -0800
-Message-ID: <201103022153.p22LrEPM003034@imap1.linux-foundation.org>
+Subject: + userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch added to -mm tree
+Date: Wed, 02 Mar 2011 13:23:36 -0800
+Message-ID: <201103022158.p22LwLqn003277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757405Ab1CBVxV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 16:53:21 -0500
+	by vger.kernel.org with ESMTP id S1757341Ab1CBV7H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2011 16:59:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, oneukum@suse.de
+Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, serge@hallyn.com
 
 
 The patch titled
-     drivers/usb/serial/usb_wwan.c: unbork
+     userns-security-make-capabilities-relative-to-the-user-namespace-fix
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-usb_wwanc-unbork.patch
+     userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/usb_wwan.c: unbork
+Subject: userns-security-make-capabilities-relative-to-the-user-namespace-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-linux-next x86_64 allmodconfig:
+x86_64 linux-next allmodconfig:
 
-drivers/usb/serial/usb_wwan.c: In function 'play_delayed':
-drivers/usb/serial/usb_wwan.c:702: error: 'struct dev_pm_info' has no member named 'usage_count'
+security/selinux/hooks.c: In function 'selinux_file_ioctl':
+security/selinux/hooks.c:2890: warning: passing argument 3 of 'task_has_capability' makes pointer from integer without a cast
+security/selinux/hooks.c:1420: note: expected 'struct user_namespace *' but argument is of type 'int'
+security/selinux/hooks.c:2890: error: too few arguments to function 'task_has_capability'
 
-Cc: Oliver Neukum <oneukum@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+This patch is surely wrong?
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/usb_wwan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/selinux/hooks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/usb_wwan.c~drivers-usb-serial-usb_wwanc-unbork drivers/usb/serial/usb_wwan.c
---- a/drivers/usb/serial/usb_wwan.c~drivers-usb-serial-usb_wwanc-unbork
-+++ a/drivers/usb/serial/usb_wwan.c
-@@ -699,7 +699,7 @@ static void play_delayed(struct usb_seri
- 			do {
- 				unbusy_queued_urb(urb, portdata);
- 				//extremely dirty
--				atomic_dec(&port->serial->interface->dev.power.usage_count);
-+//				atomic_dec(&port->serial->interface->dev.power.usage_count);
- 			} while ((urb = usb_get_from_anchor(&portdata->delayed)));
- 			break;
- 		}
+diff -puN security/selinux/hooks.c~userns-security-make-capabilities-relative-to-the-user-namespace-fix security/selinux/hooks.c
+--- a/security/selinux/hooks.c~userns-security-make-capabilities-relative-to-the-user-namespace-fix
++++ a/security/selinux/hooks.c
+@@ -2886,8 +2886,8 @@ static int selinux_file_ioctl(struct fil
+ 
+ 	case KDSKBENT:
+ 	case KDSKBSENT:
+-		error = task_has_capability(current, cred, CAP_SYS_TTY_CONFIG,
+-					    SECURITY_CAP_AUDIT);
++		error = task_has_capability(current, cred, &init_user_ns,
++					CAP_SYS_TTY_CONFIG, SECURITY_CAP_AUDIT);
+ 		break;
+ 
+ 	/* default case assumes that the command will go
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +81,7 @@ linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
 mm-vmap-area-cache.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
@@ -95,6 +107,7 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
 userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
 userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
 scatterlist-new-helper-functions.patch
@@ -105,5 +118,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
 
