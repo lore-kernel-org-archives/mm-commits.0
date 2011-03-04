@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-maintainer-of-samsung-mobile-machine-support.patch added to -mm tree
-Date: Fri, 04 Mar 2011 15:53:38 -0800
-Message-ID: <201103042353.p24Nrc0A011286@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-ltv350qvc-fix-a-memory-leak.patch added to -mm tree
+Date: Fri, 04 Mar 2011 15:55:09 -0800
+Message-ID: <201103042355.p24Nt9qa011326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760148Ab1CDXyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 18:54:16 -0500
+	by vger.kernel.org with ESMTP id S1760072Ab1CDXzu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 18:55:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungmin.park@samsung.com, davem@davemloft.net, joe@perches.com, rmk@arm.linux.org.uk
+Cc: axel.lin@gmail.com, hskinnemoen@atmel.com, rpurdie@rpsys.net
 
 
 The patch titled
-     MAINTAINERS: add maintainer of Samsung Mobile Machine support
+     drivers/video/backlight/ltv350qv.c: fix a memory leak
 has been added to the -mm tree.  Its filename is
-     maintainers-add-maintainer-of-samsung-mobile-machine-support.patch
+     drivers-video-backlight-ltv350qvc-fix-a-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add maintainer of Samsung Mobile Machine support
-From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: drivers/video/backlight/ltv350qv.c: fix a memory leak
+From: Axel Lin <axel.lin@gmail.com>
 
-Add maintainer of Samsung Mobile machine support.  Currently, Aquila,
-Goni, Universal (C210), and Nuri board are supported.
-
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/video/backlight/ltv350qv.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-maintainer-of-samsung-mobile-machine-support MAINTAINERS
---- a/MAINTAINERS~maintainers-add-maintainer-of-samsung-mobile-machine-support
-+++ a/MAINTAINERS
-@@ -1028,6 +1028,15 @@ L:	linux-samsung-soc@vger.kernel.org (mo
- S:	Maintained
- F:	arch/arm/mach-s5p*/
+diff -puN drivers/video/backlight/ltv350qv.c~drivers-video-backlight-ltv350qvc-fix-a-memory-leak drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~drivers-video-backlight-ltv350qvc-fix-a-memory-leak
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -239,11 +239,15 @@ static int __devinit ltv350qv_probe(stru
+ 	lcd->spi = spi;
+ 	lcd->power = FB_BLANK_POWERDOWN;
+ 	lcd->buffer = kzalloc(8, GFP_KERNEL);
++	if (!lcd->buffer) {
++		ret = -ENOMEM;
++		goto out_free_lcd;
++	}
  
-+ARM/SAMSUNG MOBILE MACHINE SUPPORT
-+M:	Kyungmin Park <kyungmin.park@samsung.com>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+S:	Maintained
-+F:	arch/arm/mach-s5pv210/mach-aquila.c
-+F:	arch/arm/mach-s5pv210/mach-goni.c
-+F:	arch/arm/mach-exynos4/mach-universal_c210.c
-+F:	arch/arm/mach-exynos4/mach-nuri.c
-+
- ARM/SAMSUNG S5P SERIES FIMC SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
- M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 	ld = lcd_device_register("ltv350qv", &spi->dev, lcd, &ltv_ops);
+ 	if (IS_ERR(ld)) {
+ 		ret = PTR_ERR(ld);
+-		goto out_free_lcd;
++		goto out_free_buffer;
+ 	}
+ 	lcd->ld = ld;
+ 
+@@ -257,6 +261,8 @@ static int __devinit ltv350qv_probe(stru
+ 
+ out_unregister:
+ 	lcd_device_unregister(ld);
++out_free_buffer:
++	kfree(lcd->buffer);
+ out_free_lcd:
+ 	kfree(lcd);
+ 	return ret;
+@@ -268,6 +274,7 @@ static int __devexit ltv350qv_remove(str
+ 
+ 	ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+ 	lcd_device_unregister(lcd->ld);
++	kfree(lcd->buffer);
+ 	kfree(lcd);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from kyungmin.park@samsung.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-maintainers-add-maintainer-of-samsung-mobile-machine-support.patch
+origin.patch
+drivers-rtc-rtc-s3cc-fix-prototype-for-s3c_rtc_setaie.patch
+misc-bmp085-add-module_device_table.patch
+drivers-video-backlight-ltv350qvc-fix-a-memory-leak.patch
 linux-next.patch
-drivers-vidfeo-backlight-ld9040-amoled-driver-support.patch
+drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
 
