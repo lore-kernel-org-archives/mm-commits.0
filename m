@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-isl1208-add-alarm-support.patch added to -mm tree
-Date: Fri, 04 Mar 2011 16:11:15 -0800
-Message-ID: <201103050011.p250BFBq012011@imap1.linux-foundation.org>
+Subject: + memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch added to -mm tree
+Date: Fri, 04 Mar 2011 16:14:48 -0800
+Message-ID: <201103050014.p250EmuD012174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759880Ab1CEAL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:11:28 -0500
+	by vger.kernel.org with ESMTP id S1751922Ab1CEAPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ryan@bluewatersys.com, a.zummo@towertech.it
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     drivers/rtc/rtc-isl1208.c: add alarm support
+     memcg: fix event counter breakage with THP
 has been added to the -mm tree.  Its filename is
-     rtc-isl1208-add-alarm-support.patch
+     memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,267 +33,190 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-isl1208.c: add alarm support
-From: Ryan Mallon <ryan@bluewatersys.com>
+Subject: memcg: fix event counter breakage with THP
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add alarm/wakeup support to rtc isl1208 driver
+With THP, event counter is updated by the size of large page because event
+counter is for catching the change in usage.  This is now used for
+threshold notifier and soft limit.
 
-Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Current event counter cathces the event by mask, as
+
+   !(counter & mask)
+
+Before THP, counter is always updated by 1, this never misses target.
+But now, this can miss.
+
+This patch makes the trigger for event as
+
+  counter > target.
+
+target is updated when the event happens.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl1208.c |  176 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 171 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   59 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 45 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support drivers/rtc/rtc-isl1208.c
---- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support
-+++ a/drivers/rtc/rtc-isl1208.c
-@@ -39,6 +39,8 @@
- #define ISL1208_REG_SR_BAT     (1<<1)	/* battery */
- #define ISL1208_REG_SR_RTCF    (1<<0)	/* rtc fail */
- #define ISL1208_REG_INT 0x08
-+#define ISL1208_REG_INT_ALME   (1<<6)   /* alarm enable */
-+#define ISL1208_REG_INT_IM     (1<<7)   /* interrupt/alarm mode */
- #define ISL1208_REG_09  0x09	/* reserved */
- #define ISL1208_REG_ATR 0x0a
- #define ISL1208_REG_DTR 0x0b
-@@ -202,6 +204,30 @@ isl1208_i2c_set_usr(struct i2c_client *c
- }
+diff -puN mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp
++++ a/mm/memcontrol.c
+@@ -73,15 +73,6 @@ static int really_do_swap_account __init
+ #define do_swap_account		(0)
+ #endif
  
- static int
-+isl1208_rtc_toggle_alarm(struct i2c_client *client, int enable)
-+{
-+	int icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
-+
-+	if (icr < 0) {
-+		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
-+		return icr;
-+	}
-+
-+	if (enable)
-+		icr |= ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM;
-+	else
-+		icr &= ~(ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM);
-+
-+	icr = i2c_smbus_write_byte_data(client, ISL1208_REG_INT, icr);
-+	if (icr < 0) {
-+		dev_err(&client->dev, "%s: writing INT failed\n", __func__);
-+		return icr;
-+	}
-+
-+	return 0;
-+}
-+
-+static int
- isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
- {
- 	struct i2c_client *const client = to_i2c_client(dev);
-@@ -288,9 +314,8 @@ isl1208_i2c_read_alarm(struct i2c_client
- {
- 	struct rtc_time *const tm = &alarm->time;
- 	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
--	int sr;
-+	int icr, yr, sr = isl1208_i2c_get_sr(client);
+-/*
+- * Per memcg event counter is incremented at every pagein/pageout. This counter
+- * is used for trigger some periodic events. This is straightforward and better
+- * than using jiffies etc. to handle periodic memcg event.
+- *
+- * These values will be used as !((event) & ((1 <<(thresh)) - 1))
+- */
+-#define THRESHOLDS_EVENTS_THRESH (7) /* once in 128 */
+-#define SOFTLIMIT_EVENTS_THRESH (10) /* once in 1024 */
  
--	sr = isl1208_i2c_get_sr(client);
- 	if (sr < 0) {
- 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
- 		return sr;
-@@ -313,6 +338,73 @@ isl1208_i2c_read_alarm(struct i2c_client
- 		bcd2bin(regs[ISL1208_REG_MOA - ISL1208_REG_SCA] & 0x1f) - 1;
- 	tm->tm_wday = bcd2bin(regs[ISL1208_REG_DWA - ISL1208_REG_SCA] & 0x03);
+ /*
+  * Statistics for memory cgroup.
+@@ -105,10 +96,24 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
++/*
++ * Per memcg event counter is incremented at every pagein/pageout. With THP,
++ * it will be incremated by the number of pages. This counter is used for
++ * for trigger some periodic events. This is straightforward and better
++ * than using jiffies etc. to handle periodic memcg event.
++ */
++enum mem_cgroup_events_target {
++        MEM_CGROUP_TARGET_THRESH,
++        MEM_CGROUP_TARGET_SOFTLIMIT,
++        MEM_CGROUP_NTARGETS,
++};
++#define THRESHOLDS_EVENTS_TARGET (128)
++#define SOFTLIMIT_EVENTS_TARGET (1024)
  
-+	/* The alarm doesn't store the year so get it from the rtc section */
-+	yr = i2c_smbus_read_byte_data(client, ISL1208_REG_YR);
-+	if (yr < 0) {
-+		dev_err(&client->dev, "%s: reading RTC YR failed\n", __func__);
-+		return yr;
-+	}
-+	tm->tm_year = bcd2bin(yr) + 100;
-+
-+	icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
-+	if (icr < 0) {
-+		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
-+		return icr;
-+	}
-+	alarm->enabled = !!(icr & ISL1208_REG_INT_ALME);
-+
-+	return 0;
-+}
-+
-+static int
-+isl1208_i2c_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
-+{
-+	struct rtc_time *alarm_tm = &alarm->time;
-+	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
-+	const int offs = ISL1208_REG_SCA;
-+	unsigned long rtc_secs, alarm_secs;
-+	struct rtc_time rtc_tm;
-+	int err, enable;
-+
-+	err = isl1208_i2c_read_time(client, &rtc_tm);
-+	if (err)
-+		return err;
-+	err = rtc_tm_to_time(&rtc_tm, &rtc_secs);
-+	if (err)
-+		return err;
-+	err = rtc_tm_to_time(alarm_tm, &alarm_secs);
-+	if (err)
-+		return err;
-+
-+	/* If the alarm time is before the current time disable the alarm */
-+	if (!alarm->enabled || alarm_secs <= rtc_secs)
-+		enable = 0x00;
-+	else
-+		enable = 0x80;
-+
-+	/* Program the alarm and enable it for each setting */
-+	regs[ISL1208_REG_SCA - offs] = bin2bcd(alarm_tm->tm_sec) | enable;
-+	regs[ISL1208_REG_MNA - offs] = bin2bcd(alarm_tm->tm_min) | enable;
-+	regs[ISL1208_REG_HRA - offs] = bin2bcd(alarm_tm->tm_hour) |
-+		ISL1208_REG_HR_MIL | enable;
-+
-+	regs[ISL1208_REG_DTA - offs] = bin2bcd(alarm_tm->tm_mday) | enable;
-+	regs[ISL1208_REG_MOA - offs] = bin2bcd(alarm_tm->tm_mon + 1) | enable;
-+	regs[ISL1208_REG_DWA - offs] = bin2bcd(alarm_tm->tm_wday & 7) | enable;
-+
-+	/* write ALARM registers */
-+	err = isl1208_i2c_set_regs(client, offs, regs,
-+				  ISL1208_ALARM_SECTION_LEN);
-+	if (err < 0) {
-+		dev_err(&client->dev, "%s: writing ALARM section failed\n",
-+			__func__);
-+		return err;
-+	}
-+
-+	err = isl1208_rtc_toggle_alarm(client, enable);
-+	if (err)
-+		return err;
-+
- 	return 0;
- }
- 
-@@ -391,12 +483,63 @@ isl1208_rtc_read_alarm(struct device *de
- 	return isl1208_i2c_read_alarm(to_i2c_client(dev), alarm);
- }
- 
-+static int
-+isl1208_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	return isl1208_i2c_set_alarm(to_i2c_client(dev), alarm);
-+}
-+
-+static irqreturn_t
-+isl1208_rtc_interrupt(int irq, void *data)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-+	struct i2c_client *client = data;
-+	int handled = 0, sr, err;
-+
-+	/*
-+	 * I2C reads get NAK'ed if we read straight away after an interrupt?
-+	 * Using a mdelay/msleep didn't seem to help either, so we work around
-+	 * this by continually trying to read the register for a short time.
-+	 */
-+	while (1) {
-+		sr = isl1208_i2c_get_sr(client);
-+		if (sr >= 0)
-+			break;
-+
-+		if (time_after(jiffies, timeout)) {
-+			dev_err(&client->dev, "%s: reading SR failed\n",
-+				__func__);
-+			return sr;
-+		}
-+	}
-+
-+	if (sr & ISL1208_REG_SR_ALM) {
-+		dev_dbg(&client->dev, "alarm!\n");
-+
-+		/* Clear the alarm */
-+		sr &= ~ISL1208_REG_SR_ALM;
-+		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
-+		if (sr < 0)
-+			dev_err(&client->dev, "%s: writing SR failed\n",
-+				__func__);
-+		else
-+			handled = 1;
-+
-+		/* Disable the alarm */
-+		err = isl1208_rtc_toggle_alarm(client, 0);
-+		if (err)
-+			return err;
-+	}
-+
-+	return handled ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
- static const struct rtc_class_ops isl1208_rtc_ops = {
- 	.proc = isl1208_rtc_proc,
- 	.read_time = isl1208_rtc_read_time,
- 	.set_time = isl1208_rtc_set_time,
- 	.read_alarm = isl1208_rtc_read_alarm,
--	/*.set_alarm    = isl1208_rtc_set_alarm, */
-+	.set_alarm = isl1208_rtc_set_alarm,
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+ 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
++        unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
- /* sysfs interface */
-@@ -488,11 +631,29 @@ isl1208_probe(struct i2c_client *client,
- 	dev_info(&client->dev,
- 		 "chip found, driver version " DRV_VERSION "\n");
+ /*
+@@ -634,13 +639,34 @@ static unsigned long mem_cgroup_get_loca
+ 	return total;
+ }
  
-+	if (client->irq > 0) {
-+		rc = request_threaded_irq(client->irq, NULL,
-+					  isl1208_rtc_interrupt,
-+					  IRQF_SHARED,
-+					  isl1208_driver.driver.name, client);
-+		if (!rc) {
-+			device_init_wakeup(&client->dev, 1);
-+			enable_irq_wake(client->irq);
-+		} else {
-+			dev_err(&client->dev,
-+				"Unable to request irq %d, no alarm support\n",
-+				client->irq);
-+			client->irq = 0;
-+		}
-+	}
+-static bool __memcg_event_check(struct mem_cgroup *mem, int event_mask_shift)
++static bool __memcg_event_check(struct mem_cgroup *mem, int target)
+ {
+-	unsigned long val;
++	unsigned long val, next;
+ 
+ 	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	next = this_cpu_read(mem->stat->targets[target]);
++        /* from time_after() in jiffies.h */
++	return ((long)next - (long)val < 0);
++}
+ 
+-	return !(val & ((1 << event_mask_shift) - 1));
++static void __mem_cgroup_target_update(struct mem_cgroup *mem, int target)
++{
++        unsigned long val, next;
 +
- 	rtc = rtc_device_register(isl1208_driver.driver.name,
- 				  &client->dev, &isl1208_rtc_ops,
- 				  THIS_MODULE);
--	if (IS_ERR(rtc))
--		return PTR_ERR(rtc);
-+	if (IS_ERR(rtc)) {
-+		rc = PTR_ERR(rtc);
-+		goto exit_free_irq;
-+	}
- 
- 	i2c_set_clientdata(client, rtc);
- 
-@@ -514,6 +675,9 @@ isl1208_probe(struct i2c_client *client,
- 
- exit_unregister:
- 	rtc_device_unregister(rtc);
-+exit_free_irq:
-+	if (client->irq)
-+		free_irq(client->irq, client);
- 
- 	return rc;
++	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++
++        switch (target) {
++        case MEM_CGROUP_TARGET_THRESH:
++		next = val + THRESHOLDS_EVENTS_TARGET;
++            	break;
++        case MEM_CGROUP_TARGET_SOFTLIMIT:
++		next = val + SOFTLIMIT_EVENTS_TARGET;
++            	break;
++	default:
++		return;
++        }
++
++        this_cpu_write(mem->stat->targets[target], next);
  }
-@@ -525,6 +689,8 @@ isl1208_remove(struct i2c_client *client
  
- 	sysfs_remove_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
- 	rtc_device_unregister(rtc);
-+	if (client->irq)
-+		free_irq(client->irq, client);
- 
- 	return 0;
+ /*
+@@ -650,10 +676,15 @@ static bool __memcg_event_check(struct m
+ static void memcg_check_events(struct mem_cgroup *mem, struct page *page)
+ {
+ 	/* threshold event is triggered in finer grain than soft limit */
+-	if (unlikely(__memcg_event_check(mem, THRESHOLDS_EVENTS_THRESH))) {
++	if (unlikely(__memcg_event_check(mem, MEM_CGROUP_TARGET_THRESH))) {
+ 		mem_cgroup_threshold(mem);
+-		if (unlikely(__memcg_event_check(mem, SOFTLIMIT_EVENTS_THRESH)))
++                __mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
++		if (unlikely(__memcg_event_check(mem,
++			MEM_CGROUP_TARGET_SOFTLIMIT))){
+ 			mem_cgroup_update_tree(mem, page);
++			__mem_cgroup_target_update(mem,
++				MEM_CGROUP_TARGET_SOFTLIMIT);
++		}
+ 	}
  }
+ 
 _
 
-Patches currently in -mm which might be from ryan@bluewatersys.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+mm-change-alloc_pages_vma-to-pass-down-the-policy-node-for-local-policy.patch
+mm-add-alloc_page_vma_node.patch
+mm-preserve-original-node-for-transparent-huge-page-copies.patch
+mm-use-correct-numa-policy-node-for-transparent-hugepages.patch
 linux-next.patch
-rtc-isl1208-add-alarm-support.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+mm-add-replace_page_cache_page-function.patch
+mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+mm-rename-drop_anon_vma-to-put_anon_vma.patch
+mm-move-anon_vma-ref-out-from-under-config_foo.patch
+mm-simplify-anon_vma-refcounts.patch
+memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+mm-add-__gfp_other_node-flag.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-keep-only-one-charge-cancelling-function-fix.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-use-native-word-page-statistics-counters.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
 
