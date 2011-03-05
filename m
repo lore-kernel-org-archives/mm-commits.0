@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 04 Mar 2011 16:08:59 -0800
-Message-ID: <201103050009.p25090fI011964@imap1.linux-foundation.org>
+Subject: + rtc-isl1208-add-alarm-support.patch added to -mm tree
+Date: Fri, 04 Mar 2011 16:11:15 -0800
+Message-ID: <201103050011.p250BFBq012011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759880Ab1CEAJC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:09:02 -0500
+	by vger.kernel.org with ESMTP id S1759880Ab1CEAL2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:11:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com
+Cc: ryan@bluewatersys.com, a.zummo@towertech.it
 
 
 The patch titled
-     mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes
+     drivers/rtc/rtc-isl1208.c: add alarm support
 has been added to the -mm tree.  Its filename is
-     mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+     rtc-isl1208-add-alarm-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,267 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/rtc/rtc-isl1208.c: add alarm support
+From: Ryan Mallon <ryan@bluewatersys.com>
 
-ERROR: code indent should use tabs where possible
-#31: FILE: include/linux/vmstat.h:62:
-+^I        THP_FAULT_ALLOC,$
+Add alarm/wakeup support to rtc isl1208 driver
 
-total: 1 errors, 0 warnings, 106 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-add-vm-counters-for-transparent-hugepages.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-isl1208.c |  176 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 171 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes
-+++ a/include/linux/vmstat.h
-@@ -59,7 +59,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
- 		UNEVICTABLE_MLOCKFREED,
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	        THP_FAULT_ALLOC,
-+		THP_FAULT_ALLOC,
- 		THP_FAULT_FALLBACK,
- 		THP_COLLAPSE_ALLOC,
- 		THP_COLLAPSE_ALLOC_FAILED,
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -39,6 +39,8 @@
+ #define ISL1208_REG_SR_BAT     (1<<1)	/* battery */
+ #define ISL1208_REG_SR_RTCF    (1<<0)	/* rtc fail */
+ #define ISL1208_REG_INT 0x08
++#define ISL1208_REG_INT_ALME   (1<<6)   /* alarm enable */
++#define ISL1208_REG_INT_IM     (1<<7)   /* interrupt/alarm mode */
+ #define ISL1208_REG_09  0x09	/* reserved */
+ #define ISL1208_REG_ATR 0x0a
+ #define ISL1208_REG_DTR 0x0b
+@@ -202,6 +204,30 @@ isl1208_i2c_set_usr(struct i2c_client *c
+ }
+ 
+ static int
++isl1208_rtc_toggle_alarm(struct i2c_client *client, int enable)
++{
++	int icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
++
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
++		return icr;
++	}
++
++	if (enable)
++		icr |= ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM;
++	else
++		icr &= ~(ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM);
++
++	icr = i2c_smbus_write_byte_data(client, ISL1208_REG_INT, icr);
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: writing INT failed\n", __func__);
++		return icr;
++	}
++
++	return 0;
++}
++
++static int
+ isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+ 	struct i2c_client *const client = to_i2c_client(dev);
+@@ -288,9 +314,8 @@ isl1208_i2c_read_alarm(struct i2c_client
+ {
+ 	struct rtc_time *const tm = &alarm->time;
+ 	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
+-	int sr;
++	int icr, yr, sr = isl1208_i2c_get_sr(client);
+ 
+-	sr = isl1208_i2c_get_sr(client);
+ 	if (sr < 0) {
+ 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
+ 		return sr;
+@@ -313,6 +338,73 @@ isl1208_i2c_read_alarm(struct i2c_client
+ 		bcd2bin(regs[ISL1208_REG_MOA - ISL1208_REG_SCA] & 0x1f) - 1;
+ 	tm->tm_wday = bcd2bin(regs[ISL1208_REG_DWA - ISL1208_REG_SCA] & 0x03);
+ 
++	/* The alarm doesn't store the year so get it from the rtc section */
++	yr = i2c_smbus_read_byte_data(client, ISL1208_REG_YR);
++	if (yr < 0) {
++		dev_err(&client->dev, "%s: reading RTC YR failed\n", __func__);
++		return yr;
++	}
++	tm->tm_year = bcd2bin(yr) + 100;
++
++	icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
++		return icr;
++	}
++	alarm->enabled = !!(icr & ISL1208_REG_INT_ALME);
++
++	return 0;
++}
++
++static int
++isl1208_i2c_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
++{
++	struct rtc_time *alarm_tm = &alarm->time;
++	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
++	const int offs = ISL1208_REG_SCA;
++	unsigned long rtc_secs, alarm_secs;
++	struct rtc_time rtc_tm;
++	int err, enable;
++
++	err = isl1208_i2c_read_time(client, &rtc_tm);
++	if (err)
++		return err;
++	err = rtc_tm_to_time(&rtc_tm, &rtc_secs);
++	if (err)
++		return err;
++	err = rtc_tm_to_time(alarm_tm, &alarm_secs);
++	if (err)
++		return err;
++
++	/* If the alarm time is before the current time disable the alarm */
++	if (!alarm->enabled || alarm_secs <= rtc_secs)
++		enable = 0x00;
++	else
++		enable = 0x80;
++
++	/* Program the alarm and enable it for each setting */
++	regs[ISL1208_REG_SCA - offs] = bin2bcd(alarm_tm->tm_sec) | enable;
++	regs[ISL1208_REG_MNA - offs] = bin2bcd(alarm_tm->tm_min) | enable;
++	regs[ISL1208_REG_HRA - offs] = bin2bcd(alarm_tm->tm_hour) |
++		ISL1208_REG_HR_MIL | enable;
++
++	regs[ISL1208_REG_DTA - offs] = bin2bcd(alarm_tm->tm_mday) | enable;
++	regs[ISL1208_REG_MOA - offs] = bin2bcd(alarm_tm->tm_mon + 1) | enable;
++	regs[ISL1208_REG_DWA - offs] = bin2bcd(alarm_tm->tm_wday & 7) | enable;
++
++	/* write ALARM registers */
++	err = isl1208_i2c_set_regs(client, offs, regs,
++				  ISL1208_ALARM_SECTION_LEN);
++	if (err < 0) {
++		dev_err(&client->dev, "%s: writing ALARM section failed\n",
++			__func__);
++		return err;
++	}
++
++	err = isl1208_rtc_toggle_alarm(client, enable);
++	if (err)
++		return err;
++
+ 	return 0;
+ }
+ 
+@@ -391,12 +483,63 @@ isl1208_rtc_read_alarm(struct device *de
+ 	return isl1208_i2c_read_alarm(to_i2c_client(dev), alarm);
+ }
+ 
++static int
++isl1208_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	return isl1208_i2c_set_alarm(to_i2c_client(dev), alarm);
++}
++
++static irqreturn_t
++isl1208_rtc_interrupt(int irq, void *data)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
++	struct i2c_client *client = data;
++	int handled = 0, sr, err;
++
++	/*
++	 * I2C reads get NAK'ed if we read straight away after an interrupt?
++	 * Using a mdelay/msleep didn't seem to help either, so we work around
++	 * this by continually trying to read the register for a short time.
++	 */
++	while (1) {
++		sr = isl1208_i2c_get_sr(client);
++		if (sr >= 0)
++			break;
++
++		if (time_after(jiffies, timeout)) {
++			dev_err(&client->dev, "%s: reading SR failed\n",
++				__func__);
++			return sr;
++		}
++	}
++
++	if (sr & ISL1208_REG_SR_ALM) {
++		dev_dbg(&client->dev, "alarm!\n");
++
++		/* Clear the alarm */
++		sr &= ~ISL1208_REG_SR_ALM;
++		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
++		if (sr < 0)
++			dev_err(&client->dev, "%s: writing SR failed\n",
++				__func__);
++		else
++			handled = 1;
++
++		/* Disable the alarm */
++		err = isl1208_rtc_toggle_alarm(client, 0);
++		if (err)
++			return err;
++	}
++
++	return handled ? IRQ_HANDLED : IRQ_NONE;
++}
++
+ static const struct rtc_class_ops isl1208_rtc_ops = {
+ 	.proc = isl1208_rtc_proc,
+ 	.read_time = isl1208_rtc_read_time,
+ 	.set_time = isl1208_rtc_set_time,
+ 	.read_alarm = isl1208_rtc_read_alarm,
+-	/*.set_alarm    = isl1208_rtc_set_alarm, */
++	.set_alarm = isl1208_rtc_set_alarm,
+ };
+ 
+ /* sysfs interface */
+@@ -488,11 +631,29 @@ isl1208_probe(struct i2c_client *client,
+ 	dev_info(&client->dev,
+ 		 "chip found, driver version " DRV_VERSION "\n");
+ 
++	if (client->irq > 0) {
++		rc = request_threaded_irq(client->irq, NULL,
++					  isl1208_rtc_interrupt,
++					  IRQF_SHARED,
++					  isl1208_driver.driver.name, client);
++		if (!rc) {
++			device_init_wakeup(&client->dev, 1);
++			enable_irq_wake(client->irq);
++		} else {
++			dev_err(&client->dev,
++				"Unable to request irq %d, no alarm support\n",
++				client->irq);
++			client->irq = 0;
++		}
++	}
++
+ 	rtc = rtc_device_register(isl1208_driver.driver.name,
+ 				  &client->dev, &isl1208_rtc_ops,
+ 				  THIS_MODULE);
+-	if (IS_ERR(rtc))
+-		return PTR_ERR(rtc);
++	if (IS_ERR(rtc)) {
++		rc = PTR_ERR(rtc);
++		goto exit_free_irq;
++	}
+ 
+ 	i2c_set_clientdata(client, rtc);
+ 
+@@ -514,6 +675,9 @@ isl1208_probe(struct i2c_client *client,
+ 
+ exit_unregister:
+ 	rtc_device_unregister(rtc);
++exit_free_irq:
++	if (client->irq)
++		free_irq(client->irq, client);
+ 
+ 	return rc;
+ }
+@@ -525,6 +689,8 @@ isl1208_remove(struct i2c_client *client
+ 
+ 	sysfs_remove_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
+ 	rtc_device_unregister(rtc);
++	if (client->irq)
++		free_irq(client->irq, client);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ryan@bluewatersys.com are
 
-origin.patch
-cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
-mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-lib-vsprintf-optimised-put_dec-function-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+rtc-isl1208-add-alarm-support.patch
 
