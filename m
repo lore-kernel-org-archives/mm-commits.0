@@ -1,72 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch removed from -mm tree
-Date: Fri, 04 Mar 2011 17:34:25 -0800
-Message-ID: <201103050134.p251YPFM016241@imap1.linux-foundation.org>
+Subject: [folded] mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 04 Mar 2011 17:34:50 -0800
+Message-ID: <201103050134.p251YoRc016248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759914Ab1CEBfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 20:35:01 -0500
+	by vger.kernel.org with ESMTP id S1759914Ab1CEBfW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 20:35:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
+     mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
+     mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
+This patch was dropped because it was folded into mm-use-correct-numa-policy-node-for-transparent-hugepages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
+Subject: mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-avoid multiple return points
+ERROR: code indent should use tabs where possible
+#118: FILE: mm/mempolicy.c:1894:
++^I      ^I^I^Ipolicy_zonelist(gfp, pol, numa_node_id()),$
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+WARNING: please, no space before tabs
+#118: FILE: mm/mempolicy.c:1894:
++^I      ^I^I^Ipolicy_zonelist(gfp, pol, numa_node_id()),$
+
+total: 1 errors, 1 warnings, 83 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-use-correct-numa-policy-node-for-transparent-hugepages.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
-+++ a/kernel/cpuset.c
-@@ -1576,8 +1576,8 @@ static int cpuset_write_resmask(struct c
- 
- 	trialcs = alloc_trial_cpuset(cs);
- 	if (!trialcs) {
--		cgroup_unlock();
--		return -ENOMEM;
-+		retval = -ENOMEM;
-+		goto out;
- 	}
- 
- 	switch (cft->private) {
-@@ -1593,6 +1593,7 @@ static int cpuset_write_resmask(struct c
- 	}
- 
- 	free_trial_cpuset(trialcs);
-+out:
- 	cgroup_unlock();
- 	return retval;
- }
+diff -puN mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
++++ a/mm/mempolicy.c
+@@ -1891,7 +1891,7 @@ struct page *alloc_pages_current(gfp_t g
+ 		page = alloc_page_interleave(gfp, order, interleave_nodes(pol));
+ 	else
+ 		page = __alloc_pages_nodemask(gfp, order,
+-	      			policy_zonelist(gfp, pol, numa_node_id()),
++				policy_zonelist(gfp, pol, numa_node_id()),
+ 				policy_nodemask(gfp, pol));
+ 	put_mems_allowed();
+ 	return page;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
-mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
+mm-use-correct-numa-policy-node-for-transparent-hugepages.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
