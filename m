@@ -1,123 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + pwm_backlight-add-check_fb-hook.patch added to -mm tree
-Date: Fri, 04 Mar 2011 17:21:07 -0800
-Message-ID: <201103050121.p251L7r4015474@imap1.linux-foundation.org>
+Subject: [folded] cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch removed from -mm tree
+Date: Fri, 04 Mar 2011 17:34:25 -0800
+Message-ID: <201103050134.p251YPFM016241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752178Ab1CEBVn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 20:21:43 -0500
+	by vger.kernel.org with ESMTP id S1759914Ab1CEBfB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 20:35:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rmorell@nvidia.com, arun.murthy@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
+To: akpm@linux-foundation.org, lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pwm_backlight: add check_fb() hook
-has been added to the -mm tree.  Its filename is
-     pwm_backlight-add-check_fb-hook.patch
+     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
+has been removed from the -mm tree.  Its filename was
+     cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pwm_backlight: add check_fb() hook
-From: Robert Morell <rmorell@nvidia.com>
+Subject: cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In systems with multiple framebuffer devices, one of the devices might be
-blanked while another is unblanked.  In order for the backlight blanking
-logic to know whether to turn off the backlight for a particular
-framebuffer's blanking notification, it needs to be able to check if a
-given framebuffer device corresponds to the backlight.
+avoid multiple return points
 
-This plumbs the check_fb hook from core backlight through the
-pwm_backlight helper to allow platform code to plug in a check_fb hook.
-
-Signed-off-by: Robert Morell <rmorell@nvidia.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Arun Murthy <arun.murthy@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pwm_bl.c |   11 +++++++++++
- include/linux/pwm_backlight.h    |    3 +++
- 2 files changed, 14 insertions(+)
+ kernel/cpuset.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/pwm_bl.c~pwm_backlight-add-check_fb-hook drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~pwm_backlight-add-check_fb-hook
-+++ a/drivers/video/backlight/pwm_bl.c
-@@ -28,6 +28,7 @@ struct pwm_bl_data {
- 	unsigned int		lth_brightness;
- 	int			(*notify)(struct device *,
- 					  int brightness);
-+	int			(*check_fb)(struct device *, struct fb_info *);
- };
+diff -puN kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix
++++ a/kernel/cpuset.c
+@@ -1576,8 +1576,8 @@ static int cpuset_write_resmask(struct c
  
- static int pwm_backlight_update_status(struct backlight_device *bl)
-@@ -62,9 +63,18 @@ static int pwm_backlight_get_brightness(
- 	return bl->props.brightness;
+ 	trialcs = alloc_trial_cpuset(cs);
+ 	if (!trialcs) {
+-		cgroup_unlock();
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto out;
+ 	}
+ 
+ 	switch (cft->private) {
+@@ -1593,6 +1593,7 @@ static int cpuset_write_resmask(struct c
+ 	}
+ 
+ 	free_trial_cpuset(trialcs);
++out:
+ 	cgroup_unlock();
+ 	return retval;
  }
- 
-+static int pwm_backlight_check_fb(struct backlight_device *bl,
-+				  struct fb_info *info)
-+{
-+	struct pwm_bl_data *pb = dev_get_drvdata(&bl->dev);
-+
-+	return !pb->check_fb || pb->check_fb(pb->dev, info);
-+}
-+
- static const struct backlight_ops pwm_backlight_ops = {
- 	.update_status	= pwm_backlight_update_status,
- 	.get_brightness	= pwm_backlight_get_brightness,
-+	.check_fb	= pwm_backlight_check_fb,
- };
- 
- static int pwm_backlight_probe(struct platform_device *pdev)
-@@ -95,6 +105,7 @@ static int pwm_backlight_probe(struct pl
- 
- 	pb->period = data->pwm_period_ns;
- 	pb->notify = data->notify;
-+	pb->check_fb = data->check_fb;
- 	pb->lth_brightness = data->lth_brightness *
- 		(data->pwm_period_ns / data->max_brightness);
- 	pb->dev = &pdev->dev;
-diff -puN include/linux/pwm_backlight.h~pwm_backlight-add-check_fb-hook include/linux/pwm_backlight.h
---- a/include/linux/pwm_backlight.h~pwm_backlight-add-check_fb-hook
-+++ a/include/linux/pwm_backlight.h
-@@ -4,6 +4,8 @@
- #ifndef __LINUX_PWM_BACKLIGHT_H
- #define __LINUX_PWM_BACKLIGHT_H
- 
-+#include <linux/backlight.h>
-+
- struct platform_pwm_backlight_data {
- 	int pwm_id;
- 	unsigned int max_brightness;
-@@ -13,6 +15,7 @@ struct platform_pwm_backlight_data {
- 	int (*init)(struct device *dev);
- 	int (*notify)(struct device *dev, int brightness);
- 	void (*exit)(struct device *dev);
-+	int (*check_fb)(struct device *dev, struct fb_info *info);
- };
- 
- #endif
 _
 
-Patches currently in -mm which might be from rmorell@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
+mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
 linux-next.patch
-pwm_backlight-add-check_fb-hook.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+lib-vsprintf-optimised-put_dec-function-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
