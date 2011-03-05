@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-correct-numa-policy-node-for-transparent-hugepages.patch added to -mm tree
-Date: Fri, 04 Mar 2011 16:01:46 -0800
-Message-ID: <201103050001.p2501kFL011653@imap1.linux-foundation.org>
+Subject: + mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 04 Mar 2011 16:02:22 -0800
+Message-ID: <201103050002.p2502Nuc011681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56810 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760072Ab1CEAB6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:01:58 -0500
+	by vger.kernel.org with ESMTP id S1760032Ab1CEACY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2011 19:02:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, ak@linux.intel.com
 
 
 The patch titled
-     mm: use correct numa policy node for transparent hugepages
+     mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-use-correct-numa-policy-node-for-transparent-hugepages.patch
+     mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,142 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use correct numa policy node for transparent hugepages
-From: Andi Kleen <ak@linux.intel.com>
+Subject: mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Pass down the correct node for a transparent hugepage allocation.  Most
-callers continue to use the current node, however the hugepaged daemon now
-uses the previous node of the first to be collapsed page instead.  This
-ensures that khugepaged does not mess up local memory for an existing
-process which uses local policy.
+ERROR: code indent should use tabs where possible
+#118: FILE: mm/mempolicy.c:1894:
++^I      ^I^I^Ipolicy_zonelist(gfp, pol, numa_node_id()),$
 
-The choice of node is somewhat primitive currently: it just uses the node
-of the first page in the pmd range.  An alternative would be to look at
-multiple pages and use the most popular node.  I used the simplest variant
-for now which should work well enough for the case of all pages being on
-the same node.
+WARNING: please, no space before tabs
+#118: FILE: mm/mempolicy.c:1894:
++^I      ^I^I^Ipolicy_zonelist(gfp, pol, numa_node_id()),$
 
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+total: 1 errors, 1 warnings, 83 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-use-correct-numa-policy-node-for-transparent-hugepages.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 +++++++++++++++++-------
- mm/mempolicy.c   |    3 ++-
- 2 files changed, 19 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-use-correct-numa-policy-node-for-transparent-hugepages mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-correct-numa-policy-node-for-transparent-hugepages
-+++ a/mm/huge_memory.c
-@@ -650,10 +650,10 @@ static inline gfp_t alloc_hugepage_gfpma
- 
- static inline struct page *alloc_hugepage_vma(int defrag,
- 					      struct vm_area_struct *vma,
--					      unsigned long haddr)
-+					      unsigned long haddr, int nd)
- {
- 	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag),
--			       HPAGE_PMD_ORDER, vma, haddr, numa_node_id());
-+			       HPAGE_PMD_ORDER, vma, haddr, nd);
- }
- 
- #ifndef CONFIG_NUMA
-@@ -678,7 +678,7 @@ int do_huge_pmd_anonymous_page(struct mm
- 		if (unlikely(khugepaged_enter(vma)))
- 			return VM_FAULT_OOM;
- 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--					  vma, haddr);
-+					  vma, haddr, numa_node_id());
- 		if (unlikely(!page))
- 			goto out;
- 		if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
-@@ -902,7 +902,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 	if (transparent_hugepage_enabled(vma) &&
- 	    !transparent_hugepage_debug_cow())
- 		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--					      vma, haddr);
-+					      vma, haddr, numa_node_id());
- 	else
- 		new_page = NULL;
- 
-@@ -1745,7 +1745,8 @@ static void __collapse_huge_page_copy(pt
- static void collapse_huge_page(struct mm_struct *mm,
- 			       unsigned long address,
- 			       struct page **hpage,
--			       struct vm_area_struct *vma)
-+			       struct vm_area_struct *vma,
-+			       int node)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -1773,7 +1774,8 @@ static void collapse_huge_page(struct mm
- 	 * mmap_sem in read mode is good idea also to allow greater
- 	 * scalability.
- 	 */
--	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address);
-+	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address,
-+				      node);
- 	if (unlikely(!new_page)) {
- 		up_read(&mm->mmap_sem);
- 		*hpage = ERR_PTR(-ENOMEM);
-@@ -1919,6 +1921,7 @@ static int khugepaged_scan_pmd(struct mm
- 	struct page *page;
- 	unsigned long _address;
- 	spinlock_t *ptl;
-+	int node = -1;
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
-@@ -1949,6 +1952,13 @@ static int khugepaged_scan_pmd(struct mm
- 		page = vm_normal_page(vma, _address, pteval);
- 		if (unlikely(!page))
- 			goto out_unmap;
-+		/*
-+		 * Chose the node of the first page. This could
-+		 * be more sophisticated and look at more pages,
-+		 * but isn't for now.
-+		 */
-+		if (node == -1)
-+			node = page_to_nid(page);
- 		VM_BUG_ON(PageCompound(page));
- 		if (!PageLRU(page) || PageLocked(page) || !PageAnon(page))
- 			goto out_unmap;
-@@ -1965,7 +1975,7 @@ out_unmap:
- 	pte_unmap_unlock(pte, ptl);
- 	if (ret)
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, vma);
-+		collapse_huge_page(mm, address, hpage, vma, node);
- out:
- 	return ret;
- }
-diff -puN mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages
+diff -puN mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes
 +++ a/mm/mempolicy.c
-@@ -1891,7 +1891,8 @@ struct page *alloc_pages_current(gfp_t g
+@@ -1891,7 +1891,7 @@ struct page *alloc_pages_current(gfp_t g
  		page = alloc_page_interleave(gfp, order, interleave_nodes(pol));
  	else
  		page = __alloc_pages_nodemask(gfp, order,
--			policy_zonelist(gfp, pol), policy_nodemask(gfp, pol));
-+	      			policy_zonelist(gfp, pol, numa_node_id()),
-+				policy_nodemask(gfp, pol));
+-	      			policy_zonelist(gfp, pol, numa_node_id()),
++				policy_zonelist(gfp, pol, numa_node_id()),
+ 				policy_nodemask(gfp, pol));
  	put_mems_allowed();
  	return page;
- }
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-change-alloc_pages_vma-to-pass-down-the-policy-node-for-local-policy.patch
-mm-add-alloc_page_vma_node.patch
-mm-preserve-original-node-for-transparent-huge-page-copies.patch
-mm-use-correct-numa-policy-node-for-transparent-hugepages.patch
+origin.patch
+cpuset-add-a-missing-unlock-in-cpuset_write_resmask-fix.patch
+mm-use-correct-numa-policy-node-for-transparent-hugepages-checkpatch-fixes.patch
 linux-next.patch
-mm-numa-aware-alloc_task_struct_node.patch
-mm-numa-aware-alloc_thread_info_node.patch
-kthread-numa-aware-kthread_create_on_cpu.patch
-kthread-use-kthread_create_on_cpu.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+lib-vsprintf-optimised-put_dec-function-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
