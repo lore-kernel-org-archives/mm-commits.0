@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-remove-initial-value-of-name-variable.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:09:59 -0800
-Message-ID: <201103072210.p27M9xqg029985@imap1.linux-foundation.org>
+Subject: + sys_swapon-simplify-error-flow-in-read_swap_header.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:10:20 -0800
+Message-ID: <201103072210.p27MALN1030028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756476Ab1CGWK5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:10:57 -0500
+	by vger.kernel.org with ESMTP id S1756476Ab1CGWLA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org
+Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     sys_swapon: remove initial value of name variable
+     sys_swapon: simplify error flow in read_swap_header()
 has been added to the -mm tree.  Its filename is
-     sys_swapon-remove-initial-value-of-name-variable.patch
+     sys_swapon-simplify-error-flow-in-read_swap_header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: remove initial value of name variable
+Subject: sys_swapon: simplify error flow in read_swap_header()
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Now there is nothing which jumps to the cleanup blocks before the name
-variable is set. There is no need to set it initially to NULL anymore.
+Since there is no cleanup to do, there is no reason to jump to a label.
+Return directly instead.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
 Acked-by: Eric B Munson <emunson@mgebm.net>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-remove-initial-value-of-name-variable mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-remove-initial-value-of-name-variable
+diff -puN mm/swapfile.c~sys_swapon-simplify-error-flow-in-read_swap_header mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-simplify-error-flow-in-read_swap_header
 +++ a/mm/swapfile.c
-@@ -1892,7 +1892,7 @@ static struct swap_info_struct *alloc_sw
+@@ -1928,7 +1928,7 @@ static unsigned long read_swap_header(st
+ 
+ 	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
+ 		printk(KERN_ERR "Unable to find swap-space signature\n");
+-		goto bad_swap;
++		return 0;
+ 	}
+ 
+ 	/* swap partition endianess hack... */
+@@ -1944,7 +1944,7 @@ static unsigned long read_swap_header(st
+ 		printk(KERN_WARNING
+ 		       "Unable to handle swap header version %d\n",
+ 		       swap_header->info.version);
+-		goto bad_swap;
++		return 0;
+ 	}
+ 
+ 	p->lowest_bit  = 1;
+@@ -1976,22 +1976,19 @@ static unsigned long read_swap_header(st
+ 	p->highest_bit = maxpages - 1;
+ 
+ 	if (!maxpages)
+-		goto bad_swap;
++		return 0;
+ 	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
+ 	if (swapfilepages && maxpages > swapfilepages) {
+ 		printk(KERN_WARNING
+ 		       "Swap area shorter than signature indicates\n");
+-		goto bad_swap;
++		return 0;
+ 	}
+ 	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
+-		goto bad_swap;
++		return 0;
+ 	if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
+-		goto bad_swap;
++		return 0;
+ 
+ 	return maxpages;
+-
+-bad_swap:
+-	return 0;
+ }
+ 
  SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
- {
- 	struct swap_info_struct *p;
--	char *name = NULL;
-+	char *name;
- 	struct block_device *bdev = NULL;
- 	struct file *swap_file = NULL;
- 	struct address_space *mapping;
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
