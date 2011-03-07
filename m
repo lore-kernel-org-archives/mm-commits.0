@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:10:26 -0800
-Message-ID: <201103072210.p27MAR2j030038@imap1.linux-foundation.org>
+Subject: + sys_swapon-call-swap_cgroup_swapon-earlier.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:10:22 -0800
+Message-ID: <201103072210.p27MAMML030031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756444Ab1CGWLV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:11:21 -0500
+	by vger.kernel.org with ESMTP id S1756616Ab1CGWLS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:11:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     sys_swapon: simplify error flow in setup_swap_map_and_extents()
+     sys_swapon: call swap_cgroup_swapon() earlier
 has been added to the -mm tree.  Its filename is
-     sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch
+     sys_swapon-call-swap_cgroup_swapon-earlier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: simplify error flow in setup_swap_map_and_extents()
+Subject: sys_swapon: call swap_cgroup_swapon() earlier
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Since there is no cleanup to do, there is no reason to jump to a label.
-Return directly instead.
+The call to swap_cgroup_swapon is in the middle of loading the swap map
+and extents. As it only does memory allocation and does not depend on
+the swapfile layout (map/extents), it can be called earlier (or later).
+
+Move it to just after the allocation of swap_map, since it is
+conceptually similar (allocates a map).
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
@@ -48,59 +52,34 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ mm/swapfile.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents
+diff -puN mm/swapfile.c~sys_swapon-call-swap_cgroup_swapon-earlier mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-call-swap_cgroup_swapon-earlier
 +++ a/mm/swapfile.c
-@@ -1998,7 +1998,6 @@ static int setup_swap_map_and_extents(st
- 					sector_t *span)
- {
- 	int i;
--	int error;
- 	unsigned int nr_good_pages;
- 	int nr_extents;
+@@ -2074,6 +2074,10 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
+ 	}
  
-@@ -2006,10 +2005,8 @@ static int setup_swap_map_and_extents(st
++	error = swap_cgroup_swapon(p->type, maxpages);
++	if (error)
++		goto bad_swap;
++
+ 	nr_good_pages = maxpages - 1;	/* omit header page */
  
  	for (i = 0; i < swap_header->info.nr_badpages; i++) {
- 		unsigned int page_nr = swap_header->info.badpages[i];
--		if (page_nr == 0 || page_nr > swap_header->info.last_page) {
--			error = -EINVAL;
--			goto bad_swap;
--		}
-+		if (page_nr == 0 || page_nr > swap_header->info.last_page)
-+			return -EINVAL;
- 		if (page_nr < maxpages) {
- 			swap_map[page_nr] = SWAP_MAP_BAD;
- 			nr_good_pages--;
-@@ -2021,22 +2018,16 @@ static int setup_swap_map_and_extents(st
- 		p->max = maxpages;
- 		p->pages = nr_good_pages;
- 		nr_extents = setup_swap_extents(p, span);
--		if (nr_extents < 0) {
--			error = nr_extents;
--			goto bad_swap;
--		}
-+		if (nr_extents < 0)
-+			return nr_extents;
- 		nr_good_pages = p->pages;
+@@ -2088,10 +2092,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
  	}
- 	if (!nr_good_pages) {
- 		printk(KERN_WARNING "Empty swap-file\n");
--		error = -EINVAL;
+ 
+-	error = swap_cgroup_swapon(p->type, maxpages);
+-	if (error)
 -		goto bad_swap;
-+		return -EINVAL;
- 	}
- 
- 	return nr_extents;
 -
--bad_swap:
--	return error;
- }
- 
- SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
+ 	if (nr_good_pages) {
+ 		swap_map[0] = SWAP_MAP_BAD;
+ 		p->max = maxpages;
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
