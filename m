@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-do-only-cleanup-in-the-cleanup-blocks.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:10:08 -0800
-Message-ID: <201103072210.p27MA8RW030010@imap1.linux-foundation.org>
+Subject: + sys_swapon-use-a-single-error-label.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:10:10 -0800
+Message-ID: <201103072210.p27MAALG030013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754608Ab1CGWNw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:13:52 -0500
+	by vger.kernel.org with ESMTP id S1754608Ab1CGWOU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:14:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     sys_swapon: do only cleanup in the cleanup blocks
+     sys_swapon: use a single error label
 has been added to the -mm tree.  Its filename is
-     sys_swapon-do-only-cleanup-in-the-cleanup-blocks.patch
+     sys_swapon-use-a-single-error-label.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: do only cleanup in the cleanup blocks
+Subject: sys_swapon: use a single error label
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-The only way error is 0 in the cleanup blocks is when the function is
-returning successfully. In this case, the cleanup blocks were setting
-S_SWAPFILE in the S_ISREG case. But this is not a cleanup.
-
-Move the setting of S_SWAPFILE to just before the "goto out;" to make
-this more clear. At this point, we do not need to test for inode because
-it will never be NULL.
+sys_swapon currently has two error labels, bad_swap and bad_swap_2.
+bad_swap does the same as bad_swap_2 plus destroy_swap_extents() and
+swap_cgroup_swapoff(); both are noops in the places where bad_swap_2 is
+jumped to. With a single extra test for inode (matching the one in the
+S_ISREG case below), all the error paths in the function can go to
+bad_swap.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
@@ -55,31 +54,40 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/swapfile.c |    7 +++----
  1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-do-only-cleanup-in-the-cleanup-blocks mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-do-only-cleanup-in-the-cleanup-blocks
+diff -puN mm/swapfile.c~sys_swapon-use-a-single-error-label mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-use-a-single-error-label
 +++ a/mm/swapfile.c
-@@ -2136,6 +2136,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	atomic_inc(&proc_poll_event);
- 	wake_up_interruptible(&proc_poll_wait);
+@@ -1918,13 +1918,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (IS_ERR(name)) {
+ 		error = PTR_ERR(name);
+ 		name = NULL;
+-		goto bad_swap_2;
++		goto bad_swap;
+ 	}
+ 	swap_file = filp_open(name, O_RDWR|O_LARGEFILE, 0);
+ 	if (IS_ERR(swap_file)) {
+ 		error = PTR_ERR(swap_file);
+ 		swap_file = NULL;
+-		goto bad_swap_2;
++		goto bad_swap;
+ 	}
  
-+	if (S_ISREG(inode->i_mode))
-+		inode->i_flags |= S_SWAPFILE;
+ 	p->swap_file = swap_file;
+@@ -2141,13 +2141,12 @@ SYSCALL_DEFINE2(swapon, const char __use
  	error = 0;
  	goto out;
  bad_swap:
-@@ -2160,11 +2162,8 @@ out:
+-	if (S_ISBLK(inode->i_mode) && p->bdev) {
++	if (inode && S_ISBLK(inode->i_mode) && p->bdev) {
+ 		set_blocksize(p->bdev, p->old_block_size);
+ 		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
  	}
- 	if (name)
- 		putname(name);
--	if (inode && S_ISREG(inode->i_mode)) {
--		if (!error)
--			inode->i_flags |= S_SWAPFILE;
-+	if (inode && S_ISREG(inode->i_mode))
- 		mutex_unlock(&inode->i_mutex);
--	}
- 	return error;
- }
- 
+ 	destroy_swap_extents(p);
+ 	swap_cgroup_swapoff(p->type);
+-bad_swap_2:
+ 	spin_lock(&swap_lock);
+ 	p->swap_file = NULL;
+ 	p->flags = 0;
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
