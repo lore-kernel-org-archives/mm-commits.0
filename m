@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-proc_dointvec_bool-handler.patch added to -mm tree
-Date: Mon, 07 Mar 2011 15:05:39 -0800
-Message-ID: <201103072305.p27N5dCQ000465@imap1.linux-foundation.org>
+Subject: + writeback-make-mapping-writeback_index-to-point-to-the-last-written-page.patch added to -mm tree
+Date: Mon, 07 Mar 2011 15:27:10 -0800
+Message-ID: <201103072327.p27NRAFS001774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756385Ab1CGXPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 18:15:21 -0500
+	by vger.kernel.org with ESMTP id S932190Ab1CGX1S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 18:27:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, adobriyan@gmail.com, ebiederm@xmission.com
+Cc: j-nomura@ce.jp.nec.com, fengguang.wu@intel.com, jack@suse.cz
 
 
 The patch titled
-     sysctl: add proc_dointvec_bool() handler
+     writeback: make mapping->writeback_index to point to the last written page
 has been added to the -mm tree.  Its filename is
-     sysctl-add-proc_dointvec_bool-handler.patch
+     writeback-make-mapping-writeback_index-to-point-to-the-last-written-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add proc_dointvec_bool() handler
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: writeback: make mapping->writeback_index to point to the last written page
+From: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
 
-Add a proc_dointvec_bool() sysctl handler for cases where the input value
-is limited to 0 and 1.
+For range-cyclic writeback (e.g.  kupdate), the writeback code sets a
+continuation point of the next writeback to mapping->writeback_index which
+is set the page after the last written page.  This happens so that we
+evenly write the whole file even if pages in it get continuously
+redirtied.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+However, in some cases, sequential writer is writing in the middle of the
+page and it just redirties the last written page by continuing from that. 
+For example with an application which uses a file as a big ring buffer we
+see:
+
+[1st writeback session]
+       ...
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898514 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898522 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898530 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898538 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898546 + 8
+     kworker/0:1-11    4571: block_rq_issue: 8,0 W 0 () 94898514 + 40
+>>     flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898554 + 8
+>>     flush-8:0-2743  4571: block_rq_issue: 8,0 W 0 () 94898554 + 8
+
+[2nd writeback session after 35sec]
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898562 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898570 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898578 + 8
+       ...
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94898562 + 640
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94899202 + 72
+       ...
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899962 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899970 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899978 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899986 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899994 + 8
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94899962 + 40
+>>     flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898554 + 8
+>>     flush-8:0-2743  4606: block_rq_issue: 8,0 W 0 () 94898554 + 8
+
+So we seeked back to 94898554 after we wrote all the pages at the end of
+the file.
+
+This extra seek seems unnecessary.  If we continue writeback from the last
+written page, we can avoid it and do not cause harm to other cases.  The
+original intent of even writeout over the whole file is preserved and if
+the page does not get redirtied pagevec_lookup_tag() just skips it.
+
+As an exceptional case, when I/O error happens, set done_index to the next
+page as the comment in the code suggests.
+
+Tested-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 ++
- kernel/sysctl.c        |   27 +++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+)
+ mm/page-writeback.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~sysctl-add-proc_dointvec_bool-handler include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-proc_dointvec_bool-handler
-+++ a/include/linux/sysctl.h
-@@ -970,6 +970,8 @@ extern int proc_dointvec(struct ctl_tabl
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int,
- 				void __user *, size_t *, loff_t *);
-+extern int proc_dointvec_bool(struct ctl_table *, int,
-+				void __user *, size_t *, loff_t *);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-add-proc_dointvec_bool-handler kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-proc_dointvec_bool-handler
-+++ a/kernel/sysctl.c
-@@ -2436,6 +2436,33 @@ int proc_dointvec_minmax(struct ctl_tabl
- 				do_proc_dointvec_minmax_conv, &param);
- }
+diff -puN mm/page-writeback.c~writeback-make-mapping-writeback_index-to-point-to-the-last-written-page mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-make-mapping-writeback_index-to-point-to-the-last-written-page
++++ a/mm/page-writeback.c
+@@ -927,7 +927,7 @@ retry:
+ 				break;
+ 			}
  
-+/**
-+ * proc_dointvec_bool - read a vector of integers with 0/1 values
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
-+ * values from/to the user buffer, treated as an ASCII string.
-+ *
-+ * This routine will ensure the values are either 0 or 1.
-+ *
-+ * Returns 0 on success.
-+ */
-+int proc_dointvec_bool(struct ctl_table *table, int write,
-+		  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct do_proc_dointvec_minmax_conv_param param = {
-+		.min = &zero,
-+		.max = &one,
-+	};
-+	return do_proc_dointvec(table, write, buffer, lenp, ppos,
-+				do_proc_dointvec_minmax_conv, &param);
-+}
-+EXPORT_SYMBOL(proc_dointvec_bool);
-+
- static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
- 				     void __user *buffer,
- 				     size_t *lenp, loff_t *ppos,
+-			done_index = page->index + 1;
++			done_index = page->index;
+ 
+ 			lock_page(page);
+ 
+@@ -977,6 +977,7 @@ continue_unlock:
+ 					 * not be suitable for data integrity
+ 					 * writeout).
+ 					 */
++					done_index = page->index + 1;
+ 					done = 1;
+ 					break;
+ 				}
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
 
-sysctl-add-proc_dointvec_bool-handler.patch
-sysctl-use-proc_dointvec_bool-where-appropriate.patch
-sysctl-add-proc_dointvec_unsigned-handler.patch
-sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
+writeback-make-mapping-writeback_index-to-point-to-the-last-written-page.patch
 
