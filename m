@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:45:50 -0800
-Message-ID: <201103072245.p27MjoGK031921@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-drm_fb_helperc-drm_fb_helper_setcmap-wrong-index-used-in-inner-loop.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:58:11 -0800
+Message-ID: <201103072258.p27MwBg4032580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755527Ab1CGWq4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:46:56 -0500
+	by vger.kernel.org with ESMTP id S1755554Ab1CGW6k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:58:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, chrisw@sous-sol.org, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, nai.xia@gmail.com, riel@redhat.com
+Cc: roel.kluin@gmail.com, airlied@linux.ie, chris@chris-wilson.co.uk, sliedes@cc.hut.fi
 
 
 The patch titled
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix
+     drivers/gpu/drm/drm_fb_helper.c: drm_fb_helper_setcmap(): wrong index used in inner loop
 has been added to the -mm tree.  Its filename is
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+     drivers-gpu-drm-drm_fb_helperc-drm_fb_helper_setcmap-wrong-index-used-in-inner-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/gpu/drm/drm_fb_helper.c: drm_fb_helper_setcmap(): wrong index used in inner loop
+From: roel <roel.kluin@gmail.com>
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Nai Xia <nai.xia@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Index i was already used in the outer loop.
+
+Chris implies that this solve
+https://bugzilla.kernel.org/show_bug.cgi?id=19512.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Sami Liedes <sliedes@cc.hut.fi>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/drm_fb_helper.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix mm/ksm.c
---- a/mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix
-+++ a/mm/ksm.c
-@@ -883,6 +883,8 @@ static int try_to_merge_one_page(struct 
- 	 */
- 	if (write_protect_page(vma, page, &orig_pte) == 0) {
- 		if (!kpage) {
-+			int mapcount;
-+
- 			/*
- 			 * While we hold page lock, upgrade page from
- 			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
-@@ -890,16 +892,11 @@ static int try_to_merge_one_page(struct 
- 			 */
- 			set_page_stable_node(page, NULL);
- 			mark_page_accessed(page);
--#ifdef CONFIG_KSM
--			{
--				int mapcount = page_mapcount(page);
--
--				if (mapcount)
--					add_zone_page_state(page_zone(page),
--							NR_KSM_PAGES_SHARING,
--							mapcount);
--			}
--#endif
-+			mapcount = page_mapcount(page);
-+			if (mapcount)
-+				add_zone_page_state(page_zone(page),
-+						NR_KSM_PAGES_SHARING,
-+						mapcount);
- 			err = 0;
- 		} else if (pages_identical(page, kpage))
- 			err = replace_page(vma, page, kpage, orig_pte);
+diff -puN drivers/gpu/drm/drm_fb_helper.c~drivers-gpu-drm-drm_fb_helperc-drm_fb_helper_setcmap-wrong-index-used-in-inner-loop drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~drivers-gpu-drm-drm_fb_helperc-drm_fb_helper_setcmap-wrong-index-used-in-inner-loop
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -677,7 +677,7 @@ int drm_fb_helper_setcmap(struct fb_cmap
+ 	struct drm_crtc_helper_funcs *crtc_funcs;
+ 	u16 *red, *green, *blue, *transp;
+ 	struct drm_crtc *crtc;
+-	int i, rc = 0;
++	int i, j, rc = 0;
+ 	int start;
+ 
+ 	for (i = 0; i < fb_helper->crtc_count; i++) {
+@@ -690,7 +690,7 @@ int drm_fb_helper_setcmap(struct fb_cmap
+ 		transp = cmap->transp;
+ 		start = cmap->start;
+ 
+-		for (i = 0; i < cmap->len; i++) {
++		for (j = 0; j < cmap->len; j++) {
+ 			u16 hred, hgreen, hblue, htransp = 0xffff;
+ 
+ 			hred = *red++;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+drivers-gpu-drm-drm_fb_helperc-drm_fb_helper_setcmap-wrong-index-used-in-inner-loop.patch
+btrfs-dont-dereference-extent_mapping-if-null.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
