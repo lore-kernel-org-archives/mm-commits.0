@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + futex-update-futex_wait_setup-comments-about-locking.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:17:09 -0800
-Message-ID: <201103072217.p27MH9g3030542@imap1.linux-foundation.org>
+Subject: + documentation-changes-minor-corrections.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:29:55 -0800
+Message-ID: <201103072229.p27MTtd4031234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755982Ab1CGWSH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:18:07 -0500
+	by vger.kernel.org with ESMTP id S1755204Ab1CGWa2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, dvhltc@us.ibm.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de
+Cc: lists@nerdbynature.de
 
 
 The patch titled
-     futex: update futex_wait_setup() comments about locking
+     Documentation/Changes: minor corrections 
 has been added to the -mm tree.  Its filename is
-     futex-update-futex_wait_setup-comments-about-locking.patch
+     documentation-changes-minor-corrections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: update futex_wait_setup() comments about locking
-From: Michel Lespinasse <walken@google.com>
+Subject: Documentation/Changes: minor corrections 
+From: Christian Kujau <lists@nerdbynature.de>
 
-Reviving a cleanup I had done about a year ago as part of a larger
-futex_set_wait proposal.  Over the years, the locking of the hashed futex
-queue got improved, so that some of the "rare but normal" race conditions
-described in comments can't actually happen anymore.
+I noticed the 'mcelog' program had no comment and then ended up "fixing"
+a few more things:
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Darren Hart <dvhltc@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <peterz@infradead.org>
+  * reiserfsck -V does not print "reiserfsprogs" (any more?)
+  * is "udevinfo" still shipped? udevd certainly is
+  * grub2 doesn't have a 'grub' binary
+  * add a "# how to get the mcelog version" comment
+
+Signed-off-by: Christian Kujau <lists@nerdbynature.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ Documentation/Changes |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/futex.c~futex-update-futex_wait_setup-comments-about-locking kernel/futex.c
---- a/kernel/futex.c~futex-update-futex_wait_setup-comments-about-locking
-+++ a/kernel/futex.c
-@@ -1783,13 +1783,14 @@ static int futex_wait_setup(u32 __user *
- 	 *
- 	 * The basic logical guarantee of a futex is that it blocks ONLY
- 	 * if cond(var) is known to be true at the time of blocking, for
--	 * any cond.  If we queued after testing *uaddr, that would open
--	 * a race condition where we could block indefinitely with
-+	 * any cond.  If we locked the hash-bucket after testing *uaddr, that
-+	 * would open a race condition where we could block indefinitely with
- 	 * cond(var) false, which would violate the guarantee.
- 	 *
--	 * A consequence is that futex_wait() can return zero and absorb
--	 * a wakeup when *uaddr != val on entry to the syscall.  This is
--	 * rare, but normal.
-+	 * On the other hand, we insert q and release the hash-bucket only
-+	 * after testing *uaddr.  This guarantees that futex_wait() will NOT
-+	 * absorb a wakeup if *uaddr does not match the desired values
-+	 * while the syscall executes.
- 	 */
- retry:
- 	ret = get_futex_key(uaddr, flags & FLAGS_SHARED, &q->key);
+diff -puN Documentation/Changes~documentation-changes-minor-corrections Documentation/Changes
+--- a/Documentation/Changes~documentation-changes-minor-corrections
++++ a/Documentation/Changes
+@@ -35,7 +35,7 @@ o  util-linux             2.10o         
+ o  module-init-tools      0.9.10                  # depmod -V
+ o  e2fsprogs              1.41.4                  # e2fsck -V
+ o  jfsutils               1.1.3                   # fsck.jfs -V
+-o  reiserfsprogs          3.6.3                   # reiserfsck -V 2>&1|grep reiserfsprogs
++o  reiserfsprogs          3.6.3                   # reiserfsck -V
+ o  xfsprogs               2.6.0                   # xfs_db -V
+ o  squashfs-tools         4.0                     # mksquashfs -version
+ o  btrfs-progs            0.18                    # btrfsck
+@@ -46,9 +46,9 @@ o  isdn4k-utils           3.1pre1       
+ o  nfs-utils              1.0.5                   # showmount --version
+ o  procps                 3.2.0                   # ps --version
+ o  oprofile               0.9                     # oprofiled --version
+-o  udev                   081                     # udevinfo -V
+-o  grub                   0.93                    # grub --version
+-o  mcelog		  0.6
++o  udev                   081                     # udevd --version
++o  grub                   0.93                    # grub --version || grub-install --version
++o  mcelog                 0.6                     # mcelog --version
+ o  iptables               1.4.2                   # iptables -V
+ 
+ 
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from lists@nerdbynature.de are
 
-linux-next.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-remove-unused-testsetpagelocked-interface.patch
-futex-update-futex_wait_setup-comments-about-locking.patch
+documentation-changes-minor-corrections.patch
 
