@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-inline-from-scan_swap_map.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:13:39 -0800
-Message-ID: <201103072213.p27MDdSc030345@imap1.linux-foundation.org>
+Subject: + sys_swapon-remove-bdev-variable.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:10:06 -0800
+Message-ID: <201103072210.p27MA7uL030007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40111 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754608Ab1CGWOd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:14:33 -0500
+	by vger.kernel.org with ESMTP id S1754608Ab1CGWOr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, penberg@kernel.org
+Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mm: remove inline from scan_swap_map()
+     sys_swapon: remove bdev variable
 has been added to the -mm tree.  Its filename is
-     mm-remove-inline-from-scan_swap_map.patch
+     sys_swapon-remove-bdev-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove inline from scan_swap_map()
+Subject: sys_swapon: remove bdev variable
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-scan_swap_map() is a large function (224 lines), with several loops and a
-complex control flow involving several gotos.
-
-Given all that, it is a bit silly that is is marked as inline.  The
-compiler agrees with me: on a x86-64 compile, it did not inline the
-function.
-
-Remove the "inline" and let the compiler decide instead.
+The bdev variable is always equivalent to (S_ISBLK(inode->i_mode) ?
+p->bdev : NULL), as long as it being set is moved to a bit earlier. Use
+this fact to remove the bdev variable.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Tested-by: Eric B Munson <emunson@mgebm.net>
+Acked-by: Eric B Munson <emunson@mgebm.net>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/swapfile.c~mm-remove-inline-from-scan_swap_map mm/swapfile.c
---- a/mm/swapfile.c~mm-remove-inline-from-scan_swap_map
+diff -puN mm/swapfile.c~sys_swapon-remove-bdev-variable mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-remove-bdev-variable
 +++ a/mm/swapfile.c
-@@ -212,8 +212,8 @@ static int wait_for_discard(void *word)
- #define SWAPFILE_CLUSTER	256
- #define LATENCY_LIMIT		256
- 
--static inline unsigned long scan_swap_map(struct swap_info_struct *si,
--					  unsigned char usage)
-+static unsigned long scan_swap_map(struct swap_info_struct *si,
-+				   unsigned char usage)
+@@ -1893,7 +1893,6 @@ SYSCALL_DEFINE2(swapon, const char __use
  {
- 	unsigned long offset;
- 	unsigned long scan_base;
+ 	struct swap_info_struct *p;
+ 	char *name;
+-	struct block_device *bdev = NULL;
+ 	struct file *swap_file = NULL;
+ 	struct address_space *mapping;
+ 	int i, prev;
+@@ -1944,19 +1943,19 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 
+ 	if (S_ISBLK(inode->i_mode)) {
+-		bdev = bdgrab(I_BDEV(inode));
+-		error = blkdev_get(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL,
++		p->bdev = bdgrab(I_BDEV(inode));
++		error = blkdev_get(p->bdev,
++				   FMODE_READ | FMODE_WRITE | FMODE_EXCL,
+ 				   sys_swapon);
+ 		if (error < 0) {
+-			bdev = NULL;
++			p->bdev = NULL;
+ 			error = -EINVAL;
+ 			goto bad_swap;
+ 		}
+-		p->old_block_size = block_size(bdev);
+-		error = set_blocksize(bdev, PAGE_SIZE);
++		p->old_block_size = block_size(p->bdev);
++		error = set_blocksize(p->bdev, PAGE_SIZE);
+ 		if (error < 0)
+ 			goto bad_swap;
+-		p->bdev = bdev;
+ 		p->flags |= SWP_BLKDEV;
+ 	} else if (S_ISREG(inode->i_mode)) {
+ 		p->bdev = inode->i_sb->s_bdev;
+@@ -2140,9 +2139,9 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = 0;
+ 	goto out;
+ bad_swap:
+-	if (bdev) {
+-		set_blocksize(bdev, p->old_block_size);
+-		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
++	if (S_ISBLK(inode->i_mode) && p->bdev) {
++		set_blocksize(p->bdev, p->old_block_size);
++		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+ 	}
+ 	destroy_swap_extents(p);
+ 	swap_cgroup_swapoff(p->type);
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
@@ -98,5 +129,4 @@ sys_swapon-remove-nr_good_pages-variable.patch
 sys_swapon-move-printk-outside-lock.patch
 sys_swapoff-change-order-to-match-sys_swapon.patch
 sys_swapon-separate-final-enabling-of-the-swapfile.patch
-mm-remove-inline-from-scan_swap_map.patch
 
