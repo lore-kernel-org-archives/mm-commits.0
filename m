@@ -1,171 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintf-optimised-put_dec-function-fix-fix.patch added to -mm tree
-Date: Sat, 05 Mar 2011 12:05:47 -0800
-Message-ID: <201103052006.p25K67ve029170@imap1.linux-foundation.org>
+Subject: [merged] cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch removed from -mm tree
+Date: Mon, 07 Mar 2011 13:31:00 -0800
+Message-ID: <201103072131.p27LVh9V028057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752695Ab1CEUGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Mar 2011 15:06:23 -0500
+	by vger.kernel.org with ESMTP id S1756141Ab1CGVcV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 16:32:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mina86@mina86.com, hughd@google.com, vda.linux@googlemail.com
+To: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, rientjes@google.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: vsprintf: 32-bit put_dec() fixes
-has been added to the -mm tree.  Its filename is
-     lib-vsprintf-optimised-put_dec-function-fix-fix.patch
+     cpuset: add a missing unlock in cpuset_write_resmask()
+has been removed from the -mm tree.  Its filename was
+     cpuset-add-a-missing-unlock-in-cpuset_write_resmask.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: vsprintf: 32-bit put_dec() fixes
-From: Michal Nazarewicz <mina86@mina86.com>
+Subject: cpuset: add a missing unlock in cpuset_write_resmask()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This commit fixes the 32-bit put_dec() function.
+Don't forget to release cgroup_mutex if alloc_trial_cpuset() fails.
 
-I have submitted by mistake an older version of the put_dec()
-patch with a bug in it (which had been spotted by Denys and
-fixed in subsequent version), which resulted in Hugh having to
-find the bug once again (after experiencing boot failure).
-
-This commit fixes the bug once and for all and introduces some
-additional optimisations and comments (which were present in
-the fixed version of put_dec() patch).
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Reported-by: Hugh Dickins <hughd@google.com>
+[akpm@linux-foundation.org: avoid multiple return points]
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   49 +++++++++++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 25 deletions(-)
+ kernel/cpuset.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintf-optimised-put_dec-function-fix-fix lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintf-optimised-put_dec-function-fix-fix
-+++ a/lib/vsprintf.c
-@@ -298,7 +298,7 @@ static noinline_for_stack char *put_dec_
- 	 * without any branches.
- 	 */
+diff -puN kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-add-a-missing-unlock-in-cpuset_write_resmask
++++ a/kernel/cpuset.c
+@@ -1575,8 +1575,10 @@ static int cpuset_write_resmask(struct c
+ 		return -ENODEV;
  
--	r      = (q * (uint64_t)0xcccd) >> 19;
-+	r = (q * (uint64_t)0xcccd) >> 19;
- 	*buf++ = (q - 10 * r) + '0';
+ 	trialcs = alloc_trial_cpuset(cs);
+-	if (!trialcs)
+-		return -ENOMEM;
++	if (!trialcs) {
++		retval = -ENOMEM;
++		goto out;
++	}
  
- 	/*
-@@ -367,7 +367,14 @@ static noinline_for_stack char *put_dec_
- 	return buf;
- }
- 
--/* No inlining helps gcc to use registers better */
-+/*
-+ * This function formats all integers correctly, however on 32-bit
-+ * processors function below is used (not this one) which handles only
-+ * non-zero integers.  So be advised never to call this function with
-+ * num == 0.
-+ *
-+ * No inlining helps gcc to use registers better
-+ */
- static noinline_for_stack
- char *put_dec(char *buf, unsigned long long num)
- {
-@@ -434,36 +441,36 @@ char *put_dec_8bit(char *buf, unsigned q
-  * permission from the author).  This performs no 64-bit division and
-  * hence should be faster on 32-bit machines then the version of the
-  * function above.
-+ *
-+ * This function formats correctly all NON-ZERO integers.  Passing
-+ * zero makes daemons come out of your closet.  This is OK, since
-+ * number(), which calls this function, has a special case for zero
-+ * anyways.
-  */
- static noinline_for_stack
- char *put_dec(char *buf, unsigned long long n)
- {
- 	uint32_t d3, d2, d1, q;
- 
--	if (n < 10) {
--		*buf++ = '0' + (unsigned)n;
--		return buf;
--	}
--
- 	d1 = (n >> 16) & 0xFFFF;
- 	d2 = (n >> 32) & 0xFFFF;
- 	d3 = (n >> 48) & 0xFFFF;
- 
--	q  = 656 * d3 + 7296 * d2 + 5536 * d1 + (n & 0xFFFF);
-+	q = 656 * d3 + 7296 * d2 + 5536 * d1 + (n & 0xFFFF);
- 
--	q  = q / 10000;
- 	buf = put_dec_full4(buf, q % 10000);
-+	q = q / 10000;
- 
- 	d1 = q + 7671 * d3 + 9496 * d2 + 6 * d1;
--	q  = d1 / 10000;
-+	q = d1 / 10000;
- 	buf = put_dec_full4(buf, d1 % 10000);
- 
- 	d2 = q + 4749 * d3 + 42 * d2;
--	q  = d2 / 10000;
-+	q = d2 / 10000;
- 	buf = put_dec_full4(buf, d2 % 10000);
- 
- 	d3 = q + 281 * d3;
--	q  = d3 / 10000;
-+	q = d3 / 10000;
- 	buf = put_dec_full4(buf, d3 % 10000);
- 
- 	buf = put_dec_full4(buf, q);
-@@ -548,22 +555,14 @@ char *number(char *buf, char *end, unsig
- 			spec.field_width--;
- 		}
+ 	switch (cft->private) {
+ 	case FILE_CPULIST:
+@@ -1591,6 +1593,7 @@ static int cpuset_write_resmask(struct c
  	}
--	if (need_pfx) {
--		spec.field_width--;
--		if (spec.base == 16)
--			spec.field_width--;
--	}
-+	if (need_pfx)
-+		spec.field_width -= spec.base / 8;
  
- 	/* generate full string in tmp[], in reverse order */
- 	i = 0;
--	if (num == 0)
--		tmp[i++] = '0';
--	/* Generic code, for any base:
--	else do {
--		tmp[i++] = (digits[do_div(num,base)] | locase);
--	} while (num != 0);
--	*/
--	else if (spec.base != 10) { /* 8 or 16 */
-+	if (num < 8) {
-+		tmp[i++] = '0' + (char)num;
-+	} else if (spec.base != 10) { /* 8 or 16 */
- 		int mask = spec.base - 1;
- 		int shift = 3;
- 
+ 	free_trial_cpuset(trialcs);
++out:
+ 	cgroup_unlock();
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
+origin.patch
 linux-next.patch
-lib-vsprintf-optimised-put_dec-function.patch
-lib-vsprintf-optimised-put_dec-function-fix.patch
-lib-vsprintf-optimised-put_dec-function-fix-fix.patch
-lib-vsprintf-added-a-put_dec-test-and-benchmark-tool.patch
+mm-notifier_from_errno-cleanup.patch
+cgroup-remove-the-ns_cgroup.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
+cpuset-hold-callback_mutex-in-cpuset_clone.patch
 
