@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-separate-parsing-of-swapfile-header.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:10:18 -0800
-Message-ID: <201103072210.p27MAJ7T030025@imap1.linux-foundation.org>
+Subject: + sys_swapon-move-printk-outside-lock.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:10:30 -0800
+Message-ID: <201103072210.p27MAUdG030044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756476Ab1CGWK6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:10:58 -0500
+	by vger.kernel.org with ESMTP id S1756471Ab1CGWLG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:11:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     sys_swapon: separate parsing of swapfile header
+     sys_swapon: move printk outside lock
 has been added to the -mm tree.  Its filename is
-     sys_swapon-separate-parsing-of-swapfile-header.patch
+     sys_swapon-move-printk-outside-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: separate parsing of swapfile header
+Subject: sys_swapon: move printk outside lock
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Move the code which parses and checks the swapfile header (except for
-the bad block list) to a separate function. Only code movement, no
-functional changes.
+The block in sys_swapon which does the final adjustments to the
+swap_info_struct and to swap_list is the same as the block which
+re-inserts it again at sys_swapoff on failure of try_to_unuse(). To be
+able to make both share the same code, move the printk() call in the
+middle of it to just after it.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
@@ -48,177 +50,41 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |  140 ++++++++++++++++++++++++++----------------------
- 1 file changed, 78 insertions(+), 62 deletions(-)
+ mm/swapfile.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-separate-parsing-of-swapfile-header mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-separate-parsing-of-swapfile-header
+diff -puN mm/swapfile.c~sys_swapon-move-printk-outside-lock mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-move-printk-outside-lock
 +++ a/mm/swapfile.c
-@@ -1918,6 +1918,82 @@ static int claim_swapfile(struct swap_in
- 	return 0;
- }
+@@ -2144,13 +2144,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	nr_swap_pages += p->pages;
+ 	total_swap_pages += p->pages;
  
-+static unsigned long read_swap_header(struct swap_info_struct *p,
-+					union swap_header *swap_header,
-+					struct inode *inode)
-+{
-+	int i;
-+	unsigned long maxpages;
-+	unsigned long swapfilepages;
-+
-+	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
-+		printk(KERN_ERR "Unable to find swap-space signature\n");
-+		goto bad_swap;
-+	}
-+
-+	/* swap partition endianess hack... */
-+	if (swab32(swap_header->info.version) == 1) {
-+		swab32s(&swap_header->info.version);
-+		swab32s(&swap_header->info.last_page);
-+		swab32s(&swap_header->info.nr_badpages);
-+		for (i = 0; i < swap_header->info.nr_badpages; i++)
-+			swab32s(&swap_header->info.badpages[i]);
-+	}
-+	/* Check the swap header's sub-version */
-+	if (swap_header->info.version != 1) {
-+		printk(KERN_WARNING
-+		       "Unable to handle swap header version %d\n",
-+		       swap_header->info.version);
-+		goto bad_swap;
-+	}
-+
-+	p->lowest_bit  = 1;
-+	p->cluster_next = 1;
-+	p->cluster_nr = 0;
-+
-+	/*
-+	 * Find out how many pages are allowed for a single swap
-+	 * device. There are two limiting factors: 1) the number of
-+	 * bits for the swap offset in the swp_entry_t type and
-+	 * 2) the number of bits in the a swap pte as defined by
-+	 * the different architectures. In order to find the
-+	 * largest possible bit mask a swap entry with swap type 0
-+	 * and swap offset ~0UL is created, encoded to a swap pte,
-+	 * decoded to a swp_entry_t again and finally the swap
-+	 * offset is extracted. This will mask all the bits from
-+	 * the initial ~0UL mask that can't be encoded in either
-+	 * the swp_entry_t or the architecture definition of a
-+	 * swap pte.
-+	 */
-+	maxpages = swp_offset(pte_to_swp_entry(
-+			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
-+	if (maxpages > swap_header->info.last_page) {
-+		maxpages = swap_header->info.last_page + 1;
-+		/* p->max is an unsigned int: don't overflow it */
-+		if ((unsigned int)maxpages == 0)
-+			maxpages = UINT_MAX;
-+	}
-+	p->highest_bit = maxpages - 1;
-+
-+	if (!maxpages)
-+		goto bad_swap;
-+	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
-+	if (swapfilepages && maxpages > swapfilepages) {
-+		printk(KERN_WARNING
-+		       "Swap area shorter than signature indicates\n");
-+		goto bad_swap;
-+	}
-+	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
-+		goto bad_swap;
-+	if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
-+		goto bad_swap;
-+
-+	return maxpages;
-+
-+bad_swap:
-+	return 0;
-+}
-+
- SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
- {
- 	struct swap_info_struct *p;
-@@ -1931,7 +2007,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	int nr_extents = 0;
- 	sector_t span;
- 	unsigned long maxpages;
--	unsigned long swapfilepages;
- 	unsigned char *swap_map = NULL;
- 	struct page *page = NULL;
- 	struct inode *inode = NULL;
-@@ -1989,71 +2064,12 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	}
- 	swap_header = kmap(page);
- 
--	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
--		printk(KERN_ERR "Unable to find swap-space signature\n");
-+	maxpages = read_swap_header(p, swap_header, inode);
-+	if (unlikely(!maxpages)) {
- 		error = -EINVAL;
- 		goto bad_swap;
- 	}
- 
--	/* swap partition endianess hack... */
--	if (swab32(swap_header->info.version) == 1) {
--		swab32s(&swap_header->info.version);
--		swab32s(&swap_header->info.last_page);
--		swab32s(&swap_header->info.nr_badpages);
--		for (i = 0; i < swap_header->info.nr_badpages; i++)
--			swab32s(&swap_header->info.badpages[i]);
--	}
--	/* Check the swap header's sub-version */
--	if (swap_header->info.version != 1) {
--		printk(KERN_WARNING
--		       "Unable to handle swap header version %d\n",
--		       swap_header->info.version);
--		error = -EINVAL;
--		goto bad_swap;
--	}
+-	printk(KERN_INFO "Adding %uk swap on %s.  "
+-			"Priority:%d extents:%d across:%lluk %s%s\n",
+-		p->pages<<(PAGE_SHIFT-10), name, p->prio,
+-		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
+-		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+-		(p->flags & SWP_DISCARDABLE) ? "D" : "");
 -
--	p->lowest_bit  = 1;
--	p->cluster_next = 1;
--	p->cluster_nr = 0;
--
--	/*
--	 * Find out how many pages are allowed for a single swap
--	 * device. There are two limiting factors: 1) the number of
--	 * bits for the swap offset in the swp_entry_t type and
--	 * 2) the number of bits in the a swap pte as defined by
--	 * the different architectures. In order to find the
--	 * largest possible bit mask a swap entry with swap type 0
--	 * and swap offset ~0UL is created, encoded to a swap pte,
--	 * decoded to a swp_entry_t again and finally the swap
--	 * offset is extracted. This will mask all the bits from
--	 * the initial ~0UL mask that can't be encoded in either
--	 * the swp_entry_t or the architecture definition of a
--	 * swap pte.
--	 */
--	maxpages = swp_offset(pte_to_swp_entry(
--			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
--	if (maxpages > swap_header->info.last_page) {
--		maxpages = swap_header->info.last_page + 1;
--		/* p->max is an unsigned int: don't overflow it */
--		if ((unsigned int)maxpages == 0)
--			maxpages = UINT_MAX;
--	}
--	p->highest_bit = maxpages - 1;
--
--	error = -EINVAL;
--	if (!maxpages)
--		goto bad_swap;
--	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
--	if (swapfilepages && maxpages > swapfilepages) {
--		printk(KERN_WARNING
--		       "Swap area shorter than signature indicates\n");
--		goto bad_swap;
--	}
--	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
--		goto bad_swap;
--	if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
--		goto bad_swap;
--
- 	/* OK, set up the swap map and apply the bad block list */
- 	swap_map = vzalloc(maxpages);
- 	if (!swap_map) {
+ 	/* insert swap space into swap_list: */
+ 	prev = -1;
+ 	for (i = swap_list.head; i >= 0; i = swap_info[i]->next) {
+@@ -2164,6 +2157,14 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	else
+ 		swap_info[prev]->next = p->type;
+ 	spin_unlock(&swap_lock);
++
++	printk(KERN_INFO "Adding %uk swap on %s.  "
++			"Priority:%d extents:%d across:%lluk %s%s\n",
++		p->pages<<(PAGE_SHIFT-10), name, p->prio,
++		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
++		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
++		(p->flags & SWP_DISCARDABLE) ? "D" : "");
++
+ 	mutex_unlock(&swapon_mutex);
+ 	atomic_inc(&proc_poll_event);
+ 	wake_up_interruptible(&proc_poll_wait);
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
