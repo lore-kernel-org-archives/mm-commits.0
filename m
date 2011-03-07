@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-move-setting-of-error-nearer-use.patch added to -mm tree
-Date: Mon, 07 Mar 2011 14:10:02 -0800
-Message-ID: <201103072210.p27MA2un029996@imap1.linux-foundation.org>
+Subject: + futex-update-futex_wait_setup-comments-about-locking.patch added to -mm tree
+Date: Mon, 07 Mar 2011 14:17:09 -0800
+Message-ID: <201103072217.p27MH9g3030542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755982Ab1CGWRJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:17:09 -0500
+	by vger.kernel.org with ESMTP id S1755982Ab1CGWSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2011 17:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, jj@chaosbits.net, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org
+Cc: walken@google.com, dvhltc@us.ibm.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de
 
 
 The patch titled
-     sys_swapon: move setting of error nearer use
+     futex: update futex_wait_setup() comments about locking
 has been added to the -mm tree.  Its filename is
-     sys_swapon-move-setting-of-error-nearer-use.patch
+     futex-update-futex_wait_setup-comments-about-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: move setting of error nearer use
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: futex: update futex_wait_setup() comments about locking
+From: Michel Lespinasse <walken@google.com>
 
-Move the setting of the error variable nearer the goto in a few places.
+Reviving a cleanup I had done about a year ago as part of a larger
+futex_set_wait proposal.  Over the years, the locking of the hashed futex
+queue got improved, so that some of the "rare but normal" race conditions
+described in comments can't actually happen anymore.
 
-Avoids calling PTR_ERR() if not IS_ERR() in two places, and makes the
-error condition more explicit in two other places.
-
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Tested-by: Eric B Munson <emunson@mgebm.net>
-Acked-by: Eric B Munson <emunson@mgebm.net>
-Reviewed-by: Jesper Juhl <jj@chaosbits.net>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Darren Hart <dvhltc@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   11 ++++++-----
+ kernel/futex.c |   11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-move-setting-of-error-nearer-use mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-move-setting-of-error-nearer-use
-+++ a/mm/swapfile.c
-@@ -1917,14 +1917,14 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		return PTR_ERR(p);
- 
- 	name = getname(specialfile);
--	error = PTR_ERR(name);
- 	if (IS_ERR(name)) {
-+		error = PTR_ERR(name);
- 		name = NULL;
- 		goto bad_swap_2;
- 	}
- 	swap_file = filp_open(name, O_RDWR|O_LARGEFILE, 0);
--	error = PTR_ERR(swap_file);
- 	if (IS_ERR(swap_file)) {
-+		error = PTR_ERR(swap_file);
- 		swap_file = NULL;
- 		goto bad_swap_2;
- 	}
-@@ -1933,17 +1933,17 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	mapping = swap_file->f_mapping;
- 	inode = mapping->host;
- 
--	error = -EBUSY;
- 	for (i = 0; i < nr_swapfiles; i++) {
- 		struct swap_info_struct *q = swap_info[i];
- 
- 		if (q == p || !q->swap_file)
- 			continue;
--		if (mapping == q->swap_file->f_mapping)
-+		if (mapping == q->swap_file->f_mapping) {
-+			error = -EBUSY;
- 			goto bad_swap;
-+		}
- 	}
- 
--	error = -EINVAL;
- 	if (S_ISBLK(inode->i_mode)) {
- 		bdev = bdgrab(I_BDEV(inode));
- 		error = blkdev_get(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL,
-@@ -1968,6 +1968,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 			goto bad_swap;
- 		}
- 	} else {
-+		error = -EINVAL;
- 		goto bad_swap;
- 	}
- 
+diff -puN kernel/futex.c~futex-update-futex_wait_setup-comments-about-locking kernel/futex.c
+--- a/kernel/futex.c~futex-update-futex_wait_setup-comments-about-locking
++++ a/kernel/futex.c
+@@ -1783,13 +1783,14 @@ static int futex_wait_setup(u32 __user *
+ 	 *
+ 	 * The basic logical guarantee of a futex is that it blocks ONLY
+ 	 * if cond(var) is known to be true at the time of blocking, for
+-	 * any cond.  If we queued after testing *uaddr, that would open
+-	 * a race condition where we could block indefinitely with
++	 * any cond.  If we locked the hash-bucket after testing *uaddr, that
++	 * would open a race condition where we could block indefinitely with
+ 	 * cond(var) false, which would violate the guarantee.
+ 	 *
+-	 * A consequence is that futex_wait() can return zero and absorb
+-	 * a wakeup when *uaddr != val on entry to the syscall.  This is
+-	 * rare, but normal.
++	 * On the other hand, we insert q and release the hash-bucket only
++	 * after testing *uaddr.  This guarantees that futex_wait() will NOT
++	 * absorb a wakeup if *uaddr does not match the desired values
++	 * while the syscall executes.
+ 	 */
+ retry:
+ 	ret = get_futex_key(uaddr, flags & FLAGS_SHARED, &q->key);
 _
 
-Patches currently in -mm which might be from cesarb@cesarb.net are
+Patches currently in -mm which might be from walken@google.com are
 
-sys_swapon-use-vzalloc-instead-of-vmalloc-memset.patch
-sys_swapon-remove-changelog-from-function-comment.patch
-sys_swapon-do-not-depend-on-type-after-allocation.patch
-sys_swapon-separate-swap_info-allocation.patch
-sys_swapon-simplify-error-return-from-swap_info-allocation.patch
-sys_swapon-simplify-error-flow-in-alloc_swap_info.patch
-sys_swapon-remove-initial-value-of-name-variable.patch
-sys_swapon-move-setting-of-error-nearer-use.patch
-sys_swapon-remove-did_down-variable.patch
-sys_swapon-remove-bdev-variable.patch
-sys_swapon-do-only-cleanup-in-the-cleanup-blocks.patch
-sys_swapon-use-a-single-error-label.patch
-sys_swapon-separate-bdev-claim-and-inode-lock.patch
-sys_swapon-simplify-error-flow-in-claim_swapfile.patch
-sys_swapon-move-setting-of-swapfilepages-near-use.patch
-sys_swapon-separate-parsing-of-swapfile-header.patch
-sys_swapon-simplify-error-flow-in-read_swap_header.patch
-sys_swapon-call-swap_cgroup_swapon-earlier.patch
-sys_swapon-separate-parsing-of-bad-blocks-and-extents.patch
-sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch
-sys_swapon-remove-nr_good_pages-variable.patch
-sys_swapon-move-printk-outside-lock.patch
-sys_swapoff-change-order-to-match-sys_swapon.patch
-sys_swapon-separate-final-enabling-of-the-swapfile.patch
+linux-next.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-remove-unused-testsetpagelocked-interface.patch
+futex-update-futex_wait_setup-comments-about-locking.patch
 
