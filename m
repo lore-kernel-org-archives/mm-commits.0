@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 08 Mar 2011 16:33:27 -0800
-Message-ID: <201103090033.p290XRS0003965@imap1.linux-foundation.org>
+Subject: + page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch added to -mm tree
+Date: Tue, 08 Mar 2011 16:35:19 -0800
+Message-ID: <201103090035.p290ZJ78004080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756520Ab1CIAda (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Mar 2011 19:33:30 -0500
+	by vger.kernel.org with ESMTP id S1756507Ab1CIAfb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Mar 2011 19:35:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Priyanka.Jain@freescale.com
+Cc: mhocko@suse.cz, balbir@in.ibm.com, dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+     page_cgroup: reduce allocation overhead for page_cgroup array for CONFIG_SPARSEMEM
 has been added to the -mm tree.  Its filename is
-     rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+     page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-driver-for-pt7c4338-chip-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: page_cgroup: reduce allocation overhead for page_cgroup array for CONFIG_SPARSEMEM
+From: Michal Hocko <mhocko@suse.cz>
 
-WARNING: missing space after struct definition
-#128: FILE: drivers/rtc/rtc-pt7c4338.c:70:
-+struct pt7c4338{
+Currently we are allocating a single page_cgroup array per memory section
+(stored in mem_section->base) when CONFIG_SPARSEMEM is selected.  This is
+correct but memory inefficient solution because the allocated memory
+(unless we fall back to vmalloc) is not kmalloc friendly:
 
-total: 0 errors, 1 warnings, 237 lines checked
+        - 32b - 16384 entries (20B per entry) fit into 327680B so the
+          524288B slab cache is used
+        - 32b with PAE - 131072 entries with 2621440B fit into 4194304B
+        - 64b - 32768 entries (40B per entry) fit into 2097152 cache
 
-./patches/rtc-driver-for-pt7c4338-chip.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+This is ~37% wasted space per memory section and it sumps up for the whole
+memory.  On a x86_64 machine it is something like 6MB per 1GB of RAM.
 
-Please run checkpatch prior to sending patches
+We can reduce the internal fragmentation by using alloc_pages_exact which
+allocates PAGE_SIZE aligned blocks so we will get down to <4kB wasted
+memory per section which is much better.
 
-Cc: Priyanka Jain <Priyanka.Jain@freescale.com>
+We still need a fallback to vmalloc because we have no guarantees that we
+will have a continuous memory of that size (order-10) later on during the
+hotplug events.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pt7c4338.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_cgroup.c |   56 +++++++++++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 22 deletions(-)
 
-diff -puN drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes drivers/rtc/rtc-pt7c4338.c
---- a/drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes
-+++ a/drivers/rtc/rtc-pt7c4338.c
-@@ -67,7 +67,7 @@ static const struct i2c_device_id pt7c43
- };
- MODULE_DEVICE_TABLE(i2c, pt7c4338_id);
+diff -puN mm/page_cgroup.c~page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem mm/page_cgroup.c
+--- a/mm/page_cgroup.c~page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem
++++ a/mm/page_cgroup.c
+@@ -130,7 +130,36 @@ struct page *lookup_cgroup_page(struct p
+ 	return page;
+ }
  
--struct pt7c4338{
-+struct pt7c4338 {
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
- };
+-/* __alloc_bootmem...() is protected by !slab_available() */
++static void *__init_refok alloc_page_cgroup(size_t size, int nid)
++{
++	void *addr = NULL;
++
++	addr = alloc_pages_exact(size, GFP_KERNEL | __GFP_NOWARN);
++	if (addr)
++		return addr;
++
++	if (node_state(nid, N_HIGH_MEMORY))
++		addr = vmalloc_node(size, nid);
++	else
++		addr = vmalloc(size);
++
++	return addr;
++}
++
++static void free_page_cgroup(void *addr)
++{
++	if (is_vmalloc_addr(addr)) {
++		vfree(addr);
++	} else {
++		struct page *page = virt_to_page(addr);
++		if (!PageReserved(page)) { /* Is bootmem ? */
++			size_t table_size =
++				sizeof(struct page_cgroup) * PAGES_PER_SECTION;
++			free_pages_exact(addr, table_size);
++		}
++	}
++}
++
+ static int __init_refok init_section_page_cgroup(unsigned long pfn)
+ {
+ 	struct page_cgroup *base, *pc;
+@@ -147,17 +176,8 @@ static int __init_refok init_section_pag
+ 
+ 	nid = page_to_nid(pfn_to_page(pfn));
+ 	table_size = sizeof(struct page_cgroup) * PAGES_PER_SECTION;
+-	VM_BUG_ON(!slab_is_available());
+-	if (node_state(nid, N_HIGH_MEMORY)) {
+-		base = kmalloc_node(table_size,
+-				    GFP_KERNEL | __GFP_NOWARN, nid);
+-		if (!base)
+-			base = vmalloc_node(table_size, nid);
+-	} else {
+-		base = kmalloc(table_size, GFP_KERNEL | __GFP_NOWARN);
+-		if (!base)
+-			base = vmalloc(table_size);
+-	}
++	base = alloc_page_cgroup(table_size, nid);
++
+ 	/*
+ 	 * The value stored in section->page_cgroup is (base - pfn)
+ 	 * and it does not point to the memory block allocated above,
+@@ -189,16 +209,8 @@ void __free_page_cgroup(unsigned long pf
+ 	if (!ms || !ms->page_cgroup)
+ 		return;
+ 	base = ms->page_cgroup + pfn;
+-	if (is_vmalloc_addr(base)) {
+-		vfree(base);
+-		ms->page_cgroup = NULL;
+-	} else {
+-		struct page *page = virt_to_page(base);
+-		if (!PageReserved(page)) { /* Is bootmem ? */
+-			kfree(base);
+-			ms->page_cgroup = NULL;
+-		}
+-	}
++	free_page_cgroup(base);
++	ms->page_cgroup = NULL;
+ }
+ 
+ int __meminit online_page_cgroup(unsigned long start_pfn,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
 
