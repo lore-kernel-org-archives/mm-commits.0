@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch added to -mm tree
-Date: Wed, 09 Mar 2011 15:59:02 -0800
-Message-ID: <201103092359.p29Nx2r0003316@imap1.linux-foundation.org>
+Subject: + drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch added to -mm tree
+Date: Wed, 09 Mar 2011 15:59:00 -0800
+Message-ID: <201103092359.p29Nx043003305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751312Ab1CIX7d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2011 18:59:33 -0500
+	by vger.kernel.org with ESMTP id S1751237Ab1CIX7g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2011 18:59:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, axel.lin@gmail.com, kalhan.trisal@intel.com
+Cc: axel.lin@gmail.com, alan@linux.intel.com, kalhan.trisal@intel.com
 
 
 The patch titled
-     drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
+     drivers/misc/hmc6352.c: fix wrong return value checking for i2c_master_recv()
 has been added to the -mm tree.  Its filename is
-     drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+     drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/misc/hmc6352.c: fix wrong return value checking for i2c_master_recv()
+From: Axel Lin <axel.lin@gmail.com>
 
-make `ret' signed
+i2c_master_recv() returns negative errno, or else the number of bytes
+read.  Thus i2c_master_recv(client, i2c_data, 2) returns 2 instead of 1 in
+success case.
 
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Axel Lin <axel.lin@gmail.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 Cc: Kalhan Trisal <kalhan.trisal@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/misc/hmc6352.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix drivers/misc/hmc6352.c
---- a/drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
+diff -puN drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv drivers/misc/hmc6352.c
+--- a/drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv
 +++ a/drivers/misc/hmc6352.c
-@@ -75,7 +75,7 @@ static ssize_t compass_heading_data_show
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char i2c_data[2];
--	unsigned int ret;
-+	int ret;
- 
- 	mutex_lock(&compass_mutex);
- 	ret = compass_command(client, 'A');
+@@ -86,7 +86,7 @@ static ssize_t compass_heading_data_show
+ 	msleep(10); /* sending 'A' cmd we need to wait for 7-10 millisecs */
+ 	ret = i2c_master_recv(client, i2c_data, 2);
+ 	mutex_unlock(&compass_mutex);
+-	if (ret != 1) {
++	if (ret < 0) {
+ 		dev_warn(dev, "i2c read data cmd failed\n");
+ 		return ret;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
 drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
