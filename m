@@ -1,80 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mutex-subsystem-synchro-test-module-add-missing-header-file.patch removed from -mm tree
-Date: Thu, 10 Mar 2011 15:05:42 -0800
-Message-ID: <201103102340.p2ANee9U003212@imap1.linux-foundation.org>
+Subject: + mutex-subsystem-synchro-test-module-fix.patch added to -mm tree
+Date: Thu, 10 Mar 2011 15:06:54 -0800
+Message-ID: <201103102341.p2ANfoF9003305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753682Ab1CJXlV (ORCPT
+	by vger.kernel.org with ESMTP id S1753682Ab1CJXnA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Mar 2011 18:41:21 -0500
+	Thu, 10 Mar 2011 18:43:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bunk@stusta.de, dhowells@redhat.com, mingo@elte.hu, randy.dunlap@oracle.com
 
 
 The patch titled
-     synchro-test: add missing header file
-has been removed from the -mm tree.  Its filename was
-     mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+     mutex-subsystem-synchro-test-module-fix
+has been added to the -mm tree.  Its filename is
+     mutex-subsystem-synchro-test-module-fix.patch
 
-This patch was dropped because it was folded into mutex-subsystem-synchro-test-module.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synchro-test: add missing header file
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mutex-subsystem-synchro-test-module-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix build errors, add <sched.h> header file:
+remove smp_lock.h inclusion
 
-kernel/synchro-test.c: In function 'sched':
-kernel/synchro-test.c:220: error: implicit declaration of function 'schedule'
-kernel/synchro-test.c: In function 'mutexer':
-kernel/synchro-test.c:227: error: implicit declaration of function 'daemonize'
-kernel/synchro-test.c:228: error: implicit declaration of function 'set_user_nice'
-kernel/synchro-test.c:241: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'semaphorer':
-kernel/synchro-test.c:263: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'reader':
-kernel/synchro-test.c:287: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'writer':
-kernel/synchro-test.c:311: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'downgrader':
-kernel/synchro-test.c:340: error: dereferencing pointer to incomplete type
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/synchro-test.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/synchro-test.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-add-missing-header-file kernel/synchro-test.c
---- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-add-missing-header-file
+diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix kernel/synchro-test.c
+--- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix
 +++ a/kernel/synchro-test.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/poll.h>
- #include <linux/moduleparam.h>
-+#include <linux/sched.h>
- #include <linux/stat.h>
+@@ -26,7 +26,6 @@
  #include <linux/init.h>
  #include <asm/atomic.h>
+ #include <linux/personality.h>
+-#include <linux/smp_lock.h>
+ #include <linux/delay.h>
+ #include <linux/timer.h>
+ #include <linux/completion.h>
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-apple_bl-depends-on-acpi.patch
-mm-debug-pagealloc-fix-kconfig-dependency-warning.patch
-st-spear-pcie-gadget-suppport.patch
-st-spear-pcie-gadget-documentation-for-support-of-multiple-device.patch
-printk-allow-setting-default_message_level-via-kconfig.patch
-documentation-codingstyle-flesh-out-if-else-examples.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
-mutex-subsystem-synchro-test-module.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
