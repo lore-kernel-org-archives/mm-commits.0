@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch added to -mm tree
-Date: Fri, 11 Mar 2011 15:28:18 -0800
-Message-ID: <201103112328.p2BNSIGc002196@imap1.linux-foundation.org>
+Subject: + calibrate-home-in-on-correct-lpj-value-more-quickly.patch added to -mm tree
+Date: Fri, 11 Mar 2011 15:28:14 -0800
+Message-ID: <201103112328.p2BNSFqE002187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147Ab1CKX2e (ORCPT
+	by vger.kernel.org with ESMTP id S1751147Ab1CKX2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:28:34 -0500
+	Fri, 11 Mar 2011 18:28:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de
+Cc: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de
 
 
 The patch titled
-     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
+     calibrate: home in on correct lpj value more quickly
 has been added to the -mm tree.  Its filename is
-     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+     calibrate-home-in-on-correct-lpj-value-more-quickly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: calibrate: home in on correct lpj value more quickly
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-mention x86_64 SMIs in comment
+Binary chop with a jiffy-resync on each step to find an upper bound is
+slow, so just race in a tight-ish loop to find an underestimate.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <greg@kroah.com>
+If done with lots of individual steps, sometimes several hundreds of
+iterations would be required, which would impose a significant overhead,
+and make the initial estimate very low.  By taking slowly increasing steps
+there will be less overhead.
+
+E.g.  an x86_64 2.67GHz could have fitted in 613 individual small delays,
+but in reality should have been able to fit in a single delay 644 times
+longer, so underestimated by 31 steps.  To reach the equivalent of 644
+small delays with the accelerating scheme now requires about 130
+iterations, so has <1/4th of the overhead, and can therefore be expected
+to underestimate by only 7 steps.
+
+As now we have a better initial estimate we can binary chop over a smaller
+range.  With the loop overhead in the initial estimate kept low, and the
+step sizes moderate, we won't have under-estimated by much, so chose as
+tight a range as we can.
+
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/calibrate.c |   57 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 23 deletions(-)
 
-diff -puN init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix init/calibrate.c
---- a/init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
+diff -puN init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly init/calibrate.c
+--- a/init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly
 +++ a/init/calibrate.c
-@@ -172,7 +172,7 @@ recalibrate:
+@@ -110,8 +110,8 @@ static unsigned long __cpuinit calibrate
+ 
+ /*
+  * This is the number of bits of precision for the loops_per_jiffy.  Each
+- * bit takes on average 1.5/HZ seconds.  This (like the original) is a little
+- * better than 1%
++ * time we refine our estimate after the first takes 1.5/HZ seconds, so try
++ * to start with a good estimate.
+  * For the boot cpu we can skip the delay calibration and assign it a value
+  * calculated based on the timer frequency.
+  * For the rest of the CPUs we cannot assume that the timer frequency is same as
+@@ -121,38 +121,49 @@ static unsigned long __cpuinit calibrate
+ 
+ static unsigned long __cpuinit calibrate_delay_converge(void)
+ {
+-	unsigned long lpj, ticks, loopbit;
+-	int lps_precision = LPS_PREC;
++	/* First stage - slowly accelerate to find initial bounds */
++	unsigned long lpj, ticks, loopadd, chop_limit;
++	int trials = 0, band = 0, trial_in_band = 0;
+ 
+ 	lpj = (1<<12);
+-	while ((lpj <<= 1) != 0) {
+-		/* wait for "start of" clock tick */
+-		ticks = jiffies;
+-		while (ticks == jiffies)
+-			/* nothing */;
+-		/* Go .. */
+-		ticks = jiffies;
+-		__delay(lpj);
+-		ticks = jiffies - ticks;
+-		if (ticks)
+-			break;
+-	}
++
++	/* wait for "start of" clock tick */
++	ticks = jiffies;
++	while (ticks == jiffies)
++		; /* nothing */
++	/* Go .. */
++	ticks = jiffies;
++	do {
++		if (++trial_in_band == (1<<band)) {
++			++band;
++			trial_in_band = 0;
++		}
++		__delay(lpj * band);
++		trials += band;
++	} while (ticks == jiffies);
++	/*
++	 * We overshot, so retreat to a clear underestimate. Then estimate
++	 * the largest likely undershoot. This defines our chop bounds.
++	 */
++	trials -= band;
++	loopadd = lpj * band;
++	lpj *= trials;
++	chop_limit = lpj >> (LPS_PREC + 1);
+ 
  	/*
- 	 * If we incremented every single time possible, presume we've
- 	 * massively underestimated initially, and retry with a higher
--	 * start, and larger range. (Only seen on x86_64.)
-+	 * start, and larger range. (Only seen on x86_64, due to SMIs)
+ 	 * Do a binary approximation to get lpj set to
+-	 * equal one clock (up to lps_precision bits)
++	 * equal one clock (up to LPS_PREC bits)
  	 */
- 	if (lpj + loopadd * 2 == lpj_base + loopadd_base * 2) {
- 		lpj_base = lpj;
+-	lpj >>= 1;
+-	loopbit = lpj;
+-	while (lps_precision-- && (loopbit >>= 1)) {
+-		lpj |= loopbit;
++	while (loopadd > chop_limit) {
++		lpj += loopadd;
+ 		ticks = jiffies;
+ 		while (ticks == jiffies)
+-			/* nothing */;
++			; /* nothing */
+ 		ticks = jiffies;
+ 		__delay(lpj);
+ 		if (jiffies != ticks)	/* longer than 1 tick */
+-			lpj &= ~loopbit;
++			lpj -= loopadd;
++		loopadd >>= 1;
+ 	}
+ 
+ 	return lpj;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
 
 linux-next.patch
-next-remove-localversion.patch
-revert-kbuild-reenable-section-mismatch-analysis.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-extract-fall-back-calculation-into-own-helper.patch
+calibrate-home-in-on-correct-lpj-value-more-quickly.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
 calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
