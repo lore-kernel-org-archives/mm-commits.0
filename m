@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + calibrate-home-in-on-correct-lpj-value-more-quickly.patch added to -mm tree
-Date: Fri, 11 Mar 2011 15:28:14 -0800
-Message-ID: <201103112328.p2BNSFqE002187@imap1.linux-foundation.org>
+Subject: + calibrate-extract-fall-back-calculation-into-own-helper.patch added to -mm tree
+Date: Fri, 11 Mar 2011 15:28:12 -0800
+Message-ID: <201103112328.p2BNSCbJ002184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147Ab1CKX2g (ORCPT
+	by vger.kernel.org with ESMTP id S1752265Ab1CKX2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:28:36 -0500
+	Fri, 11 Mar 2011 18:28:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, 
 
 
 The patch titled
-     calibrate: home in on correct lpj value more quickly
+     calibrate: extract fall-back calculation into own helper
 has been added to the -mm tree.  Its filename is
-     calibrate-home-in-on-correct-lpj-value-more-quickly.patch
+     calibrate-extract-fall-back-calculation-into-own-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calibrate: home in on correct lpj value more quickly
+Subject: calibrate: extract fall-back calculation into own helper
 From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-Binary chop with a jiffy-resync on each step to find an upper bound is
-slow, so just race in a tight-ish loop to find an underestimate.
+The motivation for this patch series is that currently our OMAP calibrates
+itself using the trial-and-error binary chop fallback that some other
+architectures no longer need to perform.  This is a lengthy process,
+taking 0.2s in an environment where boot time is of great interest.
 
-If done with lots of individual steps, sometimes several hundreds of
-iterations would be required, which would impose a significant overhead,
-and make the initial estimate very low.  By taking slowly increasing steps
-there will be less overhead.
+Patch 2/4 has two optimisations.  Firstly, it replaces the initial
+repeated- doubling to find the relevant power of 2 with a tight loop that
+just does as much as it can in a jiffy.  Secondly, it doesn't binary chop
+over an entire power of 2 range, it choses a much smaller range based on
+how much it squeezed in, and failed to squeeze in, during the first stage.
+ Both are significant optimisations, and bring our calibration down from
+23 jiffies to 5, and, in the process, often arrive at a more accurate lpj
+value.
 
-E.g.  an x86_64 2.67GHz could have fitted in 613 individual small delays,
-but in reality should have been able to fit in a single delay 644 times
-longer, so underestimated by 31 steps.  To reach the equivalent of 644
-small delays with the accelerating scheme now requires about 130
-iterations, so has <1/4th of the overhead, and can therefore be expected
-to underestimate by only 7 steps.
+The 'bands' and 'sub-logarithmic' growth may look over-engineered, but
+they only cost a small level of inaccuracy in the initial guess (for all
+architectures) in order to avoid the very large inaccuracies that appeared
+during testing (on x86_64 architectures, and presumably others with less
+metronomic operation).  Note that due to the existence of the TSC and
+other timers, the x86_64 will not typically use this fallback routine, but
+I wanted to code defensively, able to cope with all kinds of processor
+behaviours and kernel command line options.
 
-As now we have a better initial estimate we can binary chop over a smaller
-range.  With the loop overhead in the initial estimate kept low, and the
-step sizes moderate, we won't have under-estimated by much, so chose as
-tight a range as we can.
+Patch 3/4 is an additional trap for the nightmare scenario where the
+initial estimate is very inaccurate, possibly due to things like SMIs.
+It simply retries with a larger bound.
+
+
+This patch:
+
+... so that it can be modified more clinically.
+
+This is almost entirely cosmetic. The only change to the operation
+is that the global variable is only set once after the estimation is
+completed, rather than taking on all the intermediate values. However,
+there are no readers of that variable, so this change is unimportant.
 
 Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -66,94 +83,103 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   57 ++++++++++++++++++++++++++-------------------
- 1 file changed, 34 insertions(+), 23 deletions(-)
+ init/calibrate.c |   73 ++++++++++++++++++++++++---------------------
+ 1 file changed, 40 insertions(+), 33 deletions(-)
 
-diff -puN init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly init/calibrate.c
---- a/init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly
+diff -puN init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper init/calibrate.c
+--- a/init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper
 +++ a/init/calibrate.c
-@@ -110,8 +110,8 @@ static unsigned long __cpuinit calibrate
+@@ -119,10 +119,47 @@ static unsigned long __cpuinit calibrate
+  */
+ #define LPS_PREC 8
  
- /*
-  * This is the number of bits of precision for the loops_per_jiffy.  Each
-- * bit takes on average 1.5/HZ seconds.  This (like the original) is a little
-- * better than 1%
-+ * time we refine our estimate after the first takes 1.5/HZ seconds, so try
-+ * to start with a good estimate.
-  * For the boot cpu we can skip the delay calibration and assign it a value
-  * calculated based on the timer frequency.
-  * For the rest of the CPUs we cannot assume that the timer frequency is same as
-@@ -121,38 +121,49 @@ static unsigned long __cpuinit calibrate
- 
- static unsigned long __cpuinit calibrate_delay_converge(void)
+-void __cpuinit calibrate_delay(void)
++static unsigned long __cpuinit calibrate_delay_converge(void)
  {
--	unsigned long lpj, ticks, loopbit;
--	int lps_precision = LPS_PREC;
-+	/* First stage - slowly accelerate to find initial bounds */
-+	unsigned long lpj, ticks, loopadd, chop_limit;
-+	int trials = 0, band = 0, trial_in_band = 0;
- 
- 	lpj = (1<<12);
--	while ((lpj <<= 1) != 0) {
--		/* wait for "start of" clock tick */
--		ticks = jiffies;
--		while (ticks == jiffies)
--			/* nothing */;
--		/* Go .. */
--		ticks = jiffies;
--		__delay(lpj);
--		ticks = jiffies - ticks;
--		if (ticks)
--			break;
--	}
+-	unsigned long ticks, loopbit;
++	unsigned long lpj, ticks, loopbit;
+ 	int lps_precision = LPS_PREC;
 +
-+	/* wait for "start of" clock tick */
-+	ticks = jiffies;
-+	while (ticks == jiffies)
-+		; /* nothing */
-+	/* Go .. */
-+	ticks = jiffies;
-+	do {
-+		if (++trial_in_band == (1<<band)) {
-+			++band;
-+			trial_in_band = 0;
-+		}
-+		__delay(lpj * band);
-+		trials += band;
-+	} while (ticks == jiffies);
++	lpj = (1<<12);
++	while ((lpj <<= 1) != 0) {
++		/* wait for "start of" clock tick */
++		ticks = jiffies;
++		while (ticks == jiffies)
++			/* nothing */;
++		/* Go .. */
++		ticks = jiffies;
++		__delay(lpj);
++		ticks = jiffies - ticks;
++		if (ticks)
++			break;
++	}
++
 +	/*
-+	 * We overshot, so retreat to a clear underestimate. Then estimate
-+	 * the largest likely undershoot. This defines our chop bounds.
++	 * Do a binary approximation to get lpj set to
++	 * equal one clock (up to lps_precision bits)
 +	 */
-+	trials -= band;
-+	loopadd = lpj * band;
-+	lpj *= trials;
-+	chop_limit = lpj >> (LPS_PREC + 1);
++	lpj >>= 1;
++	loopbit = lpj;
++	while (lps_precision-- && (loopbit >>= 1)) {
++		lpj |= loopbit;
++		ticks = jiffies;
++		while (ticks == jiffies)
++			/* nothing */;
++		ticks = jiffies;
++		__delay(lpj);
++		if (jiffies != ticks)	/* longer than 1 tick */
++			lpj &= ~loopbit;
++	}
++
++	return lpj;
++}
++
++void __cpuinit calibrate_delay(void)
++{
+ 	static bool printed;
  
- 	/*
- 	 * Do a binary approximation to get lpj set to
--	 * equal one clock (up to lps_precision bits)
-+	 * equal one clock (up to LPS_PREC bits)
- 	 */
--	lpj >>= 1;
--	loopbit = lpj;
--	while (lps_precision-- && (loopbit >>= 1)) {
--		lpj |= loopbit;
-+	while (loopadd > chop_limit) {
-+		lpj += loopadd;
- 		ticks = jiffies;
- 		while (ticks == jiffies)
--			/* nothing */;
-+			; /* nothing */
- 		ticks = jiffies;
- 		__delay(lpj);
- 		if (jiffies != ticks)	/* longer than 1 tick */
--			lpj &= ~loopbit;
-+			lpj -= loopadd;
-+		loopadd >>= 1;
+ 	if (preset_lpj) {
+@@ -139,39 +176,9 @@ void __cpuinit calibrate_delay(void)
+ 			pr_info("Calibrating delay using timer "
+ 				"specific routine.. ");
+ 	} else {
+-		loops_per_jiffy = (1<<12);
+-
+ 		if (!printed)
+ 			pr_info("Calibrating delay loop... ");
+-		while ((loops_per_jiffy <<= 1) != 0) {
+-			/* wait for "start of" clock tick */
+-			ticks = jiffies;
+-			while (ticks == jiffies)
+-				/* nothing */;
+-			/* Go .. */
+-			ticks = jiffies;
+-			__delay(loops_per_jiffy);
+-			ticks = jiffies - ticks;
+-			if (ticks)
+-				break;
+-		}
+-
+-		/*
+-		 * Do a binary approximation to get loops_per_jiffy set to
+-		 * equal one clock (up to lps_precision bits)
+-		 */
+-		loops_per_jiffy >>= 1;
+-		loopbit = loops_per_jiffy;
+-		while (lps_precision-- && (loopbit >>= 1)) {
+-			loops_per_jiffy |= loopbit;
+-			ticks = jiffies;
+-			while (ticks == jiffies)
+-				/* nothing */;
+-			ticks = jiffies;
+-			__delay(loops_per_jiffy);
+-			if (jiffies != ticks)	/* longer than 1 tick */
+-				loops_per_jiffy &= ~loopbit;
+-		}
++		loops_per_jiffy = calibrate_delay_converge();
  	}
- 
- 	return lpj;
+ 	if (!printed)
+ 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
 _
 
 Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
