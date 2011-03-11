@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-batch-activate_page-to-reduce-lock-contention.patch added to -mm tree
-Date: Fri, 11 Mar 2011 15:07:02 -0800
-Message-ID: <201103112307.p2BN72Og001279@imap1.linux-foundation.org>
+Subject: + calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch added to -mm tree
+Date: Fri, 11 Mar 2011 15:28:16 -0800
+Message-ID: <201103112328.p2BNSH7I002192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533Ab1CKXH4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751147Ab1CKX2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:07:56 -0500
+	Fri, 11 Mar 2011 18:28:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, andi@firstfloor.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyuki@gmail.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de
 
 
 The patch titled
-     mm: batch activate_page() to reduce lock contention
+     calibrate: retry with wider bounds when converge seems to fail
 has been added to the -mm tree.  Its filename is
-     mm-batch-activate_page-to-reduce-lock-contention.patch
+     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,178 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: batch activate_page() to reduce lock contention
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: calibrate: retry with wider bounds when converge seems to fail
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-The zone->lru_lock is heavily contented in workload where activate_page()
-is frequently used.  We could do batch activate_page() to reduce the lock
-contention.  The batched pages will be added into zone list when the pool
-is full or page reclaim is trying to drain them.
+Systems with unmaskable interrupts such as SMIs may massively
+underestimate loops_per_jiffy, and fail to converge anywhere near the real
+value.  A case seen on x86_64 was an initial estimate of 256<<12, which
+converged to 511<<12 where the real value should have been over 630<<12. 
+This admitedly requires bypassing the TSC calibration (lpj_fine), and a
+failure to settle in the direct calibration too, but is physically
+possible.  This failure does not depend on my previous calibration
+optimisation, but by luck is easy to fix with the optimisation in place
+with a trivial retry loop.
 
-For example, in a 4 socket 64 CPU system, create a sparse file and 64
-processes, processes shared map to the file.  Each process read access the
-whole file and then exit.  The process exit will do unmap_vmas() and cause
-a lot of activate_page() call.  In such workload, we saw about 58% total
-time reduction with below patch.  Other workloads with a lot of
-activate_page also benefits a lot too.
+In the context of the optimised converging method, as we can no longer
+trust the starting estimate, enlarge the search bounds exponentially so
+that the number of retries is logarithmically bounded.
 
-Andrew Morton suggested activate_page() and putback_lru_pages() should
-follow the same path to active pages, but this is hard to implement (see
-commit 7a608572a282a ("Revert "mm: batch activate_page() to reduce lock
-contention")).  On the other hand, do we really need putback_lru_pages()
-to follow the same path?  I tested several FIO/FFSB benchmark (about 20
-scripts for each benchmark) in 3 machines here from 2 sockets to 4
-sockets.  My test doesn't show anything significant with/without below
-patch (there is slight difference but mostly some noise which we found
-even without below patch before).  Below patch basically returns to the
-same as my first post.
-
-I tested some microbenchmarks:
-case-anon-cow-rand-mt               0.58%
-case-anon-cow-rand          -3.30%
-case-anon-cow-seq-mt                -0.51%
-case-anon-cow-seq           -5.68%
-case-anon-r-rand-mt         0.23%
-case-anon-r-rand            0.81%
-case-anon-r-seq-mt          -0.71%
-case-anon-r-seq                     -1.99%
-case-anon-rx-rand-mt                2.11%
-case-anon-rx-seq-mt         3.46%
-case-anon-w-rand-mt         -0.03%
-case-anon-w-rand            -0.50%
-case-anon-w-seq-mt          -1.08%
-case-anon-w-seq                     -0.12%
-case-anon-wx-rand-mt                -5.02%
-case-anon-wx-seq-mt         -1.43%
-case-fork                   1.65%
-case-fork-sleep                     -0.07%
-case-fork-withmem           1.39%
-case-hugetlb                        -0.59%
-case-lru-file-mmap-read-mt  -0.54%
-case-lru-file-mmap-read             0.61%
-case-lru-file-mmap-read-rand        -2.24%
-case-lru-file-readonce              -0.64%
-case-lru-file-readtwice             -11.69%
-case-lru-memcg                      -1.35%
-case-mmap-pread-rand-mt             1.88%
-case-mmap-pread-rand                -15.26%
-case-mmap-pread-seq-mt              0.89%
-case-mmap-pread-seq         -69.72%
-case-mmap-xread-rand-mt             0.71%
-case-mmap-xread-seq-mt              0.38%
-
-The most significent are:
-case-lru-file-readtwice             -11.69%
-case-mmap-pread-rand                -15.26%
-case-mmap-pread-seq         -69.72%
-
-which use activate_page a lot.  others are basically variations because
-each run has slightly difference.
-
-In UP case, 'size mm/swap.o'
-before the two patches:
-   text    data     bss     dec     hex filename
-   6466     896       4    7366    1cc6 mm/swap.o
-after the two patches:
-   text    data     bss     dec     hex filename
-   6343     896       4    7243    1c4b mm/swap.o
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 40 insertions(+), 5 deletions(-)
+ init/calibrate.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention mm/swap.c
---- a/mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention
-+++ a/mm/swap.c
-@@ -272,14 +272,10 @@ static void update_page_reclaim_stat(str
- 		memcg_reclaim_stat->recent_rotated[file]++;
- }
- 
--/*
-- * FIXME: speed this up?
-- */
--void activate_page(struct page *page)
-+static void __activate_page(struct page *page, void *arg)
+diff -puN init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail init/calibrate.c
+--- a/init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail
++++ a/init/calibrate.c
+@@ -122,7 +122,7 @@ static unsigned long __cpuinit calibrate
+ static unsigned long __cpuinit calibrate_delay_converge(void)
  {
- 	struct zone *zone = page_zone(page);
+ 	/* First stage - slowly accelerate to find initial bounds */
+-	unsigned long lpj, ticks, loopadd, chop_limit;
++	unsigned long lpj, lpj_base, ticks, loopadd, loopadd_base, chop_limit;
+ 	int trials = 0, band = 0, trial_in_band = 0;
  
--	spin_lock_irq(&zone->lru_lock);
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_cache(page);
- 		int lru = page_lru_base_type(page);
-@@ -292,8 +288,45 @@ void activate_page(struct page *page)
+ 	lpj = (1<<12);
+@@ -146,14 +146,18 @@ static unsigned long __cpuinit calibrate
+ 	 * the largest likely undershoot. This defines our chop bounds.
+ 	 */
+ 	trials -= band;
+-	loopadd = lpj * band;
+-	lpj *= trials;
+-	chop_limit = lpj >> (LPS_PREC + 1);
++	loopadd_base = lpj * band;
++	lpj_base = lpj * trials;
++
++recalibrate:
++	lpj = lpj_base;
++	loopadd = loopadd_base;
  
- 		update_page_reclaim_stat(zone, page, file, 1);
+ 	/*
+ 	 * Do a binary approximation to get lpj set to
+ 	 * equal one clock (up to LPS_PREC bits)
+ 	 */
++	chop_limit = lpj >> LPS_PREC;
+ 	while (loopadd > chop_limit) {
+ 		lpj += loopadd;
+ 		ticks = jiffies;
+@@ -165,6 +169,16 @@ static unsigned long __cpuinit calibrate
+ 			lpj -= loopadd;
+ 		loopadd >>= 1;
  	}
-+}
-+
-+#ifdef CONFIG_SMP
-+static DEFINE_PER_CPU(struct pagevec, activate_page_pvecs);
-+
-+static void activate_page_drain(int cpu)
-+{
-+	struct pagevec *pvec = &per_cpu(activate_page_pvecs, cpu);
-+
-+	if (pagevec_count(pvec))
-+		pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+}
-+
-+void activate_page(struct page *page)
-+{
-+	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
-+		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
-+
-+		page_cache_get(page);
-+		if (!pagevec_add(pvec, page))
-+			pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+		put_cpu_var(activate_page_pvecs);
++	/*
++	 * If we incremented every single time possible, presume we've
++	 * massively underestimated initially, and retry with a higher
++	 * start, and larger range. (Only seen on x86_64.)
++	 */
++	if (lpj + loopadd * 2 == lpj_base + loopadd_base * 2) {
++		lpj_base = lpj;
++		loopadd_base <<= 2;
++		goto recalibrate;
 +	}
-+}
-+
-+#else
-+static inline void activate_page_drain(int cpu)
-+{
-+}
-+
-+void activate_page(struct page *page)
-+{
-+	struct zone *zone = page_zone(page);
-+
-+	spin_lock_irq(&zone->lru_lock);
-+	__activate_page(page, NULL);
- 	spin_unlock_irq(&zone->lru_lock);
- }
-+#endif
  
- /*
-  * Mark a page as having seen activity.
-@@ -461,6 +494,8 @@ static void drain_cpu_pagevecs(int cpu)
- 	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+
-+	activate_page_drain(cpu);
+ 	return lpj;
  }
- 
- /**
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
 
 linux-next.patch
-mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones.patch
-mm-simplify-code-of-swapc.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-fs-ioctlc-remove-unnecessary-variable.patch
+calibrate-extract-fall-back-calculation-into-own-helper.patch
+calibrate-home-in-on-correct-lpj-value-more-quickly.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
 
