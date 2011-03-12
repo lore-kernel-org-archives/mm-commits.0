@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-wake-all-waiters-when-destroying-ctx.patch added to -mm tree
-Date: Fri, 11 Mar 2011 16:52:09 -0800
-Message-ID: <201103120052.p2C0q9jX005762@imap1.linux-foundation.org>
+Subject: + memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch added to -mm tree
+Date: Fri, 11 Mar 2011 17:23:06 -0800
+Message-ID: <201103120123.p2C1N7YV007045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768Ab1CLAxJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752793Ab1CLBXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 19:53:09 -0500
+	Fri, 11 Mar 2011 20:23:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@purestorage.com, jmoyer@redhat.com, stable@kernel.org
+Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@google.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, teravest@google.com
 
 
 The patch titled
-     aio: wake all waiters when destroying ctx
+     memcg: add page_cgroup flags for dirty page tracking
 has been added to the -mm tree.  Its filename is
-     aio-wake-all-waiters-when-destroying-ctx.patch
+     memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: wake all waiters when destroying ctx
-From: Roland Dreier <roland@purestorage.com>
+Subject: memcg: add page_cgroup flags for dirty page tracking
+From: Greg Thelen <gthelen@google.com>
 
-The test program below will hang because io_getevents() uses
-add_wait_queue_exclusive(), which means the wake_up() in io_destroy() only
-wakes up one of the threads.  Fix this by using wake_up_all() in the aio
-code paths where we want to make sure no one gets stuck.
+Add additional flags to page_cgroup to track dirty pages within a
+mem_cgroup.
 
-	// t.c -- compile with gcc -lpthread -laio t.c
-
-	#include <libaio.h>
-	#include <pthread.h>
-	#include <stdio.h>
-	#include <unistd.h>
-
-	static const int nthr = 2;
-
-	void *getev(void *ctx)
-	{
-		struct io_event ev;
-		io_getevents(ctx, 1, 1, &ev, NULL);
-		printf("io_getevents returned\n");
-		return NULL;
-	}
-
-	int main(int argc, char *argv[])
-	{
-		io_context_t ctx = 0;
-		pthread_t thread[nthr];
-		int i;
-
-		io_setup(1024, &ctx);
-
-		for (i = 0; i < nthr; ++i)
-			pthread_create(&thread[i], NULL, getev, ctx);
-
-		sleep(1);
-
-		io_destroy(ctx);
-
-		for (i = 0; i < nthr; ++i)
-			pthread_join(thread[i], NULL);
-
-		return 0;
-	}
-
-Signed-off-by: Roland Dreier <roland@purestorage.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrea Righi <arighi@develer.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Chad Talbott <ctalbott@google.com>
+Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/page_cgroup.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN fs/aio.c~aio-wake-all-waiters-when-destroying-ctx fs/aio.c
---- a/fs/aio.c~aio-wake-all-waiters-when-destroying-ctx
-+++ a/fs/aio.c
-@@ -509,7 +509,7 @@ static inline void really_put_req(struct
- 	ctx->reqs_active--;
+diff -puN include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking
++++ a/include/linux/page_cgroup.h
+@@ -10,6 +10,9 @@ enum {
+ 	/* flags for mem_cgroup and file and I/O status */
+ 	PCG_MOVE_LOCK, /* For race between move_account v.s. following bits */
+ 	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
++	PCG_FILE_DIRTY, /* page is dirty */
++	PCG_FILE_WRITEBACK, /* page is under writeback */
++	PCG_FILE_UNSTABLE_NFS, /* page is NFS unstable */
+ 	/* No lock in page_cgroup */
+ 	PCG_ACCT_LRU, /* page has been accounted for (under lru_lock) */
+ 	__NR_PCG_FLAGS,
+@@ -67,6 +70,10 @@ static inline void ClearPageCgroup##unam
+ static inline int TestClearPageCgroup##uname(struct page_cgroup *pc)	\
+ 	{ return test_and_clear_bit(PCG_##lname, &pc->flags);  }
  
- 	if (unlikely(!ctx->reqs_active && ctx->dead))
--		wake_up(&ctx->wait);
-+		wake_up_all(&ctx->wait);
- }
++#define TESTSETPCGFLAG(uname, lname)			\
++static inline int TestSetPageCgroup##uname(struct page_cgroup *pc)	\
++	{ return test_and_set_bit(PCG_##lname, &pc->flags);  }
++
+ /* Cache flag is set only once (at allocation) */
+ TESTPCGFLAG(Cache, CACHE)
+ CLEARPCGFLAG(Cache, CACHE)
+@@ -86,6 +93,22 @@ SETPCGFLAG(FileMapped, FILE_MAPPED)
+ CLEARPCGFLAG(FileMapped, FILE_MAPPED)
+ TESTPCGFLAG(FileMapped, FILE_MAPPED)
  
- static void aio_fput_routine(struct work_struct *data)
-@@ -1218,7 +1218,7 @@ static void io_destroy(struct kioctx *io
- 	 * by other CPUs at this point.  Right now, we rely on the
- 	 * locking done by the above calls to ensure this consistency.
- 	 */
--	wake_up(&ioctx->wait);
-+	wake_up_all(&ioctx->wait);
- 	put_ioctx(ioctx);	/* once for the lookup */
- }
- 
++SETPCGFLAG(FileDirty, FILE_DIRTY)
++CLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTPCGFLAG(FileDirty, FILE_DIRTY)
++TESTCLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTSETPCGFLAG(FileDirty, FILE_DIRTY)
++
++SETPCGFLAG(FileWriteback, FILE_WRITEBACK)
++CLEARPCGFLAG(FileWriteback, FILE_WRITEBACK)
++TESTPCGFLAG(FileWriteback, FILE_WRITEBACK)
++
++SETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++CLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTCLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTSETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++
+ SETPCGFLAG(Migration, MIGRATION)
+ CLEARPCGFLAG(Migration, MIGRATION)
+ TESTPCGFLAG(Migration, MIGRATION)
 _
 
-Patches currently in -mm which might be from roland@purestorage.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 linux-next.patch
-aio-wake-all-waiters-when-destroying-ctx.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-use-native-word-page-statistics-counters.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
 
