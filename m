@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-dirty-limits-to-mem_cgroup.patch added to -mm tree
-Date: Fri, 11 Mar 2011 17:23:15 -0800
-Message-ID: <201103120123.p2C1NGJP007054@imap1.linux-foundation.org>
+Subject: + memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch added to -mm tree
+Date: Fri, 11 Mar 2011 17:23:18 -0800
+Message-ID: <201103120123.p2C1NJ2f007057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39152 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752963Ab1CLBYH (ORCPT
+	by vger.kernel.org with ESMTP id S1752963Ab1CLBYL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 20:24:07 -0500
+	Fri, 11 Mar 2011 20:24:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@
 
 
 The patch titled
-     memcg: add dirty limits to mem_cgroup
+     memcg: add cgroupfs interface to memcg dirty limits
 has been added to the -mm tree.  Its filename is
-     memcg-add-dirty-limits-to-mem_cgroup.patch
+     memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add dirty limits to mem_cgroup
+Subject: memcg: add cgroupfs interface to memcg dirty limits
 From: Greg Thelen <gthelen@google.com>
 
-Extend mem_cgroup to contain dirty page limits.
+Add cgroupfs interface to memcg dirty page limits:
+  Direct write-out is controlled with:
+  - memory.dirty_ratio
+  - memory.dirty_limit_in_bytes
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
+  Background write-out is controlled with:
+  - memory.dirty_background_ratio
+  - memory.dirty_background_limit_bytes
+
+Other memcg cgroupfs files support 'M', 'm', 'k', 'K', 'g' and 'G'
+suffixes for byte counts.  This patch provides the same functionality for
+memory.dirty_limit_in_bytes and memory.dirty_background_limit_bytes.
+
 Signed-off-by: Andrea Righi <arighi@develer.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chad Talbott <ctalbott@google.com>
@@ -53,92 +64,147 @@ Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   51 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 50 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |  114 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 114 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup
+diff -puN mm/memcontrol.c~memcg-add-cgroupfs-interface-to-memcg-dirty-limits mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-cgroupfs-interface-to-memcg-dirty-limits
 +++ a/mm/memcontrol.c
-@@ -203,6 +203,14 @@ struct mem_cgroup_eventfd_list {
- static void mem_cgroup_threshold(struct mem_cgroup *mem);
- static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
+@@ -113,6 +113,13 @@ enum mem_cgroup_events_target {
+ #define THRESHOLDS_EVENTS_TARGET (128)
+ #define SOFTLIMIT_EVENTS_TARGET (1024)
  
-+/* Dirty memory parameters */
-+struct vm_dirty_param {
-+	int dirty_ratio;
-+	int dirty_background_ratio;
-+	unsigned long dirty_bytes;
-+	unsigned long dirty_background_bytes;
++enum {
++	MEM_CGROUP_DIRTY_RATIO,
++	MEM_CGROUP_DIRTY_LIMIT_IN_BYTES,
++	MEM_CGROUP_DIRTY_BACKGROUND_RATIO,
++	MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES,
 +};
 +
- /*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-@@ -242,6 +250,10 @@ struct mem_cgroup {
- 	atomic_t	refcnt;
- 
- 	unsigned int	swappiness;
-+
-+	/* control memory cgroup dirty pages */
-+	struct vm_dirty_param dirty_param;
-+
- 	/* OOM-Killer disable */
- 	int		oom_kill_disable;
- 
-@@ -1198,6 +1210,36 @@ static unsigned int get_swappiness(struc
- 	return memcg->swappiness;
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+ 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
+@@ -4391,6 +4398,89 @@ static int mem_cgroup_oom_control_write(
+ 	return 0;
  }
  
-+/*
-+ * Return true if the current memory cgroup has local dirty memory settings.
-+ * There is an allowed race between the current task migrating in-to/out-of the
-+ * root cgroup while this routine runs.  So the return value may be incorrect if
-+ * the current task is being simultaneously migrated.
-+ */
-+static bool mem_cgroup_has_dirty_limit(struct mem_cgroup *mem)
++static u64 mem_cgroup_dirty_read(struct cgroup *cgrp, struct cftype *cft)
 +{
-+	return mem && !mem_cgroup_is_root(mem);
-+}
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
++	bool use_sys = !mem_cgroup_has_dirty_limit(mem);
 +
-+/*
-+ * Returns a snapshot of the current dirty limits which is not synchronized with
-+ * the routines that change the dirty limits.  If this routine races with an
-+ * update to the dirty bytes/ratio value, then the caller must handle the case
-+ * where neither dirty_[background_]_ratio nor _bytes are set.
-+ */
-+static void mem_cgroup_dirty_param(struct vm_dirty_param *param,
-+				   struct mem_cgroup *mem)
-+{
-+	if (mem_cgroup_has_dirty_limit(mem)) {
-+		*param = mem->dirty_param;
-+	} else {
-+		param->dirty_ratio = vm_dirty_ratio;
-+		param->dirty_bytes = vm_dirty_bytes;
-+		param->dirty_background_ratio = dirty_background_ratio;
-+		param->dirty_background_bytes = dirty_background_bytes;
++	switch (cft->private) {
++	case MEM_CGROUP_DIRTY_RATIO:
++		return use_sys ? vm_dirty_ratio : mem->dirty_param.dirty_ratio;
++	case MEM_CGROUP_DIRTY_LIMIT_IN_BYTES:
++		return use_sys ? vm_dirty_bytes : mem->dirty_param.dirty_bytes;
++	case MEM_CGROUP_DIRTY_BACKGROUND_RATIO:
++		return use_sys ? dirty_background_ratio :
++			mem->dirty_param.dirty_background_ratio;
++	case MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES:
++		return use_sys ? dirty_background_bytes :
++			mem->dirty_param.dirty_background_bytes;
++	default:
++		BUG();
 +	}
 +}
 +
- static void mem_cgroup_start_move(struct mem_cgroup *mem)
- {
- 	int cpu;
-@@ -4669,8 +4711,15 @@ mem_cgroup_create(struct cgroup_subsys *
- 	mem->last_scanned_child = 0;
- 	INIT_LIST_HEAD(&mem->oom_notify);
++static int
++mem_cgroup_dirty_write_string(struct cgroup *cgrp, struct cftype *cft,
++				const char *buffer)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++	int type = cft->private;
++	int ret = -EINVAL;
++	unsigned long long val;
++
++	if (!mem_cgroup_has_dirty_limit(memcg))
++		return ret;
++
++	switch (type) {
++	case MEM_CGROUP_DIRTY_LIMIT_IN_BYTES:
++		/* This function does all necessary parse...reuse it */
++		ret = res_counter_memparse_write_strategy(buffer, &val);
++		if (ret)
++			break;
++		memcg->dirty_param.dirty_bytes = val;
++		memcg->dirty_param.dirty_ratio  = 0;
++		break;
++	case MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES:
++		ret = res_counter_memparse_write_strategy(buffer, &val);
++		if (ret)
++			break;
++		memcg->dirty_param.dirty_background_bytes = val;
++		memcg->dirty_param.dirty_background_ratio = 0;
++		break;
++	default:
++		BUG();
++		break;
++	}
++	return ret;
++}
++
++static int
++mem_cgroup_dirty_write(struct cgroup *cgrp, struct cftype *cft, u64 val)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++	int type = cft->private;
++
++	if (!mem_cgroup_has_dirty_limit(memcg))
++		return -EINVAL;
++	if ((type == MEM_CGROUP_DIRTY_RATIO ||
++	     type == MEM_CGROUP_DIRTY_BACKGROUND_RATIO) && val > 100)
++		return -EINVAL;
++	switch (type) {
++	case MEM_CGROUP_DIRTY_RATIO:
++		memcg->dirty_param.dirty_ratio = val;
++		memcg->dirty_param.dirty_bytes = 0;
++		break;
++	case MEM_CGROUP_DIRTY_BACKGROUND_RATIO:
++		memcg->dirty_param.dirty_background_ratio = val;
++		memcg->dirty_param.dirty_background_bytes = 0;
++		break;
++	default:
++		BUG();
++		break;
++	}
++	return 0;
++}
++
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+@@ -4454,6 +4544,30 @@ static struct cftype mem_cgroup_files[] 
+ 		.unregister_event = mem_cgroup_oom_unregister_event,
+ 		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
+ 	},
++	{
++		.name = "dirty_ratio",
++		.read_u64 = mem_cgroup_dirty_read,
++		.write_u64 = mem_cgroup_dirty_write,
++		.private = MEM_CGROUP_DIRTY_RATIO,
++	},
++	{
++		.name = "dirty_limit_in_bytes",
++		.read_u64 = mem_cgroup_dirty_read,
++		.write_string = mem_cgroup_dirty_write_string,
++		.private = MEM_CGROUP_DIRTY_LIMIT_IN_BYTES,
++	},
++	{
++		.name = "dirty_background_ratio",
++		.read_u64 = mem_cgroup_dirty_read,
++		.write_u64 = mem_cgroup_dirty_write,
++		.private = MEM_CGROUP_DIRTY_BACKGROUND_RATIO,
++	},
++	{
++		.name = "dirty_background_limit_in_bytes",
++		.read_u64 = mem_cgroup_dirty_read,
++		.write_string = mem_cgroup_dirty_write_string,
++		.private = MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES,
++	},
+ };
  
--	if (parent)
-+	if (parent) {
- 		mem->swappiness = get_swappiness(parent);
-+		mem_cgroup_dirty_param(&mem->dirty_param, parent);
-+	} else {
-+		/*
-+		 * The root cgroup dirty_param field is not used, instead,
-+		 * system-wide dirty limits are used.
-+		 */
-+	}
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
