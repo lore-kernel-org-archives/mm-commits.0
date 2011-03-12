@@ -1,211 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation.patch added to -mm tree
-Date: Fri, 11 Mar 2011 16:29:24 -0800
-Message-ID: <201103120029.p2C0TOg5004706@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-add-dirty-page-accounting-infrastructure.patch removed from -mm tree
+Date: Fri, 11 Mar 2011 16:49:27 -0800
+Message-ID: <201103120049.p2C0nR6l005608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768Ab1CLA3b (ORCPT
+	by vger.kernel.org with ESMTP id S1752768Ab1CLAuQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 19:29:31 -0500
+	Fri, 11 Mar 2011 19:50:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gong.chen@linux.intel.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com
+To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commi
 
 
 The patch titled
-     Documentation/vm/page-types.c: auto debugfs mount for hwpoison operation
-has been added to the -mm tree.  Its filename is
-     documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation.patch
+     memcg: add dirty page accounting infrastructure
+has been removed from the -mm tree.  Its filename was
+     memcg-add-dirty-page-accounting-infrastructure.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/vm/page-types.c: auto debugfs mount for hwpoison operation
-From: Chen Gong <gong.chen@linux.intel.com>
+Subject: memcg: add dirty page accounting infrastructure
+From: Greg Thelen <gthelen@google.com>
 
-page-types.c doesn't supply a way to specify the debugfs path and the
-original debugfs path is not usual on most machines.  This patch supplies
-a way to auto mount debugfs if needed.
+Add memcg routines to track dirty, writeback, and unstable_NFS pages. 
+These routines are not yet used by the kernel to count such pages.  A
+later change adds kernel calls to these new routines.
 
-This patch is heavily inspired by tools/perf/utils/debugfs.c
-
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Andrea Righi <arighi@develer.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |  105 ++++++++++++++++++++++++++++++--
- 1 file changed, 101 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    3 +
+ mm/memcontrol.c            |   86 +++++++++++++++++++++++++++++++----
+ 2 files changed, 81 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation
-+++ a/Documentation/vm/page-types.c
-@@ -32,8 +32,20 @@
- #include <sys/types.h>
- #include <sys/errno.h>
- #include <sys/fcntl.h>
-+#include <sys/mount.h>
-+#include <sys/statfs.h>
-+#include "../../include/linux/magic.h"
- 
- 
-+#ifndef MAX_PATH
-+# define MAX_PATH 256
-+#endif
-+
-+#ifndef STR
-+# define _STR(x) #x
-+# define STR(x) _STR(x)
-+#endif
-+
- /*
-  * pagemap kernel ABI bits
-  */
-@@ -152,6 +164,12 @@ static const char *page_flag_names[] = {
+diff -puN include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure
++++ a/include/linux/memcontrol.h
+@@ -28,6 +28,9 @@ struct mm_struct;
+ /* Stats that can be updated by kernel. */
+ enum mem_cgroup_page_stat_item {
+ 	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
++	MEMCG_NR_FILE_DIRTY, /* # of dirty pages in page cache */
++	MEMCG_NR_FILE_WRITEBACK, /* # of pages under writeback */
++	MEMCG_NR_FILE_UNSTABLE_NFS, /* # of NFS unstable pages */
  };
  
- 
-+static const char *debugfs_known_mountpoints[] = {
-+	"/sys/kernel/debug",
-+	"/debug",
-+	0,
-+};
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+diff -puN mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure
++++ a/mm/memcontrol.c
+@@ -85,10 +85,13 @@ enum mem_cgroup_stat_index {
+ 	 */
+ 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
+ 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
+-	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
+ 	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
+ 	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+ 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
++	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
++	MEM_CGROUP_STAT_FILE_DIRTY,	/* # of dirty pages in page cache */
++	MEM_CGROUP_STAT_FILE_WRITEBACK,		/* # of pages under writeback */
++	MEM_CGROUP_STAT_FILE_UNSTABLE_NFS,	/* # of NFS unstable pages */
+ 	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
+ 	/* incremented at every  pagein/pageout */
+ 	MEM_CGROUP_EVENTS = MEM_CGROUP_STAT_DATA,
+@@ -1625,6 +1628,44 @@ void mem_cgroup_update_page_stat(struct 
+ 			ClearPageCgroupFileMapped(pc);
+ 		idx = MEM_CGROUP_STAT_FILE_MAPPED;
+ 		break;
 +
- /*
-  * data structures
-  */
-@@ -184,7 +202,7 @@ static int		kpageflags_fd;
- static int		opt_hwpoison;
- static int		opt_unpoison;
- 
--static const char	hwpoison_debug_fs[] = "/debug/hwpoison";
-+static char		hwpoison_debug_fs[MAX_PATH+1];
- static int		hwpoison_inject_fd;
- static int		hwpoison_forget_fd;
- 
-@@ -464,21 +482,100 @@ static uint64_t kpageflags_flags(uint64_
- 	return flags;
++	case MEMCG_NR_FILE_DIRTY:
++		/* Use Test{Set,Clear} to only un/charge the memcg once. */
++		if (val > 0) {
++			if (TestSetPageCgroupFileDirty(pc))
++				val = 0;
++		} else {
++			if (!TestClearPageCgroupFileDirty(pc))
++				val = 0;
++		}
++		idx = MEM_CGROUP_STAT_FILE_DIRTY;
++		break;
++
++	case MEMCG_NR_FILE_WRITEBACK:
++		/*
++		 * This counter is adjusted while holding the mapping's
++		 * tree_lock.  Therefore there is no race between settings and
++		 * clearing of this flag.
++		 */
++		if (val > 0)
++			SetPageCgroupFileWriteback(pc);
++		else
++			ClearPageCgroupFileWriteback(pc);
++		idx = MEM_CGROUP_STAT_FILE_WRITEBACK;
++		break;
++
++	case MEMCG_NR_FILE_UNSTABLE_NFS:
++		/* Use Test{Set,Clear} to only un/charge the memcg once. */
++		if (val > 0) {
++			if (TestSetPageCgroupFileUnstableNFS(pc))
++				val = 0;
++		} else {
++			if (!TestClearPageCgroupFileUnstableNFS(pc))
++				val = 0;
++		}
++		idx = MEM_CGROUP_STAT_FILE_UNSTABLE_NFS;
++		break;
++
+ 	default:
+ 		BUG();
+ 	}
+@@ -2129,6 +2170,17 @@ static void __mem_cgroup_commit_charge(s
+ 	memcg_check_events(mem, pc->page);
  }
  
-+/* verify that a mountpoint is actually a debugfs instance */
-+int debugfs_valid_mountpoint(const char *debugfs)
++static inline
++void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
++				       struct mem_cgroup *to,
++				       enum mem_cgroup_stat_index idx)
 +{
-+	struct statfs st_fs;
-+
-+	if (statfs(debugfs, &st_fs) < 0)
-+		return -ENOENT;
-+	else if (st_fs.f_type != (long) DEBUGFS_MAGIC)
-+		return -ENOENT;
-+
-+	return 0;
++	preempt_disable();
++	__this_cpu_dec(from->stat->count[idx]);
++	__this_cpu_inc(to->stat->count[idx]);
++	preempt_enable();
 +}
 +
-+/* find the path to the mounted debugfs */
-+const char *debugfs_find_mountpoint(void)
-+{
-+	const char **ptr;
-+	char type[100];
-+	FILE *fp;
-+
-+	ptr = debugfs_known_mountpoints;
-+	while (*ptr) {
-+		if (debugfs_valid_mountpoint(*ptr) == 0) {
-+			strcpy(hwpoison_debug_fs, *ptr);
-+			return hwpoison_debug_fs;
-+		}
-+		ptr++;
-+	}
-+
-+	/* give up and parse /proc/mounts */
-+	fp = fopen("/proc/mounts", "r");
-+	if (fp == NULL)
-+		perror("Can't open /proc/mounts for read");
-+
-+	while (fscanf(fp, "%*s %"
-+		      STR(MAX_PATH)
-+		      "s %99s %*s %*d %*d\n",
-+		      hwpoison_debug_fs, type) == 2) {
-+		if (strcmp(type, "debugfs") == 0)
-+			break;
-+	}
-+	fclose(fp);
-+
-+	if (strcmp(type, "debugfs") != 0)
-+		return NULL;
-+
-+	return hwpoison_debug_fs;
-+}
-+
-+/* mount the debugfs somewhere if it's not mounted */
-+
-+void debugfs_mount()
-+{
-+	const char **ptr;
-+
-+	/* see if it's already mounted */
-+	if (debugfs_find_mountpoint())
-+		return;
-+
-+	ptr = debugfs_known_mountpoints;
-+	while (*ptr) {
-+		if (mount(NULL, *ptr, "debugfs", 0, NULL) == 0) {
-+			/* save the mountpoint */
-+			strcpy(hwpoison_debug_fs, *ptr);
-+			break;
-+		}
-+		ptr++;
-+	}
-+
-+	if (*ptr == NULL) {
-+		perror("mount debugfs");
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
- /*
-  * page actions
-  */
+ /**
+  * __mem_cgroup_move_account - move account of the page
+  * @pc:	page_cgroup of the page.
+@@ -2155,13 +2207,18 @@ static void __mem_cgroup_move_account(st
+ 	VM_BUG_ON(!PageCgroupUsed(pc));
+ 	VM_BUG_ON(pc->mem_cgroup != from);
  
- static void prepare_hwpoison_fd(void)
- {
--	char buf[100];
-+	char buf[MAX_PATH + 1];
-+
-+	debugfs_mount();
- 
- 	if (opt_hwpoison && !hwpoison_inject_fd) {
--		sprintf(buf, "%s/corrupt-pfn", hwpoison_debug_fs);
-+		snprintf(buf, MAX_PATH, "%s/hwpoison/corrupt-pfn",
-+			hwpoison_debug_fs);
- 		hwpoison_inject_fd = checked_open(buf, O_WRONLY);
+-	if (PageCgroupFileMapped(pc)) {
+-		/* Update mapped_file data for mem_cgroup */
+-		preempt_disable();
+-		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+-		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+-		preempt_enable();
+-	}
++	if (PageCgroupFileMapped(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_MAPPED);
++	if (PageCgroupFileDirty(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_DIRTY);
++	if (PageCgroupFileWriteback(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_WRITEBACK);
++	if (PageCgroupFileUnstableNFS(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
+ 	mem_cgroup_charge_statistics(from, pc, false);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+@@ -3540,6 +3597,9 @@ enum {
+ 	MCS_PGPGIN,
+ 	MCS_PGPGOUT,
+ 	MCS_SWAP,
++	MCS_FILE_DIRTY,
++	MCS_WRITEBACK,
++	MCS_UNSTABLE_NFS,
+ 	MCS_INACTIVE_ANON,
+ 	MCS_ACTIVE_ANON,
+ 	MCS_INACTIVE_FILE,
+@@ -3562,6 +3622,9 @@ struct {
+ 	{"pgpgin", "total_pgpgin"},
+ 	{"pgpgout", "total_pgpgout"},
+ 	{"swap", "total_swap"},
++	{"dirty", "total_dirty"},
++	{"writeback", "total_writeback"},
++	{"nfs_unstable", "total_nfs_unstable"},
+ 	{"inactive_anon", "total_inactive_anon"},
+ 	{"active_anon", "total_active_anon"},
+ 	{"inactive_file", "total_inactive_file"},
+@@ -3591,6 +3654,13 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
  	}
  
- 	if (opt_unpoison && !hwpoison_forget_fd) {
--		sprintf(buf, "%s/unpoison-pfn", hwpoison_debug_fs);
-+		snprintf(buf, MAX_PATH, "%s/hwpoison/unpoison-pfn",
-+			hwpoison_debug_fs);
- 		hwpoison_forget_fd = checked_open(buf, O_WRONLY);
- 	}
- }
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_DIRTY);
++	s->stat[MCS_FILE_DIRTY] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_WRITEBACK);
++	s->stat[MCS_WRITEBACK] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
++	s->stat[MCS_UNSTABLE_NFS] += val * PAGE_SIZE;
++
+ 	/* per zone stat */
+ 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
+ 	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from gong.chen@linux.intel.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+linux-next.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-use-native-word-page-statistics-counters.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 
