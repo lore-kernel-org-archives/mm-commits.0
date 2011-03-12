@@ -1,250 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-check-memcg-dirty-limits-in-page-writeback.patch removed from -mm tree
-Date: Fri, 11 Mar 2011 16:51:17 -0800
-Message-ID: <201103120051.p2C0pHEh005677@imap1.linux-foundation.org>
+Subject: + aio-wake-all-waiters-when-destroying-ctx.patch added to -mm tree
+Date: Fri, 11 Mar 2011 16:52:09 -0800
+Message-ID: <201103120052.p2C0q9jX005762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768Ab1CLAv7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752768Ab1CLAxJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 19:51:59 -0500
+	Fri, 11 Mar 2011 19:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commi
+To: mm-commits@vger.kernel.org
+Cc: roland@purestorage.com, jmoyer@redhat.com, stable@kernel.org
 
 
 The patch titled
-     memcg: check memcg dirty limits in page writeback
-has been removed from the -mm tree.  Its filename was
-     memcg-check-memcg-dirty-limits-in-page-writeback.patch
+     aio: wake all waiters when destroying ctx
+has been added to the -mm tree.  Its filename is
+     aio-wake-all-waiters-when-destroying-ctx.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: check memcg dirty limits in page writeback
-From: Greg Thelen <gthelen@google.com>
+Subject: aio: wake all waiters when destroying ctx
+From: Roland Dreier <roland@purestorage.com>
 
-If the current process is in a non-root memcg, then balance_dirty_pages()
-will consider the memcg dirty limits as well as the system-wide limits. 
-This allows different cgroups to have distinct dirty limits which trigger
-direct and background writeback at different levels.
+The test program below will hang because io_getevents() uses
+add_wait_queue_exclusive(), which means the wake_up() in io_destroy() only
+wakes up one of the threads.  Fix this by using wake_up_all() in the aio
+code paths where we want to make sure no one gets stuck.
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+	// t.c -- compile with gcc -lpthread -laio t.c
+
+	#include <libaio.h>
+	#include <pthread.h>
+	#include <stdio.h>
+	#include <unistd.h>
+
+	static const int nthr = 2;
+
+	void *getev(void *ctx)
+	{
+		struct io_event ev;
+		io_getevents(ctx, 1, 1, &ev, NULL);
+		printf("io_getevents returned\n");
+		return NULL;
+	}
+
+	int main(int argc, char *argv[])
+	{
+		io_context_t ctx = 0;
+		pthread_t thread[nthr];
+		int i;
+
+		io_setup(1024, &ctx);
+
+		for (i = 0; i < nthr; ++i)
+			pthread_create(&thread[i], NULL, getev, ctx);
+
+		sleep(1);
+
+		io_destroy(ctx);
+
+		for (i = 0; i < nthr; ++i)
+			pthread_join(thread[i], NULL);
+
+		return 0;
+	}
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |  109 ++++++++++++++++++++++++++++++------------
- 1 file changed, 78 insertions(+), 31 deletions(-)
+ fs/aio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~memcg-check-memcg-dirty-limits-in-page-writeback mm/page-writeback.c
---- a/mm/page-writeback.c~memcg-check-memcg-dirty-limits-in-page-writeback
-+++ a/mm/page-writeback.c
-@@ -131,6 +131,18 @@ EXPORT_SYMBOL(laptop_mode);
- static struct prop_descriptor vm_completions;
- static struct prop_descriptor vm_dirties;
+diff -puN fs/aio.c~aio-wake-all-waiters-when-destroying-ctx fs/aio.c
+--- a/fs/aio.c~aio-wake-all-waiters-when-destroying-ctx
++++ a/fs/aio.c
+@@ -509,7 +509,7 @@ static inline void really_put_req(struct
+ 	ctx->reqs_active--;
  
-+static unsigned long dirty_writeback_pages(void)
-+{
-+	s64 ret;
-+
-+	ret = mem_cgroup_page_stat(MEMCG_NR_DIRTY_WRITEBACK_PAGES);
-+	if (ret < 0)
-+		ret = global_page_state(NR_UNSTABLE_NFS) +
-+			global_page_state(NR_WRITEBACK);
-+
-+	return ret;
-+}
-+
- /*
-  * couple the period to the dirty_ratio:
-  *
-@@ -398,45 +410,67 @@ unsigned long determine_dirtyable_memory
+ 	if (unlikely(!ctx->reqs_active && ctx->dead))
+-		wake_up(&ctx->wait);
++		wake_up_all(&ctx->wait);
  }
  
- /*
-+ * The dirty limits will be lifted by 1/4 for PF_LESS_THROTTLE (ie. nfsd) and
-+ * runtime tasks.
-+ */
-+static inline void adjust_dirty_info(struct dirty_info *info)
-+{
-+	struct task_struct *tsk;
-+
-+	if (info->background_thresh >= info->dirty_thresh)
-+		info->background_thresh = info->dirty_thresh / 2;
-+	tsk = current;
-+	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
-+		info->background_thresh += info->background_thresh / 4;
-+		info->dirty_thresh += info->dirty_thresh / 4;
-+	}
-+}
-+
-+/*
-  * global_dirty_info - return background-writeback and dirty-throttling
-  * thresholds as well as dirty usage metrics.
-  *
-  * Calculate the dirty thresholds based on sysctl parameters
-  * - vm.dirty_background_ratio  or  vm.dirty_background_bytes
-  * - vm.dirty_ratio             or  vm.dirty_bytes
-- * The dirty limits will be lifted by 1/4 for PF_LESS_THROTTLE (ie. nfsd) and
-- * runtime tasks.
-  */
- void global_dirty_info(struct dirty_info *info)
- {
--	unsigned long background;
--	unsigned long dirty;
- 	unsigned long available_memory = determine_dirtyable_memory();
--	struct task_struct *tsk;
- 
- 	if (vm_dirty_bytes)
--		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
-+		info->dirty_thresh = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
- 	else
--		dirty = (vm_dirty_ratio * available_memory) / 100;
-+		info->dirty_thresh = (vm_dirty_ratio * available_memory) / 100;
- 
- 	if (dirty_background_bytes)
--		background = DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
-+		info->background_thresh =
-+			DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
- 	else
--		background = (dirty_background_ratio * available_memory) / 100;
-+		info->background_thresh =
-+			(dirty_background_ratio * available_memory) / 100;
- 
- 	info->nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
- 				global_page_state(NR_UNSTABLE_NFS);
- 	info->nr_writeback = global_page_state(NR_WRITEBACK);
- 
--	if (background >= dirty)
--		background = dirty / 2;
--	tsk = current;
--	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
--		background += background / 4;
--		dirty += dirty / 4;
--	}
--	info->background_thresh = background;
--	info->dirty_thresh = dirty;
-+	adjust_dirty_info(info);
-+}
-+
-+/*
-+ * Calculate the background-writeback and dirty-throttling thresholds and dirty
-+ * usage metrics from the current task's memcg dirty limit parameters.  Returns
-+ * false if no memcg limits exist.
-+ */
-+static bool memcg_dirty_info(struct dirty_info *info)
-+{
-+	unsigned long available_memory = determine_dirtyable_memory();
-+
-+	if (!mem_cgroup_dirty_info(available_memory, info))
-+		return false;
-+
-+	adjust_dirty_info(info);
-+	return true;
- }
- 
- /*
-@@ -480,7 +514,8 @@ unsigned long bdi_dirty_limit(struct bac
- static void balance_dirty_pages(struct address_space *mapping,
- 				unsigned long write_chunk)
- {
--	struct dirty_info dirty_info;
-+	struct dirty_info sys_info;
-+	struct dirty_info memcg_info;
- 	long bdi_nr_reclaimable;
- 	long bdi_nr_writeback;
- 	unsigned long bdi_thresh;
-@@ -497,19 +532,27 @@ static void balance_dirty_pages(struct a
- 			.range_cyclic	= 1,
- 		};
- 
--		global_dirty_info(&dirty_info);
-+		global_dirty_info(&sys_info);
-+
-+		if (!memcg_dirty_info(&memcg_info))
-+			memcg_info = sys_info;
- 
- 		/*
- 		 * Throttle it only when the background writeback cannot
- 		 * catch-up. This avoids (excessively) small writeouts
- 		 * when the bdi limits are ramping up.
- 		 */
--		if (dirty_info.nr_reclaimable + dirty_info.nr_writeback <=
--				(dirty_info.background_thresh +
--				 dirty_info.dirty_thresh) / 2)
-+		if ((sys_info.nr_reclaimable + sys_info.nr_writeback <=
-+				(sys_info.background_thresh +
-+				 sys_info.dirty_thresh) / 2) &&
-+		    (memcg_info.nr_reclaimable + memcg_info.nr_writeback <=
-+				(memcg_info.background_thresh +
-+				 memcg_info.dirty_thresh) / 2))
- 			break;
- 
--		bdi_thresh = bdi_dirty_limit(bdi, dirty_info.dirty_thresh);
-+		bdi_thresh = bdi_dirty_limit(bdi,
-+				min(sys_info.dirty_thresh,
-+				    memcg_info.dirty_thresh));
- 		bdi_thresh = task_dirty_limit(current, bdi_thresh);
- 
- 		/*
-@@ -538,9 +581,12 @@ static void balance_dirty_pages(struct a
- 		 */
- 		dirty_exceeded =
- 			(bdi_nr_reclaimable + bdi_nr_writeback > bdi_thresh)
--			|| (dirty_info.nr_reclaimable +
--			    dirty_info.nr_writeback >
--			    dirty_info.dirty_thresh);
-+			|| (sys_info.nr_reclaimable +
-+			    sys_info.nr_writeback >
-+			    sys_info.dirty_thresh)
-+			|| (memcg_info.nr_reclaimable +
-+			    memcg_info.nr_writeback >
-+			    memcg_info.dirty_thresh);
- 
- 		if (!dirty_exceeded)
- 			break;
-@@ -593,8 +639,10 @@ static void balance_dirty_pages(struct a
- 	 * background_thresh, to keep the amount of dirty memory low.
+ static void aio_fput_routine(struct work_struct *data)
+@@ -1218,7 +1218,7 @@ static void io_destroy(struct kioctx *io
+ 	 * by other CPUs at this point.  Right now, we rely on the
+ 	 * locking done by the above calls to ensure this consistency.
  	 */
- 	if ((laptop_mode && pages_written) ||
--	    (!laptop_mode && (dirty_info.nr_reclaimable >
--			      dirty_info.background_thresh)))
-+	    (!laptop_mode && ((sys_info.nr_reclaimable >
-+			       sys_info.background_thresh) ||
-+			      (memcg_info.nr_reclaimable >
-+			       memcg_info.background_thresh))))
- 		bdi_start_background_writeback(bdi);
+-	wake_up(&ioctx->wait);
++	wake_up_all(&ioctx->wait);
+ 	put_ioctx(ioctx);	/* once for the lookup */
  }
- 
-@@ -666,8 +714,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 		dirty_info.dirty_thresh +=
- 			dirty_info.dirty_thresh / 10;      /* wheeee... */
- 
--                if (global_page_state(NR_UNSTABLE_NFS) +
--		    global_page_state(NR_WRITEBACK) <= dirty_info.dirty_thresh)
-+		if (dirty_writeback_pages() <= dirty_info.dirty_thresh)
- 			break;
-                 congestion_wait(BLK_RW_ASYNC, HZ/10);
  
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from roland@purestorage.com are
 
 linux-next.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-break-out-event-counters-from-other-stats.patch
-memcg-use-native-word-page-statistics-counters.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-limiting-routines.patch
+aio-wake-all-waiters-when-destroying-ctx.patch
 
