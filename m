@@ -1,192 +1,431 @@
 From: akpm@linux-foundation.org
-Subject: + calibrate-extract-fall-back-calculation-into-own-helper.patch added to -mm tree
-Date: Fri, 11 Mar 2011 15:28:12 -0800
-Message-ID: <201103112328.p2BNSCbJ002184@imap1.linux-foundation.org>
+Subject: [to-be-updated] timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes.patch removed from -mm tree
+Date: Fri, 11 Mar 2011 16:00:35 -0800
+Message-ID: <201103120000.p2C00ZCu003461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752265Ab1CKX2i (ORCPT
+	by vger.kernel.org with ESMTP id S1752634Ab1CLABY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:28:38 -0500
+	Fri, 11 Mar 2011 19:01:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de
+To: virtuoso@slind.org, chris.friesen@genband.com, davidel@xmailserver.org, dedekind1@gmail.com, feng.tang@intel.com, gregkh@suse.de, johnstul@us.ibm.com, kay.sievers@vrfy.org, ken@bitsko
 
 
 The patch titled
-     calibrate: extract fall-back calculation into own helper
-has been added to the -mm tree.  Its filename is
-     calibrate-extract-fall-back-calculation-into-own-helper.patch
+     timerfd: add TFD_NOTIFY_CLOCK_SET to watch for clock changes
+has been removed from the -mm tree.  Its filename was
+     timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calibrate: extract fall-back calculation into own helper
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: timerfd: add TFD_NOTIFY_CLOCK_SET to watch for clock changes
+From: Alexander Shishkin <virtuoso@slind.org>
 
-The motivation for this patch series is that currently our OMAP calibrates
-itself using the trial-and-error binary chop fallback that some other
-architectures no longer need to perform.  This is a lengthy process,
-taking 0.2s in an environment where boot time is of great interest.
+Certain userspace applications (like "clock" desktop applets or cron or
+systemd) might want to be notified when some other application changes the
+system time.  There are several known to me reasons for this:
 
-Patch 2/4 has two optimisations.  Firstly, it replaces the initial
-repeated- doubling to find the relevant power of 2 with a tight loop that
-just does as much as it can in a jiffy.  Secondly, it doesn't binary chop
-over an entire power of 2 range, it choses a much smaller range based on
-how much it squeezed in, and failed to squeeze in, during the first stage.
- Both are significant optimisations, and bring our calibration down from
-23 jiffies to 5, and, in the process, often arrive at a more accurate lpj
-value.
+ - avoiding periodic wakeups to poll time changes;
+ - rearming CLOCK_REALTIME timers when said changes happen;
+ - changing system timekeeping policy for system-wide time management
+   programs;
+ - keeping guest applications/operating systems running in emulators
+   up to date;
+ - recalculation of traffic signal cycles in Advanced Traffic Controllers
+   (ATC), which is part of ATC API requirements [1] as developed by ATC
+   working group of the U.S. Institute of Transportation Engineers (ITE).
 
-The 'bands' and 'sub-logarithmic' growth may look over-engineered, but
-they only cost a small level of inaccuracy in the initial guess (for all
-architectures) in order to avoid the very large inaccuracies that appeared
-during testing (on x86_64 architectures, and presumably others with less
-metronomic operation).  Note that due to the existence of the TSC and
-other timers, the x86_64 will not typically use this fallback routine, but
-I wanted to code defensively, able to cope with all kinds of processor
-behaviours and kernel command line options.
+This is another attempt to approach notifying userspace about system clock
+changes.  The other one is using an eventfd and a syscall [1].  In the
+course of discussing the necessity of a syscall for this kind of
+notifications, it was suggested that this functionality can be achieved
+via timers [2] (and timerfd in particular [3]).  This idea got quite some
+support [4], [5], [6] and some vague criticism [7], so I decided to try
+and go a bit further with it.
 
-Patch 3/4 is an additional trap for the nightmare scenario where the
-initial estimate is very inaccurate, possibly due to things like SMIs.
-It simply retries with a larger bound.
+[1] http://www.ite.org/standards/atcapi/version2.asp
+[2] http://marc.info/?l=linux-kernel&m=128950389423614&w=2
+[3] http://marc.info/?l=linux-kernel&m=128951020831573&w=2
+[4] http://marc.info/?l=linux-kernel&m=128951588006157&w=2
+[5] http://marc.info/?l=linux-kernel&m=128951503205111&w=2
+[6] http://marc.info/?l=linux-kernel&m=128955890118477&w=2
+[7] http://marc.info/?l=linux-kernel&m=129002967031104&w=2
+[8] http://marc.info/?l=linux-kernel&m=129002672227263&w=2
+
+To use this notification functionality, user has to call timerfd_settime()
+with TFD_NOTIFY_CLOCK_SET flag.  After this CLOCK_REALTIME timers will
+read as the number of times the wall clock has been set since last read
+and poll every time the wall clock is set; CLOCK_MONOTONIC timers will
+behave likewise, but in the event of the clock being updated upon resuming
+from suspend.  For both CLOCK_REALTIME and CLOCK_MONOTONIC timers with
+TFD_NOTIFY_CLOCK_SET flag set, a call to timerfd_gettime() will return
+current wall clock in it_value.
+
+Kay said:
+
+: We want it for systemd, to provide cron-like functionality but without
+: the need to stupidly wake up every minute and check the system time
+: for possible jumps.
+: 
+: It also sounds useful for a generic resume (after system suspend)
+: notification for applications, which isn't really possible today.
 
 
-This patch:
+Scott said:
 
-... so that it can be modified more clinically.
+: Cron is another obvious one (or init systems attempting to replace
+: cron). Having to wakeup and check the time every minute can be
+: non-conducive to power savings, it would be better if we could just
+: sleep until the next alarm and be woken up if the time changes in
+: between.
+: 
+: (That being said, we also need to poll for and/or check for timezone
+: changes - but those are entirely userspace, so we can deal with that
+: separately)
 
-This is almost entirely cosmetic. The only change to the operation
-is that the global variable is only set once after the estimation is
-completed, rather than taking on all the intermediate values. However,
-there are no readers of that variable, so this change is unimportant.
-
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Chris Friesen <chris.friesen@genband.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Scott James Remnant <scott@netsplit.com>
+Cc: Ken MacLeod <ken@bitsko.slc.ut.us>
+Cc: Shaun Reich <predator106@gmail.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   73 ++++++++++++++++++++++++---------------------
- 1 file changed, 40 insertions(+), 33 deletions(-)
+ fs/timerfd.c            |   94 +++++++++++++++++++++++++++++++++-----
+ include/linux/hrtimer.h |    6 ++
+ include/linux/timerfd.h |    3 -
+ kernel/compat.c         |    5 +-
+ kernel/hrtimer.c        |    4 +
+ kernel/time.c           |   11 +++-
+ 6 files changed, 109 insertions(+), 14 deletions(-)
 
-diff -puN init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper init/calibrate.c
---- a/init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper
-+++ a/init/calibrate.c
-@@ -119,10 +119,47 @@ static unsigned long __cpuinit calibrate
-  */
- #define LPS_PREC 8
+diff -puN fs/timerfd.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes fs/timerfd.c
+--- a/fs/timerfd.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/fs/timerfd.c
+@@ -22,6 +22,7 @@
+ #include <linux/anon_inodes.h>
+ #include <linux/timerfd.h>
+ #include <linux/syscalls.h>
++#include <linux/security.h>
  
--void __cpuinit calibrate_delay(void)
-+static unsigned long __cpuinit calibrate_delay_converge(void)
- {
--	unsigned long ticks, loopbit;
-+	unsigned long lpj, ticks, loopbit;
- 	int lps_precision = LPS_PREC;
+ struct timerfd_ctx {
+ 	struct hrtimer tmr;
+@@ -30,8 +31,13 @@ struct timerfd_ctx {
+ 	u64 ticks;
+ 	int expired;
+ 	int clockid;
++	struct list_head notifiers_list;
+ };
+ 
++/* TFD_NOTIFY_CLOCK_SET timers go here */
++static DEFINE_SPINLOCK(notifiers_lock);
++static LIST_HEAD(notifiers_list);
 +
-+	lpj = (1<<12);
-+	while ((lpj <<= 1) != 0) {
-+		/* wait for "start of" clock tick */
-+		ticks = jiffies;
-+		while (ticks == jiffies)
-+			/* nothing */;
-+		/* Go .. */
-+		ticks = jiffies;
-+		__delay(lpj);
-+		ticks = jiffies - ticks;
-+		if (ticks)
-+			break;
+ /*
+  * This gets called when the timer event triggers. We set the "expired"
+  * flag, but we do not re-arm the timer (in case it's necessary,
+@@ -51,10 +57,31 @@ static enum hrtimer_restart timerfd_tmrp
+ 	return HRTIMER_NORESTART;
+ }
+ 
++void timerfd_clock_was_set(clockid_t clockid)
++{
++	struct timerfd_ctx *ctx;
++	unsigned long flags;
++
++	spin_lock(&notifiers_lock);
++	list_for_each_entry(ctx, &notifiers_list, notifiers_list) {
++		spin_lock_irqsave(&ctx->wqh.lock, flags);
++		if (ctx->tmr.base->index == clockid) {
++			ctx->ticks++;
++			wake_up_locked(&ctx->wqh);
++		}
++		spin_unlock_irqrestore(&ctx->wqh.lock, flags);
++	}
++	spin_unlock(&notifiers_lock);
++}
++
+ static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx)
+ {
+ 	ktime_t remaining;
+ 
++	/* for notification timers, return current time */
++	if (!list_empty(&ctx->notifiers_list))
++		return timespec_to_ktime(current_kernel_time());
++
+ 	remaining = hrtimer_expires_remaining(&ctx->tmr);
+ 	return remaining.tv64 < 0 ? ktime_set(0, 0): remaining;
+ }
+@@ -72,6 +99,12 @@ static void timerfd_setup(struct timerfd
+ 	ctx->expired = 0;
+ 	ctx->ticks = 0;
+ 	ctx->tintv = timespec_to_ktime(ktmr->it_interval);
++
++	if (flags & TFD_NOTIFY_CLOCK_SET) {
++		list_add(&ctx->notifiers_list, &notifiers_list);
++		return;
++	}
++
+ 	hrtimer_init(&ctx->tmr, ctx->clockid, htmode);
+ 	hrtimer_set_expires(&ctx->tmr, texp);
+ 	ctx->tmr.function = timerfd_tmrproc;
+@@ -83,7 +116,12 @@ static int timerfd_release(struct inode 
+ {
+ 	struct timerfd_ctx *ctx = file->private_data;
+ 
+-	hrtimer_cancel(&ctx->tmr);
++	if (!list_empty(&ctx->notifiers_list)) {
++		spin_lock(&notifiers_lock);
++		list_del(&ctx->notifiers_list);
++		spin_unlock(&notifiers_lock);
++	} else
++		hrtimer_cancel(&ctx->tmr);
+ 	kfree(ctx);
+ 	return 0;
+ }
+@@ -113,6 +151,7 @@ static ssize_t timerfd_read(struct file 
+ 
+ 	if (count < sizeof(ticks))
+ 		return -EINVAL;
++
+ 	spin_lock_irq(&ctx->wqh.lock);
+ 	if (file->f_flags & O_NONBLOCK)
+ 		res = -EAGAIN;
+@@ -120,7 +159,8 @@ static ssize_t timerfd_read(struct file 
+ 		res = wait_event_interruptible_locked_irq(ctx->wqh, ctx->ticks);
+ 	if (ctx->ticks) {
+ 		ticks = ctx->ticks;
+-		if (ctx->expired && ctx->tintv.tv64) {
++		if (ctx->expired && ctx->tintv.tv64 &&
++		    list_empty(&ctx->notifiers_list)) {
+ 			/*
+ 			 * If tintv.tv64 != 0, this is a periodic timer that
+ 			 * needs to be re-armed. We avoid doing it in the timer
+@@ -184,6 +224,8 @@ SYSCALL_DEFINE2(timerfd_create, int, clo
+ 	ctx->clockid = clockid;
+ 	hrtimer_init(&ctx->tmr, clockid, HRTIMER_MODE_ABS);
+ 
++	INIT_LIST_HEAD(&ctx->notifiers_list);
++
+ 	ufd = anon_inode_getfd("[timerfd]", &timerfd_fops, ctx,
+ 			       O_RDWR | (flags & TFD_SHARED_FCNTL_FLAGS));
+ 	if (ufd < 0)
+@@ -196,18 +238,24 @@ SYSCALL_DEFINE4(timerfd_settime, int, uf
+ 		const struct itimerspec __user *, utmr,
+ 		struct itimerspec __user *, otmr)
+ {
++	int ret = 0;
+ 	struct file *file;
+ 	struct timerfd_ctx *ctx;
+ 	struct itimerspec ktmr, kotmr;
+ 
+-	if (copy_from_user(&ktmr, utmr, sizeof(ktmr)))
+-		return -EFAULT;
+-
+-	if ((flags & ~TFD_SETTIME_FLAGS) ||
+-	    !timespec_valid(&ktmr.it_value) ||
+-	    !timespec_valid(&ktmr.it_interval))
++	if (flags & ~TFD_SETTIME_FLAGS)
+ 		return -EINVAL;
+ 
++	/* utmr may be NULL for notification timerfd */
++	if (!(flags & TFD_NOTIFY_CLOCK_SET) || utmr) {
++		if (copy_from_user(&ktmr, utmr, sizeof(ktmr)))
++			return -EFAULT;
++
++		if (!timespec_valid(&ktmr.it_value) ||
++		    !timespec_valid(&ktmr.it_interval))
++			return -EINVAL;
++	}
++
+ 	file = timerfd_fget(ufd);
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+@@ -218,10 +266,12 @@ SYSCALL_DEFINE4(timerfd_settime, int, uf
+ 	 * it to the new values.
+ 	 */
+ 	for (;;) {
++		spin_lock(&notifiers_lock);
+ 		spin_lock_irq(&ctx->wqh.lock);
+-		if (hrtimer_try_to_cancel(&ctx->tmr) >= 0)
++		if (!list_empty(&notifiers_list) || hrtimer_try_to_cancel(&ctx->tmr) >= 0)
+ 			break;
+ 		spin_unlock_irq(&ctx->wqh.lock);
++		spin_unlock(&notifiers_lock);
+ 		cpu_relax();
+ 	}
+ 
+@@ -238,16 +288,39 @@ SYSCALL_DEFINE4(timerfd_settime, int, uf
+ 	kotmr.it_interval = ktime_to_timespec(ctx->tintv);
+ 
+ 	/*
++	 * for the notification timerfd, set current time to it_value
++	 * if the timer hasn't expired; otherwise someone has changed
++	 * the system time to the value that we don't know
++	 */
++	if (!list_empty(&ctx->notifiers_list) && utmr) {
++		if (ctx->ticks) {
++			ret = -EBUSY;
++			goto out;
++		}
++
++		ret = security_settime(&ktmr.it_value, NULL);
++		if (ret)
++			goto out;
++
++		spin_unlock_irq(&ctx->wqh.lock);
++		ret = do_settimeofday(&ktmr.it_value);
++		goto out1;
 +	}
 +
 +	/*
-+	 * Do a binary approximation to get lpj set to
-+	 * equal one clock (up to lps_precision bits)
-+	 */
-+	lpj >>= 1;
-+	loopbit = lpj;
-+	while (lps_precision-- && (loopbit >>= 1)) {
-+		lpj |= loopbit;
-+		ticks = jiffies;
-+		while (ticks == jiffies)
-+			/* nothing */;
-+		ticks = jiffies;
-+		__delay(lpj);
-+		if (jiffies != ticks)	/* longer than 1 tick */
-+			lpj &= ~loopbit;
-+	}
-+
-+	return lpj;
-+}
-+
-+void __cpuinit calibrate_delay(void)
-+{
- 	static bool printed;
+ 	 * Re-program the timer to the new value ...
+ 	 */
+ 	timerfd_setup(ctx, flags, &ktmr);
  
- 	if (preset_lpj) {
-@@ -139,39 +176,9 @@ void __cpuinit calibrate_delay(void)
- 			pr_info("Calibrating delay using timer "
- 				"specific routine.. ");
- 	} else {
--		loops_per_jiffy = (1<<12);
--
- 		if (!printed)
- 			pr_info("Calibrating delay loop... ");
--		while ((loops_per_jiffy <<= 1) != 0) {
--			/* wait for "start of" clock tick */
--			ticks = jiffies;
--			while (ticks == jiffies)
--				/* nothing */;
--			/* Go .. */
--			ticks = jiffies;
--			__delay(loops_per_jiffy);
--			ticks = jiffies - ticks;
--			if (ticks)
--				break;
--		}
--
--		/*
--		 * Do a binary approximation to get loops_per_jiffy set to
--		 * equal one clock (up to lps_precision bits)
--		 */
--		loops_per_jiffy >>= 1;
--		loopbit = loops_per_jiffy;
--		while (lps_precision-- && (loopbit >>= 1)) {
--			loops_per_jiffy |= loopbit;
--			ticks = jiffies;
--			while (ticks == jiffies)
--				/* nothing */;
--			ticks = jiffies;
--			__delay(loops_per_jiffy);
--			if (jiffies != ticks)	/* longer than 1 tick */
--				loops_per_jiffy &= ~loopbit;
--		}
-+		loops_per_jiffy = calibrate_delay_converge();
++out:
+ 	spin_unlock_irq(&ctx->wqh.lock);
++out1:
++	spin_unlock(&notifiers_lock);
+ 	fput(file);
+ 	if (otmr && copy_to_user(otmr, &kotmr, sizeof(kotmr)))
+ 		return -EFAULT;
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ SYSCALL_DEFINE2(timerfd_gettime, int, ufd, struct itimerspec __user *, otmr)
+@@ -273,6 +346,7 @@ SYSCALL_DEFINE2(timerfd_gettime, int, uf
+ 	spin_unlock_irq(&ctx->wqh.lock);
+ 	fput(file);
+ 
++out:
+ 	return copy_to_user(otmr, &kotmr, sizeof(kotmr)) ? -EFAULT: 0;
+ }
+ 
+diff -puN include/linux/hrtimer.h~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/include/linux/hrtimer.h
+@@ -248,6 +248,12 @@ static inline ktime_t hrtimer_expires_re
+ 	return ktime_sub(timer->node.expires, timer->base->get_time());
+ }
+ 
++#ifdef CONFIG_TIMERFD
++extern void timerfd_clock_was_set(clockid_t clockid);
++#else
++static inline void timerfd_clock_was_set(clockid_t clockid) {}
++#endif
++
+ #ifdef CONFIG_HIGH_RES_TIMERS
+ struct clock_event_device;
+ 
+diff -puN include/linux/timerfd.h~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/include/linux/timerfd.h
+@@ -19,6 +19,7 @@
+  * shared O_* flags.
+  */
+ #define TFD_TIMER_ABSTIME (1 << 0)
++#define TFD_NOTIFY_CLOCK_SET (1 << 1)
+ #define TFD_CLOEXEC O_CLOEXEC
+ #define TFD_NONBLOCK O_NONBLOCK
+ 
+@@ -26,6 +27,6 @@
+ /* Flags for timerfd_create.  */
+ #define TFD_CREATE_FLAGS TFD_SHARED_FCNTL_FLAGS
+ /* Flags for timerfd_settime.  */
+-#define TFD_SETTIME_FLAGS TFD_TIMER_ABSTIME
++#define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_NOTIFY_CLOCK_SET)
+ 
+ #endif /* _LINUX_TIMERFD_H */
+diff -puN kernel/compat.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes kernel/compat.c
+--- a/kernel/compat.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/kernel/compat.c
+@@ -995,7 +995,10 @@ asmlinkage long compat_sys_stime(compat_
+ 	if (err)
+ 		return err;
+ 
+-	do_settimeofday(&tv);
++	err = do_settimeofday(&tv);
++	if (!err)
++		timerfd_clock_was_set(CLOCK_REALTIME);
++
+ 	return 0;
+ }
+ 
+diff -puN kernel/hrtimer.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes kernel/hrtimer.c
+--- a/kernel/hrtimer.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/kernel/hrtimer.c
+@@ -663,6 +663,7 @@ void clock_was_set(void)
+ {
+ 	/* Retrigger the CPU local events everywhere */
+ 	on_each_cpu(retrigger_next_event, NULL, 1);
++
+ }
+ 
+ /*
+@@ -675,6 +676,9 @@ void hres_timers_resume(void)
+ 		  KERN_INFO "hres_timers_resume() called with IRQs enabled!");
+ 
+ 	retrigger_next_event(NULL);
++
++	/* Trigger timerfd notifiers */
++	timerfd_clock_was_set(CLOCK_MONOTONIC);
+ }
+ 
+ /*
+diff -puN kernel/time.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes kernel/time.c
+--- a/kernel/time.c~timerfd-add-tfd_notify_clock_set-to-watch-for-clock-changes
++++ a/kernel/time.c
+@@ -92,7 +92,10 @@ SYSCALL_DEFINE1(stime, time_t __user *, 
+ 	if (err)
+ 		return err;
+ 
+-	do_settimeofday(&tv);
++	err = do_settimeofday(&tv);
++	if (!err)
++		timerfd_clock_was_set(CLOCK_REALTIME);
++
+ 	return 0;
+ }
+ 
+@@ -177,7 +180,11 @@ int do_sys_settimeofday(const struct tim
+ 		/* SMP safe, again the code in arch/foo/time.c should
+ 		 * globally block out interrupts when it runs.
+ 		 */
+-		return do_settimeofday(tv);
++		error = do_settimeofday(tv);
++		if (!error)
++			timerfd_clock_was_set(CLOCK_REALTIME);
++
++		return error;
  	}
- 	if (!printed)
- 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from virtuoso@slind.org are
 
 linux-next.patch
-calibrate-extract-fall-back-calculation-into-own-helper.patch
-calibrate-home-in-on-correct-lpj-value-more-quickly.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+scsi-fix-a-header-to-include-linux-typesh.patch
 
