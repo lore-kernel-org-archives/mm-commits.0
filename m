@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-document-cgroup-dirty-memory-interfaces.patch added to -mm tree
-Date: Fri, 11 Mar 2011 17:23:03 -0800
-Message-ID: <201103120123.p2C1N3ak007042@imap1.linux-foundation.org>
+Subject: + memcg-add-dirty-page-accounting-infrastructure.patch added to -mm tree
+Date: Fri, 11 Mar 2011 17:23:09 -0800
+Message-ID: <201103120123.p2C1NAmk007048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59297 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752793Ab1CLBXz (ORCPT
+	by vger.kernel.org with ESMTP id S1752963Ab1CLBYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 20:23:55 -0500
+	Fri, 11 Mar 2011 20:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@
 
 
 The patch titled
-     memcg: document cgroup dirty memory interfaces
+     memcg: add dirty page accounting infrastructure
 has been added to the -mm tree.  Its filename is
-     memcg-document-cgroup-dirty-memory-interfaces.patch
+     memcg-add-dirty-page-accounting-infrastructure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: document cgroup dirty memory interfaces
+Subject: memcg: add dirty page accounting infrastructure
 From: Greg Thelen <gthelen@google.com>
 
-This patchset provides the ability for each cgroup to have independent
-dirty page limits.
+Add memcg routines to track dirty, writeback, and unstable_NFS pages. 
+These routines are not yet used by the kernel to count such pages.  A
+later change adds kernel calls to these new routines.
 
-Limiting dirty memory is like fixing the max amount of dirty (hard to
-reclaim) page cache used by a cgroup.  So, in case of multiple cgroup
-writers, they will not be able to consume more than their designated share
-of dirty pages and will be throttled if they cross that limit.
-
-Example use case:
-  #!/bin/bash
-  #
-  # Here is a test script that shows a situation where memcg dirty limits are
-  # beneficial.
-  #
-  # The script runs two programs:
-  # 1) a dirty page background antagonist (dd)
-  # 2) an interactive foreground process (tar).
-  #
-  # If the script's argument is false, then both processes are run together in
-  # the root cgroup sharing system-wide dirty memory in classic fashion.  If the
-  # script is given a true argument, then a cgroup is used to contain dd dirty
-  # page consumption.  The cgroup isolates the dd dirty memory consumption from
-  # the rest of the system processes (tar in this case).
-  #
-  # The time used by the tar process is printed (lower is better).
-  #
-  # The tar process had faster and more predictable performance.  memcg dirty
-  # ratios might be useful to serve different task classes (interactive vs
-  # batch).  A past discussion touched on this:
-  # http://lkml.org/lkml/2010/5/20/136
-  #
-  # When called with 'false' (using memcg without dirty isolation):
-  #  tar takes 8s
-  #  dd reports 69 MB/s
-  #
-  # When called with 'true' (using memcg for dirty isolation):
-  #  tar takes 6s
-  #  dd reports 66 MB/s
-  #
-  echo memcg_dirty_limits: $1
-  
-  # Declare system limits.
-  echo $((1<<30)) > /proc/sys/vm/dirty_bytes
-  echo $((1<<29)) > /proc/sys/vm/dirty_background_bytes
-  
-  mkdir /dev/cgroup/memory/A
-  
-  # start antagonist
-  if $1; then    # if using cgroup to contain 'dd'...
-    echo 400M > /dev/cgroup/memory/A/memory.dirty_limit_in_bytes
-  fi
-  
-  (echo $BASHPID > /dev/cgroup/memory/A/tasks; \
-   dd if=/dev/zero of=big.file count=10k bs=1M) &
-  
-  # let antagonist get warmed up
-  sleep 10
-  
-  # time interactive job
-  time tar -xzf linux.tar.gz
-  
-  wait
-  sleep 10
-  rmdir /dev/cgroup/memory/A
-
-
-The patches are based on a series proposed by Andrea Righi in Mar 2010.
-
-
-Overview:
-
-- Add page_cgroup flags to record when pages are dirty, in writeback, or
-  nfs unstable.
-
-- Extend mem_cgroup to record the total number of pages in each of the
-  interesting dirty states (dirty, writeback, unstable_nfs).  
-
-- Add dirty parameters similar to the system-wide /proc/sys/vm/dirty_*
-  limits to mem_cgroup.  The mem_cgroup dirty parameters are accessible
-  via cgroupfs control files.
-
-- Consider both system and per-memcg dirty limits in page writeback when
-  deciding to queue background writeback or throttle dirty memory
-  production.
-
-Known shortcomings (see the patch 1/9 update to
-Documentation/cgroups/memory.txt for more details):
-
-- When a cgroup dirty limit is exceeded, then bdi writeback is employed
-  to writeback dirty inodes.  Bdi writeback considers inodes from any
-  cgroup, not just inodes contributing dirty pages to the cgroup exceeding
-  its limit.  
-
-- A cgroup may exceed its dirty limit if the memory is dirtied by a
-  process in a different memcg.
-
-Performance data:
-- A page fault microbenchmark workload was used to measure performance, which
-  can be called in read or write mode:
-        f = open(foo. $cpu)
-        truncate(f, 4096)
-        alarm(60)
-        while (1) {
-                p = mmap(f, 4096)
-                if (write)
-			*p = 1
-		else
-			x = *p
-                munmap(p)
-        }
-
-- The workload was called for several points in the patch series in different
-  modes:
-
-  - s_read is a single threaded reader
-  - s_write is a single threaded writer
-  - p_read is a 16 thread reader, each operating on a different file
-  - p_write is a 16 thread writer, each operating on a different file
-
-- Measurements were collected on a 16 core non-numa system using "perf stat
-  --repeat 3".
-
-- All numbers are page fault rate (M/sec).  Higher is better.
-
-- To compare the performance of a kernel without memcg compare the first
-  and last rows - neither has memcg configured.  The first row does not
-  include any of these memcg dirty limit patches.
-
-- To compare the performance of using memcg dirty limits, compare the
-  memcg baseline (2nd row titled "mmotm w/ memcg") with the 3rd row (memcg
-  enabled with all patches).
-
-                          root_cgroup                     child_cgroup
-                 s_read s_write p_read p_write   s_read s_write p_read p_write
-mmotm w/o memcg   0.313  0.271   0.307  0.267
-mmotm w/  memcg   0.311  0.280   0.303  0.268     0.317  0.278   0.299  0.266
-all patches       0.315  0.283   0.303  0.267     0.318  0.279   0.307  0.267
-all patches       0.324  0.277   0.315  0.273
-  w/o memcg
-
-
-This patch:
-
-Document cgroup dirty memory interfaces and statistics.
-
-Signed-off-by: Andrea Righi <arighi@develer.com>
 Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Andrea Righi <arighi@develer.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -196,113 +55,170 @@ Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   80 +++++++++++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ include/linux/memcontrol.h |    8 ++-
+ mm/memcontrol.c            |   87 +++++++++++++++++++++++++++++++----
+ 2 files changed, 86 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-memory-interfaces Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-memory-interfaces
-+++ a/Documentation/cgroups/memory.txt
-@@ -385,6 +385,10 @@ mapped_file	- # of bytes of mapped file 
- pgpgin		- # of pages paged in (equivalent to # of charging events).
- pgpgout		- # of pages paged out (equivalent to # of uncharging events).
- swap		- # of bytes of swap usage
-+dirty		- # of bytes that are waiting to get written back to the disk.
-+writeback	- # of bytes that are actively being written back to the disk.
-+nfs_unstable	- # of bytes sent to the NFS server, but not yet committed to
-+		the actual storage.
- inactive_anon	- # of bytes of anonymous memory and swap cache memory on
- 		LRU list.
- active_anon	- # of bytes of anonymous and swap cache memory on active
-@@ -406,6 +410,9 @@ total_mapped_file	- sum of all children'
- total_pgpgin		- sum of all children's "pgpgin"
- total_pgpgout		- sum of all children's "pgpgout"
- total_swap		- sum of all children's "swap"
-+total_dirty		- sum of all children's "dirty"
-+total_writeback		- sum of all children's "writeback"
-+total_nfs_unstable	- sum of all children's "nfs_unstable"
- total_inactive_anon	- sum of all children's "inactive_anon"
- total_active_anon	- sum of all children's "active_anon"
- total_inactive_file	- sum of all children's "inactive_file"
-@@ -453,6 +460,79 @@ memory under it will be reclaimed.
- You can reset failcnt by writing 0 to failcnt file.
- # echo 0 > .../memory.failcnt
+diff -puN include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure
++++ a/include/linux/memcontrol.h
+@@ -25,9 +25,15 @@ struct page_cgroup;
+ struct page;
+ struct mm_struct;
  
-+5.5 dirty memory
-+
-+Control the maximum amount of dirty pages a cgroup can have at any given time.
-+
-+Limiting dirty memory is like fixing the max amount of dirty (hard to reclaim)
-+page cache used by a cgroup.  So, in case of multiple cgroup writers, they will
-+not be able to consume more than their designated share of dirty pages and will
-+be throttled if they cross that limit.  System-wide dirty limits are also
-+consulted.  Dirty memory consumption is checked against both system-wide and
-+per-cgroup dirty limits.
-+
-+The interface is similar to the procfs interface: /proc/sys/vm/dirty_*.  It is
-+possible to configure a limit to trigger throttling of a dirtier or queue
-+background writeback.  The root cgroup memory.dirty_* control files are
-+read-only and match the contents of the /proc/sys/vm/dirty_* files.
-+
-+Per-cgroup dirty limits can be set using the following files in the cgroupfs:
-+
-+- memory.dirty_ratio: the amount of dirty memory (expressed as a percentage of
-+  cgroup memory) at which a process generating dirty pages will be throttled.
-+  The default value is the system-wide dirty ratio, /proc/sys/vm/dirty_ratio.
-+
-+- memory.dirty_limit_in_bytes: the amount of dirty memory (expressed in bytes)
-+  in the cgroup at which a process generating dirty pages will be throttled.
-+  Suffix (k, K, m, M, g, or G) can be used to indicate that value is kilo, mega
-+  or gigabytes.  The default value is the system-wide dirty limit,
-+  /proc/sys/vm/dirty_bytes.
-+
-+  Note: memory.dirty_limit_in_bytes is the counterpart of memory.dirty_ratio.
-+  Only one may be specified at a time.  When one is written it is immediately
-+  taken into account to evaluate the dirty memory limits and the other appears
-+  as 0 when read.
-+
-+- memory.dirty_background_ratio: the amount of dirty memory of the cgroup
-+  (expressed as a percentage of cgroup memory) at which background writeback
-+  kernel threads will start writing out dirty data.  The default value is the
-+  system-wide background dirty ratio, /proc/sys/vm/dirty_background_ratio.
-+
-+- memory.dirty_background_limit_in_bytes: the amount of dirty memory (expressed
-+  in bytes) in the cgroup at which background writeback kernel threads will
-+  start writing out dirty data.  Suffix (k, K, m, M, g, or G) can be used to
-+  indicate that value is kilo, mega or gigabytes.  The default value is the
-+  system-wide dirty background limit, /proc/sys/vm/dirty_background_bytes.
-+
-+  Note: memory.dirty_background_limit_in_bytes is the counterpart of
-+  memory.dirty_background_ratio.  Only one may be specified at a time.  When one
-+  is written it is immediately taken into account to evaluate the dirty memory
-+  limits and the other appears as 0 when read.
-+
-+A cgroup may contain more dirty memory than its dirty limit.  This is possible
-+because of the principle that the first cgroup to touch a page is charged for
-+it.  Subsequent page counting events (dirty, writeback, nfs_unstable) are also
-+counted to the originally charged cgroup.  Example: If page is allocated by a
-+cgroup A task, then the page is charged to cgroup A.  If the page is later
-+dirtied by a task in cgroup B, then the cgroup A dirty count will be
-+incremented.  If cgroup A is over its dirty limit but cgroup B is not, then
-+dirtying a cgroup A page from a cgroup B task may push cgroup A over its dirty
-+limit without throttling the dirtying cgroup B task.
-+
-+When use_hierarchy=0, each cgroup has independent dirty memory usage and limits.
-+When use_hierarchy=1 the dirty limits of parents cgroups are also checked to
-+ensure that no dirty limit is exceeded.
-+
-+5.5.1 Inode writeback issue
-+
-+When a memcg dirty limit is exceeded, then bdi writeback is employed to
-+writeback dirty inodes.  Bdi writeback considers inodes from any memcg, not just
-+inodes contributing dirty pages to the memcg exceeding its limit.  Ideally when
-+a memcg dirty limit is exceeded only inodes contributing dirty pages to that
-+memcg would be considered for writeback.  However, the current implementation
-+does not behave this way because there is no way to quickly check the memcgs
-+that an inode contributes dirty pages to.
-+
- 6. Hierarchy support
+-/* Stats that can be updated by kernel. */
++/*
++ * Per mem_cgroup page counts tracked by kernel.  As pages enter and leave these
++ * states, the kernel notifies memcg using mem_cgroup_{inc,dec}_page_stat().
++ */
+ enum mem_cgroup_page_stat_item {
+ 	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
++	MEMCG_NR_FILE_DIRTY, /* # of dirty pages in page cache */
++	MEMCG_NR_FILE_WRITEBACK, /* # of pages under writeback */
++	MEMCG_NR_FILE_UNSTABLE_NFS, /* # of NFS unstable pages */
+ };
  
- The memory controller supports a deep hierarchy and hierarchical accounting.
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+diff -puN mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure
++++ a/mm/memcontrol.c
+@@ -83,8 +83,11 @@ enum mem_cgroup_stat_index {
+ 	 */
+ 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
+ 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
+-	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
+ 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
++	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
++	MEM_CGROUP_STAT_FILE_DIRTY,	/* # of dirty pages in page cache */
++	MEM_CGROUP_STAT_FILE_WRITEBACK,		/* # of pages under writeback */
++	MEM_CGROUP_STAT_FILE_UNSTABLE_NFS,	/* # of NFS unstable pages */
+ 	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
+ 	MEM_CGROUP_ON_MOVE,	/* someone is moving account between groups */
+ 	MEM_CGROUP_STAT_NSTATS,
+@@ -1692,6 +1695,44 @@ void mem_cgroup_update_page_stat(struct 
+ 			ClearPageCgroupFileMapped(pc);
+ 		idx = MEM_CGROUP_STAT_FILE_MAPPED;
+ 		break;
++
++	case MEMCG_NR_FILE_DIRTY:
++		/* Use Test{Set,Clear} to only un/charge the memcg once. */
++		if (val > 0) {
++			if (TestSetPageCgroupFileDirty(pc))
++				val = 0;
++		} else {
++			if (!TestClearPageCgroupFileDirty(pc))
++				val = 0;
++		}
++		idx = MEM_CGROUP_STAT_FILE_DIRTY;
++		break;
++
++	case MEMCG_NR_FILE_WRITEBACK:
++		/*
++		 * This counter is adjusted while holding the mapping's
++		 * tree_lock.  Therefore there is no race between settings and
++		 * clearing of this flag.
++		 */
++		if (val > 0)
++			SetPageCgroupFileWriteback(pc);
++		else
++			ClearPageCgroupFileWriteback(pc);
++		idx = MEM_CGROUP_STAT_FILE_WRITEBACK;
++		break;
++
++	case MEMCG_NR_FILE_UNSTABLE_NFS:
++		/* Use Test{Set,Clear} to only un/charge the memcg once. */
++		if (val > 0) {
++			if (TestSetPageCgroupFileUnstableNFS(pc))
++				val = 0;
++		} else {
++			if (!TestClearPageCgroupFileUnstableNFS(pc))
++				val = 0;
++		}
++		idx = MEM_CGROUP_STAT_FILE_UNSTABLE_NFS;
++		break;
++
+ 	default:
+ 		BUG();
+ 	}
+@@ -2251,6 +2292,17 @@ void mem_cgroup_split_huge_fixup(struct 
+ }
+ #endif
+ 
++static inline
++void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
++				       struct mem_cgroup *to,
++				       enum mem_cgroup_stat_index idx)
++{
++	preempt_disable();
++	__this_cpu_dec(from->stat->count[idx]);
++	__this_cpu_inc(to->stat->count[idx]);
++	preempt_enable();
++}
++
+ /**
+  * mem_cgroup_move_account - move account of the page
+  * @page: the page
+@@ -2299,13 +2351,18 @@ static int mem_cgroup_move_account(struc
+ 
+ 	move_lock_page_cgroup(pc, &flags);
+ 
+-	if (PageCgroupFileMapped(pc)) {
+-		/* Update mapped_file data for mem_cgroup */
+-		preempt_disable();
+-		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+-		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+-		preempt_enable();
+-	}
++	if (PageCgroupFileMapped(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_MAPPED);
++	if (PageCgroupFileDirty(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_DIRTY);
++	if (PageCgroupFileWriteback(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_WRITEBACK);
++	if (PageCgroupFileUnstableNFS(pc))
++		mem_cgroup_move_account_page_stat(from, to,
++					MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
+ 	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -nr_pages);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+@@ -3772,6 +3829,9 @@ enum {
+ 	MCS_PGPGIN,
+ 	MCS_PGPGOUT,
+ 	MCS_SWAP,
++	MCS_FILE_DIRTY,
++	MCS_WRITEBACK,
++	MCS_UNSTABLE_NFS,
+ 	MCS_INACTIVE_ANON,
+ 	MCS_ACTIVE_ANON,
+ 	MCS_INACTIVE_FILE,
+@@ -3794,6 +3854,9 @@ struct {
+ 	{"pgpgin", "total_pgpgin"},
+ 	{"pgpgout", "total_pgpgout"},
+ 	{"swap", "total_swap"},
++	{"dirty", "total_dirty"},
++	{"writeback", "total_writeback"},
++	{"nfs_unstable", "total_nfs_unstable"},
+ 	{"inactive_anon", "total_inactive_anon"},
+ 	{"active_anon", "total_active_anon"},
+ 	{"inactive_file", "total_inactive_file"},
+@@ -3823,6 +3886,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
+ 	}
+ 
++	/* dirty stat */
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_DIRTY);
++	s->stat[MCS_FILE_DIRTY] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_WRITEBACK);
++	s->stat[MCS_WRITEBACK] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
++	s->stat[MCS_UNSTABLE_NFS] += val * PAGE_SIZE;
++
+ 	/* per zone stat */
+ 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
+ 	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
