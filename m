@@ -1,402 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-add-dirty-limits-to-mem_cgroup.patch removed from -mm tree
-Date: Fri, 11 Mar 2011 16:50:30 -0800
-Message-ID: <201103120050.p2C0oULx005656@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch removed from -mm tree
+Date: Fri, 11 Mar 2011 16:50:21 -0800
+Message-ID: <201103120050.p2C0oLi5005647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768Ab1CLAvP (ORCPT
+	by vger.kernel.org with ESMTP id S1753565Ab1CLAvR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 19:51:15 -0500
+	Fri, 11 Mar 2011 19:51:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commi
+To: hannes@cmpxchg.org, arighi@develer.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, gthelen@google.com, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@g
 
 
 The patch titled
-     memcg: add dirty limits to mem_cgroup
+     memcg: catch negative per-cpu sums in dirty info
 has been removed from the -mm tree.  Its filename was
-     memcg-add-dirty-limits-to-mem_cgroup.patch
+     memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add dirty limits to mem_cgroup
-From: Greg Thelen <gthelen@google.com>
+Subject: memcg: catch negative per-cpu sums in dirty info
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Extend mem_cgroup to contain dirty page limits.  Also add routines
-allowing the kernel to query the dirty usage of a memcg.
+Folding the per-cpu counters can yield a negative value in case of
+accounting races between CPUs.
 
-These interfaces not used by the kernel yet.  A subsequent commit will add
-kernel calls to utilize these new routines.
+When collecting the dirty info, the code would read those sums into an
+unsigned variable and then check for it being negative, which can not
+work.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Signed-off-by: Andrea Righi <arighi@develer.com>
+Instead, fold the counters into a signed local variable, make the
+check, and only then assign it.
+
+This way, the function signals correctly when there are insane values
+instead of leaking them out to the caller.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Dave Young <hidave.darkstar@gmail.com>
+Reviewed-by: Greg Thelen <gthelen@google.com>
+Cc: Andrea Righi <arighi@develer.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   30 ++++
- mm/memcontrol.c            |  248 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 277 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-dirty-limits-to-mem_cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-dirty-limits-to-mem_cgroup
-+++ a/include/linux/memcontrol.h
-@@ -19,6 +19,7 @@
- 
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
-+#include <linux/writeback.h>
- #include <linux/cgroup.h>
- struct mem_cgroup;
- struct page_cgroup;
-@@ -33,6 +34,14 @@ enum mem_cgroup_page_stat_item {
- 	MEMCG_NR_FILE_UNSTABLE_NFS, /* # of NFS unstable pages */
- };
- 
-+/* Cgroup memory statistics items exported to the kernel. */
-+enum mem_cgroup_nr_pages_item {
-+	MEMCG_NR_DIRTYABLE_PAGES,
-+	MEMCG_NR_RECLAIM_PAGES,
-+	MEMCG_NR_WRITEBACK,
-+	MEMCG_NR_DIRTY_WRITEBACK_PAGES,
-+};
-+
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-@@ -145,6 +154,11 @@ static inline void mem_cgroup_dec_page_s
- 	mem_cgroup_update_page_stat(page, idx, -1);
- }
- 
-+bool mem_cgroup_has_dirty_limit(void);
-+bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+			   struct dirty_info *info);
-+s64 mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item);
-+
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
- 						gfp_t gfp_mask);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
-@@ -326,6 +340,22 @@ static inline void mem_cgroup_dec_page_s
- {
- }
- 
-+static inline bool mem_cgroup_has_dirty_limit(void)
-+{
-+	return false;
-+}
-+
-+static inline bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+					 struct dirty_info *info)
-+{
-+	return false;
-+}
-+
-+static inline s64 mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
-+{
-+	return -ENOSYS;
-+}
-+
- static inline
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
- 					    gfp_t gfp_mask)
-diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup
+diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup-catch-negative-per-cpu-sums-in-dirty-info
 +++ a/mm/memcontrol.c
-@@ -188,6 +188,14 @@ struct mem_cgroup_eventfd_list {
- static void mem_cgroup_threshold(struct mem_cgroup *mem);
- static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
+@@ -1256,14 +1256,15 @@ bool mem_cgroup_dirty_info(unsigned long
+ 			(dirty_param.dirty_background_ratio *
+ 			       available_mem) / 100;
  
-+/* Dirty memory parameters */
-+struct vm_dirty_param {
-+	int dirty_ratio;
-+	int dirty_background_ratio;
-+	unsigned long dirty_bytes;
-+	unsigned long dirty_background_bytes;
-+};
-+
- /*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-@@ -233,6 +241,10 @@ struct mem_cgroup {
- 	atomic_t	refcnt;
+-	info->nr_reclaimable =
+-		mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
+-	if (info->nr_reclaimable < 0)
++	value = mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
++	if (value < 0)
+ 		return false;
++	info->nr_reclaimable = value;
  
- 	unsigned int	swappiness;
-+
-+	/* control memory cgroup dirty pages */
-+	struct vm_dirty_param dirty_param;
-+
- 	/* OOM-Killer disable */
- 	int		oom_kill_disable;
+-	info->nr_writeback = mem_cgroup_page_stat(MEMCG_NR_WRITEBACK);
+-	if (info->nr_writeback < 0)
++	value = mem_cgroup_page_stat(MEMCG_NR_WRITEBACK);
++	if (value < 0)
+ 		return false;
++	info->nr_writeback = value;
  
-@@ -1132,6 +1144,232 @@ static unsigned int get_swappiness(struc
- 	return swappiness;
+ 	return true;
  }
- 
-+/*
-+ * Return true if the current memory cgroup has local dirty memory settings.
-+ * There is an allowed race between the current task migrating in-to/out-of the
-+ * root cgroup while this routine runs.  So the return value may be incorrect if
-+ * the current task is being simultaneously migrated.
-+ */
-+static bool __mem_cgroup_has_dirty_limit(struct mem_cgroup *mem)
-+{
-+	if (!mem)
-+		return false;
-+	if (mem_cgroup_is_root(mem))
-+		return false;
-+	/*
-+	 * The current memcg implementation does not yet support hierarchical
-+	 * dirty limits.
-+	 */
-+	if (mem->use_hierarchy)
-+		return false;
-+	return true;
-+}
-+
-+bool mem_cgroup_has_dirty_limit(void)
-+{
-+	struct mem_cgroup *mem;
-+	bool ret;
-+
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(current);
-+	ret = __mem_cgroup_has_dirty_limit(mem);
-+	rcu_read_unlock();
-+
-+	return ret;
-+}
-+
-+/*
-+ * Returns a snapshot of the current dirty limits which is not synchronized with
-+ * the routines that change the dirty limits.  If this routine races with an
-+ * update to the dirty bytes/ratio value, then the caller must handle the case
-+ * where both dirty_[background_]_ratio and _bytes are set.
-+ */
-+static void __mem_cgroup_dirty_param(struct vm_dirty_param *param,
-+				     struct mem_cgroup *mem)
-+{
-+	if (__mem_cgroup_has_dirty_limit(mem)) {
-+		param->dirty_ratio = mem->dirty_param.dirty_ratio;
-+		param->dirty_bytes = mem->dirty_param.dirty_bytes;
-+		param->dirty_background_ratio =
-+			mem->dirty_param.dirty_background_ratio;
-+		param->dirty_background_bytes =
-+			mem->dirty_param.dirty_background_bytes;
-+	} else {
-+		param->dirty_ratio = vm_dirty_ratio;
-+		param->dirty_bytes = vm_dirty_bytes;
-+		param->dirty_background_ratio = dirty_background_ratio;
-+		param->dirty_background_bytes = dirty_background_bytes;
-+	}
-+}
-+
-+/*
-+ * Return the background-writeback and dirty-throttling thresholds as well as
-+ * dirty usage metrics.
-+ *
-+ * The current task may be moved to another cgroup while this routine accesses
-+ * the dirty limit.  But a precise check is meaningless because the task can be
-+ * moved after our access and writeback tends to take long time.  At least,
-+ * "memcg" will not be freed while holding rcu_read_lock().
-+ */
-+bool mem_cgroup_dirty_info(unsigned long sys_available_mem,
-+			   struct dirty_info *info)
-+{
-+	s64 available_mem;
-+	struct vm_dirty_param dirty_param;
-+	struct mem_cgroup *memcg;
-+
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	rcu_read_lock();
-+	memcg = mem_cgroup_from_task(current);
-+	if (!__mem_cgroup_has_dirty_limit(memcg)) {
-+		rcu_read_unlock();
-+		return false;
-+	}
-+	__mem_cgroup_dirty_param(&dirty_param, memcg);
-+	rcu_read_unlock();
-+
-+	available_mem = mem_cgroup_page_stat(MEMCG_NR_DIRTYABLE_PAGES);
-+	if (available_mem < 0)
-+		return false;
-+
-+	available_mem = min((unsigned long)available_mem, sys_available_mem);
-+
-+	if (dirty_param.dirty_bytes)
-+		info->dirty_thresh =
-+			DIV_ROUND_UP(dirty_param.dirty_bytes, PAGE_SIZE);
-+	else
-+		info->dirty_thresh =
-+			(dirty_param.dirty_ratio * available_mem) / 100;
-+
-+	if (dirty_param.dirty_background_bytes)
-+		info->background_thresh =
-+			DIV_ROUND_UP(dirty_param.dirty_background_bytes,
-+				     PAGE_SIZE);
-+	else
-+		info->background_thresh =
-+			(dirty_param.dirty_background_ratio *
-+			       available_mem) / 100;
-+
-+	info->nr_reclaimable =
-+		mem_cgroup_page_stat(MEMCG_NR_RECLAIM_PAGES);
-+	if (info->nr_reclaimable < 0)
-+		return false;
-+
-+	info->nr_writeback = mem_cgroup_page_stat(MEMCG_NR_WRITEBACK);
-+	if (info->nr_writeback < 0)
-+		return false;
-+
-+	return true;
-+}
-+
-+static inline bool mem_cgroup_can_swap(struct mem_cgroup *memcg)
-+{
-+	if (!do_swap_account)
-+		return nr_swap_pages > 0;
-+	return !memcg->memsw_is_minimum &&
-+		(res_counter_read_u64(&memcg->memsw, RES_LIMIT) > 0);
-+}
-+
-+static s64 mem_cgroup_local_page_stat(struct mem_cgroup *mem,
-+				      enum mem_cgroup_nr_pages_item item)
-+{
-+	s64 ret;
-+
-+	switch (item) {
-+	case MEMCG_NR_DIRTYABLE_PAGES:
-+		ret = mem_cgroup_read_stat(mem, LRU_ACTIVE_FILE) +
-+			mem_cgroup_read_stat(mem, LRU_INACTIVE_FILE);
-+		if (mem_cgroup_can_swap(mem))
-+			ret += mem_cgroup_read_stat(mem, LRU_ACTIVE_ANON) +
-+				mem_cgroup_read_stat(mem, LRU_INACTIVE_ANON);
-+		break;
-+	case MEMCG_NR_RECLAIM_PAGES:
-+		ret = mem_cgroup_read_stat(mem,	MEM_CGROUP_STAT_FILE_DIRTY) +
-+			mem_cgroup_read_stat(mem,
-+					     MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
-+		break;
-+	case MEMCG_NR_WRITEBACK:
-+		ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_WRITEBACK);
-+		break;
-+	case MEMCG_NR_DIRTY_WRITEBACK_PAGES:
-+		ret = mem_cgroup_read_stat(mem,
-+					   MEM_CGROUP_STAT_FILE_WRITEBACK) +
-+			mem_cgroup_read_stat(mem,
-+					     MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
-+		break;
-+	default:
-+		BUG();
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Return the number of pages that the @mem cgroup could allocate.  If
-+ * use_hierarchy is set, then this involves parent mem cgroups to find the
-+ * cgroup with the smallest free space.
-+ */
-+static unsigned long long
-+memcg_hierarchical_free_pages(struct mem_cgroup *mem)
-+{
-+	unsigned long free, min_free;
-+
-+	min_free = global_page_state(NR_FREE_PAGES) << PAGE_SHIFT;
-+
-+	while (mem) {
-+		free = res_counter_read_u64(&mem->res, RES_LIMIT) -
-+			res_counter_read_u64(&mem->res, RES_USAGE);
-+		min_free = min(min_free, free);
-+		mem = parent_mem_cgroup(mem);
-+	}
-+
-+	/* Translate free memory in pages */
-+	return min_free >> PAGE_SHIFT;
-+}
-+
-+/*
-+ * mem_cgroup_page_stat() - get memory cgroup file cache statistics
-+ * @item:      memory statistic item exported to the kernel
-+ *
-+ * Return the accounted statistic value or negative value if current task is
-+ * root cgroup.
-+ */
-+s64 mem_cgroup_page_stat(enum mem_cgroup_nr_pages_item item)
-+{
-+	struct mem_cgroup *mem;
-+	struct mem_cgroup *iter;
-+	s64 value;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(current);
-+	if (__mem_cgroup_has_dirty_limit(mem)) {
-+		/*
-+		 * If we're looking for dirtyable pages we need to evaluate
-+		 * free pages depending on the limit and usage of the parents
-+		 * first of all.
-+		 */
-+		if (item == MEMCG_NR_DIRTYABLE_PAGES)
-+			value = memcg_hierarchical_free_pages(mem);
-+		else
-+			value = 0;
-+		/*
-+		 * Recursively evaluate page statistics against all cgroup
-+		 * under hierarchy tree
-+		 */
-+		for_each_mem_cgroup_tree(iter, mem)
-+			value += mem_cgroup_local_page_stat(iter, item);
-+	} else
-+		value = -EINVAL;
-+	rcu_read_unlock();
-+
-+	return value;
-+}
-+
- static void mem_cgroup_start_move(struct mem_cgroup *mem)
- {
- 	int cpu;
-@@ -4440,8 +4678,16 @@ mem_cgroup_create(struct cgroup_subsys *
- 	spin_lock_init(&mem->reclaim_param_lock);
- 	INIT_LIST_HEAD(&mem->oom_notify);
- 
--	if (parent)
-+	if (parent) {
- 		mem->swappiness = get_swappiness(parent);
-+		__mem_cgroup_dirty_param(&mem->dirty_param, parent);
-+	} else {
-+		/*
-+		 * The root cgroup dirty_param field is not used, instead,
-+		 * system-wide dirty limits are used.
-+		 */
-+	}
-+
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-linux-next.patch
+thp-fix-page_referenced-to-modify-mapcount-vm_flags-only-if-page-is-found.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+mm-batch-free-pcp-list-if-possible.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+mm-deactivate-invalidated-pages.patch
+memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
+mm-reclaim-invalidated-page-asap.patch
+pagewalk-only-split-huge-pages-when-necessary.patch
+smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
+smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
+smaps-teach-smaps_pte_range-about-thp-pmds.patch
+smaps-have-smaps-show-transparent-huge-pages.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-free-pages.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+mm-add-__gfp_other_node-flag.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+mm-simplify-code-of-swapc.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path-fix.patch
 memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-keep-only-one-charge-cancelling-function-fix.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
 memcg-break-out-event-counters-from-other-stats.patch
 memcg-use-native-word-page-statistics-counters.patch
 mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-fix-leak-on-wrong-lru-with-fuse.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
 
