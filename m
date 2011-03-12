@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch added to -mm tree
-Date: Fri, 11 Mar 2011 17:23:18 -0800
-Message-ID: <201103120123.p2C1NJ2f007057@imap1.linux-foundation.org>
+Subject: + memcg-add-dirty-limiting-routines.patch added to -mm tree
+Date: Fri, 11 Mar 2011 17:23:22 -0800
+Message-ID: <201103120123.p2C1NMCZ007060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752963Ab1CLBYL (ORCPT
+	by vger.kernel.org with ESMTP id S1753098Ab1CLBYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Mar 2011 20:24:11 -0500
+	Fri, 11 Mar 2011 20:24:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@
 
 
 The patch titled
-     memcg: add cgroupfs interface to memcg dirty limits
+     memcg: add dirty limiting routines
 has been added to the -mm tree.  Its filename is
-     memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+     memcg-add-dirty-limiting-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add cgroupfs interface to memcg dirty limits
+Subject: memcg: add dirty limiting routines
 From: Greg Thelen <gthelen@google.com>
 
-Add cgroupfs interface to memcg dirty page limits:
-  Direct write-out is controlled with:
-  - memory.dirty_ratio
-  - memory.dirty_limit_in_bytes
+Add new memcg routines for use by mm to balance and throttle per-memcg
+dirty page usage:
 
-  Background write-out is controlled with:
-  - memory.dirty_background_ratio
-  - memory.dirty_background_limit_bytes
+- mem_cgroup_balance_dirty_pages() balances memcg dirty memory usage by
+  checking memcg foreground and background limits.
 
-Other memcg cgroupfs files support 'M', 'm', 'k', 'K', 'g' and 'G'
-suffixes for byte counts.  This patch provides the same functionality for
-memory.dirty_limit_in_bytes and memory.dirty_background_limit_bytes.
+- mem_cgroup_hierarchical_dirty_info() searches a memcg hierarchy to
+  find the memcg that is closest to (or over) its foreground or background
+  dirty limit.
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+A later change adds kernel calls to these new routines.
+
 Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Righi <arighi@develer.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -64,78 +63,141 @@ Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  114 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 114 insertions(+)
+ include/linux/memcontrol.h |   35 +++
+ mm/memcontrol.c            |  329 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 364 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-add-cgroupfs-interface-to-memcg-dirty-limits mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-cgroupfs-interface-to-memcg-dirty-limits
-+++ a/mm/memcontrol.c
-@@ -113,6 +113,13 @@ enum mem_cgroup_events_target {
- #define THRESHOLDS_EVENTS_TARGET (128)
- #define SOFTLIMIT_EVENTS_TARGET (1024)
- 
-+enum {
-+	MEM_CGROUP_DIRTY_RATIO,
-+	MEM_CGROUP_DIRTY_LIMIT_IN_BYTES,
-+	MEM_CGROUP_DIRTY_BACKGROUND_RATIO,
-+	MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES,
+diff -puN include/linux/memcontrol.h~memcg-add-dirty-limiting-routines include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-dirty-limiting-routines
++++ a/include/linux/memcontrol.h
+@@ -34,6 +34,15 @@ enum mem_cgroup_page_stat_item {
+ 	MEMCG_NR_FILE_DIRTY, /* # of dirty pages in page cache */
+ 	MEMCG_NR_FILE_WRITEBACK, /* # of pages under writeback */
+ 	MEMCG_NR_FILE_UNSTABLE_NFS, /* # of NFS unstable pages */
++	MEMCG_NR_DIRTYABLE_PAGES, /* # of pages that could be dirty */
 +};
 +
- struct mem_cgroup_stat_cpu {
- 	long count[MEM_CGROUP_STAT_NSTATS];
- 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
-@@ -4391,6 +4398,89 @@ static int mem_cgroup_oom_control_write(
- 	return 0;
++struct dirty_info {
++	unsigned long dirty_thresh;
++	unsigned long background_thresh;
++	unsigned long nr_file_dirty;
++	unsigned long nr_writeback;
++	unsigned long nr_unstable_nfs;
+ };
+ 
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+@@ -149,6 +158,14 @@ static inline void mem_cgroup_dec_page_s
+ 	mem_cgroup_update_page_stat(page, idx, -1);
  }
  
-+static u64 mem_cgroup_dirty_read(struct cgroup *cgrp, struct cftype *cft)
-+{
-+	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
-+	bool use_sys = !mem_cgroup_has_dirty_limit(mem);
++bool mem_cgroup_hierarchical_dirty_info(unsigned long sys_available_mem,
++					bool fg_limit,
++					struct mem_cgroup *memcg,
++					struct dirty_info *info);
++void mem_cgroup_bg_writeback_done(struct mem_cgroup *memcg);
++void mem_cgroup_balance_dirty_pages(struct address_space *mapping,
++				    unsigned long write_chunk);
 +
-+	switch (cft->private) {
-+	case MEM_CGROUP_DIRTY_RATIO:
-+		return use_sys ? vm_dirty_ratio : mem->dirty_param.dirty_ratio;
-+	case MEM_CGROUP_DIRTY_LIMIT_IN_BYTES:
-+		return use_sys ? vm_dirty_bytes : mem->dirty_param.dirty_bytes;
-+	case MEM_CGROUP_DIRTY_BACKGROUND_RATIO:
-+		return use_sys ? dirty_background_ratio :
-+			mem->dirty_param.dirty_background_ratio;
-+	case MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES:
-+		return use_sys ? dirty_background_bytes :
-+			mem->dirty_param.dirty_background_bytes;
-+	default:
-+		BUG();
-+	}
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+ 						gfp_t gfp_mask);
+ u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
+@@ -342,6 +359,24 @@ static inline void mem_cgroup_dec_page_s
+ {
+ }
+ 
++static inline bool
++mem_cgroup_hierarchical_dirty_info(unsigned long sys_available_mem,
++				   bool fg_limit,
++				   struct mem_cgroup *memcg,
++				   struct dirty_info *info)
++{
++	return false;
 +}
 +
-+static int
-+mem_cgroup_dirty_write_string(struct cgroup *cgrp, struct cftype *cft,
-+				const char *buffer)
++static inline void mem_cgroup_bg_writeback_done(struct mem_cgroup *memcg)
 +{
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
-+	int type = cft->private;
-+	int ret = -EINVAL;
-+	unsigned long long val;
++}
 +
-+	if (!mem_cgroup_has_dirty_limit(memcg))
-+		return ret;
++static inline void mem_cgroup_balance_dirty_pages(struct address_space *mapping,
++						  unsigned long write_chunk)
++{
++}
 +
-+	switch (type) {
-+	case MEM_CGROUP_DIRTY_LIMIT_IN_BYTES:
-+		/* This function does all necessary parse...reuse it */
-+		ret = res_counter_memparse_write_strategy(buffer, &val);
-+		if (ret)
-+			break;
-+		memcg->dirty_param.dirty_bytes = val;
-+		memcg->dirty_param.dirty_ratio  = 0;
+ static inline
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+ 					    gfp_t gfp_mask)
+diff -puN mm/memcontrol.c~memcg-add-dirty-limiting-routines mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-limiting-routines
++++ a/mm/memcontrol.c
+@@ -218,6 +218,12 @@ struct vm_dirty_param {
+ 	unsigned long dirty_background_bytes;
+ };
+ 
++/* Define per-memcg flags */
++enum mem_cgroup_flags {
++	/* is background writeback in-progress for this memcg? */
++	MEM_CGROUP_BG_WRITEBACK,
++};
++
+ /*
+  * The memory controller data structure. The memory controller controls both
+  * page cache and RSS per cgroup. We would eventually like to provide
+@@ -261,6 +267,9 @@ struct mem_cgroup {
+ 	/* control memory cgroup dirty pages */
+ 	struct vm_dirty_param dirty_param;
+ 
++	/* see enum mem_cgroup_flags for bit definitions */
++	unsigned long	flags;
++
+ 	/* OOM-Killer disable */
+ 	int		oom_kill_disable;
+ 
+@@ -1217,6 +1226,11 @@ static unsigned int get_swappiness(struc
+ 	return memcg->swappiness;
+ }
+ 
++static unsigned long dirty_info_reclaimable(struct dirty_info *info)
++{
++	return info->nr_file_dirty + info->nr_unstable_nfs;
++}
++
+ /*
+  * Return true if the current memory cgroup has local dirty memory settings.
+  * There is an allowed race between the current task migrating in-to/out-of the
+@@ -1247,6 +1261,321 @@ static void mem_cgroup_dirty_param(struc
+ 	}
+ }
+ 
++static inline bool mem_cgroup_can_swap(struct mem_cgroup *memcg)
++{
++	if (!do_swap_account)
++		return nr_swap_pages > 0;
++	return !memcg->memsw_is_minimum &&
++		(res_counter_read_u64(&memcg->memsw, RES_LIMIT) > 0);
++}
++
++static s64 mem_cgroup_local_page_stat(struct mem_cgroup *mem,
++				      enum mem_cgroup_page_stat_item item)
++{
++	s64 ret;
++
++	switch (item) {
++	case MEMCG_NR_FILE_DIRTY:
++		ret = mem_cgroup_read_stat(mem,	MEM_CGROUP_STAT_FILE_DIRTY);
 +		break;
-+	case MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES:
-+		ret = res_counter_memparse_write_strategy(buffer, &val);
-+		if (ret)
-+			break;
-+		memcg->dirty_param.dirty_background_bytes = val;
-+		memcg->dirty_param.dirty_background_ratio = 0;
++	case MEMCG_NR_FILE_WRITEBACK:
++		ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_WRITEBACK);
++		break;
++	case MEMCG_NR_FILE_UNSTABLE_NFS:
++		ret = mem_cgroup_read_stat(mem,
++					   MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
++		break;
++	case MEMCG_NR_DIRTYABLE_PAGES:
++		ret = mem_cgroup_read_stat(mem, LRU_ACTIVE_FILE) +
++			mem_cgroup_read_stat(mem, LRU_INACTIVE_FILE);
++		if (mem_cgroup_can_swap(mem))
++			ret += mem_cgroup_read_stat(mem, LRU_ACTIVE_ANON) +
++				mem_cgroup_read_stat(mem, LRU_INACTIVE_ANON);
 +		break;
 +	default:
 +		BUG();
@@ -144,67 +206,286 @@ diff -puN mm/memcontrol.c~memcg-add-cgroupfs-interface-to-memcg-dirty-limits mm/
 +	return ret;
 +}
 +
-+static int
-+mem_cgroup_dirty_write(struct cgroup *cgrp, struct cftype *cft, u64 val)
++/*
++ * Return the number of additional pages that the @mem cgroup could allocate.
++ * If use_hierarchy is set, then this involves checking parent mem cgroups to
++ * find the cgroup with the smallest free space.
++ */
++static unsigned long
++mem_cgroup_hierarchical_free_pages(struct mem_cgroup *mem)
 +{
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
-+	int type = cft->private;
++	u64 free;
++	unsigned long min_free;
 +
-+	if (!mem_cgroup_has_dirty_limit(memcg))
-+		return -EINVAL;
-+	if ((type == MEM_CGROUP_DIRTY_RATIO ||
-+	     type == MEM_CGROUP_DIRTY_BACKGROUND_RATIO) && val > 100)
-+		return -EINVAL;
-+	switch (type) {
-+	case MEM_CGROUP_DIRTY_RATIO:
-+		memcg->dirty_param.dirty_ratio = val;
-+		memcg->dirty_param.dirty_bytes = 0;
-+		break;
-+	case MEM_CGROUP_DIRTY_BACKGROUND_RATIO:
-+		memcg->dirty_param.dirty_background_ratio = val;
-+		memcg->dirty_param.dirty_background_bytes = 0;
-+		break;
-+	default:
-+		BUG();
-+		break;
++	min_free = global_page_state(NR_FREE_PAGES);
++
++	while (mem) {
++		free = (res_counter_read_u64(&mem->res, RES_LIMIT) -
++			res_counter_read_u64(&mem->res, RES_USAGE)) >>
++			PAGE_SHIFT;
++		min_free = min((u64)min_free, free);
++		mem = parent_mem_cgroup(mem);
 +	}
-+	return 0;
++
++	return min_free;
 +}
 +
- static struct cftype mem_cgroup_files[] = {
- 	{
- 		.name = "usage_in_bytes",
-@@ -4454,6 +4544,30 @@ static struct cftype mem_cgroup_files[] 
- 		.unregister_event = mem_cgroup_oom_unregister_event,
- 		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
- 	},
-+	{
-+		.name = "dirty_ratio",
-+		.read_u64 = mem_cgroup_dirty_read,
-+		.write_u64 = mem_cgroup_dirty_write,
-+		.private = MEM_CGROUP_DIRTY_RATIO,
-+	},
-+	{
-+		.name = "dirty_limit_in_bytes",
-+		.read_u64 = mem_cgroup_dirty_read,
-+		.write_string = mem_cgroup_dirty_write_string,
-+		.private = MEM_CGROUP_DIRTY_LIMIT_IN_BYTES,
-+	},
-+	{
-+		.name = "dirty_background_ratio",
-+		.read_u64 = mem_cgroup_dirty_read,
-+		.write_u64 = mem_cgroup_dirty_write,
-+		.private = MEM_CGROUP_DIRTY_BACKGROUND_RATIO,
-+	},
-+	{
-+		.name = "dirty_background_limit_in_bytes",
-+		.read_u64 = mem_cgroup_dirty_read,
-+		.write_string = mem_cgroup_dirty_write_string,
-+		.private = MEM_CGROUP_DIRTY_BACKGROUND_LIMIT_IN_BYTES,
-+	},
- };
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++/*
++ * mem_cgroup_page_stat() - get memory cgroup file cache statistics
++ * @mem:       memory cgroup to query
++ * @item:      memory statistic item exported to the kernel
++ *
++ * Return the accounted statistic value.
++ */
++static unsigned long mem_cgroup_page_stat(struct mem_cgroup *mem,
++					  enum mem_cgroup_page_stat_item item)
++{
++	struct mem_cgroup *iter;
++	s64 value;
++
++	VM_BUG_ON(!mem);
++	VM_BUG_ON(mem_cgroup_is_root(mem));
++
++	/*
++	 * If we're looking for dirtyable pages we need to evaluate free pages
++	 * depending on the limit and usage of the parents first of all.
++	 */
++	if (item == MEMCG_NR_DIRTYABLE_PAGES)
++		value = mem_cgroup_hierarchical_free_pages(mem);
++	else
++		value = 0;
++
++	/*
++	 * Recursively evaluate page statistics against all cgroup under
++	 * hierarchy tree
++	 */
++	for_each_mem_cgroup_tree(iter, mem)
++		value += mem_cgroup_local_page_stat(iter, item);
++
++	/*
++	 * Summing of unlocked per-cpu counters is racy and may yield a slightly
++	 * negative value.  Zero is the only sensible value in such cases.
++	 */
++	if (unlikely(value < 0))
++		value = 0;
++
++	return value;
++}
++
++/* Return dirty thresholds and usage for @memcg. */
++static void mem_cgroup_dirty_info(unsigned long sys_available_mem,
++				  struct mem_cgroup *memcg,
++				  struct dirty_info *info)
++{
++	unsigned long uninitialized_var(available_mem);
++	struct vm_dirty_param dirty_param;
++
++	mem_cgroup_dirty_param(&dirty_param, memcg);
++
++	if (!dirty_param.dirty_bytes || !dirty_param.dirty_background_bytes)
++		available_mem = min(
++			sys_available_mem,
++			mem_cgroup_page_stat(memcg, MEMCG_NR_DIRTYABLE_PAGES));
++
++	if (dirty_param.dirty_bytes)
++		info->dirty_thresh =
++			DIV_ROUND_UP(dirty_param.dirty_bytes, PAGE_SIZE);
++	else
++		info->dirty_thresh =
++			(dirty_param.dirty_ratio * available_mem) / 100;
++
++	if (dirty_param.dirty_background_bytes)
++		info->background_thresh =
++			DIV_ROUND_UP(dirty_param.dirty_background_bytes,
++				     PAGE_SIZE);
++	else
++		info->background_thresh =
++			(dirty_param.dirty_background_ratio *
++			       available_mem) / 100;
++
++	info->nr_file_dirty = mem_cgroup_page_stat(memcg, MEMCG_NR_FILE_DIRTY);
++	info->nr_writeback = mem_cgroup_page_stat(memcg,
++						  MEMCG_NR_FILE_WRITEBACK);
++	info->nr_unstable_nfs =
++		mem_cgroup_page_stat(memcg, MEMCG_NR_FILE_UNSTABLE_NFS);
++}
++
++/*
++ * Releases memcg reference.  Called when per-memcg background writeback
++ * completes.
++ */
++void mem_cgroup_bg_writeback_done(struct mem_cgroup *memcg)
++{
++	VM_BUG_ON(!test_bit(MEM_CGROUP_BG_WRITEBACK, &memcg->flags));
++	clear_bit(MEM_CGROUP_BG_WRITEBACK, &memcg->flags);
++	css_put(&memcg->css);
++}
++
++/*
++ * This routine must be called by processes which are generating dirty pages.
++ * It considers the dirty pages usage and thresholds of the current cgroup and
++ * (depending if hierarchical accounting is enabled) ancestral memcg.  If any of
++ * the considered memcg are over their background dirty limit, then background
++ * writeback is queued.  If any are over the foreground dirty limit then
++ * throttle the dirtying task while writing dirty data.  The per-memcg dirty
++ * limits check by this routine are distinct from either the per-system,
++ * per-bdi, or per-task limits considered by balance_dirty_pages().
++ */
++void mem_cgroup_balance_dirty_pages(struct address_space *mapping,
++				    unsigned long write_chunk)
++{
++	unsigned long nr_reclaimable;
++	unsigned long sys_available_mem;
++	struct mem_cgroup *memcg;
++	struct mem_cgroup *ref_memcg;
++	struct dirty_info info;
++	struct backing_dev_info *bdi = mapping->backing_dev_info;
++	unsigned long pause = 1;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	sys_available_mem = determine_dirtyable_memory();
++
++	/* reference the memcg so it is not deleted during this routine */
++	rcu_read_lock();
++	memcg = mem_cgroup_from_task(current);
++	ref_memcg = memcg;
++	if (memcg)
++		css_get(&ref_memcg->css);
++	rcu_read_unlock();
++
++	/* balance entire ancestry of current's memcg. */
++	while (mem_cgroup_has_dirty_limit(memcg)) {
++		/*
++		 * keep throttling and writing inode data so long as memcg is
++		 * over its dirty limit.
++		 */
++		while (true) {
++			struct writeback_control wbc = {
++				.sync_mode	= WB_SYNC_NONE,
++				.older_than_this = NULL,
++				.nr_to_write	= write_chunk,
++				.range_cyclic	= 1,
++			};
++
++			mem_cgroup_dirty_info(sys_available_mem, memcg, &info);
++			nr_reclaimable = dirty_info_reclaimable(&info);
++
++			/* if memcg is over dirty limit, then throttle. */
++			if (nr_reclaimable >= info.dirty_thresh) {
++				writeback_inodes_wb(&bdi->wb, &wbc);
++				/*
++				 * Sleep up to 100ms to throttle writer and wait
++				 * for queued background I/O to complete.
++				 */
++				__set_current_state(TASK_UNINTERRUPTIBLE);
++				io_schedule_timeout(pause);
++				pause <<= 1;
++				if (pause > HZ / 10)
++					pause = HZ / 10;
++			} else
++				break;
++		}
++
++		/* if memcg is over background limit, then queue bg writeback */
++		if ((nr_reclaimable >= info.background_thresh) &&
++		    !test_and_set_bit(MEM_CGROUP_BG_WRITEBACK, &memcg->flags)) {
++			/*
++			 * grab css reference that will be released by
++			 * mem_cgroup_bg_writeback_done().
++			 */
++			css_get(&memcg->css);
++			bdi_start_background_writeback(bdi);
++		}
++
++		/* continue walking up hierarchy enabled parents */
++		memcg = parent_mem_cgroup(memcg);
++		if (!memcg || !memcg->use_hierarchy)
++			break;
++	}
++
++	if (ref_memcg)
++		css_put(&ref_memcg->css);
++}
++
++/*
++ * Return the dirty thresholds and usage for the memcg (within the ancestral
++ * chain of @memcg) closest to its limit or the first memcg over its limit.
++ * If @fg_limit is set, then check the dirty_limit, otherwise check
++ * background_limit.  If @memcg is not set, then use the current task's memcg.
++ *
++ * The current task may be moved to another cgroup while this routine accesses
++ * the dirty limit.  But a precise check is meaningless because the task can be
++ * moved after our access and writeback tends to take long time.  At least,
++ * "memcg" will not be freed while holding rcu_read_lock().
++ */
++bool mem_cgroup_hierarchical_dirty_info(unsigned long sys_available_mem,
++					bool fg_limit,
++					struct mem_cgroup *memcg,
++					struct dirty_info *info)
++{
++	unsigned long usage;
++	struct dirty_info uninitialized_var(cur_info);
++	struct mem_cgroup *ref_memcg = NULL;
++
++	if (mem_cgroup_disabled())
++		return false;
++
++	info->nr_writeback = ULONG_MAX;  /* invalid initial value */
++
++	/* reference current's memcg unless a memcg was provided by caller */
++	if (!memcg) {
++		rcu_read_lock();
++		memcg = mem_cgroup_from_task(current);
++		if (memcg)
++			css_get(&memcg->css);
++		ref_memcg = memcg;
++		rcu_read_unlock();
++	}
++
++	while (mem_cgroup_has_dirty_limit(memcg)) {
++		mem_cgroup_dirty_info(sys_available_mem, memcg, &cur_info);
++		usage = dirty_info_reclaimable(&cur_info) +
++			cur_info.nr_writeback;
++
++		/* if over limit, stop searching */
++		if (usage >= (fg_limit ? cur_info.dirty_thresh :
++			      cur_info.background_thresh)) {
++			*info = cur_info;
++			break;
++		}
++
++		/*
++		 * Save dirty usage of memcg closest to its limit if either:
++		 *     - memcg is the first memcg considered
++		 *     - memcg dirty margin is smaller than last recorded one
++		 */
++		/* cur_memcg_margin <  */
++		if ((info->nr_writeback == ULONG_MAX) ||
++		    ((fg_limit ? cur_info.dirty_thresh :
++		      cur_info.background_thresh) - usage <
++		     (fg_limit ? info->dirty_thresh :
++		      info->background_thresh) -
++		     (dirty_info_reclaimable(info) + info->nr_writeback)))
++
++			*info = cur_info;
++
++		/* continue walking up hierarchy enabled parents */
++		memcg = parent_mem_cgroup(memcg);
++		if (!memcg || !memcg->use_hierarchy)
++			break;
++	}
++
++	if (ref_memcg)
++		css_put(&ref_memcg->css);
++
++	return info->nr_writeback != ULONG_MAX;
++}
++
+ static void mem_cgroup_start_move(struct mem_cgroup *mem)
+ {
+ 	int cpu;
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
