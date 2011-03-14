@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch added to -mm tree
-Date: Mon, 14 Mar 2011 15:34:26 -0700
-Message-ID: <201103142234.p2EMYRYF015032@imap1.linux-foundation.org>
+Subject: + mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch added to -mm tree
+Date: Mon, 14 Mar 2011 16:22:59 -0700
+Message-ID: <201103142322.p2ENMxdX017268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753915Ab1CNWfG (ORCPT
+	by vger.kernel.org with ESMTP id S1752725Ab1CNXXe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Mar 2011 18:35:06 -0400
+	Mon, 14 Mar 2011 19:23:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jaharkes@cs.cmu.edu, rakib.mullick@gmail.com
+Cc: mgorman@suse.de, hughd@google.com, stable@kernel.org
 
 
 The patch titled
-     fs-coda-fix-compile-warning-when-config_sysctl=n-fix
+     mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
 has been added to the -mm tree.  Its filename is
-     fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+     mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-coda-fix-compile-warning-when-config_sysctl=n-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
+From: Mel Gorman <mgorman@suse.de>
 
-remove unneeded stub macros
+If an administrator tries to swapon a file backed by NFS, the inode mutex is
+taken (as it is for any swapfile) but later identified to be a bad swapfile
+due to the lack of bmap and tries to cleanup. During cleanup, an attempt is
+made to close the file but with inode->i_mutex still held. Closing an NFS
+file syncs it which tries to acquire the inode mutex leading to deadlock. If
+lockdep is enabled the following appears on the console;
 
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
+[  120.968832] =============================================
+[  120.972757] [ INFO: possible recursive locking detected ]
+[  120.972757] 2.6.38-rc8-autobuild #1
+[  120.972757] ---------------------------------------------
+[  120.972757] swapon/2192 is trying to acquire lock:
+[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff81130652>] vfs_fsync_range+0x47/0x7c
+[  120.972757]
+[  120.972757] but task is already holding lock:
+[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
+[  120.972757]
+[  120.972757] other info that might help us debug this:
+[  120.972757] 1 lock held by swapon/2192:
+[  120.972757]  #0:  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
+[  120.972757]
+[  120.972757] stack backtrace:
+[  120.972757] Pid: 2192, comm: swapon Not tainted 2.6.38-rc8-autobuild #1
+[  120.972757] Call Trace:
+[  120.972757]  [<ffffffff81075ca8>] ? __lock_acquire+0x2eb/0x1623
+[  120.972757]  [<ffffffff810cd5ad>] ? find_get_pages_tag+0x14a/0x174
+[  120.972757]  [<ffffffff810d6d01>] ? pagevec_lookup_tag+0x25/0x2e
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff810770b3>] ? lock_acquire+0xd3/0x100
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffffa03df8ab>] ? nfs_flush_one+0x0/0xdf [nfs]
+[  120.972757]  [<ffffffff81309cdf>] ? mutex_lock_nested+0x40/0x2b1
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff811306e6>] ? vfs_fsync+0x1c/0x1e
+[  120.972757]  [<ffffffffa03d0c87>] ? nfs_file_flush+0x64/0x69 [nfs]
+[  120.972757]  [<ffffffff811097c9>] ? filp_close+0x43/0x72
+[  120.972757]  [<ffffffff810f9bb1>] ? sys_swapon+0xa39/0xae7
+[  120.972757]  [<ffffffff81002b7a>] ? sysret_check+0x2e/0x69
+[  120.972757]  [<ffffffff81002b42>] ? system_call_fastpath+0x16/0x1b
+
+This patch releases the mutex if its held before calling filep_close()
+so swapon fails as expected without deadlock when the swapfile is backed
+by NFS.  If accepted for 2.6.39, it should also be considered a -stable
+candidate for 2.6.38 and 2.6.37.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@kernel.org>		[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/sysctl.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/swapfile.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/coda/sysctl.c~fs-coda-fix-compile-warning-when-config_sysctl=n-fix fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~fs-coda-fix-compile-warning-when-config_sysctl=n-fix
-+++ a/fs/coda/sysctl.c
-@@ -61,9 +61,4 @@ void coda_sysctl_clean(void)
- 		fs_table_header = NULL;
- 	}
- }
--#else
--
--#define	coda_sysctl_init()		do { }  while (0);
--#define	coda_sysctl_clean()		do { }	while (0);
--
- #endif
+diff -puN mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles
++++ a/mm/swapfile.c
+@@ -2149,8 +2149,13 @@ bad_swap_2:
+ 	p->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+-	if (swap_file)
++	if (swap_file) {
++		if (did_down) {
++			mutex_unlock(&inode->i_mutex);
++			did_down = 0;
++		}
+ 		filp_close(swap_file, NULL);
++	}
+ out:
+ 	if (page && !IS_ERR(page)) {
+ 		kunmap(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-revert-kbuild-reenable-section-mismatch-analysis.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-usb-serial-usb_wwanc-unbork.patch
-mm-vmap-area-cache.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drbd-fix-warning.patch
-mm.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
-mm-batch-free-pcp-list-if-possible-fix.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
-ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-scatterlist-new-helper-functions.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
 
