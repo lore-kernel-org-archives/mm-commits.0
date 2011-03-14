@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-lp5523c-world-writable-engine-sysfs-files.patch added to -mm tree
-Date: Mon, 14 Mar 2011 15:17:01 -0700
-Message-ID: <201103142217.p2EMH1L1014180@imap1.linux-foundation.org>
+Subject: + aic94xx-world-writable-sysfs-update_bios-file.patch added to -mm tree
+Date: Mon, 14 Mar 2011 15:17:08 -0700
+Message-ID: <201103142217.p2EMH852014192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755117Ab1CNWSD (ORCPT
+	by vger.kernel.org with ESMTP id S1757386Ab1CNWSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Mar 2011 18:18:03 -0400
+	Mon, 14 Mar 2011 18:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, rpurdie@rpsys.net
+Cc: segoon@openwall.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     drivers/leds/leds-lp5523.c: world-writable engine* sysfs files
+     aic94xx: world-writable sysfs update_bios file
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-lp5523c-world-writable-engine-sysfs-files.patch
+     aic94xx-world-writable-sysfs-update_bios-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5523.c: world-writable engine* sysfs files
+Subject: aic94xx: world-writable sysfs update_bios file
 From: Vasiliy Kulikov <segoon@openwall.com>
 
-Don't allow everybody to change LED settings.
+Don't allow everybody to load firmware.
 
 Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5523.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-world-writable-engine-sysfs-files drivers/leds/leds-lp5523.c
---- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-world-writable-engine-sysfs-files
-+++ a/drivers/leds/leds-lp5523.c
-@@ -713,7 +713,7 @@ static ssize_t store_current(struct devi
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~aic94xx-world-writable-sysfs-update_bios-file drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~aic94xx-world-writable-sysfs-update_bios-file
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -486,7 +486,7 @@ static ssize_t asd_show_update_bios(stru
+ 			flash_error_table[i].reason);
  }
  
- /* led class device attributes */
--static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
-+static DEVICE_ATTR(led_current, S_IRUGO | S_IWUSR, show_current, store_current);
- static DEVICE_ATTR(max_current, S_IRUGO , show_max_current, NULL);
+-static DEVICE_ATTR(update_bios, S_IRUGO|S_IWUGO,
++static DEVICE_ATTR(update_bios, S_IRUGO|S_IWUSR,
+ 	asd_show_update_bios, asd_store_update_bios);
  
- static struct attribute *lp5523_led_attributes[] = {
-@@ -727,21 +727,21 @@ static struct attribute_group lp5523_led
- };
- 
- /* device attributes */
--static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUSR,
- 		   show_engine1_mode, store_engine1_mode);
--static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUSR,
- 		   show_engine2_mode, store_engine2_mode);
--static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUSR,
- 		   show_engine3_mode, store_engine3_mode);
--static DEVICE_ATTR(engine1_leds, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine1_leds, S_IRUGO | S_IWUSR,
- 		   show_engine1_leds, store_engine1_leds);
--static DEVICE_ATTR(engine2_leds, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine2_leds, S_IRUGO | S_IWUSR,
- 		   show_engine2_leds, store_engine2_leds);
--static DEVICE_ATTR(engine3_leds, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine3_leds, S_IRUGO | S_IWUSR,
- 		   show_engine3_leds, store_engine3_leds);
--static DEVICE_ATTR(engine1_load, S_IWUGO, NULL, store_engine1_load);
--static DEVICE_ATTR(engine2_load, S_IWUGO, NULL, store_engine2_load);
--static DEVICE_ATTR(engine3_load, S_IWUGO, NULL, store_engine3_load);
-+static DEVICE_ATTR(engine1_load, S_IWUSR, NULL, store_engine1_load);
-+static DEVICE_ATTR(engine2_load, S_IWUSR, NULL, store_engine2_load);
-+static DEVICE_ATTR(engine3_load, S_IWUSR, NULL, store_engine3_load);
- static DEVICE_ATTR(selftest, S_IRUGO, lp5523_selftest, NULL);
- 
- static struct attribute *lp5523_attributes[] = {
+ static int asd_create_dev_attrs(struct asd_ha_struct *asd_ha)
 _
 
 Patches currently in -mm which might be from segoon@openwall.com are
