@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch added to -mm tree
-Date: Mon, 14 Mar 2011 16:22:59 -0700
-Message-ID: <201103142322.p2ENMxdX017268@imap1.linux-foundation.org>
+Subject: + fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch added to -mm tree
+Date: Mon, 14 Mar 2011 16:39:36 -0700
+Message-ID: <201103142339.p2ENdaIH017956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752725Ab1CNXXe (ORCPT
+	by vger.kernel.org with ESMTP id S1751316Ab1CNXj7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Mar 2011 19:23:34 -0400
+	Mon, 14 Mar 2011 19:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, hughd@google.com, stable@kernel.org
+Cc: Warns@pre-sense.de, warns@pre-sense.de
 
 
 The patch titled
-     mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
+     fs/partitions/osf.c: corrupted OSF partition table can cause information disclosure
 has been added to the -mm tree.  Its filename is
-     mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
+     fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
-From: Mel Gorman <mgorman@suse.de>
+Subject: fs/partitions/osf.c: corrupted OSF partition table can cause information disclosure
+From: Timo Warns <Warns@pre-sense.de>
 
-If an administrator tries to swapon a file backed by NFS, the inode mutex is
-taken (as it is for any swapfile) but later identified to be a bad swapfile
-due to the lack of bmap and tries to cleanup. During cleanup, an attempt is
-made to close the file but with inode->i_mutex still held. Closing an NFS
-file syncs it which tries to acquire the inode mutex leading to deadlock. If
-lockdep is enabled the following appears on the console;
+The kernel automatically evaluates partition tables of storage devices. 
+The code for evaluating OSF partitions (in fs/partitions/osf.c) contains a
+bug that leaks data from kernel heap memory to userspace for certain
+corrupted OSF partitions.
 
-[  120.968832] =============================================
-[  120.972757] [ INFO: possible recursive locking detected ]
-[  120.972757] 2.6.38-rc8-autobuild #1
-[  120.972757] ---------------------------------------------
-[  120.972757] swapon/2192 is trying to acquire lock:
-[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff81130652>] vfs_fsync_range+0x47/0x7c
-[  120.972757]
-[  120.972757] but task is already holding lock:
-[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
-[  120.972757]
-[  120.972757] other info that might help us debug this:
-[  120.972757] 1 lock held by swapon/2192:
-[  120.972757]  #0:  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
-[  120.972757]
-[  120.972757] stack backtrace:
-[  120.972757] Pid: 2192, comm: swapon Not tainted 2.6.38-rc8-autobuild #1
-[  120.972757] Call Trace:
-[  120.972757]  [<ffffffff81075ca8>] ? __lock_acquire+0x2eb/0x1623
-[  120.972757]  [<ffffffff810cd5ad>] ? find_get_pages_tag+0x14a/0x174
-[  120.972757]  [<ffffffff810d6d01>] ? pagevec_lookup_tag+0x25/0x2e
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff810770b3>] ? lock_acquire+0xd3/0x100
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffffa03df8ab>] ? nfs_flush_one+0x0/0xdf [nfs]
-[  120.972757]  [<ffffffff81309cdf>] ? mutex_lock_nested+0x40/0x2b1
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff811306e6>] ? vfs_fsync+0x1c/0x1e
-[  120.972757]  [<ffffffffa03d0c87>] ? nfs_file_flush+0x64/0x69 [nfs]
-[  120.972757]  [<ffffffff811097c9>] ? filp_close+0x43/0x72
-[  120.972757]  [<ffffffff810f9bb1>] ? sys_swapon+0xa39/0xae7
-[  120.972757]  [<ffffffff81002b7a>] ? sysret_check+0x2e/0x69
-[  120.972757]  [<ffffffff81002b42>] ? system_call_fastpath+0x16/0x1b
+In more detail (from Kernel 2.6.37 fs/partition/osf.c):
 
-This patch releases the mutex if its held before calling filep_close()
-so swapon fails as expected without deadlock when the swapfile is backed
-by NFS.  If accepted for 2.6.39, it should also be considered a -stable
-candidate for 2.6.38 and 2.6.37.
+(66)    for (i = 0 ; i < le16_to_cpu(label->d_npartitions); i++, partition++) {
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@kernel.org>		[2.6.37+]
+iterates from 0 to d_npartitions - 1, where
+
+    d_npartitions is read from the partition table without validation and
+    partition is a pointer to an array of at most 8 d_partitions.
+
+(70)        put_partition(state, slot,
+(71)          le32_to_cpu(partition->p_offset),
+(72)          le32_to_cpu(partition->p_size));
+
+adds a partition based on data referenced by partition.  As partition may
+point beyond the partition table data structure, p_offset and p_size are
+read from kernel heap beyond the partition table.
+
+In some cases, put_partition logs error messages to userspace including
+the p_offset and p_size values.  Hence, some values from kernel heap are
+leaked to userspace.
+
+So validate the value of d_npartitions.
+
+Signed-off-by: Timo Warns <warns@pre-sense.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/partitions/osf.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles
-+++ a/mm/swapfile.c
-@@ -2149,8 +2149,13 @@ bad_swap_2:
- 	p->flags = 0;
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
--	if (swap_file)
-+	if (swap_file) {
-+		if (did_down) {
-+			mutex_unlock(&inode->i_mutex);
-+			did_down = 0;
-+		}
- 		filp_close(swap_file, NULL);
+diff -puN fs/partitions/osf.c~fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure fs/partitions/osf.c
+--- a/fs/partitions/osf.c~fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure
++++ a/fs/partitions/osf.c
+@@ -63,6 +63,10 @@ int osf_partition(struct parsed_partitio
+ 		put_dev_sector(sect);
+ 		return 0;
+ 	}
++	if (le16_to_cpu(label->d_npartitions) > 8) {
++		put_dev_sector(sect);
++		return 0;
 +	}
- out:
- 	if (page && !IS_ERR(page)) {
- 		kunmap(page);
+ 	for (i = 0 ; i < le16_to_cpu(label->d_npartitions); i++, partition++) {
+ 		if (slot == state->limit)
+ 		        break;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from Warns@pre-sense.de are
 
-mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
+fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch
 
