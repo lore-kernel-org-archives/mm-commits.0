@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch added to -mm tree
-Date: Mon, 14 Mar 2011 16:39:36 -0700
-Message-ID: <201103142339.p2ENdaIH017956@imap1.linux-foundation.org>
+Subject: + oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch added to -mm tree
+Date: Mon, 14 Mar 2011 23:18:01 -0700
+Message-ID: <201103150620.p2F6K4GL002172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751316Ab1CNXj7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753207Ab1COGVB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Mar 2011 19:39:59 -0400
+	Tue, 15 Mar 2011 02:21:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Warns@pre-sense.de, warns@pre-sense.de
+Cc: rientjes@google.com, avagin@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, stable@kernel.org
 
 
 The patch titled
-     fs/partitions/osf.c: corrupted OSF partition table can cause information disclosure
+     oom: avoid deferring oom killer if exiting task is being traced
 has been added to the -mm tree.  Its filename is
-     fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch
+     oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/osf.c: corrupted OSF partition table can cause information disclosure
-From: Timo Warns <Warns@pre-sense.de>
+Subject: oom: avoid deferring oom killer if exiting task is being traced
+From: David Rientjes <rientjes@google.com>
 
-The kernel automatically evaluates partition tables of storage devices. 
-The code for evaluating OSF partitions (in fs/partitions/osf.c) contains a
-bug that leaks data from kernel heap memory to userspace for certain
-corrupted OSF partitions.
+The oom killer naturally defers killing anything if it finds an eligible
+task that is already exiting and has yet to detach its ->mm.  This avoids
+unnecessarily killing tasks when one is already in the exit path and may
+free enough memory that the oom killer is no longer needed.  This is
+detected by PF_EXITING since threads that have already detached its ->mm
+are no longer considered at all.
 
-In more detail (from Kernel 2.6.37 fs/partition/osf.c):
+The problem with always deferring when a thread is PF_EXITING, however, is
+that it may never actually exit when being traced, specifically if another
+task is tracing it with PTRACE_O_TRACEEXIT.  The oom killer does not want
+to defer in this case since there is no guarantee that thread will ever
+exit without intervention.
 
-(66)    for (i = 0 ; i < le16_to_cpu(label->d_npartitions); i++, partition++) {
+This patch will now only defer the oom killer when a thread is PF_EXITING
+and no ptracer has stopped its progress in the exit path.  It also ensures
+that a child is sacrificed for the chosen parent only if it has a
+different ->mm as the comment implies: this ensures that the thread group
+leader is always targeted appropriately.
 
-iterates from 0 to d_npartitions - 1, where
-
-    d_npartitions is read from the partition table without validation and
-    partition is a pointer to an array of at most 8 d_partitions.
-
-(70)        put_partition(state, slot,
-(71)          le32_to_cpu(partition->p_offset),
-(72)          le32_to_cpu(partition->p_size));
-
-adds a partition based on data referenced by partition.  As partition may
-point beyond the partition table data structure, p_offset and p_size are
-read from kernel heap beyond the partition table.
-
-In some cases, put_partition logs error messages to userspace including
-the p_offset and p_size values.  Hence, some values from kernel heap are
-leaked to userspace.
-
-So validate the value of d_npartitions.
-
-Signed-off-by: Timo Warns <warns@pre-sense.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: <stable@kernel.org>		[2.6.38.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/osf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/oom_kill.c |   40 +++++++++++++++++++++++++---------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
-diff -puN fs/partitions/osf.c~fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure fs/partitions/osf.c
---- a/fs/partitions/osf.c~fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure
-+++ a/fs/partitions/osf.c
-@@ -63,6 +63,10 @@ int osf_partition(struct parsed_partitio
- 		put_dev_sector(sect);
- 		return 0;
- 	}
-+	if (le16_to_cpu(label->d_npartitions) > 8) {
-+		put_dev_sector(sect);
-+		return 0;
-+	}
- 	for (i = 0 ; i < le16_to_cpu(label->d_npartitions); i++, partition++) {
- 		if (slot == state->limit)
- 		        break;
+diff -puN mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced
++++ a/mm/oom_kill.c
+@@ -31,6 +31,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/mempolicy.h>
+ #include <linux/security.h>
++#include <linux/ptrace.h>
+ 
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
+@@ -316,22 +317,29 @@ static struct task_struct *select_bad_pr
+ 		if (test_tsk_thread_flag(p, TIF_MEMDIE))
+ 			return ERR_PTR(-1UL);
+ 
+-		/*
+-		 * This is in the process of releasing memory so wait for it
+-		 * to finish before killing some other task by mistake.
+-		 *
+-		 * However, if p is the current task, we allow the 'kill' to
+-		 * go ahead if it is exiting: this will simply set TIF_MEMDIE,
+-		 * which will allow it to gain access to memory reserves in
+-		 * the process of exiting and releasing its resources.
+-		 * Otherwise we could get an easy OOM deadlock.
+-		 */
+ 		if (p->flags & PF_EXITING) {
+-			if (p != current)
+-				return ERR_PTR(-1UL);
+-
+-			chosen = p;
+-			*ppoints = 1000;
++			/*
++			 * If p is the current task and is in the process of
++			 * releasing memory, we allow the "kill" to set
++			 * TIF_MEMDIE, which will allow it to gain access to
++			 * memory reserves.  Otherwise, it may stall forever.
++			 *
++			 * The loop isn't broken here, however, in case other
++			 * threads are found to have already been oom killed.
++			 */
++			if (p == current) {
++				chosen = p;
++				*ppoints = 1000;
++			} else {
++				/*
++				 * If this task is not being ptraced on exit,
++				 * then wait for it to finish before killing
++				 * some other task unnecessarily.
++				 */
++				if (!(task_ptrace(p->group_leader) &
++							PT_TRACE_EXIT))
++					return ERR_PTR(-1UL);
++			}
+ 		}
+ 
+ 		points = oom_badness(p, mem, nodemask, totalpages);
+@@ -493,6 +501,8 @@ static int oom_kill_process(struct task_
+ 		list_for_each_entry(child, &t->children, sibling) {
+ 			unsigned int child_points;
+ 
++			if (child->mm == p->mm)
++				continue;
+ 			/*
+ 			 * oom_badness() returns 0 if the thread is unkillable
+ 			 */
 _
 
-Patches currently in -mm which might be from Warns@pre-sense.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
-fs-partitions-osfc-corrupted-osf-partition-table-can-cause-information-disclosure.patch
+origin.patch
+oom-prevent-unnecessary-oom-kills-or-kernel-panics.patch
+oom-skip-zombies-when-iterating-tasklist.patch
+oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
+linux-next.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
+oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
+pagewalk-only-split-huge-pages-when-necessary.patch
+smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
+smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
+smaps-teach-smaps_pte_range-about-thp-pmds.patch
+smaps-have-smaps-show-transparent-huge-pages.patch
+hugetlbfs-correct-handling-of-negative-input-to-proc-sys-vm-nr_hugepages.patch
+pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
+x86-allow-config_isa_dma_api-to-be-disabled.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
+cpuset-hold-callback_mutex-in-cpuset_clone.patch
+sysctl-add-some-missing-input-constraint-checks.patch
 
