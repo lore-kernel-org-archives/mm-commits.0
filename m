@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch added to -mm tree
-Date: Mon, 14 Mar 2011 23:18:01 -0700
-Message-ID: <201103150620.p2F6K4GL002172@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 15 Mar 2011 13:27:11 -0700
+Message-ID: <201103152029.p2FKTLoo009591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207Ab1COGVB (ORCPT
+	by vger.kernel.org with ESMTP id S1750843Ab1COU3m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Mar 2011 02:21:01 -0400
+	Tue, 15 Mar 2011 16:29:42 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p2FKTMKE032684
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2011 13:29:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, avagin@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     oom: avoid deferring oom killer if exiting task is being traced
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,144 +38,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: avoid deferring oom killer if exiting task is being traced
-From: David Rientjes <rientjes@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The oom killer naturally defers killing anything if it finds an eligible
-task that is already exiting and has yet to detach its ->mm.  This avoids
-unnecessarily killing tasks when one is already in the exit path and may
-free enough memory that the oom killer is no longer needed.  This is
-detected by PF_EXITING since threads that have already detached its ->mm
-are no longer considered at all.
-
-The problem with always deferring when a thread is PF_EXITING, however, is
-that it may never actually exit when being traced, specifically if another
-task is tracing it with PTRACE_O_TRACEEXIT.  The oom killer does not want
-to defer in this case since there is no guarantee that thread will ever
-exit without intervention.
-
-This patch will now only defer the oom killer when a thread is PF_EXITING
-and no ptracer has stopped its progress in the exit path.  It also ensures
-that a child is sacrificed for the chosen parent only if it has a
-different ->mm as the comment implies: this ensures that the thread group
-leader is always targeted appropriately.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: <stable@kernel.org>		[2.6.38.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   40 +++++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 15 deletions(-)
+ arch/x86/platform/ce4100/ce4100.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced
-+++ a/mm/oom_kill.c
-@@ -31,6 +31,7 @@
- #include <linux/memcontrol.h>
- #include <linux/mempolicy.h>
- #include <linux/security.h>
-+#include <linux/ptrace.h>
+diff -puN arch/x86/platform/ce4100/ce4100.c~linux-next-git-rejects arch/x86/platform/ce4100/ce4100.c
+--- a/arch/x86/platform/ce4100/ce4100.c~linux-next-git-rejects
++++ a/arch/x86/platform/ce4100/ce4100.c
+@@ -15,11 +15,8 @@
+ #include <linux/serial_reg.h>
+ #include <linux/serial_8250.h>
  
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
-@@ -316,22 +317,29 @@ static struct task_struct *select_bad_pr
- 		if (test_tsk_thread_flag(p, TIF_MEMDIE))
- 			return ERR_PTR(-1UL);
+-<<<<<<< HEAD
+ #include <asm/ce4100.h>
+-=======
+ #include <asm/prom.h>
+->>>>>>> FETCH_HEAD
+ #include <asm/setup.h>
+ #include <asm/i8259.h>
+ #include <asm/io.h>
+@@ -139,10 +136,6 @@ void __init x86_ce4100_early_setup(void)
+ 	x86_platform.i8042_detect = ce4100_i8042_detect;
+ 	x86_init.resources.probe_roms = x86_init_noop;
+ 	x86_init.mpparse.get_smp_config = x86_init_uint_noop;
+-<<<<<<< HEAD
+-	x86_init.mpparse.find_smp_config = sdv_find_smp_config;
+-	x86_init.pci.init = ce4100_pci_init;
+-=======
+ 	x86_init.mpparse.find_smp_config = x86_init_noop;
  
--		/*
--		 * This is in the process of releasing memory so wait for it
--		 * to finish before killing some other task by mistake.
--		 *
--		 * However, if p is the current task, we allow the 'kill' to
--		 * go ahead if it is exiting: this will simply set TIF_MEMDIE,
--		 * which will allow it to gain access to memory reserves in
--		 * the process of exiting and releasing its resources.
--		 * Otherwise we could get an easy OOM deadlock.
--		 */
- 		if (p->flags & PF_EXITING) {
--			if (p != current)
--				return ERR_PTR(-1UL);
--
--			chosen = p;
--			*ppoints = 1000;
-+			/*
-+			 * If p is the current task and is in the process of
-+			 * releasing memory, we allow the "kill" to set
-+			 * TIF_MEMDIE, which will allow it to gain access to
-+			 * memory reserves.  Otherwise, it may stall forever.
-+			 *
-+			 * The loop isn't broken here, however, in case other
-+			 * threads are found to have already been oom killed.
-+			 */
-+			if (p == current) {
-+				chosen = p;
-+				*ppoints = 1000;
-+			} else {
-+				/*
-+				 * If this task is not being ptraced on exit,
-+				 * then wait for it to finish before killing
-+				 * some other task unnecessarily.
-+				 */
-+				if (!(task_ptrace(p->group_leader) &
-+							PT_TRACE_EXIT))
-+					return ERR_PTR(-1UL);
-+			}
- 		}
- 
- 		points = oom_badness(p, mem, nodemask, totalpages);
-@@ -493,6 +501,8 @@ static int oom_kill_process(struct task_
- 		list_for_each_entry(child, &t->children, sibling) {
- 			unsigned int child_points;
- 
-+			if (child->mm == p->mm)
-+				continue;
- 			/*
- 			 * oom_badness() returns 0 if the thread is unkillable
- 			 */
+ #ifdef CONFIG_X86_IO_APIC
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-oom-prevent-unnecessary-oom-kills-or-kernel-panics.patch
-oom-skip-zombies-when-iterating-tasklist.patch
-oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
 linux-next.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
-oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
-oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
-pagewalk-only-split-huge-pages-when-necessary.patch
-smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
-smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
-smaps-teach-smaps_pte_range-about-thp-pmds.patch
-smaps-have-smaps-show-transparent-huge-pages.patch
-hugetlbfs-correct-handling-of-negative-input-to-proc-sys-vm-nr_hugepages.patch
-pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
-x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
-x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
-x86-allow-config_isa_dma_api-to-be-disabled.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-kbuild-reenable-section-mismatch-analysis.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
-cpuset-hold-callback_mutex-in-cpuset_clone.patch
-sysctl-add-some-missing-input-constraint-checks.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+scatterlist-new-helper-functions.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
