@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + listh-add-debug-version-of-list_empty.patch added to -mm tree
-Date: Tue, 15 Mar 2011 13:45:42 -0700
-Message-ID: <201103152045.p2FKjg5d010319@imap1.linux-foundation.org>
+Subject: + sysctl-restrict-write-access-to-dmesg_restrict.patch added to -mm tree
+Date: Tue, 15 Mar 2011 14:50:24 -0700
+Message-ID: <201103152150.p2FLoOFt013916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758414Ab1COUqG (ORCPT
+	by vger.kernel.org with ESMTP id S1758129Ab1COVuq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Mar 2011 16:46:06 -0400
+	Tue, 15 Mar 2011 17:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-phil.2.carmody@nokia.com, andi@firstfloor.org, kirill@shutemov.name, lizf@cn.fujitsu.com, menage@google.com
+Cc: richard@nod.at, drosenberg@vsecurity.com, eparis@redhat.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, serge@hallyn.com
 
 
 The patch titled
-     list.h: add debug version of list_empty
+     sysctl: restrict write access to dmesg_restrict
 has been added to the -mm tree.  Its filename is
-     listh-add-debug-version-of-list_empty.patch
+     sysctl-restrict-write-access-to-dmesg_restrict.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list.h: add debug version of list_empty
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: sysctl: restrict write access to dmesg_restrict
+From: Richard Weinberger <richard@nod.at>
 
-Heed the notice in list_del: "Note: list_empty() on entry does not return
-true after this, the entry is in an undefined state.", and check for
-precisely that condition.
+When dmesg_restrict is set to 1 CAP_SYS_ADMIN is needed to read the kernel
+ring buffer.  But a root user without CAP_SYS_ADMIN is able to reset
+dmesg_restrict to 0.
 
-There are currently a few instances in the code of this sequence:
+This is an issue when e.g.  LXC (Linux Containers) are used and complete
+user space is running without CAP_SYS_ADMIN.  A unprivileged and jailed
+root user can bypass the dmesg_restrict protection.
 
-    if(!list_empty(pnode))
-        list_del(pnode);
+With this patch writing to dmesg_restrict is only allowed when root has
+CAP_SYS_ADMIN.
 
-which seems to be useless or dangerous if intended to protect from
-repeated del's.  And given that I've seen an oops pointing to a
-dereference of poison in such a list_empty, I'm veering towards dangerous.
-This patch would make such errors obvious.
-
-Nothing is changed in the non-DEBUG_LIST build.
-
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Kees Cook <kees.cook@canonical.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Eugene Teo <eugeneteo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    4 ++++
- lib/list_debug.c     |   18 ++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ kernel/sysctl.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/list.h~listh-add-debug-version-of-list_empty include/linux/list.h
---- a/include/linux/list.h~listh-add-debug-version-of-list_empty
-+++ a/include/linux/list.h
-@@ -183,10 +183,14 @@ static inline int list_is_last(const str
-  * list_empty - tests whether a list is empty
-  * @head: the list to test.
-  */
-+#ifndef CONFIG_DEBUG_LIST
- static inline int list_empty(const struct list_head *head)
- {
- 	return head->next == head;
- }
-+#else
-+extern int list_empty(const struct list_head *head);
-+#endif
+diff -puN kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict
++++ a/kernel/sysctl.c
+@@ -170,6 +170,11 @@ static int proc_taint(struct ctl_table *
+ 			       void __user *buffer, size_t *lenp, loff_t *ppos);
+ #endif
  
- /**
-  * list_empty_careful - tests whether a list is empty and not being modified
-diff -puN lib/list_debug.c~listh-add-debug-version-of-list_empty lib/list_debug.c
---- a/lib/list_debug.c~listh-add-debug-version-of-list_empty
-+++ a/lib/list_debug.c
-@@ -73,3 +73,21 @@ void list_del(struct list_head *entry)
- 	entry->prev = LIST_POISON2;
++#ifdef CONFIG_PRINTK
++static int proc_dmesg_restrict(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos);
++#endif
++
+ #ifdef CONFIG_MAGIC_SYSRQ
+ /* Note: sysrq code uses it's own private copy */
+ static int __sysrq_enabled = SYSRQ_DEFAULT_ENABLE;
+@@ -703,7 +708,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &kptr_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= proc_dmesg_restrict,
+ 		.extra1		= &zero,
+ 		.extra2		= &two,
+ 	},
+@@ -2373,6 +2378,17 @@ static int proc_taint(struct ctl_table *
+ 	return err;
  }
- EXPORT_SYMBOL(list_del);
-+
-+/**
-+ * list_empty - tests whether a list is empty
-+ * @head: the list to test.
-+ */
-+int list_empty(const struct list_head *head)
+ 
++#ifdef CONFIG_PRINTK
++static int proc_dmesg_restrict(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos)
 +{
-+	if ((head->prev == LIST_POISON2) || (head->prev == LIST_POISON1))
-+		WARN(1, "list_empty performed on a node "
-+		     "at %p removed from a list.\n", head);
-+	else
-+		WARN((head->prev == head) != (head->next == head),
-+		     "list_empty corruption. %p<-%p->%p is half-empty.\n",
-+		     head->prev, head, head->next);
++	if (write && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
 +
-+	return head->next == head;
++	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
 +}
-+EXPORT_SYMBOL(list_empty);
++#endif
++
+ struct do_proc_dointvec_minmax_conv_param {
+ 	int *min;
+ 	int *max;
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from richard@nod.at are
 
-cgroups-if-you-list_empty-a-head-then-dont-list_del-it.patch
 linux-next.patch
-calibrate-extract-fall-back-calculation-into-own-helper.patch
-calibrate-home-in-on-correct-lpj-value-more-quickly.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
-listh-add-debug-version-of-list_empty.patch
+sysctl-restrict-write-access-to-dmesg_restrict.patch
 
