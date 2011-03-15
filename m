@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-if-you-list_empty-a-head-then-dont-list_del-it.patch added to -mm tree
-Date: Tue, 15 Mar 2011 13:42:49 -0700
-Message-ID: <201103152042.p2FKgocX010224@imap1.linux-foundation.org>
+Subject: + listh-add-debug-version-of-list_empty.patch added to -mm tree
+Date: Tue, 15 Mar 2011 13:45:42 -0700
+Message-ID: <201103152045.p2FKjg5d010319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758301Ab1COUnH (ORCPT
+	by vger.kernel.org with ESMTP id S1758414Ab1COUqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Mar 2011 16:43:07 -0400
+	Tue, 15 Mar 2011 16:46:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-phil.2.carmody@nokia.com, kirill@shutemov.name, lizf@cn.fujitsu.com, menage@google.com, stable@kernel.org
+Cc: ext-phil.2.carmody@nokia.com, andi@firstfloor.org, kirill@shutemov.name, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     cgroups: if you list_empty() a head then don't list_del() it
+     list.h: add debug version of list_empty
 has been added to the -mm tree.  Its filename is
-     cgroups-if-you-list_empty-a-head-then-dont-list_del-it.patch
+     listh-add-debug-version-of-list_empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: if you list_empty() a head then don't list_del() it
+Subject: list.h: add debug version of list_empty
 From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-list_del() leaves poison in the prev and next pointers.  The next
-list_empty() will compare those poisons, and say the list isn't empty. 
-Any list operations that assume the node is on a list because of such a
-check will be fooled into dereferencing poison.  One needs to INIT the
-node after the del, and fortunately there's already a wrapper for that -
-list_del_init().
+Heed the notice in list_del: "Note: list_empty() on entry does not return
+true after this, the entry is in an undefined state.", and check for
+precisely that condition.
 
-Some of the dels are followed by deallocations, so can be ignored, and one
-can be merged with an add to make a move.  Apart from that, I erred on the
-side of caution in making nodes list_empty()-queriable.
+There are currently a few instances in the code of this sequence:
+
+    if(!list_empty(pnode))
+        list_del(pnode);
+
+which seems to be useless or dangerous if intended to protect from
+repeated del's.  And given that I've seen an oops pointing to a
+dereference of poison in such a list_empty, I'm veering towards dangerous.
+This patch would make such errors obvious.
+
+Nothing is changed in the non-DEBUG_LIST build.
 
 Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Reviewed-by: Paul Menage <menage@google.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: <stable@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/list.h |    4 ++++
+ lib/list_debug.c     |   18 ++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-if-you-list_empty-a-head-then-dont-list_del-it kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-if-you-list_empty-a-head-then-dont-list_del-it
-+++ a/kernel/cgroup.c
-@@ -1813,10 +1813,8 @@ int cgroup_attach_task(struct cgroup *cg
+diff -puN include/linux/list.h~listh-add-debug-version-of-list_empty include/linux/list.h
+--- a/include/linux/list.h~listh-add-debug-version-of-list_empty
++++ a/include/linux/list.h
+@@ -183,10 +183,14 @@ static inline int list_is_last(const str
+  * list_empty - tests whether a list is empty
+  * @head: the list to test.
+  */
++#ifndef CONFIG_DEBUG_LIST
+ static inline int list_empty(const struct list_head *head)
+ {
+ 	return head->next == head;
+ }
++#else
++extern int list_empty(const struct list_head *head);
++#endif
  
- 	/* Update the css_set linked lists if we're using them */
- 	write_lock(&css_set_lock);
--	if (!list_empty(&tsk->cg_list)) {
--		list_del(&tsk->cg_list);
--		list_add(&tsk->cg_list, &newcg->tasks);
--	}
-+	if (!list_empty(&tsk->cg_list))
-+		list_move(&tsk->cg_list, &newcg->tasks);
- 	write_unlock(&css_set_lock);
- 
- 	for_each_subsys(root, ss) {
-@@ -3655,12 +3653,12 @@ again:
- 	spin_lock(&release_list_lock);
- 	set_bit(CGRP_REMOVED, &cgrp->flags);
- 	if (!list_empty(&cgrp->release_list))
--		list_del(&cgrp->release_list);
-+		list_del_init(&cgrp->release_list);
- 	spin_unlock(&release_list_lock);
- 
- 	cgroup_lock_hierarchy(cgrp->root);
- 	/* delete this cgroup from parent->children */
--	list_del(&cgrp->sibling);
-+	list_del_init(&cgrp->sibling);
- 	cgroup_unlock_hierarchy(cgrp->root);
- 
- 	d = dget(cgrp->dentry);
-@@ -3879,7 +3877,7 @@ void cgroup_unload_subsys(struct cgroup_
- 	subsys[ss->subsys_id] = NULL;
- 
- 	/* remove subsystem from rootnode's list of subsystems */
--	list_del(&ss->sibling);
-+	list_del_init(&ss->sibling);
- 
- 	/*
- 	 * disentangle the css from all css_sets attached to the dummytop. as
-@@ -4253,7 +4251,7 @@ void cgroup_exit(struct task_struct *tsk
- 	if (!list_empty(&tsk->cg_list)) {
- 		write_lock(&css_set_lock);
- 		if (!list_empty(&tsk->cg_list))
--			list_del(&tsk->cg_list);
-+			list_del_init(&tsk->cg_list);
- 		write_unlock(&css_set_lock);
- 	}
- 
+ /**
+  * list_empty_careful - tests whether a list is empty and not being modified
+diff -puN lib/list_debug.c~listh-add-debug-version-of-list_empty lib/list_debug.c
+--- a/lib/list_debug.c~listh-add-debug-version-of-list_empty
++++ a/lib/list_debug.c
+@@ -73,3 +73,21 @@ void list_del(struct list_head *entry)
+ 	entry->prev = LIST_POISON2;
+ }
+ EXPORT_SYMBOL(list_del);
++
++/**
++ * list_empty - tests whether a list is empty
++ * @head: the list to test.
++ */
++int list_empty(const struct list_head *head)
++{
++	if ((head->prev == LIST_POISON2) || (head->prev == LIST_POISON1))
++		WARN(1, "list_empty performed on a node "
++		     "at %p removed from a list.\n", head);
++	else
++		WARN((head->prev == head) != (head->next == head),
++		     "list_empty corruption. %p<-%p->%p is half-empty.\n",
++		     head->prev, head, head->next);
++
++	return head->next == head;
++}
++EXPORT_SYMBOL(list_empty);
 _
 
 Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
