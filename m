@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scatterlist-new-helper-functions-update.patch added to -mm tree
-Date: Tue, 15 Mar 2011 18:01:49 -0700
-Message-ID: <201103160104.p2G141xa022965@imap1.linux-foundation.org>
+Subject: + scatterlist-new-helper-functions-update-fix.patch added to -mm tree
+Date: Tue, 15 Mar 2011 18:01:52 -0700
+Message-ID: <201103160104.p2G144gg022970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37395 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752303Ab1CPBEO (ORCPT
+	by vger.kernel.org with ESMTP id S1751699Ab1CPBEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 Mar 2011 21:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maximlevitsky@gmail.com, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, fujita.tomonori@lab.ntt.co.jp, oakad@yahoo.com, tj@kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, fujita.tomonori@lab.ntt.co.jp, maximlevitsky@gmail.com, oakad@yahoo.com, tj@kernel.org
 
 
 The patch titled
-     scatterlist-new-helper-functions-update
+     scatterlist-new-helper-functions-update-fix
 has been added to the -mm tree.  Its filename is
-     scatterlist-new-helper-functions-update.patch
+     scatterlist-new-helper-functions-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,176 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scatterlist-new-helper-functions-update
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: scatterlist-new-helper-functions-update-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+repair comments, use kerneldoc properly
+
 Cc: Alex Dubov <oakad@yahoo.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |    8 ++--
- lib/scatterlist.c           |   58 +++++++++++++++++++---------------
- 2 files changed, 38 insertions(+), 28 deletions(-)
+ lib/scatterlist.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/scatterlist.h~scatterlist-new-helper-functions-update include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~scatterlist-new-helper-functions-update
-+++ a/include/linux/scatterlist.h
-@@ -199,10 +199,11 @@ static inline void *sg_virt(struct scatt
- 	return page_address(sg_page(sg)) + sg->offset;
- }
- 
--struct scatterlist *sg_advance(struct scatterlist *sg, int consumed);
-+struct scatterlist *sg_truncate(struct scatterlist *sg, int consumed);
- int sg_nents(struct scatterlist *sg);
- int sg_total_len(struct scatterlist *sg);
--int sg_copy(struct scatterlist *sg_from, struct scatterlist *sg_to, int len);
-+int sg_copy(struct scatterlist *sg_from, struct scatterlist *sg_to,
-+							int to_nents, int len);
- 
- struct scatterlist *sg_next(struct scatterlist *);
- struct scatterlist *sg_last(struct scatterlist *s, unsigned int);
-@@ -222,7 +223,8 @@ size_t sg_copy_from_buffer(struct scatte
- 			   void *buf, size_t buflen);
- size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			 void *buf, size_t buflen);
--bool sg_compare_to_buffer(struct scatterlist *sg, u8 *buffer, size_t len);
-+bool sg_compare_to_buffer(struct scatterlist *sg, unsigned int nents,
-+							u8 *buffer, size_t len);
- 
- /*
-  * Maximum number of entries that will be allocated in one piece, if
-diff -puN lib/scatterlist.c~scatterlist-new-helper-functions-update lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-new-helper-functions-update
+diff -puN lib/scatterlist.c~scatterlist-new-helper-functions-update-fix lib/scatterlist.c
+--- a/lib/scatterlist.c~scatterlist-new-helper-functions-update-fix
 +++ a/lib/scatterlist.c
-@@ -39,11 +39,11 @@ struct scatterlist *sg_next(struct scatt
- EXPORT_SYMBOL(sg_next);
- 
+@@ -41,7 +41,7 @@ EXPORT_SYMBOL(sg_next);
  /**
-- * sg_advance - advance scatterlist by 'consumed' bytes
-+ * sg_truncate - remove 'consumed' bytes from head of a scatterlist
+  * sg_truncate - remove 'consumed' bytes from head of a scatterlist
   * @sg:		The current sg entry
-- * @consumed:	How much bytes to advance
-+ * @consumed:	How much bytes to remove
+- * @consumed:	How much bytes to remove
++ * @consumed:	How many bytes to remove
   */
--struct scatterlist *sg_advance(struct scatterlist *sg, int consumed)
-+struct scatterlist *sg_truncate(struct scatterlist *sg, int consumed)
+ struct scatterlist *sg_truncate(struct scatterlist *sg, int consumed)
  {
- 	while (consumed >= sg->length) {
- 		consumed -= sg->length;
-@@ -69,7 +69,7 @@ struct scatterlist *sg_advance(struct sc
- 
- 	return sg;
- }
--EXPORT_SYMBOL(sg_advance);
-+EXPORT_SYMBOL(sg_truncate);
- 
- /**
-  * sg_nents - calculate number of sg entries in sg list
-@@ -92,7 +92,7 @@ EXPORT_SYMBOL(sg_nents);
- 
- /**
-  * sg_total_len - calculate total length of scatterlist
-- * @sg: The current sg entry
-+ * @sg:		The current sg entry
-  *
-  * Dynamically calculate total number of bytes in an scatterlist
-  * based on assumption that last entry is correctly marked by sg_mark_end
-@@ -181,35 +181,43 @@ void sg_init_one(struct scatterlist *sg,
+@@ -181,12 +181,12 @@ void sg_init_one(struct scatterlist *sg,
  EXPORT_SYMBOL(sg_init_one);
  
  /**
-- * sg_copy - copy sg entries
-- * @sg_from: source
-- * @sg_to: destination
-- *
-- * Copies from @sg_from to @sg_to.  @sg_to covers first 'len' bytes from
-- * @sg_from.
-+ * sg_copy - copies sg entries from sg_from to sg_to, such
-+ * as sg_to covers first 'len' bytes from sg_from.
-+ * @sg_from:	SG list to copy entries from
-+ * @sg_to:	SG list to write entries to
-+ * @to_nents:	number of usable entries in 'sg_to'
-+ * @len:	maximum number of bytes the 'sg_to' will cover
+- * sg_copy - copies sg entries from sg_from to sg_to, such
+- * as sg_to covers first 'len' bytes from sg_from.
++ * sg_copy - copy sg entries from @sg_from to @sg_to, so that @sg_to contains
++ * the first @len bytes from @sg_from.
+  * @sg_from:	SG list to copy entries from
+  * @sg_to:	SG list to write entries to
+- * @to_nents:	number of usable entries in 'sg_to'
+- * @len:	maximum number of bytes the 'sg_to' will cover
++ * @to_nents:	number of usable entries in @sg_to
++ * @len:	maximum number of bytes the @sg_to will receive
   *
-- * Returns zero on success, else a -ve errno.
-+ * Returns actual number of bytes covered by sg_to
+  * Returns actual number of bytes covered by sg_to
   */
--int sg_copy(struct scatterlist *sg_from, struct scatterlist *sg_to, int len)
-+int sg_copy(struct scatterlist *sg_from, struct scatterlist *sg_to,
-+							int to_nents, int len)
- {
--	while (len > sg_from->length) {
-+	int copied = 0;
-+
-+	while (len > sg_from->length && to_nents--) {
-+
- 		len -= sg_from->length;
-+		copied += sg_from->length;
- 
- 		sg_set_page(sg_to, sg_page(sg_from),
- 				sg_from->length, sg_from->offset);
- 
--		sg_to = sg_next(sg_to);
-+		if (sg_is_last(sg_from) || !len) {
-+			sg_mark_end(sg_to);
-+			return copied;
-+		}
-+
- 		sg_from = sg_next(sg_from);
-+		sg_to = sg_next(sg_to);
-+	}
- 
--		if (len && (!sg_from || !sg_to))
--			return -ENOMEM;
-+	if (to_nents) {
-+		sg_set_page(sg_to, sg_page(sg_from), len, sg_from->offset);
-+		sg_mark_end(sg_to);
- 	}
- 
--	if (len)
--		sg_set_page(sg_to, sg_page(sg_from),
--				len, sg_from->offset);
--	sg_mark_end(sg_to);
--	return 0;
-+	return copied;
- }
- EXPORT_SYMBOL(sg_copy);
- 
-@@ -632,15 +640,15 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
-  *
-  * Returns 0 if equal and memcmp compliant result otherwise
-  */
--bool sg_compare_to_buffer(struct scatterlist *sg, u8 *buffer, size_t len)
-+bool sg_compare_to_buffer(struct scatterlist *sg, unsigned int nents,
-+							u8 *buffer, size_t len)
- {
- 	unsigned long flags;
- 	int retval = 0;
- 	struct sg_mapping_iter miter;
- 
- 	local_irq_save(flags);
--	sg_miter_start(&miter, sg, sg_nents(sg),
--				SG_MITER_ATOMIC | SG_MITER_FROM_SG);
-+	sg_miter_start(&miter, sg, nents, SG_MITER_ATOMIC | SG_MITER_FROM_SG);
- 
- 	while (sg_miter_next(&miter) && len > 0) {
- 
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-maintainers-update-media-path.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-kbuild-reenable-section-mismatch-analysis.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+mm-vmap-area-cache.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
 scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update.patch
 scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks.patch
-memstick-add-support-for-legacy-memorysticks-update-2.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader.patch
-memstick-add-alex-dubov-to-maintainers-of-the-memstick-core.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
