@@ -1,72 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-dca-dca-corec-use-list_move-instead-of-list_del-list_add-combination.patch added to -mm tree
-Date: Tue, 15 Mar 2011 16:18:16 -0700
-Message-ID: <201103152318.p2FNIGsh018377@imap1.linux-foundation.org>
+Subject: [folded] memstick-add-support-for-legacy-memorysticks-update.patch removed from -mm tree
+Date: Tue, 15 Mar 2011 17:53:47 -0700
+Message-ID: <201103160056.p2G0txUC022537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751540Ab1COXSp (ORCPT
+	by vger.kernel.org with ESMTP id S1751776Ab1CPA4E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Mar 2011 19:18:45 -0400
+	Tue, 15 Mar 2011 20:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, maciej.sosnowski@intel.com
+To: maximlevitsky@gmail.com, fujita.tomonori@lab.ntt.co.jp, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/dca/dca-core.c: use list_move() instead of list_del()/list_add() combination
-has been added to the -mm tree.  Its filename is
-     drivers-dca-dca-corec-use-list_move-instead-of-list_del-list_add-combination.patch
+     memstick-add-support-for-legacy-memorysticks-update
+has been removed from the -mm tree.  Its filename was
+     memstick-add-support-for-legacy-memorysticks-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into memstick-add-support-for-legacy-memorysticks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/dca/dca-core.c: use list_move() instead of list_del()/list_add() combination
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: memstick-add-support-for-legacy-memorysticks-update
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dca/dca-core.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/memstick/core/ms_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dca/dca-core.c~drivers-dca-dca-corec-use-list_move-instead-of-list_del-list_add-combination drivers/dca/dca-core.c
---- a/drivers/dca/dca-core.c~drivers-dca-dca-corec-use-list_move-instead-of-list_del-list_add-combination
-+++ a/drivers/dca/dca-core.c
-@@ -111,10 +111,8 @@ static void unregister_dca_providers(voi
- 	/* at this point only one domain in the list is expected */
- 	domain = list_first_entry(&dca_domains, struct dca_domain, node);
+diff -puN drivers/memstick/core/ms_block.c~memstick-add-support-for-legacy-memorysticks-update drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-add-support-for-legacy-memorysticks-update
++++ a/drivers/memstick/core/ms_block.c
+@@ -1354,7 +1354,7 @@ static int msb_ftl_scan(struct msb_data 
+ 			continue;
+ 		}
  
--	list_for_each_entry_safe(dca, _dca, &domain->dca_providers, node) {
--		list_del(&dca->node);
--		list_add(&dca->node, &unregistered_providers);
--	}
-+	list_for_each_entry_safe(dca, _dca, &domain->dca_providers, node)
-+		list_move(&dca->node, &unregistered_providers);
- 
- 	dca_free_domain(domain);
+-		ms_printk("collision between blocks %d and %d with"
++		ms_printk("collision between blocks %d and %d,"
+ 		" without stable flag set on both, erasing pba %d",
+ 				pba, other_block, other_block);
  
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
-cgroups-if-you-list_empty-a-head-then-dont-list_del-it.patch
-mm-page_allocc-use-list_move-instead-of-list_del-list_add-combination.patch
-drivers-dca-dca-corec-use-list_move-instead-of-list_del-list_add-combination.patch
-listh-add-debug-version-of-list_empty.patch
+linux-next.patch
+maintainers-update-media-path.patch
+scatterlist-new-helper-functions.patch
+memstick-add-support-for-legacy-memorysticks.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader.patch
+memstick-add-alex-dubov-to-maintainers-of-the-memstick-core.patch
 
