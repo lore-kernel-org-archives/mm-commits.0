@@ -1,78 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] target-fix-read_capacity_16-regression.patch removed from -mm tree
-Date: Wed, 16 Mar 2011 15:55:47 -0700
-Message-ID: <201103162258.p2GMw9kW017078@imap1.linux-foundation.org>
+Subject: [merged] gpio-use-__devexit-at-necessary-places.patch removed from -mm tree
+Date: Wed, 16 Mar 2011 15:55:50 -0700
+Message-ID: <201103162258.p2GMwCwG017085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36411 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751218Ab1CPW6U (ORCPT
+	by vger.kernel.org with ESMTP id S1752077Ab1CPW6a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Mar 2011 18:58:20 -0400
+	Wed, 16 Mar 2011 18:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nab@linux-iscsi.org, bjarvismn@gmail.com, hch@lst.de, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, info@mocean-labs.com, miguel.gaio@efixo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     target: fix READ_CAPACITY_16 regression
+     gpio: use  __devexit at necessary places
 has been removed from the -mm tree.  Its filename was
-     target-fix-read_capacity_16-regression.patch
+     gpio-use-__devexit-at-necessary-places.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: target: fix READ_CAPACITY_16 regression
-From: Nicholas Bellinger <nab@linux-iscsi.org>
+Subject: gpio: use  __devexit at necessary places
+From: Axel Lin <axel.lin@gmail.com>
 
-Fix a regression for READ_CAPACITY to trigger SAI READ_CAPACITY_16 for >=
-0xffffffff virtual backends.  This occured during v4.0.0-rc6 when the
-backend read_capacity* handlers where moved into generic target_core_cdb.c
-code, and the 'unsigned long long blocks_long' piece was dropped from
-target_emulate_readcapacity().
+gen_74x164_remove() and mc33880_remove() are used only wrapped by
+__devexit_p so define them using __devexit.
 
-This fix has been tested with TCM_Loop on .38-rc7 with lio-4.1 and is
-working as expected with large block virtual backends:
-
-[67826.897061] TARGET_CORE[loopback]->TPG[1]_LUN[0] - Adding READ-WRITE access for LUN in Demo Mode
-[67826.897061] scsi 7:0:1:0: Direct-Access     LIO-ORG  FILEIO           4.0  PQ: 0 ANSI: 5
-[67826.900933] sd 7:0:1:0: [sdd] 2621440000001 512-byte logical blocks: (1.34 PB/1.19 PiB)
-[67826.901510] sd 7:0:1:0: [sdd] Write Protect is off
-[67826.901684] sd 7:0:1:0: [sdd] Mode Sense: 2f 00 00 00
-
-Reported-by: Ben Jarvis <bjarvismn@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Nicholas A. Bellinger <nab@linux-iscsi.org>
-Cc James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Miguel Gaio <miguel.gaio@efixo.com>
+Cc: Mocean Laboratories <info@mocean-labs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/target/target_core_cdb.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/gpio/74x164.c  |    2 +-
+ drivers/gpio/mc33880.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/target/target_core_cdb.c~target-fix-read_capacity_16-regression drivers/target/target_core_cdb.c
---- a/drivers/target/target_core_cdb.c~target-fix-read_capacity_16-regression
-+++ a/drivers/target/target_core_cdb.c
-@@ -667,7 +667,13 @@ target_emulate_readcapacity(struct se_cm
- {
- 	struct se_device *dev = SE_DEV(cmd);
- 	unsigned char *buf = cmd->t_task->t_task_buf;
--	u32 blocks = dev->transport->get_blocks(dev);
-+	unsigned long long blocks_long = dev->transport->get_blocks(dev);
-+	u32 blocks;
-+
-+	if (blocks_long >= 0x00000000ffffffff)
-+		blocks = 0xffffffff;
-+	else
-+		blocks = (u32)blocks_long;
+diff -puN drivers/gpio/74x164.c~gpio-use-__devexit-at-necessary-places drivers/gpio/74x164.c
+--- a/drivers/gpio/74x164.c~gpio-use-__devexit-at-necessary-places
++++ a/drivers/gpio/74x164.c
+@@ -133,7 +133,7 @@ exit_destroy:
+ 	return ret;
+ }
  
- 	buf[0] = (blocks >> 24) & 0xff;
- 	buf[1] = (blocks >> 16) & 0xff;
+-static int gen_74x164_remove(struct spi_device *spi)
++static int __devexit gen_74x164_remove(struct spi_device *spi)
+ {
+ 	struct gen_74x164_chip *chip;
+ 	int ret;
+diff -puN drivers/gpio/mc33880.c~gpio-use-__devexit-at-necessary-places drivers/gpio/mc33880.c
+--- a/drivers/gpio/mc33880.c~gpio-use-__devexit-at-necessary-places
++++ a/drivers/gpio/mc33880.c
+@@ -146,7 +146,7 @@ exit_destroy:
+ 	return ret;
+ }
+ 
+-static int mc33880_remove(struct spi_device *spi)
++static int __devexit mc33880_remove(struct spi_device *spi)
+ {
+ 	struct mc33880 *mc;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from nab@linux-iscsi.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
+drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+drivers-misc-atmel_tclibc-fix-a-memory-leak.patch
 
