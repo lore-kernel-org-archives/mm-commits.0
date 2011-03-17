@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-warn-about-memset-with-swapped-arguments.patch added to -mm tree
-Date: Thu, 17 Mar 2011 14:17:51 -0700
-Message-ID: <201103172117.p2HLHpDG010970@imap1.linux-foundation.org>
+Subject: + drivers-misc-pch_phubc-add-module_device_table.patch added to -mm tree
+Date: Thu, 17 Mar 2011 14:24:42 -0700
+Message-ID: <201103172124.p2HLOgBn011267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755473Ab1CQVSr (ORCPT
+	by vger.kernel.org with ESMTP id S1755673Ab1CQVYw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Mar 2011 17:18:47 -0400
+	Thu, 17 Mar 2011 17:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, apw@shadowen.org, rostedt@goodmis.org
+Cc: axel.lin@gmail.com, gregkh@suse.de, masa-korg@dsn.okisemi.com
 
 
 The patch titled
-     checkpatch: warn about memset with swapped arguments
+     drivers/misc/pch_phub.c: add MODULE_DEVICE_TABLE
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-about-memset-with-swapped-arguments.patch
+     drivers-misc-pch_phubc-add-module_device_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: warn about memset with swapped arguments
-From: Dave Jones <davej@redhat.com>
+Subject: drivers/misc/pch_phub.c: add MODULE_DEVICE_TABLE
+From: Axel Lin <axel.lin@gmail.com>
 
-Because the second and third arguments of memset have the same type, it
-turns out to be really easy to mix them up.
+The device table is required to load modules based on modaliases.
 
-This bug comes up time after time, so checkpatch should really be checking
-for it at patch submission time.
-
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Masayuki Ohtak <masa-korg@dsn.okisemi.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/misc/pch_phub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-about-memset-with-swapped-arguments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-about-memset-with-swapped-arguments
-+++ a/scripts/checkpatch.pl
-@@ -2902,6 +2902,11 @@ sub process {
- 		    $line =~ /DEVICE_ATTR.*S_IWUGO/ ) {
- 			WARN("Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 		}
-+
-+		# Check for memset with swapped arguments
-+		if ($line =~ /memset.*\,(\ |)(0x|)0(\ |0|)\);/) {
-+			ERROR("memset size is 3rd argument, not the second.\n" . $herecurr);
-+		}
- 	}
+diff -puN drivers/misc/pch_phub.c~drivers-misc-pch_phubc-add-module_device_table drivers/misc/pch_phub.c
+--- a/drivers/misc/pch_phub.c~drivers-misc-pch_phubc-add-module_device_table
++++ a/drivers/misc/pch_phub.c
+@@ -731,6 +731,7 @@ static struct pci_device_id pch_phub_pci
+ 	{ PCI_VDEVICE(ROHM, PCI_DEVICE_ID_ROHM_ML7213_PHUB), 2,  },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(pci, pch_phub_pcidev_id);
  
- 	# If we have no input at all, then there is nothing to report on
+ static struct pci_driver pch_phub_driver = {
+ 	.name = "pch_phub",
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
 linux-next.patch
-checkpatch-warn-about-memset-with-swapped-arguments.patch
+drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+drivers-misc-atmel_tclibc-fix-a-memory-leak.patch
+drivers-misc-pch_phubc-add-module_device_table.patch
 
