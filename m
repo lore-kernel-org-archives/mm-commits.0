@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-pch_phubc-add-module_device_table.patch added to -mm tree
-Date: Thu, 17 Mar 2011 14:24:42 -0700
-Message-ID: <201103172124.p2HLOgBn011267@imap1.linux-foundation.org>
+Subject: + um-remove-file-pointer-from-ioctl.patch added to -mm tree
+Date: Thu, 17 Mar 2011 15:35:46 -0700
+Message-ID: <201103172235.p2HMZkv2015011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755673Ab1CQVYw (ORCPT
+	by vger.kernel.org with ESMTP id S1754180Ab1CQWgd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Mar 2011 17:24:52 -0400
+	Thu, 17 Mar 2011 18:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, gregkh@suse.de, masa-korg@dsn.okisemi.com
+Cc: richard@nod.at, alan@lxorguk.ukuu.org.uk, greg@kroah.com, jdike@addtoit.com
 
 
 The patch titled
-     drivers/misc/pch_phub.c: add MODULE_DEVICE_TABLE
+     um: remove file pointer from ioctl
 has been added to the -mm tree.  Its filename is
-     drivers-misc-pch_phubc-add-module_device_table.patch
+     um-remove-file-pointer-from-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/pch_phub.c: add MODULE_DEVICE_TABLE
-From: Axel Lin <axel.lin@gmail.com>
+Subject: um: remove file pointer from ioctl
+From: Richard Weinberger <richard@nod.at>
 
-The device table is required to load modules based on modaliases.
+Commit 6caa76b ("tty: now phase out the ioctl file pointer for good")
+removed the ioctl file pointer.  User Mode Linux's line driver uses this
+ioctl and needs a signature update too.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Masayuki Ohtak <masa-korg@dsn.okisemi.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/pch_phub.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/drivers/line.c        |    4 ++--
+ arch/um/include/shared/line.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/pch_phub.c~drivers-misc-pch_phubc-add-module_device_table drivers/misc/pch_phub.c
---- a/drivers/misc/pch_phub.c~drivers-misc-pch_phubc-add-module_device_table
-+++ a/drivers/misc/pch_phub.c
-@@ -731,6 +731,7 @@ static struct pci_device_id pch_phub_pci
- 	{ PCI_VDEVICE(ROHM, PCI_DEVICE_ID_ROHM_ML7213_PHUB), 2,  },
- 	{ }
+diff -puN arch/um/drivers/line.c~um-remove-file-pointer-from-ioctl arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~um-remove-file-pointer-from-ioctl
++++ a/arch/um/drivers/line.c
+@@ -255,8 +255,8 @@ static const struct {
+ 	{ KDSIGACCEPT, KERN_INFO,  "KDSIGACCEPT" },
  };
-+MODULE_DEVICE_TABLE(pci, pch_phub_pcidev_id);
  
- static struct pci_driver pch_phub_driver = {
- 	.name = "pch_phub",
+-int line_ioctl(struct tty_struct *tty, struct file * file,
+-	       unsigned int cmd, unsigned long arg)
++int line_ioctl(struct tty_struct *tty, unsigned int cmd,
++				unsigned long arg)
+ {
+ 	int ret;
+ 	int i;
+diff -puN arch/um/include/shared/line.h~um-remove-file-pointer-from-ioctl arch/um/include/shared/line.h
+--- a/arch/um/include/shared/line.h~um-remove-file-pointer-from-ioctl
++++ a/arch/um/include/shared/line.h
+@@ -77,8 +77,8 @@ extern int line_chars_in_buffer(struct t
+ extern void line_flush_buffer(struct tty_struct *tty);
+ extern void line_flush_chars(struct tty_struct *tty);
+ extern int line_write_room(struct tty_struct *tty);
+-extern int line_ioctl(struct tty_struct *tty, struct file * file,
+-		      unsigned int cmd, unsigned long arg);
++extern int line_ioctl(struct tty_struct *tty, unsigned int cmd,
++				unsigned long arg);
+ extern void line_throttle(struct tty_struct *tty);
+ extern void line_unthrottle(struct tty_struct *tty);
+ 
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-linux-next.patch
-drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
-drivers-misc-atmel_tclibc-fix-a-memory-leak.patch
-drivers-misc-pch_phubc-add-module_device_table.patch
+um-remove-file-pointer-from-ioctl.patch
+sysctl-restrict-write-access-to-dmesg_restrict.patch
 
