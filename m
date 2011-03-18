@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch removed from -mm tree
-Date: Fri, 18 Mar 2011 11:41:50 -0700
-Message-ID: <201103181844.p2IIiWp8004653@imap1.linux-foundation.org>
+Subject: [merged] kernel-gcov-makefile-use-proper-ccflag-flag-in-makefile.patch removed from -mm tree
+Date: Fri, 18 Mar 2011 11:42:24 -0700
+Message-ID: <201103181845.p2IIj6aH004680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756523Ab1CRSof (ORCPT
+	by vger.kernel.org with ESMTP id S1753937Ab1CRSpj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Mar 2011 14:44:35 -0400
+	Fri, 18 Mar 2011 14:45:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: tdent48227@gmail.com, oberpar@linux.vnet.ibm.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
+     kernel/gcov/Makefile: use proper ccflag flag in Makefile
 has been removed from the -mm tree.  Its filename was
-     vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
+     kernel-gcov-makefile-use-proper-ccflag-flag-in-makefile.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: kernel/gcov/Makefile: use proper ccflag flag in Makefile
+From: Tracey Dent <tdent48227@gmail.com>
 
-Now a successful sb_prepare_remount_readonly() should ensure that no
-writable files remain for this superblock.  So turn this check into a
-WARN_ON.
+Use the ccflags-y flag instead of EXTRA_CFLAGS because EXTRA_CFLAGS is
+deprecated and should now be switched.  According to
+(documentation/kbuild/makefiles.txt)
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/gcov/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on fs/file_table.c
---- a/fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on
-+++ a/fs/file_table.c
-@@ -439,8 +439,11 @@ int fs_may_remount_ro(struct super_block
- 		if (inode->i_nlink == 0)
- 			goto too_bad;
+diff -puN kernel/gcov/Makefile~kernel-gcov-makefile-use-proper-ccflag-flag-in-makefile kernel/gcov/Makefile
+--- a/kernel/gcov/Makefile~kernel-gcov-makefile-use-proper-ccflag-flag-in-makefile
++++ a/kernel/gcov/Makefile
+@@ -1,3 +1,3 @@
+-EXTRA_CFLAGS := -DSRCTREE='"$(srctree)"' -DOBJTREE='"$(objtree)"'
++ccflags-y := -DSRCTREE='"$(srctree)"' -DOBJTREE='"$(objtree)"'
  
--		/* Writeable file? */
--		if (S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE))
-+		/*
-+		 * Writable file?
-+		 * Should be caught by sb_prepare_remount_readonly().
-+		 */
-+		if (WARN_ON(S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE)))
- 			goto too_bad;
- 	} while_file_list_for_each_entry;
- 	lg_global_unlock(files_lglock);
+ obj-$(CONFIG_GCOV_KERNEL) := base.o fs.o gcc_3_4.o
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from tdent48227@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-add-replace_page_cache_page-function.patch
-mm-add-replace_page_cache_page-function-add-freepage-hook.patch
 
