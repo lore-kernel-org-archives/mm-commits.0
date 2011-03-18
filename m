@@ -1,120 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] vfs-keep-list-of-mounts-for-each-superblock.patch removed from -mm tree
-Date: Fri, 18 Mar 2011 11:41:48 -0700
-Message-ID: <201103181844.p2IIiU8x004647@imap1.linux-foundation.org>
+Subject: [wrecked] vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch removed from -mm tree
+Date: Fri, 18 Mar 2011 11:41:50 -0700
+Message-ID: <201103181844.p2IIiWp8004653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755357Ab1CRSoc (ORCPT
+	by vger.kernel.org with ESMTP id S1756523Ab1CRSof (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Mar 2011 14:44:32 -0400
+	Fri, 18 Mar 2011 14:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: keep list of mounts for each superblock
+     vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
 has been removed from the -mm tree.  Its filename was
-     vfs-keep-list-of-mounts-for-each-superblock.patch
+     vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: keep list of mounts for each superblock
+Subject: vfs: fs_may_remount_ro: turn unnecessary check into a WARN_ON
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Keep track of vfsmounts belonging to a superblock.  List is protected by
-vfsmount_lock.
+Now a successful sb_prepare_remount_readonly() should ensure that no
+writable files remain for this superblock.  So turn this check into a
+WARN_ON.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |    5 +++++
- fs/super.c            |    7 +++++++
- include/linux/fs.h    |    1 +
- include/linux/mount.h |    1 +
- 4 files changed, 14 insertions(+)
+ fs/file_table.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock fs/namespace.c
---- a/fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/fs/namespace.c
-@@ -723,6 +723,10 @@ static struct vfsmount *clone_mnt(struct
- 			if (!list_empty(&old->mnt_expire))
- 				list_add(&mnt->mnt_expire, &old->mnt_expire);
- 		}
-+
-+		br_write_lock(vfsmount_lock);
-+		list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+		br_write_unlock(vfsmount_lock);
- 	}
- 	return mnt;
+diff -puN fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on fs/file_table.c
+--- a/fs/file_table.c~vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on
++++ a/fs/file_table.c
+@@ -439,8 +439,11 @@ int fs_may_remount_ro(struct super_block
+ 		if (inode->i_nlink == 0)
+ 			goto too_bad;
  
-@@ -783,6 +787,7 @@ put_again:
- 		acct_auto_close_mnt(mnt);
- 		goto put_again;
- 	}
-+	list_del(&mnt->mnt_instance);
- 	br_write_unlock(vfsmount_lock);
- 	mntfree(mnt);
- }
-diff -puN fs/super.c~vfs-keep-list-of-mounts-for-each-superblock fs/super.c
---- a/fs/super.c~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/fs/super.c
-@@ -76,6 +76,7 @@ static struct super_block *alloc_super(s
- 		INIT_HLIST_BL_HEAD(&s->s_anon);
- 		INIT_LIST_HEAD(&s->s_inodes);
- 		INIT_LIST_HEAD(&s->s_dentry_lru);
-+		INIT_LIST_HEAD(&s->s_mounts);
- 		init_rwsem(&s->s_umount);
- 		mutex_init(&s->s_lock);
- 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
-@@ -130,6 +131,7 @@ static inline void destroy_super(struct 
- 	free_percpu(s->s_files);
- #endif
- 	security_sb_free(s);
-+	WARN_ON(!list_empty(&s->s_mounts));
- 	kfree(s->s_subtype);
- 	kfree(s->s_options);
- 	kfree(s);
-@@ -1027,6 +1029,11 @@ vfs_kern_mount(struct file_system_type *
- 	mnt->mnt_parent = mnt;
- 	up_write(&mnt->mnt_sb->s_umount);
- 	free_secdata(secdata);
-+
-+	br_write_lock(vfsmount_lock);
-+	list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+	br_write_unlock(vfsmount_lock);
-+
- 	return mnt;
- out_sb:
- 	dput(mnt->mnt_root);
-diff -puN include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/fs.h
---- a/include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/include/linux/fs.h
-@@ -1386,6 +1386,7 @@ struct super_block {
- #else
- 	struct list_head	s_files;
- #endif
-+	struct list_head	s_mounts;	/* list of mounts */
- 	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
- 	struct list_head	s_dentry_lru;	/* unused dentry lru */
- 	int			s_nr_dentry_unused;	/* # of dentry on lru */
-diff -puN include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/mount.h
---- a/include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/include/linux/mount.h
-@@ -67,6 +67,7 @@ struct vfsmount {
- #endif
- 	struct list_head mnt_mounts;	/* list of children, anchored here */
- 	struct list_head mnt_child;	/* and going through their mnt_child */
-+	struct list_head mnt_instance;	/* mount instance on sb->s_mounts */
- 	int mnt_flags;
- 	/* 4 bytes hole on 64bits arches without fsnotify */
- #ifdef CONFIG_FSNOTIFY
+-		/* Writeable file? */
+-		if (S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE))
++		/*
++		 * Writable file?
++		 * Should be caught by sb_prepare_remount_readonly().
++		 */
++		if (WARN_ON(S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE)))
+ 			goto too_bad;
+ 	} while_file_list_for_each_entry;
+ 	lg_global_unlock(files_lglock);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -123,6 +63,4 @@ origin.patch
 linux-next.patch
 mm-add-replace_page_cache_page-function.patch
 mm-add-replace_page_cache_page-function-add-freepage-hook.patch
-vfs-protect-remounting-superblock-read-only.patch
-vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
 
