@@ -1,197 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] vfs-protect-remounting-superblock-read-only.patch removed from -mm tree
-Date: Fri, 18 Mar 2011 11:41:49 -0700
-Message-ID: <201103181844.p2IIiV4k004650@imap1.linux-foundation.org>
+Subject: [wrecked] vfs-keep-list-of-mounts-for-each-superblock.patch removed from -mm tree
+Date: Fri, 18 Mar 2011 11:41:48 -0700
+Message-ID: <201103181844.p2IIiU8x004647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756345Ab1CRSoe (ORCPT
+	by vger.kernel.org with ESMTP id S1755357Ab1CRSoc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Mar 2011 14:44:34 -0400
+	Fri, 18 Mar 2011 14:44:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: protect remounting superblock read-only
+     vfs: keep list of mounts for each superblock
 has been removed from the -mm tree.  Its filename was
-     vfs-protect-remounting-superblock-read-only.patch
+     vfs-keep-list-of-mounts-for-each-superblock.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: protect remounting superblock read-only
+Subject: vfs: keep list of mounts for each superblock
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Currently remouting superblock read-only is racy in a major way.
-
-With the per mount read-only infrastructure it is now possible to prevent
-most races, which this patch attempts.
-
-Before starting the remount read-only, iterate through all mounts
-belonging to the superblock and if none of them have any pending writes,
-set sb->s_readonly_remount.  This indicates that remount is in progress
-and no further write requests are allowed.  If the remount succeeds set
-MS_RDONLY and reset s_readonly_remount.
-
-If the remounting is unsuccessful just reset s_readonly_remount.  This can
-result in transient EROFS errors, despite the fact the remount failed. 
-Unfortunately hodling off writes is difficult as remount itself may touch
-the filesystem (e.g.  through load_nls()) which would deadlock.
-
-Small races still remain because delayed writes due to nlink going to zero
-but inode still having a reference are not dealt with by this patch.
+Keep track of vfsmounts belonging to a superblock.  List is protected by
+vfsmount_lock.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/internal.h      |    1 +
- fs/namespace.c     |   40 +++++++++++++++++++++++++++++++++++++++-
- fs/super.c         |   22 ++++++++++++++++++----
- include/linux/fs.h |    3 +++
- 4 files changed, 61 insertions(+), 5 deletions(-)
+ fs/namespace.c        |    5 +++++
+ fs/super.c            |    7 +++++++
+ include/linux/fs.h    |    1 +
+ include/linux/mount.h |    1 +
+ 4 files changed, 14 insertions(+)
 
-diff -puN fs/internal.h~vfs-protect-remounting-superblock-read-only fs/internal.h
---- a/fs/internal.h~vfs-protect-remounting-superblock-read-only
-+++ a/fs/internal.h
-@@ -74,6 +74,7 @@ extern int finish_automount(struct vfsmo
- 
- extern void mnt_make_longterm(struct vfsmount *);
- extern void mnt_make_shortterm(struct vfsmount *);
-+extern int sb_prepare_remount_readonly(struct super_block *);
- 
- extern void __init mnt_init(void);
- 
-diff -puN fs/namespace.c~vfs-protect-remounting-superblock-read-only fs/namespace.c
---- a/fs/namespace.c~vfs-protect-remounting-superblock-read-only
+diff -puN fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock fs/namespace.c
+--- a/fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock
 +++ a/fs/namespace.c
-@@ -311,6 +311,15 @@ static unsigned int mnt_get_writers(stru
- #endif
- }
- 
-+static int mnt_is_readonly(struct vfsmount *mnt)
-+{
-+	if (mnt->mnt_sb->s_readonly_remount)
-+		return 1;
-+	/* Order wrt setting s_flags/s_readonly_remount in do_remount() */
-+	smp_rmb();
-+	return __mnt_is_readonly(mnt);
-+}
+@@ -723,6 +723,10 @@ static struct vfsmount *clone_mnt(struct
+ 			if (!list_empty(&old->mnt_expire))
+ 				list_add(&mnt->mnt_expire, &old->mnt_expire);
+ 		}
 +
- /*
-  * Most r/o checks on a fs are for operations that take
-  * discrete amounts of time, like a write() or unlink().
-@@ -349,7 +358,7 @@ int mnt_want_write(struct vfsmount *mnt)
- 	 * MNT_WRITE_HOLD is cleared.
- 	 */
- 	smp_rmb();
--	if (__mnt_is_readonly(mnt)) {
-+	if (mnt_is_readonly(mnt)) {
- 		mnt_dec_writers(mnt);
- 		ret = -EROFS;
- 		goto out;
-@@ -466,6 +475,35 @@ static void __mnt_unmake_readonly(struct
- 	br_write_unlock(vfsmount_lock);
- }
++		br_write_lock(vfsmount_lock);
++		list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
++		br_write_unlock(vfsmount_lock);
+ 	}
+ 	return mnt;
  
-+int sb_prepare_remount_readonly(struct super_block *sb)
-+{
-+	struct vfsmount *mnt;
-+	int err = 0;
+@@ -783,6 +787,7 @@ put_again:
+ 		acct_auto_close_mnt(mnt);
+ 		goto put_again;
+ 	}
++	list_del(&mnt->mnt_instance);
+ 	br_write_unlock(vfsmount_lock);
+ 	mntfree(mnt);
+ }
+diff -puN fs/super.c~vfs-keep-list-of-mounts-for-each-superblock fs/super.c
+--- a/fs/super.c~vfs-keep-list-of-mounts-for-each-superblock
++++ a/fs/super.c
+@@ -76,6 +76,7 @@ static struct super_block *alloc_super(s
+ 		INIT_HLIST_BL_HEAD(&s->s_anon);
+ 		INIT_LIST_HEAD(&s->s_inodes);
+ 		INIT_LIST_HEAD(&s->s_dentry_lru);
++		INIT_LIST_HEAD(&s->s_mounts);
+ 		init_rwsem(&s->s_umount);
+ 		mutex_init(&s->s_lock);
+ 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
+@@ -130,6 +131,7 @@ static inline void destroy_super(struct 
+ 	free_percpu(s->s_files);
+ #endif
+ 	security_sb_free(s);
++	WARN_ON(!list_empty(&s->s_mounts));
+ 	kfree(s->s_subtype);
+ 	kfree(s->s_options);
+ 	kfree(s);
+@@ -1027,6 +1029,11 @@ vfs_kern_mount(struct file_system_type *
+ 	mnt->mnt_parent = mnt;
+ 	up_write(&mnt->mnt_sb->s_umount);
+ 	free_secdata(secdata);
 +
 +	br_write_lock(vfsmount_lock);
-+	list_for_each_entry(mnt, &sb->s_mounts, mnt_instance) {
-+		if (!(mnt->mnt_flags & MNT_READONLY)) {
-+			mnt->mnt_flags |= MNT_WRITE_HOLD;
-+			smp_mb();
-+			if (mnt_get_writers(mnt) > 0) {
-+				err = -EBUSY;
-+				break;
-+			}
-+		}
-+	}
-+	if (!err) {
-+		sb->s_readonly_remount = 1;
-+		smp_wmb();
-+	}
-+	list_for_each_entry(mnt, &sb->s_mounts, mnt_instance) {
-+		if (mnt->mnt_flags & MNT_WRITE_HOLD)
-+			mnt->mnt_flags &= ~MNT_WRITE_HOLD;
-+	}
++	list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
 +	br_write_unlock(vfsmount_lock);
 +
-+	return err;
-+}
-+
- void simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
- {
- 	mnt->mnt_sb = sb;
-diff -puN fs/super.c~vfs-protect-remounting-superblock-read-only fs/super.c
---- a/fs/super.c~vfs-protect-remounting-superblock-read-only
-+++ a/fs/super.c
-@@ -582,19 +582,29 @@ int do_remount_sb(struct super_block *sb
- 	/* If we are remounting RDONLY and current sb is read/write,
- 	   make sure there are no rw files opened */
- 	if (remount_ro) {
--		if (force)
-+		if (force) {
- 			mark_files_ro(sb);
--		else if (!fs_may_remount_ro(sb))
--			return -EBUSY;
-+		} else {
-+			retval = sb_prepare_remount_readonly(sb);
-+			if (retval)
-+				return retval;
-+
-+			retval = -EBUSY;
-+			if (!fs_may_remount_ro(sb))
-+				goto cancel_readonly;
-+		}
- 	}
- 
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
- 		/* If forced remount, go ahead despite any errors */
- 		if (retval && !force)
--			return retval;
-+			goto cancel_readonly;
- 	}
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
-+	/* Needs to be ordered wrt mnt_is_readonly() */
-+	smp_wmb();
-+	sb->s_readonly_remount = 0;
- 
- 	/*
- 	 * Some filesystems modify their metadata via some other path than the
-@@ -607,6 +617,10 @@ int do_remount_sb(struct super_block *sb
- 	if (remount_ro && sb->s_bdev)
- 		invalidate_bdev(sb->s_bdev);
- 	return 0;
-+
-+cancel_readonly:
-+	sb->s_readonly_remount = 0;
-+	return retval;
- }
- 
- static void do_emergency_remount(struct work_struct *work)
-diff -puN include/linux/fs.h~vfs-protect-remounting-superblock-read-only include/linux/fs.h
---- a/include/linux/fs.h~vfs-protect-remounting-superblock-read-only
+ 	return mnt;
+ out_sb:
+ 	dput(mnt->mnt_root);
+diff -puN include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/fs.h
+--- a/include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock
 +++ a/include/linux/fs.h
-@@ -1432,6 +1432,9 @@ struct super_block {
- 	 * Saved pool identifier for cleancache (-1 means none)
- 	 */
- 	int cleancache_poolid;
-+
-+	/* Being remounted read-only */
-+	int s_readonly_remount;
- };
- 
- extern struct timespec current_fs_time(struct super_block *sb);
+@@ -1386,6 +1386,7 @@ struct super_block {
+ #else
+ 	struct list_head	s_files;
+ #endif
++	struct list_head	s_mounts;	/* list of mounts */
+ 	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
+ 	struct list_head	s_dentry_lru;	/* unused dentry lru */
+ 	int			s_nr_dentry_unused;	/* # of dentry on lru */
+diff -puN include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/mount.h
+--- a/include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock
++++ a/include/linux/mount.h
+@@ -67,6 +67,7 @@ struct vfsmount {
+ #endif
+ 	struct list_head mnt_mounts;	/* list of children, anchored here */
+ 	struct list_head mnt_child;	/* and going through their mnt_child */
++	struct list_head mnt_instance;	/* mount instance on sb->s_mounts */
+ 	int mnt_flags;
+ 	/* 4 bytes hole on 64bits arches without fsnotify */
+ #ifdef CONFIG_FSNOTIFY
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -200,5 +123,6 @@ origin.patch
 linux-next.patch
 mm-add-replace_page_cache_page-function.patch
 mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+vfs-protect-remounting-superblock-read-only.patch
 vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
 
