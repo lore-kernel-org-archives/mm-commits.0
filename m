@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-change-page_cgroup_zoneinfo-signature-fix.patch added to -mm tree
-Date: Mon, 21 Mar 2011 15:51:38 -0700
-Message-ID: <201103212326.p2LNQoC0031994@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Mon, 21 Mar 2011 15:50:26 -0700
+Message-ID: <201103212325.p2LNPbUo031940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932321Ab1CUX1k (ORCPT
+	by vger.kernel.org with ESMTP id S932341Ab1CUX0H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Mar 2011 19:27:40 -0400
+	Mon, 21 Mar 2011 19:26:07 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p2LNPdYd027281
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2011 16:25:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memcg-change-page_cgroup_zoneinfo-signature-fix
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     memcg-change-page_cgroup_zoneinfo-signature-fix.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +38,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-change-page_cgroup_zoneinfo-signature-fix
+Subject: linux-next-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/truncate.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-change-page_cgroup_zoneinfo-signature-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-change-page_cgroup_zoneinfo-signature-fix
-+++ a/mm/memcontrol.c
-@@ -835,7 +835,7 @@ void mem_cgroup_rotate_reclaimable_page(
- 	smp_rmb();
- 	if (mem_cgroup_is_root(pc->mem_cgroup))
- 		return;
--	mz = page_cgroup_zoneinfo(pc);
-+	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
- 	list_move_tail(&pc->lru, &mz->lists[lru]);
- }
+diff -puN mm/truncate.c~linux-next-rejects mm/truncate.c
+--- a/mm/truncate.c~linux-next-rejects
++++ a/mm/truncate.c
+@@ -109,6 +109,10 @@ truncate_complete_page(struct address_sp
  
+ 	clear_page_mlock(page);
+ 	ClearPageMappedToDisk(page);
++	/* this must be after the remove_from_page_cache which
++	 * calls cleancache_put_page (and note page->mapping is now NULL)
++	 */
++	cleancache_flush_page(mapping, page);
+ 	delete_from_page_cache(page);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +110,6 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
 rtc-driver-for-pt7c4338-chip-fix.patch
-memcg-change-page_cgroup_zoneinfo-signature-fix.patch
 memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
 mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
 cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
