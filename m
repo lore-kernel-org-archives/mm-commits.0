@@ -1,111 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [failures] listh-add-debug-version-of-list_empty.patch removed from -mm tree
-Date: Mon, 21 Mar 2011 16:17:09 -0700
-Message-ID: <201103212352.p2LNqLKw001266@imap1.linux-foundation.org>
+Subject: + documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch added to -mm tree
+Date: Mon, 21 Mar 2011 16:25:59 -0700
+Message-ID: <201103220001.p2M01Afi001974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755277Ab1CUXxL (ORCPT
+	by vger.kernel.org with ESMTP id S1755157Ab1CVALR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Mar 2011 19:53:11 -0400
+	Mon, 21 Mar 2011 20:11:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-phil.2.carmody@nokia.com, andi@firstfloor.org, kirill@shutemov.name, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, gong.chen@linux.intel.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     list.h: add debug version of list_empty
-has been removed from the -mm tree.  Its filename was
-     listh-add-debug-version-of-list_empty.patch
+     documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
+has been added to the -mm tree.  Its filename is
+     documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list.h: add debug version of list_empty
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Heed the notice in list_del: "Note: list_empty() on entry does not return
-true after this, the entry is in an undefined state.", and check for
-precisely that condition.
+Fix debugfs_mount() signature.
 
-There are currently a few instances in the code of this sequence:
+Documentation/vm/page-types.c:537: warning: function declaration isn't a prototype
 
-    if(!list_empty(pnode))
-        list_del(pnode);
-
-which seems to be useless or dangerous if intended to protect from
-repeated del's.  And given that I've seen an oops pointing to a
-dereference of poison in such a list_empty, I'm veering towards dangerous.
-This patch would make such errors obvious.
-
-Nothing is changed in the non-DEBUG_LIST build.
-
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    4 ++++
- lib/list_debug.c     |   18 ++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ Documentation/vm/page-types.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/list.h~listh-add-debug-version-of-list_empty include/linux/list.h
---- a/include/linux/list.h~listh-add-debug-version-of-list_empty
-+++ a/include/linux/list.h
-@@ -183,10 +183,14 @@ static inline int list_is_last(const str
-  * list_empty - tests whether a list is empty
-  * @head: the list to test.
-  */
-+#ifndef CONFIG_DEBUG_LIST
- static inline int list_empty(const struct list_head *head)
- {
- 	return head->next == head;
- }
-+#else
-+extern int list_empty(const struct list_head *head);
-+#endif
+diff -puN Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
++++ a/Documentation/vm/page-types.c
+@@ -533,7 +533,7 @@ static const char *debugfs_find_mountpoi
  
- /**
-  * list_empty_careful - tests whether a list is empty and not being modified
-diff -puN lib/list_debug.c~listh-add-debug-version-of-list_empty lib/list_debug.c
---- a/lib/list_debug.c~listh-add-debug-version-of-list_empty
-+++ a/lib/list_debug.c
-@@ -73,3 +73,21 @@ void list_del(struct list_head *entry)
- 	entry->prev = LIST_POISON2;
- }
- EXPORT_SYMBOL(list_del);
-+
-+/**
-+ * list_empty - tests whether a list is empty
-+ * @head: the list to test.
-+ */
-+int list_empty(const struct list_head *head)
-+{
-+	if ((head->prev == LIST_POISON2) || (head->prev == LIST_POISON1))
-+		WARN(1, "list_empty performed on a node "
-+		     "at %p removed from a list.\n", head);
-+	else
-+		WARN((head->prev == head) != (head->next == head),
-+		     "list_empty corruption. %p<-%p->%p is half-empty.\n",
-+		     head->prev, head, head->next);
-+
-+	return head->next == head;
-+}
-+EXPORT_SYMBOL(list_empty);
+ /* mount the debugfs somewhere if it's not mounted */
+ 
+-static void debugfs_mount()
++static void debugfs_mount(void)
+ {
+ 	const char **ptr;
+ 
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cgroups-if-you-list_empty-a-head-then-dont-list_del-it.patch
-calibrate-extract-fall-back-calculation-into-own-helper.patch
-calibrate-home-in-on-correct-lpj-value-more-quickly.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
+include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+mm-vmap-area-cache.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
 calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
 
