@@ -1,65 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-scsi_transport_iscsic-world-writable-sysfs-priv_sess-file.patch removed from -mm tree
-Date: Mon, 21 Mar 2011 12:16:24 -0700
-Message-ID: <201103211919.p2LJJdLC020214@imap1.linux-foundation.org>
+Subject: + include-asm-generic-unistdh-fix-syncfs-syscall-number.patch added to -mm tree
+Date: Mon, 21 Mar 2011 12:18:06 -0700
+Message-ID: <201103211921.p2LJLKr1020303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753260Ab1CUTUs (ORCPT
+	by vger.kernel.org with ESMTP id S1751541Ab1CUTVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Mar 2011 15:20:48 -0400
+	Mon, 21 Mar 2011 15:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, James.Bottomley@HansenPartnership.com, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, sage@newdream.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     drivers/scsi/scsi_transport_iscsi.c: world-writable sysfs priv_sess file
-has been removed from the -mm tree.  Its filename was
-     drivers-scsi-scsi_transport_iscsic-world-writable-sysfs-priv_sess-file.patch
+     include/asm-generic/unistd.h: fix syncfs syscall number
+has been added to the -mm tree.  Its filename is
+     include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/scsi_transport_iscsi.c: world-writable sysfs priv_sess file
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: include/asm-generic/unistd.h: fix syncfs syscall number
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't allow everybody to change iSCSI settings.
+syncfs() is duplicating name_to_handle_at() due to a merging mistake.
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Sage Weil <sage@newdream.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_transport_iscsi.c |    2 +-
+ include/asm-generic/unistd.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_transport_iscsi.c~drivers-scsi-scsi_transport_iscsic-world-writable-sysfs-priv_sess-file drivers/scsi/scsi_transport_iscsi.c
---- a/drivers/scsi/scsi_transport_iscsi.c~drivers-scsi-scsi_transport_iscsic-world-writable-sysfs-priv_sess-file
-+++ a/drivers/scsi/scsi_transport_iscsi.c
-@@ -1917,7 +1917,7 @@ store_priv_session_##field(struct device
- #define iscsi_priv_session_rw_attr(field, format)			\
- 	iscsi_priv_session_attr_show(field, format)			\
- 	iscsi_priv_session_attr_store(field)				\
--static ISCSI_CLASS_ATTR(priv_sess, field, S_IRUGO | S_IWUGO,		\
-+static ISCSI_CLASS_ATTR(priv_sess, field, S_IRUGO | S_IWUSR,		\
- 			show_priv_session_##field,			\
- 			store_priv_session_##field)
- iscsi_priv_session_rw_attr(recovery_tmo, "%d");
+diff -puN include/asm-generic/unistd.h~include-asm-generic-unistdh-fix-syncfs-syscall-number include/asm-generic/unistd.h
+--- a/include/asm-generic/unistd.h~include-asm-generic-unistdh-fix-syncfs-syscall-number
++++ a/include/asm-generic/unistd.h
+@@ -652,7 +652,7 @@ __SYSCALL(__NR_name_to_handle_at, sys_na
+ __SYSCALL(__NR_open_by_handle_at, sys_open_by_handle_at)
+ #define __NR_clock_adjtime 266
+ __SYSCALL(__NR_clock_adjtime, sys_clock_adjtime)
+-#define __NR_syncfs 264
++#define __NR_syncfs 267
+ __SYSCALL(__NR_syncfs, sys_syncfs)
+ 
+ #undef __NR_syscalls
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files.patch
-drivers-leds-leds-lp5523c-world-writable-engine-sysfs-files.patch
-aic94xx-world-writable-sysfs-update_bios-file.patch
-drivers-misc-ep93xx_pwmc-world-writable-sysfs-files.patch
-drivers-rtc-rtc-ds1511c-world-writable-sysfs-nvram-file.patch
+next-remove-localversion.patch
+revert-kbuild-reenable-section-mismatch-analysis.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-usb-serial-usb_wwanc-unbork.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-convert-bd2802-driver-to-dev_pm_ops-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+mm-vmap-area-cache.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
+userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
+userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
+userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
