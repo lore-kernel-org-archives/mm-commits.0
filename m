@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-modify-configuration-to-support-pci-srio-controller-fix-configuration-option.patch added to -mm tree
-Date: Fri, 18 Mar 2011 14:09:55 -0700
-Message-ID: <201103182109.p2IL9vMm011391@imap1.linux-foundation.org>
+Subject: + shmem-let-shared-anonymous-be-nonlinear-again.patch added to -mm tree
+Date: Sun, 20 Mar 2011 19:09:11 -0700
+Message-ID: <201103210212.p2L2CIhZ007397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757428Ab1CRVKa (ORCPT
+	by vger.kernel.org with ESMTP id S1751827Ab1CUCMZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Mar 2011 17:10:30 -0400
+	Sun, 20 Mar 2011 22:12:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+Cc: hughd@google.com, stable@kernel.org, theonetruekenny@yahoo.com
 
 
 The patch titled
-     RapidIO,powerpc/85xx: fix configuration option
+     shmem: let shared anonymous be nonlinear again
 has been added to the -mm tree.  Its filename is
-     rapidio-modify-configuration-to-support-pci-srio-controller-fix-configuration-option.patch
+     shmem-let-shared-anonymous-be-nonlinear-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: RapidIO,powerpc/85xx: fix configuration option
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: shmem: let shared anonymous be nonlinear again
+From: Hugh Dickins <hughd@google.com>
 
-Follows set of patches in -mm tree. Replaces configuration option
-missed in previous patches.
+Up to 2.6.22, you could use remap_file_pages(2) on a tmpfs file or a
+shared mapping of /dev/zero or a shared anonymous mapping.  In 2.6.23 we
+disabled it by default, but set VM_CAN_NONLINEAR to enable it on safe
+mappings.  We made sure to set it in shmem_mmap() for tmpfs files, but
+missed it in shmem_zero_setup() for the others.  Fix that at last.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-gAcked-byc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: Kenny Simpson <theonetruekenny@yahoo.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/cpu_setup_fsl_booke.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/kernel/cpu_setup_fsl_booke.S~rapidio-modify-configuration-to-support-pci-srio-controller-fix-configuration-option arch/powerpc/kernel/cpu_setup_fsl_booke.S
---- a/arch/powerpc/kernel/cpu_setup_fsl_booke.S~rapidio-modify-configuration-to-support-pci-srio-controller-fix-configuration-option
-+++ a/arch/powerpc/kernel/cpu_setup_fsl_booke.S
-@@ -64,7 +64,7 @@ _GLOBAL(__setup_cpu_e500v2)
- 	bl	__e500_icache_setup
- 	bl	__e500_dcache_setup
- 	bl	__setup_e500_ivors
--#ifdef CONFIG_RAPIDIO
-+#ifdef CONFIG_FSL_RIO
- 	/* Ensure that RFXE is set */
- 	mfspr	r3,SPRN_HID1
- 	oris	r3,r3,HID1_RFXE@h
+diff -puN mm/shmem.c~shmem-let-shared-anonymous-be-nonlinear-again mm/shmem.c
+--- a/mm/shmem.c~shmem-let-shared-anonymous-be-nonlinear-again
++++ a/mm/shmem.c
+@@ -2792,5 +2792,6 @@ int shmem_zero_setup(struct vm_area_stru
+ 		fput(vma->vm_file);
+ 	vma->vm_file = file;
+ 	vma->vm_ops = &shmem_vm_ops;
++	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-rapidio-add-new-sysfs-attributes.patch
-rapidio-add-new-sysfs-attributes-v2.patch
-rapidio-add-rapidio-documentation.patch
-rapidio-add-rapidio-documentation-v2.patch
-rapidio-add-architecture-specific-callbacks.patch
-rapidio-modify-configuration-to-support-pci-srio-controller.patch
-rapidio-modify-configuration-to-support-pci-srio-controller-fix-configuration-option.patch
-rapidio-modify-subsystem-and-driver-initialization-sequence.patch
-rapidio-modify-mport-id-assignment.patch
-rapidio-remove-mport-resource-reservation-from-common-rio-code.patch
+origin.patch
+mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
+oom-prevent-unnecessary-oom-kills-or-kernel-panics.patch
+oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
+mm-vmap-area-cache.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
+mm-introduce-delete_from_page_cache.patch
+mm-hugetlbfs-change-remove_from_page_cache.patch
+mm-shmem-change-remove_from_page_cache.patch
+mm-truncate-change-remove_from_page_cache.patch
+mm-good-bye-remove_from_page_cache.patch
+mm-change-__remove_from_page_cache.patch
+mm-rename-drop_anon_vma-to-put_anon_vma.patch
+mm-move-anon_vma-ref-out-from-under-config_foo.patch
+mm-simplify-anon_vma-refcounts.patch
+mm-remove-worrying-dead-code-from-find_get_pages.patch
+mm-dont-return-0-too-early-from-find_get_pages.patch
+sys_swapon-use-vzalloc-instead-of-vmalloc-memset.patch
+sys_swapon-remove-changelog-from-function-comment.patch
+sys_swapon-do-not-depend-on-type-after-allocation.patch
+sys_swapon-separate-swap_info-allocation.patch
+sys_swapon-simplify-error-return-from-swap_info-allocation.patch
+sys_swapon-simplify-error-flow-in-alloc_swap_info.patch
+sys_swapon-remove-initial-value-of-name-variable.patch
+sys_swapon-move-setting-of-error-nearer-use.patch
+sys_swapon-remove-did_down-variable.patch
+sys_swapon-remove-bdev-variable.patch
+sys_swapon-do-only-cleanup-in-the-cleanup-blocks.patch
+sys_swapon-use-a-single-error-label.patch
+sys_swapon-separate-bdev-claim-and-inode-lock.patch
+sys_swapon-simplify-error-flow-in-claim_swapfile.patch
+sys_swapon-move-setting-of-swapfilepages-near-use.patch
+sys_swapon-separate-parsing-of-swapfile-header.patch
+sys_swapon-simplify-error-flow-in-read_swap_header.patch
+sys_swapon-call-swap_cgroup_swapon-earlier.patch
+sys_swapon-separate-parsing-of-bad-blocks-and-extents.patch
+sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch
+sys_swapon-remove-nr_good_pages-variable.patch
+sys_swapon-move-printk-outside-lock.patch
+sys_swapoff-change-order-to-match-sys_swapon.patch
+sys_swapon-separate-final-enabling-of-the-swapfile.patch
+shmem-let-shared-anonymous-be-nonlinear-again.patch
+mm-simplify-code-of-swapc.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+prio_tree-debugging-patch.patch
 
