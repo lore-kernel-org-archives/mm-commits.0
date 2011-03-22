@@ -1,78 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [folded] calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 16:03:56 -0700
-Message-ID: <201103222303.p2MN3uaB000508@imap1.linux-foundation.org>
+Subject: [folded] sigma-firmware-loader-for-analog-devices-sigmastudio-v2.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:05:14 -0700
+Message-ID: <201103222305.p2MN5EFr000553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754636Ab1CVXFS (ORCPT
+	by vger.kernel.org with ESMTP id S1754400Ab1CVXGA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 19:05:18 -0400
+	Tue, 22 Mar 2011 19:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
+     sigma-firmware-loader-for-analog-devices-sigmastudio-v2
 has been removed from the -mm tree.  Its filename was
-     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+     sigma-firmware-loader-for-analog-devices-sigmastudio-v2.patch
 
-This patch was dropped because it was folded into calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
+This patch was dropped because it was folded into sigma-firmware-loader=
+-for-analog-devices-sigmastudio.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sigma-firmware-loader-for-analog-devices-sigmastudio-v2
+=46rom: Mike Frysinger <vapier@gentoo.org>
 
-mention x86_64 SMIs in comment
+address feedback from Andrew
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/sigma.c |   67 +++++++++++++++++++------------------
+ include/linux/sigma.h    |   10 ++---
+ 2 files changed, 41 insertions(+), 36 deletions(-)
 
-diff -puN init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix init/calibrate.c
---- a/init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
-+++ a/init/calibrate.c
-@@ -172,7 +172,7 @@ recalibrate:
- 	/*
- 	 * If we incremented every single time possible, presume we've
- 	 * massively underestimated initially, and retry with a higher
--	 * start, and larger range. (Only seen on x86_64.)
-+	 * start, and larger range. (Only seen on x86_64, due to SMIs)
- 	 */
- 	if (lpj + loopadd * 2 == lpj_base + loopadd_base * 2) {
- 		lpj_base = lpj;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
-leds-convert-bd2802-driver-to-dev_pm_ops.patch
-mm-vmap-area-cache.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-batch-free-pcp-list-if-possible.patch
-pagewalk-only-split-huge-pages-when-necessary.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
-mm-add-__gfp_other_node-flag.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
-kernel-cpuc-fix-many-errors-related-to-style.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
-kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
-
+diff -puN drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-dev=
+ices-sigmastudio-v2 drivers/firmware/sigma.c
+--- a/drivers/firmware/sigma.c~sigma-firmware-loader-for-analog-devices=
+-sigmastudio-v2
++++ a/drivers/firmware/sigma.c
+@@ -1,9 +1,9 @@
+ /*
+  * Load Analog Devices SigmaStudio firmware files
+  *
+-=C2=A0* Copyright 2009 Analog Devices Inc.
+-=C2=A0*
+-=C2=A0* Licensed under the GPL-2 or later.
++ * Copyright 2009-2011 Analog Devices Inc.
++ *
++ * Licensed under the GPL-2 or later.
+  */
+=20
+ #include <linux/crc32.h>
+@@ -14,7 +14,8 @@
+ #include <linux/sigma.h>
+=20
+ /* Return: 0=3D=3DOK, <0=3D=3Derror, =3D1 =3D=3Dno more actions */
+-int process_sigma_action(struct i2c_client *client, struct sigma_firmw=
+are *ssfw)
++static int
++process_sigma_action(struct i2c_client *client, struct sigma_firmware =
+*ssfw)
+ {
+ 	struct sigma_action *sa =3D (void *)(ssfw->fw->data + ssfw->pos);
+ 	size_t len =3D sigma_action_len(sa);
+@@ -24,27 +25,27 @@ int process_sigma_action(struct i2c_clie
+ 		sa->instr, sa->addr, len);
+=20
+ 	switch (sa->instr) {
+-		case SIGMA_ACTION_WRITEXBYTES:
+-		case SIGMA_ACTION_WRITESINGLE:
+-		case SIGMA_ACTION_WRITESAFELOAD:
+-			if (ssfw->fw->size < ssfw->pos + len)
+-				return -EINVAL;
+-			ret =3D i2c_master_send(client, (void *)&sa->addr, len);
+-			if (ret < 0)
+-				return -EINVAL;
+-			break;
+-
+-		case SIGMA_ACTION_DELAY:
+-			ret =3D 0;
+-			udelay(len);
+-			len =3D 0;
+-			break;
++	case SIGMA_ACTION_WRITEXBYTES:
++	case SIGMA_ACTION_WRITESINGLE:
++	case SIGMA_ACTION_WRITESAFELOAD:
++		if (ssfw->fw->size < ssfw->pos + len)
++			return -EINVAL;
++		ret =3D i2c_master_send(client, (void *)&sa->addr, len);
++		if (ret < 0)
++			return -EINVAL;
++		break;
+=20
+-		case SIGMA_ACTION_END:
+-			return 1;
++	case SIGMA_ACTION_DELAY:
++		ret =3D 0;
++		udelay(len);
++		len =3D 0;
++		break;
+=20
+-		default:
+-			return -EINVAL;
++	case SIGMA_ACTION_END:
++		return 1;
++
++	default:
++		return -EINVAL;
+ 	}
+=20
+ 	/* when arrive here ret=3D0 or sent data */
+@@ -52,7 +53,8 @@ int process_sigma_action(struct i2c_clie
+ 	return ssfw->pos =3D=3D ssfw->fw->size;
+ }
+=20
+-int process_sigma_actions(struct i2c_client *client, struct sigma_firm=
+ware *ssfw)
++static int
++process_sigma_actions(struct i2c_client *client, struct sigma_firmware=
+ *ssfw)
+ {
+ 	pr_debug("%s: processing %p\n", __func__, ssfw);
+=20
+@@ -72,6 +74,7 @@ int process_sigma_firmware(struct i2c_cl
+ 	struct sigma_firmware_header *ssfw_head;
+ 	struct sigma_firmware ssfw;
+ 	const struct firmware *fw;
++	u32 crc;
+=20
+ 	pr_debug("%s: loading firmware %s\n", __func__, name);
+=20
+@@ -84,16 +87,18 @@ int process_sigma_firmware(struct i2c_cl
+ 	ssfw.fw =3D fw;
+=20
+ 	/* then verify the header */
+-	if (fw->size < sizeof(*ssfw_head)) {
+-		ret =3D -ENODATA;
++	ret =3D -EINVAL;
++	if (fw->size < sizeof(*ssfw_head))
+ 		goto done;
+-	}
++
+ 	ssfw_head =3D (void *)fw->data;
+-	if (memcmp(ssfw_head->magic, SIGMA_MAGIC, ARRAY_SIZE(ssfw_head->magic=
+))) {
+-		ret =3D -EINVAL;
++	if (memcmp(ssfw_head->magic, SIGMA_MAGIC, ARRAY_SIZE(ssfw_head->magic=
+)))
++		goto done;
++
++	crc =3D crc32(0, fw->data, fw->size);
++	pr_debug("%s: crc=3D%x\n", __func__, crc);
++	if (crc !=3D ssfw_head->crc)
+ 		goto done;
+-	}
+-	pr_debug("%s: crc=3D%x\n", __func__, crc32(0, fw->data, fw->size));
+=20
+ 	ssfw.pos =3D sizeof(*ssfw_head);
+=20
+diff -puN include/linux/sigma.h~sigma-firmware-loader-for-analog-device=
+s-sigmastudio-v2 include/linux/sigma.h
+--- a/include/linux/sigma.h~sigma-firmware-loader-for-analog-devices-si=
+gmastudio-v2
++++ a/include/linux/sigma.h
+@@ -1,9 +1,9 @@
+ /*
+  * Load firmware files from Analog Devices SigmaStudio
+  *
+-=C2=A0* Copyright 2009 Analog Devices Inc.
+-=C2=A0*
+-=C2=A0* Licensed under the GPL-2 or later.
++ * Copyright 2009-2011 Analog Devices Inc.
++ *
++ * Licensed under the GPL-2 or later.
+  */
+=20
+ #ifndef __SIGMA_FIRMWARE_H__
+@@ -12,6 +12,8 @@
+ #include <linux/firmware.h>
+ #include <linux/types.h>
+=20
++struct i2c_client;
++
+ #define SIGMA_MAGIC "ADISIGM"
+=20
+ struct sigma_firmware {
+@@ -53,8 +55,6 @@ static inline size_t sigma_action_size(s
+ 	return sizeof(*sa) + payload_len + (payload_len % 2);
+ }
+=20
+-struct i2c_client;
