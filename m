@@ -1,86 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 16:01:06 -0700
-Message-ID: <201103222301.p2MN16Zd000331@imap1.linux-foundation.org>
+Subject: [folded] bh1780gli-convert-to-dev-pm-ops-update.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:02:08 -0700
+Message-ID: <201103222302.p2MN28CA000371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754517Ab1CVXBg (ORCPT
+	by vger.kernel.org with ESMTP id S1754393Ab1CVXC6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 19:01:36 -0400
+	Tue, 22 Mar 2011 19:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: shubhrajyoti@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes
+     bh1780gli-convert-to-dev-pm-ops-update
 has been removed from the -mm tree.  Its filename was
-     mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+     bh1780gli-convert-to-dev-pm-ops-update.patch
 
-This patch was dropped because it was folded into mm-use-__gfp_other_node-for-transparent-huge-pages.patch
+This patch was dropped because it was folded into bh1780gli-convert-to-dev-pm-ops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bh1780gli-convert-to-dev-pm-ops-update
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-ERROR: trailing whitespace
-#66: FILE: mm/huge_memory.c:803:
-+^I^Ipages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE | $
-
-total: 1 errors, 0 warnings, 62 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-use-__gfp_other_node-for-transparent-huge-pages.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/bh1780gli.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes
-+++ a/mm/huge_memory.c
-@@ -800,7 +800,7 @@ static int do_huge_pmd_wp_page_fallback(
- 	}
+diff -puN drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops-update drivers/misc/bh1780gli.c
+--- a/drivers/misc/bh1780gli.c~bh1780gli-convert-to-dev-pm-ops-update
++++ a/drivers/misc/bh1780gli.c
+@@ -235,6 +235,9 @@ static int bh1780_resume(struct device *
+ 	return 0;
+ }
+ static SIMPLE_DEV_PM_OPS(bh1780_pm, bh1780_suspend, bh1780_resume);
++#define BH1780_PMOPS (&bh1780_pm)
++#else
++#define BH1780_PMOPS NULL
+ #endif /* CONFIG_PM */
  
- 	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE | 
-+		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE |
- 					       __GFP_OTHER_NODE,
- 					       vma, address, page_to_nid(page));
- 		if (unlikely(!pages[i] ||
+ static const struct i2c_device_id bh1780_id[] = {
+@@ -248,9 +251,7 @@ static struct i2c_driver bh1780_driver =
+ 	.id_table	= bh1780_id,
+ 	.driver = {
+ 		.name = "bh1780",
+-#ifdef CONFIG_PM
+-		.pm	= &bh1780_pm,
+-#endif
++		.pm	= BH1780_PMOPS,
+ },
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shubhrajyoti@ti.com are
 
 origin.patch
-include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
-leds-convert-bd2802-driver-to-dev_pm_ops.patch
-mm-vmap-area-cache.patch
-mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
-mm-batch-free-pcp-list-if-possible.patch
-pagewalk-only-split-huge-pages-when-necessary.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
-mm-add-__gfp_other_node-flag.patch
-mm-use-__gfp_other_node-for-transparent-huge-pages.patch
-drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
-kernel-cpuc-fix-many-errors-related-to-style-fix.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
-kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
-epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
+bh1780gli-convert-to-dev-pm-ops.patch
+drivers-misc-bmp085c-free-initmem-memory.patch
 
