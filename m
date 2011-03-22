@@ -1,92 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-add-driver-for-lm3530-als-update.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 15:55:34 -0700
-Message-ID: <201103222255.p2MMtYV8032509@imap1.linux-foundation.org>
+Subject: [folded] radeon-expose-backlight-class-device-for-legacy-lvds-encoder-update.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 15:56:02 -0700
+Message-ID: <201103222256.p2MMu2kZ032527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753030Ab1CVWzs (ORCPT
+	by vger.kernel.org with ESMTP id S1753097Ab1CVW4i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 18:55:48 -0400
+	Tue, 22 Mar 2011 18:56:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shreshthakumar.sahu@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: michel@daenzer.net, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     leds-add-driver-for-lm3530-als-update
+     radeon-expose-backlight-class-device-for-legacy-lvds-encoder-updat=
+e
 has been removed from the -mm tree.  Its filename was
-     leds-add-driver-for-lm3530-als-update.patch
+     radeon-expose-backlight-class-device-for-legacy-lvds-encoder-updat=
+e.patch
 
-This patch was dropped because it was folded into leds-add-driver-for-lm3530-als.patch
+This patch was dropped because it was folded into radeon-expose-backlig=
+ht-class-device-for-legacy-lvds-encoder.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: leds-add-driver-for-lm3530-als-update
-From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Subject: radeon-expose-backlight-class-device-for-legacy-lvds-encoder-u=
+pdate
+=46rom: Michel D=E4nzer <michel@daenzer.net>
 
-changes in v3:
-  modified according to comments from Andrew Morton
-  - rectify sloppy string comparision; now using sysfs_streq()
-  - remove unnecessary LM3530_BL_MODE_MAX and use ARRAY_SIZE
+v2: Fix problems when CONFIG_BACKLIGHT_CLASS_DEVICE isn't defined.
 
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
+(Updated to add backlight type and make the connector the parent device=
+ - mjg)
+
+Signed-off-by: Michel D=E4nzer <michel@daenzer.net>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   11 ++++-------
- include/linux/led-lm3530.h |    1 -
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    2 +-
+ drivers/gpu/drm/radeon/radeon_mode.h            |    4 ----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~leds-add-driver-for-lm3530-als-update drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~leds-add-driver-for-lm3530-als-update
-+++ a/drivers/leds/leds-lm3530.c
-@@ -122,15 +122,12 @@ static const u8 lm3530_reg[LM3530_REG_MA
- 	LM3530_ALS_Z4T_REG,
- };
- 
--static int lm3530_get_mode_from_str(const char *str, int count)
-+static int lm3530_get_mode_from_str(const char *str)
+diff -puN drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose=
+-backlight-class-device-for-legacy-lvds-encoder-update drivers/gpu/drm/=
+radeon/radeon_legacy_encoders.c
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose-bac=
+klight-class-device-for-legacy-lvds-encoder-update
++++ a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -460,7 +460,7 @@ static void radeon_legacy_backlight_exit
+=20
+ #else /* !CONFIG_BACKLIGHT_CLASS_DEVICE */
+=20
+-static void radeon_legacy_backlight_init(struct radeon_encoder *encode=
+r)
++void radeon_legacy_backlight_init(struct radeon_encoder *encoder)
  {
- 	int i;
- 
--	if (str[0] == '\n')
--		return -1;
--
--	for (i = 0; i < LM3530_BL_MODE_MAX; i++)
--		if (!strncmp(mode_map[i].mode, str, count))
-+	for (i = 0; i < ARRAY_SIZE(mode_map); i++)
-+		if (sysfs_streq(str, mode_map[i].mode))
- 			return mode_map[i].mode_val;
- 
- 	return -1;
-@@ -239,7 +236,7 @@ static ssize_t lm3530_mode_set(struct de
- 	struct lm3530_data *drvdata = i2c_get_clientdata(client);
- 	int mode;
- 
--	mode = lm3530_get_mode_from_str(buf, size-1);
-+	mode = lm3530_get_mode_from_str(buf);
- 	if (mode < 0) {
- 		dev_err(dev, "Invalid mode\n");
- 		return -EINVAL;
-diff -puN include/linux/led-lm3530.h~leds-add-driver-for-lm3530-als-update include/linux/led-lm3530.h
---- a/include/linux/led-lm3530.h~leds-add-driver-for-lm3530-als-update
-+++ a/include/linux/led-lm3530.h
-@@ -62,7 +62,6 @@ enum lm3530_mode {
- 	LM3530_BL_MODE_MANUAL = 0,	/* "man" */
- 	LM3530_BL_MODE_ALS,		/* "als" */
- 	LM3530_BL_MODE_PWM,		/* "pwm" */
--	LM3530_BL_MODE_MAX,
+ }
+=20
+diff -puN drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-=
+class-device-for-legacy-lvds-encoder-update drivers/gpu/drm/radeon/rade=
+on_mode.h
+--- a/drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-clas=
+s-device-for-legacy-lvds-encoder-update
++++ a/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -302,11 +302,9 @@ struct radeon_encoder_lvds {
+ 	uint32_t lvds_gen_cntl;
+ 	/* panel mode */
+ 	struct drm_display_mode native_mode;
+-#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	struct backlight_device *bl_dev;
+ 	int      dpms_mode;
+ 	uint8_t  backlight_level;
+-#endif
  };
- 
- /* ALS input select */
+=20
+ struct radeon_encoder_tv_dac {
+@@ -360,11 +358,9 @@ struct radeon_encoder_atom_dig {
+ 	uint32_t lcd_ss_id;
+ 	/* panel mode */
+ 	struct drm_display_mode native_mode;
+-#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	struct backlight_device *bl_dev;
+ 	int dpms_mode;
+ 	uint8_t backlight_level;
+-#endif
+ };
+=20
+ struct radeon_encoder_atom_dac {
 _
 
-Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
+Patches currently in -mm which might be from michel@daenzer.net are
 
-leds-add-driver-for-lm3530-als.patch
+radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
