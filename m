@@ -1,117 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] radeon-expose-backlight-class-device-for-legacy-lvds-encoder-update.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 15:56:02 -0700
-Message-ID: <201103222256.p2MMu2kZ032527@imap1.linux-foundation.org>
+Subject: [folded] mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 15:56:39 -0700
+Message-ID: <201103222256.p2MMueBY032555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753097Ab1CVW4i (ORCPT
+	by vger.kernel.org with ESMTP id S1754341Ab1CVW4r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 18:56:38 -0400
+	Tue, 22 Mar 2011 18:56:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michel@daenzer.net, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg@redhat.com, rpurdie@rpsys.net
+To: akpm@linux-foundation.org, avi@redhat.com, gleb@redhat.com, hughd@google.com, mtosatti@redhat.com, riel@redhat.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeon-expose-backlight-class-device-for-legacy-lvds-encoder-updat=
-e
+     mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
 has been removed from the -mm tree.  Its filename was
-     radeon-expose-backlight-class-device-for-legacy-lvds-encoder-updat=
-e.patch
+     mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix.patch
 
-This patch was dropped because it was folded into radeon-expose-backlig=
-ht-class-device-for-legacy-lvds-encoder.patch
+This patch was dropped because it was folded into mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeon-expose-backlight-class-device-for-legacy-lvds-encoder-u=
-pdate
-=46rom: Michel D=E4nzer <michel@daenzer.net>
+Subject: mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-v2: Fix problems when CONFIG_BACKLIGHT_CLASS_DEVICE isn't defined.
-
-(Updated to add backlight type and make the connector the parent device=
- - mjg)
-
-Signed-off-by: Michel D=E4nzer <michel@daenzer.net>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Gleb Natapov <gleb@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    2 +-
- drivers/gpu/drm/radeon/radeon_mode.h            |    4 ----
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose=
--backlight-class-device-for-legacy-lvds-encoder-update drivers/gpu/drm/=
-radeon/radeon_legacy_encoders.c
---- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose-bac=
-klight-class-device-for-legacy-lvds-encoder-update
-+++ a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-@@ -460,7 +460,7 @@ static void radeon_legacy_backlight_exit
-=20
- #else /* !CONFIG_BACKLIGHT_CLASS_DEVICE */
-=20
--static void radeon_legacy_backlight_init(struct radeon_encoder *encode=
-r)
-+void radeon_legacy_backlight_init(struct radeon_encoder *encoder)
- {
- }
-=20
-diff -puN drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-=
-class-device-for-legacy-lvds-encoder-update drivers/gpu/drm/radeon/rade=
-on_mode.h
---- a/drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-clas=
-s-device-for-legacy-lvds-encoder-update
-+++ a/drivers/gpu/drm/radeon/radeon_mode.h
-@@ -302,11 +302,9 @@ struct radeon_encoder_lvds {
- 	uint32_t lvds_gen_cntl;
- 	/* panel mode */
- 	struct drm_display_mode native_mode;
--#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- 	struct backlight_device *bl_dev;
- 	int      dpms_mode;
- 	uint8_t  backlight_level;
--#endif
- };
-=20
- struct radeon_encoder_tv_dac {
-@@ -360,11 +358,9 @@ struct radeon_encoder_atom_dig {
- 	uint32_t lcd_ss_id;
- 	/* panel mode */
- 	struct drm_display_mode native_mode;
--#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- 	struct backlight_device *bl_dev;
- 	int dpms_mode;
- 	uint8_t backlight_level;
--#endif
- };
-=20
- struct radeon_encoder_atom_dac {
+diff -puN include/linux/mm.h~mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-gup-to-fail-instead-of-waiting-on-a-page-fix
++++ a/include/linux/mm.h
+@@ -1539,7 +1539,8 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_GET	0x04	/* do get_page on page */
+ #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+ #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+-#define FOLL_NOWAIT	0x20	/* return if disk transfer is needed */
++#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
++				 * and return without waiting upon it */
+ #define FOLL_MLOCK	0x40	/* mark page as mlocked */
+ #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
+ #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
 _
 
-Patches currently in -mm which might be from michel@daenzer.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch
+origin.patch
+include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
+leds-convert-bd2802-driver-to-dev_pm_ops.patch
+mm-vmap-area-cache.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-batch-free-pcp-list-if-possible-fix.patch
+memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
