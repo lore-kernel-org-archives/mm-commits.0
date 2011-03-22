@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 16:08:54 -0700
-Message-ID: <201103222308.p2MN8sCD000762@imap1.linux-foundation.org>
+Subject: [folded] drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:02:47 -0700
+Message-ID: <201103222302.p2MN2lec000387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754436Ab1CVXI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755683Ab1CVXKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 19:08:57 -0400
+	Tue, 22 Mar 2011 19:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, gong.chen@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@linux.intel.com, axel.lin@gmail.com, kalhan.trisal@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
+     drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
 has been removed from the -mm tree.  Its filename was
-     documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
+     drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
 
-This patch was dropped because it was folded into documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation.patch
+This patch was dropped because it was folded into drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
+Subject: drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix debugfs_mount() signature.
+make `ret' signed
 
-Documentation/vm/page-types.c:537: warning: function declaration isn't a prototype
-
-Cc: Chen Gong <gong.chen@linux.intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Kalhan Trisal <kalhan.trisal@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |    2 +-
+ drivers/misc/hmc6352.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix
-+++ a/Documentation/vm/page-types.c
-@@ -533,7 +533,7 @@ static const char *debugfs_find_mountpoi
- 
- /* mount the debugfs somewhere if it's not mounted */
- 
--static void debugfs_mount()
-+static void debugfs_mount(void)
+diff -puN drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix drivers/misc/hmc6352.c
+--- a/drivers/misc/hmc6352.c~drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix
++++ a/drivers/misc/hmc6352.c
+@@ -75,7 +75,7 @@ static ssize_t compass_heading_data_show
  {
- 	const char **ptr;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	unsigned char i2c_data[2];
+-	unsigned int ret;
++	int ret;
  
+ 	mutex_lock(&compass_mutex);
+ 	ret = compass_command(client, 'A');
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,10 +65,11 @@ mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migr
 mm-add-__gfp_other_node-flag.patch
 mm-use-__gfp_other_node-for-transparent-huge-pages.patch
 drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
-kernel-cpuc-fix-many-errors-related-to-style.patch
-calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
-kernel-watchdogc-allow-hardlockup-to-panic-by-default.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
 epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
-fs-coda-fix-compile-warning-when-config_sysctl=n.patch
-documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
 
