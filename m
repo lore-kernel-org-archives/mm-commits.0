@@ -1,60 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 15:59:11 -0700
-Message-ID: <201103222259.p2MMxCwO032716@imap1.linux-foundation.org>
+Subject: [folded] mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:00:17 -0700
+Message-ID: <201103222300.p2MN0HZ4000301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754828Ab1CVW75 (ORCPT
+	by vger.kernel.org with ESMTP id S1753322Ab1CVXBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 18:59:57 -0400
+	Tue, 22 Mar 2011 19:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mincha
+To: akpm@linux-foundation.org, aarcange@redhat.com, arthur.marsh@internode.on.net, cladisch@googlemail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@
 
 
 The patch titled
-     memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix
+     mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix.patch
+     mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
 
-This patch was dropped because it was folded into memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
+This patch was dropped because it was folded into mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix
+Subject: mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix patch ordering
+simplify with s/unlocked/locked/
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: Clemens Ladisch <cladisch@googlemail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix
-+++ a/mm/memcontrol.c
-@@ -851,7 +851,7 @@ void mem_cgroup_rotate_reclaimable_page(
- 	smp_rmb();
- 	if (mem_cgroup_is_root(pc->mem_cgroup))
- 		return;
--	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
-+	mz = page_cgroup_zoneinfo(pc);
- 	list_move_tail(&pc->lru, &mz->lists[lru]);
- }
+diff -puN mm/compaction.c~mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
++++ a/mm/compaction.c
+@@ -281,21 +281,21 @@ static unsigned long isolate_migratepage
+ 	spin_lock_irq(&zone->lru_lock);
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+ 		struct page *page;
+-		bool unlocked = false;
++		bool locked = true;
  
+ 		/* give a chance to irqs before checking need_resched() */
+ 		if (!((low_pfn+1) % SWAP_CLUSTER_MAX)) {
+ 			spin_unlock_irq(&zone->lru_lock);
+-			unlocked = true;
++			locked = false;
+ 		}
+ 		if (need_resched() || spin_is_contended(&zone->lru_lock)) {
+-			if (!unlocked)
++			if (locked)
+ 				spin_unlock_irq(&zone->lru_lock);
+ 			cond_resched();
+ 			spin_lock_irq(&zone->lru_lock);
+ 			if (fatal_signal_pending(current))
+ 				break;
+-		} else if (unlocked)
++		} else if (!locked)
+ 			spin_lock_irq(&zone->lru_lock);
+ 
+ 		if (!pfn_valid_within(low_pfn))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,9 +81,8 @@ leds-convert-bd2802-driver-to-dev_pm_ops.patch
 mm-vmap-area-cache.patch
 mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
 mm-batch-free-pcp-list-if-possible.patch
-memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
-pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+pagewalk-only-split-huge-pages-when-necessary.patch
+mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
 mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
 mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
 drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
