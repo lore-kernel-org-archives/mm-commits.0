@@ -1,76 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 16:00:17 -0700
-Message-ID: <201103222300.p2MN0HZ4000301@imap1.linux-foundation.org>
+Subject: [folded] mm-add-__gfp_other_node-flag-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:00:45 -0700
+Message-ID: <201103222300.p2MN0jit000315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753322Ab1CVXBL (ORCPT
+	by vger.kernel.org with ESMTP id S1753322Ab1CVXBP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 19:01:11 -0400
+	Tue, 22 Mar 2011 19:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, arthur.marsh@internode.on.net, cladisch@googlemail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
+     mm-add-__gfp_other_node-flag-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
+     mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
+This patch was dropped because it was folded into mm-add-__gfp_other_node-flag.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
+Subject: mm-add-__gfp_other_node-flag-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-simplify with s/unlocked/locked/
+WARNING: line over 80 characters
+#46: FILE: include/linux/gfp.h:87:
++#define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE) /* On behalf of other node */
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: Clemens Ladisch <cladisch@googlemail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+ERROR: space required after that ',' (ctx:VxV)
+#64: FILE: include/linux/vmstat.h:228:
++#define zone_statistics(_zl,_z, gfp) do { } while (0)
+                            ^
+
+ERROR: trailing whitespace
+#87: FILE: mm/vmstat.c:503:
++ * $
+
+ERROR: trailing whitespace
+#102: FILE: mm/vmstat.c:516:
++^Iif (z->node == ((flags & __GFP_OTHER_NODE) ? $
+
+total: 3 errors, 1 warnings, 58 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-add-__gfp_other_node-flag.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/vmstat.h |    2 +-
+ mm/vmstat.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix
-+++ a/mm/compaction.c
-@@ -281,21 +281,21 @@ static unsigned long isolate_migratepage
- 	spin_lock_irq(&zone->lru_lock);
- 	for (; low_pfn < end_pfn; low_pfn++) {
- 		struct page *page;
--		bool unlocked = false;
-+		bool locked = true;
+diff -puN include/linux/vmstat.h~mm-add-__gfp_other_node-flag-checkpatch-fixes include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-add-__gfp_other_node-flag-checkpatch-fixes
++++ a/include/linux/vmstat.h
+@@ -225,7 +225,7 @@ extern void zone_statistics(struct zone 
+ #else
  
- 		/* give a chance to irqs before checking need_resched() */
- 		if (!((low_pfn+1) % SWAP_CLUSTER_MAX)) {
- 			spin_unlock_irq(&zone->lru_lock);
--			unlocked = true;
-+			locked = false;
- 		}
- 		if (need_resched() || spin_is_contended(&zone->lru_lock)) {
--			if (!unlocked)
-+			if (locked)
- 				spin_unlock_irq(&zone->lru_lock);
- 			cond_resched();
- 			spin_lock_irq(&zone->lru_lock);
- 			if (fatal_signal_pending(current))
- 				break;
--		} else if (unlocked)
-+		} else if (!locked)
- 			spin_lock_irq(&zone->lru_lock);
+ #define node_page_state(node, item) global_page_state(item)
+-#define zone_statistics(_zl,_z, gfp) do { } while (0)
++#define zone_statistics(_zl, _z, gfp) do { } while (0)
  
- 		if (!pfn_valid_within(low_pfn))
+ #endif /* CONFIG_NUMA */
+ 
+diff -puN mm/vmstat.c~mm-add-__gfp_other_node-flag-checkpatch-fixes mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-__gfp_other_node-flag-checkpatch-fixes
++++ a/mm/vmstat.c
+@@ -500,7 +500,7 @@ void refresh_cpu_vm_stats(int cpu)
+  * z 	    = the zone from which the allocation occurred.
+  *
+  * Must be called with interrupts disabled.
+- * 
++ *
+  * When __GFP_OTHER_NODE is set assume the node of the preferred
+  * zone is the local node. This is useful for daemons who allocate
+  * memory on behalf of other processes.
+@@ -513,7 +513,7 @@ void zone_statistics(struct zone *prefer
+ 		__inc_zone_state(z, NUMA_MISS);
+ 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+ 	}
+-	if (z->node == ((flags & __GFP_OTHER_NODE) ? 
++	if (z->node == ((flags & __GFP_OTHER_NODE) ?
+ 			preferred_zone->node : numa_node_id()))
+ 		__inc_zone_state(z, NUMA_LOCAL);
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +108,7 @@ mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
 mm-batch-free-pcp-list-if-possible.patch
 pagewalk-only-split-huge-pages-when-necessary.patch
 mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
-mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-add-__gfp_other_node-flag.patch
 mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
 drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
 kernel-cpuc-fix-many-errors-related-to-style-fix.patch
