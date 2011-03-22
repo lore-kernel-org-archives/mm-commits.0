@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 16:04:16 -0700
-Message-ID: <201103222304.p2MN4GXN000523@imap1.linux-foundation.org>
+Subject: [folded] calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 16:03:56 -0700
+Message-ID: <201103222303.p2MN3uaB000508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754636Ab1CVXFP (ORCPT
+	by vger.kernel.org with ESMTP id S1754636Ab1CVXFS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 19:05:15 -0400
+	Tue, 22 Mar 2011 19:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix
+     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
+     calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
 
-This patch was dropped because it was folded into kernel-watchdogc-allow-hardlockup-to-panic-by-default.patch
+This patch was dropped because it was folded into calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix
+Subject: calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix strncmp length
+mention x86_64 SMIs in comment
 
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 +-
+ init/calibrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix
-+++ a/kernel/watchdog.c
-@@ -55,7 +55,7 @@ static int __init hardlockup_panic_setup
- {
- 	if (!strncmp(str, "panic", 5))
- 		hardlockup_panic = 1;
--	else if (!strncmp(str, "nopanic", 5))
-+	else if (!strncmp(str, "nopanic", 7))
- 		hardlockup_panic = 0;
- 	else if (!strncmp(str, "0", 1))
- 		watchdog_enabled = 0;
+diff -puN init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix init/calibrate.c
+--- a/init/calibrate.c~calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix
++++ a/init/calibrate.c
+@@ -172,7 +172,7 @@ recalibrate:
+ 	/*
+ 	 * If we incremented every single time possible, presume we've
+ 	 * massively underestimated initially, and retry with a higher
+-	 * start, and larger range. (Only seen on x86_64.)
++	 * start, and larger range. (Only seen on x86_64, due to SMIs)
+ 	 */
+ 	if (lpj + loopadd * 2 == lpj_base + loopadd_base * 2) {
+ 		lpj_base = lpj;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +70,7 @@ mm-use-__gfp_other_node-for-transparent-huge-pages.patch
 drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv.patch
 kernel-cpuc-fix-many-errors-related-to-style.patch
 calibrate-retry-with-wider-bounds-when-converge-seems-to-fail.patch
-kernel-watchdogc-allow-hardlockup-to-panic-by-default.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
 epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
 fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
 documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
