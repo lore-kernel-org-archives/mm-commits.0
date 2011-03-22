@@ -1,95 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-add-replace_page_cache_page-function-add-freepage-hook.patch removed from -mm tree
-Date: Tue, 22 Mar 2011 15:57:46 -0700
-Message-ID: <201103222257.p2MMvlJT032586@imap1.linux-foundation.org>
+Subject: [folded] mm-batch-free-pcp-list-if-possible-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2011 15:58:45 -0700
+Message-ID: <201103222258.p2MMwjmd032689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753284Ab1CVW6Y (ORCPT
+	by vger.kernel.org with ESMTP id S1754393Ab1CVW7s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Mar 2011 18:58:24 -0400
+	Tue, 22 Mar 2011 18:59:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mszeredi@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mel@csn.ul.ie, namhyung@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-add-replace_page_cache_page-function-add-freepage-hook
+     mm-batch-free-pcp-list-if-possible-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-replace_page_cache_page-function-add-freepage-hook.patch
+     mm-batch-free-pcp-list-if-possible-fix.patch
 
-This patch was dropped because it was folded into mm-add-replace_page_cache_page-function.patch
+This patch was dropped because it was folded into mm-batch-free-pcp-list-if-possible.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-replace_page_cache_page-function-add-freepage-hook
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm-batch-free-pcp-list-if-possible-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-6072d13c ("Call the filesystem back whenever a page is removed from the
-page cache") added new freepage hook in page cache drop function.
+fix comment
 
-So, replace_page_cache_page should call freepage to support page cleanup
-to fs.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-add-replace_page_cache_page-function-add-freepage-hook mm/filemap.c
---- a/mm/filemap.c~mm-add-replace_page_cache_page-function-add-freepage-hook
-+++ a/mm/filemap.c
-@@ -436,7 +436,10 @@ int replace_page_cache_page(struct page 
- 	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
- 	if (!error) {
- 		struct address_space *mapping = old->mapping;
-+		void (*freepage)(struct page *);
-+
- 		pgoff_t offset = old->index;
-+		freepage = mapping->a_ops->freepage;
+diff -puN mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-batch-free-pcp-list-if-possible-fix
++++ a/mm/page_alloc.c
+@@ -614,7 +614,7 @@ static void free_pcppages_bulk(struct zo
+ 			list = &pcp->lists[migratetype];
+ 		} while (list_empty(list));
  
- 		page_cache_get(new);
- 		new->mapping = mapping;
-@@ -452,6 +455,8 @@ int replace_page_cache_page(struct page 
- 			__inc_zone_page_state(new, NR_SHMEM);
- 		spin_unlock_irq(&mapping->tree_lock);
- 		radix_tree_preload_end();
-+		if (freepage)
-+			freepage(old);
- 		page_cache_release(old);
- 		mem_cgroup_end_migration(memcg, old, new, true);
- 	} else {
+-		/* This is an only non-empty list. Free them all. */
++		/* This is the only non-empty list. Free them all. */
+ 		if (batch_free == MIGRATE_PCPTYPES)
+ 			batch_free = to_free;
+ 
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+include-asm-generic-unistdh-fix-syncfs-syscall-number.patch
+leds-convert-bd2802-driver-to-dev_pm_ops.patch
 mm-vmap-area-cache.patch
-mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
-mm-add-replace_page_cache_page-function.patch
-mm-introduce-delete_from_page_cache.patch
-mm-hugetlbfs-change-remove_from_page_cache.patch
-mm-shmem-change-remove_from_page_cache.patch
-mm-truncate-change-remove_from_page_cache.patch
-mm-good-bye-remove_from_page_cache.patch
-mm-change-__remove_from_page_cache.patch
-mm-deactivate-invalidated-pages.patch
-memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
+mm-allow-gup-to-fail-instead-of-waiting-on-a-page.patch
+mm-batch-free-pcp-list-if-possible.patch
 memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list-fix.patch
-mm-reclaim-invalidated-page-asap.patch
-mempolicy-remove-redundant-check-in-__mpol_equal.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-free-pages.patch
-mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration.patch
+pagewalk-only-split-huge-pages-when-necessary-checkpatch-fixes.patch
 mm-compaction-minimise-the-time-irqs-are-disabled-while-isolating-pages-for-migration-fix.patch
-mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback.patch
-mm-remove-inline-from-scan_swap_map.patch
-mm-simplify-code-of-swapc.patch
+mm-add-__gfp_other_node-flag-checkpatch-fixes.patch
+mm-use-__gfp_other_node-for-transparent-huge-pages-checkpatch-fixes.patch
+drivers-misc-hmc6352c-fix-wrong-return-value-checking-for-i2c_master_recv-fix.patch
+kernel-cpuc-fix-many-errors-related-to-style-fix.patch
+calibrate-retry-with-wider-bounds-when-converge-seems-to-fail-fix.patch
+kernel-watchdogc-allow-hardlockup-to-panic-by-default-fix.patch
+epoll-fix-compiler-warning-and-optimize-the-non-blocking-path.patch
+fs-coda-fix-compile-warning-when-config_sysctl=n-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix.patch
+documentation-vm-page-typesc-auto-debugfs-mount-for-hwpoison-operation-fix-fix.patch
 
