@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smp-add-missing-inith-include.patch added to -mm tree
-Date: Wed, 23 Mar 2011 01:12:01 -0700
-Message-ID: <201103230815.p2N8FW8c024781@imap1.linux-foundation.org>
+Subject: + ia64-fix-build-breakage-in-asm-thread_infoh.patch added to -mm tree
+Date: Wed, 23 Mar 2011 10:59:42 -0700
+Message-ID: <201103231803.p2NI3IDo021030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752704Ab1CWIQJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754796Ab1CWSDU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 04:16:09 -0400
+	Wed, 23 Mar 2011 14:03:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, amwang@redhat.com
+Cc: tony.luck@intel.com
 
 
 The patch titled
-     include/linux/smp.h: add missing init.h include
+     ia64: fix build breakage in asm/thread_info.h
 has been added to the -mm tree.  Its filename is
-     smp-add-missing-inith-include.patch
+     ia64-fix-build-breakage-in-asm-thread_infoh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/smp.h: add missing init.h include
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: ia64: fix build breakage in asm/thread_info.h
+From: "Luck, Tony" <tony.luck@intel.com>
 
-34db18a05 ("smp: move smp setup functions to kernel/smp.c") causes this build
-error on s390 because of a missing init.h include:
+In commit 504f52b5439aaf26d3e2c1d45ec10fce38c8dd27
+    mm: NUMA aware alloc_task_struct_node()
 
-CC      arch/s390/kernel/asm-offsets.s
-In file included from /home2/heicarst/linux-2.6/arch/s390/include/asm/spinlock.h:14:0,
-from include/linux/spinlock.h:87,
-from include/linux/seqlock.h:29,
-from include/linux/time.h:8,
-from include/linux/timex.h:56,
-from include/linux/sched.h:57,
-from arch/s390/kernel/asm-offsets.c:10:
-include/linux/smp.h:117:20: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'setup_nr_cpu_ids'
-include/linux/smp.h:118:20: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'smp_init'
+Eric Dumazet forgot a "\".  Add it.
 
-Fix it by adding the include statement.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: WANG Cong <amwang@redhat.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/include/asm/thread_info.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/smp.h~smp-add-missing-inith-include include/linux/smp.h
---- a/include/linux/smp.h~smp-add-missing-inith-include
-+++ a/include/linux/smp.h
-@@ -10,6 +10,7 @@
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/cpumask.h>
-+#include <linux/init.h>
- 
- extern void cpu_idle(void);
+diff -puN arch/ia64/include/asm/thread_info.h~ia64-fix-build-breakage-in-asm-thread_infoh arch/ia64/include/asm/thread_info.h
+--- a/arch/ia64/include/asm/thread_info.h~ia64-fix-build-breakage-in-asm-thread_infoh
++++ a/arch/ia64/include/asm/thread_info.h
+@@ -91,7 +91,7 @@ struct thread_info {
+ 					     KERNEL_STACK_SIZE_ORDER);		\
+ 	struct task_struct *ret = page ? page_address(page) : NULL;		\
+ 										\
+-	ret;
++	ret;									\
+ })
+ #define free_task_struct(tsk)	free_pages((unsigned long) (tsk), KERNEL_STACK_SIZE_ORDER)
  
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
 origin.patch
+mm-numa-aware-alloc_task_struct_node.patch
+mm-numa-aware-alloc_thread_info_node.patch
+kthread-numa-aware-kthread_create_on_cpu.patch
+kthread-use-kthread_create_on_cpu.patch
 add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-smp-add-missing-inith-include.patch
-linux-next.patch
-s390-introduce-little-endian-bitops.patch
-s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
+pnp-only-assign-ioresource_dma-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-8237a-if-config_isa_dma_api-is-enabled.patch
+x86-only-compile-floppy-driver-if-config_isa_dma_api-is-enabled.patch
+x86-allow-config_isa_dma_api-to-be-disabled.patch
+ia64-fix-build-breakage-in-asm-thread_infoh.patch
+llist-irq_work-use-llist-in-irq_work.patch
+llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
+crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
 
