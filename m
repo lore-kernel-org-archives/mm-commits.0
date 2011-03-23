@@ -1,254 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:20:33 -0700
-Message-ID: <201103232320.p2NNKXKw004393@imap1.linux-foundation.org>
+Subject: [folded] memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:20:28 -0700
+Message-ID: <201103232320.p2NNKSFx004390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933114Ab1CWXVG (ORCPT
+	by vger.kernel.org with ESMTP id S933114Ab1CWXVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:21:06 -0400
+	Wed, 23 Mar 2011 19:21:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes
+     memcg: fix event counter breakage with THP
 has been removed from the -mm tree.  Its filename was
-     memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
+     memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch
 
 This patch was dropped because it was folded into memcg-use-native-word-page-statistics-counters.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix event counter breakage with THP
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: code indent should use tabs where possible
-#60: FILE: mm/memcontrol.c:106:
-+        MEM_CGROUP_TARGET_THRESH,$
+With THP, event counter is updated by the size of large page because event
+counter is for catching the change in usage.  This is now used for
+threshold notifier and soft limit.
 
-WARNING: please, no spaces at the start of a line
-#60: FILE: mm/memcontrol.c:106:
-+        MEM_CGROUP_TARGET_THRESH,$
+Current event counter cathces the event by mask, as
 
-ERROR: code indent should use tabs where possible
-#61: FILE: mm/memcontrol.c:107:
-+        MEM_CGROUP_TARGET_SOFTLIMIT,$
+   !(counter & mask)
 
-WARNING: please, no spaces at the start of a line
-#61: FILE: mm/memcontrol.c:107:
-+        MEM_CGROUP_TARGET_SOFTLIMIT,$
+Before THP, counter is always updated by 1, this never misses target.
+But now, this can miss.
 
-ERROR: code indent should use tabs where possible
-#62: FILE: mm/memcontrol.c:108:
-+        MEM_CGROUP_NTARGETS,$
+This patch makes the trigger for event as
 
-WARNING: please, no spaces at the start of a line
-#62: FILE: mm/memcontrol.c:108:
-+        MEM_CGROUP_NTARGETS,$
+  counter > target.
 
-ERROR: code indent should use tabs where possible
-#70: FILE: mm/memcontrol.c:116:
-+        unsigned long targets[MEM_CGROUP_NTARGETS];$
+target is updated when the event happens.
 
-WARNING: please, no spaces at the start of a line
-#70: FILE: mm/memcontrol.c:116:
-+        unsigned long targets[MEM_CGROUP_NTARGETS];$
-
-ERROR: code indent should use tabs where possible
-#86: FILE: mm/memcontrol.c:648:
-+        /* from time_after() in jiffies.h */$
-
-ERROR: code indent should use tabs where possible
-#93: FILE: mm/memcontrol.c:654:
-+        unsigned long val, next;$
-
-WARNING: please, no spaces at the start of a line
-#93: FILE: mm/memcontrol.c:654:
-+        unsigned long val, next;$
-
-ERROR: code indent should use tabs where possible
-#97: FILE: mm/memcontrol.c:658:
-+        switch (target) {$
-
-WARNING: please, no spaces at the start of a line
-#97: FILE: mm/memcontrol.c:658:
-+        switch (target) {$
-
-ERROR: code indent should use tabs where possible
-#98: FILE: mm/memcontrol.c:659:
-+        case MEM_CGROUP_TARGET_THRESH:$
-
-WARNING: please, no spaces at the start of a line
-#98: FILE: mm/memcontrol.c:659:
-+        case MEM_CGROUP_TARGET_THRESH:$
-
-ERROR: code indent should use tabs where possible
-#100: FILE: mm/memcontrol.c:661:
-+            ^Ibreak;$
-
-WARNING: please, no space before tabs
-#100: FILE: mm/memcontrol.c:661:
-+            ^Ibreak;$
-
-WARNING: please, no spaces at the start of a line
-#100: FILE: mm/memcontrol.c:661:
-+            ^Ibreak;$
-
-ERROR: code indent should use tabs where possible
-#101: FILE: mm/memcontrol.c:662:
-+        case MEM_CGROUP_TARGET_SOFTLIMIT:$
-
-WARNING: please, no spaces at the start of a line
-#101: FILE: mm/memcontrol.c:662:
-+        case MEM_CGROUP_TARGET_SOFTLIMIT:$
-
-ERROR: code indent should use tabs where possible
-#103: FILE: mm/memcontrol.c:664:
-+            ^Ibreak;$
-
-WARNING: please, no space before tabs
-#103: FILE: mm/memcontrol.c:664:
-+            ^Ibreak;$
-
-WARNING: please, no spaces at the start of a line
-#103: FILE: mm/memcontrol.c:664:
-+            ^Ibreak;$
-
-ERROR: code indent should use tabs where possible
-#106: FILE: mm/memcontrol.c:667:
-+        }$
-
-WARNING: please, no spaces at the start of a line
-#106: FILE: mm/memcontrol.c:667:
-+        }$
-
-ERROR: code indent should use tabs where possible
-#108: FILE: mm/memcontrol.c:669:
-+        this_cpu_write(mem->stat->targets[target], next);$
-
-WARNING: please, no spaces at the start of a line
-#108: FILE: mm/memcontrol.c:669:
-+        this_cpu_write(mem->stat->targets[target], next);$
-
-ERROR: code indent should use tabs where possible
-#120: FILE: mm/memcontrol.c:681:
-+                __mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);$
-
-WARNING: please, no spaces at the start of a line
-#120: FILE: mm/memcontrol.c:681:
-+                __mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);$
-
-total: 14 errors, 15 warnings, 93 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |   59 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 45 insertions(+), 14 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes
+diff -puN mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp
 +++ a/mm/memcontrol.c
-@@ -103,9 +103,9 @@ enum mem_cgroup_events_index {
-  * than using jiffies etc. to handle periodic memcg event.
-  */
- enum mem_cgroup_events_target {
--        MEM_CGROUP_TARGET_THRESH,
--        MEM_CGROUP_TARGET_SOFTLIMIT,
--        MEM_CGROUP_NTARGETS,
-+	MEM_CGROUP_TARGET_THRESH,
-+	MEM_CGROUP_TARGET_SOFTLIMIT,
-+	MEM_CGROUP_NTARGETS,
+@@ -73,15 +73,6 @@ static int really_do_swap_account __init
+ #define do_swap_account		(0)
+ #endif
+ 
+-/*
+- * Per memcg event counter is incremented at every pagein/pageout. This counter
+- * is used for trigger some periodic events. This is straightforward and better
+- * than using jiffies etc. to handle periodic memcg event.
+- *
+- * These values will be used as !((event) & ((1 <<(thresh)) - 1))
+- */
+-#define THRESHOLDS_EVENTS_THRESH (7) /* once in 128 */
+-#define SOFTLIMIT_EVENTS_THRESH (10) /* once in 1024 */
+ 
+ /*
+  * Statistics for memory cgroup.
+@@ -105,10 +96,24 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+ 	MEM_CGROUP_EVENTS_NSTATS,
  };
- #define THRESHOLDS_EVENTS_TARGET (128)
- #define SOFTLIMIT_EVENTS_TARGET (1024)
-@@ -113,7 +113,7 @@ enum mem_cgroup_events_target {
++/*
++ * Per memcg event counter is incremented at every pagein/pageout. With THP,
++ * it will be incremated by the number of pages. This counter is used for
++ * for trigger some periodic events. This is straightforward and better
++ * than using jiffies etc. to handle periodic memcg event.
++ */
++enum mem_cgroup_events_target {
++        MEM_CGROUP_TARGET_THRESH,
++        MEM_CGROUP_TARGET_SOFTLIMIT,
++        MEM_CGROUP_NTARGETS,
++};
++#define THRESHOLDS_EVENTS_TARGET (128)
++#define SOFTLIMIT_EVENTS_TARGET (1024)
+ 
  struct mem_cgroup_stat_cpu {
  	long count[MEM_CGROUP_STAT_NSTATS];
  	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
--        unsigned long targets[MEM_CGROUP_NTARGETS];
-+	unsigned long targets[MEM_CGROUP_NTARGETS];
++        unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
  /*
-@@ -645,28 +645,28 @@ static bool __memcg_event_check(struct m
- 
- 	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
- 	next = this_cpu_read(mem->stat->targets[target]);
--        /* from time_after() in jiffies.h */
-+	/* from time_after() in jiffies.h */
- 	return ((long)next - (long)val < 0);
+@@ -634,13 +639,34 @@ static unsigned long mem_cgroup_get_loca
+ 	return total;
  }
  
- static void __mem_cgroup_target_update(struct mem_cgroup *mem, int target)
+-static bool __memcg_event_check(struct mem_cgroup *mem, int event_mask_shift)
++static bool __memcg_event_check(struct mem_cgroup *mem, int target)
  {
--        unsigned long val, next;
+-	unsigned long val;
 +	unsigned long val, next;
  
  	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	next = this_cpu_read(mem->stat->targets[target]);
++        /* from time_after() in jiffies.h */
++	return ((long)next - (long)val < 0);
++}
  
--        switch (target) {
--        case MEM_CGROUP_TARGET_THRESH:
-+	switch (target) {
-+	case MEM_CGROUP_TARGET_THRESH:
- 		next = val + THRESHOLDS_EVENTS_TARGET;
--            	break;
--        case MEM_CGROUP_TARGET_SOFTLIMIT:
-+		break;
-+	case MEM_CGROUP_TARGET_SOFTLIMIT:
- 		next = val + SOFTLIMIT_EVENTS_TARGET;
--            	break;
-+		break;
- 	default:
- 		return;
--        }
-+	}
- 
--        this_cpu_write(mem->stat->targets[target], next);
-+	this_cpu_write(mem->stat->targets[target], next);
+-	return !(val & ((1 << event_mask_shift) - 1));
++static void __mem_cgroup_target_update(struct mem_cgroup *mem, int target)
++{
++        unsigned long val, next;
++
++	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++
++        switch (target) {
++        case MEM_CGROUP_TARGET_THRESH:
++		next = val + THRESHOLDS_EVENTS_TARGET;
++            	break;
++        case MEM_CGROUP_TARGET_SOFTLIMIT:
++		next = val + SOFTLIMIT_EVENTS_TARGET;
++            	break;
++	default:
++		return;
++        }
++
++        this_cpu_write(mem->stat->targets[target], next);
  }
  
  /*
-@@ -678,7 +678,7 @@ static void memcg_check_events(struct me
+@@ -650,10 +676,15 @@ static bool __memcg_event_check(struct m
+ static void memcg_check_events(struct mem_cgroup *mem, struct page *page)
+ {
  	/* threshold event is triggered in finer grain than soft limit */
- 	if (unlikely(__memcg_event_check(mem, MEM_CGROUP_TARGET_THRESH))) {
+-	if (unlikely(__memcg_event_check(mem, THRESHOLDS_EVENTS_THRESH))) {
++	if (unlikely(__memcg_event_check(mem, MEM_CGROUP_TARGET_THRESH))) {
  		mem_cgroup_threshold(mem);
--                __mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
-+		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
- 		if (unlikely(__memcg_event_check(mem,
- 			MEM_CGROUP_TARGET_SOFTLIMIT))){
+-		if (unlikely(__memcg_event_check(mem, SOFTLIMIT_EVENTS_THRESH)))
++                __mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
++		if (unlikely(__memcg_event_check(mem,
++			MEM_CGROUP_TARGET_SOFTLIMIT))){
  			mem_cgroup_update_tree(mem, page);
++			__mem_cgroup_target_update(mem,
++				MEM_CGROUP_TARGET_SOFTLIMIT);
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-fs-adfs-adfsh-fix-unsigned-comparison.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
+memcg-break-out-event-counters-from-other-stats.patch
 memcg-use-native-word-page-statistics-counters.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
 mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
+page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem-fix.patch
+memcg-page_cgroup-array-is-never-stored-on-reserved-pages.patch
+memcg-fix-leak-on-wrong-lru-with-fuse.patch
+memcg-give-current-access-to-memory-reserves-if-its-trying-to-die.patch
 
