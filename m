@@ -1,67 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-ep93xx_pwmc-world-writable-sysfs-files.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:38:47 -0700
-Message-ID: <201103232042.p2NKgNnC028755@imap1.linux-foundation.org>
+Subject: [merged] vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:39:19 -0700
+Message-ID: <201103232042.p2NKgtx9028811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933407Ab1CWUnU (ORCPT
+	by vger.kernel.org with ESMTP id S933407Ab1CWUn1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:20 -0400
+	Wed, 23 Mar 2011 16:43:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, hartleys@visionengravers.com, mcrapet@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, drosenberg@vsecurity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/ep93xx_pwm.c: world-writable sysfs files
+     vsprintf: neaten %pK kptr_restrict, save a bit of code space
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-ep93xx_pwmc-world-writable-sysfs-files.patch
+     vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/ep93xx_pwm.c: world-writable sysfs files
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: vsprintf: neaten %pK kptr_restrict, save a bit of code space
+From: Joe Perches <joe@perches.com>
 
-Don't allow everybody to change device settings.
+If kptr restrictions are on, just set the passed pointer to NULL.
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Acked-by: Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Matthieu Crapet <mcrapet@gmail.com>
+$ size lib/vsprintf.o.*
+   text	   data	    bss	    dec	    hex	filename
+   8247	      4	      2	   8253	   203d	lib/vsprintf.o.new
+   8282	      4	      2	   8288	   2060	lib/vsprintf.o.old
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ep93xx_pwm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/vsprintf.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/ep93xx_pwm.c~drivers-misc-ep93xx_pwmc-world-writable-sysfs-files drivers/misc/ep93xx_pwm.c
---- a/drivers/misc/ep93xx_pwm.c~drivers-misc-ep93xx_pwmc-world-writable-sysfs-files
-+++ a/drivers/misc/ep93xx_pwm.c
-@@ -249,11 +249,11 @@ static ssize_t ep93xx_pwm_set_invert(str
- 
- static DEVICE_ATTR(min_freq, S_IRUGO, ep93xx_pwm_get_min_freq, NULL);
- static DEVICE_ATTR(max_freq, S_IRUGO, ep93xx_pwm_get_max_freq, NULL);
--static DEVICE_ATTR(freq, S_IWUGO | S_IRUGO,
-+static DEVICE_ATTR(freq, S_IWUSR | S_IRUGO,
- 		   ep93xx_pwm_get_freq, ep93xx_pwm_set_freq);
--static DEVICE_ATTR(duty_percent, S_IWUGO | S_IRUGO,
-+static DEVICE_ATTR(duty_percent, S_IWUSR | S_IRUGO,
- 		   ep93xx_pwm_get_duty_percent, ep93xx_pwm_set_duty_percent);
--static DEVICE_ATTR(invert, S_IWUGO | S_IRUGO,
-+static DEVICE_ATTR(invert, S_IWUSR | S_IRUGO,
- 		   ep93xx_pwm_get_invert, ep93xx_pwm_set_invert);
- 
- static struct attribute *ep93xx_pwm_attrs[] = {
-_
-
-Patches currently in -mm which might be from segoon@openwall.com are
-
-origin.patch
-linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-aic94xx-world-writable-sysfs-update_bios-file.patch
-
+diff -puN lib/vsprintf.c~vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-neaten-%pk-kptr_restrict-save-a-bit-of-code-space
++++ a/lib/vsprintf.c
+@@ -1047,16 +1047,12 @@ char *pointer(const char *fmt, char *buf
+ 			if (spec.field_width == -1)
+ 				spec.field_width = 2 * sizeof(void *);
+ 			return string(buf, end, "pK-error", spec);
+-		} else if ((kptr_restrict == 0) ||
+-			 (kptr_restrict == 1 &&
+-			  has_capability_noaudit(current, CAP_SYSLOG)))
+-			break;
