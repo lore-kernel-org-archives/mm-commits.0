@@ -1,203 +1,390 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:13 -0700
-Message-ID: <201103232036.p2NKanRd028173@imap1.linux-foundation.org>
+Subject: [merged] add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:38:26 -0700
+Message-ID: <201103232042.p2NKg25L028716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933436Ab1CWUnv (ORCPT
+	by vger.kernel.org with ESMTP id S933435Ab1CWUno (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:51 -0400
+	Wed, 23 Mar 2011 16:43:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg@redhat.com, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, rpurdie@rpsys.net, rui.zhang@intel.co
+To: fujita.tomonori@lab.ntt.co.jp, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@tilera.com, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, mi
 
 
 The patch titled
-     nouveau: change the backlight parent device to the connector, not the PCI dev
+     add the common dma_addr_t typedef to include/linux/types.h
 has been removed from the -mm tree.  Its filename was
-     nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev.patch
+     add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nouveau: change the backlight parent device to the connector, not the PCI dev
-From: Matthew Garrett <mjg@redhat.com>
+Subject: add the common dma_addr_t typedef to include/linux/types.h
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-We may eventually end up with per-connector backlights, especially with
-ddcci devices.  Make sure that the parent node for the backlight device is
-the connector rather than the PCI device.
+All architectures can use the common dma_addr_t typedef now. We can
+remove the arch specific dma_addr_t.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Acked-by: Ben Skeggs <bskeggs@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_backlight.c |   24 ++++++++++--------
- drivers/gpu/drm/nouveau/nouveau_connector.c |    9 ++++++
- drivers/gpu/drm/nouveau/nouveau_drv.h       |    8 +++---
- drivers/gpu/drm/nouveau/nouveau_state.c     |    6 ----
- 4 files changed, 27 insertions(+), 20 deletions(-)
+ arch/alpha/include/asm/types.h   |    1 -
+ arch/arm/include/asm/types.h     |    3 ---
+ arch/avr32/include/asm/types.h   |    8 --------
+ arch/cris/include/asm/types.h    |    3 ---
+ arch/frv/include/asm/types.h     |    8 --------
+ arch/h8300/include/asm/types.h   |    4 ----
+ arch/ia64/include/asm/types.h    |    3 ---
+ arch/m32r/include/asm/types.h    |    3 ---
+ arch/m68k/include/asm/types.h    |    3 ---
+ arch/mips/include/asm/types.h    |    6 ------
+ arch/mn10300/include/asm/types.h |    7 -------
+ arch/parisc/include/asm/types.h  |    3 ---
+ arch/powerpc/include/asm/types.h |    5 -----
+ arch/s390/include/asm/types.h    |    6 ------
+ arch/sparc/include/asm/types.h   |    4 ----
+ arch/x86/include/asm/types.h     |    8 --------
+ arch/xtensa/include/asm/types.h  |    4 ----
+ include/asm-generic/types.h      |   27 ---------------------------
+ include/linux/types.h            |    6 ++++++
+ 19 files changed, 6 insertions(+), 106 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nouveau_backlight.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_backlight.c
---- a/drivers/gpu/drm/nouveau/nouveau_backlight.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
-+++ a/drivers/gpu/drm/nouveau/nouveau_backlight.c
-@@ -88,10 +88,11 @@ static const struct backlight_ops nv50_b
- 	.update_status = nv50_set_intensity,
+diff -puN arch/alpha/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/alpha/include/asm/types.h
+--- a/arch/alpha/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/alpha/include/asm/types.h
+@@ -27,7 +27,6 @@ typedef unsigned int umode_t;
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+-typedef u64 dma_addr_t;
+ typedef u64 dma64_addr_t;
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/arm/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/arm/include/asm/types.h
+--- a/arch/arm/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/arm/include/asm/types.h
+@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+ typedef u32 dma64_addr_t;
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/avr32/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/avr32/include/asm/types.h
+--- a/arch/avr32/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/avr32/include/asm/types.h
+@@ -23,14 +23,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ 
+diff -puN arch/cris/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/cris/include/asm/types.h
+--- a/arch/cris/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/cris/include/asm/types.h
+@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/* Dma addresses are 32-bits wide, just like our other addresses.  */
+- 
+-typedef u32 dma_addr_t;
+ typedef u32 dma64_addr_t;
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/frv/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/frv/include/asm/types.h
+--- a/arch/frv/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/frv/include/asm/types.h
+@@ -27,14 +27,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _ASM_TYPES_H */
+diff -puN arch/h8300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/h8300/include/asm/types.h
+--- a/arch/h8300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/h8300/include/asm/types.h
+@@ -22,10 +22,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/ia64/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/ia64/include/asm/types.h
+--- a/arch/ia64/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/ia64/include/asm/types.h
+@@ -40,9 +40,6 @@ struct fnptr {
+ 	unsigned long gp;
  };
  
--static int nouveau_nv40_backlight_init(struct drm_device *dev)
-+static int nouveau_nv40_backlight_init(struct drm_connector *connector)
- {
--	struct backlight_properties props;
-+	struct drm_device *dev = connector->dev;
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
-+	struct backlight_properties props;
- 	struct backlight_device *bd;
+-/* DMA addresses are 64-bits wide, in general.  */
+-typedef u64 dma_addr_t;
+-
+ # endif /* __KERNEL__ */
+ #endif /* !__ASSEMBLY__ */
  
- 	if (!(nv_rd32(dev, NV40_PMC_BACKLIGHT) & NV40_PMC_BACKLIGHT_MASK))
-@@ -100,7 +101,7 @@ static int nouveau_nv40_backlight_init(s
- 	memset(&props, 0, sizeof(struct backlight_properties));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = 31;
--	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
-+	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
- 				       &nv40_bl_ops, &props);
- 	if (IS_ERR(bd))
- 		return PTR_ERR(bd);
-@@ -112,10 +113,11 @@ static int nouveau_nv40_backlight_init(s
- 	return 0;
- }
+diff -puN arch/m32r/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/m32r/include/asm/types.h
+--- a/arch/m32r/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/m32r/include/asm/types.h
+@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
  
--static int nouveau_nv50_backlight_init(struct drm_device *dev)
-+static int nouveau_nv50_backlight_init(struct drm_connector *connector)
- {
--	struct backlight_properties props;
-+	struct drm_device *dev = connector->dev;
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
-+	struct backlight_properties props;
- 	struct backlight_device *bd;
+ #ifndef __ASSEMBLY__
  
- 	if (!nv_rd32(dev, NV50_PDISPLAY_SOR_BACKLIGHT))
-@@ -124,7 +126,7 @@ static int nouveau_nv50_backlight_init(s
- 	memset(&props, 0, sizeof(struct backlight_properties));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = 1025;
--	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
-+	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
- 				       &nv50_bl_ops, &props);
- 	if (IS_ERR(bd))
- 		return PTR_ERR(bd);
-@@ -135,8 +137,9 @@ static int nouveau_nv50_backlight_init(s
- 	return 0;
- }
+-/* DMA addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+ typedef u64 dma64_addr_t;
  
--int nouveau_backlight_init(struct drm_device *dev)
-+int nouveau_backlight_init(struct drm_connector *connector)
- {
-+	struct drm_device *dev = connector->dev;
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/m68k/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/m68k/include/asm/types.h
+--- a/arch/m68k/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/m68k/include/asm/types.h
+@@ -25,9 +25,6 @@ typedef unsigned short umode_t;
  
- #ifdef CONFIG_ACPI
-@@ -149,9 +152,9 @@ int nouveau_backlight_init(struct drm_de
+ #ifndef __ASSEMBLY__
  
- 	switch (dev_priv->card_type) {
- 	case NV_40:
--		return nouveau_nv40_backlight_init(dev);
-+		return nouveau_nv40_backlight_init(connector);
- 	case NV_50:
--		return nouveau_nv50_backlight_init(dev);
-+		return nouveau_nv50_backlight_init(connector);
- 	default:
- 		break;
- 	}
-@@ -159,8 +162,9 @@ int nouveau_backlight_init(struct drm_de
- 	return 0;
- }
+-/* DMA addresses are always 32-bits wide */
+-
+-typedef u32 dma_addr_t;
+ typedef u32 dma64_addr_t;
  
--void nouveau_backlight_exit(struct drm_device *dev)
-+void nouveau_backlight_exit(struct drm_connector *connector)
- {
-+	struct drm_device *dev = connector->dev;
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/mips/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/mips/include/asm/types.h
+--- a/arch/mips/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/mips/include/asm/types.h
+@@ -33,12 +33,6 @@ typedef unsigned short umode_t;
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
  
- 	if (dev_priv->backlight) {
-diff -puN drivers/gpu/drm/nouveau/nouveau_connector.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_connector.c
---- a/drivers/gpu/drm/nouveau/nouveau_connector.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
-+++ a/drivers/gpu/drm/nouveau/nouveau_connector.c
-@@ -116,6 +116,10 @@ nouveau_connector_destroy(struct drm_con
- 				      nouveau_connector_hotplug, connector);
- 	}
+-#if (defined(CONFIG_HIGHMEM) && defined(CONFIG_64BIT_PHYS_ADDR)) \
+-    || defined(CONFIG_64BIT)
+-typedef u64 dma_addr_t;
+-#else
+-typedef u32 dma_addr_t;
+-#endif
+ typedef u64 dma64_addr_t;
  
-+	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
-+	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
-+		nouveau_backlight_exit(connector);
-+
- 	kfree(nv_connector->edid);
- 	drm_sysfs_connector_remove(connector);
- 	drm_connector_cleanup(connector);
-@@ -894,6 +898,11 @@ nouveau_connector_create(struct drm_devi
- 	}
+ /*
+diff -puN arch/mn10300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/mn10300/include/asm/types.h
+--- a/arch/mn10300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/mn10300/include/asm/types.h
+@@ -26,13 +26,6 @@ typedef unsigned short umode_t;
  
- 	drm_sysfs_connector_add(connector);
-+
-+	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
-+	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
-+		nouveau_backlight_init(connector);
-+
- 	dcb->drm = connector;
- 	return dcb->drm;
+ #define BITS_PER_LONG 32
  
-diff -puN drivers/gpu/drm/nouveau/nouveau_drv.h~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_drv.h
---- a/drivers/gpu/drm/nouveau/nouveau_drv.h~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
-+++ a/drivers/gpu/drm/nouveau/nouveau_drv.h
-@@ -999,15 +999,15 @@ static inline int nouveau_acpi_edid(stru
+-#ifndef __ASSEMBLY__
+-
+-/* Dma addresses are 32-bits wide.  */
+-typedef u32 dma_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
  
- /* nouveau_backlight.c */
- #ifdef CONFIG_DRM_NOUVEAU_BACKLIGHT
--extern int nouveau_backlight_init(struct drm_device *);
--extern void nouveau_backlight_exit(struct drm_device *);
-+extern int nouveau_backlight_init(struct drm_connector *);
-+extern void nouveau_backlight_exit(struct drm_connector *);
- #else
--static inline int nouveau_backlight_init(struct drm_device *dev)
-+static inline int nouveau_backlight_init(struct drm_connector *dev)
- {
- 	return 0;
- }
+ #endif /* _ASM_TYPES_H */
+diff -puN arch/parisc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/parisc/include/asm/types.h
+--- a/arch/parisc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/parisc/include/asm/types.h
+@@ -16,9 +16,6 @@ typedef unsigned short umode_t;
  
--static inline void nouveau_backlight_exit(struct drm_device *dev) { }
-+static inline void nouveau_backlight_exit(struct drm_connector *dev) { }
+ #ifndef __ASSEMBLY__
+ 
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+ typedef u64 dma64_addr_t;
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/powerpc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/powerpc/include/asm/types.h
+--- a/arch/powerpc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/powerpc/include/asm/types.h
+@@ -44,11 +44,6 @@ typedef struct {
+ 
+ typedef __vector128 vector128;
+ 
+-#if defined(__powerpc64__) || defined(CONFIG_PHYS_64BIT)
+-typedef u64 dma_addr_t;
+-#else
+-typedef u32 dma_addr_t;
+-#endif
+ typedef u64 dma64_addr_t;
+ 
+ typedef struct {
+diff -puN arch/s390/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/s390/include/asm/types.h
+--- a/arch/s390/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/s390/include/asm/types.h
+@@ -31,12 +31,6 @@ typedef __signed__ long saddr_t;
+ #ifndef __ASSEMBLY__
+ 
+ typedef u64 dma64_addr_t;
+-#ifdef __s390x__
+-/* DMA addresses come in 32-bit and 64-bit flavours. */
+-typedef u64 dma_addr_t;
+-#else
+-typedef u32 dma_addr_t;
+-#endif
+ 
+ #ifndef __s390x__
+ typedef union {
+diff -puN arch/sparc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/sparc/include/asm/types.h
+--- a/arch/sparc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/sparc/include/asm/types.h
+@@ -22,10 +22,6 @@ typedef unsigned short umode_t;
+ 
+ #ifndef __ASSEMBLY__
+ 
+-/* Dma addresses come in generic and 64-bit flavours.  */
+-
+-typedef u32 dma_addr_t;
+-
+ #if defined(__arch64__)
+ 
+ /*** SPARC 64 bit ***/
+diff -puN arch/x86/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/x86/include/asm/types.h
+--- a/arch/x86/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/x86/include/asm/types.h
+@@ -1,20 +1,12 @@
+ #ifndef _ASM_X86_TYPES_H
+ #define _ASM_X86_TYPES_H
+ 
+-#define dma_addr_t	dma_addr_t
+-
+ #include <asm-generic/types.h>
+ 
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+ typedef u64 dma64_addr_t;
+-#if defined(CONFIG_X86_64) || defined(CONFIG_HIGHMEM64G)
+-/* DMA addresses come in 32-bit and 64-bit flavours. */
+-typedef u64 dma_addr_t;
+-#else
+-typedef u32 dma_addr_t;
+-#endif
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
+diff -puN arch/xtensa/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/xtensa/include/asm/types.h
+--- a/arch/xtensa/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/arch/xtensa/include/asm/types.h
+@@ -32,10 +32,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-/* Dma addresses are 32-bits wide.  */
+-
+-typedef u32 dma_addr_t;
+-
+ #endif	/* __KERNEL__ */
  #endif
  
- /* nouveau_bios.c */
-diff -puN drivers/gpu/drm/nouveau/nouveau_state.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_state.c
---- a/drivers/gpu/drm/nouveau/nouveau_state.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
-+++ a/drivers/gpu/drm/nouveau/nouveau_state.c
-@@ -704,10 +704,6 @@ nouveau_card_init(struct drm_device *dev
- 			goto out_fence;
- 	}
+diff -puN include/asm-generic/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh include/asm-generic/types.h
+--- a/include/asm-generic/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/include/asm-generic/types.h
+@@ -12,31 +12,4 @@ typedef unsigned short umode_t;
  
--	ret = nouveau_backlight_init(dev);
--	if (ret)
--		NV_ERROR(dev, "Error %d registering backlight\n", ret);
+ #endif /* __ASSEMBLY__ */
+ 
+-/*
+- * These aren't exported outside the kernel to avoid name space clashes
+- */
+-#ifdef __KERNEL__
+-#ifndef __ASSEMBLY__
+-/*
+- * DMA addresses may be very different from physical addresses
+- * and pointers. i386 and powerpc may have 64 bit DMA on 32 bit
+- * systems, while sparc64 uses 32 bit DMA addresses for 64 bit
+- * physical addresses.
+- * This default defines dma_addr_t to have the same size as
+- * phys_addr_t, which is the most common way.
+- * Do not define the dma64_addr_t type, which never really
+- * worked.
+- */
+-#ifndef dma_addr_t
+-#ifdef CONFIG_PHYS_ADDR_T_64BIT
+-typedef u64 dma_addr_t;
+-#else
+-typedef u32 dma_addr_t;
+-#endif /* CONFIG_PHYS_ADDR_T_64BIT */
+-#endif /* dma_addr_t */
 -
- 	nouveau_fbcon_init(dev);
- 	drm_kms_helper_poll_init(dev);
- 	return 0;
-@@ -759,8 +755,6 @@ static void nouveau_card_takedown(struct
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
- 	struct nouveau_engine *engine = &dev_priv->engine;
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+ #endif /* _ASM_GENERIC_TYPES_H */
+diff -puN include/linux/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh include/linux/types.h
+--- a/include/linux/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
++++ a/include/linux/types.h
+@@ -150,6 +150,12 @@ typedef unsigned long blkcnt_t;
+ #define pgoff_t unsigned long
+ #endif
  
--	nouveau_backlight_exit(dev);
++#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
++typedef u64 dma_addr_t;
++#else
++typedef u32 dma_addr_t;
++#endif /* dma_addr_t */
++
+ #endif /* __KERNEL__ */
+ 
+ /*
+_
+
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+
+origin.patch
+linux-next.patch
+remove-dma64_addr_t.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks.patch
+memstick-add-support-for-legacy-memorysticks-update-2.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader.patch
+
