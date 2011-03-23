@@ -1,99 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-quote-non-alphanumeric-email-addresses.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:39:37 -0700
-Message-ID: <201103232043.p2NKhDjx028843@imap1.linux-foundation.org>
+Subject: [merged] mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:35 -0700
+Message-ID: <201103232037.p2NKbBXG028214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933349Ab1CWUzl (ORCPT
+	by vger.kernel.org with ESMTP id S933349Ab1CWUzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:41 -0400
+	Wed, 23 Mar 2011 16:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, harryxiyou@gmail.com, jlee@novell.com, mark.brown314@gmail.com, padovan@profusion.mobi, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, arthur.marsh@internode.on.net, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: quote non-alphanumeric email addresses
+     mm: compaction: prevent kswapd compacting memory to reduce CPU usage
 has been removed from the -mm tree.  Its filename was
-     maintainers-quote-non-alphanumeric-email-addresses.patch
+     mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: quote non-alphanumeric email addresses
-From: Joe Perches <joe@perches.com>
+Subject: mm: compaction: prevent kswapd compacting memory to reduce CPU usage
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Add quotes around email address with periods and commas.  So they don't
-explode when pasted into certain email clients.
+This patch reverts 5a03b051 ("thp: use compaction in kswapd for GFP_ATOMIC
+order > 0") due to reports stating that kswapd CPU usage was higher and
+IRQs were being disabled more frequently.  This was reported at
+http://www.spinics.net/linux/fedora/alsa-user/msg09885.html.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Harry Wei <harryxiyou@gmail.com>
-Cc: "Mark F. Brown" <mark.brown314@gmail.com>
-Cc: "Gustavo F. Padovan" <padovan@profusion.mobi>
-Cc: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
-Cc: "Lee, Chun-Yi" <jlee@novell.com>
-Acked-by: Harry Wei <harryxiyou@gmail.com>
+Without this patch applied, CPU usage by kswapd hovers around the 20% mark
+according to the tester (Arthur Marsh:
+http://www.spinics.net/linux/fedora/alsa-user/msg09899.html).  With this
+patch applied, it's around 2%.
+
+The problem is not related to THP which specifies __GFP_NO_KSWAPD but is
+triggered by high-order allocations hitting the low watermark for their
+order and waking kswapd on kernels with CONFIG_COMPACTION set.  The most
+common trigger for this is network cards configured for jumbo frames but
+it's also possible it'll be triggered by fork-heavy workloads (order-1)
+and some wireless cards which depend on order-1 allocations.
+
+The symptoms for the user will be high CPU usage by kswapd in low-memory
+situations which could be confused with another writeback problem.  While
+a patch like 5a03b051 may be reintroduced in the future, this patch plays
+it safe for now and reverts it.
+
+[mel@csn.ul.ie: Beefed up the changelog]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Arthur Marsh <arthur.marsh@internode.on.net>
+Tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: <stable@kernel.org>		[2.6.38.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/compaction.h |    9 ++-------
+ mm/compaction.c            |   24 +++---------------------
+ mm/vmscan.c                |   18 +-----------------
+ 3 files changed, 6 insertions(+), 45 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-quote-non-alphanumeric-email-addresses MAINTAINERS
---- a/MAINTAINERS~maintainers-quote-non-alphanumeric-email-addresses
-+++ a/MAINTAINERS
-@@ -1078,7 +1078,7 @@ L:	linux-arm-kernel@lists.infradead.org 
- S:	Maintained
+diff -puN include/linux/compaction.h~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage
++++ a/include/linux/compaction.h
+@@ -11,9 +11,6 @@
+ /* The full zone was compacted */
+ #define COMPACT_COMPLETE	3
  
- ARM/TETON BGA MACHINE SUPPORT
--M:	Mark F. Brown <mark.brown314@gmail.com>
-+M:	"Mark F. Brown" <mark.brown314@gmail.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
+-#define COMPACT_MODE_DIRECT_RECLAIM	0
+-#define COMPACT_MODE_KSWAPD		1
+-
+ #ifdef CONFIG_COMPACTION
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+@@ -28,8 +25,7 @@ extern unsigned long try_to_compact_page
+ 			bool sync);
+ extern unsigned long compaction_suitable(struct zone *zone, int order);
+ extern unsigned long compact_zone_order(struct zone *zone, int order,
+-					gfp_t gfp_mask, bool sync,
+-					int compact_mode);
++					gfp_t gfp_mask, bool sync);
  
-@@ -1482,7 +1482,7 @@ F:	drivers/mtd/devices/block2mtd.c
+ /* Do not skip compaction more than 64 times */
+ #define COMPACT_MAX_DEFER_SHIFT 6
+@@ -74,8 +70,7 @@ static inline unsigned long compaction_s
+ }
  
- BLUETOOTH DRIVERS
- M:	Marcel Holtmann <marcel@holtmann.org>
--M:	Gustavo F. Padovan <padovan@profusion.mobi>
-+M:	"Gustavo F. Padovan" <padovan@profusion.mobi>
- L:	linux-bluetooth@vger.kernel.org
- W:	http://www.bluez.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
-@@ -1491,7 +1491,7 @@ F:	drivers/bluetooth/
+ static inline unsigned long compact_zone_order(struct zone *zone, int order,
+-					       gfp_t gfp_mask, bool sync,
+-					       int compact_mode)
++					       gfp_t gfp_mask, bool sync)
+ {
+ 	return COMPACT_CONTINUE;
+ }
+diff -puN mm/compaction.c~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage
++++ a/mm/compaction.c
+@@ -42,8 +42,6 @@ struct compact_control {
+ 	unsigned int order;		/* order a direct compactor needs */
+ 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
+-
+-	int compact_mode;
+ };
  
- BLUETOOTH SUBSYSTEM
- M:	Marcel Holtmann <marcel@holtmann.org>
--M:	Gustavo F. Padovan <padovan@profusion.mobi>
-+M:	"Gustavo F. Padovan" <padovan@profusion.mobi>
- L:	linux-bluetooth@vger.kernel.org
- W:	http://www.bluez.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
-@@ -2950,7 +2950,7 @@ F:	Documentation/blockdev/cpqarray.txt
- F:	drivers/block/cpqarray.*
+ static unsigned long release_freepages(struct list_head *freelist)
+@@ -397,10 +395,7 @@ static int compact_finished(struct zone 
+ 		return COMPACT_COMPLETE;
  
- HEWLETT-PACKARD SMART ARRAY RAID DRIVER (hpsa)
--M:	Stephen M. Cameron <scameron@beardog.cce.hp.com>
-+M:	"Stephen M. Cameron" <scameron@beardog.cce.hp.com>
- L:	iss_storagedev@hp.com
- S:	Supported
- F:	Documentation/scsi/hpsa.txt
-@@ -4232,7 +4232,7 @@ F:	Documentation/serial/moxa-smartio
- F:	drivers/char/mxser.*
+ 	/* Compaction run is not finished if the watermark is not met */
+-	if (cc->compact_mode != COMPACT_MODE_KSWAPD)
+-		watermark = low_wmark_pages(zone);
+-	else
+-		watermark = high_wmark_pages(zone);
++	watermark = low_wmark_pages(zone);
+ 	watermark += (1 << cc->order);
  
- MSI LAPTOP SUPPORT
--M:	Lee, Chun-Yi <jlee@novell.com>
-+M:	"Lee, Chun-Yi" <jlee@novell.com>
- L:	platform-driver-x86@vger.kernel.org
- S:	Maintained
- F:	drivers/platform/x86/msi-laptop.c
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-
+ 	if (!zone_watermark_ok(zone, cc->order, watermark, 0, 0))
+@@ -413,15 +408,6 @@ static int compact_finished(struct zone 
+ 	if (cc->order == -1)
+ 		return COMPACT_CONTINUE;
+ 
+-	/*
+-	 * Generating only one page of the right order is not enough
+-	 * for kswapd, we must continue until we're above the high
+-	 * watermark as a pool for high order GFP_ATOMIC allocations
+-	 * too.
+-	 */
+-	if (cc->compact_mode == COMPACT_MODE_KSWAPD)
+-		return COMPACT_CONTINUE;
+-
+ 	/* Direct compactor: Is a suitable page free? */
+ 	for (order = cc->order; order < MAX_ORDER; order++) {
+ 		/* Job done if page is free of the right migratetype */
+@@ -543,8 +529,7 @@ static int compact_zone(struct zone *zon
+ 
+ unsigned long compact_zone_order(struct zone *zone,
+ 				 int order, gfp_t gfp_mask,
+-				 bool sync,
+-				 int compact_mode)
++				 bool sync)
+ {
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+@@ -553,7 +538,6 @@ unsigned long compact_zone_order(struct 
+ 		.migratetype = allocflags_to_migratetype(gfp_mask),
+ 		.zone = zone,
+ 		.sync = sync,
+-		.compact_mode = compact_mode,
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+@@ -599,8 +583,7 @@ unsigned long try_to_compact_pages(struc
+ 								nodemask) {
+ 		int status;
+ 
+-		status = compact_zone_order(zone, order, gfp_mask, sync,
+-					    COMPACT_MODE_DIRECT_RECLAIM);
++		status = compact_zone_order(zone, order, gfp_mask, sync);
+ 		rc = max(status, rc);
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+@@ -631,7 +614,6 @@ static int compact_node(int nid)
+ 			.nr_freepages = 0,
+ 			.nr_migratepages = 0,
+ 			.order = -1,
+-			.compact_mode = COMPACT_MODE_DIRECT_RECLAIM,
+ 		};
+ 
+ 		zone = &pgdat->node_zones[zoneid];
+diff -puN mm/vmscan.c~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage mm/vmscan.c
+--- a/mm/vmscan.c~mm-compaction-prevent-kswapd-compacting-memory-to-reduce-cpu-usage
++++ a/mm/vmscan.c
+@@ -2397,7 +2397,6 @@ loop_again:
+ 		 * cause too much scanning of the lower zones.
+ 		 */
+ 		for (i = 0; i <= end_zone; i++) {
+-			int compaction;
+ 			struct zone *zone = pgdat->node_zones + i;
+ 			int nr_slab;
+ 
+@@ -2428,24 +2427,9 @@ loop_again:
+ 			sc.nr_reclaimed += reclaim_state->reclaimed_slab;
+ 			total_scanned += sc.nr_scanned;
+ 
+-			compaction = 0;
+-			if (order &&
+-			    zone_watermark_ok(zone, 0,
+-					       high_wmark_pages(zone),
+-					      end_zone, 0) &&
+-			    !zone_watermark_ok(zone, order,
+-					       high_wmark_pages(zone),
+-					       end_zone, 0)) {
+-				compact_zone_order(zone,
+-						   order,
+-						   sc.gfp_mask, false,
+-						   COMPACT_MODE_KSWAPD);
+-				compaction = 1;
+-			}
