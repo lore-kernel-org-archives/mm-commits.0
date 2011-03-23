@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_swapon-simplify-error-flow-in-claim_swapfile.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:37:38 -0700
-Message-ID: <201103232041.p2NKfEbY028619@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-remove-bdev-variable.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:30 -0700
+Message-ID: <201103232041.p2NKf6qi028603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756124Ab1CWUzQ (ORCPT
+	by vger.kernel.org with ESMTP id S932200Ab1CWUzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:16 -0400
+	Wed, 23 Mar 2011 16:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_swapon: simplify error flow in claim_swapfile()
+     sys_swapon: remove bdev variable
 has been removed from the -mm tree.  Its filename was
-     sys_swapon-simplify-error-flow-in-claim_swapfile.patch
+     sys_swapon-remove-bdev-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: simplify error flow in claim_swapfile()
+Subject: sys_swapon: remove bdev variable
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Since there is no cleanup to do, there is no reason to jump to a label.
-Return directly instead.
+The bdev variable is always equivalent to (S_ISBLK(inode->i_mode) ?
+p->bdev : NULL), as long as it being set is moved to a bit earlier. Use
+this fact to remove the bdev variable.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
@@ -38,40 +39,62 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ mm/swapfile.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-simplify-error-flow-in-claim_swapfile mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-simplify-error-flow-in-claim_swapfile
+diff -puN mm/swapfile.c~sys_swapon-remove-bdev-variable mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-remove-bdev-variable
 +++ a/mm/swapfile.c
-@@ -1900,30 +1900,22 @@ static int claim_swapfile(struct swap_in
+@@ -1893,7 +1893,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ {
+ 	struct swap_info_struct *p;
+ 	char *name;
+-	struct block_device *bdev = NULL;
+ 	struct file *swap_file = NULL;
+ 	struct address_space *mapping;
+ 	int i, prev;
+@@ -1944,19 +1943,19 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 
+ 	if (S_ISBLK(inode->i_mode)) {
+-		bdev = bdgrab(I_BDEV(inode));
+-		error = blkdev_get(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL,
++		p->bdev = bdgrab(I_BDEV(inode));
++		error = blkdev_get(p->bdev,
++				   FMODE_READ | FMODE_WRITE | FMODE_EXCL,
  				   sys_swapon);
  		if (error < 0) {
- 			p->bdev = NULL;
--			error = -EINVAL;
--			goto bad_swap;
-+			return -EINVAL;
+-			bdev = NULL;
++			p->bdev = NULL;
+ 			error = -EINVAL;
+ 			goto bad_swap;
  		}
- 		p->old_block_size = block_size(p->bdev);
- 		error = set_blocksize(p->bdev, PAGE_SIZE);
+-		p->old_block_size = block_size(bdev);
+-		error = set_blocksize(bdev, PAGE_SIZE);
++		p->old_block_size = block_size(p->bdev);
++		error = set_blocksize(p->bdev, PAGE_SIZE);
  		if (error < 0)
--			goto bad_swap;
-+			return error;
+ 			goto bad_swap;
+-		p->bdev = bdev;
  		p->flags |= SWP_BLKDEV;
  	} else if (S_ISREG(inode->i_mode)) {
  		p->bdev = inode->i_sb->s_bdev;
- 		mutex_lock(&inode->i_mutex);
--		if (IS_SWAPFILE(inode)) {
--			error = -EBUSY;
--			goto bad_swap;
--		}
--	} else {
--		error = -EINVAL;
--		goto bad_swap;
--	}
-+		if (IS_SWAPFILE(inode))
-+			return -EBUSY;
-+	} else
-+		return -EINVAL;
- 
- 	return 0;
+@@ -2140,9 +2139,9 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = 0;
+ 	goto out;
+ bad_swap:
+-	if (bdev) {
+-		set_blocksize(bdev, p->old_block_size);
+-		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
++	if (S_ISBLK(inode->i_mode) && p->bdev) {
++		set_blocksize(p->bdev, p->old_block_size);
++		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+ 	}
+ 	destroy_swap_extents(p);
+ 	swap_cgroup_swapoff(p->type);
+_
+
+Patches currently in -mm which might be from cesarb@cesarb.net are
+
+origin.patch
+
