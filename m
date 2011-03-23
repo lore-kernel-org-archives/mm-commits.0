@@ -1,151 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:32:46 -0700
-Message-ID: <201103232036.p2NKaMBI028114@imap1.linux-foundation.org>
+Subject: [merged] kernel-watchdogc-always-return-notify_ok-during-cpu-up-down-events.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:39:15 -0700
+Message-ID: <201103232042.p2NKgpxF028805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933435Ab1CWUnf (ORCPT
+	by vger.kernel.org with ESMTP id S933434Ab1CWUnb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:35 -0400
+	Wed, 23 Mar 2011 16:43:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, avagin@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, a.p.zijlstra@chello.nl, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: avoid deferring oom killer if exiting task is being traced
+     kernel/watchdog.c: always return NOTIFY_OK during cpu up/down events
 has been removed from the -mm tree.  Its filename was
-     oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced.patch
+     kernel-watchdogc-always-return-notify_ok-during-cpu-up-down-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: avoid deferring oom killer if exiting task is being traced
-From: David Rientjes <rientjes@google.com>
+Subject: kernel/watchdog.c: always return NOTIFY_OK during cpu up/down events
+From: Don Zickus <dzickus@redhat.com>
 
-The oom killer naturally defers killing anything if it finds an eligible
-task that is already exiting and has yet to detach its ->mm.  This avoids
-unnecessarily killing tasks when one is already in the exit path and may
-free enough memory that the oom killer is no longer needed.  This is
-detected by PF_EXITING since threads that have already detached its ->mm
-are no longer considered at all.
+This patch addresses a couple of problems.  One was the case when the
+hardlockup failed to start, it also failed to start the softlockup.  There
+were valid cases when the hardlockup shouldn't start and that shouldn't
+block the softlockup (no lapic, bios controls perf counters).
 
-The problem with always deferring when a thread is PF_EXITING, however, is
-that it may never actually exit when being traced, specifically if another
-task is tracing it with PTRACE_O_TRACEEXIT.  The oom killer does not want
-to defer in this case since there is no guarantee that thread will ever
-exit without intervention.
+The second problem was when the hardlockup failed to start on boxes (from
+a no lapic or bios controlled perf counter case), it reported failure to
+the cpu notifier chain.  This blocked the notifier from continuing to
+start other more critical pieces of cpu bring-up (in our case based on a
+2.6.32 fork, it was the mce).  As a result, during soft cpu online/offline
+testing, the system would panic when a cpu was offlined because the cpu
+notifier would succeed in processing a watchdog disable cpu event and
+would panic in the mce case as a result of un-initialized variables from a
+never executed cpu up event.
 
-This patch will now only defer the oom killer when a thread is PF_EXITING
-and no ptracer has stopped its progress in the exit path.  It also ensures
-that a child is sacrificed for the chosen parent only if it has a
-different ->mm as the comment implies: this ensures that the thread group
-leader is always targeted appropriately.
+I realized the hardlockup/softlockup cases are really just debugging aids
+and should never impede the progress of a cpu up/down event.  Therefore I
+modified the code to always return NOTIFY_OK and instead rely on printks
+to inform the user of problems.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: <stable@kernel.org>		[2.6.38.x]
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   40 +++++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 15 deletions(-)
+ kernel/watchdog.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-deferring-oom-killer-if-exiting-task-is-being-traced
-+++ a/mm/oom_kill.c
-@@ -31,6 +31,7 @@
- #include <linux/memcontrol.h>
- #include <linux/mempolicy.h>
- #include <linux/security.h>
-+#include <linux/ptrace.h>
+diff -puN kernel/watchdog.c~kernel-watchdogc-always-return-notify_ok-during-cpu-up-down-events kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdogc-always-return-notify_ok-during-cpu-up-down-events
++++ a/kernel/watchdog.c
+@@ -418,19 +418,22 @@ static int watchdog_prepare_cpu(int cpu)
+ static int watchdog_enable(int cpu)
+ {
+ 	struct task_struct *p = per_cpu(softlockup_watchdog, cpu);
+-	int err;
++	int err = 0;
  
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
-@@ -316,22 +317,29 @@ static struct task_struct *select_bad_pr
- 		if (test_tsk_thread_flag(p, TIF_MEMDIE))
- 			return ERR_PTR(-1UL);
+ 	/* enable the perf event */
+ 	err = watchdog_nmi_enable(cpu);
+-	if (err)
+-		return err;
++
++	/* Regardless of err above, fall through and start softlockup */
  
--		/*
--		 * This is in the process of releasing memory so wait for it
--		 * to finish before killing some other task by mistake.
--		 *
--		 * However, if p is the current task, we allow the 'kill' to
--		 * go ahead if it is exiting: this will simply set TIF_MEMDIE,
--		 * which will allow it to gain access to memory reserves in
--		 * the process of exiting and releasing its resources.
--		 * Otherwise we could get an easy OOM deadlock.
--		 */
- 		if (p->flags & PF_EXITING) {
--			if (p != current)
--				return ERR_PTR(-1UL);
--
--			chosen = p;
--			*ppoints = 1000;
-+			/*
-+			 * If p is the current task and is in the process of
-+			 * releasing memory, we allow the "kill" to set
-+			 * TIF_MEMDIE, which will allow it to gain access to
-+			 * memory reserves.  Otherwise, it may stall forever.
-+			 *
-+			 * The loop isn't broken here, however, in case other
-+			 * threads are found to have already been oom killed.
-+			 */
-+			if (p == current) {
-+				chosen = p;
-+				*ppoints = 1000;
-+			} else {
-+				/*
-+				 * If this task is not being ptraced on exit,
-+				 * then wait for it to finish before killing
-+				 * some other task unnecessarily.
-+				 */
-+				if (!(task_ptrace(p->group_leader) &
-+							PT_TRACE_EXIT))
-+					return ERR_PTR(-1UL);
-+			}
+ 	/* create the watchdog thread */
+ 	if (!p) {
+ 		p = kthread_create(watchdog, (void *)(unsigned long)cpu, "watchdog/%d", cpu);
+ 		if (IS_ERR(p)) {
+ 			printk(KERN_ERR "softlockup watchdog for %i failed\n", cpu);
+-			return PTR_ERR(p);
++			if (!err)
++				/* if hardlockup hasn't already set this */
++				err = PTR_ERR(p);
++			goto out;
  		}
+ 		kthread_bind(p, cpu);
+ 		per_cpu(watchdog_touch_ts, cpu) = 0;
+@@ -438,7 +441,8 @@ static int watchdog_enable(int cpu)
+ 		wake_up_process(p);
+ 	}
  
- 		points = oom_badness(p, mem, nodemask, totalpages);
-@@ -493,6 +501,8 @@ static int oom_kill_process(struct task_
- 		list_for_each_entry(child, &t->children, sibling) {
- 			unsigned int child_points;
+-	return 0;
++out:
++	return err;
+ }
  
-+			if (child->mm == p->mm)
-+				continue;
- 			/*
- 			 * oom_badness() returns 0 if the thread is unkillable
- 			 */
+ static void watchdog_disable(int cpu)
+@@ -550,7 +554,13 @@ cpu_callback(struct notifier_block *nfb,
+ 		break;
+ #endif /* CONFIG_HOTPLUG_CPU */
+ 	}
+-	return notifier_from_errno(err);
++
++	/*
++	 * hardlockup and softlockup are not important enough
++	 * to block cpu bring up.  Just always succeed and
++	 * rely on printk output to flag problems.
++	 */
++	return NOTIFY_OK;
+ }
+ 
+ static struct notifier_block __cpuinitdata cpu_nfb = {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
 origin.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-give-current-access-to-memory-reserves-if-its-trying-to-die.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
-cpuset-hold-callback_mutex-in-cpuset_clone.patch
-sysctl-add-some-missing-input-constraint-checks.patch
+linux-next.patch
 
