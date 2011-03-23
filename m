@@ -1,488 +1,290 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:10 -0700
-Message-ID: <201103232036.p2NKakxc028168@imap1.linux-foundation.org>
+Subject: [merged] rtc-isl1208-add-alarm-support.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:40:42 -0700
+Message-ID: <201103232044.p2NKiIl7029059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933468Ab1CWUoa (ORCPT
+	by vger.kernel.org with ESMTP id S933473Ab1CWUoj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:44:30 -0400
+	Wed, 23 Mar 2011 16:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michel@daenzer.net, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, mjg@redhat.com, rpurdie@rpsys.net
+To: ryan@bluewatersys.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeon: expose backlight class device for legacy LVDS encoder
+     drivers/rtc/rtc-isl1208.c: add alarm support
 has been removed from the -mm tree.  Its filename was
-     radeon-expose-backlight-class-device-for-legacy-lvds-encoder.patch
+     rtc-isl1208-add-alarm-support.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeon: expose backlight class device for legacy LVDS encoder
-=46rom: Michel D=E4nzer <michel@daenzer.net>
+Subject: drivers/rtc/rtc-isl1208.c: add alarm support
+From: Ryan Mallon <ryan@bluewatersys.com>
 
-Allows e.g. power management daemons to control the backlight level. In=
-spired
-by the corresponding code in radeonfb.
+Add alarm/wakeup support to rtc isl1208 driver
 
-[mjg@redhat.com: updated to add backlight type and make the connector t=
-he parent device]
-Signed-off-by: Michel D=E4nzer <michel@daenzer.net>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Airlie <airlied@linux.ie>
-Acked-by: Alex Deucher <alexdeucher@gmail.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
+Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/Kconfig                  |    1=20
- drivers/gpu/drm/radeon/radeon_connectors.c      |   15=20
- drivers/gpu/drm/radeon/radeon_legacy_encoders.c |  257 +++++++++++++-
- drivers/gpu/drm/radeon/radeon_mode.h            |    6=20
- 4 files changed, 273 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-isl1208.c |  176 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 171 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/radeon/Kconfig~radeon-expose-backlight-class-=
-device-for-legacy-lvds-encoder drivers/gpu/drm/radeon/Kconfig
---- a/drivers/gpu/drm/radeon/Kconfig~radeon-expose-backlight-class-devi=
-ce-for-legacy-lvds-encoder
-+++ a/drivers/gpu/drm/radeon/Kconfig
-@@ -1,6 +1,7 @@
- config DRM_RADEON_KMS
- 	bool "Enable modesetting on radeon by default - NEW DRIVER"
- 	depends on DRM_RADEON
-+	select BACKLIGHT_CLASS_DEVICE
- 	help
- 	  Choose this option if you want kernel modesetting enabled by defaul=
-t.
-=20
-diff -puN drivers/gpu/drm/radeon/radeon_connectors.c~radeon-expose-back=
-light-class-device-for-legacy-lvds-encoder drivers/gpu/drm/radeon/radeo=
-n_connectors.c
---- a/drivers/gpu/drm/radeon/radeon_connectors.c~radeon-expose-backligh=
-t-class-device-for-legacy-lvds-encoder
-+++ a/drivers/gpu/drm/radeon/radeon_connectors.c
-@@ -40,6 +40,10 @@ radeon_atombios_connected_scratch_regs(s
- 				       struct drm_encoder *encoder,
- 				       bool connected);
-=20
-+extern void
-+radeon_legacy_backlight_init(struct radeon_encoder *radeon_encoder,
-+			     struct drm_connector *drm_connector);
-+
- void radeon_connector_hotplug(struct drm_connector *connector)
- {
- 	struct drm_device *dev =3D connector->dev;
-@@ -1526,6 +1530,17 @@ radeon_add_legacy_connector(struct drm_d
- 		connector->polled =3D DRM_CONNECTOR_POLL_HPD;
- 	connector->display_info.subpixel_order =3D subpixel_order;
- 	drm_sysfs_connector_add(connector);
-+	if (connector_type =3D=3D DRM_MODE_CONNECTOR_LVDS) {
-+		struct drm_encoder *drm_encoder;
-+
-+		list_for_each_entry(drm_encoder, &dev->mode_config.encoder_list, hea=
-d) {
-+			struct radeon_encoder *radeon_encoder;
-+
-+			radeon_encoder =3D to_radeon_encoder(drm_encoder);
-+			if (radeon_encoder->encoder_id =3D=3D ENCODER_OBJECT_ID_INTERNAL_LV=
-DS)
-+				radeon_legacy_backlight_init(radeon_encoder, connector);
-+		}
-+	}
- 	return;
-=20
- failed:
-diff -puN drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose=
--backlight-class-device-for-legacy-lvds-encoder drivers/gpu/drm/radeon/=
-radeon_legacy_encoders.c
---- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c~radeon-expose-bac=
-klight-class-device-for-legacy-lvds-encoder
-+++ a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-@@ -28,6 +28,10 @@
- #include "radeon_drm.h"
- #include "radeon.h"
- #include "atom.h"
-+#include <linux/backlight.h>
-+#ifdef CONFIG_PMAC_BACKLIGHT
-+#include <asm/backlight.h>
-+#endif
-=20
- static void radeon_legacy_encoder_disable(struct drm_encoder *encoder)
- {
-@@ -39,7 +43,7 @@ static void radeon_legacy_encoder_disabl
- 	radeon_encoder->active_device =3D 0;
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-add-alarm-support
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -39,6 +39,8 @@
+ #define ISL1208_REG_SR_BAT     (1<<1)	/* battery */
+ #define ISL1208_REG_SR_RTCF    (1<<0)	/* rtc fail */
+ #define ISL1208_REG_INT 0x08
++#define ISL1208_REG_INT_ALME   (1<<6)   /* alarm enable */
++#define ISL1208_REG_INT_IM     (1<<7)   /* interrupt/alarm mode */
+ #define ISL1208_REG_09  0x09	/* reserved */
+ #define ISL1208_REG_ATR 0x0a
+ #define ISL1208_REG_DTR 0x0b
+@@ -202,6 +204,30 @@ isl1208_i2c_set_usr(struct i2c_client *c
  }
-=20
--static void radeon_legacy_lvds_dpms(struct drm_encoder *encoder, int m=
-ode)
-+static void radeon_legacy_lvds_update(struct drm_encoder *encoder, int=
- mode)
- {
- 	struct drm_device *dev =3D encoder->dev;
- 	struct radeon_device *rdev =3D dev->dev_private;
-@@ -47,15 +51,23 @@ static void radeon_legacy_lvds_dpms(stru
- 	uint32_t lvds_gen_cntl, lvds_pll_cntl, pixclks_cntl, disp_pwr_man;
- 	int panel_pwr_delay =3D 2000;
- 	bool is_mac =3D false;
-+	uint8_t backlight_level;
- 	DRM_DEBUG_KMS("\n");
-=20
-+	lvds_gen_cntl =3D RREG32(RADEON_LVDS_GEN_CNTL);
-+	backlight_level =3D (lvds_gen_cntl >> RADEON_LVDS_BL_MOD_LEVEL_SHIFT)=
- & 0xff;
-+
- 	if (radeon_encoder->enc_priv) {
- 		if (rdev->is_atom_bios) {
- 			struct radeon_encoder_atom_dig *lvds =3D radeon_encoder->enc_priv;
- 			panel_pwr_delay =3D lvds->panel_pwr_delay;
-+			if (lvds->bl_dev)
-+				backlight_level =3D lvds->backlight_level;
- 		} else {
- 			struct radeon_encoder_lvds *lvds =3D radeon_encoder->enc_priv;
- 			panel_pwr_delay =3D lvds->panel_pwr_delay;
-+			if (lvds->bl_dev)
-+				backlight_level =3D lvds->backlight_level;
- 		}
- 	}
-=20
-@@ -82,11 +94,13 @@ static void radeon_legacy_lvds_dpms(stru
- 		lvds_pll_cntl &=3D ~RADEON_LVDS_PLL_RESET;
- 		WREG32(RADEON_LVDS_PLL_CNTL, lvds_pll_cntl);
-=20
--		lvds_gen_cntl =3D RREG32(RADEON_LVDS_GEN_CNTL);
--		lvds_gen_cntl |=3D (RADEON_LVDS_ON | RADEON_LVDS_EN | RADEON_LVDS_DI=
-GON | RADEON_LVDS_BLON);
-+		lvds_gen_cntl &=3D ~(RADEON_LVDS_DISPLAY_DIS |
-+				   RADEON_LVDS_BL_MOD_LEVEL_MASK);
-+		lvds_gen_cntl |=3D (RADEON_LVDS_ON | RADEON_LVDS_EN |
-+				  RADEON_LVDS_DIGON | RADEON_LVDS_BLON |
-+				  (backlight_level << RADEON_LVDS_BL_MOD_LEVEL_SHIFT));
- 		if (is_mac)
- 			lvds_gen_cntl |=3D RADEON_LVDS_BL_MOD_EN;
--		lvds_gen_cntl &=3D ~(RADEON_LVDS_DISPLAY_DIS);
- 		udelay(panel_pwr_delay * 1000);
- 		WREG32(RADEON_LVDS_GEN_CNTL, lvds_gen_cntl);
- 		break;
-@@ -95,7 +109,6 @@ static void radeon_legacy_lvds_dpms(stru
- 	case DRM_MODE_DPMS_OFF:
- 		pixclks_cntl =3D RREG32_PLL(RADEON_PIXCLKS_CNTL);
- 		WREG32_PLL_P(RADEON_PIXCLKS_CNTL, 0, ~RADEON_PIXCLK_LVDS_ALWAYS_ONb)=
-;
--		lvds_gen_cntl =3D RREG32(RADEON_LVDS_GEN_CNTL);
- 		lvds_gen_cntl |=3D RADEON_LVDS_DISPLAY_DIS;
- 		if (is_mac) {
- 			lvds_gen_cntl &=3D ~RADEON_LVDS_BL_MOD_EN;
-@@ -119,6 +132,25 @@ static void radeon_legacy_lvds_dpms(stru
-=20
- }
-=20
-+static void radeon_legacy_lvds_dpms(struct drm_encoder *encoder, int m=
-ode)
+ 
+ static int
++isl1208_rtc_toggle_alarm(struct i2c_client *client, int enable)
 +{
-+	struct radeon_device *rdev =3D encoder->dev->dev_private;
-+	struct radeon_encoder *radeon_encoder =3D to_radeon_encoder(encoder);
-+	DRM_DEBUG("\n");
++	int icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
 +
-+	if (radeon_encoder->enc_priv) {
-+		if (rdev->is_atom_bios) {
-+			struct radeon_encoder_atom_dig *lvds =3D radeon_encoder->enc_priv;
-+			lvds->dpms_mode =3D mode;
-+		} else {
-+			struct radeon_encoder_lvds *lvds =3D radeon_encoder->enc_priv;
-+			lvds->dpms_mode =3D mode;
-+		}
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
++		return icr;
 +	}
 +
-+	radeon_legacy_lvds_update(encoder, mode);
-+}
-+
- static void radeon_legacy_lvds_prepare(struct drm_encoder *encoder)
- {
- 	struct radeon_device *rdev =3D encoder->dev->dev_private;
-@@ -237,9 +269,222 @@ static const struct drm_encoder_helper_f
- 	.disable =3D radeon_legacy_encoder_disable,
- };
-=20
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
-+
-+#define MAX_RADEON_LEVEL 0xFF
-+
-+struct radeon_backlight_privdata {
-+	struct radeon_encoder *encoder;
-+	uint8_t negative;
-+};
-+
-+static uint8_t radeon_legacy_lvds_level(struct backlight_device *bd)
-+{
-+	struct radeon_backlight_privdata *pdata =3D bl_get_data(bd);
-+	uint8_t level;
-+
-+	/* Convert brightness to hardware level */
-+	if (bd->props.brightness < 0)
-+		level =3D 0;
-+	else if (bd->props.brightness > MAX_RADEON_LEVEL)
-+		level =3D MAX_RADEON_LEVEL;
++	if (enable)
++		icr |= ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM;
 +	else
-+		level =3D bd->props.brightness;
++		icr &= ~(ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM);
 +
-+	if (pdata->negative)
-+		level =3D MAX_RADEON_LEVEL - level;
-+
-+	return level;
-+}
-+
-+static int radeon_legacy_backlight_update_status(struct backlight_devi=
-ce *bd)
-+{
-+	struct radeon_backlight_privdata *pdata =3D bl_get_data(bd);
-+	struct radeon_encoder *radeon_encoder =3D pdata->encoder;
-+	struct drm_device *dev =3D radeon_encoder->base.dev;
-+	struct radeon_device *rdev =3D dev->dev_private;
-+	int dpms_mode =3D DRM_MODE_DPMS_ON;
-+
-+	if (radeon_encoder->enc_priv) {
-+		if (rdev->is_atom_bios) {
-+			struct radeon_encoder_atom_dig *lvds =3D radeon_encoder->enc_priv;
-+			dpms_mode =3D lvds->dpms_mode;
-+			lvds->backlight_level =3D radeon_legacy_lvds_level(bd);
-+		} else {
-+			struct radeon_encoder_lvds *lvds =3D radeon_encoder->enc_priv;
-+			dpms_mode =3D lvds->dpms_mode;
-+			lvds->backlight_level =3D radeon_legacy_lvds_level(bd);
-+		}
++	icr = i2c_smbus_write_byte_data(client, ISL1208_REG_INT, icr);
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: writing INT failed\n", __func__);
++		return icr;
 +	}
-+
-+	if (bd->props.brightness > 0)
-+		radeon_legacy_lvds_update(&radeon_encoder->base, dpms_mode);
-+	else
-+		radeon_legacy_lvds_update(&radeon_encoder->base, DRM_MODE_DPMS_OFF);
 +
 +	return 0;
 +}
 +
-+static int radeon_legacy_backlight_get_brightness(struct backlight_dev=
-ice *bd)
-+{
-+	struct radeon_backlight_privdata *pdata =3D bl_get_data(bd);
-+	struct radeon_encoder *radeon_encoder =3D pdata->encoder;
-+	struct drm_device *dev =3D radeon_encoder->base.dev;
-+	struct radeon_device *rdev =3D dev->dev_private;
-+	uint8_t backlight_level;
-+
-+	backlight_level =3D (RREG32(RADEON_LVDS_GEN_CNTL) >>
-+			   RADEON_LVDS_BL_MOD_LEVEL_SHIFT) & 0xff;
-+
-+	return pdata->negative ? MAX_RADEON_LEVEL - backlight_level : backlig=
-ht_level;
-+}
-+
-+static const struct backlight_ops radeon_backlight_ops =3D {
-+	.get_brightness =3D radeon_legacy_backlight_get_brightness,
-+	.update_status	=3D radeon_legacy_backlight_update_status,
-+};
-+
-+void radeon_legacy_backlight_init(struct radeon_encoder *radeon_encode=
-r,
-+				  struct drm_connector *drm_connector)
-+{
-+	struct drm_device *dev =3D radeon_encoder->base.dev;
-+	struct radeon_device *rdev =3D dev->dev_private;
-+	struct backlight_device *bd;
-+	struct backlight_properties props;
-+	struct radeon_backlight_privdata *pdata;
-+	uint8_t backlight_level;
-+
-+	if (!radeon_encoder->enc_priv)
-+		return;
-+
-+#ifdef CONFIG_PMAC_BACKLIGHT
-+	if (!pmac_has_backlight_type("ati") &&
-+	    !pmac_has_backlight_type("mnca"))
-+		return;
-+#endif
-+
-+	pdata =3D kmalloc(sizeof(struct radeon_backlight_privdata), GFP_KERNE=
-L);
-+	if (!pdata) {
-+		DRM_ERROR("Memory allocation failed\n");
-+		goto error;
-+	}
-+
-+	props.max_brightness =3D MAX_RADEON_LEVEL;
-+	props.type =3D BACKLIGHT_RAW;
-+	bd =3D backlight_device_register("radeon_bl", &drm_connector->kdev,
-+				       pdata, &radeon_backlight_ops, &props);
-+	if (IS_ERR(bd)) {
-+		DRM_ERROR("Backlight registration failed\n");
-+		goto error;
-+	}
-+
-+	pdata->encoder =3D radeon_encoder;
-+
-+	backlight_level =3D (RREG32(RADEON_LVDS_GEN_CNTL) >>
-+			   RADEON_LVDS_BL_MOD_LEVEL_SHIFT) & 0xff;
-+
-+	/* First, try to detect backlight level sense based on the assumption
-+	 * that firmware set it up at full brightness
-+	 */
-+	if (backlight_level =3D=3D 0)
-+		pdata->negative =3D true;
-+	else if (backlight_level =3D=3D 0xff)
-+		pdata->negative =3D false;
-+	else {
-+		/* XXX hack... maybe some day we can figure out in what direction
-+		 * backlight should work on a given panel?
-+		 */
-+		pdata->negative =3D (rdev->family !=3D CHIP_RV200 &&
-+				   rdev->family !=3D CHIP_RV250 &&
-+				   rdev->family !=3D CHIP_RV280 &&
-+				   rdev->family !=3D CHIP_RV350);
-+
-+#ifdef CONFIG_PMAC_BACKLIGHT
-+		pdata->negative =3D (pdata->negative ||
-+				   of_machine_is_compatible("PowerBook4,3") ||
-+				   of_machine_is_compatible("PowerBook6,3") ||
-+				   of_machine_is_compatible("PowerBook6,5"));
-+#endif
-+	}
-+
-+	if (rdev->is_atom_bios) {
-+		struct radeon_encoder_atom_dig *lvds =3D radeon_encoder->enc_priv;
-+		lvds->bl_dev =3D bd;
-+	} else {
-+		struct radeon_encoder_lvds *lvds =3D radeon_encoder->enc_priv;
-+		lvds->bl_dev =3D bd;
-+	}
-+
-+	bd->props.brightness =3D radeon_legacy_backlight_get_brightness(bd);
-+	bd->props.power =3D FB_BLANK_UNBLANK;
-+	backlight_update_status(bd);
-+
-+	DRM_INFO("radeon legacy LVDS backlight initialized\n");
-+
-+	return;
-+
-+error:
-+	kfree(pdata);
-+	return;
-+}
-+
-+static void radeon_legacy_backlight_exit(struct radeon_encoder *radeon=
-_encoder)
-+{
-+	struct drm_device *dev =3D radeon_encoder->base.dev;
-+	struct radeon_device *rdev =3D dev->dev_private;
-+	struct backlight_device *bd =3D NULL;
-+
-+	if (!radeon_encoder->enc_priv)
-+		return;
-+
-+	if (rdev->is_atom_bios) {
-+		struct radeon_encoder_atom_dig *lvds =3D radeon_encoder->enc_priv;
-+		bd =3D lvds->bl_dev;
-+		lvds->bl_dev =3D NULL;
-+	} else {
-+		struct radeon_encoder_lvds *lvds =3D radeon_encoder->enc_priv;
-+		bd =3D lvds->bl_dev;
-+		lvds->bl_dev =3D NULL;
-+	}
-+
-+	if (bd) {
-+		struct radeon_legacy_backlight_privdata *pdata;
-+
-+		pdata =3D bl_get_data(bd);
-+		backlight_device_unregister(bd);
-+		kfree(pdata);
-+
-+		DRM_INFO("radeon legacy LVDS backlight unloaded\n");
-+	}
-+}
-+
-+#else /* !CONFIG_BACKLIGHT_CLASS_DEVICE */
-+
-+void radeon_legacy_backlight_init(struct radeon_encoder *encoder)
-+{
-+}
-+
-+static void radeon_legacy_backlight_exit(struct radeon_encoder *encode=
-r)
-+{
-+}
-+
-+#endif
-+
-+
-+static void radeon_lvds_enc_destroy(struct drm_encoder *encoder)
-+{
-+	struct radeon_encoder *radeon_encoder =3D to_radeon_encoder(encoder);
-+
-+	if (radeon_encoder->enc_priv) {
-+		radeon_legacy_backlight_exit(radeon_encoder);
-+		kfree(radeon_encoder->enc_priv);
-+	}
-+	drm_encoder_cleanup(encoder);
-+	kfree(radeon_encoder);
-+}
-=20
- static const struct drm_encoder_funcs radeon_legacy_lvds_enc_funcs =3D=
++static int
+ isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
  {
--	.destroy =3D radeon_enc_destroy,
-+	.destroy =3D radeon_lvds_enc_destroy,
+ 	struct i2c_client *const client = to_i2c_client(dev);
+@@ -288,9 +314,8 @@ isl1208_i2c_read_alarm(struct i2c_client
+ {
+ 	struct rtc_time *const tm = &alarm->time;
+ 	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
+-	int sr;
++	int icr, yr, sr = isl1208_i2c_get_sr(client);
+ 
+-	sr = isl1208_i2c_get_sr(client);
+ 	if (sr < 0) {
+ 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
+ 		return sr;
+@@ -313,6 +338,73 @@ isl1208_i2c_read_alarm(struct i2c_client
+ 		bcd2bin(regs[ISL1208_REG_MOA - ISL1208_REG_SCA] & 0x1f) - 1;
+ 	tm->tm_wday = bcd2bin(regs[ISL1208_REG_DWA - ISL1208_REG_SCA] & 0x03);
+ 
++	/* The alarm doesn't store the year so get it from the rtc section */
++	yr = i2c_smbus_read_byte_data(client, ISL1208_REG_YR);
++	if (yr < 0) {
++		dev_err(&client->dev, "%s: reading RTC YR failed\n", __func__);
++		return yr;
++	}
++	tm->tm_year = bcd2bin(yr) + 100;
++
++	icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
++	if (icr < 0) {
++		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
++		return icr;
++	}
++	alarm->enabled = !!(icr & ISL1208_REG_INT_ALME);
++
++	return 0;
++}
++
++static int
++isl1208_i2c_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
++{
++	struct rtc_time *alarm_tm = &alarm->time;
++	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
++	const int offs = ISL1208_REG_SCA;
++	unsigned long rtc_secs, alarm_secs;
++	struct rtc_time rtc_tm;
++	int err, enable;
++
++	err = isl1208_i2c_read_time(client, &rtc_tm);
++	if (err)
++		return err;
++	err = rtc_tm_to_time(&rtc_tm, &rtc_secs);
++	if (err)
++		return err;
++	err = rtc_tm_to_time(alarm_tm, &alarm_secs);
++	if (err)
++		return err;
++
++	/* If the alarm time is before the current time disable the alarm */
++	if (!alarm->enabled || alarm_secs <= rtc_secs)
++		enable = 0x00;
++	else
++		enable = 0x80;
++
++	/* Program the alarm and enable it for each setting */
++	regs[ISL1208_REG_SCA - offs] = bin2bcd(alarm_tm->tm_sec) | enable;
++	regs[ISL1208_REG_MNA - offs] = bin2bcd(alarm_tm->tm_min) | enable;
++	regs[ISL1208_REG_HRA - offs] = bin2bcd(alarm_tm->tm_hour) |
++		ISL1208_REG_HR_MIL | enable;
++
++	regs[ISL1208_REG_DTA - offs] = bin2bcd(alarm_tm->tm_mday) | enable;
++	regs[ISL1208_REG_MOA - offs] = bin2bcd(alarm_tm->tm_mon + 1) | enable;
++	regs[ISL1208_REG_DWA - offs] = bin2bcd(alarm_tm->tm_wday & 7) | enable;
++
++	/* write ALARM registers */
++	err = isl1208_i2c_set_regs(client, offs, regs,
++				  ISL1208_ALARM_SECTION_LEN);
++	if (err < 0) {
++		dev_err(&client->dev, "%s: writing ALARM section failed\n",
++			__func__);
++		return err;
++	}
++
++	err = isl1208_rtc_toggle_alarm(client, enable);
++	if (err)
++		return err;
++
+ 	return 0;
+ }
+ 
+@@ -391,12 +483,63 @@ isl1208_rtc_read_alarm(struct device *de
+ 	return isl1208_i2c_read_alarm(to_i2c_client(dev), alarm);
+ }
+ 
++static int
++isl1208_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	return isl1208_i2c_set_alarm(to_i2c_client(dev), alarm);
++}
++
++static irqreturn_t
++isl1208_rtc_interrupt(int irq, void *data)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
++	struct i2c_client *client = data;
++	int handled = 0, sr, err;
++
++	/*
++	 * I2C reads get NAK'ed if we read straight away after an interrupt?
++	 * Using a mdelay/msleep didn't seem to help either, so we work around
++	 * this by continually trying to read the register for a short time.
++	 */
++	while (1) {
++		sr = isl1208_i2c_get_sr(client);
++		if (sr >= 0)
++			break;
++
++		if (time_after(jiffies, timeout)) {
++			dev_err(&client->dev, "%s: reading SR failed\n",
++				__func__);
++			return sr;
++		}
++	}
++
++	if (sr & ISL1208_REG_SR_ALM) {
++		dev_dbg(&client->dev, "alarm!\n");
++
++		/* Clear the alarm */
++		sr &= ~ISL1208_REG_SR_ALM;
++		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
++		if (sr < 0)
++			dev_err(&client->dev, "%s: writing SR failed\n",
++				__func__);
++		else
++			handled = 1;
++
++		/* Disable the alarm */
++		err = isl1208_rtc_toggle_alarm(client, 0);
++		if (err)
++			return err;
++	}
++
++	return handled ? IRQ_HANDLED : IRQ_NONE;
++}
++
+ static const struct rtc_class_ops isl1208_rtc_ops = {
+ 	.proc = isl1208_rtc_proc,
+ 	.read_time = isl1208_rtc_read_time,
+ 	.set_time = isl1208_rtc_set_time,
+ 	.read_alarm = isl1208_rtc_read_alarm,
+-	/*.set_alarm    = isl1208_rtc_set_alarm, */
++	.set_alarm = isl1208_rtc_set_alarm,
  };
-=20
- static void radeon_legacy_primary_dac_dpms(struct drm_encoder *encoder=
-, int mode)
-diff -puN drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-=
-class-device-for-legacy-lvds-encoder drivers/gpu/drm/radeon/radeon_mode=
-=2Eh
---- a/drivers/gpu/drm/radeon/radeon_mode.h~radeon-expose-backlight-clas=
-s-device-for-legacy-lvds-encoder
-+++ a/drivers/gpu/drm/radeon/radeon_mode.h
-@@ -302,6 +302,9 @@ struct radeon_encoder_lvds {
- 	uint32_t lvds_gen_cntl;
- 	/* panel mode */
- 	struct drm_display_mode native_mode;
-+	struct backlight_device *bl_dev;
-+	int      dpms_mode;
-+	uint8_t  backlight_level;
- };
-=20
- struct radeon_encoder_tv_dac {
-@@ -355,6 +358,9 @@ struct radeon_encoder_atom_dig {
- 	uint32_t lcd_ss_id;
- 	/* panel mode */
- 	struct drm_display_mode native_mode;
-+	struct backlight_device *bl_dev;
-+	int dpms_mode;
-+	uint8_t backlight_level;
- };
-=20
- struct radeon_encoder_atom_dac {
+ 
+ /* sysfs interface */
+@@ -488,11 +631,29 @@ isl1208_probe(struct i2c_client *client,
+ 	dev_info(&client->dev,
+ 		 "chip found, driver version " DRV_VERSION "\n");
+ 
++	if (client->irq > 0) {
++		rc = request_threaded_irq(client->irq, NULL,
++					  isl1208_rtc_interrupt,
++					  IRQF_SHARED,
++					  isl1208_driver.driver.name, client);
++		if (!rc) {
++			device_init_wakeup(&client->dev, 1);
++			enable_irq_wake(client->irq);
++		} else {
++			dev_err(&client->dev,
++				"Unable to request irq %d, no alarm support\n",
++				client->irq);
++			client->irq = 0;
++		}
++	}
++
+ 	rtc = rtc_device_register(isl1208_driver.driver.name,
+ 				  &client->dev, &isl1208_rtc_ops,
+ 				  THIS_MODULE);
+-	if (IS_ERR(rtc))
+-		return PTR_ERR(rtc);
++	if (IS_ERR(rtc)) {
++		rc = PTR_ERR(rtc);
++		goto exit_free_irq;
++	}
+ 
+ 	i2c_set_clientdata(client, rtc);
+ 
+@@ -514,6 +675,9 @@ isl1208_probe(struct i2c_client *client,
+ 
+ exit_unregister:
+ 	rtc_device_unregister(rtc);
++exit_free_irq:
++	if (client->irq)
++		free_irq(client->irq, client);
+ 
+ 	return rc;
+ }
+@@ -525,6 +689,8 @@ isl1208_remove(struct i2c_client *client
+ 
+ 	sysfs_remove_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
+ 	rtc_device_unregister(rtc);
++	if (client->irq)
++		free_irq(client->irq, client);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from michel@daenzer.net are
+Patches currently in -mm which might be from ryan@bluewatersys.com are
 
 origin.patch
+linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
