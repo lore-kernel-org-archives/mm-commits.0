@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sys_swapon-fix-inode-locking.patch added to -mm tree
-Date: Tue, 22 Mar 2011 21:36:38 -0700
-Message-ID: <201103230440.p2N4e8Xj015779@imap1.linux-foundation.org>
+Subject: + smp-add-missing-inith-include.patch added to -mm tree
+Date: Wed, 23 Mar 2011 01:12:01 -0700
+Message-ID: <201103230815.p2N8FW8c024781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751861Ab1CWEky (ORCPT
+	by vger.kernel.org with ESMTP id S1752704Ab1CWIQJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 00:40:54 -0400
+	Wed, 23 Mar 2011 04:16:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de
+Cc: heiko.carstens@de.ibm.com, amwang@redhat.com
 
 
 The patch titled
-     sys_swapon: fix inode locking
+     include/linux/smp.h: add missing init.h include
 has been added to the -mm tree.  Its filename is
-     sys_swapon-fix-inode-locking.patch
+     smp-add-missing-inith-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: fix inode locking
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: include/linux/smp.h: add missing init.h include
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-A conflict between 52c50567d8ab0a0a87f12cceaa4194967854f0bd (mm: swap:
-unlock swapfile inode mutex before closing file on bad swapfiles) and
-83ef99befc324803a54cf2a5fab5a322df3a99d6 (sys_swapon: remove did_down
-variable) caused a double unlock of the inode mutex (once in bad_swap:
-before the filp_close, once at the end just before returning).
+34db18a05 ("smp: move smp setup functions to kernel/smp.c") causes this build
+error on s390 because of a missing init.h include:
 
-The patch which added the extra unlock cleared did_down to avoid unlocking
-twice, but the other patch removed the did_down variable.
+CC      arch/s390/kernel/asm-offsets.s
+In file included from /home2/heicarst/linux-2.6/arch/s390/include/asm/spinlock.h:14:0,
+from include/linux/spinlock.h:87,
+from include/linux/seqlock.h:29,
+from include/linux/time.h:8,
+from include/linux/timex.h:56,
+from include/linux/sched.h:57,
+from arch/s390/kernel/asm-offsets.c:10:
+include/linux/smp.h:117:20: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'setup_nr_cpu_ids'
+include/linux/smp.h:118:20: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'smp_init'
 
-To fix, set inode to NULL after the first unlock, since it will be used
-after that point only for the final unlock.
+Fix it by adding the include statement.
 
-While checking this patch, I found a path which could unlock without
-locking, in case the same inode was added as a swapfile twice.  To fix,
-move the setting of the inode variable further down, to just before
-claim_swapfile, which will lock the inode before doing anything else.
-
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Eric B Munson <emunson@mgebm.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/smp.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/swapfile.c~sys_swapon-fix-inode-locking mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-fix-inode-locking
-+++ a/mm/swapfile.c
-@@ -2088,7 +2088,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+diff -puN include/linux/smp.h~smp-add-missing-inith-include include/linux/smp.h
+--- a/include/linux/smp.h~smp-add-missing-inith-include
++++ a/include/linux/smp.h
+@@ -10,6 +10,7 @@
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/cpumask.h>
++#include <linux/init.h>
  
- 	p->swap_file = swap_file;
- 	mapping = swap_file->f_mapping;
--	inode = mapping->host;
+ extern void cpu_idle(void);
  
- 	for (i = 0; i < nr_swapfiles; i++) {
- 		struct swap_info_struct *q = swap_info[i];
-@@ -2101,6 +2100,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		}
- 	}
- 
-+	inode = mapping->host;
-+	/* If S_ISREG(inode->i_mode) will do mutex_lock(&inode->i_mutex); */
- 	error = claim_swapfile(p, inode);
- 	if (unlikely(error))
- 		goto bad_swap;
-@@ -2187,8 +2188,10 @@ bad_swap:
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
- 	if (swap_file) {
--		if (inode && S_ISREG(inode->i_mode))
-+		if (inode && S_ISREG(inode->i_mode)) {
- 			mutex_unlock(&inode->i_mutex);
-+			inode = NULL;
-+		}
- 		filp_close(swap_file, NULL);
- 	}
- out:
 _
 
-Patches currently in -mm which might be from cesarb@cesarb.net are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-sys_swapon-use-vzalloc-instead-of-vmalloc-memset.patch
-sys_swapon-remove-changelog-from-function-comment.patch
-sys_swapon-do-not-depend-on-type-after-allocation.patch
-sys_swapon-separate-swap_info-allocation.patch
-sys_swapon-simplify-error-return-from-swap_info-allocation.patch
-sys_swapon-simplify-error-flow-in-alloc_swap_info.patch
-sys_swapon-remove-initial-value-of-name-variable.patch
-sys_swapon-remove-did_down-variable.patch
-sys_swapon-move-setting-of-error-nearer-use.patch
-sys_swapon-remove-bdev-variable.patch
-sys_swapon-do-only-cleanup-in-the-cleanup-blocks.patch
-sys_swapon-use-a-single-error-label.patch
-sys_swapon-separate-bdev-claim-and-inode-lock.patch
-sys_swapon-simplify-error-flow-in-claim_swapfile.patch
-sys_swapon-move-setting-of-swapfilepages-near-use.patch
-sys_swapon-separate-parsing-of-swapfile-header.patch
-sys_swapon-simplify-error-flow-in-read_swap_header.patch
-sys_swapon-call-swap_cgroup_swapon-earlier.patch
-sys_swapon-separate-parsing-of-bad-blocks-and-extents.patch
-sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch
-sys_swapon-remove-nr_good_pages-variable.patch
-sys_swapon-move-printk-outside-lock.patch
-sys_swapoff-change-order-to-match-sys_swapon.patch
-sys_swapon-separate-final-enabling-of-the-swapfile.patch
-mm-remove-inline-from-scan_swap_map.patch
-sys_swapon-fix-inode-locking.patch
+origin.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+smp-add-missing-inith-include.patch
+linux-next.patch
+s390-introduce-little-endian-bitops.patch
+s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
 
