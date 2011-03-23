@@ -1,99 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:38 -0700
-Message-ID: <201103232037.p2NKbESt028220@imap1.linux-foundation.org>
+Subject: [merged] oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:49 -0700
+Message-ID: <201103232037.p2NKbQfi028240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933339Ab1CWUiU (ORCPT
+	by vger.kernel.org with ESMTP id S933367Ab1CWUiY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:38:20 -0400
+	Wed, 23 Mar 2011 16:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/compaction: check migrate_pages's return value instead of list_empty()
+     oom: suppress nodes that are not allowed from meminfo on oom kill
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty.patch
+     oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/compaction: check migrate_pages's return value instead of list_empty()
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: oom: suppress nodes that are not allowed from meminfo on oom kill
+From: David Rientjes <rientjes@google.com>
 
-Many migrate_page's caller check return value instead of list_empy by
-cf608ac19c ("mm: compaction: fix COMPACTPAGEFAILED counting").  This patch
-makes compaction's migrate_pages consistent with others.  This patch
-should not change old behavior.
+The oom killer is extremely verbose for machines with a large number of
+cpus and/or nodes.  This verbosity can often be harmful if it causes other
+important messages to be scrolled from the kernel log and incurs a
+signicant time delay, specifically for kernels with CONFIG_NODES_SHIFT >
+8.
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+This patch causes only memory information to be displayed for nodes that
+are allowed by current's cpuset when dumping the VM state.  Information
+for all other nodes is irrelevant to the oom condition; we don't care if
+there's an abundance of memory elsewhere if we can't access it.
+
+This only affects the behavior of dumping memory information when an oom
+is triggered.  Other dumps, such as for sysrq+m, still display the
+unfiltered form when using the existing show_mem() interface.
+
+Additionally, the per-cpu pageset statistics are extremely verbose in oom
+killer output, so it is now suppressed.  This removes
+
+	nodes_weight(current->mems_allowed) * (1 + nr_cpus)
+
+lines from the oom killer output.
+
+Callers may use __show_mem(SHOW_MEM_FILTER_NODES) to filter disallowed
+nodes.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    8 ++++++++
+ lib/show_mem.c     |    9 +++++++--
+ mm/oom_kill.c      |    2 +-
+ mm/page_alloc.c    |   34 +++++++++++++++++++++++++++++++++-
+ 4 files changed, 49 insertions(+), 4 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty mm/compaction.c
---- a/mm/compaction.c~mm-compaction-check-migrate_pagess-return-value-instead-of-list_empty
-+++ a/mm/compaction.c
-@@ -494,12 +494,13 @@ static int compact_zone(struct zone *zon
+diff -puN include/linux/mm.h~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill include/linux/mm.h
+--- a/include/linux/mm.h~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill
++++ a/include/linux/mm.h
+@@ -859,7 +859,14 @@ extern void pagefault_out_of_memory(void
  
- 	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
- 		unsigned long nr_migrate, nr_remaining;
-+		int err;
+ #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
  
- 		if (!isolate_migratepages(zone, cc))
- 			continue;
++/*
++ * Flags passed to __show_mem() and __show_free_areas() to suppress output in
++ * various contexts.
++ */
++#define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
++
+ extern void show_free_areas(void);
++extern void __show_free_areas(unsigned int flags);
  
- 		nr_migrate = cc->nr_migratepages;
--		migrate_pages(&cc->migratepages, compaction_alloc,
-+		err = migrate_pages(&cc->migratepages, compaction_alloc,
- 				(unsigned long)cc, false,
- 				cc->sync);
- 		update_nr_listpages(cc);
-@@ -513,7 +514,7 @@ static int compact_zone(struct zone *zon
- 						nr_remaining);
+ int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
+@@ -1348,6 +1355,7 @@ extern void calculate_zone_inactive_rati
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+ extern void show_mem(void);
++extern void __show_mem(unsigned int flags);
+ extern void si_meminfo(struct sysinfo * val);
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
+diff -puN lib/show_mem.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill lib/show_mem.c
+--- a/lib/show_mem.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill
++++ a/lib/show_mem.c
+@@ -9,14 +9,14 @@
+ #include <linux/nmi.h>
+ #include <linux/quicklist.h>
  
- 		/* Release LRU pages not migrated */
--		if (!list_empty(&cc->migratepages)) {
-+		if (err) {
- 			putback_lru_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 		}
+-void show_mem(void)
++void __show_mem(unsigned int filter)
+ {
+ 	pg_data_t *pgdat;
+ 	unsigned long total = 0, reserved = 0, shared = 0,
+ 		nonshared = 0, highmem = 0;
+ 
+ 	printk("Mem-Info:\n");
+-	show_free_areas();
++	__show_free_areas(filter);
+ 
+ 	for_each_online_pgdat(pgdat) {
+ 		unsigned long i, flags;
+@@ -61,3 +61,8 @@ void show_mem(void)
+ 		quicklist_total_size());
+ #endif
+ }
++
++void show_mem(void)
++{
++	__show_mem(0);
++}
+diff -puN mm/oom_kill.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill
++++ a/mm/oom_kill.c
+@@ -406,7 +406,7 @@ static void dump_header(struct task_stru
+ 	task_unlock(current);
+ 	dump_stack();
+ 	mem_cgroup_print_oom_info(mem, p);
+-	show_mem();
++	__show_mem(SHOW_MEM_FILTER_NODES);
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(mem, nodemask);
+ }
+diff -puN mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-oom-kill
++++ a/mm/page_alloc.c
+@@ -2411,19 +2411,42 @@ void si_meminfo_node(struct sysinfo *val
+ }
+ #endif
+ 
++/*
++ * Determine whether the zone's node should be displayed or not, depending on
++ * whether SHOW_MEM_FILTER_NODES was passed to __show_free_areas().
++ */
++static bool skip_free_areas_zone(unsigned int flags, const struct zone *zone)
++{
++	bool ret = false;
++
++	if (!(flags & SHOW_MEM_FILTER_NODES))
++		goto out;
++
++	get_mems_allowed();
++	ret = !node_isset(zone->zone_pgdat->node_id,
++				cpuset_current_mems_allowed);
++	put_mems_allowed();
++out:
++	return ret;
++}
++
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+ 
+ /*
+  * Show free area list (used inside shift_scroll-lock stuff)
+  * We also calculate the percentage fragmentation. We do this by counting the
+  * memory on each free list with the exception of the first item on the list.
++ * Suppresses nodes that are not allowed by current's cpuset if
++ * SHOW_MEM_FILTER_NODES is passed.
+  */
+-void show_free_areas(void)
++void __show_free_areas(unsigned int filter)
+ {
+ 	int cpu;
+ 	struct zone *zone;
+ 
+ 	for_each_populated_zone(zone) {
++		if (skip_free_areas_zone(filter, zone))
++			continue;
+ 		show_node(zone);
+ 		printk("%s per-cpu:\n", zone->name);
+ 
+@@ -2465,6 +2488,8 @@ void show_free_areas(void)
+ 	for_each_populated_zone(zone) {
+ 		int i;
+ 
++		if (skip_free_areas_zone(filter, zone))
++			continue;
+ 		show_node(zone);
+ 		printk("%s"
+ 			" free:%lukB"
+@@ -2532,6 +2557,8 @@ void show_free_areas(void)
+ 	for_each_populated_zone(zone) {
+  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
+ 
++		if (skip_free_areas_zone(filter, zone))
++			continue;
+ 		show_node(zone);
+ 		printk("%s: ", zone->name);
+ 
+@@ -2551,6 +2578,11 @@ void show_free_areas(void)
+ 	show_swap_cache_info();
+ }
+ 
++void show_free_areas(void)
++{
++	__show_free_areas(0);
++}
++
+ static void zoneref_set_zone(struct zone *zone, struct zoneref *zoneref)
+ {
+ 	zoneref->zone = zone;
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-linux-next.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
 memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-change-page_cgroup_zoneinfo-signature-fix.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
-memcg-remove-memcg-reclaim_param_lock.patch
+memcg-give-current-access-to-memory-reserves-if-its-trying-to-die.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-add-dirty-page-accounting-infrastructure.patch
@@ -103,4 +226,11 @@ memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
 memcg-add-dirty-limiting-routines.patch
 memcg-check-memcg-dirty-limits-in-page-writeback.patch
 memcg-make-background-writeback-memcg-aware.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
+cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
+cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
+cpuset-hold-callback_mutex-in-cpuset_clone.patch
+sysctl-add-some-missing-input-constraint-checks.patch
 
