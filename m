@@ -1,82 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:02 -0700
-Message-ID: <201103232036.p2NKacus028145@imap1.linux-foundation.org>
+Subject: [merged] mm-batch-free-pcp-list-if-possible.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:36:12 -0700
+Message-ID: <201103232039.p2NKdmRL028438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933329Ab1CWUkA (ORCPT
+	by vger.kernel.org with ESMTP id S933329Ab1CWUkZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:40:00 -0400
+	Wed, 23 Mar 2011 16:40:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: namhyung@gmail.com, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/leds/leds-lp5521.c: world-writable sysfs engine* files
+     mm: batch-free pcp list if possible
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files.patch
+     mm-batch-free-pcp-list-if-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5521.c: world-writable sysfs engine* files
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: mm: batch-free pcp list if possible
+From: Namhyung Kim <namhyung@gmail.com>
 
-Don't allow everybody to change LED settings.
+free_pcppages_bulk() frees pages from pcp lists in a round-robin fashion
+by keeping batch_free counter.  But it doesn't need to spin if there is
+only one non-empty list.  This can be checked by batch_free ==
+MIGRATE_PCPTYPES.
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+[akpm@linux-foundation.org: fix comment]
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files
-+++ a/drivers/leds/leds-lp5521.c
-@@ -534,7 +534,7 @@ static ssize_t lp5521_selftest(struct de
- }
+diff -puN mm/page_alloc.c~mm-batch-free-pcp-list-if-possible mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-batch-free-pcp-list-if-possible
++++ a/mm/page_alloc.c
+@@ -614,6 +614,10 @@ static void free_pcppages_bulk(struct zo
+ 			list = &pcp->lists[migratetype];
+ 		} while (list_empty(list));
  
- /* led class device attributes */
--static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
-+static DEVICE_ATTR(led_current, S_IRUGO | S_IWUSR, show_current, store_current);
- static DEVICE_ATTR(max_current, S_IRUGO , show_max_current, NULL);
- 
- static struct attribute *lp5521_led_attributes[] = {
-@@ -548,15 +548,15 @@ static struct attribute_group lp5521_led
- };
- 
- /* device attributes */
--static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUSR,
- 		   show_engine1_mode, store_engine1_mode);
--static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUSR,
- 		   show_engine2_mode, store_engine2_mode);
--static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUGO,
-+static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUSR,
- 		   show_engine3_mode, store_engine3_mode);
--static DEVICE_ATTR(engine1_load, S_IWUGO, NULL, store_engine1_load);
--static DEVICE_ATTR(engine2_load, S_IWUGO, NULL, store_engine2_load);
--static DEVICE_ATTR(engine3_load, S_IWUGO, NULL, store_engine3_load);
-+static DEVICE_ATTR(engine1_load, S_IWUSR, NULL, store_engine1_load);
-+static DEVICE_ATTR(engine2_load, S_IWUSR, NULL, store_engine2_load);
-+static DEVICE_ATTR(engine3_load, S_IWUSR, NULL, store_engine3_load);
- static DEVICE_ATTR(selftest, S_IRUGO, lp5521_selftest, NULL);
- 
- static struct attribute *lp5521_attributes[] = {
++		/* This is the only non-empty list. Free them all. */
++		if (batch_free == MIGRATE_PCPTYPES)
++			batch_free = to_free;
++
+ 		do {
+ 			page = list_entry(list->prev, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 origin.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-aic94xx-world-writable-sysfs-update_bios-file.patch
 
