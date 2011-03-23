@@ -1,153 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] calibrate-home-in-on-correct-lpj-value-more-quickly.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:39:07 -0700
-Message-ID: <201103232042.p2NKghHI028796@imap1.linux-foundation.org>
+Subject: [merged] console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:39:25 -0700
+Message-ID: <201103232043.p2NKh14U028826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933435Ab1CWUni (ORCPT
+	by vger.kernel.org with ESMTP id S933435Ab1CWUnm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:38 -0400
+	Wed, 23 Mar 2011 16:43:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: feng.tang@intel.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     calibrate: home in on correct lpj value more quickly
+     console: prevent registered consoles from dumping old kernel message over again
 has been removed from the -mm tree.  Its filename was
-     calibrate-home-in-on-correct-lpj-value-more-quickly.patch
+     console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calibrate: home in on correct lpj value more quickly
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: console: prevent registered consoles from dumping old kernel message over again
+From: Feng Tang <feng.tang@intel.com>
 
-Binary chop with a jiffy-resync on each step to find an upper bound is
-slow, so just race in a tight-ish loop to find an underestimate.
+For a platform with many consoles like:
+ "console=tty1 console=ttyMFD2 console=ttyS0 earlyprintk=mrst"
 
-If done with lots of individual steps, sometimes several hundreds of
-iterations would be required, which would impose a significant overhead,
-and make the initial estimate very low.  By taking slowly increasing steps
-there will be less overhead.
+Each time when the non "selected_console" (tty1 and ttyMFD2 here) get
+registered, the existing kernel message will be printed out on registered
+consoles again, the "mrst" early console will get some same message for 3
+times, and "tty1" will get some for twice.
 
-E.g.  an x86_64 2.67GHz could have fitted in 613 individual small delays,
-but in reality should have been able to fit in a single delay 644 times
-longer, so underestimated by 31 steps.  To reach the equivalent of 644
-small delays with the accelerating scheme now requires about 130
-iterations, so has <1/4th of the overhead, and can therefore be expected
-to underestimate by only 7 steps.
+As suggested by Andrew Morton, every time a new console is registered, it
+will be set as the "exclusive" console which will dump the already
+existing kernel messages.
 
-As now we have a better initial estimate we can binary chop over a smaller
-range.  With the loop overhead in the initial estimate kept low, and the
-step sizes moderate, we won't have under-estimated by much, so chose as
-tight a range as we can.
-
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Tested-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   57 ++++++++++++++++++++++++++-------------------
- 1 file changed, 34 insertions(+), 23 deletions(-)
+ kernel/printk.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly init/calibrate.c
---- a/init/calibrate.c~calibrate-home-in-on-correct-lpj-value-more-quickly
-+++ a/init/calibrate.c
-@@ -110,8 +110,8 @@ static unsigned long __cpuinit calibrate
+diff -puN kernel/printk.c~console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again kernel/printk.c
+--- a/kernel/printk.c~console-prevent-registered-consoles-from-dumping-old-kernel-message-over-again
++++ a/kernel/printk.c
+@@ -113,6 +113,11 @@ static unsigned con_start;	/* Index into
+ static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
  
  /*
-  * This is the number of bits of precision for the loops_per_jiffy.  Each
-- * bit takes on average 1.5/HZ seconds.  This (like the original) is a little
-- * better than 1%
-+ * time we refine our estimate after the first takes 1.5/HZ seconds, so try
-+ * to start with a good estimate.
-  * For the boot cpu we can skip the delay calibration and assign it a value
-  * calculated based on the timer frequency.
-  * For the rest of the CPUs we cannot assume that the timer frequency is same as
-@@ -121,38 +121,49 @@ static unsigned long __cpuinit calibrate
- 
- static unsigned long __cpuinit calibrate_delay_converge(void)
- {
--	unsigned long lpj, ticks, loopbit;
--	int lps_precision = LPS_PREC;
-+	/* First stage - slowly accelerate to find initial bounds */
-+	unsigned long lpj, ticks, loopadd, chop_limit;
-+	int trials = 0, band = 0, trial_in_band = 0;
- 
- 	lpj = (1<<12);
--	while ((lpj <<= 1) != 0) {
--		/* wait for "start of" clock tick */
--		ticks = jiffies;
--		while (ticks == jiffies)
--			/* nothing */;
--		/* Go .. */
--		ticks = jiffies;
--		__delay(lpj);
--		ticks = jiffies - ticks;
--		if (ticks)
--			break;
--	}
++ * If exclusive_console is non-NULL then only this console is to be printed to.
++ */
++static struct console *exclusive_console;
 +
-+	/* wait for "start of" clock tick */
-+	ticks = jiffies;
-+	while (ticks == jiffies)
-+		; /* nothing */
-+	/* Go .. */
-+	ticks = jiffies;
-+	do {
-+		if (++trial_in_band == (1<<band)) {
-+			++band;
-+			trial_in_band = 0;
-+		}
-+		__delay(lpj * band);
-+		trials += band;
-+	} while (ticks == jiffies);
-+	/*
-+	 * We overshot, so retreat to a clear underestimate. Then estimate
-+	 * the largest likely undershoot. This defines our chop bounds.
-+	 */
-+	trials -= band;
-+	loopadd = lpj * band;
-+	lpj *= trials;
-+	chop_limit = lpj >> (LPS_PREC + 1);
++/*
+  *	Array of consoles built from command line options (console=)
+  */
+ struct console_cmdline
+@@ -476,6 +481,8 @@ static void __call_console_drivers(unsig
+ 	struct console *con;
  
- 	/*
- 	 * Do a binary approximation to get lpj set to
--	 * equal one clock (up to lps_precision bits)
-+	 * equal one clock (up to LPS_PREC bits)
- 	 */
--	lpj >>= 1;
--	loopbit = lpj;
--	while (lps_precision-- && (loopbit >>= 1)) {
--		lpj |= loopbit;
-+	while (loopadd > chop_limit) {
-+		lpj += loopadd;
- 		ticks = jiffies;
- 		while (ticks == jiffies)
--			/* nothing */;
-+			; /* nothing */
- 		ticks = jiffies;
- 		__delay(lpj);
- 		if (jiffies != ticks)	/* longer than 1 tick */
--			lpj &= ~loopbit;
-+			lpj -= loopadd;
-+		loopadd >>= 1;
+ 	for_each_console(con) {
++		if (exclusive_console && con != exclusive_console)
++			continue;
+ 		if ((con->flags & CON_ENABLED) && con->write &&
+ 				(cpu_online(smp_processor_id()) ||
+ 				(con->flags & CON_ANYTIME)))
+@@ -1230,6 +1237,11 @@ void console_unlock(void)
+ 		local_irq_restore(flags);
  	}
- 
- 	return lpj;
+ 	console_locked = 0;
++
++	/* Release the exclusive_console once it is used */
++	if (unlikely(exclusive_console))
++		exclusive_console = NULL;
++
+ 	up(&console_sem);
+ 	spin_unlock_irqrestore(&logbuf_lock, flags);
+ 	if (wake_klogd)
+@@ -1464,6 +1476,12 @@ void register_console(struct console *ne
+ 		spin_lock_irqsave(&logbuf_lock, flags);
+ 		con_start = log_start;
+ 		spin_unlock_irqrestore(&logbuf_lock, flags);
++		/*
++		 * We're about to replay the log buffer.  Only do this to the
++		 * just-registered console to avoid excessive message spam to
++		 * the already-registered consoles.
++		 */
++		exclusive_console = newcon;
+ 	}
+ 	console_unlock();
+ 	console_sysfs_notify();
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
 origin.patch
-linux-next.patch
 
