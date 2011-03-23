@@ -1,271 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] adfs-fix-e-f-dir-size-2048-crashing-kernel.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:41:04 -0700
-Message-ID: <201103232044.p2NKierB029115@imap1.linux-foundation.org>
+Subject: [merged] adfs-improve-timestamp-precision.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:41:06 -0700
+Message-ID: <201103232044.p2NKigXY029119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933299Ab1CWUpQ (ORCPT
+	by vger.kernel.org with ESMTP id S933299Ab1CWUpU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:45:16 -0400
+	Wed, 23 Mar 2011 16:45:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: stuart.swales.croftnuisk@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adfs: fix E+/F+ dir size > 2048 crashing kernel
+     adfs: improve timestamp precision
 has been removed from the -mm tree.  Its filename was
-     adfs-fix-e-f-dir-size-2048-crashing-kernel.patch
+     adfs-improve-timestamp-precision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: fix E+/F+ dir size > 2048 crashing kernel
-From: Stuart Swales<stuart.swales.croftnuisk@gmail.com>
+Subject: adfs: improve timestamp precision
+From: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
 
-Kernel crashes in fs/adfs module when accessing directories with a large
-number of objects on mounted Acorn ADFS E+/F+ format discs (or images) as
-the existing code writes off the end of the fixed array of struct
-buffer_head pointers.
+ADFS (FileCore) storage complies with the RISC OS timestamp specification
+(40-bit centiseconds since 01 Jan 1900 00:00:00).  It is desirable that
+stored timestamp precision be maintained to facilitate a precise copy of
+data and metadata from a hard disc (or image thereof) into a RISC OS
+emulator (such as RPCEmu).
 
-Additionally, each directory access that didn't crash would leak a buffer
-as nr_buffers was not adjusted correctly for E+/F+ discs (was always left
-as one less than required).
+This patch implements a full-precision conversion from ADFS to Unix
+timestamp as the existing driver, for ease of calculation with old 32-bit
+compilers, uses the common trick of shifting the 40-bits representing
+centiseconds around into 32-bits representing seconds thereby losing
+precision.
 
-The patch fixes this by allocating a dynamically-sized set of struct
-buffer_head pointers if necessary for the E+/F+ case (many directories
-still do in fact fit in 2048 bytes) and sets the correct nr_buffers so
-that all buffers are released.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=26072
-
-Tested by tar'ing the contents of my RISC PC's E+ format 20Gb HDD which
-contains a number of large directories that previously crashed the kernel.
-
-Signed-off-by: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Signed-off-by: Stuart Swales<stuart.swales.croftnuisk@gmail.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/adfs.h      |    4 +
- fs/adfs/dir_fplus.c |  101 +++++++++++++++++++++++++++++++++---------
- 2 files changed, 84 insertions(+), 21 deletions(-)
+ fs/adfs/inode.c |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN fs/adfs/adfs.h~adfs-fix-e-f-dir-size-2048-crashing-kernel fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~adfs-fix-e-f-dir-size-2048-crashing-kernel
-+++ a/fs/adfs/adfs.h
-@@ -79,6 +79,10 @@ struct adfs_dir {
+diff -puN fs/adfs/inode.c~adfs-improve-timestamp-precision fs/adfs/inode.c
+--- a/fs/adfs/inode.c~adfs-improve-timestamp-precision
++++ a/fs/adfs/inode.c
+@@ -174,50 +174,48 @@ adfs_mode2atts(struct super_block *sb, s
  
- 	int			nr_buffers;
- 	struct buffer_head	*bh[4];
-+
-+	/* big directories need allocated buffers */
-+	struct buffer_head	**bh_fplus;
-+
- 	unsigned int		pos;
- 	unsigned int		parent_id;
- 
-diff -puN fs/adfs/dir_fplus.c~adfs-fix-e-f-dir-size-2048-crashing-kernel fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~adfs-fix-e-f-dir-size-2048-crashing-kernel
-+++ a/fs/adfs/dir_fplus.c
-@@ -8,6 +8,7 @@
-  * published by the Free Software Foundation.
+ /*
+  * Convert an ADFS time to Unix time.  ADFS has a 40-bit centi-second time
+- * referenced to 1 Jan 1900 (til 2248)
++ * referenced to 1 Jan 1900 (til 2248) so we need to discard 2208988800 seconds
++ * of time to convert from RISC OS epoch to Unix epoch.
   */
- #include <linux/buffer_head.h>
-+#include <linux/slab.h>
- #include "adfs.h"
- #include "dir_fplus.h"
- 
-@@ -22,30 +23,53 @@ adfs_fplus_read(struct super_block *sb, 
- 
- 	dir->nr_buffers = 0;
- 
-+	/* start off using fixed bh set - only alloc for big dirs */
-+	dir->bh_fplus = &dir->bh[0];
-+
- 	block = __adfs_block_map(sb, id, 0);
- 	if (!block) {
- 		adfs_error(sb, "dir object %X has a hole at offset 0", id);
- 		goto out;
- 	}
- 
--	dir->bh[0] = sb_bread(sb, block);
--	if (!dir->bh[0])
-+	dir->bh_fplus[0] = sb_bread(sb, block);
-+	if (!dir->bh_fplus[0])
- 		goto out;
- 	dir->nr_buffers += 1;
- 
--	h = (struct adfs_bigdirheader *)dir->bh[0]->b_data;
-+	h = (struct adfs_bigdirheader *)dir->bh_fplus[0]->b_data;
- 	size = le32_to_cpu(h->bigdirsize);
- 	if (size != sz) {
--		printk(KERN_WARNING "adfs: adfs_fplus_read: directory header size\n"
--				" does not match directory size\n");
-+		printk(KERN_WARNING "adfs: adfs_fplus_read:"
-+					" directory header size %X\n"
-+					" does not match directory size %X\n",
-+					size, sz);
- 	}
- 
- 	if (h->bigdirversion[0] != 0 || h->bigdirversion[1] != 0 ||
- 	    h->bigdirversion[2] != 0 || size & 2047 ||
--	    h->bigdirstartname != cpu_to_le32(BIGDIRSTARTNAME))
-+	    h->bigdirstartname != cpu_to_le32(BIGDIRSTARTNAME)) {
-+		printk(KERN_WARNING "adfs: dir object %X has"
-+					" malformed dir header\n", id);
- 		goto out;
-+	}
- 
- 	size >>= sb->s_blocksize_bits;
-+	if (size > sizeof(dir->bh)/sizeof(dir->bh[0])) {
-+		/* this directory is too big for fixed bh set, must allocate */
-+		struct buffer_head **bh_fplus =
-+			kzalloc(size * sizeof(struct buffer_head *),
-+				GFP_KERNEL);
-+		if (!bh_fplus) {
-+			adfs_error(sb, "not enough memory for"
-+					" dir object %X (%d blocks)", id, size);
-+			goto out;
-+		}
-+		dir->bh_fplus = bh_fplus;
-+		/* copy over the pointer to the block that we've already read */
-+		dir->bh_fplus[0] = dir->bh[0];
-+	}
-+
- 	for (blk = 1; blk < size; blk++) {
- 		block = __adfs_block_map(sb, id, blk);
- 		if (!block) {
-@@ -53,25 +77,44 @@ adfs_fplus_read(struct super_block *sb, 
- 			goto out;
- 		}
- 
--		dir->bh[blk] = sb_bread(sb, block);
--		if (!dir->bh[blk])
-+		dir->bh_fplus[blk] = sb_bread(sb, block);
-+		if (!dir->bh_fplus[blk]) {
-+			adfs_error(sb,	"dir object %X failed read for"
-+					" offset %d, mapped block %X",
-+					id, blk, block);
- 			goto out;
--		dir->nr_buffers = blk;
-+		}
-+
-+		dir->nr_buffers += 1;
- 	}
- 
--	t = (struct adfs_bigdirtail *)(dir->bh[size - 1]->b_data + (sb->s_blocksize - 8));
-+	t = (struct adfs_bigdirtail *)
-+		(dir->bh_fplus[size - 1]->b_data + (sb->s_blocksize - 8));
- 
- 	if (t->bigdirendname != cpu_to_le32(BIGDIRENDNAME) ||
- 	    t->bigdirendmasseq != h->startmasseq ||
--	    t->reserved[0] != 0 || t->reserved[1] != 0)
-+	    t->reserved[0] != 0 || t->reserved[1] != 0) {
-+		printk(KERN_WARNING "adfs: dir object %X has "
-+					"malformed dir end\n", id);
- 		goto out;
-+	}
- 
- 	dir->parent_id = le32_to_cpu(h->bigdirparent);
- 	dir->sb = sb;
- 	return 0;
-+
- out:
--	for (i = 0; i < dir->nr_buffers; i++)
--		brelse(dir->bh[i]);
-+	if (dir->bh_fplus) {
-+		for (i = 0; i < dir->nr_buffers; i++)
-+			brelse(dir->bh_fplus[i]);
-+
-+		if (&dir->bh[0] != dir->bh_fplus)
-+			kfree(dir->bh_fplus);
-+
-+		dir->bh_fplus = NULL;
-+	}
-+
-+	dir->nr_buffers = 0;
- 	dir->sb = NULL;
- 	return ret;
- }
-@@ -79,7 +122,8 @@ out:
- static int
- adfs_fplus_setpos(struct adfs_dir *dir, unsigned int fpos)
+ static void
+ adfs_adfs2unix_time(struct timespec *tv, struct inode *inode)
  {
--	struct adfs_bigdirheader *h = (struct adfs_bigdirheader *)dir->bh[0]->b_data;
-+	struct adfs_bigdirheader *h =
-+		(struct adfs_bigdirheader *) dir->bh_fplus[0]->b_data;
- 	int ret = -ENOENT;
+ 	unsigned int high, low;
++	/* 01 Jan 1970 00:00:00 (Unix epoch) as nanoseconds since
++	 * 01 Jan 1900 00:00:00 (RISC OS epoch)
++	 */
++	static const s64 nsec_unix_epoch_diff_risc_os_epoch =
++							2208988800000000000LL;
++	s64 nsec;
  
- 	if (fpos <= le32_to_cpu(h->bigdirentries)) {
-@@ -102,21 +146,27 @@ dir_memcpy(struct adfs_dir *dir, unsigne
- 	partial = sb->s_blocksize - offset;
+ 	if (ADFS_I(inode)->stamped == 0)
+ 		goto cur_time;
  
- 	if (partial >= len)
--		memcpy(to, dir->bh[buffer]->b_data + offset, len);
-+		memcpy(to, dir->bh_fplus[buffer]->b_data + offset, len);
- 	else {
- 		char *c = (char *)to;
+-	high = ADFS_I(inode)->loadaddr << 24;
+-	low  = ADFS_I(inode)->execaddr;
++	high = ADFS_I(inode)->loadaddr & 0xFF; /* top 8 bits of timestamp */
++	low  = ADFS_I(inode)->execaddr;    /* bottom 32 bits of timestamp */
  
- 		remainder = len - partial;
+-	high |= low >> 8;
+-	low  &= 255;
++	/* convert 40-bit centi-seconds to 32-bit seconds
++	 * going via nanoseconds to retain precision
++	 */
++	nsec = (((s64) high << 32) | (s64) low) * 10000000; /* cs to ns */
  
--		memcpy(c, dir->bh[buffer]->b_data + offset, partial);
--		memcpy(c + partial, dir->bh[buffer + 1]->b_data, remainder);
-+		memcpy(c,
-+			dir->bh_fplus[buffer]->b_data + offset,
-+			partial);
+ 	/* Files dated pre  01 Jan 1970 00:00:00. */
+-	if (high < 0x336e996a)
++	if (nsec < nsec_unix_epoch_diff_risc_os_epoch)
+ 		goto too_early;
+ 
+-	/* Files dated post 18 Jan 2038 03:14:05. */
+-	if (high >= 0x656e9969)
+-		goto too_late;
+-
+-	/* discard 2208988800 (0x336e996a00) seconds of time */
+-	high -= 0x336e996a;
+-
+-	/* convert 40-bit centi-seconds to 32-bit seconds */
+-	tv->tv_sec = (((high % 100) << 8) + low) / 100 + (high / 100 << 8);
+-	tv->tv_nsec = 0;
++	/* convert from RISC OS to Unix epoch */
++	nsec -= nsec_unix_epoch_diff_risc_os_epoch;
 +
-+		memcpy(c + partial,
-+			dir->bh_fplus[buffer + 1]->b_data,
-+			remainder);
- 	}
- }
++	*tv = ns_to_timespec(nsec);
+ 	return;
  
- static int
- adfs_fplus_getnext(struct adfs_dir *dir, struct object_info *obj)
- {
--	struct adfs_bigdirheader *h = (struct adfs_bigdirheader *)dir->bh[0]->b_data;
-+	struct adfs_bigdirheader *h =
-+		(struct adfs_bigdirheader *) dir->bh_fplus[0]->b_data;
- 	struct adfs_bigdirentry bde;
- 	unsigned int offset;
- 	int i, ret = -ENOENT;
-@@ -160,7 +210,7 @@ adfs_fplus_sync(struct adfs_dir *dir)
- 	int i;
+  cur_time:
+-	*tv = CURRENT_TIME_SEC;
++	*tv = CURRENT_TIME;
+ 	return;
  
- 	for (i = dir->nr_buffers - 1; i >= 0; i--) {
--		struct buffer_head *bh = dir->bh[i];
-+		struct buffer_head *bh = dir->bh_fplus[i];
- 		sync_dirty_buffer(bh);
- 		if (buffer_req(bh) && !buffer_uptodate(bh))
- 			err = -EIO;
-@@ -174,8 +224,17 @@ adfs_fplus_free(struct adfs_dir *dir)
- {
- 	int i;
- 
--	for (i = 0; i < dir->nr_buffers; i++)
--		brelse(dir->bh[i]);
-+	if (dir->bh_fplus) {
-+		for (i = 0; i < dir->nr_buffers; i++)
-+			brelse(dir->bh_fplus[i]);
-+
-+		if (&dir->bh[0] != dir->bh_fplus)
-+			kfree(dir->bh_fplus);
-+
-+		dir->bh_fplus = NULL;
-+	}
-+
-+	dir->nr_buffers = 0;
- 	dir->sb = NULL;
- }
- 
-_
-
-Patches currently in -mm which might be from stuart.swales.croftnuisk@gmail.com are
-
-origin.patch
-
+  too_early:
+ 	tv->tv_sec = tv->tv_nsec = 0;
+ 	return;
