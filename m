@@ -1,95 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:16 -0700
-Message-ID: <201103232036.p2NKaqhs028176@imap1.linux-foundation.org>
+Subject: [merged] backlight-apple_bl-depends-on-acpi.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:25 -0700
+Message-ID: <201103232037.p2NKb1YM028192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933340Ab1CWUhs (ORCPT
+	by vger.kernel.org with ESMTP id S933340Ab1CWUhr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:37:48 -0400
+	Wed, 23 Mar 2011 16:37:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg@redhat.com, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, rpurdie@rpsys.net, rui.zhang@intel.co
+To: randy.dunlap@oracle.com, mjg@redhat.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: tie ACPI backlight devices to PCI devices if possible
+     backlight: apple_bl depends on ACPI
 has been removed from the -mm tree.  Its filename was
-     acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch
+     backlight-apple_bl-depends-on-acpi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: tie ACPI backlight devices to PCI devices if possible
-From: Matthew Garrett <mjg@redhat.com>
+Subject: backlight: apple_bl depends on ACPI
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Dual-GPU machines may provide more than one ACPI backlight interface.  Tie
-the backlight device to the GPU in order to allow userspace to identify
-the correct interface.
+apple_bl uses ACPI interfaces (data & code), so it should depend on ACPI.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+drivers/video/backlight/apple_bl.c:142: warning: 'struct acpi_device' declared inside parameter list
+drivers/video/backlight/apple_bl.c:142: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/video/backlight/apple_bl.c:201: warning: 'struct acpi_device' declared inside parameter list
+drivers/video/backlight/apple_bl.c:215: error: variable 'apple_bl_driver' has initializer but incomplete type
+drivers/video/backlight/apple_bl.c:216: error: unknown field 'name' specified in initializer
+drivers/video/backlight/apple_bl.c:216: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:216: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:217: error: unknown field 'ids' specified in initializer
+drivers/video/backlight/apple_bl.c:217: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:217: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:218: error: unknown field 'ops' specified in initializer
+drivers/video/backlight/apple_bl.c:218: error: extra brace group at end of initializer
+drivers/video/backlight/apple_bl.c:218: error: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:221: warning: excess elements in struct initializer
+drivers/video/backlight/apple_bl.c:221: warning: (near initialization for 'apple_bl_driver')
+drivers/video/backlight/apple_bl.c:226: error: implicit declaration of function 'acpi_bus_register_driver'
+drivers/video/backlight/apple_bl.c:231: error: implicit declaration of function 'acpi_bus_unregister_driver'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/video/backlight/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible
-+++ a/drivers/acpi/video.c
-@@ -782,6 +782,9 @@ static void acpi_video_device_find_cap(s
+diff -puN drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-apple_bl-depends-on-acpi
++++ a/drivers/video/backlight/Kconfig
+@@ -246,10 +246,10 @@ config BACKLIGHT_MAX8925
  
- 	if (acpi_video_backlight_support()) {
- 		struct backlight_properties props;
-+		struct pci_dev *pdev;
-+		acpi_handle acpi_parent;
-+		struct device *parent = NULL;
- 		int result;
- 		static int count = 0;
- 		char *name;
-@@ -794,10 +797,20 @@ static void acpi_video_device_find_cap(s
- 			return;
- 		count++;
+ config BACKLIGHT_APPLE
+        tristate "Apple Backlight Driver"
+-       depends on X86
++       depends on X86 && ACPI
+        help
+          If you have an Intel-based Apple say Y to enable a driver for its
+-	 backlight
++	 backlight.
  
-+		acpi_get_parent(device->dev->handle, &acpi_parent);
-+
-+		pdev = acpi_get_pci_dev(acpi_parent);
-+		if (pdev) {
-+			parent = &pdev->dev;
-+			pci_dev_put(pdev);
-+		}
-+
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.type = BACKLIGHT_FIRMWARE;
- 		props.max_brightness = device->brightness->count - 3;
--		device->backlight = backlight_device_register(name, NULL, device,
-+		device->backlight = backlight_device_register(name,
-+							      parent,
-+							      device,
- 							      &acpi_backlight_ops,
- 							      &props);
- 		kfree(name);
+ config BACKLIGHT_TOSA
+ 	tristate "Sharp SL-6000 Backlight Driver"
 _
 
-Patches currently in -mm which might be from mjg@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-acerhdf-add-support-for-aspire-1410-bios-v13314.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-i915-add-native-backlight-control.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
