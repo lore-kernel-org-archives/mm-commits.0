@@ -1,127 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-__gfp_other_node-for-transparent-huge-pages.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:37:10 -0700
-Message-ID: <201103232040.p2NKekLT028558@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-separate-parsing-of-swapfile-header.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:42 -0700
+Message-ID: <201103232041.p2NKfIvd028627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933346Ab1CWUz0 (ORCPT
+	by vger.kernel.org with ESMTP id S933346Ab1CWUzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:26 -0400
+	Wed, 23 Mar 2011 16:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: use __GFP_OTHER_NODE for transparent huge pages
+     sys_swapon: separate parsing of swapfile header
 has been removed from the -mm tree.  Its filename was
-     mm-use-__gfp_other_node-for-transparent-huge-pages.patch
+     sys_swapon-separate-parsing-of-swapfile-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use __GFP_OTHER_NODE for transparent huge pages
-From: Andi Kleen <ak@linux.intel.com>
+Subject: sys_swapon: separate parsing of swapfile header
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Pass __GFP_OTHER_NODE for transparent hugepages NUMA allocations done by the
-hugepages daemon.  This way the low level accounting for local versus
-remote pages works correctly.
+Move the code which parses and checks the swapfile header (except for
+the bad block list) to a separate function. Only code movement, no
+functional changes.
 
-Contains improvements from Andrea Arcangeli
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Tested-by: Eric B Munson <emunson@mgebm.net>
+Acked-by: Eric B Munson <emunson@mgebm.net>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ mm/swapfile.c |  140 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 78 insertions(+), 62 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-use-__gfp_other_node-for-transparent-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-__gfp_other_node-for-transparent-huge-pages
-+++ a/mm/huge_memory.c
-@@ -643,23 +643,24 @@ static int __do_huge_pmd_anonymous_page(
- 	return ret;
+diff -puN mm/swapfile.c~sys_swapon-separate-parsing-of-swapfile-header mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-separate-parsing-of-swapfile-header
++++ a/mm/swapfile.c
+@@ -1918,6 +1918,82 @@ static int claim_swapfile(struct swap_in
+ 	return 0;
  }
  
--static inline gfp_t alloc_hugepage_gfpmask(int defrag)
-+static inline gfp_t alloc_hugepage_gfpmask(int defrag, gfp_t extra_gfp)
++static unsigned long read_swap_header(struct swap_info_struct *p,
++					union swap_header *swap_header,
++					struct inode *inode)
++{
++	int i;
++	unsigned long maxpages;
++	unsigned long swapfilepages;
++
++	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
++		printk(KERN_ERR "Unable to find swap-space signature\n");
++		goto bad_swap;
++	}
++
++	/* swap partition endianess hack... */
++	if (swab32(swap_header->info.version) == 1) {
++		swab32s(&swap_header->info.version);
++		swab32s(&swap_header->info.last_page);
++		swab32s(&swap_header->info.nr_badpages);
++		for (i = 0; i < swap_header->info.nr_badpages; i++)
++			swab32s(&swap_header->info.badpages[i]);
++	}
++	/* Check the swap header's sub-version */
++	if (swap_header->info.version != 1) {
++		printk(KERN_WARNING
++		       "Unable to handle swap header version %d\n",
++		       swap_header->info.version);
++		goto bad_swap;
++	}
++
++	p->lowest_bit  = 1;
++	p->cluster_next = 1;
++	p->cluster_nr = 0;
++
++	/*
++	 * Find out how many pages are allowed for a single swap
++	 * device. There are two limiting factors: 1) the number of
++	 * bits for the swap offset in the swp_entry_t type and
++	 * 2) the number of bits in the a swap pte as defined by
++	 * the different architectures. In order to find the
++	 * largest possible bit mask a swap entry with swap type 0
++	 * and swap offset ~0UL is created, encoded to a swap pte,
++	 * decoded to a swp_entry_t again and finally the swap
++	 * offset is extracted. This will mask all the bits from
++	 * the initial ~0UL mask that can't be encoded in either
++	 * the swp_entry_t or the architecture definition of a
++	 * swap pte.
++	 */
++	maxpages = swp_offset(pte_to_swp_entry(
++			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
++	if (maxpages > swap_header->info.last_page) {
++		maxpages = swap_header->info.last_page + 1;
++		/* p->max is an unsigned int: don't overflow it */
++		if ((unsigned int)maxpages == 0)
++			maxpages = UINT_MAX;
++	}
++	p->highest_bit = maxpages - 1;
++
++	if (!maxpages)
++		goto bad_swap;
++	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
++	if (swapfilepages && maxpages > swapfilepages) {
++		printk(KERN_WARNING
++		       "Swap area shorter than signature indicates\n");
++		goto bad_swap;
++	}
++	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
++		goto bad_swap;
++	if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
++		goto bad_swap;
++
++	return maxpages;
++
++bad_swap:
++	return 0;
++}
++
+ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
  {
--	return GFP_TRANSHUGE & ~(defrag ? 0 : __GFP_WAIT);
-+	return (GFP_TRANSHUGE & ~(defrag ? 0 : __GFP_WAIT)) | extra_gfp;
- }
+ 	struct swap_info_struct *p;
+@@ -1931,7 +2007,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	int nr_extents = 0;
+ 	sector_t span;
+ 	unsigned long maxpages;
+-	unsigned long swapfilepages;
+ 	unsigned char *swap_map = NULL;
+ 	struct page *page = NULL;
+ 	struct inode *inode = NULL;
+@@ -1989,71 +2064,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 	swap_header = kmap(page);
  
- static inline struct page *alloc_hugepage_vma(int defrag,
- 					      struct vm_area_struct *vma,
--					      unsigned long haddr, int nd)
-+					      unsigned long haddr, int nd,
-+					      gfp_t extra_gfp)
- {
--	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag),
-+	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag, extra_gfp),
- 			       HPAGE_PMD_ORDER, vma, haddr, nd);
- }
- 
- #ifndef CONFIG_NUMA
- static inline struct page *alloc_hugepage(int defrag)
- {
--	return alloc_pages(alloc_hugepage_gfpmask(defrag),
-+	return alloc_pages(alloc_hugepage_gfpmask(defrag, 0),
- 			   HPAGE_PMD_ORDER);
- }
- #endif
-@@ -678,7 +679,7 @@ int do_huge_pmd_anonymous_page(struct mm
- 		if (unlikely(khugepaged_enter(vma)))
- 			return VM_FAULT_OOM;
- 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--					  vma, haddr, numa_node_id());
-+					  vma, haddr, numa_node_id(), 0);
- 		if (unlikely(!page))
- 			goto out;
- 		if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
-@@ -799,7 +800,8 @@ static int do_huge_pmd_wp_page_fallback(
+-	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
+-		printk(KERN_ERR "Unable to find swap-space signature\n");
++	maxpages = read_swap_header(p, swap_header, inode);
++	if (unlikely(!maxpages)) {
+ 		error = -EINVAL;
+ 		goto bad_swap;
  	}
  
- 	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE,
-+		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE |
-+					       __GFP_OTHER_NODE,
- 					       vma, address, page_to_nid(page));
- 		if (unlikely(!pages[i] ||
- 			     mem_cgroup_newpage_charge(pages[i], mm,
-@@ -902,7 +904,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 	if (transparent_hugepage_enabled(vma) &&
- 	    !transparent_hugepage_debug_cow())
- 		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--					      vma, haddr, numa_node_id());
-+					      vma, haddr, numa_node_id(), 0);
- 	else
- 		new_page = NULL;
- 
-@@ -1779,7 +1781,7 @@ static void collapse_huge_page(struct mm
- 	 * scalability.
- 	 */
- 	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address,
--				      node);
-+				      node, __GFP_OTHER_NODE);
- 	if (unlikely(!new_page)) {
- 		up_read(&mm->mmap_sem);
- 		*hpage = ERR_PTR(-ENOMEM);
-_
-
-Patches currently in -mm which might be from ak@linux.intel.com are
-
-origin.patch
-linux-next.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
-
+-	/* swap partition endianess hack... */
+-	if (swab32(swap_header->info.version) == 1) {
+-		swab32s(&swap_header->info.version);
+-		swab32s(&swap_header->info.last_page);
+-		swab32s(&swap_header->info.nr_badpages);
+-		for (i = 0; i < swap_header->info.nr_badpages; i++)
+-			swab32s(&swap_header->info.badpages[i]);
+-	}
+-	/* Check the swap header's sub-version */
+-	if (swap_header->info.version != 1) {
+-		printk(KERN_WARNING
+-		       "Unable to handle swap header version %d\n",
+-		       swap_header->info.version);
+-		error = -EINVAL;
+-		goto bad_swap;
+-	}
+-
+-	p->lowest_bit  = 1;
+-	p->cluster_next = 1;
+-	p->cluster_nr = 0;
+-
+-	/*
+-	 * Find out how many pages are allowed for a single swap
+-	 * device. There are two limiting factors: 1) the number of
+-	 * bits for the swap offset in the swp_entry_t type and
+-	 * 2) the number of bits in the a swap pte as defined by
+-	 * the different architectures. In order to find the
+-	 * largest possible bit mask a swap entry with swap type 0
+-	 * and swap offset ~0UL is created, encoded to a swap pte,
+-	 * decoded to a swp_entry_t again and finally the swap
+-	 * offset is extracted. This will mask all the bits from
+-	 * the initial ~0UL mask that can't be encoded in either
+-	 * the swp_entry_t or the architecture definition of a
+-	 * swap pte.
+-	 */
+-	maxpages = swp_offset(pte_to_swp_entry(
+-			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
+-	if (maxpages > swap_header->info.last_page) {
+-		maxpages = swap_header->info.last_page + 1;
+-		/* p->max is an unsigned int: don't overflow it */
+-		if ((unsigned int)maxpages == 0)
+-			maxpages = UINT_MAX;
+-	}
+-	p->highest_bit = maxpages - 1;
+-
+-	error = -EINVAL;
+-	if (!maxpages)
+-		goto bad_swap;
+-	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
+-	if (swapfilepages && maxpages > swapfilepages) {
+-		printk(KERN_WARNING
+-		       "Swap area shorter than signature indicates\n");
+-		goto bad_swap;
+-	}
+-	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
+-		goto bad_swap;
+-	if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
+-		goto bad_swap;
