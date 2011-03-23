@@ -1,163 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:36:38 -0700
-Message-ID: <201103232040.p2NKeEmP028510@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-use-vzalloc-instead-of-vmalloc-memset.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:12 -0700
+Message-ID: <201103232040.p2NKemUD028561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933394Ab1CWUld (ORCPT
+	by vger.kernel.org with ESMTP id S933329Ab1CWUl3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:41:33 -0400
+	Wed, 23 Mar 2011 16:41:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@linux.vnet.ibm.com, aarcange@redhat.com, emunson@mgebm.net, hannes@cmpxchg.org, jeremy@goop.org, mel@csn.ul.ie, mjwolf@us.ibm.com, mpm@selenic.com, rientjes@google.com, mm-commit
+To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, jj@chaosbits.net, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smaps: break out smaps_pte_entry() from smaps_pte_range()
+     sys_swapon: use vzalloc() instead of vmalloc/memset
 has been removed from the -mm tree.  Its filename was
-     smaps-break-out-smaps_pte_entry-from-smaps_pte_range.patch
+     sys_swapon-use-vzalloc-instead-of-vmalloc-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smaps: break out smaps_pte_entry() from smaps_pte_range()
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: sys_swapon: use vzalloc() instead of vmalloc/memset
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-We will use smaps_pte_entry() in a moment to handle both small and
-transparent large pages.  But, we must break it out of smaps_pte_range()
-first.
+This patch series refactors the sys_swapon function.
 
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
+sys_swapon is currently a very large function, with 313 lines (more than
+12 25-line screens), which can make it a bit hard to read. This patch
+series reduces this size by half, by extracting large chunks of related
+code to new helper functions.
+
+One of these chunks of code was nearly identical to the part of
+sys_swapoff which is used in case of a failure return from
+try_to_unuse(), so this patch series also makes both share the same
+code.
+
+As a side effect of all this refactoring, the compiled code gets a bit
+smaller (from v1 of this patch series):
+
+   text       data        bss        dec        hex    filename
+  14012        944        276      15232       3b80    mm/swapfile.o.before
+  13941        944        276      15161       3b39    mm/swapfile.o.after
+
+
+This patch:
+
+Use vzalloc() instead of vmalloc/memset.
+
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
-Cc: Michael J Wolf <mjwolf@us.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Eric B Munson <emunson@mgebm.net>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Reviewed-by: Jesper Juhl <jj@chaosbits.net>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   85 +++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 39 deletions(-)
+ mm/swapfile.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-break-out-smaps_pte_entry-from-smaps_pte_range fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-break-out-smaps_pte_entry-from-smaps_pte_range
-+++ a/fs/proc/task_mmu.c
-@@ -333,56 +333,63 @@ struct mem_size_stats {
- 	u64 pss;
- };
+diff -puN mm/swapfile.c~sys_swapon-use-vzalloc-instead-of-vmalloc-memset mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-use-vzalloc-instead-of-vmalloc-memset
++++ a/mm/swapfile.c
+@@ -2047,13 +2047,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
  
--static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			   struct mm_walk *walk)
-+
-+static void smaps_pte_entry(pte_t ptent, unsigned long addr,
-+		struct mm_walk *walk)
- {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = mss->vma;
--	pte_t *pte, ptent;
--	spinlock_t *ptl;
- 	struct page *page;
- 	int mapcount;
+ 	/* OK, set up the swap map and apply the bad block list */
+-	swap_map = vmalloc(maxpages);
++	swap_map = vzalloc(maxpages);
+ 	if (!swap_map) {
+ 		error = -ENOMEM;
+ 		goto bad_swap;
+ 	}
  
--	split_huge_page_pmd(walk->mm, pmd);
--
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	for (; addr != end; pte++, addr += PAGE_SIZE) {
--		ptent = *pte;
-+	if (is_swap_pte(ptent)) {
-+		mss->swap += PAGE_SIZE;
-+		return;
-+	}
+-	memset(swap_map, 0, maxpages);
+ 	nr_good_pages = maxpages - 1;	/* omit header page */
  
--		if (is_swap_pte(ptent)) {
--			mss->swap += PAGE_SIZE;
--			continue;
--		}
-+	if (!pte_present(ptent))
-+		return;
- 
--		if (!pte_present(ptent))
--			continue;
-+	page = vm_normal_page(vma, addr, ptent);
-+	if (!page)
-+		return;
-+
-+	if (PageAnon(page))
-+		mss->anonymous += PAGE_SIZE;
-+
-+	mss->resident += PAGE_SIZE;
-+	/* Accumulate the size in pages that have been accessed. */
-+	if (pte_young(ptent) || PageReferenced(page))
-+		mss->referenced += PAGE_SIZE;
-+	mapcount = page_mapcount(page);
-+	if (mapcount >= 2) {
-+		if (pte_dirty(ptent) || PageDirty(page))
-+			mss->shared_dirty += PAGE_SIZE;
-+		else
-+			mss->shared_clean += PAGE_SIZE;
-+		mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
-+	} else {
-+		if (pte_dirty(ptent) || PageDirty(page))
-+			mss->private_dirty += PAGE_SIZE;
-+		else
-+			mss->private_clean += PAGE_SIZE;
-+		mss->pss += (PAGE_SIZE << PSS_SHIFT);
-+	}
-+}
- 
--		page = vm_normal_page(vma, addr, ptent);
--		if (!page)
--			continue;
-+static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			   struct mm_walk *walk)
-+{
-+	struct mem_size_stats *mss = walk->private;
-+	struct vm_area_struct *vma = mss->vma;
-+	pte_t *pte;
-+	spinlock_t *ptl;
- 
--		if (PageAnon(page))
--			mss->anonymous += PAGE_SIZE;
-+	split_huge_page_pmd(walk->mm, pmd);
- 
--		mss->resident += PAGE_SIZE;
--		/* Accumulate the size in pages that have been accessed. */
--		if (pte_young(ptent) || PageReferenced(page))
--			mss->referenced += PAGE_SIZE;
--		mapcount = page_mapcount(page);
--		if (mapcount >= 2) {
--			if (pte_dirty(ptent) || PageDirty(page))
--				mss->shared_dirty += PAGE_SIZE;
--			else
--				mss->shared_clean += PAGE_SIZE;
--			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
--		} else {
--			if (pte_dirty(ptent) || PageDirty(page))
--				mss->private_dirty += PAGE_SIZE;
--			else
--				mss->private_clean += PAGE_SIZE;
--			mss->pss += (PAGE_SIZE << PSS_SHIFT);
--		}
--	}
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	for (; addr != end; pte++, addr += PAGE_SIZE)
-+		smaps_pte_entry(*pte, addr, walk);
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
- 	return 0;
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from cesarb@cesarb.net are
 
 origin.patch
-page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
-page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem-fix.patch
 
