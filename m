@@ -1,44 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:53 -0700
-Message-ID: <201103232037.p2NKbUxT028243@imap1.linux-foundation.org>
+Subject: [merged] oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:57 -0700
+Message-ID: <201103232037.p2NKbX9g028246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933387Ab1CWUi1 (ORCPT
+	by vger.kernel.org with ESMTP id S933298Ab1CWUia (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:38:27 -0400
+	Wed, 23 Mar 2011 16:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: suppress show_mem() for many nodes in irq context on page alloc failure
+     oom: suppress nodes that are not allowed from meminfo on page alloc failure
 has been removed from the -mm tree.  Its filename was
-     oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure.patch
+     oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: suppress show_mem() for many nodes in irq context on page alloc failure
+Subject: oom: suppress nodes that are not allowed from meminfo on page alloc failure
 From: David Rientjes <rientjes@google.com>
 
-When a page allocation failure occurs, show_mem() is called to dump the
-state of the VM so users may understand what happened to get into that
-condition.
+Displaying extremely verbose meminfo for all nodes on the system is
+overkill for page allocation failures when the context restricts that
+allocation to only a subset of nodes.  We don't particularly care about
+the state of all nodes when some are not allowed in the current context,
+they can have an abundance of memory but we can't allocate from that part
+of memory.
 
-This output, however, can be extremely verbose.  In irq context, it may
-result in significant delays that incur NMI watchdog timeouts when the
-machine is large (we use CONFIG_NODES_SHIFT > 8 here to define a "large"
-machine since the length of the show_mem() output is proportional to the
-number of possible nodes).
-
-This patch suppresses the show_mem() call in irq context when the kernel
-has CONFIG_NODES_SHIFT > 8.
+This patch suppresses disallowed nodes from the meminfo dump on a page
+allocation failure if the context requires it.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -47,40 +44,38 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure mm/page_alloc.c
---- a/mm/page_alloc.c~oom-suppress-show_mem-for-many-nodes-in-irq-context-on-page-alloc-failure
+diff -puN mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-suppress-nodes-that-are-not-allowed-from-meminfo-on-page-alloc-failure
 +++ a/mm/page_alloc.c
-@@ -1714,6 +1714,20 @@ try_next_zone:
- 	return page;
- }
+@@ -2171,12 +2171,25 @@ rebalance:
  
-+/*
-+ * Large machines with many possible nodes should not always dump per-node
-+ * meminfo in irq context.
-+ */
-+static inline bool should_suppress_show_mem(void)
-+{
-+	bool ret = false;
+ nopage:
+ 	if (!(gfp_mask & __GFP_NOWARN) && printk_ratelimit()) {
+-		printk(KERN_WARNING "%s: page allocation failure."
+-			" order:%d, mode:0x%x\n",
++		unsigned int filter = SHOW_MEM_FILTER_NODES;
 +
-+#if NODES_SHIFT > 8
-+	ret = in_interrupt();
-+#endif
-+	return ret;
-+}
++		/*
++		 * This documents exceptions given to allocations in certain
++		 * contexts that are allowed to allocate outside current's set
++		 * of allowed nodes.
++		 */
++		if (!(gfp_mask & __GFP_NOMEMALLOC))
++			if (test_thread_flag(TIF_MEMDIE) ||
++			    (current->flags & (PF_MEMALLOC | PF_EXITING)))
++				filter &= ~SHOW_MEM_FILTER_NODES;
++		if (in_interrupt() || !wait)
++			filter &= ~SHOW_MEM_FILTER_NODES;
 +
- static inline int
- should_alloc_retry(gfp_t gfp_mask, unsigned int order,
- 				unsigned long pages_reclaimed)
-@@ -2161,7 +2175,8 @@ nopage:
- 			" order:%d, mode:0x%x\n",
++		pr_warning("%s: page allocation failure. order:%d, mode:0x%x\n",
  			current->comm, order, gfp_mask);
  		dump_stack();
--		show_mem();
-+		if (!should_suppress_show_mem())
-+			show_mem();
+ 		if (!should_suppress_show_mem())
+-			show_mem();
++			__show_mem(filter);
  	}
  	return page;
  got_pg:
