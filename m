@@ -1,70 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-adfs-adfsh-fix-unsigned-comparison-fix.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:14:55 -0700
-Message-ID: <201103232314.p2NNEt01004058@imap1.linux-foundation.org>
+Subject: [folded] asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:15:16 -0700
+Message-ID: <201103232315.p2NNFGTx004075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932943Ab1CWXPD (ORCPT
+	by vger.kernel.org with ESMTP id S932943Ab1CWXPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:15:03 -0400
+	Wed, 23 Mar 2011 19:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, rmk+kernel@arm.linux.org.uk, stuart.swales.croftnuisk@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-adfs-adfsh-fix-unsigned-comparison-fix
+     asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
 has been removed from the -mm tree.  Its filename was
-     fs-adfs-adfsh-fix-unsigned-comparison-fix.patch
+     asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 
-This patch was dropped because it was folded into fs-adfs-adfsh-fix-unsigned-comparison.patch
+This patch was dropped because it was folded into asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-adfs-adfsh-fix-unsigned-comparison-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+(This patch is intended to be folded into the patch in -mm:
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch)
+
+The little-endian bitops on asm-generic are written as preprocessor
+macros with the cast to "unsigned long *".
+This means that even non-pointers will be accepted without an error, and
+that is a Very Bad Thing.
+
+This converts the little-endian bitops macros to static inline functions
+with proper prototypes.
+
+Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/adfs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/bitops/le.h |   73 ++++++++++++++++++++----------
+ 1 file changed, 51 insertions(+), 22 deletions(-)
 
-diff -puN fs/adfs/adfs.h~fs-adfs-adfsh-fix-unsigned-comparison-fix fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~fs-adfs-adfsh-fix-unsigned-comparison-fix
-+++ a/fs/adfs/adfs.h
-@@ -112,7 +112,7 @@ struct object_info {
- /* RISC OS 12-bit filetype converts to ,xyz hex filename suffix */
- static inline int append_filetype_suffix(char *buf, __u16 filetype)
- {
--	if (filetype == (__u16)-1)
-+	if (filetype == 0xffff)	/* no explicit 12-bit file type was set */
- 		return 0;
+diff -puN include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
++++ a/include/asm-generic/bitops/le.h
+@@ -8,12 +8,23 @@
  
- 	*buf++ = ',';
+ #define BITOP_LE_SWIZZLE	0
+ 
+-#define find_next_zero_bit_le(addr, size, offset) \
+-	find_next_zero_bit((unsigned long *)(addr), size, offset)
+-#define find_next_bit_le(addr, size, offset) \
+-	find_next_bit((unsigned long *)(addr), size, offset)
+-#define find_first_zero_bit_le(addr, size) \
+-	find_first_zero_bit((unsigned long *)(addr), size)
++static inline unsigned long find_next_zero_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
++{
++	return find_next_zero_bit(addr, size, offset);
++}
++
++static inline unsigned long find_next_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
++{
++	return find_next_bit(addr, size, offset);
++}
++
++static inline unsigned long find_first_zero_bit_le(const void *addr,
++		unsigned long size)
++{
++	return find_first_zero_bit(addr, size);
++}
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
+@@ -31,21 +42,39 @@ extern unsigned long find_next_bit_le(co
+ #error "Please fix <asm/byteorder.h>"
+ #endif
+ 
+-#define test_bit_le(nr, addr) \
+-	test_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-#define __set_bit_le(nr, addr) \
+-	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-#define __clear_bit_le(nr, addr) \
+-	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-
+-#define test_and_set_bit_le(nr, addr) \
+-	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-#define test_and_clear_bit_le(nr, addr) \
+-	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-
+-#define __test_and_set_bit_le(nr, addr) \
+-	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
+-#define __test_and_clear_bit_le(nr, addr) \
+-	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
++static inline int test_bit_le(int nr, const void *addr)
++{
++	return test_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline void __set_bit_le(int nr, void *addr)
++{
++	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline void __clear_bit_le(int nr, void *addr)
++{
++	__clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int test_and_set_bit_le(int nr, void *addr)
++{
++	return test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int test_and_clear_bit_le(int nr, void *addr)
++{
++	return test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int __test_and_set_bit_le(int nr, void *addr)
++{
++	return __test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int __test_and_clear_bit_le(int nr, void *addr)
++{
++	return __test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
+ 
+ #endif /* _ASM_GENERIC_BITOPS_LE_H_ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-fs-adfs-adfsh-fix-unsigned-comparison.patch
-memcg-change-page_cgroup_zoneinfo-signature-fix.patch
-memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp-checkpatch-fixes.patch
-mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix.patch
-userns-security-make-capabilities-relative-to-the-user-namespace-fix-fix.patch
-userns-user-namespaces-convert-several-capable-calls-checkpatch-fixes.patch
-userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+kvm-stop-including-asm-generic-bitops-leh-directly.patch
+rds-stop-including-asm-generic-bitops-leh-directly.patch
+bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
+asm-generic-rename-generic-little-endian-bitops-functions.patch
+asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
+powerpc-introduce-little-endian-bitops.patch
+powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+s390-introduce-little-endian-bitops.patch
+s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+arm-introduce-little-endian-bitops.patch
+arm-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+m68k-introduce-little-endian-bitops.patch
+m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+bitops-introduce-config_generic_find_bit_le.patch
+m68knommu-introduce-little-endian-bitops.patch
+m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+bitops-introduce-little-endian-bitops-for-most-architectures.patch
+asm-generic-use-little-endian-bitops.patch
+kvm-use-little-endian-bitops.patch
+rds-use-little-endian-bitops.patch
+ext3-use-little-endian-bitops.patch
+ext4-use-little-endian-bitops.patch
+ocfs2-use-little-endian-bitops.patch
+nilfs2-use-little-endian-bitops.patch
+reiserfs-use-little-endian-bitops.patch
+udf-use-little-endian-bitops.patch
+ufs-use-little-endian-bitops.patch
+md-use-little-endian-bitops.patch
+dm-use-little-endian-bitops.patch
+bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
+m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
+bitops-remove-minix-bitops-from-asm-bitopsh.patch
 
