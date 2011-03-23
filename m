@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:15:39 -0700
-Message-ID: <201103232315.p2NNFdwq004098@imap1.linux-foundation.org>
+Subject: [folded] s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:16:05 -0700
+Message-ID: <201103232316.p2NNG5s9004113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933037Ab1CWXPo (ORCPT
+	by vger.kernel.org with ESMTP id S933041Ab1CWXQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:15:44 -0400
+	Wed, 23 Mar 2011 19:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, benh@kernel.crashing.org, hpa@zytor.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, heiko.carstens@de.ibm.com, hpa@zytor.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
+     s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 has been removed from the -mm tree.  Its filename was
-     powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+     s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 
-This patch was dropped because it was folded into powerpc-introduce-little-endian-bitops.patch
+This patch was dropped because it was folded into s390-introduce-little-endian-bitops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
+Subject: s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 (This patch is intended to be folded into the patch in -mm:
-powerpc-introduce-little-endian-bitops.patch)
+s390-introduce-little-endian-bitops.patch)
 
-The little-endian bitops on powerpc are written as preprocessor
+The little-endian bitops on s390 are written as preprocessor
 macros with the cast to "unsigned long *".
 This means that even non-pointers will be accepted without an error, and
 that is a Very Bad Thing.
@@ -40,67 +40,73 @@ with proper prototypes.
 
 Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/bitops.h |   43 ++++++++++++++++++----------
- 1 file changed, 29 insertions(+), 14 deletions(-)
+ arch/s390/include/asm/bitops.h |   48 +++++++++++++++++++++----------
+ 1 file changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN arch/powerpc/include/asm/bitops.h~powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/powerpc/include/asm/bitops.h
---- a/arch/powerpc/include/asm/bitops.h~powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
-+++ a/arch/powerpc/include/asm/bitops.h
-@@ -288,20 +288,35 @@ static __inline__ int test_bit_le(unsign
- 	return (tmp[nr >> 3] >> (nr & 7)) & 1;
- }
+diff -puN arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/s390/include/asm/bitops.h
+--- a/arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
++++ a/arch/s390/include/asm/bitops.h
+@@ -742,20 +742,40 @@ static inline int sched_find_first_bit(u
+  *    23 22 21 20 19 18 17 16 31 30 29 28 27 26 25 24
+  */
  
--#define __set_bit_le(nr, addr) \
--	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
--#define __clear_bit_le(nr, addr) \
--	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
--
--#define test_and_set_bit_le(nr, addr) \
--	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
--#define test_and_clear_bit_le(nr, addr) \
--	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
--
--#define __test_and_set_bit_le(nr, addr) \
--	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
--#define __test_and_clear_bit_le(nr, addr) \
--	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
-+static inline void __set_bit_le(int nr, void *addr)
+-#define __set_bit_le(nr, addr)	\
+-	__set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define __clear_bit_le(nr, addr)	\
+-	__clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define __test_and_set_bit_le(nr, addr)	\
+-	__test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define test_and_set_bit_le(nr, addr)	\
+-	test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define __test_and_clear_bit_le(nr, addr)	\
+-	__test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define test_and_clear_bit_le(nr, addr)	\
+-	test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
+-#define test_bit_le(nr, addr)	\
+-	test_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)(addr))
++static inline void __set_bit_le(unsigned long nr, void *addr)
 +{
-+	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	__set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
 +
-+static inline void __clear_bit_le(int nr, void *addr)
++static inline void __clear_bit_le(unsigned long nr, void *addr)
 +{
-+	__clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	__clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
 +
-+static inline int test_and_set_bit_le(int nr, void *addr)
++static inline int __test_and_set_bit_le(unsigned long nr, void *addr)
 +{
-+	return test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	return __test_and_set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
 +
-+static inline int test_and_clear_bit_le(int nr, void *addr)
++static inline int test_and_set_bit_le(unsigned long nr, void *addr)
 +{
-+	return test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	return test_and_set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
 +
-+static inline int __test_and_set_bit_le(int nr, void *addr)
++static inline int __test_and_clear_bit_le(unsigned long nr, void *addr)
 +{
-+	return __test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	return __test_and_clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
 +
-+static inline int __test_and_clear_bit_le(int nr, void *addr)
++static inline int test_and_clear_bit_le(unsigned long nr, void *addr)
 +{
-+	return __test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++	return test_and_clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int test_bit_le(unsigned long nr, const void *addr)
++{
++	return test_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
 +}
  
- #define find_first_zero_bit_le(addr, size) \
- 	find_next_zero_bit_le((addr), (size), 0)
+ static inline int find_first_zero_bit_le(void *vaddr, unsigned int size)
+ {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -113,7 +119,6 @@ asm-generic-rename-generic-little-endian-bitops-functions.patch
 asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
 powerpc-introduce-little-endian-bitops.patch
 s390-introduce-little-endian-bitops.patch
-s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 arm-introduce-little-endian-bitops.patch
 arm-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 m68k-introduce-little-endian-bitops.patch
