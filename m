@@ -1,123 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: [merged] smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:36:40 -0700
-Message-ID: <201103232040.p2NKeGTd028513@imap1.linux-foundation.org>
+Subject: [merged] smp-move-smp-setup-functions-to-kernel-smpc.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:38:57 -0700
+Message-ID: <201103232042.p2NKgXN7028774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933540Ab1CWU5U (ORCPT
+	by vger.kernel.org with ESMTP id S933542Ab1CWU5V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:57:20 -0400
+	Wed, 23 Mar 2011 16:57:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@linux.vnet.ibm.com, aarcange@redhat.com, emunson@mgebm.net, hannes@cmpxchg.org, jeremy@goop.org, mel@csn.ul.ie, mjwolf@us.ibm.com, mpm@selenic.com, rientjes@google.com, mm-commit
+To: amwang@redhat.com, a.p.zijlstra@chello.nl, akinobu.mita@gmail.com, arnd@arndb.de, dhowells@redhat.com, mingo@elte.hu, rakib.mullick@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smaps: pass pte size argument in to smaps_pte_entry()
+     smp: move smp setup functions to kernel/smp.c
 has been removed from the -mm tree.  Its filename was
-     smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
+     smp-move-smp-setup-functions-to-kernel-smpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smaps: pass pte size argument in to smaps_pte_entry()
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: smp: move smp setup functions to kernel/smp.c
+From: Amerigo Wang <amwang@redhat.com>
 
-Add an argument to the new smaps_pte_entry() function to let it account in
-things other than PAGE_SIZE units.  I changed all of the PAGE_SIZE sites,
-even though not all of them can be reached for transparent huge pages,
-just so this will continue to work without changes as THPs are improved.
+Move setup_nr_cpu_ids(), smp_init() and some other SMP boot parameter
+setup functions from init/main.c to kenrel/smp.c, saves some #ifdef
+CONFIG_SMP.
 
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Eric B Munson <emunson@mgebm.net>
-Tested-by: Eric B Munson <emunson@mgebm.net>
-Cc: Michael J Wolf <mjwolf@us.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ include/linux/smp.h |    2 
+ init/main.c         |   90 ------------------------------------------
+ kernel/smp.c        |   81 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+), 89 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-pass-pte-size-argument-in-to-smaps_pte_entry fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-pass-pte-size-argument-in-to-smaps_pte_entry
-+++ a/fs/proc/task_mmu.c
-@@ -335,7 +335,7 @@ struct mem_size_stats {
+diff -puN include/linux/smp.h~smp-move-smp-setup-functions-to-kernel-smpc include/linux/smp.h
+--- a/include/linux/smp.h~smp-move-smp-setup-functions-to-kernel-smpc
++++ a/include/linux/smp.h
+@@ -114,6 +114,8 @@ int on_each_cpu(smp_call_func_t func, vo
+ void smp_prepare_boot_cpu(void);
  
+ extern unsigned int setup_max_cpus;
++extern void __init setup_nr_cpu_ids(void);
++extern void __init smp_init(void);
  
- static void smaps_pte_entry(pte_t ptent, unsigned long addr,
--		struct mm_walk *walk)
-+		unsigned long ptent_size, struct mm_walk *walk)
+ #else /* !SMP */
+ 
+diff -puN init/main.c~smp-move-smp-setup-functions-to-kernel-smpc init/main.c
+--- a/init/main.c~smp-move-smp-setup-functions-to-kernel-smpc
++++ a/init/main.c
+@@ -129,63 +129,6 @@ static char *static_command_line;
+ static char *execute_command;
+ static char *ramdisk_execute_command;
+ 
+-#ifdef CONFIG_SMP
+-/* Setup configured maximum number of CPUs to activate */
+-unsigned int setup_max_cpus = NR_CPUS;
+-EXPORT_SYMBOL(setup_max_cpus);
+-
+-
+-/*
+- * Setup routine for controlling SMP activation
+- *
+- * Command-line option of "nosmp" or "maxcpus=0" will disable SMP
+- * activation entirely (the MPS table probe still happens, though).
+- *
+- * Command-line option of "maxcpus=<NUM>", where <NUM> is an integer
+- * greater than 0, limits the maximum number of CPUs activated in
+- * SMP mode to <NUM>.
+- */
+-
+-void __weak arch_disable_smp_support(void) { }
+-
+-static int __init nosmp(char *str)
+-{
+-	setup_max_cpus = 0;
+-	arch_disable_smp_support();
+-
+-	return 0;
+-}
+-
+-early_param("nosmp", nosmp);
+-
+-/* this is hard limit */
+-static int __init nrcpus(char *str)
+-{
+-	int nr_cpus;
+-
+-	get_option(&str, &nr_cpus);
+-	if (nr_cpus > 0 && nr_cpus < nr_cpu_ids)
+-		nr_cpu_ids = nr_cpus;
+-
+-	return 0;
+-}
+-
+-early_param("nr_cpus", nrcpus);
+-
+-static int __init maxcpus(char *str)
+-{
+-	get_option(&str, &setup_max_cpus);
+-	if (setup_max_cpus == 0)
+-		arch_disable_smp_support();
+-
+-	return 0;
+-}
+-
+-early_param("maxcpus", maxcpus);
+-#else
+-static const unsigned int setup_max_cpus = NR_CPUS;
+-#endif
+-
+ /*
+  * If set, this is an indication to the drivers that reset the underlying
+  * device before going ahead with the initialization otherwise driver might
+@@ -362,7 +305,7 @@ static int __init rdinit_setup(char *str
+ __setup("rdinit=", rdinit_setup);
+ 
+ #ifndef CONFIG_SMP
+-
++static const unsigned int setup_max_cpus = NR_CPUS;
+ #ifdef CONFIG_X86_LOCAL_APIC
+ static void __init smp_init(void)
  {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = mss->vma;
-@@ -343,7 +343,7 @@ static void smaps_pte_entry(pte_t ptent,
- 	int mapcount;
+@@ -374,37 +317,6 @@ static void __init smp_init(void)
  
- 	if (is_swap_pte(ptent)) {
--		mss->swap += PAGE_SIZE;
-+		mss->swap += ptent_size;
- 		return;
- 	}
+ static inline void setup_nr_cpu_ids(void) { }
+ static inline void smp_prepare_cpus(unsigned int maxcpus) { }
+-
+-#else
+-
+-/* Setup number of possible processor ids */
+-int nr_cpu_ids __read_mostly = NR_CPUS;
+-EXPORT_SYMBOL(nr_cpu_ids);
+-
+-/* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
+-static void __init setup_nr_cpu_ids(void)
+-{
+-	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
+-}
+-
+-/* Called by boot processor to activate the rest. */
+-static void __init smp_init(void)
+-{
+-	unsigned int cpu;
+-
+-	/* FIXME: This should be done in userspace --RR */
+-	for_each_present_cpu(cpu) {
+-		if (num_online_cpus() >= setup_max_cpus)
+-			break;
+-		if (!cpu_online(cpu))
+-			cpu_up(cpu);
+-	}
+-
+-	/* Any cleanup work */
+-	printk(KERN_INFO "Brought up %ld CPUs\n", (long)num_online_cpus());
+-	smp_cpus_done(setup_max_cpus);
+-}
+-
+ #endif
  
-@@ -355,25 +355,25 @@ static void smaps_pte_entry(pte_t ptent,
- 		return;
- 
- 	if (PageAnon(page))
--		mss->anonymous += PAGE_SIZE;
-+		mss->anonymous += ptent_size;
- 
--	mss->resident += PAGE_SIZE;
-+	mss->resident += ptent_size;
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (pte_young(ptent) || PageReferenced(page))
--		mss->referenced += PAGE_SIZE;
-+		mss->referenced += ptent_size;
- 	mapcount = page_mapcount(page);
- 	if (mapcount >= 2) {
- 		if (pte_dirty(ptent) || PageDirty(page))
--			mss->shared_dirty += PAGE_SIZE;
-+			mss->shared_dirty += ptent_size;
- 		else
--			mss->shared_clean += PAGE_SIZE;
--		mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
-+			mss->shared_clean += ptent_size;
-+		mss->pss += (ptent_size << PSS_SHIFT) / mapcount;
- 	} else {
- 		if (pte_dirty(ptent) || PageDirty(page))
--			mss->private_dirty += PAGE_SIZE;
-+			mss->private_dirty += ptent_size;
- 		else
--			mss->private_clean += PAGE_SIZE;
--		mss->pss += (PAGE_SIZE << PSS_SHIFT);
-+			mss->private_clean += ptent_size;
-+		mss->pss += (ptent_size << PSS_SHIFT);
- 	}
+ /*
+diff -puN kernel/smp.c~smp-move-smp-setup-functions-to-kernel-smpc kernel/smp.c
+--- a/kernel/smp.c~smp-move-smp-setup-functions-to-kernel-smpc
++++ a/kernel/smp.c
+@@ -604,6 +604,87 @@ void ipi_call_unlock_irq(void)
  }
+ #endif /* USE_GENERIC_SMP_HELPERS */
  
-@@ -389,7 +389,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
--		smaps_pte_entry(*pte, addr, walk);
-+		smaps_pte_entry(*pte, addr, PAGE_SIZE, walk);
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
- 	return 0;
++/* Setup configured maximum number of CPUs to activate */
++unsigned int setup_max_cpus = NR_CPUS;
++EXPORT_SYMBOL(setup_max_cpus);
++
++
++/*
++ * Setup routine for controlling SMP activation
++ *
++ * Command-line option of "nosmp" or "maxcpus=0" will disable SMP
++ * activation entirely (the MPS table probe still happens, though).
++ *
++ * Command-line option of "maxcpus=<NUM>", where <NUM> is an integer
++ * greater than 0, limits the maximum number of CPUs activated in
++ * SMP mode to <NUM>.
++ */
++
++void __weak arch_disable_smp_support(void) { }
++
++static int __init nosmp(char *str)
++{
++	setup_max_cpus = 0;
++	arch_disable_smp_support();
++
++	return 0;
++}
++
++early_param("nosmp", nosmp);
++
++/* this is hard limit */
++static int __init nrcpus(char *str)
++{
++	int nr_cpus;
++
++	get_option(&str, &nr_cpus);
++	if (nr_cpus > 0 && nr_cpus < nr_cpu_ids)
++		nr_cpu_ids = nr_cpus;
++
++	return 0;
++}
++
++early_param("nr_cpus", nrcpus);
++
++static int __init maxcpus(char *str)
++{
++	get_option(&str, &setup_max_cpus);
++	if (setup_max_cpus == 0)
++		arch_disable_smp_support();
++
++	return 0;
++}
++
++early_param("maxcpus", maxcpus);
++
++/* Setup number of possible processor ids */
++int nr_cpu_ids __read_mostly = NR_CPUS;
++EXPORT_SYMBOL(nr_cpu_ids);
++
++/* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
++void __init setup_nr_cpu_ids(void)
++{
++	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
++}
++
++/* Called by boot processor to activate the rest. */
++void __init smp_init(void)
++{
++	unsigned int cpu;
++
++	/* FIXME: This should be done in userspace --RR */
++	for_each_present_cpu(cpu) {
++		if (num_online_cpus() >= setup_max_cpus)
++			break;
++		if (!cpu_online(cpu))
++			cpu_up(cpu);
++	}
++
++	/* Any cleanup work */
++	printk(KERN_INFO "Brought up %ld CPUs\n", (long)num_online_cpus());
++	smp_cpus_done(setup_max_cpus);
++}
++
+ /*
+  * Call a function on all processors.  May be used during early boot while
+  * early_boot_irqs_disabled is set.  Use local_irq_save/restore() instead
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 origin.patch
-page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
-page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem-fix.patch
 
