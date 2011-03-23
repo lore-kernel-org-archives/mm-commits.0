@@ -1,58 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:41:29 -0700
-Message-ID: <201103232045.p2NKj50M029160@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-simplify-error-flow-in-alloc_swap_info.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:22 -0700
+Message-ID: <201103232040.p2NKewsv028577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933516Ab1CWUz1 (ORCPT
+	by vger.kernel.org with ESMTP id S933342Ab1CWUzb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:27 -0400
+	Wed, 23 Mar 2011 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: strakh@ispras.ru, mchehab@infradead.org, shijie8@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/tlg2300/pd-video.c: fix double mutex_unlock in pd_vidioc_s_fmt()
+     sys_swapon: simplify error flow in alloc_swap_info()
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt.patch
+     sys_swapon-simplify-error-flow-in-alloc_swap_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/tlg2300/pd-video.c: fix double mutex_unlock in pd_vidioc_s_fmt()
-From: Alexander Strakh <strakh@ispras.ru>
+Subject: sys_swapon: simplify error flow in alloc_swap_info()
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Since there is no cleanup to do, there is no reason to jump to a label.
+Return directly instead.
+
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Tested-by: Eric B Munson <emunson@mgebm.net>
+Acked-by: Eric B Munson <emunson@mgebm.net>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/tlg2300/pd-video.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/swapfile.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/media/video/tlg2300/pd-video.c~drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt drivers/media/video/tlg2300/pd-video.c
---- a/drivers/media/video/tlg2300/pd-video.c~drivers-media-video-tlg2300-pd-videoc-fix-double-mutex_unlock-in-pd_vidioc_s_fmt
-+++ a/drivers/media/video/tlg2300/pd-video.c
-@@ -764,10 +764,8 @@ static int pd_vidioc_s_fmt(struct poseid
- 	}
- 	ret |= send_set_req(pd, VIDEO_ROSOLU_SEL,
- 				vid_resol, &cmd_status);
--	if (ret || cmd_status) {
--		mutex_unlock(&pd->lock);
-+	if (ret || cmd_status)
- 		return -EBUSY;
--	}
+diff -puN mm/swapfile.c~sys_swapon-simplify-error-flow-in-alloc_swap_info mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-simplify-error-flow-in-alloc_swap_info
++++ a/mm/swapfile.c
+@@ -1848,7 +1848,6 @@ static struct swap_info_struct *alloc_sw
+ {
+ 	struct swap_info_struct *p;
+ 	unsigned int type;
+-	int error;
  
- 	pix_def->pixelformat = pix->pixelformat; /* save it */
- 	pix->height = (context->tvnormid & V4L2_STD_525_60) ?  480 : 576;
-_
-
-Patches currently in -mm which might be from strakh@ispras.ru are
-
-linux-next.patch
-
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p)
+@@ -1859,11 +1858,10 @@ static struct swap_info_struct *alloc_sw
+ 		if (!(swap_info[type]->flags & SWP_USED))
+ 			break;
+ 	}
+-	error = -EPERM;
+ 	if (type >= MAX_SWAPFILES) {
+ 		spin_unlock(&swap_lock);
+ 		kfree(p);
+-		goto out;
++		return ERR_PTR(-EPERM);
+ 	}
+ 	if (type >= nr_swapfiles) {
+ 		p->type = type;
+@@ -1889,9 +1887,6 @@ static struct swap_info_struct *alloc_sw
+ 	spin_unlock(&swap_lock);
+ 
+ 	return p;
