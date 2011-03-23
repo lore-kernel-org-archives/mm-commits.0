@@ -1,208 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-reclaim-invalidated-page-asap.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:36:32 -0700
-Message-ID: <201103232040.p2NKe81Q028503@imap1.linux-foundation.org>
+Subject: [merged] mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:36:48 -0700
+Message-ID: <201103232040.p2NKeOXp028531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933329Ab1CWUk5 (ORCPT
+	by vger.kernel.org with ESMTP id S933329Ab1CWUlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:40:57 -0400
+	Wed, 23 Mar 2011 16:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, aarcange@redhat.com, damentz@liquorix.net, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, riel@re
+To: mel@csn.ul.ie, aarcange@redhat.com, riel@redhat.com, shaohua.li@intel.com, tim.c.chen@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: reclaim invalidated page ASAP
+     mm: vmscan: kswapd should not free an excessive number of pages when balancing small zones
 has been removed from the -mm tree.  Its filename was
-     mm-reclaim-invalidated-page-asap.patch
+     mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reclaim invalidated page ASAP
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm: vmscan: kswapd should not free an excessive number of pages when balancing small zones
+From: Mel Gorman <mel@csn.ul.ie>
 
-invalidate_mapping_pages is very big hint to reclaimer.  It means user
-doesn't want to use the page any more.  So in order to prevent working set
-page eviction, this patch move the page into tail of inactive list by
-PG_reclaim.
+When reclaiming for order-0 pages, kswapd requires that all zones be
+balanced.  Each cycle through balance_pgdat() does background ageing on
+all zones if necessary and applies equal pressure on the inactive zone
+unless a lot of pages are free already.
 
-Please, remember that pages in inactive list are working set as well as
-active list.  If we don't move pages into inactive list's tail, pages near
-by tail of inactive list can be evicted although we have a big clue about
-useless pages.  It's totally bad.
+A "lot of free pages" is defined as a "balance gap" above the high
+watermark which is currently 7*high_watermark.  Historically this was
+reasonable as min_free_kbytes was small.  However, on systems using huge
+pages, it is recommended that min_free_kbytes is higher and it is tuned
+with hugeadm --set-recommended-min_free_kbytes.  With the introduction of
+transparent huge page support, this recommended value is also applied.  On
+X86-64 with 4G of memory, min_free_kbytes becomes 67584 so one would
+expect around 68M of memory to be free.  The Normal zone is approximately
+35000 pages so under even normal memory pressure such as copying a large
+file, it gets exhausted quickly.  As it is getting exhausted, kswapd
+applies pressure equally to all zones, including the DMA32 zone.  DMA32 is
+approximately 700,000 pages with a high watermark of around 23,000 pages. 
+In this situation, kswapd will reclaim around (23000*8 where 8 is the high
+watermark + balance gap of 7 * high watermark) pages or 718M of pages
+before the zone is ignored.  What the user sees is that free memory far
+higher than it should be.
 
-Now PG_readahead/PG_reclaim is shared.  fe3cba17 added ClearPageReclaim
-into clear_page_dirty_for_io for preventing fast reclaiming readahead
-marker page.
+To avoid an excessive number of pages being reclaimed from the larger
+zones, explicitely defines the "balance gap" to be either 1% of the zone
+or the low watermark for the zone, whichever is smaller.  While kswapd
+will check all zones to apply pressure, it'll ignore zones that meets the
+(high_wmark + balance_gap) watermark.
 
-In this series, PG_reclaim is used by invalidated page, too.  If VM find
-the page is invalidated and it's dirty, it sets PG_reclaim to reclaim
-asap.  Then, when the dirty page will be writeback,
-clear_page_dirty_for_io will clear PG_reclaim unconditionally.  It
-disturbs this serie's goal.
+To test this, 80G were copied from a partition and the amount of memory
+being used was recorded.  A comparison of a patch and unpatched kernel can
+be seen at
+http://www.csn.ul.ie/~mel/postings/minfree-20110222/memory-usage-hydra.ps
+and shows that kswapd is not reclaiming as much memory with the patch
+applied.
 
-I think it's okay to clear PG_readahead when the page is dirty, not
-writeback time.  So this patch moves ClearPageReadahead.  In v4,
-ClearPageReadahead in set_page_dirty has a problem which is reported by
-Steven Barrett.  It's due to compound page.  Some driver(ex, audio) calls
-set_page_dirty with compound page which isn't on LRU.  but my patch does
-ClearPageRelcaim on compound page.  In non-CONFIG_PAGEFLAGS_EXTENDED, it
-breaks PageTail flag.
-
-I think it doesn't affect THP and pass my test with THP enabling but Cced
-Andrea for double check.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reported-by: Steven Barrett <damentz@liquorix.net>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   12 +++++++++++-
- mm/swap.c           |   41 ++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 49 insertions(+), 4 deletions(-)
+ include/linux/swap.h |    9 +++++++++
+ mm/vmscan.c          |   16 +++++++++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-reclaim-invalidated-page-asap mm/page-writeback.c
---- a/mm/page-writeback.c~mm-reclaim-invalidated-page-asap
-+++ a/mm/page-writeback.c
-@@ -1211,6 +1211,17 @@ int set_page_dirty(struct page *page)
+diff -puN include/linux/swap.h~mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones include/linux/swap.h
+--- a/include/linux/swap.h~mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones
++++ a/include/linux/swap.h
+@@ -155,6 +155,15 @@ enum {
+ #define SWAP_CLUSTER_MAX 32
+ #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
  
- 	if (likely(mapping)) {
- 		int (*spd)(struct page *) = mapping->a_ops->set_page_dirty;
-+		/*
-+		 * readahead/lru_deactivate_page could remain
-+		 * PG_readahead/PG_reclaim due to race with end_page_writeback
-+		 * About readahead, if the page is written, the flags would be
-+		 * reset. So no problem.
-+		 * About lru_deactivate_page, if the page is redirty, the flag
-+		 * will be reset. So no problem. but if the page is used by readahead
-+		 * it will confuse readahead and make it restart the size rampup
-+		 * process. But it's a trivial problem.
-+		 */
-+		ClearPageReclaim(page);
- #ifdef CONFIG_BLOCK
- 		if (!spd)
- 			spd = __set_page_dirty_buffers;
-@@ -1266,7 +1277,6 @@ int clear_page_dirty_for_io(struct page 
- 
- 	BUG_ON(!PageLocked(page));
- 
--	ClearPageReclaim(page);
- 	if (mapping && mapping_cap_account_dirty(mapping)) {
- 		/*
- 		 * Yes, Virginia, this is indeed insane.
-diff -puN mm/swap.c~mm-reclaim-invalidated-page-asap mm/swap.c
---- a/mm/swap.c~mm-reclaim-invalidated-page-asap
-+++ a/mm/swap.c
-@@ -354,26 +354,61 @@ void add_page_to_unevictable_list(struct
-  * head of the list, rather than the tail, to give the flusher
-  * threads some time to write it out, as this is much more
-  * effective than the single-page writeout from reclaim.
-+ *
-+ * If the page isn't page_mapped and dirty/writeback, the page
-+ * could reclaim asap using PG_reclaim.
-+ *
-+ * 1. active, mapped page -> none
-+ * 2. active, dirty/writeback page -> inactive, head, PG_reclaim
-+ * 3. inactive, mapped page -> none
-+ * 4. inactive, dirty/writeback page -> inactive, head, PG_reclaim
-+ * 5. inactive, clean -> inactive, tail
-+ * 6. Others -> none
-+ *
-+ * In 4, why it moves inactive's head, the VM expects the page would
-+ * be write it out by flusher threads as this is much more effective
-+ * than the single-page writeout from reclaim.
-  */
- static void lru_deactivate(struct page *page, struct zone *zone)
- {
- 	int lru, file;
-+	bool active;
- 
--	if (!PageLRU(page) || !PageActive(page))
-+	if (!PageLRU(page))
- 		return;
- 
- 	/* Some processes are using the page */
- 	if (page_mapped(page))
- 		return;
- 
-+	active = PageActive(page);
++/*
++ * Ratio between the present memory in the zone and the "gap" that
++ * we're allowing kswapd to shrink in addition to the per-zone high
++ * wmark, even for zones that already have the high wmark satisfied,
++ * in order to provide better per-zone lru behavior. We are ok to
++ * spend not more than 1% of the memory for this zone balancing "gap".
++ */
++#define KSWAPD_ZONE_BALANCE_GAP_RATIO 100
 +
- 	file = page_is_file_cache(page);
- 	lru = page_lru_base_type(page);
--	del_page_from_lru_list(zone, page, lru + LRU_ACTIVE);
-+	del_page_from_lru_list(zone, page, lru + active);
- 	ClearPageActive(page);
- 	ClearPageReferenced(page);
- 	add_page_to_lru_list(zone, page, lru);
--	__count_vm_event(PGDEACTIVATE);
+ #define SWAP_MAP_MAX	0x3e	/* Max duplication count, in first swap_map */
+ #define SWAP_MAP_BAD	0x3f	/* Note pageblock is bad, in first swap_map */
+ #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
+diff -puN mm/vmscan.c~mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-kswapd-should-not-free-an-excessive-number-of-pages-when-balancing-small-zones
++++ a/mm/vmscan.c
+@@ -2399,6 +2399,7 @@ loop_again:
+ 		for (i = 0; i <= end_zone; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
+ 			int nr_slab;
++			unsigned long balance_gap;
  
-+	if (PageWriteback(page) || PageDirty(page)) {
-+		/*
-+		 * PG_reclaim could be raced with end_page_writeback
-+		 * It can make readahead confusing.  But race window
-+		 * is _really_ small and  it's non-critical problem.
-+		 */
-+		SetPageReclaim(page);
-+	} else {
-+		/*
-+		 * The page's writeback ends up during pagevec
-+		 * We moves tha page into tail of inactive.
-+		 */
-+		list_move_tail(&page->lru, &zone->lru[lru].list);
-+		mem_cgroup_rotate_reclaimable_page(page);
-+		__count_vm_event(PGROTATED);
-+	}
-+
-+	if (active)
-+		__count_vm_event(PGDEACTIVATE);
- 	update_page_reclaim_stat(zone, page, file, 0);
- }
+ 			if (!populated_zone(zone))
+ 				continue;
+@@ -2415,11 +2416,20 @@ loop_again:
+ 			mem_cgroup_soft_limit_reclaim(zone, order, sc.gfp_mask);
  
+ 			/*
+-			 * We put equal pressure on every zone, unless one
+-			 * zone has way too many pages free already.
++			 * We put equal pressure on every zone, unless
++			 * one zone has way too many pages free
++			 * already. The "too many pages" is defined
++			 * as the high wmark plus a "gap" where the
++			 * gap is either the low watermark or 1%
++			 * of the zone, whichever is smaller.
+ 			 */
++			balance_gap = min(low_wmark_pages(zone),
++				(zone->present_pages +
++					KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
++				KSWAPD_ZONE_BALANCE_GAP_RATIO);
+ 			if (!zone_watermark_ok_safe(zone, order,
+-					8*high_wmark_pages(zone), end_zone, 0))
++					high_wmark_pages(zone) + balance_gap,
++					end_zone, 0))
+ 				shrink_zone(priority, zone, &sc);
+ 			reclaim_state->reclaimed_slab = 0;
+ 			nr_slab = shrink_slab(sc.nr_scanned, GFP_KERNEL,
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
 mm-batch-activate_page-to-reduce-lock-contention.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-change-page_cgroup_zoneinfo-signature-fix.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
-memcg-remove-memcg-reclaim_param_lock.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
