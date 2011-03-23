@@ -1,574 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-add-driver-for-lm3530-als.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:32:55 -0700
-Message-ID: <201103232036.p2NKaVnc028129@imap1.linux-foundation.org>
+Subject: [merged] mm-deactivate-invalidated-pages.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:36:27 -0700
+Message-ID: <201103232040.p2NKe3P1028495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933329Ab1CWUlK (ORCPT
+	by vger.kernel.org with ESMTP id S933329Ab1CWUlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:41:10 -0400
+	Wed, 23 Mar 2011 16:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shreshthakumar.sahu@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, aarcange@redhat.com, bgamari.foss@gmail.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@kernel.dk, peter
 
 
 The patch titled
-     leds: add driver for LM3530 ALS
+     mm: deactivate invalidated pages
 has been removed from the -mm tree.  Its filename was
-     leds-add-driver-for-lm3530-als.patch
+     mm-deactivate-invalidated-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add driver for LM3530 ALS
-From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Subject: mm: deactivate invalidated pages
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Simple backlight driver for National Semiconductor LM3530.  Presently only
-manual mode is supported, PWM and ALS support to be added.
+Recently, there are reported problem about thrashing. 
+(http://marc.info/?l=rsync&m=128885034930933&w=2) It happens by backup
+workloads(ex, nightly rsync).  That's because the workload makes just
+use-once pages and touches pages twice.  It promotes the page into active
+list so that it results in working set page eviction.
 
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Some app developer want to support POSIX_FADV_NOREUSE.  But other OSes
+don't support it, either. 
+(http://marc.info/?l=linux-mm&m=128928979512086&w=2)
+
+By other approach, app developers use POSIX_FADV_DONTNEED.  But it has a
+problem.  If kernel meets page is writing during invalidate_mapping_pages,
+it can't work.  It makes for application programmer to use it since they
+always have to sync data before calling fadivse(..POSIX_FADV_DONTNEED) to
+make sure the pages could be discardable.  At last, they can't use
+deferred write of kernel so that they could see performance loss. 
+(http://insights.oetiker.ch/linux/fadvise.html)
+
+In fact, invalidation is very big hint to reclaimer.  It means we don't
+use the page any more.  So let's move the writing page into inactive
+list's head if we can't truncate it right now.
+
+Why I move page to head of lru on this patch, Dirty/Writeback page would
+be flushed sooner or later.  It can prevent writeout of pageout which is
+less effective than flusher's writeout.
+
+Originally, I reused lru_demote of Peter with some change so added his
+Signed-off-by.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reported-by: Ben Gamari <bgamari.foss@gmail.com>
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig       |   10 
- drivers/leds/Makefile      |    1 
- drivers/leds/leds-lm3530.c |  378 +++++++++++++++++++++++++++++++++++
- include/linux/led-lm3530.h |  107 +++++++++
- 4 files changed, 496 insertions(+)
+ include/linux/swap.h |    1 
+ mm/swap.c            |   78 +++++++++++++++++++++++++++++++++++++++++
+ mm/truncate.c        |   17 ++++++--
+ 3 files changed, 91 insertions(+), 5 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-add-driver-for-lm3530-als drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-add-driver-for-lm3530-als
-+++ a/drivers/leds/Kconfig
-@@ -34,6 +34,16 @@ config LEDS_ATMEL_PWM
- 	  This option enables support for LEDs driven using outputs
- 	  of the dedicated PWM controller found on newer Atmel SOCs.
+diff -puN include/linux/swap.h~mm-deactivate-invalidated-pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-deactivate-invalidated-pages
++++ a/include/linux/swap.h
+@@ -215,6 +215,7 @@ extern void mark_page_accessed(struct pa
+ extern void lru_add_drain(void);
+ extern int lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
++extern void deactivate_page(struct page *page);
+ extern void swap_setup(void);
  
-+config LEDS_LM3530
-+	tristate "LCD Backlight driver for LM3530"
-+	depends on LEDS_CLASS
-+	depends on I2C
-+	help
-+	  This option enables support for the LCD backlight using
-+	  LM3530 ambient light sensor chip. This ALS chip can be
-+	  controlled manually or using PWM input or using ambient
-+	  light automatically.
-+
- config LEDS_LOCOMO
- 	tristate "LED Support for Locomo device"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~leds-add-driver-for-lm3530-als drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-add-driver-for-lm3530-als
-+++ a/drivers/leds/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_LEDS_88PM860X)		+= leds-88p
- obj-$(CONFIG_LEDS_ATMEL_PWM)		+= leds-atmel-pwm.o
- obj-$(CONFIG_LEDS_BD2802)		+= leds-bd2802.o
- obj-$(CONFIG_LEDS_LOCOMO)		+= leds-locomo.o
-+obj-$(CONFIG_LEDS_LM3530)		+= leds-lm3530.o
- obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= leds-rb532.o
- obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
- obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
-diff -puN /dev/null drivers/leds/leds-lm3530.c
---- /dev/null
-+++ a/drivers/leds/leds-lm3530.c
-@@ -0,0 +1,378 @@
-+/*
-+ * Copyright (C) 2011 ST-Ericsson SA.
-+ * Copyright (C) 2009 Motorola, Inc.
-+ *
-+ * License Terms: GNU General Public License v2
-+ *
-+ * Simple driver for National Semiconductor LM3530 Backlight driver chip
-+ *
-+ * Author: Shreshtha Kumar SAHU <shreshthakumar.sahu@stericsson.com>
-+ * based on leds-lm3530.c by Dan Murphy <D.Murphy@motorola.com>
+ extern void add_page_to_unevictable_list(struct page *page);
+diff -puN mm/swap.c~mm-deactivate-invalidated-pages mm/swap.c
+--- a/mm/swap.c~mm-deactivate-invalidated-pages
++++ a/mm/swap.c
+@@ -39,6 +39,7 @@ int page_cluster;
+ 
+ static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
++static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
+ 
+ /*
+  * This path almost never happens for VM activity - pages are normally
+@@ -347,6 +348,60 @@ void add_page_to_unevictable_list(struct
+ }
+ 
+ /*
++ * If the page can not be invalidated, it is moved to the
++ * inactive list to speed up its reclaim.  It is moved to the
++ * head of the list, rather than the tail, to give the flusher
++ * threads some time to write it out, as this is much more
++ * effective than the single-page writeout from reclaim.
 + */
++static void lru_deactivate(struct page *page, struct zone *zone)
++{
++	int lru, file;
 +
-+#include <linux/i2c.h>
-+#include <linux/leds.h>
-+#include <linux/slab.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/led-lm3530.h>
-+#include <linux/types.h>
++	if (!PageLRU(page) || !PageActive(page))
++		return;
 +
-+#define LM3530_LED_DEV "lcd-backlight"
-+#define LM3530_NAME "lm3530-led"
++	/* Some processes are using the page */
++	if (page_mapped(page))
++		return;
 +
-+#define LM3530_GEN_CONFIG		0x10
-+#define LM3530_ALS_CONFIG		0x20
-+#define LM3530_BRT_RAMP_RATE		0x30
-+#define LM3530_ALS_ZONE_REG		0x40
-+#define LM3530_ALS_IMP_SELECT		0x41
-+#define LM3530_BRT_CTRL_REG		0xA0
-+#define LM3530_ALS_ZB0_REG		0x60
-+#define LM3530_ALS_ZB1_REG		0x61
-+#define LM3530_ALS_ZB2_REG		0x62
-+#define LM3530_ALS_ZB3_REG		0x63
-+#define LM3530_ALS_Z0T_REG		0x70
-+#define LM3530_ALS_Z1T_REG		0x71
-+#define LM3530_ALS_Z2T_REG		0x72
-+#define LM3530_ALS_Z3T_REG		0x73
-+#define LM3530_ALS_Z4T_REG		0x74
-+#define LM3530_REG_MAX			15
++	file = page_is_file_cache(page);
++	lru = page_lru_base_type(page);
++	del_page_from_lru_list(zone, page, lru + LRU_ACTIVE);
++	ClearPageActive(page);
++	ClearPageReferenced(page);
++	add_page_to_lru_list(zone, page, lru);
++	__count_vm_event(PGDEACTIVATE);
 +
-+/* General Control Register */
-+#define LM3530_EN_I2C_SHIFT		(0)
-+#define LM3530_RAMP_LAW_SHIFT		(1)
-+#define LM3530_MAX_CURR_SHIFT		(2)
-+#define LM3530_EN_PWM_SHIFT		(5)
-+#define LM3530_PWM_POL_SHIFT		(6)
-+#define LM3530_EN_PWM_SIMPLE_SHIFT	(7)
++	update_page_reclaim_stat(zone, page, file, 0);
++}
 +
-+#define LM3530_ENABLE_I2C		(1 << LM3530_EN_I2C_SHIFT)
-+#define LM3530_ENABLE_PWM		(1 << LM3530_EN_PWM_SHIFT)
-+#define LM3530_POL_LOW			(1 << LM3530_PWM_POL_SHIFT)
-+#define LM3530_ENABLE_PWM_SIMPLE	(1 << LM3530_EN_PWM_SIMPLE_SHIFT)
-+
-+/* ALS Config Register Options */
-+#define LM3530_ALS_AVG_TIME_SHIFT	(0)
-+#define LM3530_EN_ALS_SHIFT		(3)
-+#define LM3530_ALS_SEL_SHIFT		(5)
-+
-+#define LM3530_ENABLE_ALS		(3 << LM3530_EN_ALS_SHIFT)
-+
-+/* Brightness Ramp Rate Register */
-+#define LM3530_BRT_RAMP_FALL_SHIFT	(0)
-+#define LM3530_BRT_RAMP_RISE_SHIFT	(3)
-+
-+/* ALS Resistor Select */
-+#define LM3530_ALS1_IMP_SHIFT		(0)
-+#define LM3530_ALS2_IMP_SHIFT		(4)
-+
-+/* Zone Boundary Register defaults */
-+#define LM3530_DEF_ZB_0			(0x33)
-+#define LM3530_DEF_ZB_1			(0x66)
-+#define LM3530_DEF_ZB_2			(0x99)
-+#define LM3530_DEF_ZB_3			(0xCC)
-+
-+/* Zone Target Register defaults */
-+#define LM3530_DEF_ZT_0			(0x19)
-+#define LM3530_DEF_ZT_1			(0x33)
-+#define LM3530_DEF_ZT_2			(0x4C)
-+#define LM3530_DEF_ZT_3			(0x66)
-+#define LM3530_DEF_ZT_4			(0x7F)
-+
-+struct lm3530_mode_map {
-+	const char *mode;
-+	enum lm3530_mode mode_val;
-+};
-+
-+static struct lm3530_mode_map mode_map[] = {
-+	{ "man", LM3530_BL_MODE_MANUAL },
-+	{ "als", LM3530_BL_MODE_ALS },
-+	{ "pwm", LM3530_BL_MODE_PWM },
-+};
-+
-+/**
-+ * struct lm3530_data
-+ * @led_dev: led class device
-+ * @client: i2c client
-+ * @pdata: LM3530 platform data
-+ * @mode: mode of operation - manual, ALS, PWM
-+ */
-+struct lm3530_data {
-+	struct led_classdev led_dev;
-+	struct i2c_client *client;
-+	struct lm3530_platform_data *pdata;
-+	enum lm3530_mode mode;
-+};
-+
-+static const u8 lm3530_reg[LM3530_REG_MAX] = {
-+	LM3530_GEN_CONFIG,
-+	LM3530_ALS_CONFIG,
-+	LM3530_BRT_RAMP_RATE,
-+	LM3530_ALS_ZONE_REG,
-+	LM3530_ALS_IMP_SELECT,
-+	LM3530_BRT_CTRL_REG,
-+	LM3530_ALS_ZB0_REG,
-+	LM3530_ALS_ZB1_REG,
-+	LM3530_ALS_ZB2_REG,
-+	LM3530_ALS_ZB3_REG,
-+	LM3530_ALS_Z0T_REG,
-+	LM3530_ALS_Z1T_REG,
-+	LM3530_ALS_Z2T_REG,
-+	LM3530_ALS_Z3T_REG,
-+	LM3530_ALS_Z4T_REG,
-+};
-+
-+static int lm3530_get_mode_from_str(const char *str)
++static void ____pagevec_lru_deactivate(struct pagevec *pvec)
 +{
 +	int i;
++	struct zone *zone = NULL;
 +
-+	for (i = 0; i < ARRAY_SIZE(mode_map); i++)
-+		if (sysfs_streq(str, mode_map[i].mode))
-+			return mode_map[i].mode_val;
++	for (i = 0; i < pagevec_count(pvec); i++) {
++		struct page *page = pvec->pages[i];
++		struct zone *pagezone = page_zone(page);
 +
-+	return -1;
-+}
-+
-+static int lm3530_init_registers(struct lm3530_data *drvdata)
-+{
-+	int ret = 0;
-+	int i;
-+	u8 gen_config;
-+	u8 als_config = 0;
-+	u8 brt_ramp;
-+	u8 als_imp_sel = 0;
-+	u8 brightness;
-+	u8 reg_val[LM3530_REG_MAX];
-+	struct lm3530_platform_data *pltfm = drvdata->pdata;
-+	struct i2c_client *client = drvdata->client;
-+
-+	gen_config = (pltfm->brt_ramp_law << LM3530_RAMP_LAW_SHIFT) |
-+			((pltfm->max_current & 7) << LM3530_MAX_CURR_SHIFT);
-+
-+	if (drvdata->mode == LM3530_BL_MODE_MANUAL ||
-+	    drvdata->mode == LM3530_BL_MODE_ALS)
-+		gen_config |= (LM3530_ENABLE_I2C);
-+
-+	if (drvdata->mode == LM3530_BL_MODE_ALS) {
-+		als_config =
-+			(pltfm->als_avrg_time << LM3530_ALS_AVG_TIME_SHIFT) |
-+			(LM3530_ENABLE_ALS) |
-+			(pltfm->als_input_mode << LM3530_ALS_SEL_SHIFT);
-+
-+		als_imp_sel =
-+			(pltfm->als1_resistor_sel << LM3530_ALS1_IMP_SHIFT) |
-+			(pltfm->als2_resistor_sel << LM3530_ALS2_IMP_SHIFT);
++		if (pagezone != zone) {
++			if (zone)
++				spin_unlock_irq(&zone->lru_lock);
++			zone = pagezone;
++			spin_lock_irq(&zone->lru_lock);
++		}
++		lru_deactivate(page, zone);
 +	}
++	if (zone)
++		spin_unlock_irq(&zone->lru_lock);
 +
-+	if (drvdata->mode == LM3530_BL_MODE_PWM)
-+		gen_config |= (LM3530_ENABLE_PWM) |
-+				(pltfm->pwm_pol_hi << LM3530_PWM_POL_SHIFT) |
-+				(LM3530_ENABLE_PWM_SIMPLE);
-+
-+	brt_ramp = (pltfm->brt_ramp_fall << LM3530_BRT_RAMP_FALL_SHIFT) |
-+			(pltfm->brt_ramp_rise << LM3530_BRT_RAMP_RISE_SHIFT);
-+
-+	brightness = pltfm->brt_val;
-+
-+	reg_val[0] = gen_config;	/* LM3530_GEN_CONFIG */
-+	reg_val[1] = als_config;	/* LM3530_ALS_CONFIG */
-+	reg_val[2] = brt_ramp;		/* LM3530_BRT_RAMP_RATE */
-+	reg_val[3] = 0x00;		/* LM3530_ALS_ZONE_REG */
-+	reg_val[4] = als_imp_sel;	/* LM3530_ALS_IMP_SELECT */
-+	reg_val[5] = brightness;	/* LM3530_BRT_CTRL_REG */
-+	reg_val[6] = LM3530_DEF_ZB_0;	/* LM3530_ALS_ZB0_REG */
-+	reg_val[7] = LM3530_DEF_ZB_1;	/* LM3530_ALS_ZB1_REG */
-+	reg_val[8] = LM3530_DEF_ZB_2;	/* LM3530_ALS_ZB2_REG */
-+	reg_val[9] = LM3530_DEF_ZB_3;	/* LM3530_ALS_ZB3_REG */
-+	reg_val[10] = LM3530_DEF_ZT_0;	/* LM3530_ALS_Z0T_REG */
-+	reg_val[11] = LM3530_DEF_ZT_1;	/* LM3530_ALS_Z1T_REG */
-+	reg_val[12] = LM3530_DEF_ZT_2;	/* LM3530_ALS_Z2T_REG */
-+	reg_val[13] = LM3530_DEF_ZT_3;	/* LM3530_ALS_Z3T_REG */
-+	reg_val[14] = LM3530_DEF_ZT_4;	/* LM3530_ALS_Z4T_REG */
-+
-+	for (i = 0; i < LM3530_REG_MAX; i++) {
-+		ret = i2c_smbus_write_byte_data(client,
-+				lm3530_reg[i], reg_val[i]);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+static void lm3530_brightness_set(struct led_classdev *led_cdev,
-+				     enum led_brightness brt_val)
-+{
-+	int err;
-+	struct lm3530_data *drvdata =
-+	    container_of(led_cdev, struct lm3530_data, led_dev);
-+
-+	switch (drvdata->mode) {
-+	case LM3530_BL_MODE_MANUAL:
-+
-+		/* set the brightness in brightness control register*/
-+		err = i2c_smbus_write_byte_data(drvdata->client,
-+				LM3530_BRT_CTRL_REG, brt_val / 2);
-+		if (err)
-+			dev_err(&drvdata->client->dev,
-+				"Unable to set brightness: %d\n", err);
-+		break;
-+	case LM3530_BL_MODE_ALS:
-+		break;
-+	case LM3530_BL_MODE_PWM:
-+		break;
-+	default:
-+		break;
-+	}
++	release_pages(pvec->pages, pvec->nr, pvec->cold);
++	pagevec_reinit(pvec);
 +}
 +
 +
-+static ssize_t lm3530_mode_set(struct device *dev, struct device_attribute
-+				   *attr, const char *buf, size_t size)
-+{
-+	int err;
-+	struct i2c_client *client = container_of(
-+					dev->parent, struct i2c_client, dev);
-+	struct lm3530_data *drvdata = i2c_get_clientdata(client);
-+	int mode;
-+
-+	mode = lm3530_get_mode_from_str(buf);
-+	if (mode < 0) {
-+		dev_err(dev, "Invalid mode\n");
-+		return -EINVAL;
-+	}
-+
-+	if (mode == LM3530_BL_MODE_MANUAL)
-+		drvdata->mode = LM3530_BL_MODE_MANUAL;
-+	else if (mode == LM3530_BL_MODE_ALS)
-+		drvdata->mode = LM3530_BL_MODE_ALS;
-+	else if (mode == LM3530_BL_MODE_PWM) {
-+		dev_err(dev, "PWM mode not supported\n");
-+		return -EINVAL;
-+	}
-+
-+	err = lm3530_init_registers(drvdata);
-+	if (err) {
-+		dev_err(dev, "Setting %s Mode failed :%d\n", buf, err);
-+		return err;
-+	}
-+
-+	return sizeof(drvdata->mode);
-+}
-+
-+static DEVICE_ATTR(mode, 0644, NULL, lm3530_mode_set);
-+
-+static int __devinit lm3530_probe(struct i2c_client *client,
-+			   const struct i2c_device_id *id)
-+{
-+	struct lm3530_platform_data *pdata = client->dev.platform_data;
-+	struct lm3530_data *drvdata;
-+	int err = 0;
-+
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "platform data required\n");
-+		err = -ENODEV;
-+		goto err_out;
-+	}
-+
-+	/* BL mode */
-+	if (pdata->mode > LM3530_BL_MODE_PWM) {
-+		dev_err(&client->dev, "Illegal Mode request\n");
-+		err = -EINVAL;
-+		goto err_out;
-+	}
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-+		dev_err(&client->dev, "I2C_FUNC_I2C not supported\n");
-+		err = -EIO;
-+		goto err_out;
-+	}
-+
-+	drvdata = kzalloc(sizeof(struct lm3530_data), GFP_KERNEL);
-+	if (drvdata == NULL) {
-+		err = -ENOMEM;
-+		goto err_out;
-+	}
-+
-+	drvdata->mode = pdata->mode;
-+	drvdata->client = client;
-+	drvdata->pdata = pdata;
-+	drvdata->led_dev.name = LM3530_LED_DEV;
-+	drvdata->led_dev.brightness_set = lm3530_brightness_set;
-+
-+	i2c_set_clientdata(client, drvdata);
-+
-+	err = lm3530_init_registers(drvdata);
-+	if (err < 0) {
-+		dev_err(&client->dev, "Register Init failed: %d\n", err);
-+		err = -ENODEV;
-+		goto err_reg_init;
-+	}
-+
-+	err = led_classdev_register((struct device *)
-+				      &client->dev, &drvdata->led_dev);
-+	if (err < 0) {
-+		dev_err(&client->dev, "Register led class failed: %d\n", err);
-+		err = -ENODEV;
-+		goto err_class_register;
-+	}
-+
-+	err = device_create_file(drvdata->led_dev.dev, &dev_attr_mode);
-+	if (err < 0) {
-+		dev_err(&client->dev, "File device creation failed: %d\n", err);
-+		err = -ENODEV;
-+		goto err_create_file;
-+	}
-+
-+	return 0;
-+
-+err_create_file:
-+	led_classdev_unregister(&drvdata->led_dev);
-+err_class_register:
-+err_reg_init:
-+	kfree(drvdata);
-+err_out:
-+	return err;
-+}
-+
-+static int __devexit lm3530_remove(struct i2c_client *client)
-+{
-+	struct lm3530_data *drvdata = i2c_get_clientdata(client);
-+
-+	device_remove_file(drvdata->led_dev.dev, &dev_attr_mode);
-+	led_classdev_unregister(&drvdata->led_dev);
-+	kfree(drvdata);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id lm3530_id[] = {
-+	{LM3530_NAME, 0},
-+	{}
-+};
-+
-+static struct i2c_driver lm3530_i2c_driver = {
-+	.probe = lm3530_probe,
-+	.remove = lm3530_remove,
-+	.id_table = lm3530_id,
-+	.driver = {
-+		.name = LM3530_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init lm3530_init(void)
-+{
-+	return i2c_add_driver(&lm3530_i2c_driver);
-+}
-+
-+static void __exit lm3530_exit(void)
-+{
-+	i2c_del_driver(&lm3530_i2c_driver);
-+}
-+
-+module_init(lm3530_init);
-+module_exit(lm3530_exit);
-+
-+MODULE_DESCRIPTION("Back Light driver for LM3530");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Shreshtha Kumar SAHU <shreshthakumar.sahu@stericsson.com>");
-diff -puN /dev/null include/linux/led-lm3530.h
---- /dev/null
-+++ a/include/linux/led-lm3530.h
-@@ -0,0 +1,107 @@
 +/*
-+ * Copyright (C) 2011 ST-Ericsson SA.
-+ * Copyright (C) 2009 Motorola, Inc.
-+ *
-+ * License Terms: GNU General Public License v2
-+ *
-+ * Simple driver for National Semiconductor LM35330 Backlight driver chip
-+ *
-+ * Author: Shreshtha Kumar SAHU <shreshthakumar.sahu@stericsson.com>
-+ * based on leds-lm3530.c by Dan Murphy <D.Murphy@motorola.com>
-+ */
+  * Drain pages out of the cpu's pagevecs.
+  * Either "cpu" is the current CPU, and preemption has already been
+  * disabled; or "cpu" is being hot-unplugged, and is already dead.
+@@ -372,6 +427,29 @@ static void drain_cpu_pagevecs(int cpu)
+ 		pagevec_move_tail(pvec);
+ 		local_irq_restore(flags);
+ 	}
 +
-+#ifndef _LINUX_LED_LM3530_H__
-+#define _LINUX_LED_LM3530_H__
-+
-+#define LM3530_FS_CURR_5mA		(0) /* Full Scale Current */
-+#define LM3530_FS_CURR_8mA		(1)
-+#define LM3530_FS_CURR_12mA		(2)
-+#define LM3530_FS_CURR_15mA		(3)
-+#define LM3530_FS_CURR_19mA		(4)
-+#define LM3530_FS_CURR_22mA		(5)
-+#define LM3530_FS_CURR_26mA		(6)
-+#define LM3530_FS_CURR_29mA		(7)
-+
-+#define LM3530_ALS_AVRG_TIME_32ms	(0) /* ALS Averaging Time */
-+#define LM3530_ALS_AVRG_TIME_64ms	(1)
-+#define LM3530_ALS_AVRG_TIME_128ms	(2)
-+#define LM3530_ALS_AVRG_TIME_256ms	(3)
-+#define LM3530_ALS_AVRG_TIME_512ms	(4)
-+#define LM3530_ALS_AVRG_TIME_1024ms	(5)
-+#define LM3530_ALS_AVRG_TIME_2048ms	(6)
-+#define LM3530_ALS_AVRG_TIME_4096ms	(7)
-+
-+#define LM3530_RAMP_TIME_1ms		(0) /* Brigtness Ramp Time */
-+#define LM3530_RAMP_TIME_130ms		(1) /* Max to 0 and vice versa */
-+#define LM3530_RAMP_TIME_260ms		(2)
-+#define LM3530_RAMP_TIME_520ms		(3)
-+#define LM3530_RAMP_TIME_1s		(4)
-+#define LM3530_RAMP_TIME_2s		(5)
-+#define LM3530_RAMP_TIME_4s		(6)
-+#define LM3530_RAMP_TIME_8s		(7)
-+
-+/* ALS Resistor Select */
-+#define LM3530_ALS_IMPD_Z		(0x00) /* ALS Impedence */
-+#define LM3530_ALS_IMPD_13_53kOhm	(0x01)
-+#define LM3530_ALS_IMPD_9_01kOhm	(0x02)
-+#define LM3530_ALS_IMPD_5_41kOhm	(0x03)
-+#define LM3530_ALS_IMPD_2_27kOhm	(0x04)
-+#define LM3530_ALS_IMPD_1_94kOhm	(0x05)
-+#define LM3530_ALS_IMPD_1_81kOhm	(0x06)
-+#define LM3530_ALS_IMPD_1_6kOhm		(0x07)
-+#define LM3530_ALS_IMPD_1_138kOhm	(0x08)
-+#define LM3530_ALS_IMPD_1_05kOhm	(0x09)
-+#define LM3530_ALS_IMPD_1_011kOhm	(0x0A)
-+#define LM3530_ALS_IMPD_941Ohm		(0x0B)
-+#define LM3530_ALS_IMPD_759Ohm		(0x0C)
-+#define LM3530_ALS_IMPD_719Ohm		(0x0D)
-+#define LM3530_ALS_IMPD_700Ohm		(0x0E)
-+#define LM3530_ALS_IMPD_667Ohm		(0x0F)
-+
-+enum lm3530_mode {
-+	LM3530_BL_MODE_MANUAL = 0,	/* "man" */
-+	LM3530_BL_MODE_ALS,		/* "als" */
-+	LM3530_BL_MODE_PWM,		/* "pwm" */
-+};
-+
-+/* ALS input select */
-+enum lm3530_als_mode {
-+	LM3530_INPUT_AVRG = 0,	/* ALS1 and ALS2 input average */
-+	LM3530_INPUT_ALS1,	/* ALS1 Input */
-+	LM3530_INPUT_ALS2,	/* ALS2 Input */
-+	LM3530_INPUT_CEIL,	/* Max of ALS1 and ALS2 */
-+};
++	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
++	if (pagevec_count(pvec))
++		____pagevec_lru_deactivate(pvec);
++}
 +
 +/**
-+ * struct lm3530_platform_data
-+ * @mode: mode of operation i.e. Manual, ALS or PWM
-+ * @als_input_mode: select source of ALS input - ALS1/2 or average
-+ * @max_current: full scale LED current
-+ * @pwm_pol_hi: PWM input polarity - active high/active low
-+ * @als_avrg_time: ALS input averaging time
-+ * @brt_ramp_law: brightness mapping mode - exponential/linear
-+ * @brt_ramp_fall: rate of fall of led current
-+ * @brt_ramp_rise: rate of rise of led current
-+ * @als1_resistor_sel: internal resistance from ALS1 input to ground
-+ * @als2_resistor_sel: internal resistance from ALS2 input to ground
-+ * @brt_val: brightness value (0-255)
++ * deactivate_page - forcefully deactivate a page
++ * @page: page to deactivate
++ *
++ * This function hints the VM that @page is a good reclaim candidate,
++ * for example if its invalidation fails due to the page being dirty
++ * or under writeback.
 + */
-+struct lm3530_platform_data {
-+	enum lm3530_mode mode;
-+	enum lm3530_als_mode als_input_mode;
++void deactivate_page(struct page *page)
++{
++	if (likely(get_page_unless_zero(page))) {
++		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
 +
-+	u8 max_current;
-+	bool pwm_pol_hi;
-+	u8 als_avrg_time;
-+
-+	bool brt_ramp_law;
-+	u8 brt_ramp_fall;
-+	u8 brt_ramp_rise;
-+
-+	u8 als1_resistor_sel;
-+	u8 als2_resistor_sel;
-+
-+	u8 brt_val;
-+};
-+
-+#endif	/* _LINUX_LED_LM3530_H__ */
++		if (!pagevec_add(pvec, page))
++			____pagevec_lru_deactivate(pvec);
++		put_cpu_var(lru_deactivate_pvecs);
++	}
+ }
+ 
+ void lru_add_drain(void)
+diff -puN mm/truncate.c~mm-deactivate-invalidated-pages mm/truncate.c
+--- a/mm/truncate.c~mm-deactivate-invalidated-pages
++++ a/mm/truncate.c
+@@ -321,11 +321,12 @@ EXPORT_SYMBOL(truncate_inode_pages);
+  * pagetables.
+  */
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+-				       pgoff_t start, pgoff_t end)
++		pgoff_t start, pgoff_t end)
+ {
+ 	struct pagevec pvec;
+ 	pgoff_t next = start;
+-	unsigned long ret = 0;
++	unsigned long ret;
++	unsigned long count = 0;
+ 	int i;
+ 
+ 	pagevec_init(&pvec, 0);
+@@ -352,9 +353,15 @@ unsigned long invalidate_mapping_pages(s
+ 			if (lock_failed)
+ 				continue;
+ 
+-			ret += invalidate_inode_page(page);
+-
++			ret = invalidate_inode_page(page);
+ 			unlock_page(page);
++			/*
++			 * Invalidation is a hint that the page is no longer
++			 * of interest and try to speed up its reclaim.
++			 */
++			if (!ret)
++				deactivate_page(page);
++			count += ret;
+ 			if (next > end)
+ 				break;
+ 		}
+@@ -362,7 +369,7 @@ unsigned long invalidate_mapping_pages(s
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+-	return ret;
++	return count;
+ }
+ EXPORT_SYMBOL(invalidate_mapping_pages);
+ 
 _
 
-Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
+linux-next.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-change-page_cgroup_zoneinfo-signature-fix.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
 
