@@ -1,122 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] move-x86-specific-oops=panic-to-generic-code.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:38:52 -0700
-Message-ID: <201103232042.p2NKgShK028764@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-ep93xx_pwmc-world-writable-sysfs-files.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:38:47 -0700
+Message-ID: <201103232042.p2NKgNnC028755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933407Ab1CWUnO (ORCPT
+	by vger.kernel.org with ESMTP id S933407Ab1CWUnU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:14 -0400
+	Wed, 23 Mar 2011 16:43:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: segoon@openwall.com, hartleys@visionengravers.com, mcrapet@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move x86 specific oops=panic to generic code
+     drivers/misc/ep93xx_pwm.c: world-writable sysfs files
 has been removed from the -mm tree.  Its filename was
-     move-x86-specific-oops=panic-to-generic-code.patch
+     drivers-misc-ep93xx_pwmc-world-writable-sysfs-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move x86 specific oops=panic to generic code
-From: Olaf Hering <olaf@aepfle.de>
+Subject: drivers/misc/ep93xx_pwm.c: world-writable sysfs files
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-The oops=panic cmdline option is not x86 specific, move it to generic code.
-Update documentation.
+Don't allow everybody to change device settings.
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Acked-by: Hartley Sweeten <hartleys@visionengravers.com>
+Cc: Matthieu Crapet <mcrapet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt       |    5 +++++
- Documentation/x86/x86_64/boot-options.txt |    5 -----
- arch/x86/kernel/dumpstack.c               |   10 ----------
- kernel/panic.c                            |   10 ++++++++++
- 4 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/misc/ep93xx_pwm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~move-x86-specific-oops=panic-to-generic-code Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~move-x86-specific-oops=panic-to-generic-code
-+++ a/Documentation/kernel-parameters.txt
-@@ -1825,6 +1825,11 @@ bytes respectively. Such letter suffixes
- 				perfmon on Intel CPUs instead of the
- 				CPU specific event set.
+diff -puN drivers/misc/ep93xx_pwm.c~drivers-misc-ep93xx_pwmc-world-writable-sysfs-files drivers/misc/ep93xx_pwm.c
+--- a/drivers/misc/ep93xx_pwm.c~drivers-misc-ep93xx_pwmc-world-writable-sysfs-files
++++ a/drivers/misc/ep93xx_pwm.c
+@@ -249,11 +249,11 @@ static ssize_t ep93xx_pwm_set_invert(str
  
-+	oops=panic	Always panic on oopses. Default is to just kill the process,
-+			but there is a small probability of deadlocking the machine.
-+			This will also cause panics on machine check exceptions.
-+			Useful together with panic=30 to trigger a reboot.
-+
- 	OSS		[HW,OSS]
- 			See Documentation/sound/oss/oss-parameters.txt
+ static DEVICE_ATTR(min_freq, S_IRUGO, ep93xx_pwm_get_min_freq, NULL);
+ static DEVICE_ATTR(max_freq, S_IRUGO, ep93xx_pwm_get_max_freq, NULL);
+-static DEVICE_ATTR(freq, S_IWUGO | S_IRUGO,
++static DEVICE_ATTR(freq, S_IWUSR | S_IRUGO,
+ 		   ep93xx_pwm_get_freq, ep93xx_pwm_set_freq);
+-static DEVICE_ATTR(duty_percent, S_IWUGO | S_IRUGO,
++static DEVICE_ATTR(duty_percent, S_IWUSR | S_IRUGO,
+ 		   ep93xx_pwm_get_duty_percent, ep93xx_pwm_set_duty_percent);
+-static DEVICE_ATTR(invert, S_IWUGO | S_IRUGO,
++static DEVICE_ATTR(invert, S_IWUSR | S_IRUGO,
+ 		   ep93xx_pwm_get_invert, ep93xx_pwm_set_invert);
  
-diff -puN Documentation/x86/x86_64/boot-options.txt~move-x86-specific-oops=panic-to-generic-code Documentation/x86/x86_64/boot-options.txt
---- a/Documentation/x86/x86_64/boot-options.txt~move-x86-specific-oops=panic-to-generic-code
-+++ a/Documentation/x86/x86_64/boot-options.txt
-@@ -293,11 +293,6 @@ IOMMU (input/output memory management un
- 
- Debugging
- 
--  oops=panic	Always panic on oopses. Default is to just kill the process,
--		but there is a small probability of deadlocking the machine.
--		This will also cause panics on machine check exceptions.
--		Useful together with panic=30 to trigger a reboot.
--
-   kstack=N	Print N words from the kernel stack in oops dumps.
- 
-   pagefaulttrace  Dump all page faults. Only useful for extreme debugging
-diff -puN arch/x86/kernel/dumpstack.c~move-x86-specific-oops=panic-to-generic-code arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~move-x86-specific-oops=panic-to-generic-code
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -322,16 +322,6 @@ void die(const char *str, struct pt_regs
- 	oops_end(flags, regs, sig);
- }
- 
--static int __init oops_setup(char *s)
--{
--	if (!s)
--		return -EINVAL;
--	if (!strcmp(s, "panic"))
--		panic_on_oops = 1;
--	return 0;
--}
--early_param("oops", oops_setup);
--
- static int __init kstack_setup(char *s)
- {
- 	if (!s)
-diff -puN kernel/panic.c~move-x86-specific-oops=panic-to-generic-code kernel/panic.c
---- a/kernel/panic.c~move-x86-specific-oops=panic-to-generic-code
-+++ a/kernel/panic.c
-@@ -433,3 +433,13 @@ EXPORT_SYMBOL(__stack_chk_fail);
- 
- core_param(panic, panic_timeout, int, 0644);
- core_param(pause_on_oops, pause_on_oops, int, 0644);
-+
-+static int __init oops_setup(char *s)
-+{
-+	if (!s)
-+		return -EINVAL;
-+	if (!strcmp(s, "panic"))
-+		panic_on_oops = 1;
-+	return 0;
-+}
-+early_param("oops", oops_setup);
+ static struct attribute *ep93xx_pwm_attrs[] = {
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from segoon@openwall.com are
 
 origin.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
-crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix-fix.patch
+linux-next.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+aic94xx-world-writable-sysfs-update_bios-file.patch
 
