@@ -1,88 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-unnecessary-linux-kernel-vgerkernelorg-entries.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:39:47 -0700
-Message-ID: <201103232043.p2NKhNId028859@imap1.linux-foundation.org>
+Subject: [merged] nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:13 -0700
+Message-ID: <201103232036.p2NKanRd028173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933454Ab1CWUn4 (ORCPT
+	by vger.kernel.org with ESMTP id S933436Ab1CWUnv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:43:56 -0400
+	Wed, 23 Mar 2011 16:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, harryxiyou@gmail.com, mm-commits@vger.kernel.org
+To: mjg@redhat.com, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, rpurdie@rpsys.net, rui.zhang@intel.co
 
 
 The patch titled
-     MAINTAINERS: remove unnecessary linux-kernel@vger.kernel.org entries
+     nouveau: change the backlight parent device to the connector, not the PCI dev
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-unnecessary-linux-kernel-vgerkernelorg-entries.patch
+     nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove unnecessary linux-kernel@vger.kernel.org entries
-From: Joe Perches <joe@perches.com>
+Subject: nouveau: change the backlight parent device to the connector, not the PCI dev
+From: Matthew Garrett <mjg@redhat.com>
 
-CC'ing lkml is the default and doesn't need separate entries.
+We may eventually end up with per-connector backlights, especially with
+ddcci devices.  Make sure that the parent node for the backlight device is
+the connector rather than the PCI device.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Harry Wei <harryxiyou@gmail.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Acked-by: Ben Skeggs <bskeggs@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_backlight.c |   24 ++++++++++--------
+ drivers/gpu/drm/nouveau/nouveau_connector.c |    9 ++++++
+ drivers/gpu/drm/nouveau/nouveau_drv.h       |    8 +++---
+ drivers/gpu/drm/nouveau/nouveau_state.c     |    6 ----
+ 4 files changed, 27 insertions(+), 20 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unnecessary-linux-kernel-vgerkernelorg-entries MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unnecessary-linux-kernel-vgerkernelorg-entries
-+++ a/MAINTAINERS
-@@ -2824,7 +2824,6 @@ F:	include/linux/gigaset_dev.h
+diff -puN drivers/gpu/drm/nouveau/nouveau_backlight.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_backlight.c
+--- a/drivers/gpu/drm/nouveau/nouveau_backlight.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
++++ a/drivers/gpu/drm/nouveau/nouveau_backlight.c
+@@ -88,10 +88,11 @@ static const struct backlight_ops nv50_b
+ 	.update_status = nv50_set_intensity,
+ };
  
- GPIO SUBSYSTEM
- M:	Grant Likely <grant.likely@secretlab.ca>
--L:	linux-kernel@vger.kernel.org
- S:	Maintained
- T:	git git://git.secretlab.ca/git/linux-2.6.git
- F:	Documentation/gpio/gpio.txt
-@@ -2847,7 +2846,6 @@ F:	drivers/platform/x86/hdaps.c
- HWPOISON MEMORY FAILURE HANDLING
- M:	Andi Kleen <andi@firstfloor.org>
- L:	linux-mm@kvack.org
--L:	linux-kernel@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ak/linux-mce-2.6.git hwpoison
- S:	Maintained
- F:	mm/memory-failure.c
-@@ -4725,7 +4723,6 @@ F:	drivers/i2c/busses/i2c-pasemi.c
+-static int nouveau_nv40_backlight_init(struct drm_device *dev)
++static int nouveau_nv40_backlight_init(struct drm_connector *connector)
+ {
+-	struct backlight_properties props;
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
++	struct backlight_properties props;
+ 	struct backlight_device *bd;
  
- PADATA PARALLEL EXECUTION MECHANISM
- M:	Steffen Klassert <steffen.klassert@secunet.com>
--L:	linux-kernel@vger.kernel.org
- L:	linux-crypto@vger.kernel.org
- S:	Maintained
- F:	kernel/padata.c
-@@ -4875,7 +4872,6 @@ F:	include/crypto/pcrypt.h
- PER-CPU MEMORY ALLOCATOR
- M:	Tejun Heo <tj@kernel.org>
- M:	Christoph Lameter <cl@linux-foundation.org>
--L:	linux-kernel@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/percpu.git
- S:	Maintained
- F:	include/linux/percpu*.h
-@@ -6923,7 +6919,6 @@ F:	sound/soc/codecs/wm*
+ 	if (!(nv_rd32(dev, NV40_PMC_BACKLIGHT) & NV40_PMC_BACKLIGHT_MASK))
+@@ -100,7 +101,7 @@ static int nouveau_nv40_backlight_init(s
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = 31;
+-	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
++	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+ 				       &nv40_bl_ops, &props);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
+@@ -112,10 +113,11 @@ static int nouveau_nv40_backlight_init(s
+ 	return 0;
+ }
  
- WORKQUEUE
- M:	Tejun Heo <tj@kernel.org>
--L:	linux-kernel@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/wq.git
- S:	Maintained
- F:	include/linux/workqueue.h
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-
+-static int nouveau_nv50_backlight_init(struct drm_device *dev)
++static int nouveau_nv50_backlight_init(struct drm_connector *connector)
+ {
+-	struct backlight_properties props;
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
++	struct backlight_properties props;
+ 	struct backlight_device *bd;
+ 
+ 	if (!nv_rd32(dev, NV50_PDISPLAY_SOR_BACKLIGHT))
+@@ -124,7 +126,7 @@ static int nouveau_nv50_backlight_init(s
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = 1025;
+-	bd = backlight_device_register("nv_backlight", &dev->pdev->dev, dev,
++	bd = backlight_device_register("nv_backlight", &connector->kdev, dev,
+ 				       &nv50_bl_ops, &props);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
+@@ -135,8 +137,9 @@ static int nouveau_nv50_backlight_init(s
+ 	return 0;
+ }
+ 
+-int nouveau_backlight_init(struct drm_device *dev)
++int nouveau_backlight_init(struct drm_connector *connector)
+ {
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 
+ #ifdef CONFIG_ACPI
+@@ -149,9 +152,9 @@ int nouveau_backlight_init(struct drm_de
+ 
+ 	switch (dev_priv->card_type) {
+ 	case NV_40:
+-		return nouveau_nv40_backlight_init(dev);
++		return nouveau_nv40_backlight_init(connector);
+ 	case NV_50:
+-		return nouveau_nv50_backlight_init(dev);
++		return nouveau_nv50_backlight_init(connector);
+ 	default:
+ 		break;
+ 	}
+@@ -159,8 +162,9 @@ int nouveau_backlight_init(struct drm_de
+ 	return 0;
+ }
+ 
+-void nouveau_backlight_exit(struct drm_device *dev)
++void nouveau_backlight_exit(struct drm_connector *connector)
+ {
++	struct drm_device *dev = connector->dev;
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 
+ 	if (dev_priv->backlight) {
+diff -puN drivers/gpu/drm/nouveau/nouveau_connector.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_connector.c
+--- a/drivers/gpu/drm/nouveau/nouveau_connector.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
++++ a/drivers/gpu/drm/nouveau/nouveau_connector.c
+@@ -116,6 +116,10 @@ nouveau_connector_destroy(struct drm_con
+ 				      nouveau_connector_hotplug, connector);
+ 	}
+ 
++	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
++	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
++		nouveau_backlight_exit(connector);
++
+ 	kfree(nv_connector->edid);
+ 	drm_sysfs_connector_remove(connector);
+ 	drm_connector_cleanup(connector);
+@@ -894,6 +898,11 @@ nouveau_connector_create(struct drm_devi
+ 	}
+ 
+ 	drm_sysfs_connector_add(connector);
++
++	if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS ||
++	    connector->connector_type == DRM_MODE_CONNECTOR_eDP)
++		nouveau_backlight_init(connector);
++
+ 	dcb->drm = connector;
+ 	return dcb->drm;
+ 
+diff -puN drivers/gpu/drm/nouveau/nouveau_drv.h~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_drv.h
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.h~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
++++ a/drivers/gpu/drm/nouveau/nouveau_drv.h
+@@ -999,15 +999,15 @@ static inline int nouveau_acpi_edid(stru
+ 
+ /* nouveau_backlight.c */
+ #ifdef CONFIG_DRM_NOUVEAU_BACKLIGHT
+-extern int nouveau_backlight_init(struct drm_device *);
+-extern void nouveau_backlight_exit(struct drm_device *);
++extern int nouveau_backlight_init(struct drm_connector *);
++extern void nouveau_backlight_exit(struct drm_connector *);
+ #else
+-static inline int nouveau_backlight_init(struct drm_device *dev)
++static inline int nouveau_backlight_init(struct drm_connector *dev)
+ {
+ 	return 0;
+ }
+ 
+-static inline void nouveau_backlight_exit(struct drm_device *dev) { }
++static inline void nouveau_backlight_exit(struct drm_connector *dev) { }
+ #endif
+ 
+ /* nouveau_bios.c */
+diff -puN drivers/gpu/drm/nouveau/nouveau_state.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev drivers/gpu/drm/nouveau/nouveau_state.c
+--- a/drivers/gpu/drm/nouveau/nouveau_state.c~nouveau-change-the-backlight-parent-device-to-the-connector-not-the-pci-dev
++++ a/drivers/gpu/drm/nouveau/nouveau_state.c
+@@ -704,10 +704,6 @@ nouveau_card_init(struct drm_device *dev
+ 			goto out_fence;
+ 	}
+ 
+-	ret = nouveau_backlight_init(dev);
+-	if (ret)
+-		NV_ERROR(dev, "Error %d registering backlight\n", ret);
+-
+ 	nouveau_fbcon_init(dev);
+ 	drm_kms_helper_poll_init(dev);
+ 	return 0;
+@@ -759,8 +755,6 @@ static void nouveau_card_takedown(struct
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 	struct nouveau_engine *engine = &dev_priv->engine;
+ 
+-	nouveau_backlight_exit(dev);
