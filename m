@@ -1,159 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:36:29 -0700
-Message-ID: <201103232040.p2NKe5Uj028498@imap1.linux-foundation.org>
+Subject: [merged] mm-numa-aware-alloc_task_struct_node.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:40 -0700
+Message-ID: <201103232037.p2NKbGUQ028224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933394Ab1CWU5K (ORCPT
+	by vger.kernel.org with ESMTP id S933394Ab1CWU5M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:57:10 -0400
+	Wed, 23 Mar 2011 16:57:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, aarcange@redhat.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@
+To: eric.dumazet@gmail.com, ak@linux.intel.com, davem@davemloft.net, dhowells@redhat.com, fenghua.yu@intel.com, linux-arch@vger.kernel.org, rusty@rustcorp.com.au, tj@kernel.org, tony.luck
 
 
 The patch titled
-     memcg: move memcg reclaimable page into tail of inactive list
+     mm: NUMA aware alloc_task_struct_node()
 has been removed from the -mm tree.  Its filename was
-     memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list.patch
+     mm-numa-aware-alloc_task_struct_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: move memcg reclaimable page into tail of inactive list
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm: NUMA aware alloc_task_struct_node()
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-The rotate_reclaimable_page function moves just written out pages, which
-the VM wanted to reclaim, to the end of the inactive list.  That way the
-VM will find those pages first next time it needs to free memory.
+All kthreads being created from a single helper task, they all use memory
+from a single node for their kernel stack and task struct.
 
-This patch applies the rule in memcg.  It can help to prevent unnecessary
-working page eviction of memcg.
+This patch suite creates kthread_create_on_cpu(), adding a 'cpu' parameter
+to parameters already used by kthread_create().
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This parameter serves in allocating memory for the new kthread on its
+memory node if available.
+
+Users of this new function are : ksoftirqd, kworker, migration, pktgend...
+
+
+This patch:
+
+Add a node parameter to alloc_task_struct(), and change its name to
+alloc_task_struct_node()
+
+This change is needed to allow NUMA aware kthread_create_on_cpu()
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++++++
- mm/memcontrol.c            |   26 ++++++++++++++++++++++++++
- mm/swap.c                  |    3 ++-
- 3 files changed, 34 insertions(+), 1 deletion(-)
+ arch/frv/include/asm/processor.h        |    2 +-
+ arch/frv/kernel/process.c               |    5 +++--
+ arch/ia64/include/asm/thread_info.h     |    9 ++++++++-
+ arch/um/include/asm/processor-generic.h |    2 +-
+ kernel/fork.c                           |   10 ++++++----
+ 5 files changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list
-+++ a/include/linux/memcontrol.h
-@@ -62,6 +62,7 @@ extern int mem_cgroup_cache_charge(struc
- 					gfp_t gfp_mask);
- extern void mem_cgroup_add_lru_list(struct page *page, enum lru_list lru);
- extern void mem_cgroup_del_lru_list(struct page *page, enum lru_list lru);
-+extern void mem_cgroup_rotate_reclaimable_page(struct page *page);
- extern void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru);
- extern void mem_cgroup_del_lru(struct page *page);
- extern void mem_cgroup_move_lists(struct page *page,
-@@ -211,6 +212,11 @@ static inline void mem_cgroup_del_lru_li
- 	return ;
+diff -puN arch/frv/include/asm/processor.h~mm-numa-aware-alloc_task_struct_node arch/frv/include/asm/processor.h
+--- a/arch/frv/include/asm/processor.h~mm-numa-aware-alloc_task_struct_node
++++ a/arch/frv/include/asm/processor.h
+@@ -137,7 +137,7 @@ unsigned long get_wchan(struct task_stru
+ #define	KSTK_ESP(tsk)	((tsk)->thread.frame0->sp)
+ 
+ /* Allocation and freeing of basic task resources. */
+-extern struct task_struct *alloc_task_struct(void);
++extern struct task_struct *alloc_task_struct_node(int node);
+ extern void free_task_struct(struct task_struct *p);
+ 
+ #define cpu_relax()    barrier()
+diff -puN arch/frv/kernel/process.c~mm-numa-aware-alloc_task_struct_node arch/frv/kernel/process.c
+--- a/arch/frv/kernel/process.c~mm-numa-aware-alloc_task_struct_node
++++ a/arch/frv/kernel/process.c
+@@ -44,9 +44,10 @@ asmlinkage void ret_from_fork(void);
+ void (*pm_power_off)(void);
+ EXPORT_SYMBOL(pm_power_off);
+ 
+-struct task_struct *alloc_task_struct(void)
++struct task_struct *alloc_task_struct_node(int node)
+ {
+-	struct task_struct *p = kmalloc(THREAD_SIZE, GFP_KERNEL);
++	struct task_struct *p = kmalloc_node(THREAD_SIZE, GFP_KERNEL, node);
++
+ 	if (p)
+ 		atomic_set((atomic_t *)(p+1), 1);
+ 	return p;
+diff -puN arch/ia64/include/asm/thread_info.h~mm-numa-aware-alloc_task_struct_node arch/ia64/include/asm/thread_info.h
+--- a/arch/ia64/include/asm/thread_info.h~mm-numa-aware-alloc_task_struct_node
++++ a/arch/ia64/include/asm/thread_info.h
+@@ -84,7 +84,14 @@ struct thread_info {
+ #define end_of_stack(p) (unsigned long *)((void *)(p) + IA64_RBS_OFFSET)
+ 
+ #define __HAVE_ARCH_TASK_STRUCT_ALLOCATOR
+-#define alloc_task_struct()	((struct task_struct *)__get_free_pages(GFP_KERNEL | __GFP_COMP, KERNEL_STACK_SIZE_ORDER))
++#define alloc_task_struct_node(node)						\
++({										\
++	struct page *page = alloc_pages_node(node, GFP_KERNEL | __GFP_COMP,	\
++					     KERNEL_STACK_SIZE_ORDER);		\
++	struct task_struct *ret = page ? page_address(page) : NULL;		\
++										\
++	ret;
++})
+ #define free_task_struct(tsk)	free_pages((unsigned long) (tsk), KERNEL_STACK_SIZE_ORDER)
+ 
+ #endif /* !__ASSEMBLY */
+diff -puN arch/um/include/asm/processor-generic.h~mm-numa-aware-alloc_task_struct_node arch/um/include/asm/processor-generic.h
+--- a/arch/um/include/asm/processor-generic.h~mm-numa-aware-alloc_task_struct_node
++++ a/arch/um/include/asm/processor-generic.h
+@@ -66,7 +66,7 @@ struct thread_struct {
+ 	.request		= { 0 } \
  }
  
-+static inline inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
-+{
-+	return ;
-+}
-+
- static inline void mem_cgroup_rotate_lru_list(struct page *page, int lru)
+-extern struct task_struct *alloc_task_struct(void);
++extern struct task_struct *alloc_task_struct_node(int node);
+ 
+ static inline void release_thread(struct task_struct *task)
  {
- 	return ;
-diff -puN mm/memcontrol.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list
-+++ a/mm/memcontrol.c
-@@ -829,6 +829,32 @@ void mem_cgroup_del_lru(struct page *pag
- 	mem_cgroup_del_lru_list(page, page_lru(page));
+diff -puN kernel/fork.c~mm-numa-aware-alloc_task_struct_node kernel/fork.c
+--- a/kernel/fork.c~mm-numa-aware-alloc_task_struct_node
++++ a/kernel/fork.c
+@@ -109,8 +109,10 @@ int nr_processes(void)
  }
  
-+/*
-+ * Writeback is about to end against a page which has been marked for immediate
-+ * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-+ * inactive list.
-+ */
-+void mem_cgroup_rotate_reclaimable_page(struct page *page)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+	struct page_cgroup *pc;
-+	enum lru_list lru = page_lru(page);
-+
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	pc = lookup_page_cgroup(page);
-+	/* unused or root page is not rotated. */
-+	if (!PageCgroupUsed(pc))
-+		return;
-+	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
-+	smp_rmb();
-+	if (mem_cgroup_is_root(pc->mem_cgroup))
-+		return;
-+	mz = page_cgroup_zoneinfo(pc);
-+	list_move_tail(&pc->lru, &mz->lists[lru]);
-+}
-+
- void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru)
- {
- 	struct mem_cgroup_per_zone *mz;
-diff -puN mm/swap.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list mm/swap.c
---- a/mm/swap.c~memcg-move-memcg-reclaimable-page-into-tail-of-inactive-list
-+++ a/mm/swap.c
-@@ -200,8 +200,9 @@ static void pagevec_move_tail(struct pag
- 			spin_lock(&zone->lru_lock);
- 		}
- 		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--			int lru = page_lru_base_type(page);
-+			enum lru_list lru = page_lru_base_type(page);
- 			list_move_tail(&page->lru, &zone->lru[lru].list);
-+			mem_cgroup_rotate_reclaimable_page(page);
- 			pgmoved++;
- 		}
- 	}
-_
-
-Patches currently in -mm which might be from minchan.kim@gmail.com are
-
-origin.patch
-linux-next.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
-memcg-simplify-the-way-memory-limits-are-checked.patch
-memcg-remove-unused-page-flag-bitfield-defines.patch
-memcg-remove-impossible-conditional-when-committing.patch
-memcg-remove-null-check-from-lookup_page_cgroup-result.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
-memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
-memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
-memcg-change-page_cgroup_zoneinfo-signature.patch
-memcg-change-page_cgroup_zoneinfo-signature-fix.patch
-memcg-fold-__mem_cgroup_move_account-into-caller.patch
-memcg-condense-page_cgroup-to-page-lookup-points.patch
-memcg-remove-direct-page_cgroup-to-page-pointer.patch
-memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
-memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
-memcg-remove-memcg-reclaim_param_lock.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
-
+ #ifndef __HAVE_ARCH_TASK_STRUCT_ALLOCATOR
+-# define alloc_task_struct()	kmem_cache_alloc(task_struct_cachep, GFP_KERNEL)
+-# define free_task_struct(tsk)	kmem_cache_free(task_struct_cachep, (tsk))
++# define alloc_task_struct_node(node)		\
++		kmem_cache_alloc_node(task_struct_cachep, GFP_KERNEL, node)
++# define free_task_struct(tsk)			\
++		kmem_cache_free(task_struct_cachep, (tsk))
+ static struct kmem_cache *task_struct_cachep;
+ #endif
+ 
+@@ -249,12 +251,12 @@ static struct task_struct *dup_task_stru
+ 	struct task_struct *tsk;
+ 	struct thread_info *ti;
+ 	unsigned long *stackend;
