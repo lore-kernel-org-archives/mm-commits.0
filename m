@@ -1,57 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-unused-timekeeping-timekeepingh.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:39:56 -0700
-Message-ID: <201103232043.p2NKhW0L028879@imap1.linux-foundation.org>
+Subject: [merged] writeback-make-mapping-writeback_index-to-point-to-the-last-written-page.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:38:02 -0700
+Message-ID: <201103232041.p2NKfclv028670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755895Ab1CWUzH (ORCPT
+	by vger.kernel.org with ESMTP id S932200Ab1CWUzO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:07 -0400
+	Wed, 23 Mar 2011 16:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: j-nomura@ce.jp.nec.com, fengguang.wu@intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove unused TIMEKEEPING timekeeping.h
+     writeback: make mapping->writeback_index to point to the last written page
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-unused-timekeeping-timekeepingh.patch
+     writeback-make-mapping-writeback_index-to-point-to-the-last-written-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove unused TIMEKEEPING timekeeping.h
-From: Joe Perches <joe@perches.com>
+Subject: writeback: make mapping->writeback_index to point to the last written page
+From: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
 
-Commit 88606e80da0 ("MAINTAINERS: Update timer related entries") added a
-file pattern that didn't actually exist.
+For range-cyclic writeback (e.g.  kupdate), the writeback code sets a
+continuation point of the next writeback to mapping->writeback_index which
+is set the page after the last written page.  This happens so that we
+evenly write the whole file even if pages in it get continuously
+redirtied.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+However, in some cases, sequential writer is writing in the middle of the
+page and it just redirties the last written page by continuing from that. 
+For example with an application which uses a file as a big ring buffer we
+see:
+
+[1st writeback session]
+       ...
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898514 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898522 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898530 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898538 + 8
+       flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898546 + 8
+     kworker/0:1-11    4571: block_rq_issue: 8,0 W 0 () 94898514 + 40
+>>     flush-8:0-2743  4571: block_bio_queue: 8,0 W 94898554 + 8
+>>     flush-8:0-2743  4571: block_rq_issue: 8,0 W 0 () 94898554 + 8
+
+[2nd writeback session after 35sec]
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898562 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898570 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898578 + 8
+       ...
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94898562 + 640
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94899202 + 72
+       ...
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899962 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899970 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899978 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899986 + 8
+       flush-8:0-2743  4606: block_bio_queue: 8,0 W 94899994 + 8
+     kworker/0:1-11    4606: block_rq_issue: 8,0 W 0 () 94899962 + 40
+>>     flush-8:0-2743  4606: block_bio_queue: 8,0 W 94898554 + 8
+>>     flush-8:0-2743  4606: block_rq_issue: 8,0 W 0 () 94898554 + 8
+
+So we seeked back to 94898554 after we wrote all the pages at the end of
+the file.
+
+This extra seek seems unnecessary.  If we continue writeback from the last
+written page, we can avoid it and do not cause harm to other cases.  The
+original intent of even writeout over the whole file is preserved and if
+the page does not get redirtied pagevec_lookup_tag() just skips it.
+
+As an exceptional case, when I/O error happens, set done_index to the next
+page as the comment in the code suggests.
+
+Tested-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page-writeback.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-timekeeping-timekeepingh MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-timekeeping-timekeepingh
-+++ a/MAINTAINERS
-@@ -5420,7 +5420,6 @@ S:	Supported
- F:	include/linux/clocksource.h
- F:	include/linux/time.h
- F:	include/linux/timex.h
--F:	include/linux/timekeeping.h
- F:	kernel/time/clocksource.c
- F:	kernel/time/time*.c
- F:	kernel/time/ntp.c
+diff -puN mm/page-writeback.c~writeback-make-mapping-writeback_index-to-point-to-the-last-written-page mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-make-mapping-writeback_index-to-point-to-the-last-written-page
++++ a/mm/page-writeback.c
+@@ -927,7 +927,7 @@ retry:
+ 				break;
+ 			}
+ 
+-			done_index = page->index + 1;
++			done_index = page->index;
+ 
+ 			lock_page(page);
+ 
+@@ -977,6 +977,7 @@ continue_unlock:
+ 					 * not be suitable for data integrity
+ 					 * writeout).
+ 					 */
++					done_index = page->index + 1;
+ 					done = 1;
+ 					break;
+ 				}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
 
 origin.patch
 
