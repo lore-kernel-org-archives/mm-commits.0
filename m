@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:37:50 -0700
-Message-ID: <201103232041.p2NKfQCZ028644@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-remove-nr_good_pages-variable.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:52 -0700
+Message-ID: <201103232041.p2NKfSqk028647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933522Ab1CWUzd (ORCPT
+	by vger.kernel.org with ESMTP id S933527Ab1CWUzd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Mar 2011 16:55:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,20 +15,20 @@ To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     sys_swapon: simplify error flow in setup_swap_map_and_extents()
+     sys_swapon: remove nr_good_pages variable
 has been removed from the -mm tree.  Its filename was
-     sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents.patch
+     sys_swapon-remove-nr_good_pages-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: simplify error flow in setup_swap_map_and_extents()
+Subject: sys_swapon: remove nr_good_pages variable
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-Since there is no cleanup to do, there is no reason to jump to a label.
-Return directly instead.
+It still exists within setup_swap_map_and_extents(), but after it
+nr_good_pages == p->pages.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
 Tested-by: Eric B Munson <emunson@mgebm.net>
@@ -39,50 +39,47 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ mm/swapfile.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-simplify-error-flow-in-setup_swap_map_and_extents
+diff -puN mm/swapfile.c~sys_swapon-remove-nr_good_pages-variable mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-remove-nr_good_pages-variable
 +++ a/mm/swapfile.c
-@@ -1998,7 +1998,6 @@ static int setup_swap_map_and_extents(st
- 					sector_t *span)
- {
- 	int i;
--	int error;
- 	unsigned int nr_good_pages;
+@@ -2039,7 +2039,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	int i, prev;
+ 	int error;
+ 	union swap_header *swap_header;
+-	unsigned int nr_good_pages;
  	int nr_extents;
- 
-@@ -2006,10 +2005,8 @@ static int setup_swap_map_and_extents(st
- 
- 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
- 		unsigned int page_nr = swap_header->info.badpages[i];
--		if (page_nr == 0 || page_nr > swap_header->info.last_page) {
--			error = -EINVAL;
--			goto bad_swap;
--		}
-+		if (page_nr == 0 || page_nr > swap_header->info.last_page)
-+			return -EINVAL;
- 		if (page_nr < maxpages) {
- 			swap_map[page_nr] = SWAP_MAP_BAD;
- 			nr_good_pages--;
-@@ -2021,22 +2018,16 @@ static int setup_swap_map_and_extents(st
- 		p->max = maxpages;
- 		p->pages = nr_good_pages;
- 		nr_extents = setup_swap_extents(p, span);
--		if (nr_extents < 0) {
--			error = nr_extents;
--			goto bad_swap;
--		}
-+		if (nr_extents < 0)
-+			return nr_extents;
- 		nr_good_pages = p->pages;
+ 	sector_t span;
+ 	unsigned long maxpages;
+@@ -2123,7 +2122,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		error = nr_extents;
+ 		goto bad_swap;
  	}
- 	if (!nr_good_pages) {
- 		printk(KERN_WARNING "Empty swap-file\n");
--		error = -EINVAL;
--		goto bad_swap;
-+		return -EINVAL;
- 	}
+-	nr_good_pages = p->pages;
  
- 	return nr_extents;
+ 	if (p->bdev) {
+ 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+@@ -2143,12 +2141,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		p->prio = --least_priority;
+ 	p->swap_map = swap_map;
+ 	p->flags |= SWP_WRITEOK;
+-	nr_swap_pages += nr_good_pages;
+-	total_swap_pages += nr_good_pages;
++	nr_swap_pages += p->pages;
++	total_swap_pages += p->pages;
+ 
+ 	printk(KERN_INFO "Adding %uk swap on %s.  "
+ 			"Priority:%d extents:%d across:%lluk %s%s\n",
+-		nr_good_pages<<(PAGE_SHIFT-10), name, p->prio,
++		p->pages<<(PAGE_SHIFT-10), name, p->prio,
+ 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
+ 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(p->flags & SWP_DISCARDABLE) ? "D" : "");
+_
+
+Patches currently in -mm which might be from cesarb@cesarb.net are
+
+origin.patch
+
