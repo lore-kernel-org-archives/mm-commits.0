@@ -1,234 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-replace_page_cache_page-function.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:34:07 -0700
-Message-ID: <201103232037.p2NKbhIw028261@imap1.linux-foundation.org>
+Subject: [merged] calibrate-extract-fall-back-calculation-into-own-helper.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:39:04 -0700
+Message-ID: <201103232042.p2NKgeFs028787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933349Ab1CWUzo (ORCPT
+	by vger.kernel.org with ESMTP id S933369Ab1CWUzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:44 -0400
+	Wed, 23 Mar 2011 16:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: ext-phil.2.carmody@nokia.com, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add replace_page_cache_page() function
+     calibrate: extract fall-back calculation into own helper
 has been removed from the -mm tree.  Its filename was
-     mm-add-replace_page_cache_page-function.patch
+     calibrate-extract-fall-back-calculation-into-own-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add replace_page_cache_page() function
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: calibrate: extract fall-back calculation into own helper
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-This function basically does:
+The motivation for this patch series is that currently our OMAP calibrates
+itself using the trial-and-error binary chop fallback that some other
+architectures no longer need to perform.  This is a lengthy process,
+taking 0.2s in an environment where boot time is of great interest.
 
-     remove_from_page_cache(old);
-     page_cache_release(old);
-     add_to_page_cache_locked(new);
+Patch 2/4 has two optimisations.  Firstly, it replaces the initial
+repeated- doubling to find the relevant power of 2 with a tight loop that
+just does as much as it can in a jiffy.  Secondly, it doesn't binary chop
+over an entire power of 2 range, it choses a much smaller range based on
+how much it squeezed in, and failed to squeeze in, during the first stage.
+ Both are significant optimisations, and bring our calibration down from
+23 jiffies to 5, and, in the process, often arrive at a more accurate lpj
+value.
 
-Except it does this atomically, so there's no possibility for the "add" to
-fail because of a race.
+The 'bands' and 'sub-logarithmic' growth may look over-engineered, but
+they only cost a small level of inaccuracy in the initial guess (for all
+architectures) in order to avoid the very large inaccuracies that appeared
+during testing (on x86_64 architectures, and presumably others with less
+metronomic operation).  Note that due to the existence of the TSC and
+other timers, the x86_64 will not typically use this fallback routine, but
+I wanted to code defensively, able to cope with all kinds of processor
+behaviours and kernel command line options.
 
-If memory cgroups are enabled, then the memory cgroup charge is also moved
-from the old page to the new.
+Patch 3/4 is an additional trap for the nightmare scenario where the
+initial estimate is very inaccurate, possibly due to things like SMIs.
+It simply retries with a larger bound.
 
-This function is currently used by fuse to move pages into the page cache
-on read, instead of copying the page contents.
+Stephen said:
 
-[minchan.kim@gmail.com: add freepage() hook to replace_page_cache_page()]
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+I tried this patch set out on an MSM7630.
+: 
+: Before:
+: 
+: Calibrating delay loop... 681.57 BogoMIPS (lpj=3407872)
+: 
+: After:
+: 
+: Calibrating delay loop... 680.75 BogoMIPS (lpj=3403776)
+: 
+: But the really good news is calibration time dropped from ~247ms to ~56ms.
+:  Sadly we won't be able to benefit from this should my udelay patches make
+: it into ARM because we would be using calibrate_delay_direct() instead (at
+: least on machines who choose to).  Can we somehow reapply the logic behind
+: this to calibrate_delay_direct()?  That would be even better, but this is
+: definitely a boot time improvement.
+: 
+: Or maybe we could just replace calibrate_delay_direct() with this fallback
+: calculation?  If __delay() is a thin wrapper around read_current_timer()
+: it should work just as well (plus patch 3 makes it handle SMIs).  I'll try
+: that out.
+
+This patch:
+
+... so that it can be modified more clinically.
+
+This is almost entirely cosmetic. The only change to the operation
+is that the global variable is only set once after the estimation is
+completed, rather than taking on all the intermediate values. However,
+there are no readers of that variable, so this change is unimportant.
+
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Tested-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c              |   10 ++---
- include/linux/memcontrol.h |    4 +-
- include/linux/pagemap.h    |    1 
- mm/filemap.c               |   70 +++++++++++++++++++++++++++++++++++
- mm/memcontrol.c            |    4 +-
- mm/migrate.c               |    2 -
- 6 files changed, 80 insertions(+), 11 deletions(-)
+ init/calibrate.c |   73 ++++++++++++++++++++++++---------------------
+ 1 file changed, 40 insertions(+), 33 deletions(-)
 
-diff -puN fs/fuse/dev.c~mm-add-replace_page_cache_page-function fs/fuse/dev.c
---- a/fs/fuse/dev.c~mm-add-replace_page_cache_page-function
-+++ a/fs/fuse/dev.c
-@@ -737,14 +737,12 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
- 		goto out_fallback_unlock;
+diff -puN init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper init/calibrate.c
+--- a/init/calibrate.c~calibrate-extract-fall-back-calculation-into-own-helper
++++ a/init/calibrate.c
+@@ -119,10 +119,47 @@ static unsigned long __cpuinit calibrate
+  */
+ #define LPS_PREC 8
  
--	remove_from_page_cache(oldpage);
--	page_cache_release(oldpage);
--
--	err = add_to_page_cache_locked(newpage, mapping, index, GFP_KERNEL);
-+	err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
- 	if (err) {
--		printk(KERN_WARNING "fuse_try_move_page: failed to add page");
--		goto out_fallback_unlock;
-+		unlock_page(newpage);
-+		return err;
- 	}
-+
- 	page_cache_get(newpage);
- 
- 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
-diff -puN include/linux/memcontrol.h~mm-add-replace_page_cache_page-function include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-add-replace_page_cache_page-function
-+++ a/include/linux/memcontrol.h
-@@ -96,7 +96,7 @@ extern struct cgroup_subsys_state *mem_c
- 
- extern int
- mem_cgroup_prepare_migration(struct page *page,
--	struct page *newpage, struct mem_cgroup **ptr);
-+	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask);
- extern void mem_cgroup_end_migration(struct mem_cgroup *mem,
- 	struct page *oldpage, struct page *newpage, bool migration_ok);
- 
-@@ -249,7 +249,7 @@ static inline struct cgroup_subsys_state
- 
- static inline int
- mem_cgroup_prepare_migration(struct page *page, struct page *newpage,
--	struct mem_cgroup **ptr)
-+	struct mem_cgroup **ptr, gfp_t gfp_mask)
+-void __cpuinit calibrate_delay(void)
++static unsigned long __cpuinit calibrate_delay_converge(void)
  {
- 	return 0;
- }
-diff -puN include/linux/pagemap.h~mm-add-replace_page_cache_page-function include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-add-replace_page_cache_page-function
-+++ a/include/linux/pagemap.h
-@@ -457,6 +457,7 @@ int add_to_page_cache_lru(struct page *p
- 				pgoff_t index, gfp_t gfp_mask);
- extern void remove_from_page_cache(struct page *page);
- extern void __remove_from_page_cache(struct page *page);
-+int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
- 
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-diff -puN mm/filemap.c~mm-add-replace_page_cache_page-function mm/filemap.c
---- a/mm/filemap.c~mm-add-replace_page_cache_page-function
-+++ a/mm/filemap.c
-@@ -387,6 +387,76 @@ int filemap_write_and_wait_range(struct 
- EXPORT_SYMBOL(filemap_write_and_wait_range);
- 
- /**
-+ * replace_page_cache_page - replace a pagecache page with a new one
-+ * @old:	page to be replaced
-+ * @new:	page to replace with
-+ * @gfp_mask:	allocation mode
-+ *
-+ * This function replaces a page in the pagecache with a new one.  On
-+ * success it acquires the pagecache reference for the new page and
-+ * drops it for the old page.  Both the old and new pages must be
-+ * locked.  This function does not add the new page to the LRU, the
-+ * caller must do that.
-+ *
-+ * The remove + add is atomic.  The only way this function can fail is
-+ * memory allocation failure.
-+ */
-+int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
-+{
-+	int error;
-+	struct mem_cgroup *memcg = NULL;
+-	unsigned long ticks, loopbit;
++	unsigned long lpj, ticks, loopbit;
+ 	int lps_precision = LPS_PREC;
 +
-+	VM_BUG_ON(!PageLocked(old));
-+	VM_BUG_ON(!PageLocked(new));
-+	VM_BUG_ON(new->mapping);
-+
-+	/*
-+	 * This is not page migration, but prepare_migration and
-+	 * end_migration does enough work for charge replacement.
-+	 *
-+	 * In the longer term we probably want a specialized function
-+	 * for moving the charge from old to new in a more efficient
-+	 * manner.
-+	 */
-+	error = mem_cgroup_prepare_migration(old, new, &memcg, gfp_mask);
-+	if (error)
-+		return error;
-+
-+	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
-+	if (!error) {
-+		struct address_space *mapping = old->mapping;
-+		void (*freepage)(struct page *);
-+
-+		pgoff_t offset = old->index;
-+		freepage = mapping->a_ops->freepage;
-+
-+		page_cache_get(new);
-+		new->mapping = mapping;
-+		new->index = offset;
-+
-+		spin_lock_irq(&mapping->tree_lock);
-+		__remove_from_page_cache(old);
-+		error = radix_tree_insert(&mapping->page_tree, offset, new);
-+		BUG_ON(error);
-+		mapping->nrpages++;
-+		__inc_zone_page_state(new, NR_FILE_PAGES);
-+		if (PageSwapBacked(new))
-+			__inc_zone_page_state(new, NR_SHMEM);
-+		spin_unlock_irq(&mapping->tree_lock);
-+		radix_tree_preload_end();
-+		if (freepage)
-+			freepage(old);
-+		page_cache_release(old);
-+		mem_cgroup_end_migration(memcg, old, new, true);
-+	} else {
-+		mem_cgroup_end_migration(memcg, old, new, false);
++	lpj = (1<<12);
++	while ((lpj <<= 1) != 0) {
++		/* wait for "start of" clock tick */
++		ticks = jiffies;
++		while (ticks == jiffies)
++			/* nothing */;
++		/* Go .. */
++		ticks = jiffies;
++		__delay(lpj);
++		ticks = jiffies - ticks;
++		if (ticks)
++			break;
 +	}
 +
-+	return error;
-+}
-+EXPORT_SYMBOL_GPL(replace_page_cache_page);
++	/*
++	 * Do a binary approximation to get lpj set to
++	 * equal one clock (up to lps_precision bits)
++	 */
++	lpj >>= 1;
++	loopbit = lpj;
++	while (lps_precision-- && (loopbit >>= 1)) {
++		lpj |= loopbit;
++		ticks = jiffies;
++		while (ticks == jiffies)
++			/* nothing */;
++		ticks = jiffies;
++		__delay(lpj);
++		if (jiffies != ticks)	/* longer than 1 tick */
++			lpj &= ~loopbit;
++	}
 +
-+/**
-  * add_to_page_cache_locked - add a locked page to the pagecache
-  * @page:	page to add
-  * @mapping:	the page's address_space
-diff -puN mm/memcontrol.c~mm-add-replace_page_cache_page-function mm/memcontrol.c
---- a/mm/memcontrol.c~mm-add-replace_page_cache_page-function
-+++ a/mm/memcontrol.c
-@@ -2883,7 +2883,7 @@ static inline int mem_cgroup_move_swap_a
-  * page belongs to.
-  */
- int mem_cgroup_prepare_migration(struct page *page,
--	struct page *newpage, struct mem_cgroup **ptr)
-+	struct page *newpage, struct mem_cgroup **ptr, gfp_t gfp_mask)
- {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
-@@ -2940,7 +2940,7 @@ int mem_cgroup_prepare_migration(struct 
- 		return 0;
++	return lpj;
++}
++
++void __cpuinit calibrate_delay(void)
++{
+ 	static bool printed;
  
- 	*ptr = mem;
--	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false, PAGE_SIZE);
-+	ret = __mem_cgroup_try_charge(NULL, gfp_mask, ptr, false, PAGE_SIZE);
- 	css_put(&mem->css);/* drop extra refcnt */
- 	if (ret || *ptr == NULL) {
- 		if (PageAnon(page)) {
-diff -puN mm/migrate.c~mm-add-replace_page_cache_page-function mm/migrate.c
---- a/mm/migrate.c~mm-add-replace_page_cache_page-function
-+++ a/mm/migrate.c
-@@ -678,7 +678,7 @@ static int unmap_and_move(new_page_t get
+ 	if (preset_lpj) {
+@@ -139,39 +176,9 @@ void __cpuinit calibrate_delay(void)
+ 			pr_info("Calibrating delay using timer "
+ 				"specific routine.. ");
+ 	} else {
+-		loops_per_jiffy = (1<<12);
+-
+ 		if (!printed)
+ 			pr_info("Calibrating delay loop... ");
+-		while ((loops_per_jiffy <<= 1) != 0) {
+-			/* wait for "start of" clock tick */
+-			ticks = jiffies;
+-			while (ticks == jiffies)
+-				/* nothing */;
+-			/* Go .. */
+-			ticks = jiffies;
+-			__delay(loops_per_jiffy);
+-			ticks = jiffies - ticks;
+-			if (ticks)
+-				break;
+-		}
+-
+-		/*
+-		 * Do a binary approximation to get loops_per_jiffy set to
+-		 * equal one clock (up to lps_precision bits)
+-		 */
+-		loops_per_jiffy >>= 1;
+-		loopbit = loops_per_jiffy;
+-		while (lps_precision-- && (loopbit >>= 1)) {
+-			loops_per_jiffy |= loopbit;
+-			ticks = jiffies;
+-			while (ticks == jiffies)
+-				/* nothing */;
+-			ticks = jiffies;
+-			__delay(loops_per_jiffy);
+-			if (jiffies != ticks)	/* longer than 1 tick */
+-				loops_per_jiffy &= ~loopbit;
+-		}
++		loops_per_jiffy = calibrate_delay_converge();
  	}
- 
- 	/* charge against new page */
--	charge = mem_cgroup_prepare_migration(page, newpage, &mem);
-+	charge = mem_cgroup_prepare_migration(page, newpage, &mem, GFP_KERNEL);
- 	if (charge == -ENOMEM) {
- 		rc = -ENOMEM;
- 		goto unlock;
+ 	if (!printed)
+ 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
 
 origin.patch
+linux-next.patch
 
