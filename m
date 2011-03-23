@@ -1,57 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-sharp-lh7a40x-section.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:40:00 -0700
-Message-ID: <201103232043.p2NKhaCB028886@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:27 -0700
+Message-ID: <201103232037.p2NKb3Kc028204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756000Ab1CWUzH (ORCPT
+	by vger.kernel.org with ESMTP id S1756157Ab1CWUzQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:07 -0400
+	Wed, 23 Mar 2011 16:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, kristoffer.ericson@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove SHARP LH7A40X section
+     drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-sharp-lh7a40x-section.patch
+     drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove SHARP LH7A40X section
-From: Joe Perches <joe@perches.com>
+Subject: drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
+From: Axel Lin <axel.lin@gmail.com>
 
-commit 82e6923e186 ("ARM: lh7a40x: remove unmaintained platform support")
-removed support, remove it from MAINTAINERS.
+The following symbols are needlessly defined global:
+jornada_bl_init
+jornada_bl_exit
+jornada_lcd_init
+jornada_lcd_exit
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Make them static.
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/video/backlight/jornada720_bl.c  |    4 ++--
+ drivers/video/backlight/jornada720_lcd.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-sharp-lh7a40x-section MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-sharp-lh7a40x-section
-+++ a/MAINTAINERS
-@@ -5651,17 +5651,6 @@ M:	Robin Holt <holt@sgi.com>
- S:	Maintained
- F:	drivers/misc/sgi-xp/
+diff -puN drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
++++ a/drivers/video/backlight/jornada720_bl.c
+@@ -147,12 +147,12 @@ static struct platform_driver jornada_bl
+ 	},
+ };
  
--SHARP LH SUPPORT (LH7952X & LH7A40X)
--M:	Marc Singer <elf@buici.com>
--W:	http://projects.buici.com/arm
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--F:	Documentation/arm/Sharp-LH/ADC-LH7-Touchscreen
--F:	arch/arm/mach-lh7a40x/
--F:	drivers/tty/serial/serial_lh7a40x.c
--F:	drivers/usb/gadget/lh7a40*
--F:	drivers/usb/host/ohci-lh7a40*
+-int __init jornada_bl_init(void)
++static int __init jornada_bl_init(void)
+ {
+ 	return platform_driver_register(&jornada_bl_driver);
+ }
+ 
+-void __exit jornada_bl_exit(void)
++static void __exit jornada_bl_exit(void)
+ {
+ 	platform_driver_unregister(&jornada_bl_driver);
+ }
+diff -puN drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_lcd.c
+--- a/drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
++++ a/drivers/video/backlight/jornada720_lcd.c
+@@ -135,12 +135,12 @@ static struct platform_driver jornada_lc
+ 	},
+ };
+ 
+-int __init jornada_lcd_init(void)
++static int __init jornada_lcd_init(void)
+ {
+ 	return platform_driver_register(&jornada_lcd_driver);
+ }
+ 
+-void __exit jornada_lcd_exit(void)
++static void __exit jornada_lcd_exit(void)
+ {
+ 	platform_driver_unregister(&jornada_lcd_driver);
+ }
+_
+
+Patches currently in -mm which might be from axel.lin@gmail.com are
+
+origin.patch
+linux-next.patch
+
