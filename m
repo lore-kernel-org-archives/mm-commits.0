@@ -1,137 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-prevent-unnecessary-oom-kills-or-kernel-panics.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:32:41 -0700
-Message-ID: <201103232036.p2NKaHGw028097@imap1.linux-foundation.org>
+Subject: [merged] mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:32:39 -0700
+Message-ID: <201103232036.p2NKaFQE028092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933322Ab1CWUhJ (ORCPT
+	by vger.kernel.org with ESMTP id S933310Ab1CWUgy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:37:09 -0400
+	Wed, 23 Mar 2011 16:36:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, avagin@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hughd@google.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: prevent unnecessary oom kills or kernel panics
+     mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
 has been removed from the -mm tree.  Its filename was
-     oom-prevent-unnecessary-oom-kills-or-kernel-panics.patch
+     mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: prevent unnecessary oom kills or kernel panics
-From: David Rientjes <rientjes@google.com>
+Subject: mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
+From: Mel Gorman <mgorman@suse.de>
 
-This patch prevents unnecessary oom kills or kernel panics by reverting
-two commits:
+If an administrator tries to swapon a file backed by NFS, the inode mutex is
+taken (as it is for any swapfile) but later identified to be a bad swapfile
+due to the lack of bmap and tries to cleanup. During cleanup, an attempt is
+made to close the file but with inode->i_mutex still held. Closing an NFS
+file syncs it which tries to acquire the inode mutex leading to deadlock. If
+lockdep is enabled the following appears on the console;
 
-	495789a5 (oom: make oom_score to per-process value)
-	cef1d352 (oom: multi threaded process coredump don't make deadlock)
+[  120.968832] =============================================
+[  120.972757] [ INFO: possible recursive locking detected ]
+[  120.972757] 2.6.38-rc8-autobuild #1
+[  120.972757] ---------------------------------------------
+[  120.972757] swapon/2192 is trying to acquire lock:
+[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff81130652>] vfs_fsync_range+0x47/0x7c
+[  120.972757]
+[  120.972757] but task is already holding lock:
+[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
+[  120.972757]
+[  120.972757] other info that might help us debug this:
+[  120.972757] 1 lock held by swapon/2192:
+[  120.972757]  #0:  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
+[  120.972757]
+[  120.972757] stack backtrace:
+[  120.972757] Pid: 2192, comm: swapon Not tainted 2.6.38-rc8-autobuild #1
+[  120.972757] Call Trace:
+[  120.972757]  [<ffffffff81075ca8>] ? __lock_acquire+0x2eb/0x1623
+[  120.972757]  [<ffffffff810cd5ad>] ? find_get_pages_tag+0x14a/0x174
+[  120.972757]  [<ffffffff810d6d01>] ? pagevec_lookup_tag+0x25/0x2e
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff810770b3>] ? lock_acquire+0xd3/0x100
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffffa03df8ab>] ? nfs_flush_one+0x0/0xdf [nfs]
+[  120.972757]  [<ffffffff81309cdf>] ? mutex_lock_nested+0x40/0x2b1
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
+[  120.972757]  [<ffffffff811306e6>] ? vfs_fsync+0x1c/0x1e
+[  120.972757]  [<ffffffffa03d0c87>] ? nfs_file_flush+0x64/0x69 [nfs]
+[  120.972757]  [<ffffffff811097c9>] ? filp_close+0x43/0x72
+[  120.972757]  [<ffffffff810f9bb1>] ? sys_swapon+0xa39/0xae7
+[  120.972757]  [<ffffffff81002b7a>] ? sysret_check+0x2e/0x69
+[  120.972757]  [<ffffffff81002b42>] ? system_call_fastpath+0x16/0x1b
 
-First, 495789a5 (oom: make oom_score to per-process value) ignores the
-fact that all threads in a thread group do not necessarily exit at the
-same time.
+This patch releases the mutex if its held before calling filep_close()
+so swapon fails as expected without deadlock when the swapfile is backed
+by NFS.  If accepted for 2.6.39, it should also be considered a -stable
+candidate for 2.6.38 and 2.6.37.
 
-It is imperative that select_bad_process() detect threads that are in the
-exit path, specifically those with PF_EXITING set, to prevent needlessly
-killing additional tasks.  If a process is oom killed and the thread group
-leader exits, select_bad_process() cannot detect the other threads that
-are PF_EXITING by iterating over only processes.  Thus, it currently
-chooses another task unnecessarily for oom kill or panics the machine when
-nothing else is eligible.
-
-By iterating over threads instead, it is possible to detect threads that
-are exiting and nominate them for oom kill so they get access to memory
-reserves.
-
-Second, cef1d352 (oom: multi threaded process coredump don't make
-deadlock) erroneously avoids making the oom killer a no-op when an
-eligible thread other than current isfound to be exiting.  We want to
-detect this situation so that we may allow that exiting thread time to
-exit and free its memory; if it is able to exit on its own, that should
-free memory so current is no loner oom.  If it is not able to exit on its
-own, the oom killer will nominate it for oom kill which, in this case,
-only means it will get access to memory reserves.
-
-Without this change, it is easy for the oom killer to unnecessarily target
-tasks when all threads of a victim don't exit before the thread group
-leader or, in the worst case, panic the machine.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: <stable@kernel.org>		[2.6.38.x]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@kernel.org>		[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-prevent-unnecessary-oom-kills-or-kernel-panics mm/oom_kill.c
---- a/mm/oom_kill.c~oom-prevent-unnecessary-oom-kills-or-kernel-panics
-+++ a/mm/oom_kill.c
-@@ -292,11 +292,11 @@ static struct task_struct *select_bad_pr
- 		unsigned long totalpages, struct mem_cgroup *mem,
- 		const nodemask_t *nodemask)
- {
--	struct task_struct *p;
-+	struct task_struct *g, *p;
- 	struct task_struct *chosen = NULL;
- 	*ppoints = 0;
- 
--	for_each_process(p) {
-+	do_each_thread(g, p) {
- 		unsigned int points;
- 
- 		if (oom_unkillable_task(p, mem, nodemask))
-@@ -324,7 +324,7 @@ static struct task_struct *select_bad_pr
- 		 * the process of exiting and releasing its resources.
- 		 * Otherwise we could get an easy OOM deadlock.
- 		 */
--		if (thread_group_empty(p) && (p->flags & PF_EXITING) && p->mm) {
-+		if ((p->flags & PF_EXITING) && p->mm) {
- 			if (p != current)
- 				return ERR_PTR(-1UL);
- 
-@@ -337,7 +337,7 @@ static struct task_struct *select_bad_pr
- 			chosen = p;
- 			*ppoints = points;
- 		}
--	}
-+	} while_each_thread(g, p);
- 
- 	return chosen;
- }
+diff -puN mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles
++++ a/mm/swapfile.c
+@@ -2149,8 +2149,13 @@ bad_swap_2:
+ 	p->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+-	if (swap_file)
++	if (swap_file) {
++		if (did_down) {
++			mutex_unlock(&inode->i_mutex);
++			did_down = 0;
++		}
+ 		filp_close(swap_file, NULL);
++	}
+ out:
+ 	if (page && !IS_ERR(page)) {
+ 		kunmap(page);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
-memcg-give-current-access-to-memory-reserves-if-its-trying-to-die.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_sprintf_memlist-v2.patch
-cpuset-remove-unneeded-nodemask_alloc-in-cpuset_attch.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
-cpuset-fix-unchecked-calls-to-nodemask_alloc-v2.patch
-cpuset-hold-callback_mutex-in-cpuset_clone.patch
-sysctl-add-some-missing-input-constraint-checks.patch
 
