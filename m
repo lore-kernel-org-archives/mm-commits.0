@@ -1,352 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: [merged] adfs-add-hexadecimal-filetype-suffix-option.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:41:08 -0700
-Message-ID: <201103232044.p2NKiiUo029122@imap1.linux-foundation.org>
+Subject: [merged] zlib-slim-down-zlib_deflate-workspace-when-possible.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:41:18 -0700
+Message-ID: <201103232044.p2NKitgR029137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933299Ab1CWUpX (ORCPT
+	by vger.kernel.org with ESMTP id S933299Ab1CWUpd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:45:23 -0400
+	Wed, 23 Mar 2011 16:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stuart.swales.croftnuisk@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: jkenisto@linux.vnet.ibm.com, chris.mason@oracle.com, davem@davemloft.net, herbert@gondor.hengli.com.au, jkenisto@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adfs: add hexadecimal filetype suffix option
+     zlib: slim down zlib_deflate() workspace when possible
 has been removed from the -mm tree.  Its filename was
-     adfs-add-hexadecimal-filetype-suffix-option.patch
+     zlib-slim-down-zlib_deflate-workspace-when-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: add hexadecimal filetype suffix option
-From: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Subject: zlib: slim down zlib_deflate() workspace when possible
+From: Jim Keniston <jkenisto@linux.vnet.ibm.com>
 
-ADFS (FileCore) storage complies with the RISC OS filetype specification
-(12 bits of file type information is stored in the file load address,
-rather than using a file extension).  The existing driver largely ignores
-this information and does not present it to the end user.
+Instead of always creating a huge (268K) deflate_workspace with the
+maximum compression parameters (windowBits=15, memLevel=8), allow the
+caller to obtain a smaller workspace by specifying smaller parameter
+values.
 
-It is desirable that stored filetypes be made visible to the end user to
-facilitate a precise copy of data and metadata from a hard disc (or image
-thereof) into a RISC OS emulator (such as RPCEmu) or to a network share
-which can be accessed by real Acorn systems.
+For example, when capturing oops and panic reports to a medium with
+limited capacity, such as NVRAM, compression may be the only way to
+capture the whole report.  In this case, a small workspace (24K works
+fine) is a win, whether you allocate the workspace when you need it (i.e.,
+during an oops or panic) or at boot time.
 
-This patch implements a per-mount filetype suffix option (use -o
-ftsuffix=1) to present any filetype as a ,xyz hexadecimal suffix on each
-file.  This type suffix is compatible with that used by RISC OS systems
-that access network servers using NFS client software and by RPCemu's host
-filing system.
+I've verified that this patch works with all accepted values of windowBits
+(positive and negative), memLevel, and compression level.
 
-Signed-off-by: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David Miller <davem@davemloft.net>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/adfs.txt |   18 ++++++++++++++++++
- fs/adfs/adfs.h                     |   21 +++++++++++++++++++--
- fs/adfs/dir_f.c                    |   23 ++++++++++++++++++++---
- fs/adfs/dir_fplus.c                |   18 ++++++++++++++++++
- fs/adfs/inode.c                    |   22 ++++------------------
- fs/adfs/super.c                    |   23 ++++++++++++++++++++---
- 6 files changed, 99 insertions(+), 26 deletions(-)
+ crypto/deflate.c           |    3 ++-
+ crypto/zlib.c              |   18 +++++++++++-------
+ drivers/net/ppp_deflate.c  |    2 +-
+ fs/btrfs/zlib.c            |    3 ++-
+ fs/jffs2/compr_zlib.c      |    7 ++++---
+ fs/logfs/compr.c           |    2 +-
+ include/linux/zlib.h       |   11 ++++++++---
+ lib/zlib_deflate/deflate.c |   31 +++++++++++++++++++++++++++++--
+ lib/zlib_deflate/defutil.h |   17 +++++++++++++----
+ 9 files changed, 71 insertions(+), 23 deletions(-)
 
-diff -puN Documentation/filesystems/adfs.txt~adfs-add-hexadecimal-filetype-suffix-option Documentation/filesystems/adfs.txt
---- a/Documentation/filesystems/adfs.txt~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/Documentation/filesystems/adfs.txt
-@@ -9,6 +9,9 @@ Mount options for ADFS
- 		will be nnn.  Default 0700.
-   othmask=nnn	The permission mask for ADFS 'other' permissions
- 		will be nnn.  Default 0077.
-+  ftsuffix=n	When ftsuffix=0, no file type suffix will be applied.
-+		When ftsuffix=1, a hexadecimal suffix corresponding to
-+		the RISC OS file type will be added.  Default 0.
+diff -puN crypto/deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible crypto/deflate.c
+--- a/crypto/deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/crypto/deflate.c
+@@ -48,7 +48,8 @@ static int deflate_comp_init(struct defl
+ 	int ret = 0;
+ 	struct z_stream_s *stream = &ctx->comp_stream;
  
- Mapping of ADFS permissions to Linux permissions
- ------------------------------------------------
-@@ -55,3 +58,18 @@ Mapping of ADFS permissions to Linux per
+-	stream->workspace = vzalloc(zlib_deflate_workspacesize());
++	stream->workspace = vzalloc(zlib_deflate_workspacesize(
++				-DEFLATE_DEF_WINBITS, DEFLATE_DEF_MEMLEVEL));
+ 	if (!stream->workspace) {
+ 		ret = -ENOMEM;
+ 		goto out;
+diff -puN crypto/zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible crypto/zlib.c
+--- a/crypto/zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/crypto/zlib.c
+@@ -85,6 +85,7 @@ static int zlib_compress_setup(struct cr
+ 	struct zlib_ctx *ctx = crypto_tfm_ctx(crypto_pcomp_tfm(tfm));
+ 	struct z_stream_s *stream = &ctx->comp_stream;
+ 	struct nlattr *tb[ZLIB_COMP_MAX + 1];
++	int window_bits, mem_level;
+ 	size_t workspacesize;
+ 	int ret;
  
-   You can therefore tailor the permission translation to whatever you
-   desire the permissions should be under Linux.
-+
-+RISC OS file type suffix
-+------------------------
-+
-+  RISC OS file types are stored in bits 19..8 of the file load address.
-+
-+  To enable non-RISC OS systems to be used to store files without losing
-+  file type information, a file naming convention was devised (initially
-+  for use with NFS) such that a hexadecimal suffix of the form ,xyz
-+  denoted the file type: e.g. BasicFile,ffb is a BASIC (0xffb) file.  This
-+  naming convention is now also used by RISC OS emulators such as RPCEmu.
-+
-+  Mounting an ADFS disc with option ftsuffix=1 will cause appropriate file
-+  type suffixes to be appended to file names read from a directory.  If the
-+  ftsuffix option is zero or omitted, no file type suffixes will be added.
-diff -puN fs/adfs/adfs.h~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/adfs.h
-@@ -50,6 +50,7 @@ struct adfs_sb_info {
- 	gid_t		s_gid;		/* owner gid				 */
- 	umode_t		s_owner_mask;	/* ADFS owner perm -> unix perm		 */
- 	umode_t		s_other_mask;	/* ADFS other perm -> unix perm		 */
-+	int		s_ftsuffix;	/* ,xyz hex filetype suffix option */
+@@ -94,7 +95,14 @@ static int zlib_compress_setup(struct cr
  
- 	__u32		s_ids_per_zone;	/* max. no ids in one zone		 */
- 	__u32		s_idlen;	/* length of ID in map			 */
-@@ -93,7 +94,7 @@ struct adfs_dir {
- /*
-  * This is the overall maximum name length
-  */
--#define ADFS_MAX_NAME_LEN	256
-+#define ADFS_MAX_NAME_LEN	(256 + 4) /* +4 for ,xyz hex filetype suffix */
- struct object_info {
- 	__u32		parent_id;		/* parent object id	*/
- 	__u32		file_id;		/* object id		*/
-@@ -101,10 +102,26 @@ struct object_info {
- 	__u32		execaddr;		/* execution address	*/
- 	__u32		size;			/* size			*/
- 	__u8		attr;			/* RISC OS attributes	*/
--	unsigned char	name_len;		/* name length		*/
-+	unsigned int	name_len;		/* name length		*/
- 	char		name[ADFS_MAX_NAME_LEN];/* file name		*/
-+
-+	/* RISC OS file type (12-bit: derived from loadaddr) */
-+	__u16		filetype;
- };
+ 	zlib_comp_exit(ctx);
  
-+/* RISC OS 12-bit filetype converts to ,xyz hex filename suffix */
-+static inline int append_filetype_suffix(char *buf, __u16 filetype)
-+{
-+	if (filetype == -1)
-+		return 0;
+-	workspacesize = zlib_deflate_workspacesize();
++	window_bits = tb[ZLIB_COMP_WINDOWBITS]
++					? nla_get_u32(tb[ZLIB_COMP_WINDOWBITS])
++					: MAX_WBITS;
++	mem_level = tb[ZLIB_COMP_MEMLEVEL]
++					? nla_get_u32(tb[ZLIB_COMP_MEMLEVEL])
++					: DEF_MEM_LEVEL;
 +
-+	*buf++ = ',';
-+	*buf++ = hex_asc_lo(filetype >> 8);
-+	*buf++ = hex_asc_lo(filetype >> 4);
-+	*buf++ = hex_asc_lo(filetype >> 0);
-+	return 4;
-+}
-+
- struct adfs_dir_ops {
- 	int	(*read)(struct super_block *sb, unsigned int id, unsigned int sz, struct adfs_dir *dir);
- 	int	(*setpos)(struct adfs_dir *dir, unsigned int fpos);
-diff -puN fs/adfs/dir_f.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/dir_f.c
---- a/fs/adfs/dir_f.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/dir_f.c
-@@ -52,7 +52,6 @@ static inline int adfs_readname(char *bu
- 			*buf++ = *ptr;
- 		ptr++;
- 	}
--	*buf = '\0';
++	workspacesize = zlib_deflate_workspacesize(window_bits, mem_level);
+ 	stream->workspace = vzalloc(workspacesize);
+ 	if (!stream->workspace)
+ 		return -ENOMEM;
+@@ -106,12 +114,8 @@ static int zlib_compress_setup(struct cr
+ 				tb[ZLIB_COMP_METHOD]
+ 					? nla_get_u32(tb[ZLIB_COMP_METHOD])
+ 					: Z_DEFLATED,
+-				tb[ZLIB_COMP_WINDOWBITS]
+-					? nla_get_u32(tb[ZLIB_COMP_WINDOWBITS])
+-					: MAX_WBITS,
+-				tb[ZLIB_COMP_MEMLEVEL]
+-					? nla_get_u32(tb[ZLIB_COMP_MEMLEVEL])
+-					: DEF_MEM_LEVEL,
++				window_bits,
++				mem_level,
+ 				tb[ZLIB_COMP_STRATEGY]
+ 					? nla_get_u32(tb[ZLIB_COMP_STRATEGY])
+ 					: Z_DEFAULT_STRATEGY);
+diff -puN drivers/net/ppp_deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible drivers/net/ppp_deflate.c
+--- a/drivers/net/ppp_deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/drivers/net/ppp_deflate.c
+@@ -129,7 +129,7 @@ static void *z_comp_alloc(unsigned char 
  
- 	return buf - old_buf;
- }
-@@ -208,7 +207,8 @@ release_buffers:
-  * convert a disk-based directory entry to a Linux ADFS directory entry
-  */
- static inline void
--adfs_dir2obj(struct object_info *obj, struct adfs_direntry *de)
-+adfs_dir2obj(struct adfs_dir *dir, struct object_info *obj,
-+	struct adfs_direntry *de)
+ 	state->strm.next_in   = NULL;
+ 	state->w_size         = w_size;
+-	state->strm.workspace = vmalloc(zlib_deflate_workspacesize());
++	state->strm.workspace = vmalloc(zlib_deflate_workspacesize(-w_size, 8));
+ 	if (state->strm.workspace == NULL)
+ 		goto out_free;
+ 
+diff -puN fs/btrfs/zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible fs/btrfs/zlib.c
+--- a/fs/btrfs/zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/fs/btrfs/zlib.c
+@@ -57,7 +57,8 @@ static struct list_head *zlib_alloc_work
+ 	if (!workspace)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	workspace->def_strm.workspace = vmalloc(zlib_deflate_workspacesize());
++	workspace->def_strm.workspace = vmalloc(zlib_deflate_workspacesize(
++						MAX_WBITS, MAX_MEM_LEVEL));
+ 	workspace->inf_strm.workspace = vmalloc(zlib_inflate_workspacesize());
+ 	workspace->buf = kmalloc(PAGE_CACHE_SIZE, GFP_NOFS);
+ 	if (!workspace->def_strm.workspace ||
+diff -puN fs/jffs2/compr_zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible fs/jffs2/compr_zlib.c
+--- a/fs/jffs2/compr_zlib.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/fs/jffs2/compr_zlib.c
+@@ -40,12 +40,13 @@ static z_stream inf_strm, def_strm;
+ 
+ static int __init alloc_workspaces(void)
  {
- 	obj->name_len =	adfs_readname(obj->name, de->dirobname, ADFS_F_NAME_LEN);
- 	obj->file_id  = adfs_readval(de->dirinddiscadd, 3);
-@@ -216,6 +216,23 @@ adfs_dir2obj(struct object_info *obj, st
- 	obj->execaddr = adfs_readval(de->direxec, 4);
- 	obj->size     = adfs_readval(de->dirlen,  4);
- 	obj->attr     = de->newdiratts;
-+	obj->filetype = -1;
-+
-+	/*
-+	 * object is a file and is filetyped and timestamped?
-+	 * RISC OS 12-bit filetype is stored in load_address[19:8]
-+	 */
-+	if ((0 == (obj->attr & ADFS_NDA_DIRECTORY)) &&
-+		(0xfff00000 == (0xfff00000 & obj->loadaddr))) {
-+		obj->filetype = (__u16) ((0x000fff00 & obj->loadaddr) >> 8);
-+
-+		/* optionally append the ,xyz hex filetype suffix */
-+		if (ADFS_SB(dir->sb)->s_ftsuffix)
-+			obj->name_len +=
-+				append_filetype_suffix(
-+					&obj->name[obj->name_len],
-+					obj->filetype);
-+	}
- }
+-	def_strm.workspace = vmalloc(zlib_deflate_workspacesize());
++	def_strm.workspace = vmalloc(zlib_deflate_workspacesize(MAX_WBITS,
++							MAX_MEM_LEVEL));
+ 	if (!def_strm.workspace) {
+-		printk(KERN_WARNING "Failed to allocate %d bytes for deflate workspace\n", zlib_deflate_workspacesize());
++		printk(KERN_WARNING "Failed to allocate %d bytes for deflate workspace\n", zlib_deflate_workspacesize(MAX_WBITS, MAX_MEM_LEVEL));
+ 		return -ENOMEM;
+ 	}
+-	D1(printk(KERN_DEBUG "Allocated %d bytes for deflate workspace\n", zlib_deflate_workspacesize()));
++	D1(printk(KERN_DEBUG "Allocated %d bytes for deflate workspace\n", zlib_deflate_workspacesize(MAX_WBITS, MAX_MEM_LEVEL)));
+ 	inf_strm.workspace = vmalloc(zlib_inflate_workspacesize());
+ 	if (!inf_strm.workspace) {
+ 		printk(KERN_WARNING "Failed to allocate %d bytes for inflate workspace\n", zlib_inflate_workspacesize());
+diff -puN fs/logfs/compr.c~zlib-slim-down-zlib_deflate-workspace-when-possible fs/logfs/compr.c
+--- a/fs/logfs/compr.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/fs/logfs/compr.c
+@@ -81,7 +81,7 @@ error:
  
- /*
-@@ -260,7 +277,7 @@ __adfs_dir_get(struct adfs_dir *dir, int
- 	if (!de.dirobname[0])
- 		return -ENOENT;
- 
--	adfs_dir2obj(obj, &de);
-+	adfs_dir2obj(dir, obj, &de);
- 
- 	return 0;
- }
-diff -puN fs/adfs/dir_fplus.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/dir_fplus.c
-@@ -197,6 +197,24 @@ adfs_fplus_getnext(struct adfs_dir *dir,
- 		if (obj->name[i] == '/')
- 			obj->name[i] = '.';
- 
-+	obj->filetype = -1;
-+
-+	/*
-+	 * object is a file and is filetyped and timestamped?
-+	 * RISC OS 12-bit filetype is stored in load_address[19:8]
-+	 */
-+	if ((0 == (obj->attr & ADFS_NDA_DIRECTORY)) &&
-+		(0xfff00000 == (0xfff00000 & obj->loadaddr))) {
-+		obj->filetype = (__u16) ((0x000fff00 & obj->loadaddr) >> 8);
-+
-+		/* optionally append the ,xyz hex filetype suffix */
-+		if (ADFS_SB(dir->sb)->s_ftsuffix)
-+			obj->name_len +=
-+				append_filetype_suffix(
-+					&obj->name[obj->name_len],
-+					obj->filetype);
-+	}
-+
- 	dir->pos += 1;
- 	ret = 0;
- out:
-diff -puN fs/adfs/inode.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/inode.c
---- a/fs/adfs/inode.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/inode.c
-@@ -78,26 +78,13 @@ static const struct address_space_operat
- 	.bmap		= _adfs_bmap
- };
- 
--static inline unsigned int
--adfs_filetype(struct inode *inode)
--{
--	unsigned int type;
--
--	if (ADFS_I(inode)->stamped)
--		type = (ADFS_I(inode)->loadaddr >> 8) & 0xfff;
--	else
--		type = (unsigned int) -1;
--
--	return type;
--}
--
- /*
-  * Convert ADFS attributes and filetype to Linux permission.
-  */
- static umode_t
- adfs_atts2mode(struct super_block *sb, struct inode *inode)
+ int __init logfs_compr_init(void)
  {
--	unsigned int filetype, attr = ADFS_I(inode)->attr;
-+	unsigned int attr = ADFS_I(inode)->attr;
- 	umode_t mode, rmask;
- 	struct adfs_sb_info *asb = ADFS_SB(sb);
+-	size_t size = max(zlib_deflate_workspacesize(),
++	size_t size = max(zlib_deflate_workspacesize(MAX_WBITS, MAX_MEM_LEVEL),
+ 			zlib_inflate_workspacesize());
+ 	stream.workspace = vmalloc(size);
+ 	if (!stream.workspace)
+diff -puN include/linux/zlib.h~zlib-slim-down-zlib_deflate-workspace-when-possible include/linux/zlib.h
+--- a/include/linux/zlib.h~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/include/linux/zlib.h
+@@ -179,11 +179,16 @@ typedef z_stream *z_streamp;
  
-@@ -106,9 +93,7 @@ adfs_atts2mode(struct super_block *sb, s
- 		return S_IFDIR | S_IXUGO | mode;
- 	}
+                         /* basic functions */
  
--	filetype = adfs_filetype(inode);
--
--	switch (filetype) {
-+	switch (ADFS_I(inode)->filetype) {
- 	case 0xfc0:	/* LinkFS */
- 		return S_IFLNK|S_IRWXUGO;
+-extern int zlib_deflate_workspacesize (void);
++extern int zlib_deflate_workspacesize (int windowBits, int memLevel);
+ /*
+    Returns the number of bytes that needs to be allocated for a per-
+-   stream workspace.  A pointer to this number of bytes should be
+-   returned in stream->workspace before calling zlib_deflateInit().
++   stream workspace with the specified parameters.  A pointer to this
++   number of bytes should be returned in stream->workspace before
++   you call zlib_deflateInit() or zlib_deflateInit2().  If you call
++   zlib_deflateInit(), specify windowBits = MAX_WBITS and memLevel =
++   MAX_MEM_LEVEL here.  If you call zlib_deflateInit2(), the windowBits
++   and memLevel parameters passed to zlib_deflateInit2() must not
++   exceed those passed here.
+ */
  
-@@ -277,7 +262,8 @@ adfs_iget(struct super_block *sb, struct
- 	ADFS_I(inode)->loadaddr  = obj->loadaddr;
- 	ADFS_I(inode)->execaddr  = obj->execaddr;
- 	ADFS_I(inode)->attr      = obj->attr;
--	ADFS_I(inode)->stamped	  = ((obj->loadaddr & 0xfff00000) == 0xfff00000);
-+	ADFS_I(inode)->filetype  = obj->filetype;
-+	ADFS_I(inode)->stamped   = ((obj->loadaddr & 0xfff00000) == 0xfff00000);
+ /* 
+diff -puN lib/zlib_deflate/deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible lib/zlib_deflate/deflate.c
+--- a/lib/zlib_deflate/deflate.c~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/lib/zlib_deflate/deflate.c
+@@ -176,6 +176,7 @@ int zlib_deflateInit2(
+     deflate_state *s;
+     int noheader = 0;
+     deflate_workspace *mem;
++    char *next;
  
- 	inode->i_mode	 = adfs_atts2mode(sb, inode);
- 	adfs_adfs2unix_time(&inode->i_mtime, inode);
-diff -puN fs/adfs/super.c~adfs-add-hexadecimal-filetype-suffix-option fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-add-hexadecimal-filetype-suffix-option
-+++ a/fs/adfs/super.c
-@@ -138,17 +138,20 @@ static int adfs_show_options(struct seq_
- 		seq_printf(seq, ",ownmask=%o", asb->s_owner_mask);
- 	if (asb->s_other_mask != ADFS_DEFAULT_OTHER_MASK)
- 		seq_printf(seq, ",othmask=%o", asb->s_other_mask);
-+	if (asb->s_ftsuffix != 0)
-+		seq_printf(seq, ",ftsuffix=%u", asb->s_ftsuffix);
- 
- 	return 0;
+     ush *overlay;
+     /* We overlay pending_buf and d_buf+l_buf. This works since the average
+@@ -199,6 +200,21 @@ int zlib_deflateInit2(
+ 	strategy < 0 || strategy > Z_HUFFMAN_ONLY) {
+         return Z_STREAM_ERROR;
+     }
++
++    /*
++     * Direct the workspace's pointers to the chunks that were allocated
++     * along with the deflate_workspace struct.
++     */
++    next = (char *) mem;
++    next += sizeof(*mem);
++    mem->window_memory = (Byte *) next;
++    next += zlib_deflate_window_memsize(windowBits);
++    mem->prev_memory = (Pos *) next;
++    next += zlib_deflate_prev_memsize(windowBits);
++    mem->head_memory = (Pos *) next;
++    next += zlib_deflate_head_memsize(memLevel);
++    mem->overlay_memory = next;
++
+     s = (deflate_state *) &(mem->deflate_memory);
+     strm->state = (struct internal_state *)s;
+     s->strm = strm;
+@@ -1247,7 +1263,18 @@ static block_state deflate_slow(
+     return flush == Z_FINISH ? finish_done : block_done;
  }
  
--enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_err};
-+enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_ftsuffix, Opt_err};
+-int zlib_deflate_workspacesize(void)
++int zlib_deflate_workspacesize(int windowBits, int memLevel)
+ {
+-    return sizeof(deflate_workspace);
++    if (windowBits < 0) /* undocumented feature: suppress zlib header */
++        windowBits = -windowBits;
++
++    /* Since the return value is typically passed to vmalloc() unchecked... */
++    BUG_ON(memLevel < 1 || memLevel > MAX_MEM_LEVEL || windowBits < 9 ||
++    							windowBits > 15);
++
++    return sizeof(deflate_workspace)
++        + zlib_deflate_window_memsize(windowBits)
++        + zlib_deflate_prev_memsize(windowBits)
++        + zlib_deflate_head_memsize(memLevel)
++        + zlib_deflate_overlay_memsize(memLevel);
+ }
+diff -puN lib/zlib_deflate/defutil.h~zlib-slim-down-zlib_deflate-workspace-when-possible lib/zlib_deflate/defutil.h
+--- a/lib/zlib_deflate/defutil.h~zlib-slim-down-zlib_deflate-workspace-when-possible
++++ a/lib/zlib_deflate/defutil.h
+@@ -241,12 +241,21 @@ typedef struct deflate_state {
+ typedef struct deflate_workspace {
+     /* State memory for the deflator */
+     deflate_state deflate_memory;
+-    Byte window_memory[2 * (1 << MAX_WBITS)];
+-    Pos prev_memory[1 << MAX_WBITS];
+-    Pos head_memory[1 << (MAX_MEM_LEVEL + 7)];
+-    char overlay_memory[(1 << (MAX_MEM_LEVEL + 6)) * (sizeof(ush)+2)];
++    Byte *window_memory;
++    Pos *prev_memory;
++    Pos *head_memory;
++    char *overlay_memory;
+ } deflate_workspace;
  
- static const match_table_t tokens = {
- 	{Opt_uid, "uid=%u"},
- 	{Opt_gid, "gid=%u"},
- 	{Opt_ownmask, "ownmask=%o"},
- 	{Opt_othmask, "othmask=%o"},
-+	{Opt_ftsuffix, "ftsuffix=%u"},
- 	{Opt_err, NULL}
- };
- 
-@@ -189,6 +192,11 @@ static int parse_options(struct super_bl
- 				return -EINVAL;
- 			asb->s_other_mask = option;
- 			break;
-+		case Opt_ftsuffix:
-+			if (match_int(args, &option))
-+				return -EINVAL;
-+			asb->s_ftsuffix = option;
-+			break;
- 		default:
- 			printk("ADFS-fs: unrecognised mount option \"%s\" "
- 					"or missing value\n", p);
-@@ -366,6 +374,7 @@ static int adfs_fill_super(struct super_
- 	asb->s_gid = 0;
- 	asb->s_owner_mask = ADFS_DEFAULT_OWNER_MASK;
- 	asb->s_other_mask = ADFS_DEFAULT_OTHER_MASK;
-+	asb->s_ftsuffix = 0;
- 
- 	if (parse_options(sb, data))
- 		goto error;
-@@ -445,11 +454,13 @@ static int adfs_fill_super(struct super_
- 
- 	root_obj.parent_id = root_obj.file_id = le32_to_cpu(dr->root);
- 	root_obj.name_len  = 0;
--	root_obj.loadaddr  = 0;
--	root_obj.execaddr  = 0;
-+	/* Set root object date as 01 Jan 1987 00:00:00 */
-+	root_obj.loadaddr  = 0xfff0003f;
-+	root_obj.execaddr  = 0xec22c000;
- 	root_obj.size	   = ADFS_NEWDIR_SIZE;
- 	root_obj.attr	   = ADFS_NDA_DIRECTORY   | ADFS_NDA_OWNER_READ |
- 			     ADFS_NDA_OWNER_WRITE | ADFS_NDA_PUBLIC_READ;
-+	root_obj.filetype  = -1;
- 
- 	/*
- 	 * If this is a F+ disk with variable length directories,
-@@ -463,6 +474,12 @@ static int adfs_fill_super(struct super_
- 		asb->s_dir     = &adfs_f_dir_ops;
- 		asb->s_namelen = ADFS_F_NAME_LEN;
- 	}
-+	/*
-+	 * ,xyz hex filetype suffix may be added by driver
-+	 * to files that have valid RISC OS filetype
-+	 */
-+	if (asb->s_ftsuffix)
-+		asb->s_namelen += 4;
- 
- 	sb->s_d_op = &adfs_dentry_operations;
- 	root = adfs_iget(sb, &root_obj);
++#define zlib_deflate_window_memsize(windowBits) \
++	(2 * (1 << (windowBits)) * sizeof(Byte))
++#define zlib_deflate_prev_memsize(windowBits) \
++	((1 << (windowBits)) * sizeof(Pos))
++#define zlib_deflate_head_memsize(memLevel) \
++	((1 << ((memLevel)+7)) * sizeof(Pos))
++#define zlib_deflate_overlay_memsize(memLevel) \
++	((1 << ((memLevel)+6)) * (sizeof(ush)+2))
++
+ /* Output a byte on the stream.
+  * IN assertion: there is enough room in pending_buf.
+  */
 _
 
-Patches currently in -mm which might be from stuart.swales.croftnuisk@gmail.com are
+Patches currently in -mm which might be from jkenisto@linux.vnet.ibm.com are
 
 origin.patch
 
