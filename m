@@ -1,108 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:32:39 -0700
-Message-ID: <201103232036.p2NKaFQE028092@imap1.linux-foundation.org>
+Subject: [merged] leds-convert-bd2802-driver-to-dev_pm_ops.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:32:52 -0700
+Message-ID: <201103232036.p2NKaS7h028123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933310Ab1CWUgy (ORCPT
+	by vger.kernel.org with ESMTP id S933375Ab1CWUhT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:36:54 -0400
+	Wed, 23 Mar 2011 16:37:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, hughd@google.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
+     leds: convert bd2802 driver to dev_pm_ops
 has been removed from the -mm tree.  Its filename was
-     mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles.patch
+     leds-convert-bd2802-driver-to-dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: swap: unlock swapfile inode mutex before closing file on bad swapfiles
-From: Mel Gorman <mgorman@suse.de>
+Subject: leds: convert bd2802 driver to dev_pm_ops
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-If an administrator tries to swapon a file backed by NFS, the inode mutex is
-taken (as it is for any swapfile) but later identified to be a bad swapfile
-due to the lack of bmap and tries to cleanup. During cleanup, an attempt is
-made to close the file but with inode->i_mutex still held. Closing an NFS
-file syncs it which tries to acquire the inode mutex leading to deadlock. If
-lockdep is enabled the following appears on the console;
+There is a move to deprecate bus-specific PM operations and move to using
+dev_pm_ops instead in order to reduce the amount of boilerplate code in
+buses and facilitiate updates to the PM core.  Do this move for the bs2802
+driver.
 
-[  120.968832] =============================================
-[  120.972757] [ INFO: possible recursive locking detected ]
-[  120.972757] 2.6.38-rc8-autobuild #1
-[  120.972757] ---------------------------------------------
-[  120.972757] swapon/2192 is trying to acquire lock:
-[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff81130652>] vfs_fsync_range+0x47/0x7c
-[  120.972757]
-[  120.972757] but task is already holding lock:
-[  120.972757]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
-[  120.972757]
-[  120.972757] other info that might help us debug this:
-[  120.972757] 1 lock held by swapon/2192:
-[  120.972757]  #0:  (&sb->s_type->i_mutex_key#13){+.+.+.}, at: [<ffffffff810f9405>] sys_swapon+0x28d/0xae7
-[  120.972757]
-[  120.972757] stack backtrace:
-[  120.972757] Pid: 2192, comm: swapon Not tainted 2.6.38-rc8-autobuild #1
-[  120.972757] Call Trace:
-[  120.972757]  [<ffffffff81075ca8>] ? __lock_acquire+0x2eb/0x1623
-[  120.972757]  [<ffffffff810cd5ad>] ? find_get_pages_tag+0x14a/0x174
-[  120.972757]  [<ffffffff810d6d01>] ? pagevec_lookup_tag+0x25/0x2e
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff810770b3>] ? lock_acquire+0xd3/0x100
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffffa03df8ab>] ? nfs_flush_one+0x0/0xdf [nfs]
-[  120.972757]  [<ffffffff81309cdf>] ? mutex_lock_nested+0x40/0x2b1
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff81130652>] ? vfs_fsync_range+0x47/0x7c
-[  120.972757]  [<ffffffff811306e6>] ? vfs_fsync+0x1c/0x1e
-[  120.972757]  [<ffffffffa03d0c87>] ? nfs_file_flush+0x64/0x69 [nfs]
-[  120.972757]  [<ffffffff811097c9>] ? filp_close+0x43/0x72
-[  120.972757]  [<ffffffff810f9bb1>] ? sys_swapon+0xa39/0xae7
-[  120.972757]  [<ffffffff81002b7a>] ? sysret_check+0x2e/0x69
-[  120.972757]  [<ffffffff81002b42>] ? system_call_fastpath+0x16/0x1b
-
-This patch releases the mutex if its held before calling filep_close()
-so swapon fails as expected without deadlock when the swapfile is backed
-by NFS.  If accepted for 2.6.39, it should also be considered a -stable
-candidate for 2.6.38 and 2.6.37.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@kernel.org>		[2.6.37+]
+[akpm@linux-foundation.org: fix warnings]
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Kim Kyuwon <q1.kim@samsung.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/leds/leds-bd2802.c |   47 ++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-unlock-swapfile-inode-mutex-before-closing-file-on-bad-swapfiles
-+++ a/mm/swapfile.c
-@@ -2149,8 +2149,13 @@ bad_swap_2:
- 	p->flags = 0;
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
--	if (swap_file)
-+	if (swap_file) {
-+		if (did_down) {
-+			mutex_unlock(&inode->i_mutex);
-+			did_down = 0;
-+		}
- 		filp_close(swap_file, NULL);
+diff -puN drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops
++++ a/drivers/leds/leds-bd2802.c
+@@ -19,7 +19,7 @@
+ #include <linux/leds.h>
+ #include <linux/leds-bd2802.h>
+ #include <linux/slab.h>
+-
++#include <linux/pm.h>
+ 
+ #define LED_CTL(rgb2en, rgb1en) ((rgb2en) << 4 | ((rgb1en) << 0))
+ 
+@@ -319,20 +319,6 @@ static void bd2802_turn_off(struct bd280
+ 	bd2802_update_state(led, id, color, BD2802_OFF);
+ }
+ 
+-static void bd2802_restore_state(struct bd2802_led *led)
+-{
+-	int i;
+-
+-	for (i = 0; i < LED_NUM; i++) {
+-		if (led->led[i].r)
+-			bd2802_turn_on(led, i, RED, led->led[i].r);
+-		if (led->led[i].g)
+-			bd2802_turn_on(led, i, GREEN, led->led[i].g);
+-		if (led->led[i].b)
+-			bd2802_turn_on(led, i, BLUE, led->led[i].b);
+-	}
+-}
+-
+ #define BD2802_SET_REGISTER(reg_addr, reg_name)				\
+ static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
+ 	struct device_attribute *attr, const char *buf, size_t count)	\
+@@ -761,8 +747,25 @@ static int __exit bd2802_remove(struct i
+ 	return 0;
+ }
+ 
+-static int bd2802_suspend(struct i2c_client *client, pm_message_t mesg)
++#ifdef CONFIG_PM
++
++static void bd2802_restore_state(struct bd2802_led *led)
+ {
++	int i;
++
++	for (i = 0; i < LED_NUM; i++) {
++		if (led->led[i].r)
++			bd2802_turn_on(led, i, RED, led->led[i].r);
++		if (led->led[i].g)
++			bd2802_turn_on(led, i, GREEN, led->led[i].g);
++		if (led->led[i].b)
++			bd2802_turn_on(led, i, BLUE, led->led[i].b);
 +	}
- out:
- 	if (page && !IS_ERR(page)) {
- 		kunmap(page);
++}
++
++static int bd2802_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct bd2802_led *led = i2c_get_clientdata(client);
+ 
+ 	gpio_set_value(led->pdata->reset_gpio, 0);
+@@ -770,8 +773,9 @@ static int bd2802_suspend(struct i2c_cli
+ 	return 0;
+ }
+ 
+-static int bd2802_resume(struct i2c_client *client)
++static int bd2802_resume(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct bd2802_led *led = i2c_get_clientdata(client);
+ 
+ 	if (!bd2802_is_all_off(led) || led->adf_on) {
+@@ -782,6 +786,12 @@ static int bd2802_resume(struct i2c_clie
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
++#define BD2802_PM (&bd2802_pm)
++#else		/* CONFIG_PM */
++#define BD2802_PM NULL
++#endif
++
+ static const struct i2c_device_id bd2802_id[] = {
+ 	{ "BD2802", 0 },
+ 	{ }
+@@ -791,11 +801,10 @@ MODULE_DEVICE_TABLE(i2c, bd2802_id);
+ static struct i2c_driver bd2802_i2c_driver = {
+ 	.driver	= {
+ 		.name	= "BD2802",
++		.pm	= BD2802_PM,
+ 	},
+ 	.probe		= bd2802_probe,
+ 	.remove		= __exit_p(bd2802_remove),
+-	.suspend	= bd2802_suspend,
+-	.resume		= bd2802_resume,
+ 	.id_table	= bd2802_id,
+ };
+ 
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 origin.patch
+linux-next.patch
 
