@@ -1,85 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_swapon-remove-nr_good_pages-variable.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:37:52 -0700
-Message-ID: <201103232041.p2NKfSqk028647@imap1.linux-foundation.org>
+Subject: [merged] um-remove-file-pointer-from-ioctl.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:38:23 -0700
+Message-ID: <201103232042.p2NKfxSO028704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933527Ab1CWUzd (ORCPT
+	by vger.kernel.org with ESMTP id S933344Ab1CWUze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:33 -0400
+	Wed, 23 Mar 2011 16:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: richard@nod.at, alan@lxorguk.ukuu.org.uk, greg@kroah.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_swapon: remove nr_good_pages variable
+     um: remove file pointer from ioctl
 has been removed from the -mm tree.  Its filename was
-     sys_swapon-remove-nr_good_pages-variable.patch
+     um-remove-file-pointer-from-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: remove nr_good_pages variable
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: um: remove file pointer from ioctl
+From: Richard Weinberger <richard@nod.at>
 
-It still exists within setup_swap_map_and_extents(), but after it
-nr_good_pages == p->pages.
+Commit 6caa76b ("tty: now phase out the ioctl file pointer for good")
+removed the ioctl file pointer.  User Mode Linux's line driver uses this
+ioctl and needs a signature update too.
 
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Tested-by: Eric B Munson <emunson@mgebm.net>
-Acked-by: Eric B Munson <emunson@mgebm.net>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/um/drivers/line.c        |    4 ++--
+ arch/um/include/shared/line.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-remove-nr_good_pages-variable mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-remove-nr_good_pages-variable
-+++ a/mm/swapfile.c
-@@ -2039,7 +2039,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	int i, prev;
- 	int error;
- 	union swap_header *swap_header;
--	unsigned int nr_good_pages;
- 	int nr_extents;
- 	sector_t span;
- 	unsigned long maxpages;
-@@ -2123,7 +2122,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		error = nr_extents;
- 		goto bad_swap;
- 	}
--	nr_good_pages = p->pages;
+diff -puN arch/um/drivers/line.c~um-remove-file-pointer-from-ioctl arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~um-remove-file-pointer-from-ioctl
++++ a/arch/um/drivers/line.c
+@@ -255,8 +255,8 @@ static const struct {
+ 	{ KDSIGACCEPT, KERN_INFO,  "KDSIGACCEPT" },
+ };
  
- 	if (p->bdev) {
- 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
-@@ -2143,12 +2141,12 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		p->prio = --least_priority;
- 	p->swap_map = swap_map;
- 	p->flags |= SWP_WRITEOK;
--	nr_swap_pages += nr_good_pages;
--	total_swap_pages += nr_good_pages;
-+	nr_swap_pages += p->pages;
-+	total_swap_pages += p->pages;
+-int line_ioctl(struct tty_struct *tty, struct file * file,
+-	       unsigned int cmd, unsigned long arg)
++int line_ioctl(struct tty_struct *tty, unsigned int cmd,
++				unsigned long arg)
+ {
+ 	int ret;
+ 	int i;
+diff -puN arch/um/include/shared/line.h~um-remove-file-pointer-from-ioctl arch/um/include/shared/line.h
+--- a/arch/um/include/shared/line.h~um-remove-file-pointer-from-ioctl
++++ a/arch/um/include/shared/line.h
+@@ -77,8 +77,8 @@ extern int line_chars_in_buffer(struct t
+ extern void line_flush_buffer(struct tty_struct *tty);
+ extern void line_flush_chars(struct tty_struct *tty);
+ extern int line_write_room(struct tty_struct *tty);
+-extern int line_ioctl(struct tty_struct *tty, struct file * file,
+-		      unsigned int cmd, unsigned long arg);
++extern int line_ioctl(struct tty_struct *tty, unsigned int cmd,
++				unsigned long arg);
+ extern void line_throttle(struct tty_struct *tty);
+ extern void line_unthrottle(struct tty_struct *tty);
  
- 	printk(KERN_INFO "Adding %uk swap on %s.  "
- 			"Priority:%d extents:%d across:%lluk %s%s\n",
--		nr_good_pages<<(PAGE_SHIFT-10), name, p->prio,
-+		p->pages<<(PAGE_SHIFT-10), name, p->prio,
- 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
- 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
- 		(p->flags & SWP_DISCARDABLE) ? "D" : "");
 _
 
-Patches currently in -mm which might be from cesarb@cesarb.net are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
+sysctl-restrict-write-access-to-dmesg_restrict.patch
 
