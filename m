@@ -1,211 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-numa-aware-kthread_create_on_cpu.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:45 -0700
-Message-ID: <201103232037.p2NKbL9p028231__3799.28123807094$1300913847$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:36:40 -0700
+Message-ID: <201103232040.p2NKeGTd028513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933540Ab1CWU5O (ORCPT
+	by vger.kernel.org with ESMTP id S933540Ab1CWU5U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:57:14 -0400
+	Wed, 23 Mar 2011 16:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, ak@linux.intel.com, davem@davemloft.net, dhowells@redhat.com, fenghua.yu@intel.com, linux-arch@vger.kernel.org, rusty@rustcorp.com.au, tj@kernel.org, tony.luck
+To: dave@linux.vnet.ibm.com, aarcange@redhat.com, emunson@mgebm.net, hannes@cmpxchg.org, jeremy@goop.org, mel@csn.ul.ie, mjwolf@us.ibm.com, mpm@selenic.com, rientjes@google.com, mm-commit
 
 
 The patch titled
-     kthread: NUMA aware kthread_create_on_node()
+     smaps: pass pte size argument in to smaps_pte_entry()
 has been removed from the -mm tree.  Its filename was
-     kthread-numa-aware-kthread_create_on_cpu.patch
+     smaps-pass-pte-size-argument-in-to-smaps_pte_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: NUMA aware kthread_create_on_node()
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: smaps: pass pte size argument in to smaps_pte_entry()
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-All kthreads being created from a single helper task, they all use memory
-from a single node for their kernel stack and task struct.
+Add an argument to the new smaps_pte_entry() function to let it account in
+things other than PAGE_SIZE units.  I changed all of the PAGE_SIZE sites,
+even though not all of them can be reached for transparent huge pages,
+just so this will continue to work without changes as THPs are improved.
 
-This patch suite creates kthread_create_on_node(), adding a 'cpu' parameter
-to parameters already used by kthread_create().
-
-This parameter serves in allocating memory for the new kthread on its
-memory node if possible.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Eric B Munson <emunson@mgebm.net>
+Tested-by: Eric B Munson <emunson@mgebm.net>
+Cc: Michael J Wolf <mjwolf@us.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |   14 ++++++++++----
- include/linux/sched.h   |    1 +
- kernel/fork.c           |    3 ++-
- kernel/kthread.c        |   31 +++++++++++++++++++++++++------
- 4 files changed, 38 insertions(+), 11 deletions(-)
+ fs/proc/task_mmu.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-numa-aware-kthread_create_on_cpu
-+++ a/include/linux/kthread.h
-@@ -4,10 +4,15 @@
- #include <linux/err.h>
- #include <linux/sched.h>
+diff -puN fs/proc/task_mmu.c~smaps-pass-pte-size-argument-in-to-smaps_pte_entry fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-pass-pte-size-argument-in-to-smaps_pte_entry
++++ a/fs/proc/task_mmu.c
+@@ -335,7 +335,7 @@ struct mem_size_stats {
  
--struct task_struct *kthread_create(int (*threadfn)(void *data),
--				   void *data,
--				   const char namefmt[], ...)
--	__attribute__((format(printf, 3, 4)));
-+struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
-+					   void *data,
-+					   int node,
-+					   const char namefmt[], ...)
-+	__attribute__((format(printf, 4, 5)));
-+
-+#define kthread_create(threadfn, data, namefmt, arg...) \
-+	kthread_create_on_node(threadfn, data, -1, namefmt, ##arg)
-+
  
- /**
-  * kthread_run - create and wake a thread.
-@@ -34,6 +39,7 @@ void *kthread_data(struct task_struct *k
- 
- int kthreadd(void *unused);
- extern struct task_struct *kthreadd_task;
-+extern int tsk_fork_get_node(struct task_struct *tsk);
- 
- /*
-  * Simple work processor based on kthread.
-diff -puN include/linux/sched.h~kthread-numa-aware-kthread_create_on_cpu include/linux/sched.h
---- a/include/linux/sched.h~kthread-numa-aware-kthread_create_on_cpu
-+++ a/include/linux/sched.h
-@@ -1471,6 +1471,7 @@ struct task_struct {
- #ifdef CONFIG_NUMA
- 	struct mempolicy *mempolicy;	/* Protected by alloc_lock */
- 	short il_next;
-+	short pref_node_fork;
- #endif
- 	atomic_t fs_excl;	/* holding fs exclusive resources */
- 	struct rcu_head rcu;
-diff -puN kernel/fork.c~kthread-numa-aware-kthread_create_on_cpu kernel/fork.c
---- a/kernel/fork.c~kthread-numa-aware-kthread_create_on_cpu
-+++ a/kernel/fork.c
-@@ -40,6 +40,7 @@
- #include <linux/tracehook.h>
- #include <linux/futex.h>
- #include <linux/compat.h>
-+#include <linux/kthread.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/rcupdate.h>
- #include <linux/ptrace.h>
-@@ -254,7 +255,7 @@ static struct task_struct *dup_task_stru
- 	struct task_struct *tsk;
- 	struct thread_info *ti;
- 	unsigned long *stackend;
--	int node = numa_node_id();
-+	int node = tsk_fork_get_node(orig);
- 	int err;
- 
- 	prepare_to_copy(orig);
-diff -puN kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu kernel/kthread.c
---- a/kernel/kthread.c~kthread-numa-aware-kthread_create_on_cpu
-+++ a/kernel/kthread.c
-@@ -27,6 +27,7 @@ struct kthread_create_info
- 	/* Information passed to kthread() from kthreadd. */
- 	int (*threadfn)(void *data);
- 	void *data;
-+	int node;
- 
- 	/* Result passed back to kthread_create() from kthreadd. */
- 	struct task_struct *result;
-@@ -98,10 +99,23 @@ static int kthread(void *_create)
- 	do_exit(ret);
- }
- 
-+/* called from do_fork() to get node information for about to be created task */
-+int tsk_fork_get_node(struct task_struct *tsk)
-+{
-+#ifdef CONFIG_NUMA
-+	if (tsk == kthreadd_task)
-+		return tsk->pref_node_fork;
-+#endif
-+	return numa_node_id();
-+}
-+
- static void create_kthread(struct kthread_create_info *create)
+ static void smaps_pte_entry(pte_t ptent, unsigned long addr,
+-		struct mm_walk *walk)
++		unsigned long ptent_size, struct mm_walk *walk)
  {
- 	int pid;
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = mss->vma;
+@@ -343,7 +343,7 @@ static void smaps_pte_entry(pte_t ptent,
+ 	int mapcount;
  
-+#ifdef CONFIG_NUMA
-+	current->pref_node_fork = create->node;
-+#endif
- 	/* We want our own signal handler (we take no signals by default). */
- 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
- 	if (pid < 0) {
-@@ -111,15 +125,18 @@ static void create_kthread(struct kthrea
- }
- 
- /**
-- * kthread_create - create a kthread.
-+ * kthread_create_on_node - create a kthread.
-  * @threadfn: the function to run until signal_pending(current).
-  * @data: data ptr for @threadfn.
-+ * @node: memory node number.
-  * @namefmt: printf-style name for the thread.
-  *
-  * Description: This helper function creates and names a kernel
-  * thread.  The thread will be stopped: use wake_up_process() to start
-  * it.  See also kthread_run().
-  *
-+ * If thread is going to be bound on a particular cpu, give its node
-+ * in @node, to get NUMA affinity for kthread stack, or else give -1.
-  * When woken, the thread will run @threadfn() with @data as its
-  * argument. @threadfn() can either call do_exit() directly if it is a
-  * standalone thread for which noone will call kthread_stop(), or
-@@ -129,15 +146,17 @@ static void create_kthread(struct kthrea
-  *
-  * Returns a task_struct or ERR_PTR(-ENOMEM).
-  */
--struct task_struct *kthread_create(int (*threadfn)(void *data),
--				   void *data,
--				   const char namefmt[],
--				   ...)
-+struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
-+					   void *data,
-+					   int node,
-+					   const char namefmt[],
-+					   ...)
- {
- 	struct kthread_create_info create;
- 
- 	create.threadfn = threadfn;
- 	create.data = data;
-+	create.node = node;
- 	init_completion(&create.done);
- 
- 	spin_lock(&kthread_create_lock);
-@@ -164,7 +183,7 @@ struct task_struct *kthread_create(int (
+ 	if (is_swap_pte(ptent)) {
+-		mss->swap += PAGE_SIZE;
++		mss->swap += ptent_size;
+ 		return;
  	}
- 	return create.result;
- }
--EXPORT_SYMBOL(kthread_create);
-+EXPORT_SYMBOL(kthread_create_on_node);
  
- /**
-  * kthread_bind - bind a just-created kthread to a cpu.
+@@ -355,25 +355,25 @@ static void smaps_pte_entry(pte_t ptent,
+ 		return;
+ 
+ 	if (PageAnon(page))
+-		mss->anonymous += PAGE_SIZE;
++		mss->anonymous += ptent_size;
+ 
+-	mss->resident += PAGE_SIZE;
++	mss->resident += ptent_size;
+ 	/* Accumulate the size in pages that have been accessed. */
+ 	if (pte_young(ptent) || PageReferenced(page))
+-		mss->referenced += PAGE_SIZE;
++		mss->referenced += ptent_size;
+ 	mapcount = page_mapcount(page);
+ 	if (mapcount >= 2) {
+ 		if (pte_dirty(ptent) || PageDirty(page))
+-			mss->shared_dirty += PAGE_SIZE;
++			mss->shared_dirty += ptent_size;
+ 		else
+-			mss->shared_clean += PAGE_SIZE;
+-		mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
++			mss->shared_clean += ptent_size;
++		mss->pss += (ptent_size << PSS_SHIFT) / mapcount;
+ 	} else {
+ 		if (pte_dirty(ptent) || PageDirty(page))
+-			mss->private_dirty += PAGE_SIZE;
++			mss->private_dirty += ptent_size;
+ 		else
+-			mss->private_clean += PAGE_SIZE;
+-		mss->pss += (PAGE_SIZE << PSS_SHIFT);
++			mss->private_clean += ptent_size;
++		mss->pss += (ptent_size << PSS_SHIFT);
+ 	}
+ }
+ 
+@@ -389,7 +389,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		smaps_pte_entry(*pte, addr, walk);
++		smaps_pte_entry(*pte, addr, PAGE_SIZE, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+ 	return 0;
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
 origin.patch
-net-convert-%p-usage-to-%pk.patch
+page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem.patch
+page_cgroup-reduce-allocation-overhead-for-page_cgroup-array-for-config_sparsemem-fix.patch
 
