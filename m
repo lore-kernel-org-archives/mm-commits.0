@@ -1,272 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [merged] smp-move-smp-setup-functions-to-kernel-smpc.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:38:57 -0700
-Message-ID: <201103232042.p2NKgXN7028774@imap1.linux-foundation.org>
+Subject: [merged] mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:04 -0700
+Message-ID: <201103232040.p2NKeerE028552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933542Ab1CWU5V (ORCPT
+	by vger.kernel.org with ESMTP id S933395Ab1CWU51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:57:21 -0400
+	Wed, 23 Mar 2011 16:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, a.p.zijlstra@chello.nl, akinobu.mita@gmail.com, arnd@arndb.de, dhowells@redhat.com, mingo@elte.hu, rakib.mullick@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, arthur.marsh@internode.on.net, avillaci@ceibo.fiec.espol.edu.ec, cladisch@googlemail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minch
 
 
 The patch titled
-     smp: move smp setup functions to kernel/smp.c
+     mm: compaction: Use async migration for __GFP_NO_KSWAPD and enforce no writeback
 has been removed from the -mm tree.  Its filename was
-     smp-move-smp-setup-functions-to-kernel-smpc.patch
+     mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smp: move smp setup functions to kernel/smp.c
-From: Amerigo Wang <amwang@redhat.com>
+Subject: mm: compaction: Use async migration for __GFP_NO_KSWAPD and enforce no writeback
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Move setup_nr_cpu_ids(), smp_init() and some other SMP boot parameter
-setup functions from init/main.c to kenrel/smp.c, saves some #ifdef
-CONFIG_SMP.
+__GFP_NO_KSWAPD allocations are usually very expensive and not mandatory
+to succeed as they have graceful fallback.  Waiting for I/O in those,
+tends to be overkill in terms of latencies, so we can reduce their latency
+by disabling sync migrate.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Unfortunately, even with async migration it's still possible for the
+process to be blocked waiting for a request slot (e.g.  get_request_wait
+in the block layer) when ->writepage is called.  To prevent
+__GFP_NO_KSWAPD blocking, this patch prevents ->writepage being called on
+dirty page cache for asynchronous migration.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=31142
+
+[mel@csn.ul.ie: Avoid writebacks for NFS, retry locked pages, use bool]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: Clemens Ladisch <cladisch@googlemail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Reported-by: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
+Tested-by: Alex Villacis Lasso <avillaci@ceibo.fiec.espol.edu.ec>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    2 
- init/main.c         |   90 ------------------------------------------
- kernel/smp.c        |   81 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+), 89 deletions(-)
+ mm/migrate.c    |   48 +++++++++++++++++++++++++++++++---------------
+ mm/page_alloc.c |    2 -
+ 2 files changed, 34 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/smp.h~smp-move-smp-setup-functions-to-kernel-smpc include/linux/smp.h
---- a/include/linux/smp.h~smp-move-smp-setup-functions-to-kernel-smpc
-+++ a/include/linux/smp.h
-@@ -114,6 +114,8 @@ int on_each_cpu(smp_call_func_t func, vo
- void smp_prepare_boot_cpu(void);
- 
- extern unsigned int setup_max_cpus;
-+extern void __init setup_nr_cpu_ids(void);
-+extern void __init smp_init(void);
- 
- #else /* !SMP */
- 
-diff -puN init/main.c~smp-move-smp-setup-functions-to-kernel-smpc init/main.c
---- a/init/main.c~smp-move-smp-setup-functions-to-kernel-smpc
-+++ a/init/main.c
-@@ -129,63 +129,6 @@ static char *static_command_line;
- static char *execute_command;
- static char *ramdisk_execute_command;
- 
--#ifdef CONFIG_SMP
--/* Setup configured maximum number of CPUs to activate */
--unsigned int setup_max_cpus = NR_CPUS;
--EXPORT_SYMBOL(setup_max_cpus);
--
--
--/*
-- * Setup routine for controlling SMP activation
-- *
-- * Command-line option of "nosmp" or "maxcpus=0" will disable SMP
-- * activation entirely (the MPS table probe still happens, though).
-- *
-- * Command-line option of "maxcpus=<NUM>", where <NUM> is an integer
-- * greater than 0, limits the maximum number of CPUs activated in
-- * SMP mode to <NUM>.
-- */
--
--void __weak arch_disable_smp_support(void) { }
--
--static int __init nosmp(char *str)
--{
--	setup_max_cpus = 0;
--	arch_disable_smp_support();
--
--	return 0;
--}
--
--early_param("nosmp", nosmp);
--
--/* this is hard limit */
--static int __init nrcpus(char *str)
--{
--	int nr_cpus;
--
--	get_option(&str, &nr_cpus);
--	if (nr_cpus > 0 && nr_cpus < nr_cpu_ids)
--		nr_cpu_ids = nr_cpus;
--
--	return 0;
--}
--
--early_param("nr_cpus", nrcpus);
--
--static int __init maxcpus(char *str)
--{
--	get_option(&str, &setup_max_cpus);
--	if (setup_max_cpus == 0)
--		arch_disable_smp_support();
--
--	return 0;
--}
--
--early_param("maxcpus", maxcpus);
--#else
--static const unsigned int setup_max_cpus = NR_CPUS;
--#endif
--
- /*
-  * If set, this is an indication to the drivers that reset the underlying
-  * device before going ahead with the initialization otherwise driver might
-@@ -362,7 +305,7 @@ static int __init rdinit_setup(char *str
- __setup("rdinit=", rdinit_setup);
- 
- #ifndef CONFIG_SMP
--
-+static const unsigned int setup_max_cpus = NR_CPUS;
- #ifdef CONFIG_X86_LOCAL_APIC
- static void __init smp_init(void)
+diff -puN mm/migrate.c~mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback mm/migrate.c
+--- a/mm/migrate.c~mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback
++++ a/mm/migrate.c
+@@ -564,7 +564,7 @@ static int fallback_migrate_page(struct 
+  *  == 0 - success
+  */
+ static int move_to_new_page(struct page *newpage, struct page *page,
+-						int remap_swapcache)
++					int remap_swapcache, bool sync)
  {
-@@ -374,37 +317,6 @@ static void __init smp_init(void)
- 
- static inline void setup_nr_cpu_ids(void) { }
- static inline void smp_prepare_cpus(unsigned int maxcpus) { }
--
--#else
--
--/* Setup number of possible processor ids */
--int nr_cpu_ids __read_mostly = NR_CPUS;
--EXPORT_SYMBOL(nr_cpu_ids);
--
--/* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
--static void __init setup_nr_cpu_ids(void)
--{
--	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
--}
--
--/* Called by boot processor to activate the rest. */
--static void __init smp_init(void)
--{
--	unsigned int cpu;
--
--	/* FIXME: This should be done in userspace --RR */
--	for_each_present_cpu(cpu) {
--		if (num_online_cpus() >= setup_max_cpus)
--			break;
--		if (!cpu_online(cpu))
--			cpu_up(cpu);
--	}
--
--	/* Any cleanup work */
--	printk(KERN_INFO "Brought up %ld CPUs\n", (long)num_online_cpus());
--	smp_cpus_done(setup_max_cpus);
--}
--
- #endif
- 
- /*
-diff -puN kernel/smp.c~smp-move-smp-setup-functions-to-kernel-smpc kernel/smp.c
---- a/kernel/smp.c~smp-move-smp-setup-functions-to-kernel-smpc
-+++ a/kernel/smp.c
-@@ -604,6 +604,87 @@ void ipi_call_unlock_irq(void)
- }
- #endif /* USE_GENERIC_SMP_HELPERS */
- 
-+/* Setup configured maximum number of CPUs to activate */
-+unsigned int setup_max_cpus = NR_CPUS;
-+EXPORT_SYMBOL(setup_max_cpus);
-+
-+
-+/*
-+ * Setup routine for controlling SMP activation
-+ *
-+ * Command-line option of "nosmp" or "maxcpus=0" will disable SMP
-+ * activation entirely (the MPS table probe still happens, though).
-+ *
-+ * Command-line option of "maxcpus=<NUM>", where <NUM> is an integer
-+ * greater than 0, limits the maximum number of CPUs activated in
-+ * SMP mode to <NUM>.
-+ */
-+
-+void __weak arch_disable_smp_support(void) { }
-+
-+static int __init nosmp(char *str)
-+{
-+	setup_max_cpus = 0;
-+	arch_disable_smp_support();
-+
-+	return 0;
-+}
-+
-+early_param("nosmp", nosmp);
-+
-+/* this is hard limit */
-+static int __init nrcpus(char *str)
-+{
-+	int nr_cpus;
-+
-+	get_option(&str, &nr_cpus);
-+	if (nr_cpus > 0 && nr_cpus < nr_cpu_ids)
-+		nr_cpu_ids = nr_cpus;
-+
-+	return 0;
-+}
-+
-+early_param("nr_cpus", nrcpus);
-+
-+static int __init maxcpus(char *str)
-+{
-+	get_option(&str, &setup_max_cpus);
-+	if (setup_max_cpus == 0)
-+		arch_disable_smp_support();
-+
-+	return 0;
-+}
-+
-+early_param("maxcpus", maxcpus);
-+
-+/* Setup number of possible processor ids */
-+int nr_cpu_ids __read_mostly = NR_CPUS;
-+EXPORT_SYMBOL(nr_cpu_ids);
-+
-+/* An arch may set nr_cpu_ids earlier if needed, so this would be redundant */
-+void __init setup_nr_cpu_ids(void)
-+{
-+	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
-+}
-+
-+/* Called by boot processor to activate the rest. */
-+void __init smp_init(void)
-+{
-+	unsigned int cpu;
-+
-+	/* FIXME: This should be done in userspace --RR */
-+	for_each_present_cpu(cpu) {
-+		if (num_online_cpus() >= setup_max_cpus)
-+			break;
-+		if (!cpu_online(cpu))
-+			cpu_up(cpu);
+ 	struct address_space *mapping;
+ 	int rc;
+@@ -586,18 +586,28 @@ static int move_to_new_page(struct page 
+ 	mapping = page_mapping(page);
+ 	if (!mapping)
+ 		rc = migrate_page(mapping, newpage, page);
+-	else if (mapping->a_ops->migratepage)
++	else {
+ 		/*
+-		 * Most pages have a mapping and most filesystems
+-		 * should provide a migration function. Anonymous
+-		 * pages are part of swap space which also has its
+-		 * own migration function. This is the most common
+-		 * path for page migration.
++		 * Do not writeback pages if !sync and migratepage is
++		 * not pointing to migrate_page() which is nonblocking
++		 * (swapcache/tmpfs uses migratepage = migrate_page).
+ 		 */
+-		rc = mapping->a_ops->migratepage(mapping,
+-						newpage, page);
+-	else
+-		rc = fallback_migrate_page(mapping, newpage, page);
++		if (PageDirty(page) && !sync &&
++		    mapping->a_ops->migratepage != migrate_page)
++			rc = -EBUSY;
++		else if (mapping->a_ops->migratepage)
++			/*
++			 * Most pages have a mapping and most filesystems
++			 * should provide a migration function. Anonymous
++			 * pages are part of swap space which also has its
++			 * own migration function. This is the most common
++			 * path for page migration.
++			 */
++			rc = mapping->a_ops->migratepage(mapping,
++							newpage, page);
++		else
++			rc = fallback_migrate_page(mapping, newpage, page);
 +	}
-+
-+	/* Any cleanup work */
-+	printk(KERN_INFO "Brought up %ld CPUs\n", (long)num_online_cpus());
-+	smp_cpus_done(setup_max_cpus);
-+}
-+
- /*
-  * Call a function on all processors.  May be used during early boot while
-  * early_boot_irqs_disabled is set.  Use local_irq_save/restore() instead
+ 
+ 	if (rc) {
+ 		newpage->mapping = NULL;
+@@ -641,7 +651,7 @@ static int unmap_and_move(new_page_t get
+ 	rc = -EAGAIN;
+ 
+ 	if (!trylock_page(page)) {
+-		if (!force)
++		if (!force || !sync)
+ 			goto move_newpage;
+ 
+ 		/*
+@@ -686,7 +696,15 @@ static int unmap_and_move(new_page_t get
+ 	BUG_ON(charge);
+ 
+ 	if (PageWriteback(page)) {
+-		if (!force || !sync)
++		/*
++		 * For !sync, there is no point retrying as the retry loop
++		 * is expected to be too short for PageWriteback to be cleared
++		 */
++		if (!sync) {
++			rc = -EBUSY;
++			goto uncharge;
++		}
++		if (!force)
+ 			goto uncharge;
+ 		wait_on_page_writeback(page);
+ 	}
+@@ -757,7 +775,7 @@ static int unmap_and_move(new_page_t get
+ 
+ skip_unmap:
+ 	if (!page_mapped(page))
+-		rc = move_to_new_page(newpage, page, remap_swapcache);
++		rc = move_to_new_page(newpage, page, remap_swapcache, sync);
+ 
+ 	if (rc && remap_swapcache)
+ 		remove_migration_ptes(page, page);
+@@ -850,7 +868,7 @@ static int unmap_and_move_huge_page(new_
+ 	try_to_unmap(hpage, TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
+ 
+ 	if (!page_mapped(hpage))
+-		rc = move_to_new_page(new_hpage, hpage, 1);
++		rc = move_to_new_page(new_hpage, hpage, 1, sync);
+ 
+ 	if (rc)
+ 		remove_migration_ptes(hpage, hpage);
+diff -puN mm/page_alloc.c~mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-use-async-migration-for-__gfp_no_kswapd-and-enforce-no-writeback
++++ a/mm/page_alloc.c
+@@ -2103,7 +2103,7 @@ rebalance:
+ 					sync_migration);
+ 	if (page)
+ 		goto got_pg;
+-	sync_migration = true;
++	sync_migration = !(gfp_mask & __GFP_NO_KSWAPD);
+ 
+ 	/* Try direct reclaim and then allocating */
+ 	page = __alloc_pages_direct_reclaim(gfp_mask, order,
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch
 
