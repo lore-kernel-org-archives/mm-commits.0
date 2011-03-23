@@ -1,64 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:25:12 -0700
-Message-ID: <201103232325.p2NNPC4o004679@imap1.linux-foundation.org>
+Subject: [folded] userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:25:31 -0700
+Message-ID: <201103232325.p2NNPVU9004688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932910Ab1CWXZo (ORCPT
+	by vger.kernel.org with ESMTP id S932972Ab1CWX0N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:25:44 -0400
+	Wed, 23 Mar 2011 19:26:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, serge@hallyn.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
 has been removed from the -mm tree.  Its filename was
-     userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes.patch
+     userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
 
-This patch was dropped because it was folded into userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch
+This patch was dropped because it was folded into userns-rename-is_owner_or_cap-to-inode_owner_or_capable.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes
+Subject: userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#108: FILE: fs/namei.c:695:
-+	if (ns_capable(ns, CAP_DAC_OVERRIDE) || ns_capable(ns, CAP_DAC_READ_SEARCH))
+btrfs changed in linux-next
 
-total: 0 errors, 1 warnings, 113 lines checked
-
-./patches/userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/btrfs/ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes fs/namei.c
---- a/fs/namei.c~userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks-checkpatch-fixes
-+++ a/fs/namei.c
-@@ -692,7 +692,8 @@ static inline int exec_permission(struct
- 	if (ret == -ECHILD)
- 		return ret;
+diff -puN fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix fs/btrfs/ioctl.c
+--- a/fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix
++++ a/fs/btrfs/ioctl.c
+@@ -1077,7 +1077,7 @@ static noinline int btrfs_ioctl_subvol_s
+ 	if (flags & ~BTRFS_SUBVOL_RDONLY)
+ 		return -EOPNOTSUPP;
  
--	if (ns_capable(ns, CAP_DAC_OVERRIDE) || ns_capable(ns, CAP_DAC_READ_SEARCH))
-+	if (ns_capable(ns, CAP_DAC_OVERRIDE) ||
-+			ns_capable(ns, CAP_DAC_READ_SEARCH))
- 		goto ok;
+-	if (!is_owner_or_cap(inode))
++	if (!inode_owner_or_capable(inode))
+ 		return -EACCES;
  
- 	return ret;
+ 	down_write(&root->fs_info->subvol_sem);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +65,7 @@ cpuset-fix-unchecked-calls-to-nodemask_alloc.patch
 userns-security-make-capabilities-relative-to-the-user-namespace.patch
 userns-user-namespaces-convert-several-capable-calls.patch
 userns-userns-check-user-namespace-for-task-file-uid-equivalence-checks.patch
-userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix.patch
+userns-rename-is_owner_or_cap-to-inode_owner_or_capable.patch
 userns-rename-is_owner_or_cap-to-inode_owner_or_capable-fix-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix.patch
 crash_dump-export-is_kdump_kernel-to-modules-consolidate-elfcorehdr_addr-setup_elfcorehdr-and-saved_max_pfn-fix-fix.patch
