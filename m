@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:15:16 -0700
-Message-ID: <201103232315.p2NNFGTx004075@imap1.linux-foundation.org>
+Subject: [folded] powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:15:39 -0700
+Message-ID: <201103232315.p2NNFdwq004098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54435 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932943Ab1CWXPS (ORCPT
+	by vger.kernel.org with ESMTP id S933037Ab1CWXPo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:15:18 -0400
+	Wed, 23 Mar 2011 19:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, benh@kernel.crashing.org, hpa@zytor.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
+     powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 has been removed from the -mm tree.  Its filename was
-     asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+     powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 
-This patch was dropped because it was folded into asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
+This patch was dropped because it was folded into powerpc-introduce-little-endian-bitops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
+Subject: powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 (This patch is intended to be folded into the patch in -mm:
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch)
+powerpc-introduce-little-endian-bitops.patch)
 
-The little-endian bitops on asm-generic are written as preprocessor
+The little-endian bitops on powerpc are written as preprocessor
 macros with the cast to "unsigned long *".
 This means that even non-pointers will be accepted without an error, and
 that is a Very Bad Thing.
@@ -40,51 +40,21 @@ with proper prototypes.
 
 Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/le.h |   73 ++++++++++++++++++++----------
- 1 file changed, 51 insertions(+), 22 deletions(-)
+ arch/powerpc/include/asm/bitops.h |   43 ++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 14 deletions(-)
 
-diff -puN include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions include/asm-generic/bitops/le.h
---- a/include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types-convert-little-endian-bitops-macros-to-static-inline-functions
-+++ a/include/asm-generic/bitops/le.h
-@@ -8,12 +8,23 @@
+diff -puN arch/powerpc/include/asm/bitops.h~powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/powerpc/include/asm/bitops.h
+--- a/arch/powerpc/include/asm/bitops.h~powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -288,20 +288,35 @@ static __inline__ int test_bit_le(unsign
+ 	return (tmp[nr >> 3] >> (nr & 7)) & 1;
+ }
  
- #define BITOP_LE_SWIZZLE	0
- 
--#define find_next_zero_bit_le(addr, size, offset) \
--	find_next_zero_bit((unsigned long *)(addr), size, offset)
--#define find_next_bit_le(addr, size, offset) \
--	find_next_bit((unsigned long *)(addr), size, offset)
--#define find_first_zero_bit_le(addr, size) \
--	find_first_zero_bit((unsigned long *)(addr), size)
-+static inline unsigned long find_next_zero_bit_le(const void *addr,
-+		unsigned long size, unsigned long offset)
-+{
-+	return find_next_zero_bit(addr, size, offset);
-+}
-+
-+static inline unsigned long find_next_bit_le(const void *addr,
-+		unsigned long size, unsigned long offset)
-+{
-+	return find_next_bit(addr, size, offset);
-+}
-+
-+static inline unsigned long find_first_zero_bit_le(const void *addr,
-+		unsigned long size)
-+{
-+	return find_first_zero_bit(addr, size);
-+}
- 
- #elif defined(__BIG_ENDIAN)
- 
-@@ -31,21 +42,39 @@ extern unsigned long find_next_bit_le(co
- #error "Please fix <asm/byteorder.h>"
- #endif
- 
--#define test_bit_le(nr, addr) \
--	test_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
 -#define __set_bit_le(nr, addr) \
 -	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
 -#define __clear_bit_le(nr, addr) \
@@ -99,11 +69,6 @@ diff -puN include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitop
 -	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
 -#define __test_and_clear_bit_le(nr, addr) \
 -	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
-+static inline int test_bit_le(int nr, const void *addr)
-+{
-+	return test_bit(nr ^ BITOP_LE_SWIZZLE, addr);
-+}
-+
 +static inline void __set_bit_le(int nr, void *addr)
 +{
 +	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
@@ -134,7 +99,8 @@ diff -puN include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitop
 +	return __test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
 +}
  
- #endif /* _ASM_GENERIC_BITOPS_LE_H_ */
+ #define find_first_zero_bit_le(addr, size) \
+ 	find_next_zero_bit_le((addr), (size), 0)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -146,7 +112,6 @@ bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
 asm-generic-rename-generic-little-endian-bitops-functions.patch
 asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
 powerpc-introduce-little-endian-bitops.patch
-powerpc-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 s390-introduce-little-endian-bitops.patch
 s390-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 arm-introduce-little-endian-bitops.patch
