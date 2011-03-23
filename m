@@ -1,65 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-about-memset-with-swapped-arguments.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:40:25 -0700
-Message-ID: <201103232044.p2NKi1nd029019@imap1.linux-foundation.org>
+Subject: [merged] maintainers-update-winbond-cir-pattern.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:40:06 -0700
+Message-ID: <201103232043.p2NKhgjQ028981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933310Ab1CWUoW (ORCPT
+	by vger.kernel.org with ESMTP id S933468Ab1CWUoY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:44:22 -0400
+	Wed, 23 Mar 2011 16:44:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, apw@shadowen.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: joe@perches.com, david@hardeman.nu, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: warn about memset with swapped arguments
+     MAINTAINERS: update WINBOND CIR pattern
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-about-memset-with-swapped-arguments.patch
+     maintainers-update-winbond-cir-pattern.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: checkpatch: warn about memset with swapped arguments
-From: Dave Jones <davej@redhat.com>
+Subject: MAINTAINERS: update WINBOND CIR pattern
+=46rom: Joe Perches <joe@perches.com>
 
-Because the second and third arguments of memset have the same type, it
-turns out to be really easy to mix them up.
+commit 5b2e303f6df ("[media] rc-core: convert winbond-cir") moved the
+files, update the pattern.
 
-This bug comes up time after time, so checkpatch should really be checking
-for it at patch submission time.
-
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: David H=E4rdeman <david@hardeman.nu>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-about-memset-with-swapped-arguments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-about-memset-with-swapped-arguments
-+++ a/scripts/checkpatch.pl
-@@ -2902,6 +2902,11 @@ sub process {
- 		    $line =~ /DEVICE_ATTR.*S_IWUGO/ ) {
- 			WARN("Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 		}
-+
-+		# Check for memset with swapped arguments
-+		if ($line =~ /memset.*\,(\ |)(0x|)0(\ |0|)\);/) {
-+			ERROR("memset size is 3rd argument, not the second.\n" . $herecurr);
-+		}
- 	}
- 
- 	# If we have no input at all, then there is nothing to report on
+diff -puN MAINTAINERS~maintainers-update-winbond-cir-pattern MAINTAINER=
+S
+--- a/MAINTAINERS~maintainers-update-winbond-cir-pattern
++++ a/MAINTAINERS
+@@ -6819,7 +6819,7 @@ F:	drivers/scsi/wd7000.c
+ WINBOND CIR DRIVER
+ M:	David H=C3=A4rdeman <david@hardeman.nu>
+ S:	Maintained
+-F:	drivers/input/misc/winbond-cir.c
++F:	drivers/media/rc/winbond-cir.c
+=20
+ WIMAX STACK
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
