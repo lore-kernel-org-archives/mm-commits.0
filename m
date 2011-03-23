@@ -1,149 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-convert-bd2802-driver-to-dev_pm_ops.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:32:52 -0700
-Message-ID: <201103232036.p2NKaS7h028123@imap1.linux-foundation.org>
+Subject: [merged] acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:16 -0700
+Message-ID: <201103232036.p2NKaqhs028176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933375Ab1CWUhT (ORCPT
+	by vger.kernel.org with ESMTP id S933340Ab1CWUhs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:37:19 -0400
+	Wed, 23 Mar 2011 16:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, chammoru@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mjg@redhat.com, airlied@linux.ie, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, jbarnes@virtuousgeek.org, lenb@kernel.org, rpurdie@rpsys.net, rui.zhang@intel.co
 
 
 The patch titled
-     leds: convert bd2802 driver to dev_pm_ops
+     acpi: tie ACPI backlight devices to PCI devices if possible
 has been removed from the -mm tree.  Its filename was
-     leds-convert-bd2802-driver-to-dev_pm_ops.patch
+     acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: convert bd2802 driver to dev_pm_ops
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: acpi: tie ACPI backlight devices to PCI devices if possible
+From: Matthew Garrett <mjg@redhat.com>
 
-There is a move to deprecate bus-specific PM operations and move to using
-dev_pm_ops instead in order to reduce the amount of boilerplate code in
-buses and facilitiate updates to the PM core.  Do this move for the bs2802
-driver.
+Dual-GPU machines may provide more than one ACPI backlight interface.  Tie
+the backlight device to the GPU in order to allow userspace to identify
+the correct interface.
 
-[akpm@linux-foundation.org: fix warnings]
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Kim Kyuwon <q1.kim@samsung.com>
-Cc: Kim Kyuwon <chammoru@gmail.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Tested-by: Sedat Dilek <sedat.dilek@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-bd2802.c |   47 ++++++++++++++++++++---------------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ drivers/acpi/video.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops drivers/leds/leds-bd2802.c
---- a/drivers/leds/leds-bd2802.c~leds-convert-bd2802-driver-to-dev_pm_ops
-+++ a/drivers/leds/leds-bd2802.c
-@@ -19,7 +19,7 @@
- #include <linux/leds.h>
- #include <linux/leds-bd2802.h>
- #include <linux/slab.h>
--
-+#include <linux/pm.h>
+diff -puN drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-tie-acpi-backlight-devices-to-pci-devices-if-possible
++++ a/drivers/acpi/video.c
+@@ -782,6 +782,9 @@ static void acpi_video_device_find_cap(s
  
- #define LED_CTL(rgb2en, rgb1en) ((rgb2en) << 4 | ((rgb1en) << 0))
+ 	if (acpi_video_backlight_support()) {
+ 		struct backlight_properties props;
++		struct pci_dev *pdev;
++		acpi_handle acpi_parent;
++		struct device *parent = NULL;
+ 		int result;
+ 		static int count = 0;
+ 		char *name;
+@@ -794,10 +797,20 @@ static void acpi_video_device_find_cap(s
+ 			return;
+ 		count++;
  
-@@ -319,20 +319,6 @@ static void bd2802_turn_off(struct bd280
- 	bd2802_update_state(led, id, color, BD2802_OFF);
- }
- 
--static void bd2802_restore_state(struct bd2802_led *led)
--{
--	int i;
--
--	for (i = 0; i < LED_NUM; i++) {
--		if (led->led[i].r)
--			bd2802_turn_on(led, i, RED, led->led[i].r);
--		if (led->led[i].g)
--			bd2802_turn_on(led, i, GREEN, led->led[i].g);
--		if (led->led[i].b)
--			bd2802_turn_on(led, i, BLUE, led->led[i].b);
--	}
--}
--
- #define BD2802_SET_REGISTER(reg_addr, reg_name)				\
- static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
- 	struct device_attribute *attr, const char *buf, size_t count)	\
-@@ -761,8 +747,25 @@ static int __exit bd2802_remove(struct i
- 	return 0;
- }
- 
--static int bd2802_suspend(struct i2c_client *client, pm_message_t mesg)
-+#ifdef CONFIG_PM
++		acpi_get_parent(device->dev->handle, &acpi_parent);
 +
-+static void bd2802_restore_state(struct bd2802_led *led)
- {
-+	int i;
++		pdev = acpi_get_pci_dev(acpi_parent);
++		if (pdev) {
++			parent = &pdev->dev;
++			pci_dev_put(pdev);
++		}
 +
-+	for (i = 0; i < LED_NUM; i++) {
-+		if (led->led[i].r)
-+			bd2802_turn_on(led, i, RED, led->led[i].r);
-+		if (led->led[i].g)
-+			bd2802_turn_on(led, i, GREEN, led->led[i].g);
-+		if (led->led[i].b)
-+			bd2802_turn_on(led, i, BLUE, led->led[i].b);
-+	}
-+}
-+
-+static int bd2802_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
- 	struct bd2802_led *led = i2c_get_clientdata(client);
- 
- 	gpio_set_value(led->pdata->reset_gpio, 0);
-@@ -770,8 +773,9 @@ static int bd2802_suspend(struct i2c_cli
- 	return 0;
- }
- 
--static int bd2802_resume(struct i2c_client *client)
-+static int bd2802_resume(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
- 	struct bd2802_led *led = i2c_get_clientdata(client);
- 
- 	if (!bd2802_is_all_off(led) || led->adf_on) {
-@@ -782,6 +786,12 @@ static int bd2802_resume(struct i2c_clie
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
-+#define BD2802_PM (&bd2802_pm)
-+#else		/* CONFIG_PM */
-+#define BD2802_PM NULL
-+#endif
-+
- static const struct i2c_device_id bd2802_id[] = {
- 	{ "BD2802", 0 },
- 	{ }
-@@ -791,11 +801,10 @@ MODULE_DEVICE_TABLE(i2c, bd2802_id);
- static struct i2c_driver bd2802_i2c_driver = {
- 	.driver	= {
- 		.name	= "BD2802",
-+		.pm	= BD2802_PM,
- 	},
- 	.probe		= bd2802_probe,
- 	.remove		= __exit_p(bd2802_remove),
--	.suspend	= bd2802_suspend,
--	.resume		= bd2802_resume,
- 	.id_table	= bd2802_id,
- };
- 
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_FIRMWARE;
+ 		props.max_brightness = device->brightness->count - 3;
+-		device->backlight = backlight_device_register(name, NULL, device,
++		device->backlight = backlight_device_register(name,
++							      parent,
++							      device,
+ 							      &acpi_backlight_ops,
+ 							      &props);
+ 		kfree(name);
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
 origin.patch
 linux-next.patch
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+i915-add-native-backlight-control.patch
 
