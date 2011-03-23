@@ -1,120 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-use-kthread_create_on_cpu.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:47 -0700
-Message-ID: <201103232037.p2NKbNc9028237__29867.7945429974$1300912743$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:33:02 -0700
+Message-ID: <201103232036.p2NKacus028145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933394Ab1CWUiH (ORCPT
+	by vger.kernel.org with ESMTP id S933329Ab1CWUkA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:38:07 -0400
+	Wed, 23 Mar 2011 16:40:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, ak@linux.intel.com, davem@davemloft.net, dhowells@redhat.com, fenghua.yu@intel.com, linux-arch@vger.kernel.org, rusty@rustcorp.com.au, tj@kernel.org, tony.luck
+To: segoon@openwall.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthread: use kthread_create_on_node()
+     drivers/leds/leds-lp5521.c: world-writable sysfs engine* files
 has been removed from the -mm tree.  Its filename was
-     kthread-use-kthread_create_on_cpu.patch
+     drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: use kthread_create_on_node()
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: drivers/leds/leds-lp5521.c: world-writable sysfs engine* files
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-ksoftirqd, kworker, migration, and pktgend kthreads can be created with
-kthread_create_on_node(), to get proper NUMA affinities for their stack and
-task_struct.
+Don't allow everybody to change LED settings.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c      |    5 ++++-
- kernel/stop_machine.c |    6 ++++--
- kernel/workqueue.c    |    6 ++++--
- net/core/pktgen.c     |    5 ++++-
- 4 files changed, 16 insertions(+), 6 deletions(-)
+ drivers/leds/leds-lp5521.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/softirq.c~kthread-use-kthread_create_on_cpu kernel/softirq.c
---- a/kernel/softirq.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/softirq.c
-@@ -845,7 +845,10 @@ static int __cpuinit cpu_callback(struct
- 	switch (action) {
- 	case CPU_UP_PREPARE:
- 	case CPU_UP_PREPARE_FROZEN:
--		p = kthread_create(run_ksoftirqd, hcpu, "ksoftirqd/%d", hotcpu);
-+		p = kthread_create_on_node(run_ksoftirqd,
-+					   hcpu,
-+					   cpu_to_node(hotcpu),
-+					   "ksoftirqd/%d", hotcpu);
- 		if (IS_ERR(p)) {
- 			printk("ksoftirqd for %i failed\n", hotcpu);
- 			return notifier_from_errno(PTR_ERR(p));
-diff -puN kernel/stop_machine.c~kthread-use-kthread_create_on_cpu kernel/stop_machine.c
---- a/kernel/stop_machine.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/stop_machine.c
-@@ -301,8 +301,10 @@ static int __cpuinit cpu_stop_cpu_callba
- 	case CPU_UP_PREPARE:
- 		BUG_ON(stopper->thread || stopper->enabled ||
- 		       !list_empty(&stopper->works));
--		p = kthread_create(cpu_stopper_thread, stopper, "migration/%d",
--				   cpu);
-+		p = kthread_create_on_node(cpu_stopper_thread,
-+					   stopper,
-+					   cpu_to_node(cpu),
-+					   "migration/%d", cpu);
- 		if (IS_ERR(p))
- 			return notifier_from_errno(PTR_ERR(p));
- 		get_task_struct(p);
-diff -puN kernel/workqueue.c~kthread-use-kthread_create_on_cpu kernel/workqueue.c
---- a/kernel/workqueue.c~kthread-use-kthread_create_on_cpu
-+++ a/kernel/workqueue.c
-@@ -1366,8 +1366,10 @@ static struct worker *create_worker(stru
- 	worker->id = id;
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-world-writable-sysfs-engine-files
++++ a/drivers/leds/leds-lp5521.c
+@@ -534,7 +534,7 @@ static ssize_t lp5521_selftest(struct de
+ }
  
- 	if (!on_unbound_cpu)
--		worker->task = kthread_create(worker_thread, worker,
--					      "kworker/%u:%d", gcwq->cpu, id);
-+		worker->task = kthread_create_on_node(worker_thread,
-+						      worker,
-+						      cpu_to_node(gcwq->cpu),
-+						      "kworker/%u:%d", gcwq->cpu, id);
- 	else
- 		worker->task = kthread_create(worker_thread, worker,
- 					      "kworker/u:%d", id);
-diff -puN net/core/pktgen.c~kthread-use-kthread_create_on_cpu net/core/pktgen.c
---- a/net/core/pktgen.c~kthread-use-kthread_create_on_cpu
-+++ a/net/core/pktgen.c
-@@ -3761,7 +3761,10 @@ static int __init pktgen_create_thread(i
- 	list_add_tail(&t->th_list, &pktgen_threads);
- 	init_completion(&t->start_done);
+ /* led class device attributes */
+-static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
++static DEVICE_ATTR(led_current, S_IRUGO | S_IWUSR, show_current, store_current);
+ static DEVICE_ATTR(max_current, S_IRUGO , show_max_current, NULL);
  
--	p = kthread_create(pktgen_thread_worker, t, "kpktgend_%d", cpu);
-+	p = kthread_create_on_node(pktgen_thread_worker,
-+				   t,
-+				   cpu_to_node(cpu),
-+				   "kpktgend_%d", cpu);
- 	if (IS_ERR(p)) {
- 		pr_err("kernel_thread() failed for cpu %d\n", t->cpu);
- 		list_del(&t->th_list);
+ static struct attribute *lp5521_led_attributes[] = {
+@@ -548,15 +548,15 @@ static struct attribute_group lp5521_led
+ };
+ 
+ /* device attributes */
+-static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUGO,
++static DEVICE_ATTR(engine1_mode, S_IRUGO | S_IWUSR,
+ 		   show_engine1_mode, store_engine1_mode);
+-static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUGO,
++static DEVICE_ATTR(engine2_mode, S_IRUGO | S_IWUSR,
+ 		   show_engine2_mode, store_engine2_mode);
+-static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUGO,
++static DEVICE_ATTR(engine3_mode, S_IRUGO | S_IWUSR,
+ 		   show_engine3_mode, store_engine3_mode);
+-static DEVICE_ATTR(engine1_load, S_IWUGO, NULL, store_engine1_load);
+-static DEVICE_ATTR(engine2_load, S_IWUGO, NULL, store_engine2_load);
+-static DEVICE_ATTR(engine3_load, S_IWUGO, NULL, store_engine3_load);
++static DEVICE_ATTR(engine1_load, S_IWUSR, NULL, store_engine1_load);
++static DEVICE_ATTR(engine2_load, S_IWUSR, NULL, store_engine2_load);
++static DEVICE_ATTR(engine3_load, S_IWUSR, NULL, store_engine3_load);
+ static DEVICE_ATTR(selftest, S_IRUGO, lp5521_selftest, NULL);
+ 
+ static struct attribute *lp5521_attributes[] = {
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
 origin.patch
-net-convert-%p-usage-to-%pk.patch
+linux-next.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+aic94xx-world-writable-sysfs-update_bios-file.patch
 
