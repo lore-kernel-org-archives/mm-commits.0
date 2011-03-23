@@ -1,108 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [folded] m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:18:09 -0700
-Message-ID: <201103232318.p2NNI9JG004202@imap1.linux-foundation.org>
+Subject: [folded] memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:18:50 -0700
+Message-ID: <201103232318.p2NNIoRq004226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33507 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933114Ab1CWXSQ (ORCPT
+	by vger.kernel.org with ESMTP id S933183Ab1CWXTC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:18:16 -0400
+	Wed, 23 Mar 2011 19:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, geert@linux-m68k.org, gerg@uclinux.org, hpa@zytor.com, schwab@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
+     memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update
 has been removed from the -mm tree.  Its filename was
-     m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+     memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update.patch
 
-This patch was dropped because it was folded into m68knommu-introduce-little-endian-bitops.patch
+This patch was dropped because it was folded into memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-(This patch is intended to be folded into the patch in -mm:
-m68knommu-introduce-little-endian-bitops.patch)
+try to show the path name of the cgroup too
 
-A few little-endian bitops on m68knommu are written as preprocessor
-macros with the cast to "unsigned long *".
-This means that even non-pointers will be accepted without an error, and
-that is a Very Bad Thing.
-
-This converts the little-endian bitops macros to static inline functions
-with proper prototypes.
-
-Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops_no.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/m68k/include/asm/bitops_no.h
---- a/arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
-+++ a/arch/m68k/include/asm/bitops_no.h
-@@ -198,11 +198,15 @@ static __inline__ int __test_bit(int nr,
+diff -puN mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update
++++ a/mm/memcontrol.c
+@@ -3070,9 +3070,25 @@ void mem_cgroup_print_bad_page(struct pa
+ 	struct page_cgroup *pc;
  
- #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+ 	pc = lookup_page_cgroup_used(page);
+-	if (pc)
+-		printk(KERN_ALERT "pc:%p pc->flags:%ld pc->mem_cgroup:%p\n",
++	if (pc) {
++		int ret = -1;
++		char *path;
++
++		printk(KERN_ALERT "pc:%p pc->flags:%ld pc->mem_cgroup:%p",
+ 		       pc, pc->flags, pc->mem_cgroup);
++
++		path = kmalloc(PATH_MAX, GFP_KERNEL);
++		if (path) {
++			rcu_read_lock();
++			ret = cgroup_path(pc->mem_cgroup->css.cgroup,
++							path, PATH_MAX);
++			rcu_read_unlock();
++		}
++
++		printk(KERN_ALERT "(%s)\n",
++				(ret < 0) ? "cannot get the path" : path);
++		kfree(path);
++	}
+ }
+ #endif
  
--#define __set_bit_le(nr, addr) \
--	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
-+static inline void __set_bit_le(int nr, void *addr)
-+{
-+	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
-+}
- 
--#define __clear_bit_le(nr, addr) \
--	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
-+static inline void __clear_bit_le(int nr, void *addr)
-+{
-+	__clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
-+}
- 
- static inline int __test_and_set_bit_le(int nr, volatile void *addr)
- {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-origin.patch
-kvm-stop-including-asm-generic-bitops-leh-directly.patch
-rds-stop-including-asm-generic-bitops-leh-directly.patch
-bitops-merge-little-and-big-endian-definisions-in-asm-generic-bitops-leh.patch
-asm-generic-rename-generic-little-endian-bitops-functions.patch
-asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
-powerpc-introduce-little-endian-bitops.patch
-s390-introduce-little-endian-bitops.patch
-arm-introduce-little-endian-bitops.patch
-m68k-introduce-little-endian-bitops.patch
-bitops-introduce-config_generic_find_bit_le.patch
-m68knommu-introduce-little-endian-bitops.patch
-bitops-introduce-little-endian-bitops-for-most-architectures.patch
-asm-generic-use-little-endian-bitops.patch
-kvm-use-little-endian-bitops.patch
-rds-use-little-endian-bitops.patch
-ext3-use-little-endian-bitops.patch
-ext4-use-little-endian-bitops.patch
-ocfs2-use-little-endian-bitops.patch
-nilfs2-use-little-endian-bitops.patch
-reiserfs-use-little-endian-bitops.patch
-udf-use-little-endian-bitops.patch
-ufs-use-little-endian-bitops.patch
-md-use-little-endian-bitops.patch
-dm-use-little-endian-bitops.patch
-bitops-remove-ext2-non-atomic-bitops-from-asm-bitopsh.patch
-m68k-remove-inline-asm-from-minix_find_first_zero_bit.patch
-bitops-remove-minix-bitops-from-asm-bitopsh.patch
+memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
+memcg-soft-limit-reclaim-should-end-at-limit-not-below.patch
+memcg-simplify-the-way-memory-limits-are-checked.patch
+memcg-remove-unused-page-flag-bitfield-defines.patch
+memcg-remove-impossible-conditional-when-committing.patch
+memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages.patch
+memcg-add-memcg-sanity-checks-at-allocating-and-freeing-pages-update-fix.patch
+memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
+memcg-change-page_cgroup_zoneinfo-signature.patch
+memcg-change-page_cgroup_zoneinfo-signature-fix.patch
+memcg-fold-__mem_cgroup_move_account-into-caller.patch
+memcg-condense-page_cgroup-to-page-lookup-points.patch
+memcg-remove-direct-page_cgroup-to-page-pointer.patch
+memcg-remove-direct-page_cgroup-to-page-pointer-fix.patch
+memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
+memcg-remove-memcg-reclaim_param_lock.patch
+memcg-keep-only-one-charge-cancelling-function.patch
+memcg-keep-only-one-charge-cancelling-function-fix.patch
+memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
+memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
+memcg-break-out-event-counters-from-other-stats.patch
+memcg-use-native-word-page-statistics-counters.patch
+memcg-use-native-word-page-statistics-counters-fix-event-counter-breakage-with-thp.patch
+mm-memcontrolc-suppress-uninitializer-var-warning-with-older-gccs.patch
+memcg-fix-leak-on-wrong-lru-with-fuse.patch
+memcg-give-current-access-to-memory-reserves-if-its-trying-to-die.patch
 
