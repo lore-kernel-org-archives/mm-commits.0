@@ -1,102 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:19:43 -0700
-Message-ID: <201103232319.p2NNJhEZ004334@imap1.linux-foundation.org>
+Subject: [folded] memcg-keep-only-one-charge-cancelling-function-fix.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:20:08 -0700
+Message-ID: <201103232320.p2NNK9nl004382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46810 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933247Ab1CWXTt (ORCPT
+	by vger.kernel.org with ESMTP id S933114Ab1CWXUq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:19:49 -0400
+	Wed, 23 Mar 2011 19:20:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
+     memcg-keep-only-one-charge-cancelling-function-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix.patch
+     memcg-keep-only-one-charge-cancelling-function-fix.patch
 
-This patch was dropped because it was folded into memcg-remove-direct-page_cgroup-to-page-pointer.patch
+This patch was dropped because it was folded into memcg-keep-only-one-charge-cancelling-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
+Subject: memcg-keep-only-one-charge-cancelling-function-fix
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-include/linux/page_cgroup.h:144: warning: left shift count >= width of type
-include/linux/page_cgroup.h:145: warning: left shift count >= width of type
-include/linux/page_cgroup.h:150: warning: right shift count >= width of type
-
-Since the non-flags field for pc array ids in pc->flags is offset from the
-end of the word, we end up with a shift count of BITS_PER_LONG in case the
-field width is zero.
-
-This results in a compiler warning as we shift in both directions a long
-int by BITS_PER_LONG.
-
-There is no real harm -- the mask is zero -- but fix up the compiler
-warning by also making the shift count zero for a non-existant field.
+Keep the underscore-version of the charge cancelling function which took a
+page count, rather than silently changing the semantics of the
+non-underscore-version.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-remove-direct-page_cgroup-to-page-pointer-fix-fix
-+++ a/include/linux/page_cgroup.h
-@@ -123,31 +123,36 @@ static inline void move_unlock_page_cgro
- }
- 
- #ifdef CONFIG_SPARSEMEM
--#define PCG_ARRAYID_SHIFT	SECTIONS_SHIFT
-+#define PCG_ARRAYID_WIDTH	SECTIONS_SHIFT
- #else
--#define PCG_ARRAYID_SHIFT	NODES_SHIFT
-+#define PCG_ARRAYID_WIDTH	NODES_SHIFT
- #endif
- 
--#if (PCG_ARRAYID_SHIFT > BITS_PER_LONG - NR_PCG_FLAGS)
-+#if (PCG_ARRAYID_WIDTH > BITS_PER_LONG - NR_PCG_FLAGS)
- #error Not enough space left in pc->flags to store page_cgroup array IDs
- #endif
- 
- /* pc->flags: ARRAY-ID | FLAGS */
- 
--#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_SHIFT) - 1)
-+#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_WIDTH) - 1)
- 
--#define PCG_ARRAYID_OFFSET	(sizeof(unsigned long) * 8 - PCG_ARRAYID_SHIFT)
-+#define PCG_ARRAYID_OFFSET	(BITS_PER_LONG - PCG_ARRAYID_WIDTH)
-+/*
-+ * Zero the shift count for non-existant fields, to prevent compiler
-+ * warnings and ensure references are optimized away.
-+ */
-+#define PCG_ARRAYID_SHIFT	(PCG_ARRAYID_OFFSET * (PCG_ARRAYID_WIDTH != 0))
- 
- static inline void set_page_cgroup_array_id(struct page_cgroup *pc,
- 					    unsigned long id)
+diff -puN mm/memcontrol.c~memcg-keep-only-one-charge-cancelling-function-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-keep-only-one-charge-cancelling-function-fix
++++ a/mm/memcontrol.c
+@@ -2030,8 +2030,8 @@ bypass:
+  * This function is for that and do uncharge, put css's refcnt.
+  * gotten by try_charge().
+  */
+-static void mem_cgroup_cancel_charge(struct mem_cgroup *mem,
+-				     unsigned int nr_pages)
++static void __mem_cgroup_cancel_charge(struct mem_cgroup *mem,
++				       unsigned int nr_pages)
  {
--	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_OFFSET);
--	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_OFFSET;
-+	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_SHIFT);
-+	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_SHIFT;
+ 	if (!mem_cgroup_is_root(mem)) {
+ 		unsigned long bytes = nr_pages * PAGE_SIZE;
+@@ -2100,7 +2100,7 @@ static void __mem_cgroup_commit_charge(s
+ 	lock_page_cgroup(pc);
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+-		mem_cgroup_cancel_charge(mem, nr_pages);
++		__mem_cgroup_cancel_charge(mem, nr_pages);
+ 		return;
+ 	}
+ 	/*
+@@ -2238,7 +2238,7 @@ static int mem_cgroup_move_account(struc
+ 	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -nr_pages);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+-		mem_cgroup_cancel_charge(from, nr_pages);
++		__mem_cgroup_cancel_charge(from, nr_pages);
+ 
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+@@ -2303,7 +2303,7 @@ static int mem_cgroup_move_parent(struct
+ 
+ 	ret = mem_cgroup_move_account(page, pc, child, parent, true, page_size);
+ 	if (ret)
+-		mem_cgroup_cancel_charge(parent, page_size >> PAGE_SHIFT);
++		__mem_cgroup_cancel_charge(parent, page_size >> PAGE_SHIFT);
+ 
+ 	if (page_size > PAGE_SIZE)
+ 		compound_unlock_irqrestore(page, flags);
+@@ -2534,7 +2534,7 @@ void mem_cgroup_cancel_charge_swapin(str
+ 		return;
+ 	if (!mem)
+ 		return;
+-	mem_cgroup_cancel_charge(mem, 1);
++	__mem_cgroup_cancel_charge(mem, 1);
  }
  
- static inline unsigned long page_cgroup_array_id(struct page_cgroup *pc)
- {
--	return (pc->flags >> PCG_ARRAYID_OFFSET) & PCG_ARRAYID_MASK;
-+	return (pc->flags >> PCG_ARRAYID_SHIFT) & PCG_ARRAYID_MASK;
- }
+ static void
+@@ -4811,7 +4811,7 @@ static void __mem_cgroup_clear_mc(void)
  
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ 	/* we must uncharge all the leftover precharges from mc.to */
+ 	if (mc.precharge) {
+-		mem_cgroup_cancel_charge(mc.to, mc.precharge);
++		__mem_cgroup_cancel_charge(mc.to, mc.precharge);
+ 		mc.precharge = 0;
+ 	}
+ 	/*
+@@ -4819,7 +4819,7 @@ static void __mem_cgroup_clear_mc(void)
+ 	 * we must uncharge here.
+ 	 */
+ 	if (mc.moved_charge) {
+-		mem_cgroup_cancel_charge(mc.from, mc.moved_charge);
++		__mem_cgroup_cancel_charge(mc.from, mc.moved_charge);
+ 		mc.moved_charge = 0;
+ 	}
+ 	/* we must fixup refcnts and charges */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -118,7 +130,6 @@ memcg-remove-direct-page_cgroup-to-page-pointer.patch
 memcg-charged-pages-always-have-valid-per-memcg-zone-info.patch
 memcg-remove-memcg-reclaim_param_lock.patch
 memcg-keep-only-one-charge-cancelling-function.patch
-memcg-keep-only-one-charge-cancelling-function-fix.patch
 memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
 memcg-convert-uncharge-batching-from-bytes-to-page-granularity.patch
 memcg-unify-charge-uncharge-quantities-to-units-of-pages.patch
