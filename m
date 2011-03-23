@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_swapon-move-printk-outside-lock.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:37:54 -0700
-Message-ID: <201103232041.p2NKfUs8028653@imap1.linux-foundation.org>
+Subject: [merged] mempolicy-remove-redundant-check-in-__mpol_equal.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:36:46 -0700
+Message-ID: <201103232040.p2NKeMJi028525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756124Ab1CWUzS (ORCPT
+	by vger.kernel.org with ESMTP id S933517Ab1CWUz3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:55:18 -0400
+	Wed, 23 Mar 2011 16:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: namhyung@gmail.com, andi@firstfloor.org, lee.schermerhorn@hp.com, lliubbo@gmail.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_swapon: move printk outside lock
+     mempolicy: remove redundant check in __mpol_equal()
 has been removed from the -mm tree.  Its filename was
-     sys_swapon-move-printk-outside-lock.patch
+     mempolicy-remove-redundant-check-in-__mpol_equal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: move printk outside lock
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: mempolicy: remove redundant check in __mpol_equal()
+From: Namhyung Kim <namhyung@gmail.com>
 
-The block in sys_swapon which does the final adjustments to the
-swap_info_struct and to swap_list is the same as the block which
-re-inserts it again at sys_swapoff on failure of try_to_unuse(). To be
-able to make both share the same code, move the printk() call in the
-middle of it to just after it.
+The 'flags' field is already checked, no need to do it again.
 
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Tested-by: Eric B Munson <emunson@mgebm.net>
-Acked-by: Eric B Munson <emunson@mgebm.net>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/swapfile.c~sys_swapon-move-printk-outside-lock mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-move-printk-outside-lock
-+++ a/mm/swapfile.c
-@@ -2144,13 +2144,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	nr_swap_pages += p->pages;
- 	total_swap_pages += p->pages;
- 
--	printk(KERN_INFO "Adding %uk swap on %s.  "
--			"Priority:%d extents:%d across:%lluk %s%s\n",
--		p->pages<<(PAGE_SHIFT-10), name, p->prio,
--		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
--		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
--		(p->flags & SWP_DISCARDABLE) ? "D" : "");
+diff -puN mm/mempolicy.c~mempolicy-remove-redundant-check-in-__mpol_equal mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-remove-redundant-check-in-__mpol_equal
++++ a/mm/mempolicy.c
+@@ -1979,8 +1979,7 @@ int __mpol_equal(struct mempolicy *a, st
+ 	case MPOL_INTERLEAVE:
+ 		return nodes_equal(a->v.nodes, b->v.nodes);
+ 	case MPOL_PREFERRED:
+-		return a->v.preferred_node == b->v.preferred_node &&
+-			a->flags == b->flags;
++		return a->v.preferred_node == b->v.preferred_node;
+ 	default:
+ 		BUG();
+ 		return 0;
+_
+
+Patches currently in -mm which might be from namhyung@gmail.com are
+
+origin.patch
+linux-next.patch
+
