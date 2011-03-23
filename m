@@ -1,90 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:33:27 -0700
-Message-ID: <201103232037.p2NKb3Kc028204@imap1.linux-foundation.org>
+Subject: [merged] sys_swapon-use-a-single-error-label.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:37:34 -0700
+Message-ID: <201103232041.p2NKfA7t028612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756157Ab1CWUzQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756133Ab1CWUzQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Mar 2011 16:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, kristoffer.ericson@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
+     sys_swapon: use a single error label
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static.patch
+     sys_swapon-use-a-single-error-label.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/jornada720_*.c: make needlessly global symbols static
-From: Axel Lin <axel.lin@gmail.com>
+Subject: sys_swapon: use a single error label
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
 
-The following symbols are needlessly defined global:
-jornada_bl_init
-jornada_bl_exit
-jornada_lcd_init
-jornada_lcd_exit
+sys_swapon currently has two error labels, bad_swap and bad_swap_2.
+bad_swap does the same as bad_swap_2 plus destroy_swap_extents() and
+swap_cgroup_swapoff(); both are noops in the places where bad_swap_2 is
+jumped to. With a single extra test for inode (matching the one in the
+S_ISREG case below), all the error paths in the function can go to
+bad_swap.
 
-Make them static.
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Tested-by: Eric B Munson <emunson@mgebm.net>
+Acked-by: Eric B Munson <emunson@mgebm.net>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/jornada720_bl.c  |    4 ++--
- drivers/video/backlight/jornada720_lcd.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_bl.c
---- a/drivers/video/backlight/jornada720_bl.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
-+++ a/drivers/video/backlight/jornada720_bl.c
-@@ -147,12 +147,12 @@ static struct platform_driver jornada_bl
- 	},
- };
+diff -puN mm/swapfile.c~sys_swapon-use-a-single-error-label mm/swapfile.c
+--- a/mm/swapfile.c~sys_swapon-use-a-single-error-label
++++ a/mm/swapfile.c
+@@ -1918,13 +1918,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (IS_ERR(name)) {
+ 		error = PTR_ERR(name);
+ 		name = NULL;
+-		goto bad_swap_2;
++		goto bad_swap;
+ 	}
+ 	swap_file = filp_open(name, O_RDWR|O_LARGEFILE, 0);
+ 	if (IS_ERR(swap_file)) {
+ 		error = PTR_ERR(swap_file);
+ 		swap_file = NULL;
+-		goto bad_swap_2;
++		goto bad_swap;
+ 	}
  
--int __init jornada_bl_init(void)
-+static int __init jornada_bl_init(void)
- {
- 	return platform_driver_register(&jornada_bl_driver);
- }
- 
--void __exit jornada_bl_exit(void)
-+static void __exit jornada_bl_exit(void)
- {
- 	platform_driver_unregister(&jornada_bl_driver);
- }
-diff -puN drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static drivers/video/backlight/jornada720_lcd.c
---- a/drivers/video/backlight/jornada720_lcd.c~drivers-video-backlight-jornada720_c-make-needlessly-global-symbols-static
-+++ a/drivers/video/backlight/jornada720_lcd.c
-@@ -135,12 +135,12 @@ static struct platform_driver jornada_lc
- 	},
- };
- 
--int __init jornada_lcd_init(void)
-+static int __init jornada_lcd_init(void)
- {
- 	return platform_driver_register(&jornada_lcd_driver);
- }
- 
--void __exit jornada_lcd_exit(void)
-+static void __exit jornada_lcd_exit(void)
- {
- 	platform_driver_unregister(&jornada_lcd_driver);
- }
+ 	p->swap_file = swap_file;
+@@ -2141,13 +2141,12 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = 0;
+ 	goto out;
+ bad_swap:
+-	if (S_ISBLK(inode->i_mode) && p->bdev) {
++	if (inode && S_ISBLK(inode->i_mode) && p->bdev) {
+ 		set_blocksize(p->bdev, p->old_block_size);
+ 		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+ 	}
+ 	destroy_swap_extents(p);
+ 	swap_cgroup_swapoff(p->type);
+-bad_swap_2:
+ 	spin_lock(&swap_lock);
+ 	p->swap_file = NULL;
+ 	p->flags = 0;
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from cesarb@cesarb.net are
 
 origin.patch
-linux-next.patch
 
