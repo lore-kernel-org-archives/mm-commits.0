@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 16:17:53 -0700
-Message-ID: <201103232317.p2NNHrAF004188@imap1.linux-foundation.org>
+Subject: [folded] m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 16:18:09 -0700
+Message-ID: <201103232318.p2NNI9JG004202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933114Ab1CWXR6 (ORCPT
+	by vger.kernel.org with ESMTP id S933114Ab1CWXSQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 19:17:58 -0400
+	Wed, 23 Mar 2011 19:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, geert@linux-m68k.org, hpa@zytor.com, schwab@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, geert@linux-m68k.org, gerg@uclinux.org, hpa@zytor.com, schwab@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
+     m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 has been removed from the -mm tree.  Its filename was
-     m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
+     m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 
-This patch was dropped because it was folded into m68k-introduce-little-endian-bitops.patch
+This patch was dropped because it was folded into m68knommu-introduce-little-endian-bitops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
+Subject: m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 (This patch is intended to be folded into the patch in -mm:
-m68k-introduce-little-endian-bitops.patch)
+m68knommu-introduce-little-endian-bitops.patch)
 
-The little-endian bitops on m68k are written as preprocessor
+A few little-endian bitops on m68knommu are written as preprocessor
 macros with the cast to "unsigned long *".
 This means that even non-pointers will be accepted without an error, and
 that is a Very Bad Thing.
@@ -40,65 +40,38 @@ with proper prototypes.
 
 Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops_mm.h |   41 +++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ arch/m68k/include/asm/bitops_no.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops_mm.h~m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/m68k/include/asm/bitops_mm.h
---- a/arch/m68k/include/asm/bitops_mm.h~m68k-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
-+++ a/arch/m68k/include/asm/bitops_mm.h
-@@ -361,18 +361,35 @@ static inline int minix_test_bit(int nr,
+diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions arch/m68k/include/asm/bitops_no.h
+--- a/arch/m68k/include/asm/bitops_no.h~m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions
++++ a/arch/m68k/include/asm/bitops_no.h
+@@ -198,11 +198,15 @@ static __inline__ int __test_bit(int nr,
  
- /* Bitmap functions for the little endian bitmap. */
+ #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
  
--#define __set_bit_le(nr, addr)	\
--	__set_bit((nr) ^ 24, (unsigned long *)(addr))
--#define __clear_bit_le(nr, addr)	\
--	__clear_bit((nr) ^ 24, (unsigned long *)(addr))
--#define __test_and_set_bit_le(nr, addr)	\
--	__test_and_set_bit((nr) ^ 24, (unsigned long *)(addr))
--#define test_and_set_bit_le(nr, addr)	\
--	test_and_set_bit((nr) ^ 24, (unsigned long *)(addr))
--#define __test_and_clear_bit_le(nr, addr)	\
--	__test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
--#define test_and_clear_bit_le(nr, addr)	\
--	test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
+-#define __set_bit_le(nr, addr) \
+-	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
 +static inline void __set_bit_le(int nr, void *addr)
 +{
-+	__set_bit(nr ^ 24, addr);
-+}
-+
-+static inline void __clear_bit_le(int nr, void *addr)
-+{
-+	__clear_bit(nr ^ 24, addr);
-+}
-+
-+static inline int __test_and_set_bit_le(int nr, void *addr)
-+{
-+	return __test_and_set_bit(nr ^ 24, addr);
-+}
-+
-+static inline int test_and_set_bit_le(int nr, void *addr)
-+{
-+	return test_and_set_bit(nr ^ 24, addr);
-+}
-+
-+static inline int __test_and_clear_bit_le(int nr, void *addr)
-+{
-+	return __test_and_clear_bit(nr ^ 24, addr);
-+}
-+
-+static inline int test_and_clear_bit_le(int nr, void *addr)
-+{
-+	return test_and_clear_bit(nr ^ 24, addr);
++	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
 +}
  
- static inline int test_bit_le(int nr, const void *vaddr)
+-#define __clear_bit_le(nr, addr) \
+-	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (unsigned long *)(addr))
++static inline void __clear_bit_le(int nr, void *addr)
++{
++	__clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
+ 
+ static inline int __test_and_set_bit_le(int nr, volatile void *addr)
  {
 _
 
@@ -116,7 +89,6 @@ arm-introduce-little-endian-bitops.patch
 m68k-introduce-little-endian-bitops.patch
 bitops-introduce-config_generic_find_bit_le.patch
 m68knommu-introduce-little-endian-bitops.patch
-m68knommu-introduce-little-endian-bitops-convert-little-endian-bitops-macros-to-static-inline-functions.patch
 bitops-introduce-little-endian-bitops-for-most-architectures.patch
 asm-generic-use-little-endian-bitops.patch
 kvm-use-little-endian-bitops.patch
