@@ -1,95 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_swapon-fix-inode-locking.patch removed from -mm tree
-Date: Wed, 23 Mar 2011 13:41:24 -0700
-Message-ID: <201103232045.p2NKj0mt029145@imap1.linux-foundation.org>
+Subject: [merged] bloat-o-meter-include-read-only-data-section-in-report.patch removed from -mm tree
+Date: Wed, 23 Mar 2011 13:41:21 -0700
+Message-ID: <201103232044.p2NKiv0C029140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933486Ab1CWUpl (ORCPT
+	by vger.kernel.org with ESMTP id S933502Ab1CWUpn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Mar 2011 16:45:41 -0400
+	Wed, 23 Mar 2011 16:45:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, emunson@mgebm.net, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, andi@firstfloor.org, ntl@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_swapon: fix inode locking
+     bloat-o-meter: include read-only data section in report
 has been removed from the -mm tree.  Its filename was
-     sys_swapon-fix-inode-locking.patch
+     bloat-o-meter-include-read-only-data-section-in-report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_swapon: fix inode locking
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: bloat-o-meter: include read-only data section in report
+From: Jean Delvare <khali@linux-fr.org>
 
-A conflict between 52c50567d8ab0a0a87f12cceaa4194967854f0bd (mm: swap:
-unlock swapfile inode mutex before closing file on bad swapfiles) and
-83ef99befc324803a54cf2a5fab5a322df3a99d6 (sys_swapon: remove did_down
-variable) caused a double unlock of the inode mutex (once in bad_swap:
-before the filp_close, once at the end just before returning).
+I'm not sure why the read-only data section is excluded from the report,
+it seems as relevant as the other data sections (b and d).
 
-The patch which added the extra unlock cleared did_down to avoid unlocking
-twice, but the other patch removed the did_down variable.
+I've stripped the symbols starting with __mod_ as they can have their
+names dynamically generated and thus comparison between binaries is not
+possible.
 
-To fix, set inode to NULL after the first unlock, since it will be used
-after that point only for the final unlock.
-
-While checking this patch, I found a path which could unlock without
-locking, in case the same inode was added as a swapfile twice.  To fix,
-move the setting of the inode variable further down, to just before
-claim_swapfile, which will lock the inode before doing anything else.
-
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Eric B Munson <emunson@mgebm.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Acked-by: Nathan Lynch <ntl@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/bloat-o-meter |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~sys_swapon-fix-inode-locking mm/swapfile.c
---- a/mm/swapfile.c~sys_swapon-fix-inode-locking
-+++ a/mm/swapfile.c
-@@ -2088,7 +2088,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 
- 	p->swap_file = swap_file;
- 	mapping = swap_file->f_mapping;
--	inode = mapping->host;
- 
- 	for (i = 0; i < nr_swapfiles; i++) {
- 		struct swap_info_struct *q = swap_info[i];
-@@ -2101,6 +2100,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		}
- 	}
- 
-+	inode = mapping->host;
-+	/* If S_ISREG(inode->i_mode) will do mutex_lock(&inode->i_mutex); */
- 	error = claim_swapfile(p, inode);
- 	if (unlikely(error))
- 		goto bad_swap;
-@@ -2187,8 +2188,10 @@ bad_swap:
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
- 	if (swap_file) {
--		if (inode && S_ISREG(inode->i_mode))
-+		if (inode && S_ISREG(inode->i_mode)) {
- 			mutex_unlock(&inode->i_mutex);
-+			inode = NULL;
-+		}
- 		filp_close(swap_file, NULL);
- 	}
- out:
+diff -puN scripts/bloat-o-meter~bloat-o-meter-include-read-only-data-section-in-report scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~bloat-o-meter-include-read-only-data-section-in-report
++++ a/scripts/bloat-o-meter
+@@ -17,7 +17,9 @@ def getsizes(file):
+     sym = {}
+     for l in os.popen("nm --size-sort " + file).readlines():
+         size, type, name = l[:-1].split()
+-        if type in "tTdDbB":
++        if type in "tTdDbBrR":
++            # strip generated symbols
++            if name[:6] == "__mod_": continue
+             # function names begin with '.' on 64-bit powerpc
+             if "." in name[1:]: name = "static." + name.split(".")[0]
+             sym[name] = sym.get(name, 0) + int(size, 16)
 _
 
-Patches currently in -mm which might be from cesarb@cesarb.net are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
+linux-next.patch
 
