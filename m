@@ -1,59 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl_check-drop-dead-code.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:25 -0700
-Message-ID: <201103250726.p2P7QJdk026131@imap1.linux-foundation.org>
+Subject: [merged] sysctl-add-some-missing-input-constraint-checks.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:27 -0700
+Message-ID: <201103250726.p2P7QLn7026140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933145Ab1CYH0V (ORCPT
+	by vger.kernel.org with ESMTP id S1753752Ab1CYH0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:21 -0400
+	Fri, 25 Mar 2011 03:26:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dkirjanov@kernel.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: pholasek@redhat.com, adobriyan@gmail.com, fengguang.wu@intel.com, hidave.darkstar@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl_check: drop dead code
+     sysctl: add some missing input constraint checks
 has been removed from the -mm tree.  Its filename was
-     sysctl_check-drop-dead-code.patch
+     sysctl-add-some-missing-input-constraint-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl_check: drop dead code
-From: Denis Kirjanov <dkirjanov@kernel.org>
+Subject: sysctl: add some missing input constraint checks
+From: Petr Holasek <pholasek@redhat.com>
 
-Drop dead code.
+Add boundaries of allowed input ranges for: dirty_expire_centisecs,
+drop_caches, overcommit_memory, page-cluster and panic_on_oom.
 
-Signed-off-by: Denis Kirjanov <dkirjanov@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Petr Holasek <pholasek@redhat.com>
+Acked-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/drop_caches.c |    6 +++++-
+ kernel/sysctl.c  |   17 +++++++++++++----
+ 2 files changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sysctl_check.c~sysctl_check-drop-dead-code kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl_check-drop-dead-code
-+++ a/kernel/sysctl_check.c
-@@ -145,10 +145,6 @@ int sysctl_check_table(struct nsproxy *n
- 			if (!table->proc_handler)
- 				set_fail(&fail, table, "No proc_handler");
- #endif
--#if 0
--			if (!table->procname && table->proc_handler)
--				set_fail(&fail, table, "proc_handler without procname");
--#endif
- 			sysctl_check_leaf(namespaces, table, &fail);
- 		}
- 		if (table->mode > 0777)
+diff -puN fs/drop_caches.c~sysctl-add-some-missing-input-constraint-checks fs/drop_caches.c
+--- a/fs/drop_caches.c~sysctl-add-some-missing-input-constraint-checks
++++ a/fs/drop_caches.c
+@@ -45,7 +45,11 @@ static void drop_slab(void)
+ int drop_caches_sysctl_handler(ctl_table *table, int write,
+ 	void __user *buffer, size_t *length, loff_t *ppos)
+ {
+-	proc_dointvec_minmax(table, write, buffer, length, ppos);
++	int ret;
++
++	ret = proc_dointvec_minmax(table, write, buffer, length, ppos);
++	if (ret)
++		return ret;
+ 	if (write) {
+ 		if (sysctl_drop_caches & 1)
+ 			iterate_supers(drop_pagecache_sb, NULL);
+diff -puN kernel/sysctl.c~sysctl-add-some-missing-input-constraint-checks kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-add-some-missing-input-constraint-checks
++++ a/kernel/sysctl.c
+@@ -117,6 +117,7 @@ static int neg_one = -1;
+ static int zero;
+ static int __maybe_unused one = 1;
+ static int __maybe_unused two = 2;
++static int __maybe_unused three = 3;
+ static unsigned long one_ul = 1;
+ static int one_hundred = 100;
+ #ifdef CONFIG_PRINTK
+@@ -971,14 +972,18 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_overcommit_memory,
+ 		.maxlen		= sizeof(sysctl_overcommit_memory),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &two,
+ 	},
+ 	{
+ 		.procname	= "panic_on_oom",
+ 		.data		= &sysctl_panic_on_oom,
+ 		.maxlen		= sizeof(sysctl_panic_on_oom),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &two,
+ 	},
+ 	{
+ 		.procname	= "oom_kill_allocating_task",
+@@ -1006,7 +1011,8 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &page_cluster,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
+ 	},
+ 	{
+ 		.procname	= "dirty_background_ratio",
+@@ -1054,7 +1060,8 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &dirty_expire_interval,
+ 		.maxlen		= sizeof(dirty_expire_interval),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
+ 	},
+ 	{
+ 		.procname	= "nr_pdflush_threads",
+@@ -1130,6 +1137,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= drop_caches_sysctl_handler,
++		.extra1		= &one,
++		.extra2		= &three,
+ 	},
+ #ifdef CONFIG_COMPACTION
+ 	{
 _
 
-Patches currently in -mm which might be from dkirjanov@kernel.org are
+Patches currently in -mm which might be from pholasek@redhat.com are
 
 origin.patch
 
