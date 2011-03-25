@@ -1,167 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userns-make-has_capability-into-real-functions.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:54 -0700
-Message-ID: <201103250726.p2P7QmfN026181@imap1.linux-foundation.org>
+Subject: [merged] userns-add-a-user-namespace-owner-of-ipc-ns.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:58 -0700
+Message-ID: <201103250726.p2P7Qqo0026187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933642Ab1CYH06 (ORCPT
+	by vger.kernel.org with ESMTP id S933996Ab1CYH1D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:58 -0400
+	Fri, 25 Mar 2011 03:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serge.hallyn@canonical.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, mm-commits@vger.kernel.org
+To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     userns: make has_capability* into real functions
+     userns: add a user namespace owner of ipc ns
 has been removed from the -mm tree.  Its filename was
-     userns-make-has_capability-into-real-functions.patch
+     userns-add-a-user-namespace-owner-of-ipc-ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: make has_capability* into real functions
-From: "Serge E. Hallyn" <serge.hallyn@canonical.com>
+Subject: userns: add a user namespace owner of ipc ns
+From: "Serge E. Hallyn" <serge@hallyn.com>
 
-So we can let type safety keep things sane, and as a bonus we can remove
-the declaration of init_user_ns in capability.h.
+Changelog:
+	Feb 15: Don't set new ipc->user_ns if we didn't create a new
+		ipc_ns.
+	Feb 23: Move extern declaration to ipc_namespace.h, and group
+		fwd declarations at top.
 
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: David Howells <dhowells@redhat.com>
 Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |   34 ++--------------------
- kernel/capability.c        |   54 +++++++++++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+), 30 deletions(-)
+ include/linux/ipc_namespace.h |    3 +++
+ ipc/msgutil.c                 |    1 +
+ ipc/namespace.c               |    9 +++++++--
+ kernel/nsproxy.c              |    5 +++++
+ 4 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/capability.h~userns-make-has_capability-into-real-functions include/linux/capability.h
---- a/include/linux/capability.h~userns-make-has_capability-into-real-functions
-+++ a/include/linux/capability.h
-@@ -371,8 +371,6 @@ struct cpu_vfs_cap_data {
- struct dentry;
- struct user_namespace;
+diff -puN include/linux/ipc_namespace.h~userns-add-a-user-namespace-owner-of-ipc-ns include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~userns-add-a-user-namespace-owner-of-ipc-ns
++++ a/include/linux/ipc_namespace.h
+@@ -15,6 +15,7 @@
  
--extern struct user_namespace init_user_ns;
--
- struct user_namespace *current_user_ns(void);
+ #define IPCNS_CALLBACK_PRI 0
  
- extern const kernel_cap_t __cap_empty_set;
-@@ -541,34 +539,10 @@ static inline kernel_cap_t cap_raise_nfs
- 			   cap_intersect(permitted, __cap_nfsd_set));
++struct user_namespace;
+ 
+ struct ipc_ids {
+ 	int in_use;
+@@ -56,6 +57,8 @@ struct ipc_namespace {
+ 	unsigned int    mq_msg_max;      /* initialized to DFLT_MSGMAX */
+ 	unsigned int    mq_msgsize_max;  /* initialized to DFLT_MSGSIZEMAX */
+ 
++	/* user_ns which owns the ipc ns */
++	struct user_namespace *user_ns;
+ };
+ 
+ extern struct ipc_namespace init_ipc_ns;
+diff -puN ipc/msgutil.c~userns-add-a-user-namespace-owner-of-ipc-ns ipc/msgutil.c
+--- a/ipc/msgutil.c~userns-add-a-user-namespace-owner-of-ipc-ns
++++ a/ipc/msgutil.c
+@@ -32,6 +32,7 @@ struct ipc_namespace init_ipc_ns = {
+ 	.mq_msg_max      = DFLT_MSGMAX,
+ 	.mq_msgsize_max  = DFLT_MSGSIZEMAX,
+ #endif
++	.user_ns = &init_user_ns,
+ };
+ 
+ atomic_t nr_ipc_ns = ATOMIC_INIT(1);
+diff -puN ipc/namespace.c~userns-add-a-user-namespace-owner-of-ipc-ns ipc/namespace.c
+--- a/ipc/namespace.c~userns-add-a-user-namespace-owner-of-ipc-ns
++++ a/ipc/namespace.c
+@@ -11,10 +11,11 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/mount.h>
++#include <linux/user_namespace.h>
+ 
+ #include "util.h"
+ 
+-static struct ipc_namespace *create_ipc_ns(void)
++static struct ipc_namespace *create_ipc_ns(struct ipc_namespace *old_ns)
+ {
+ 	struct ipc_namespace *ns;
+ 	int err;
+@@ -43,6 +44,9 @@ static struct ipc_namespace *create_ipc_
+ 	ipcns_notify(IPCNS_CREATED);
+ 	register_ipcns_notifier(ns);
+ 
++	ns->user_ns = old_ns->user_ns;
++	get_user_ns(ns->user_ns);
++
+ 	return ns;
  }
  
--/**
-- * has_capability - Determine if a task has a superior capability available
-- * @t: The task in question
-- * @cap: The capability to be tested for
-- *
-- * Return true if the specified task has the given superior capability
-- * currently in effect, false if not.
-- *
-- * Note that this does not set PF_SUPERPRIV on the task.
-- */
--#define has_capability(t, cap) (security_real_capable((t), &init_user_ns, (cap)) == 0)
--
--#define has_ns_capability(t, ns, cap) (security_real_capable((t), (ns), (cap)) == 0)
--
--/**
-- * has_capability_noaudit - Determine if a task has a superior capability available (unaudited)
-- * @t: The task in question
-- * @cap: The capability to be tested for
-- *
-- * Return true if the specified task has the given superior capability
-- * currently in effect, false if not, but don't write an audit message for the
-- * check.
-- *
-- * Note that this does not set PF_SUPERPRIV on the task.
-- */
--#define has_capability_noaudit(t, cap) \
--	(security_real_capable_noaudit((t), &init_user_ns, (cap)) == 0)
--
-+extern bool has_capability(struct task_struct *t, int cap);
-+extern bool has_ns_capability(struct task_struct *t,
-+			      struct user_namespace *ns, int cap);
-+extern bool has_capability_noaudit(struct task_struct *t, int cap);
- extern bool capable(int cap);
- extern bool ns_capable(struct user_namespace *ns, int cap);
- extern bool task_ns_capable(struct task_struct *t, int cap);
-diff -puN kernel/capability.c~userns-make-has_capability-into-real-functions kernel/capability.c
---- a/kernel/capability.c~userns-make-has_capability-into-real-functions
-+++ a/kernel/capability.c
-@@ -291,6 +291,60 @@ error:
+@@ -50,7 +54,7 @@ struct ipc_namespace *copy_ipcs(unsigned
+ {
+ 	if (!(flags & CLONE_NEWIPC))
+ 		return get_ipc_ns(ns);
+-	return create_ipc_ns();
++	return create_ipc_ns(ns);
  }
  
- /**
-+ * has_capability - Does a task have a capability in init_user_ns
-+ * @t: The task in question
-+ * @cap: The capability to be tested for
-+ *
-+ * Return true if the specified task has the given superior capability
-+ * currently in effect to the initial user namespace, false if not.
-+ *
-+ * Note that this does not set PF_SUPERPRIV on the task.
-+ */
-+bool has_capability(struct task_struct *t, int cap)
-+{
-+	int ret = security_real_capable(t, &init_user_ns, cap);
-+
-+	return (ret == 0);
-+}
-+
-+/**
-+ * has_capability - Does a task have a capability in a specific user ns
-+ * @t: The task in question
-+ * @ns: target user namespace
-+ * @cap: The capability to be tested for
-+ *
-+ * Return true if the specified task has the given superior capability
-+ * currently in effect to the specified user namespace, false if not.
-+ *
-+ * Note that this does not set PF_SUPERPRIV on the task.
-+ */
-+bool has_ns_capability(struct task_struct *t,
-+		       struct user_namespace *ns, int cap)
-+{
-+	int ret = security_real_capable(t, ns, cap);
-+
-+	return (ret == 0);
-+}
-+
-+/**
-+ * has_capability_noaudit - Does a task have a capability (unaudited)
-+ * @t: The task in question
-+ * @cap: The capability to be tested for
-+ *
-+ * Return true if the specified task has the given superior capability
-+ * currently in effect to init_user_ns, false if not.  Don't write an
-+ * audit message for the check.
-+ *
-+ * Note that this does not set PF_SUPERPRIV on the task.
-+ */
-+bool has_capability_noaudit(struct task_struct *t, int cap)
-+{
-+	int ret = security_real_capable_noaudit(t, &init_user_ns, cap);
-+
-+	return (ret == 0);
-+}
-+
-+/**
-  * capable - Determine if the current task has a superior capability in effect
-  * @cap: The capability to be tested for
-  *
+ /*
+@@ -105,6 +109,7 @@ static void free_ipc_ns(struct ipc_names
+ 	 * order to have a correct value when recomputing msgmni.
+ 	 */
+ 	ipcns_notify(IPCNS_REMOVED);
++	put_user_ns(ns->user_ns);
+ }
+ 
+ /*
+diff -puN kernel/nsproxy.c~userns-add-a-user-namespace-owner-of-ipc-ns kernel/nsproxy.c
+--- a/kernel/nsproxy.c~userns-add-a-user-namespace-owner-of-ipc-ns
++++ a/kernel/nsproxy.c
+@@ -80,6 +80,11 @@ static struct nsproxy *create_new_namesp
+ 		err = PTR_ERR(new_nsp->ipc_ns);
+ 		goto out_ipc;
+ 	}
++	if (new_nsp->ipc_ns != tsk->nsproxy->ipc_ns) {
++		put_user_ns(new_nsp->ipc_ns->user_ns);
++		new_nsp->ipc_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
++		get_user_ns(new_nsp->ipc_ns->user_ns);
++	}
+ 
+ 	new_nsp->pid_ns = copy_pid_ns(flags, task_active_pid_ns(tsk));
+ 	if (IS_ERR(new_nsp->pid_ns)) {
 _
 
-Patches currently in -mm which might be from serge.hallyn@canonical.com are
+Patches currently in -mm which might be from serge@hallyn.com are
 
 origin.patch
-ipcns-fix-use-after-free-in-free_ipc_ns.patch
-cgroup-remove-the-ns_cgroup.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 
