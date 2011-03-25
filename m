@@ -1,49 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-break-out-event-counters-from-other-stats.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:25:04 -0700
-Message-ID: <201103250724.p2P7Ow0J025981@imap1.linux-foundation.org>
+Subject: [merged] memcg-use-native-word-page-statistics-counters.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:25:07 -0700
+Message-ID: <201103250725.p2P7P192025990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933830Ab1CYHZO (ORCPT
+	by vger.kernel.org with ESMTP id S933929Ab1CYHZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:25:14 -0400
+	Fri, 25 Mar 2011 03:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, gthelen@google.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: break out event counters from other stats
+     memcg: use native word page statistics counters
 has been removed from the -mm tree.  Its filename was
-     memcg-break-out-event-counters-from-other-stats.patch
+     memcg-use-native-word-page-statistics-counters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: break out event counters from other stats
+Subject: memcg: use native word page statistics counters
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-For increasing and decreasing per-cpu cgroup usage counters it makes sense
-to use signed types, as single per-cpu values might go negative during
-updates.  But this is not the case for only-ever-increasing event
-counters.
+The statistic counters are in units of pages, there is no reason to make
+them 64-bit wide on 32-bit machines.
 
-All the counters have been signed 64-bit so far, which was enough to count
-events even with the sign bit wasted.
+Make them native words.  Since they are signed, this leaves 31 bit on
+32-bit machines, which can represent roughly 8TB assuming a page size of
+4k.
 
-This patch:
-- divides s64 counters into signed usage counters and unsigned
-  monotonically increasing event counters.
-- converts unsigned event counters into 'unsigned long' rather than
-  'u64'.  This matches the type used by the /proc/vmstat event counters.
-
-The next patch narrows the signed usage counters type (on 32-bit CPUs,
-that is).
-
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -52,117 +43,180 @@ Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   49 ++++++++++++++++++++++++++++++++++------------
- 1 file changed, 37 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   88 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 59 insertions(+), 29 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-break-out-event-counters-from-other-stats mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-break-out-event-counters-from-other-stats
+diff -puN mm/memcontrol.c~memcg-use-native-word-page-statistics-counters mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-native-word-page-statistics-counters
 +++ a/mm/memcontrol.c
-@@ -93,19 +93,22 @@ enum mem_cgroup_stat_index {
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
- 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
- 	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
--	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
--	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
- 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
- 	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
--	/* incremented at every  pagein/pageout */
--	MEM_CGROUP_EVENTS = MEM_CGROUP_STAT_DATA,
- 	MEM_CGROUP_ON_MOVE,	/* someone is moving account between groups */
--
- 	MEM_CGROUP_STAT_NSTATS,
- };
+@@ -73,15 +73,6 @@ static int really_do_swap_account __init
+ #define do_swap_account		(0)
+ #endif
  
-+enum mem_cgroup_events_index {
-+	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
-+	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
-+	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
-+	MEM_CGROUP_EVENTS_NSTATS,
+-/*
+- * Per memcg event counter is incremented at every pagein/pageout. This counter
+- * is used for trigger some periodic events. This is straightforward and better
+- * than using jiffies etc. to handle periodic memcg event.
+- *
+- * These values will be used as !((event) & ((1 <<(thresh)) - 1))
+- */
+-#define THRESHOLDS_EVENTS_THRESH (7) /* once in 128 */
+-#define SOFTLIMIT_EVENTS_THRESH (10) /* once in 1024 */
+ 
+ /*
+  * Statistics for memory cgroup.
+@@ -105,10 +96,24 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
++/*
++ * Per memcg event counter is incremented at every pagein/pageout. With THP,
++ * it will be incremated by the number of pages. This counter is used for
++ * for trigger some periodic events. This is straightforward and better
++ * than using jiffies etc. to handle periodic memcg event.
++ */
++enum mem_cgroup_events_target {
++	MEM_CGROUP_TARGET_THRESH,
++	MEM_CGROUP_TARGET_SOFTLIMIT,
++	MEM_CGROUP_NTARGETS,
 +};
-+
++#define THRESHOLDS_EVENTS_TARGET (128)
++#define SOFTLIMIT_EVENTS_TARGET (1024)
+ 
  struct mem_cgroup_stat_cpu {
- 	s64 count[MEM_CGROUP_STAT_NSTATS];
-+	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
+-	s64 count[MEM_CGROUP_STAT_NSTATS];
++	long count[MEM_CGROUP_STAT_NSTATS];
+ 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
++	unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
  /*
-@@ -577,6 +580,22 @@ static void mem_cgroup_swap_statistics(s
- 	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
+@@ -546,11 +551,11 @@ mem_cgroup_largest_soft_limit_node(struc
+  * common workload, threashold and synchonization as vmstat[] should be
+  * implemented.
+  */
+-static s64 mem_cgroup_read_stat(struct mem_cgroup *mem,
+-		enum mem_cgroup_stat_index idx)
++static long mem_cgroup_read_stat(struct mem_cgroup *mem,
++				 enum mem_cgroup_stat_index idx)
+ {
++	long val = 0;
+ 	int cpu;
+-	s64 val = 0;
+ 
+ 	get_online_cpus();
+ 	for_each_online_cpu(cpu)
+@@ -564,9 +569,9 @@ static s64 mem_cgroup_read_stat(struct m
+ 	return val;
  }
  
-+static unsigned long mem_cgroup_read_events(struct mem_cgroup *mem,
-+					    enum mem_cgroup_events_index idx)
+-static s64 mem_cgroup_local_usage(struct mem_cgroup *mem)
++static long mem_cgroup_local_usage(struct mem_cgroup *mem)
+ {
+-	s64 ret;
++	long ret;
+ 
+ 	ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_RSS);
+ 	ret += mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_CACHE);
+@@ -634,13 +639,34 @@ static unsigned long mem_cgroup_get_loca
+ 	return total;
+ }
+ 
+-static bool __memcg_event_check(struct mem_cgroup *mem, int event_mask_shift)
++static bool __memcg_event_check(struct mem_cgroup *mem, int target)
 +{
-+	unsigned long val = 0;
-+	int cpu;
++	unsigned long val, next;
 +
-+	for_each_online_cpu(cpu)
-+		val += per_cpu(mem->stat->events[idx], cpu);
-+#ifdef CONFIG_HOTPLUG_CPU
-+	spin_lock(&mem->pcp_counter_lock);
-+	val += mem->nocpu_base.events[idx];
-+	spin_unlock(&mem->pcp_counter_lock);
-+#endif
-+	return val;
++	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	next = this_cpu_read(mem->stat->targets[target]);
++	/* from time_after() in jiffies.h */
++	return ((long)next - (long)val < 0);
 +}
 +
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
- 					 bool file, int nr_pages)
++static void __mem_cgroup_target_update(struct mem_cgroup *mem, int target)
  {
-@@ -589,13 +608,13 @@ static void mem_cgroup_charge_statistics
+-	unsigned long val;
++	unsigned long val, next;
  
- 	/* pagein of a big page is an event. So, ignore page size */
- 	if (nr_pages > 0)
--		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGIN_COUNT]);
-+		__this_cpu_inc(mem->stat->events[MEM_CGROUP_EVENTS_PGPGIN]);
- 	else {
--		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGOUT_COUNT]);
-+		__this_cpu_inc(mem->stat->events[MEM_CGROUP_EVENTS_PGPGOUT]);
- 		nr_pages = -nr_pages; /* for event */
+ 	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
+ 
+-	return !(val & ((1 << event_mask_shift) - 1));
++	switch (target) {
++	case MEM_CGROUP_TARGET_THRESH:
++		next = val + THRESHOLDS_EVENTS_TARGET;
++		break;
++	case MEM_CGROUP_TARGET_SOFTLIMIT:
++		next = val + SOFTLIMIT_EVENTS_TARGET;
++		break;
++	default:
++		return;
++	}
++
++	this_cpu_write(mem->stat->targets[target], next);
+ }
+ 
+ /*
+@@ -650,10 +676,15 @@ static bool __memcg_event_check(struct m
+ static void memcg_check_events(struct mem_cgroup *mem, struct page *page)
+ {
+ 	/* threshold event is triggered in finer grain than soft limit */
+-	if (unlikely(__memcg_event_check(mem, THRESHOLDS_EVENTS_THRESH))) {
++	if (unlikely(__memcg_event_check(mem, MEM_CGROUP_TARGET_THRESH))) {
+ 		mem_cgroup_threshold(mem);
+-		if (unlikely(__memcg_event_check(mem, SOFTLIMIT_EVENTS_THRESH)))
++		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
++		if (unlikely(__memcg_event_check(mem,
++			MEM_CGROUP_TARGET_SOFTLIMIT))){
+ 			mem_cgroup_update_tree(mem, page);
++			__mem_cgroup_target_update(mem,
++				MEM_CGROUP_TARGET_SOFTLIMIT);
++		}
  	}
- 
--	__this_cpu_add(mem->stat->count[MEM_CGROUP_EVENTS], nr_pages);
-+	__this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_COUNT], nr_pages);
- 
- 	preempt_enable();
  }
-@@ -617,9 +636,9 @@ static unsigned long mem_cgroup_get_loca
  
- static bool __memcg_event_check(struct mem_cgroup *mem, int event_mask_shift)
- {
--	s64 val;
-+	unsigned long val;
+@@ -1787,7 +1818,7 @@ static void mem_cgroup_drain_pcp_counter
  
--	val = this_cpu_read(mem->stat->count[MEM_CGROUP_EVENTS]);
-+	val = this_cpu_read(mem->stat->events[MEM_CGROUP_EVENTS_COUNT]);
+ 	spin_lock(&mem->pcp_counter_lock);
+ 	for (i = 0; i < MEM_CGROUP_STAT_DATA; i++) {
+-		s64 x = per_cpu(mem->stat->count[i], cpu);
++		long x = per_cpu(mem->stat->count[i], cpu);
  
- 	return !(val & ((1 << event_mask_shift) - 1));
- }
-@@ -1773,6 +1792,12 @@ static void mem_cgroup_drain_pcp_counter
  		per_cpu(mem->stat->count[i], cpu) = 0;
  		mem->nocpu_base.count[i] += x;
+@@ -3499,13 +3530,13 @@ static int mem_cgroup_hierarchy_write(st
+ }
+ 
+ 
+-static u64 mem_cgroup_get_recursive_idx_stat(struct mem_cgroup *mem,
+-				enum mem_cgroup_stat_index idx)
++static unsigned long mem_cgroup_recursive_stat(struct mem_cgroup *mem,
++					       enum mem_cgroup_stat_index idx)
+ {
+ 	struct mem_cgroup *iter;
+-	s64 val = 0;
++	long val = 0;
+ 
+-	/* each per cpu's value can be minus.Then, use s64 */
++	/* Per-cpu values can be negative, use a signed accumulator */
+ 	for_each_mem_cgroup_tree(iter, mem)
+ 		val += mem_cgroup_read_stat(iter, idx);
+ 
+@@ -3525,12 +3556,11 @@ static inline u64 mem_cgroup_usage(struc
+ 			return res_counter_read_u64(&mem->memsw, RES_USAGE);
  	}
-+	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++) {
-+		unsigned long x = per_cpu(mem->stat->events[i], cpu);
-+
-+		per_cpu(mem->stat->events[i], cpu) = 0;
-+		mem->nocpu_base.events[i] += x;
-+	}
- 	/* need to clear ON_MOVE value, works as a kind of lock. */
- 	per_cpu(mem->stat->count[MEM_CGROUP_ON_MOVE], cpu) = 0;
- 	spin_unlock(&mem->pcp_counter_lock);
-@@ -3725,9 +3750,9 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 	s->stat[MCS_RSS] += val * PAGE_SIZE;
- 	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_MAPPED);
- 	s->stat[MCS_FILE_MAPPED] += val * PAGE_SIZE;
--	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_PGPGIN_COUNT);
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGPGIN);
- 	s->stat[MCS_PGPGIN] += val;
--	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_PGPGOUT_COUNT);
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGPGOUT);
- 	s->stat[MCS_PGPGOUT] += val;
- 	if (do_swap_account) {
- 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
+ 
+-	val = mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_CACHE);
+-	val += mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_RSS);
++	val = mem_cgroup_recursive_stat(mem, MEM_CGROUP_STAT_CACHE);
++	val += mem_cgroup_recursive_stat(mem, MEM_CGROUP_STAT_RSS);
+ 
+ 	if (swap)
+-		val += mem_cgroup_get_recursive_idx_stat(mem,
+-				MEM_CGROUP_STAT_SWAPOUT);
++		val += mem_cgroup_recursive_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
+ 
+ 	return val << PAGE_SHIFT;
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
