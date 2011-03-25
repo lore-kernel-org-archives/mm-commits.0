@@ -1,548 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-add-msm-smd_pkt-driver.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:25:50 -0700
-Message-ID: <201103250725.p2P7PiNi026073@imap1.linux-foundation.org>
+Subject: [merged] rapidio-fix-potential-null-deref-on-failure-path.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:20 -0700
+Message-ID: <201103250726.p2P7QEW5026122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933937Ab1CYH0A (ORCPT
+	by vger.kernel.org with ESMTP id S933849Ab1CYH0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:00 -0400
+	Fri, 25 Mar 2011 03:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nvishwan@codeaurora.org, alan@lxorguk.ukuu.org.uk, davidb@codeaurora.org, gregkh@suse.de, swetland@google.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, @vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char: add MSM smd_pkt driver
+     rapidio: fix potential null deref on failure path
 has been removed from the -mm tree.  Its filename was
-     drivers-char-add-msm-smd_pkt-driver.patch
+     rapidio-fix-potential-null-deref-on-failure-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char: add MSM smd_pkt driver
-From: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
+Subject: rapidio: fix potential null deref on failure path
+From: Dan Carpenter <[error27@gmail.com]>
 
-Add smd_pkt driver which provides device interface to smd packet ports.
+If rio is not a switch then "rswitch" is null.
 
-Signed-off-by: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
-Cc: Brian Swetland <swetland@google.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Brown <davidb@codeaurora.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig       |    8 
- drivers/char/Makefile      |    1 
- drivers/char/msm_smd_pkt.c |  466 +++++++++++++++++++++++++++++++++++
- 3 files changed, 475 insertions(+)
+ drivers/rapidio/rio-scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/Kconfig~drivers-char-add-msm-smd_pkt-driver drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-add-msm-smd_pkt-driver
-+++ a/drivers/char/Kconfig
-@@ -608,5 +608,13 @@ config RAMOOPS
- 	  This enables panic and oops messages to be logged to a circular
- 	  buffer in RAM where it can be read back at some later point.
+diff -puN drivers/rapidio/rio-scan.c~rapidio-fix-potential-null-deref-on-failure-path drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-fix-potential-null-deref-on-failure-path
++++ a/drivers/rapidio/rio-scan.c
+@@ -517,7 +517,7 @@ static struct rio_dev __devinit *rio_set
+ 	return rdev;
  
-+config MSM_SMD_PKT
-+	bool "Enable device interface for some SMD packet ports"
-+	default n
-+	depends on MSM_SMD
-+	help
-+	  Enables userspace clients to read and write to some packet SMD
-+	  ports via device interface for MSM chipset.
-+
- endmenu
+ cleanup:
+-	if (rswitch->route_table)
++	if (rio_is_switch(rdev))
+ 		kfree(rswitch->route_table);
  
-diff -puN drivers/char/Makefile~drivers-char-add-msm-smd_pkt-driver drivers/char/Makefile
---- a/drivers/char/Makefile~drivers-char-add-msm-smd_pkt-driver
-+++ a/drivers/char/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_ATARI_DSP56K)	+= dsp56k.o
- obj-$(CONFIG_VIRTIO_CONSOLE)	+= virtio_console.o
- obj-$(CONFIG_RAW_DRIVER)	+= raw.o
- obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
-+obj-$(CONFIG_MSM_SMD_PKT)	+= msm_smd_pkt.o
- obj-$(CONFIG_MSPEC)		+= mspec.o
- obj-$(CONFIG_MMTIMER)		+= mmtimer.o
- obj-$(CONFIG_UV_MMTIMER)	+= uv_mmtimer.o
-diff -puN /dev/null drivers/char/msm_smd_pkt.c
---- /dev/null
-+++ a/drivers/char/msm_smd_pkt.c
-@@ -0,0 +1,466 @@
-+/* Copyright (c) 2008-2010, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ */
-+/*
-+ * SMD Packet Driver -- Provides userspace interface to SMD packet ports.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/cdev.h>
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/device.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/uaccess.h>
-+#include <linux/workqueue.h>
-+#include <linux/poll.h>
-+
-+#include <mach/msm_smd.h>
-+
-+#define NUM_SMD_PKT_PORTS 9
-+#define DEVICE_NAME "smdpkt"
-+#define MAX_BUF_SIZE 2048
-+
-+struct smd_pkt_dev {
-+	struct cdev cdev;
-+	struct device *devicep;
-+
-+	struct smd_channel *ch;
-+	int open_count;
-+	struct mutex ch_lock;
-+	struct mutex rx_lock;
-+	struct mutex tx_lock;
-+	wait_queue_head_t ch_read_wait_queue;
-+	wait_queue_head_t ch_opened_wait_queue;
-+
-+	int i;
-+
-+	unsigned char tx_buf[MAX_BUF_SIZE];
-+	unsigned char rx_buf[MAX_BUF_SIZE];
-+	int remote_open;
-+
-+} *smd_pkt_devp[NUM_SMD_PKT_PORTS];
-+
-+struct class *smd_pkt_classp;
-+static dev_t smd_pkt_number;
-+
-+static int msm_smd_pkt_debug_enable;
-+module_param_named(debug_enable, msm_smd_pkt_debug_enable,
-+		   int, S_IRUGO | S_IWUSR | S_IWGRP);
-+
-+#ifdef DEBUG
-+#define D_DUMP_BUFFER(prestr, cnt, buf) do {			\
-+		int i;						\
-+		if (msm_smd_pkt_debug_enable) {			\
-+			pr_debug("%s", prestr);			\
-+			for (i = 0; i < cnt; i++)		\
-+				pr_debug("%.2x", buf[i]);	\
-+			pr_debug("\n");				\
-+		}						\
-+	} while (0)
-+#else
-+#define D_DUMP_BUFFER(prestr, cnt, buf) do {} while (0)
-+#endif
-+
-+#ifdef DEBUG
-+#define DBG(x...) do {			\
-+	if (msm_smd_pkt_debug_enable)	\
-+		pr_debug(x);		\
-+	} while (0)
-+#else
-+#define DBG(x...) do {} while (0)
-+#endif
-+
-+static void check_and_wakeup_reader(struct smd_pkt_dev *smd_pkt_devp)
-+{
-+	int sz;
-+
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return;
-+
-+	sz = smd_cur_packet_size(smd_pkt_devp->ch);
-+	if (sz == 0) {
-+		DBG("no packet\n");
-+		return;
-+	}
-+	if (sz > smd_read_avail(smd_pkt_devp->ch)) {
-+		DBG("incomplete packet\n");
-+		return;
-+	}
-+
-+	DBG("waking up reader\n");
-+	wake_up_interruptible(&smd_pkt_devp->ch_read_wait_queue);
-+}
-+
-+static int smd_pkt_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	int r, bytes_read;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+	struct smd_channel *chl;
-+
-+	DBG("read %d bytes\n", count);
-+	if (count > MAX_BUF_SIZE)
-+		return -EINVAL;
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return -EINVAL;
-+
-+	chl = smd_pkt_devp->ch;
-+wait_for_packet:
-+	r = wait_event_interruptible(smd_pkt_devp->ch_read_wait_queue,
-+				     (smd_cur_packet_size(chl) > 0 &&
-+				      smd_read_avail(chl) >=
-+				      smd_cur_packet_size(chl)));
-+
-+	if (r < 0) {
-+		if (r != -ERESTARTSYS)
-+			pr_err("wait returned %d\n", r);
-+		return r;
-+	}
-+
-+	mutex_lock(&smd_pkt_devp->rx_lock);
-+
-+	bytes_read = smd_cur_packet_size(smd_pkt_devp->ch);
-+	if (bytes_read == 0 ||
-+	    bytes_read < smd_read_avail(smd_pkt_devp->ch)) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		DBG("Nothing to read\n");
-+		goto wait_for_packet;
-+	}
-+
-+	if (bytes_read > count) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		pr_info("packet size %d > buffer size %d", bytes_read, count);
-+		return -EINVAL;
-+	}
-+
-+	r = smd_read(smd_pkt_devp->ch, smd_pkt_devp->rx_buf, bytes_read);
-+	if (r != bytes_read) {
-+		mutex_unlock(&smd_pkt_devp->rx_lock);
-+		pr_err("smd_read failed to read %d bytes: %d\n", bytes_read, r);
-+		return -EIO;
-+	}
-+
-+	D_DUMP_BUFFER("read: ", bytes_read, smd_pkt_devp->rx_buf);
-+	r = copy_to_user(buf, smd_pkt_devp->rx_buf, bytes_read);
-+	mutex_unlock(&smd_pkt_devp->rx_lock);
-+	if (r) {
-+		pr_err("copy_to_user failed %d\n", r);
-+		return -EFAULT;
-+	}
-+
-+	DBG("read complete %d bytes\n", bytes_read);
-+	check_and_wakeup_reader(smd_pkt_devp);
-+
-+	return bytes_read;
-+}
-+
-+static int smd_pkt_write(struct file *file, const char __user *buf,
-+			 size_t count, loff_t *ppos)
-+{
-+	int r;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+
-+	if (count > MAX_BUF_SIZE)
-+		return -EINVAL;
-+
-+	DBG("writting %d bytes\n", count);
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp || !smd_pkt_devp->ch)
-+		return -EINVAL;
-+
-+	mutex_lock(&smd_pkt_devp->tx_lock);
-+	if (smd_write_avail(smd_pkt_devp->ch) < count) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		DBG("Not enough space to write\n");
-+		return -ENOMEM;
-+	}
-+
-+	D_DUMP_BUFFER("write: ", count, buf);
-+	r = copy_from_user(smd_pkt_devp->tx_buf, buf, count);
-+	if (r) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		pr_err("copy_from_user failed %d\n", r);
-+		return -EFAULT;
-+	}
-+
-+	r = smd_write(smd_pkt_devp->ch, smd_pkt_devp->tx_buf, count);
-+	if (r != count) {
-+		mutex_unlock(&smd_pkt_devp->tx_lock);
-+		pr_err("smd_write failed to write %d bytes: %d.\n", count, r);
-+		return -EIO;
-+	}
-+	mutex_unlock(&smd_pkt_devp->tx_lock);
-+
-+	DBG("wrote %d bytes\n", count);
-+	return count;
-+}
-+
-+static unsigned int smd_pkt_poll(struct file *file, poll_table *wait)
-+{
-+	struct smd_pkt_dev *smd_pkt_devp;
-+	unsigned int mask = 0;
-+
-+	smd_pkt_devp = file->private_data;
-+	if (!smd_pkt_devp)
-+		return POLLERR;
-+
-+	DBG("poll waiting\n");
-+	poll_wait(file, &smd_pkt_devp->ch_read_wait_queue, wait);
-+	if (smd_read_avail(smd_pkt_devp->ch))
-+		mask |= POLLIN | POLLRDNORM;
-+
-+	DBG("poll return\n");
-+	return mask;
-+}
-+
-+static void smd_pkt_ch_notify(void *priv, unsigned event)
-+{
-+	struct smd_pkt_dev *smd_pkt_devp = priv;
-+
-+	if (smd_pkt_devp->ch == 0)
-+		return;
-+
-+	switch (event) {
-+	case SMD_EVENT_DATA:
-+		DBG("data\n");
-+		check_and_wakeup_reader(smd_pkt_devp);
-+		break;
-+
-+	case SMD_EVENT_OPEN:
-+		DBG("remote open\n");
-+		smd_pkt_devp->remote_open = 1;
-+		wake_up_interruptible(&smd_pkt_devp->ch_opened_wait_queue);
-+		break;
-+
-+	case SMD_EVENT_CLOSE:
-+		smd_pkt_devp->remote_open = 0;
-+		pr_info("remote closed\n");
-+		break;
-+
-+	default:
-+		pr_err("unknown event %d\n", event);
-+		break;
-+	}
-+}
-+
-+static char *smd_pkt_dev_name[] = {
-+	"smdcntl0",
-+	"smdcntl1",
-+	"smdcntl2",
-+	"smdcntl3",
-+	"smdcntl4",
-+	"smdcntl5",
-+	"smdcntl6",
-+	"smdcntl7",
-+	"smd22",
-+};
-+
-+static char *smd_ch_name[] = {
-+	"DATA5_CNTL",
-+	"DATA6_CNTL",
-+	"DATA7_CNTL",
-+	"DATA8_CNTL",
-+	"DATA9_CNTL",
-+	"DATA12_CNTL",
-+	"DATA13_CNTL",
-+	"DATA14_CNTL",
-+	"DATA22",
-+};
-+
-+static int smd_pkt_open(struct inode *inode, struct file *file)
-+{
-+	int r = 0;
-+	struct smd_pkt_dev *smd_pkt_devp;
-+
-+	smd_pkt_devp = container_of(inode->i_cdev, struct smd_pkt_dev, cdev);
-+	if (!smd_pkt_devp)
-+		return -EINVAL;
-+
-+	file->private_data = smd_pkt_devp;
-+
-+	mutex_lock(&smd_pkt_devp->ch_lock);
-+	if (smd_pkt_devp->open_count == 0) {
-+		r = smd_open(smd_ch_name[smd_pkt_devp->i],
-+			     &smd_pkt_devp->ch, smd_pkt_devp,
-+			     smd_pkt_ch_notify);
-+		if (r < 0) {
-+			pr_err("smd_open failed for %s, %d\n",
-+			       smd_ch_name[smd_pkt_devp->i], r);
-+			goto out;
-+		}
-+
-+		r = wait_event_interruptible_timeout(
-+				smd_pkt_devp->ch_opened_wait_queue,
-+				smd_pkt_devp->remote_open,
-+				msecs_to_jiffies(2 * HZ));
-+		if (r == 0)
-+			r = -ETIMEDOUT;
-+
-+		if (r < 0) {
-+			pr_err("wait returned %d\n", r);
-+			smd_close(smd_pkt_devp->ch);
-+			smd_pkt_devp->ch = 0;
-+		} else {
-+			smd_pkt_devp->open_count++;
-+			r = 0;
-+		}
-+	}
-+out:
-+	mutex_unlock(&smd_pkt_devp->ch_lock);
-+	return r;
-+}
-+
-+static int smd_pkt_release(struct inode *inode, struct file *file)
-+{
-+	int r = 0;
-+	struct smd_pkt_dev *smd_pkt_devp = file->private_data;
-+
-+	if (!smd_pkt_devp)
-+		return -EINVAL;
-+
-+	mutex_lock(&smd_pkt_devp->ch_lock);
-+	if (--smd_pkt_devp->open_count == 0) {
-+		r = smd_close(smd_pkt_devp->ch);
-+		smd_pkt_devp->ch = 0;
-+	}
-+	mutex_unlock(&smd_pkt_devp->ch_lock);
-+
-+	return r;
-+}
-+
-+static const struct file_operations smd_pkt_fops = {
-+	.owner = THIS_MODULE,
-+	.open = smd_pkt_open,
-+	.release = smd_pkt_release,
-+	.read = smd_pkt_read,
-+	.write = smd_pkt_write,
-+	.poll = smd_pkt_poll,
-+};
-+
-+static int __init smd_pkt_init(void)
-+{
-+	int i;
-+	int r;
-+
-+	r = alloc_chrdev_region(&smd_pkt_number, 0,
-+				NUM_SMD_PKT_PORTS, DEVICE_NAME);
-+	if (r) {
-+		pr_err("alloc_chrdev_region() failed %d\n", r);
-+		return r;
-+	}
-+
-+	smd_pkt_classp = class_create(THIS_MODULE, DEVICE_NAME);
-+	if (IS_ERR(smd_pkt_classp)) {
-+		r = PTR_ERR(smd_pkt_classp);
-+		pr_err("class_create() failed %d\n", r);
-+		goto unreg_chardev;
-+	}
-+
-+	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
-+		smd_pkt_devp[i] = kzalloc(sizeof(struct smd_pkt_dev),
-+					  GFP_KERNEL);
-+		if (IS_ERR(smd_pkt_devp[i])) {
-+			r = PTR_ERR(smd_pkt_devp[i]);
-+			pr_err("kmalloc() failed %d\n", r);
-+			goto clean_cdevs;
-+		}
-+
-+		smd_pkt_devp[i]->i = i;
-+
-+		init_waitqueue_head(&smd_pkt_devp[i]->ch_read_wait_queue);
-+		smd_pkt_devp[i]->remote_open = 0;
-+		init_waitqueue_head(&smd_pkt_devp[i]->ch_opened_wait_queue);
-+
-+		mutex_init(&smd_pkt_devp[i]->ch_lock);
-+		mutex_init(&smd_pkt_devp[i]->rx_lock);
-+		mutex_init(&smd_pkt_devp[i]->tx_lock);
-+
-+		cdev_init(&smd_pkt_devp[i]->cdev, &smd_pkt_fops);
-+		smd_pkt_devp[i]->cdev.owner = THIS_MODULE;
-+
-+		r = cdev_add(&smd_pkt_devp[i]->cdev,
-+			     (smd_pkt_number + i), 1);
-+		if (r) {
-+			pr_err("cdev_add() failed %d\n", r);
-+			kfree(smd_pkt_devp[i]);
-+			goto clean_cdevs;
-+		}
-+
-+		smd_pkt_devp[i]->devicep =
-+			device_create(smd_pkt_classp, NULL,
-+				      (smd_pkt_number + i), NULL,
-+				      smd_pkt_dev_name[i]);
-+		if (IS_ERR(smd_pkt_devp[i]->devicep)) {
-+			r = PTR_ERR(smd_pkt_devp[i]->devicep);
-+			pr_err("device_create() failed %d\n", r);
-+			cdev_del(&smd_pkt_devp[i]->cdev);
-+			kfree(smd_pkt_devp[i]);
-+			goto clean_cdevs;
-+		}
-+
-+	}
-+
-+	pr_info("SMD Packet Port Driver Initialized.\n");
-+	return 0;
-+
-+clean_cdevs:
-+	if (i > 0) {
-+		while (--i >= 0) {
-+			mutex_destroy(&smd_pkt_devp[i]->ch_lock);
-+			mutex_destroy(&smd_pkt_devp[i]->rx_lock);
-+			mutex_destroy(&smd_pkt_devp[i]->tx_lock);
-+			cdev_del(&smd_pkt_devp[i]->cdev);
-+			kfree(smd_pkt_devp[i]);
-+			device_destroy(smd_pkt_classp,
-+				       MKDEV(MAJOR(smd_pkt_number), i));
-+		}
-+	}
-+
-+	class_destroy(smd_pkt_classp);
-+unreg_chardev:
-+	unregister_chrdev_region(MAJOR(smd_pkt_number), NUM_SMD_PKT_PORTS);
-+	return r;
-+}
-+module_init(smd_pkt_init);
-+
-+static void __exit smd_pkt_cleanup(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
-+		mutex_destroy(&smd_pkt_devp[i]->ch_lock);
-+		mutex_destroy(&smd_pkt_devp[i]->rx_lock);
-+		mutex_destroy(&smd_pkt_devp[i]->tx_lock);
-+		cdev_del(&smd_pkt_devp[i]->cdev);
-+		kfree(smd_pkt_devp[i]);
-+		device_destroy(smd_pkt_classp,
-+			       MKDEV(MAJOR(smd_pkt_number), i));
-+	}
-+
-+	class_destroy(smd_pkt_classp);
-+	unregister_chrdev_region(MAJOR(smd_pkt_number), NUM_SMD_PKT_PORTS);
-+}
-+module_exit(smd_pkt_cleanup);
-+
-+MODULE_DESCRIPTION("MSM Shared Memory Packet Port");
-+MODULE_LICENSE("GPL v2");
+ 	kfree(rdev);
 _
 
-Patches currently in -mm which might be from nvishwan@codeaurora.org are
+Patches currently in -mm which might be from [error27@gmail.com] are
 
 origin.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader.patch
+codafs-fix-build-break-when-config_proc_sysctl=n.patch
+ipcns-fix-use-after-free-in-free_ipc_ns.patch
+backlight-new-driver-for-the-adp8870-backlight-devices.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-asm-generic-vmlinuxldsh-fix-__modver-section-warnings.patch
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+x86-fix-mmap-random-address-range.patch
+msm-timer-migrate-to-timer-based-__delay.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+audit-always-follow-va_copy-with-va_end.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
+btrfs-dont-dereference-extent_mapping-if-null.patch
+drivers-dma-ipu-ipu_irqc-irq_data-conversion.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
+cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
+llist-irq_work-use-llist-in-irq_work.patch
+drivers-leds-leds-pca9532c-add-gpio-capability.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+net-convert-%p-usage-to-%pk.patch
+llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+i915-add-native-backlight-control.patch
+btusb-patch-add_apple_macbookpro62.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+scsi-fix-a-header-to-include-linux-typesh.patch
+aic94xx-world-writable-sysfs-update_bios-file.patch
+drbd-fix-warning.patch
+usb-yurex-recognize-generalkeys-wireless-presenter-as-generic-hid.patch
+mm.patch
+mm-remove-unused-token-argument-from-apply_to_page_range-callback.patch
+mm-add-apply_to_page_range_batch.patch
+ioremap-use-apply_to_page_range_batch-for-ioremap_page_range.patch
+vmalloc-use-plain-pte_clear-for-unmaps.patch
+vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range.patch
+vmalloc-use-apply_to_page_range_batch-for-vmap_page_range_noflush.patch
+vmalloc-use-apply_to_page_range_batch-in-alloc_vm_area.patch
+xen-mmu-use-apply_to_page_range_batch-in-xen_remap_domain_mfn_range.patch
+xen-grant-table-use-apply_to_page_range_batch.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+xattrh-expose-string-defines-to-userspace.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+gpio-add-new-altera-pio-driver.patch
+gpio-add-new-altera-pio-driver-update.patch
+gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+cgroup-remove-the-ns_cgroup.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
+sysctl-add-proc_dointvec_bool-handler.patch
+sysctl-use-proc_dointvec_bool-where-appropriate.patch
+sysctl-add-proc_dointvec_unsigned-handler.patch
+sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks.patch
+memstick-add-support-for-legacy-memorysticks-update-2.patch
+kexec-remove-kmsg_dump_kexec.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
