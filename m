@@ -1,210 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-leak-on-wrong-lru-with-fuse.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:25:18 -0700
-Message-ID: <201103250725.p2P7PC7f026005@imap1.linux-foundation.org>
+Subject: [merged] asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:23:37 -0700
+Message-ID: <201103250723.p2P7NVeq025738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933899Ab1CYHZt (ORCPT
+	by vger.kernel.org with ESMTP id S933874Ab1CYHZx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:25:49 -0400
+	Fri, 25 Mar 2011 03:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, miklos@szeredi.hu, nishimura@mxp.nes.nec.co.jp, poelzi@poelzi.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, grundler@parisc-linux.org, hans-christian.egtvedt@atmel.com
 
 
 The patch titled
-     memcg: fix leak on wrong LRU with FUSE
+     asm-generic: change little-endian bitops to take any pointer types
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-leak-on-wrong-lru-with-fuse.patch
+     asm-generic-change-little-endian-bitops-to-take-any-pointer-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix leak on wrong LRU with FUSE
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: asm-generic: change little-endian bitops to take any pointer types
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-fs/fuse/dev.c::fuse_try_move_page() does
+This makes the little-endian bitops take any pointer types by changing the
+prototypes and adding casts in the preprocessor macros.
 
-   (1) remove a page by ->steal()
-   (2) re-add the page to page cache
-   (3) link the page to LRU if it was not on LRU at (1)
+That would seem to at least make all the filesystem code happier, and they
+can continue to do just something like
 
-This implies the page is _on_ LRU when it's added to radix-tree.  So, the
-page is added to memory cgroup while it's on LRU.  because LRU is lazy and
-no one flushs it.
+  #define ext2_set_bit __test_and_set_bit_le
 
-This is the same behavior as SwapCache and needs special care as
- - remove page from LRU before overwrite pc->mem_cgroup.
- - add page to LRU after overwrite pc->mem_cgroup.
+(or whatever the exact sequence ends up being).
 
-And we need to taking care of pagevec.
-
-If PageLRU(page) is set before we add PCG_USED bit, the page will not be
-added to memcg's LRU (in short period).  So, regardlress of PageLRU(page)
-value before commit_charge(), we need to check PageLRU(page) after
-commit_charge().
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=30432
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Reported-by: Daniel Poelzleithner <poelzi@poelzi.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   70 ++++++++++++++++++++++++++++++++++------------
- 1 file changed, 52 insertions(+), 18 deletions(-)
+ arch/powerpc/include/asm/bitops.h |    4 -
+ include/asm-generic/bitops/le.h   |   77 +++++++++++++++++++---------
+ lib/find_next_bit.c               |   10 ++-
+ 3 files changed, 61 insertions(+), 30 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-leak-on-wrong-lru-with-fuse mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-leak-on-wrong-lru-with-fuse
-+++ a/mm/memcontrol.c
-@@ -926,18 +926,28 @@ void mem_cgroup_add_lru_list(struct page
- }
+diff -puN arch/powerpc/include/asm/bitops.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types arch/powerpc/include/asm/bitops.h
+--- a/arch/powerpc/include/asm/bitops.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -305,10 +305,10 @@ static __inline__ int test_le_bit(unsign
  
- /*
-- * At handling SwapCache, pc->mem_cgroup may be changed while it's linked to
-- * lru because the page may.be reused after it's fully uncharged (because of
-- * SwapCache behavior).To handle that, unlink page_cgroup from LRU when charge
-- * it again. This function is only used to charge SwapCache. It's done under
-- * lock_page and expected that zone->lru_lock is never held.
-+ * At handling SwapCache and other FUSE stuff, pc->mem_cgroup may be changed
-+ * while it's linked to lru because the page may be reused after it's fully
-+ * uncharged. To handle that, unlink page_cgroup from LRU when charge it again.
-+ * It's done under lock_page and expected that zone->lru_lock isnever held.
-  */
--static void mem_cgroup_lru_del_before_commit_swapcache(struct page *page)
-+static void mem_cgroup_lru_del_before_commit(struct page *page)
- {
- 	unsigned long flags;
- 	struct zone *zone = page_zone(page);
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
+ #define find_first_zero_bit_le(addr, size) \
+ 	find_next_zero_bit_le((addr), (size), 0)
+-unsigned long find_next_zero_bit_le(const unsigned long *addr,
++unsigned long find_next_zero_bit_le(const void *addr,
+ 				    unsigned long size, unsigned long offset);
  
-+	/*
-+	 * Doing this check without taking ->lru_lock seems wrong but this
-+	 * is safe. Because if page_cgroup's USED bit is unset, the page
-+	 * will not be added to any memcg's LRU. If page_cgroup's USED bit is
-+	 * set, the commit after this will fail, anyway.
-+	 * This all charge/uncharge is done under some mutual execustion.
-+	 * So, we don't need to taking care of changes in USED bit.
-+	 */
-+	if (likely(!PageLRU(page)))
-+		return;
-+
- 	spin_lock_irqsave(&zone->lru_lock, flags);
- 	/*
- 	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
-@@ -948,12 +958,15 @@ static void mem_cgroup_lru_del_before_co
- 	spin_unlock_irqrestore(&zone->lru_lock, flags);
- }
+-unsigned long find_next_bit_le(const unsigned long *addr,
++unsigned long find_next_bit_le(const void *addr,
+ 				    unsigned long size, unsigned long offset);
+ /* Bitmap functions for the ext2 filesystem */
  
--static void mem_cgroup_lru_add_after_commit_swapcache(struct page *page)
-+static void mem_cgroup_lru_add_after_commit(struct page *page)
- {
- 	unsigned long flags;
- 	struct zone *zone = page_zone(page);
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
+diff -puN include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~asm-generic-change-little-endian-bitops-to-take-any-pointer-types
++++ a/include/asm-generic/bitops/le.h
+@@ -8,20 +8,31 @@
  
-+	/* taking care of that the page is added to LRU while we commit it */
-+	if (likely(!PageLRU(page)))
-+		return;
- 	spin_lock_irqsave(&zone->lru_lock, flags);
- 	/* link when the page is linked to LRU but page_cgroup isn't */
- 	if (PageLRU(page) && !PageCgroupAcctLRU(pc))
-@@ -2431,9 +2444,26 @@ static void
- __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr,
- 					enum charge_type ctype);
+ #define BITOP_LE_SWIZZLE	0
  
-+static void
-+__mem_cgroup_commit_charge_lrucare(struct page *page, struct mem_cgroup *mem,
-+					enum charge_type ctype)
+-#define find_next_zero_bit_le(addr, size, offset) \
+-	find_next_zero_bit(addr, size, offset)
+-#define find_next_bit_le(addr, size, offset) \
+-	find_next_bit(addr, size, offset)
+-#define find_first_zero_bit_le(addr, size) \
+-	find_first_zero_bit(addr, size)
++static inline unsigned long find_next_zero_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
 +{
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
-+	/*
-+	 * In some case, SwapCache, FUSE(splice_buf->radixtree), the page
-+	 * is already on LRU. It means the page may on some other page_cgroup's
-+	 * LRU. Take care of it.
-+	 */
-+	mem_cgroup_lru_del_before_commit(page);
-+	__mem_cgroup_commit_charge(mem, page, 1, pc, ctype);
-+	mem_cgroup_lru_add_after_commit(page);
-+	return;
++	return find_next_zero_bit(addr, size, offset);
 +}
 +
- int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask)
- {
-+	struct mem_cgroup *mem = NULL;
- 	int ret;
- 
- 	if (mem_cgroup_disabled())
-@@ -2468,14 +2498,22 @@ int mem_cgroup_cache_charge(struct page 
- 	if (unlikely(!mm))
- 		mm = &init_mm;
- 
--	if (page_is_file_cache(page))
--		return mem_cgroup_charge_common(page, mm, gfp_mask,
--				MEM_CGROUP_CHARGE_TYPE_CACHE);
-+	if (page_is_file_cache(page)) {
-+		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &mem, true);
-+		if (ret || !mem)
-+			return ret;
- 
-+		/*
-+		 * FUSE reuses pages without going through the final
-+		 * put that would remove them from the LRU list, make
-+		 * sure that they get relinked properly.
-+		 */
-+		__mem_cgroup_commit_charge_lrucare(page, mem,
-+					MEM_CGROUP_CHARGE_TYPE_CACHE);
-+		return ret;
-+	}
- 	/* shmem */
- 	if (PageSwapCache(page)) {
--		struct mem_cgroup *mem;
--
- 		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
- 		if (!ret)
- 			__mem_cgroup_commit_charge_swapin(page, mem,
-@@ -2532,17 +2570,13 @@ static void
- __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr,
- 					enum charge_type ctype)
- {
--	struct page_cgroup *pc;
--
- 	if (mem_cgroup_disabled())
- 		return;
- 	if (!ptr)
- 		return;
- 	cgroup_exclude_rmdir(&ptr->css);
--	pc = lookup_page_cgroup(page);
--	mem_cgroup_lru_del_before_commit_swapcache(page);
--	__mem_cgroup_commit_charge(ptr, page, 1, pc, ctype);
--	mem_cgroup_lru_add_after_commit_swapcache(page);
++static inline unsigned long find_next_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
++{
++	return find_next_bit(addr, size, offset);
++}
 +
-+	__mem_cgroup_commit_charge_lrucare(page, ptr, ctype);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
- 	 * counted both as mem and swap....double count.
++static inline unsigned long find_first_zero_bit_le(const void *addr,
++		unsigned long size)
++{
++	return find_first_zero_bit(addr, size);
++}
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
+ #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+ 
+-extern unsigned long find_next_zero_bit_le(const unsigned long *addr,
++extern unsigned long find_next_zero_bit_le(const void *addr,
+ 		unsigned long size, unsigned long offset);
+-extern unsigned long find_next_bit_le(const unsigned long *addr,
++extern unsigned long find_next_bit_le(const void *addr,
+ 		unsigned long size, unsigned long offset);
+ 
+ #define find_first_zero_bit_le(addr, size) \
+@@ -31,21 +42,39 @@ extern unsigned long find_next_bit_le(co
+ #error "Please fix <asm/byteorder.h>"
+ #endif
+ 
+-#define test_bit_le(nr, addr) \
+-	test_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define __set_bit_le(nr, addr) \
+-	__set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define __clear_bit_le(nr, addr) \
+-	__clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-
+-#define test_and_set_bit_le(nr, addr) \
+-	test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define test_and_clear_bit_le(nr, addr) \
+-	test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-
+-#define __test_and_set_bit_le(nr, addr) \
+-	__test_and_set_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
+-#define __test_and_clear_bit_le(nr, addr) \
+-	__test_and_clear_bit((nr) ^ BITOP_LE_SWIZZLE, (addr))
++static inline int test_bit_le(int nr, const void *addr)
++{
++	return test_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline void __set_bit_le(int nr, void *addr)
++{
++	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline void __clear_bit_le(int nr, void *addr)
++{
++	__clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int test_and_set_bit_le(int nr, void *addr)
++{
++	return test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int test_and_clear_bit_le(int nr, void *addr)
++{
++	return test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int __test_and_set_bit_le(int nr, void *addr)
++{
++	return __test_and_set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
++
++static inline int __test_and_clear_bit_le(int nr, void *addr)
++{
++	return __test_and_clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
++}
+ 
+ #endif /* _ASM_GENERIC_BITOPS_LE_H_ */
+diff -puN lib/find_next_bit.c~asm-generic-change-little-endian-bitops-to-take-any-pointer-types lib/find_next_bit.c
+--- a/lib/find_next_bit.c~asm-generic-change-little-endian-bitops-to-take-any-pointer-types
++++ a/lib/find_next_bit.c
+@@ -185,15 +185,16 @@ static inline unsigned long ext2_swab(co
+ #endif
+ }
+ 
+-unsigned long find_next_zero_bit_le(const unsigned long *addr, unsigned
++unsigned long find_next_zero_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+-	const unsigned long *p = addr + BITOP_WORD(offset);
++	const unsigned long *p = addr;
+ 	unsigned long result = offset & ~(BITS_PER_LONG - 1);
+ 	unsigned long tmp;
+ 
+ 	if (offset >= size)
+ 		return size;
++	p += BITOP_WORD(offset);
+ 	size -= result;
+ 	offset &= (BITS_PER_LONG - 1UL);
+ 	if (offset) {
+@@ -228,15 +229,16 @@ found_middle_swap:
+ }
+ EXPORT_SYMBOL(find_next_zero_bit_le);
+ 
+-unsigned long find_next_bit_le(const unsigned long *addr, unsigned
++unsigned long find_next_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+-	const unsigned long *p = addr + BITOP_WORD(offset);
++	const unsigned long *p = addr;
+ 	unsigned long result = offset & ~(BITS_PER_LONG - 1);
+ 	unsigned long tmp;
+ 
+ 	if (offset >= size)
+ 		return size;
++	p += BITOP_WORD(offset);
+ 	size -= result;
+ 	offset &= (BITS_PER_LONG - 1UL);
+ 	if (offset) {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
 
