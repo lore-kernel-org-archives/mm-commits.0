@@ -1,486 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userns-user-namespaces-convert-several-capable-calls.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:59 -0700
-Message-ID: <201103250726.p2P7QrvO026190@imap1.linux-foundation.org>
+Subject: [merged] userns-allow-ptrace-from-non-init-user-namespaces.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:52 -0700
+Message-ID: <201103250726.p2P7QkKt026178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933986Ab1CYH1G (ORCPT
+	by vger.kernel.org with ESMTP id S933818Ab1CYH1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:27:06 -0400
+	Fri, 25 Mar 2011 03:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     userns: user namespaces: convert several capable() calls
+     userns: allow ptrace from non-init user namespaces
 has been removed from the -mm tree.  Its filename was
-     userns-user-namespaces-convert-several-capable-calls.patch
+     userns-allow-ptrace-from-non-init-user-namespaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: user namespaces: convert several capable() calls
+Subject: userns: allow ptrace from non-init user namespaces
 From: "Serge E. Hallyn" <serge@hallyn.com>
 
-CAP_IPC_OWNER and CAP_IPC_LOCK can be checked against current_user_ns(),
-because the resource comes from current's own ipc namespace.
-
-setuid/setgid are to uids in own namespace, so again checks can be against
-current_user_ns().
+ptrace is allowed to tasks in the same user namespace according to the
+usual rules (i.e.  the same rules as for two tasks in the init user
+namespace).  ptrace is also allowed to a user namespace to which the
+current task the has CAP_SYS_PTRACE capability.
 
 Changelog:
-	Jan 11: Use task_ns_capable() in place of sched_capable().
-	Jan 11: Use nsown_capable() as suggested by Bastian Blank.
-	Jan 11: Clarify (hopefully) some logic in futex and sched.c
-	Feb 15: use ns_capable for ipc, not nsown_capable
-	Feb 23: let copy_ipcs handle setting ipc_ns->user_ns
-	Feb 23: pass ns down rather than taking it from current
+	Dec 31: Address feedback by Eric:
+		. Correct ptrace uid check
+		. Rename may_ptrace_ns to ptrace_capable
+		. Also fix the cap_ptrace checks.
+	Jan  1: Use const cred struct
+	Jan 11: use task_ns_capable() in place of ptrace_capable().
+	Feb 23: same_or_ancestore_user_ns() was not an appropriate
+		check to constrain cap_issubset.  Rather, cap_issubset()
+		only is meaningful when both capsets are in the same
+		user_ns.
 
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
 Acked-by: David Howells <dhowells@redhat.com>
 Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    7 ++++---
- ipc/msg.c                     |    8 ++++----
- ipc/namespace.c               |   13 ++++++++-----
- ipc/sem.c                     |   10 ++++++----
- ipc/shm.c                     |    9 +++++----
- ipc/util.c                    |   26 ++++++++++++++++----------
- ipc/util.h                    |    5 +++--
- kernel/futex.c                |   11 ++++++++++-
- kernel/futex_compat.c         |   11 ++++++++++-
- kernel/groups.c               |    2 +-
- kernel/nsproxy.c              |    7 +------
- kernel/sched.c                |    9 ++++++---
- kernel/uid16.c                |    2 +-
- 13 files changed, 75 insertions(+), 45 deletions(-)
+ include/linux/capability.h |    2 +
+ kernel/ptrace.c            |   27 +++++++++++++----------
+ security/commoncap.c       |   40 ++++++++++++++++++++++++++++-------
+ 3 files changed, 49 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~userns-user-namespaces-convert-several-capable-calls include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~userns-user-namespaces-convert-several-capable-calls
-+++ a/include/linux/ipc_namespace.h
-@@ -5,6 +5,7 @@
- #include <linux/idr.h>
- #include <linux/rwsem.h>
- #include <linux/notifier.h>
-+#include <linux/nsproxy.h>
+diff -puN include/linux/capability.h~userns-allow-ptrace-from-non-init-user-namespaces include/linux/capability.h
+--- a/include/linux/capability.h~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/include/linux/capability.h
+@@ -553,6 +553,8 @@ static inline kernel_cap_t cap_raise_nfs
+  */
+ #define has_capability(t, cap) (security_real_capable((t), &init_user_ns, (cap)) == 0)
  
- /*
-  * ipc namespace events
-@@ -93,7 +94,7 @@ static inline int mq_init_ns(struct ipc_
- 
- #if defined(CONFIG_IPC_NS)
- extern struct ipc_namespace *copy_ipcs(unsigned long flags,
--				       struct ipc_namespace *ns);
-+				       struct task_struct *tsk);
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
- {
- 	if (ns)
-@@ -104,12 +105,12 @@ static inline struct ipc_namespace *get_
- extern void put_ipc_ns(struct ipc_namespace *ns);
- #else
- static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
--		struct ipc_namespace *ns)
-+					      struct task_struct *tsk)
- {
- 	if (flags & CLONE_NEWIPC)
- 		return ERR_PTR(-EINVAL);
- 
--	return ns;
-+	return tsk->nsproxy->ipc_ns;
- }
- 
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
-diff -puN ipc/msg.c~userns-user-namespaces-convert-several-capable-calls ipc/msg.c
---- a/ipc/msg.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/msg.c
-@@ -421,7 +421,7 @@ static int msgctl_down(struct ipc_namesp
- 			return -EFAULT;
- 	}
- 
--	ipcp = ipcctl_pre_down(&msg_ids(ns), msqid, cmd,
-+	ipcp = ipcctl_pre_down(ns, &msg_ids(ns), msqid, cmd,
- 			       &msqid64.msg_perm, msqid64.msg_qbytes);
- 	if (IS_ERR(ipcp))
- 		return PTR_ERR(ipcp);
-@@ -539,7 +539,7 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
- 			success_return = 0;
- 		}
- 		err = -EACCES;
--		if (ipcperms(&msq->q_perm, S_IRUGO))
-+		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
- 			goto out_unlock;
- 
- 		err = security_msg_queue_msgctl(msq, cmd);
-@@ -664,7 +664,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 		struct msg_sender s;
- 
- 		err = -EACCES;
--		if (ipcperms(&msq->q_perm, S_IWUGO))
-+		if (ipcperms(ns, &msq->q_perm, S_IWUGO))
- 			goto out_unlock_free;
- 
- 		err = security_msg_queue_msgsnd(msq, msg, msgflg);
-@@ -774,7 +774,7 @@ long do_msgrcv(int msqid, long *pmtype, 
- 		struct list_head *tmp;
- 
- 		msg = ERR_PTR(-EACCES);
--		if (ipcperms(&msq->q_perm, S_IRUGO))
-+		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
- 			goto out_unlock;
- 
- 		msg = ERR_PTR(-EAGAIN);
-diff -puN ipc/namespace.c~userns-user-namespaces-convert-several-capable-calls ipc/namespace.c
---- a/ipc/namespace.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/namespace.c
-@@ -15,7 +15,8 @@
- 
- #include "util.h"
- 
--static struct ipc_namespace *create_ipc_ns(struct ipc_namespace *old_ns)
-+static struct ipc_namespace *create_ipc_ns(struct task_struct *tsk,
-+					   struct ipc_namespace *old_ns)
- {
- 	struct ipc_namespace *ns;
- 	int err;
-@@ -44,17 +45,19 @@ static struct ipc_namespace *create_ipc_
- 	ipcns_notify(IPCNS_CREATED);
- 	register_ipcns_notifier(ns);
- 
--	ns->user_ns = old_ns->user_ns;
--	get_user_ns(ns->user_ns);
-+	ns->user_ns = get_user_ns(task_cred_xxx(tsk, user)->user_ns);
- 
- 	return ns;
- }
- 
--struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
-+struct ipc_namespace *copy_ipcs(unsigned long flags,
-+				struct task_struct *tsk)
- {
-+	struct ipc_namespace *ns = tsk->nsproxy->ipc_ns;
++#define has_ns_capability(t, ns, cap) (security_real_capable((t), (ns), (cap)) == 0)
 +
- 	if (!(flags & CLONE_NEWIPC))
- 		return get_ipc_ns(ns);
--	return create_ipc_ns(ns);
-+	return create_ipc_ns(tsk, ns);
- }
- 
- /*
-diff -puN ipc/sem.c~userns-user-namespaces-convert-several-capable-calls ipc/sem.c
---- a/ipc/sem.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/sem.c
-@@ -817,7 +817,7 @@ static int semctl_nolock(struct ipc_name
- 		}
- 
- 		err = -EACCES;
--		if (ipcperms (&sma->sem_perm, S_IRUGO))
-+		if (ipcperms(ns, &sma->sem_perm, S_IRUGO))
- 			goto out_unlock;
- 
- 		err = security_sem_semctl(sma, cmd);
-@@ -862,7 +862,8 @@ static int semctl_main(struct ipc_namesp
- 	nsems = sma->sem_nsems;
- 
- 	err = -EACCES;
--	if (ipcperms (&sma->sem_perm, (cmd==SETVAL||cmd==SETALL)?S_IWUGO:S_IRUGO))
-+	if (ipcperms(ns, &sma->sem_perm,
-+			(cmd == SETVAL || cmd == SETALL) ? S_IWUGO : S_IRUGO))
- 		goto out_unlock;
- 
- 	err = security_sem_semctl(sma, cmd);
-@@ -1047,7 +1048,8 @@ static int semctl_down(struct ipc_namesp
- 			return -EFAULT;
- 	}
- 
--	ipcp = ipcctl_pre_down(&sem_ids(ns), semid, cmd, &semid64.sem_perm, 0);
-+	ipcp = ipcctl_pre_down(ns, &sem_ids(ns), semid, cmd,
-+			       &semid64.sem_perm, 0);
- 	if (IS_ERR(ipcp))
- 		return PTR_ERR(ipcp);
- 
-@@ -1386,7 +1388,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 		goto out_unlock_free;
- 
- 	error = -EACCES;
--	if (ipcperms(&sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
-+	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
- 		goto out_unlock_free;
- 
- 	error = security_sem_semop(sma, sops, nsops, alter);
-diff -puN ipc/shm.c~userns-user-namespaces-convert-several-capable-calls ipc/shm.c
---- a/ipc/shm.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/shm.c
-@@ -623,7 +623,8 @@ static int shmctl_down(struct ipc_namesp
- 			return -EFAULT;
- 	}
- 
--	ipcp = ipcctl_pre_down(&shm_ids(ns), shmid, cmd, &shmid64.shm_perm, 0);
-+	ipcp = ipcctl_pre_down(ns, &shm_ids(ns), shmid, cmd,
-+			       &shmid64.shm_perm, 0);
- 	if (IS_ERR(ipcp))
- 		return PTR_ERR(ipcp);
- 
-@@ -737,7 +738,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 			result = 0;
- 		}
- 		err = -EACCES;
--		if (ipcperms (&shp->shm_perm, S_IRUGO))
-+		if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
- 			goto out_unlock;
- 		err = security_shm_shmctl(shp, cmd);
- 		if (err)
-@@ -773,7 +774,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 
- 		audit_ipc_obj(&(shp->shm_perm));
- 
--		if (!capable(CAP_IPC_LOCK)) {
-+		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
- 			uid_t euid = current_euid();
- 			err = -EPERM;
- 			if (euid != shp->shm_perm.uid &&
-@@ -888,7 +889,7 @@ long do_shmat(int shmid, char __user *sh
- 	}
- 
- 	err = -EACCES;
--	if (ipcperms(&shp->shm_perm, acc_mode))
-+	if (ipcperms(ns, &shp->shm_perm, acc_mode))
- 		goto out_unlock;
- 
- 	err = security_shm_shmat(shp, shmaddr, shmflg);
-diff -puN ipc/util.c~userns-user-namespaces-convert-several-capable-calls ipc/util.c
---- a/ipc/util.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/util.c
-@@ -329,12 +329,14 @@ retry:
-  *
-  *	It is called with ipc_ids.rw_mutex and ipcp->lock held.
-  */
--static int ipc_check_perms(struct kern_ipc_perm *ipcp, struct ipc_ops *ops,
--			struct ipc_params *params)
-+static int ipc_check_perms(struct ipc_namespace *ns,
-+			   struct kern_ipc_perm *ipcp,
-+			   struct ipc_ops *ops,
-+			   struct ipc_params *params)
- {
- 	int err;
- 
--	if (ipcperms(ipcp, params->flg))
-+	if (ipcperms(ns, ipcp, params->flg))
- 		err = -EACCES;
- 	else {
- 		err = ops->associate(ipcp, params->flg);
-@@ -396,7 +398,7 @@ retry:
- 				 * ipc_check_perms returns the IPC id on
- 				 * success
- 				 */
--				err = ipc_check_perms(ipcp, ops, params);
-+				err = ipc_check_perms(ns, ipcp, ops, params);
- 		}
- 		ipc_unlock(ipcp);
- 	}
-@@ -610,10 +612,12 @@ void ipc_rcu_putref(void *ptr)
-  *
-  *	Check user, group, other permissions for access
-  *	to ipc resources. return 0 if allowed
-+ *
-+ * 	@flag will most probably be 0 or S_...UGO from <linux/stat.h>
-  */
-  
--int ipcperms (struct kern_ipc_perm *ipcp, short flag)
--{	/* flag will most probably be 0 or S_...UGO from <linux/stat.h> */
-+int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flag)
-+{
- 	uid_t euid = current_euid();
- 	int requested_mode, granted_mode;
- 
-@@ -627,7 +631,7 @@ int ipcperms (struct kern_ipc_perm *ipcp
- 		granted_mode >>= 3;
- 	/* is there some bit set in requested_mode but not in granted_mode? */
- 	if ((requested_mode & ~granted_mode & 0007) && 
--	    !capable(CAP_IPC_OWNER))
-+	    !ns_capable(ns->user_ns, CAP_IPC_OWNER))
- 		return -1;
- 
- 	return security_ipc_permission(ipcp, flag);
-@@ -765,6 +769,7 @@ void ipc_update_perm(struct ipc64_perm *
- 
  /**
-  * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
-+ * @ids:  the ipc namespace
-  * @ids:  the table of ids where to look for the ipc
-  * @id:   the id of the ipc to retrieve
-  * @cmd:  the cmd to check
-@@ -779,7 +784,8 @@ void ipc_update_perm(struct ipc64_perm *
-  *  - returns the ipc with both ipc and rw_mutex locks held in case of success
-  *    or an err-code without any lock held otherwise.
-  */
--struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
-+struct kern_ipc_perm *ipcctl_pre_down(struct ipc_namespace *ns,
-+				      struct ipc_ids *ids, int id, int cmd,
- 				      struct ipc64_perm *perm, int extra_perm)
- {
- 	struct kern_ipc_perm *ipcp;
-@@ -799,8 +805,8 @@ struct kern_ipc_perm *ipcctl_pre_down(st
- 					 perm->gid, perm->mode);
- 
- 	euid = current_euid();
--	if (euid == ipcp->cuid ||
--	    euid == ipcp->uid  || capable(CAP_SYS_ADMIN))
-+	if (euid == ipcp->cuid || euid == ipcp->uid  ||
-+	    ns_capable(ns->user_ns, CAP_SYS_ADMIN))
- 		return ipcp;
- 
- 	err = -EPERM;
-diff -puN ipc/util.h~userns-user-namespaces-convert-several-capable-calls ipc/util.h
---- a/ipc/util.h~userns-user-namespaces-convert-several-capable-calls
-+++ a/ipc/util.h
-@@ -103,7 +103,7 @@ int ipc_get_maxid(struct ipc_ids *);
- void ipc_rmid(struct ipc_ids *, struct kern_ipc_perm *);
- 
- /* must be called with ipcp locked */
--int ipcperms(struct kern_ipc_perm *ipcp, short flg);
-+int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
- 
- /* for rare, potentially huge allocations.
-  * both function can sleep
-@@ -126,7 +126,8 @@ struct kern_ipc_perm *ipc_lock(struct ip
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
- void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
--struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
-+struct kern_ipc_perm *ipcctl_pre_down(struct ipc_namespace *ns,
-+				      struct ipc_ids *ids, int id, int cmd,
- 				      struct ipc64_perm *perm, int extra_perm);
- 
- #ifndef __ARCH_WANT_IPC_PARSE_VERSION
-diff -puN kernel/futex.c~userns-user-namespaces-convert-several-capable-calls kernel/futex.c
---- a/kernel/futex.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/futex.c
-@@ -2418,10 +2418,19 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
- 			goto err_unlock;
- 		ret = -EPERM;
- 		pcred = __task_cred(p);
-+		/* If victim is in different user_ns, then uids are not
-+		   comparable, so we must have CAP_SYS_PTRACE */
-+		if (cred->user->user_ns != pcred->user->user_ns) {
-+			if (!ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
-+				goto err_unlock;
-+			goto ok;
-+		}
-+		/* If victim is in same user_ns, then uids are comparable */
- 		if (cred->euid != pcred->euid &&
- 		    cred->euid != pcred->uid &&
--		    !capable(CAP_SYS_PTRACE))
-+		    !ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
- 			goto err_unlock;
-+ok:
- 		head = p->robust_list;
- 		rcu_read_unlock();
- 	}
-diff -puN kernel/futex_compat.c~userns-user-namespaces-convert-several-capable-calls kernel/futex_compat.c
---- a/kernel/futex_compat.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/futex_compat.c
-@@ -153,10 +153,19 @@ compat_sys_get_robust_list(int pid, comp
- 			goto err_unlock;
- 		ret = -EPERM;
- 		pcred = __task_cred(p);
-+		/* If victim is in different user_ns, then uids are not
-+		   comparable, so we must have CAP_SYS_PTRACE */
-+		if (cred->user->user_ns != pcred->user->user_ns) {
-+			if (!ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
-+				goto err_unlock;
-+			goto ok;
-+		}
-+		/* If victim is in same user_ns, then uids are comparable */
- 		if (cred->euid != pcred->euid &&
- 		    cred->euid != pcred->uid &&
--		    !capable(CAP_SYS_PTRACE))
-+		    !ns_capable(pcred->user->user_ns, CAP_SYS_PTRACE))
- 			goto err_unlock;
-+ok:
- 		head = p->compat_robust_list;
- 		rcu_read_unlock();
- 	}
-diff -puN kernel/groups.c~userns-user-namespaces-convert-several-capable-calls kernel/groups.c
---- a/kernel/groups.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/groups.c
-@@ -233,7 +233,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
- 	struct group_info *group_info;
- 	int retval;
- 
--	if (!capable(CAP_SETGID))
-+	if (!nsown_capable(CAP_SETGID))
- 		return -EPERM;
- 	if ((unsigned)gidsetsize > NGROUPS_MAX)
- 		return -EINVAL;
-diff -puN kernel/nsproxy.c~userns-user-namespaces-convert-several-capable-calls kernel/nsproxy.c
---- a/kernel/nsproxy.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/nsproxy.c
-@@ -75,16 +75,11 @@ static struct nsproxy *create_new_namesp
- 		goto out_uts;
- 	}
- 
--	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
-+	new_nsp->ipc_ns = copy_ipcs(flags, tsk);
- 	if (IS_ERR(new_nsp->ipc_ns)) {
- 		err = PTR_ERR(new_nsp->ipc_ns);
- 		goto out_ipc;
- 	}
--	if (new_nsp->ipc_ns != tsk->nsproxy->ipc_ns) {
--		put_user_ns(new_nsp->ipc_ns->user_ns);
--		new_nsp->ipc_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
--		get_user_ns(new_nsp->ipc_ns->user_ns);
+  * has_capability_noaudit - Determine if a task has a superior capability available (unaudited)
+  * @t: The task in question
+diff -puN kernel/ptrace.c~userns-allow-ptrace-from-non-init-user-namespaces kernel/ptrace.c
+--- a/kernel/ptrace.c~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/kernel/ptrace.c
+@@ -134,21 +134,24 @@ int __ptrace_may_access(struct task_stru
+ 		return 0;
+ 	rcu_read_lock();
+ 	tcred = __task_cred(task);
+-	if ((cred->uid != tcred->euid ||
+-	     cred->uid != tcred->suid ||
+-	     cred->uid != tcred->uid  ||
+-	     cred->gid != tcred->egid ||
+-	     cred->gid != tcred->sgid ||
+-	     cred->gid != tcred->gid) &&
+-	    !capable(CAP_SYS_PTRACE)) {
+-		rcu_read_unlock();
+-		return -EPERM;
 -	}
++	if (cred->user->user_ns == tcred->user->user_ns &&
++	    (cred->uid == tcred->euid &&
++	     cred->uid == tcred->suid &&
++	     cred->uid == tcred->uid  &&
++	     cred->gid == tcred->egid &&
++	     cred->gid == tcred->sgid &&
++	     cred->gid == tcred->gid))
++		goto ok;
++	if (ns_capable(tcred->user->user_ns, CAP_SYS_PTRACE))
++		goto ok;
++	rcu_read_unlock();
++	return -EPERM;
++ok:
+ 	rcu_read_unlock();
+ 	smp_rmb();
+ 	if (task->mm)
+ 		dumpable = get_dumpable(task->mm);
+-	if (!dumpable && !capable(CAP_SYS_PTRACE))
++	if (!dumpable && !task_ns_capable(task, CAP_SYS_PTRACE))
+ 		return -EPERM;
  
- 	new_nsp->pid_ns = copy_pid_ns(flags, task_active_pid_ns(tsk));
- 	if (IS_ERR(new_nsp->pid_ns)) {
-diff -puN kernel/sched.c~userns-user-namespaces-convert-several-capable-calls kernel/sched.c
---- a/kernel/sched.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/sched.c
-@@ -4892,8 +4892,11 @@ static bool check_same_owner(struct task
+ 	return security_ptrace_access_check(task, mode);
+@@ -198,7 +201,7 @@ static int ptrace_attach(struct task_str
+ 		goto unlock_tasklist;
+ 
+ 	task->ptrace = PT_PTRACED;
+-	if (capable(CAP_SYS_PTRACE))
++	if (task_ns_capable(task, CAP_SYS_PTRACE))
+ 		task->ptrace |= PT_PTRACE_CAP;
+ 
+ 	__ptrace_link(task, current);
+diff -puN security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces security/commoncap.c
+--- a/security/commoncap.c~userns-allow-ptrace-from-non-init-user-namespaces
++++ a/security/commoncap.c
+@@ -127,18 +127,30 @@ int cap_settime(const struct timespec *t
+  * @child: The process to be accessed
+  * @mode: The mode of attachment.
+  *
++ * If we are in the same or an ancestor user_ns and have all the target
++ * task's capabilities, then ptrace access is allowed.
++ * If we have the ptrace capability to the target user_ns, then ptrace
++ * access is allowed.
++ * Else denied.
++ *
+  * Determine whether a process may access another, returning 0 if permission
+  * granted, -ve if denied.
+  */
+ int cap_ptrace_access_check(struct task_struct *child, unsigned int mode)
+ {
+ 	int ret = 0;
++	const struct cred *cred, *child_cred;
  
  	rcu_read_lock();
- 	pcred = __task_cred(p);
--	match = (cred->euid == pcred->euid ||
--		 cred->euid == pcred->uid);
-+	if (cred->user->user_ns == pcred->user->user_ns)
-+		match = (cred->euid == pcred->euid ||
-+			 cred->euid == pcred->uid);
-+	else
-+		match = false;
+-	if (!cap_issubset(__task_cred(child)->cap_permitted,
+-			  current_cred()->cap_permitted) &&
+-	    !capable(CAP_SYS_PTRACE))
+-		ret = -EPERM;
++	cred = current_cred();
++	child_cred = __task_cred(child);
++	if (cred->user->user_ns == child_cred->user->user_ns &&
++	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
++		goto out;
++	if (ns_capable(child_cred->user->user_ns, CAP_SYS_PTRACE))
++		goto out;
++	ret = -EPERM;
++out:
  	rcu_read_unlock();
- 	return match;
+ 	return ret;
  }
-@@ -5221,7 +5224,7 @@ long sched_setaffinity(pid_t pid, const 
- 		goto out_free_cpus_allowed;
- 	}
- 	retval = -EPERM;
--	if (!check_same_owner(p) && !capable(CAP_SYS_NICE))
-+	if (!check_same_owner(p) && !task_ns_capable(p, CAP_SYS_NICE))
- 		goto out_unlock;
+@@ -147,18 +159,30 @@ int cap_ptrace_access_check(struct task_
+  * cap_ptrace_traceme - Determine whether another process may trace the current
+  * @parent: The task proposed to be the tracer
+  *
++ * If parent is in the same or an ancestor user_ns and has all current's
++ * capabilities, then ptrace access is allowed.
++ * If parent has the ptrace capability to current's user_ns, then ptrace
++ * access is allowed.
++ * Else denied.
++ *
+  * Determine whether the nominated task is permitted to trace the current
+  * process, returning 0 if permission is granted, -ve if denied.
+  */
+ int cap_ptrace_traceme(struct task_struct *parent)
+ {
+ 	int ret = 0;
++	const struct cred *cred, *child_cred;
  
- 	retval = security_task_setscheduler(p);
-diff -puN kernel/uid16.c~userns-user-namespaces-convert-several-capable-calls kernel/uid16.c
---- a/kernel/uid16.c~userns-user-namespaces-convert-several-capable-calls
-+++ a/kernel/uid16.c
-@@ -189,7 +189,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
- 	struct group_info *group_info;
- 	int retval;
- 
--	if (!capable(CAP_SETGID))
-+	if (!nsown_capable(CAP_SETGID))
- 		return -EPERM;
- 	if ((unsigned)gidsetsize > NGROUPS_MAX)
- 		return -EINVAL;
+ 	rcu_read_lock();
+-	if (!cap_issubset(current_cred()->cap_permitted,
+-			  __task_cred(parent)->cap_permitted) &&
+-	    !has_capability(parent, CAP_SYS_PTRACE))
+-		ret = -EPERM;
++	cred = __task_cred(parent);
++	child_cred = current_cred();
++	if (cred->user->user_ns == child_cred->user->user_ns &&
++	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
++		goto out;
++	if (has_ns_capability(parent, child_cred->user->user_ns, CAP_SYS_PTRACE))
++		goto out;
++	ret = -EPERM;
++out:
+ 	rcu_read_unlock();
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from serge@hallyn.com are
