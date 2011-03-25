@@ -1,548 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userns-rename-is_owner_or_cap-to-inode_owner_or_capable.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:27:01 -0700
-Message-ID: <201103250726.p2P7Qt6T026196@imap1.linux-foundation.org>
+Subject: [merged] lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:27:10 -0700
+Message-ID: <201103250727.p2P7R4n2026218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754197Ab1CYH1J (ORCPT
+	by vger.kernel.org with ESMTP id S933890Ab1CYH1R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:27:09 -0400
+	Fri, 25 Mar 2011 03:27:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, James.Bottomley@hansenpartnership.com, akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     userns: rename is_owner_or_cap to inode_owner_or_capable
+     lib, arch: add filter argument to show_mem and fix private implementations
 has been removed from the -mm tree.  Its filename was
-     userns-rename-is_owner_or_cap-to-inode_owner_or_capable.patch
+     lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: userns: rename is_owner_or_cap to inode_owner_or_capable
-From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: lib, arch: add filter argument to show_mem and fix private implementations
 
-And give it a kernel-doc comment.
 
-[akpm@linux-foundation.org: btrfs changed in linux-next]
-Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+ddd588b5dd55 ("oom: suppress nodes that are not allowed from meminfo on
+oom kill") moved lib/show_mem.o out of lib/lib.a, which resulted in build
+warnings on all architectures that implement their own versions of
+show_mem():
+
+	lib/lib.a(show_mem.o): In function `show_mem':
+	show_mem.c:(.text+0x1f4): multiple definition of `show_mem'
+	arch/sparc/mm/built-in.o:(.text+0xd70): first defined here
+
+The fix is to remove __show_mem() and add its argument to show_mem() in
+all implementations to prevent this breakage.
+
+Architectures that implement their own show_mem() actually don't do
+anything with the argument yet, but they could be made to filter nodes
+that aren't allowed in the current context in the future just like the
+generic implementation.
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: James Bottomley <James.Bottomley@hansenpartnership.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/acl.c              |    2 +-
- fs/attr.c                |    4 ++--
- fs/btrfs/acl.c           |    2 +-
- fs/btrfs/ioctl.c         |    4 ++--
- fs/ext2/acl.c            |    2 +-
- fs/ext2/ioctl.c          |    6 +++---
- fs/ext3/acl.c            |    2 +-
- fs/ext3/ioctl.c          |    6 +++---
- fs/ext4/acl.c            |    2 +-
- fs/ext4/ioctl.c          |    8 ++++----
- fs/fcntl.c               |    2 +-
- fs/generic_acl.c         |    2 +-
- fs/gfs2/file.c           |    2 +-
- fs/hfsplus/ioctl.c       |    2 +-
- fs/inode.c               |   13 ++++++++-----
- fs/jffs2/acl.c           |    2 +-
- fs/jfs/ioctl.c           |    2 +-
- fs/jfs/xattr.c           |    2 +-
- fs/logfs/file.c          |    2 +-
- fs/namei.c               |    2 +-
- fs/nilfs2/ioctl.c        |    2 +-
- fs/ocfs2/acl.c           |    2 +-
- fs/ocfs2/ioctl.c         |    2 +-
- fs/reiserfs/ioctl.c      |    4 ++--
- fs/reiserfs/xattr_acl.c  |    2 +-
- fs/ubifs/ioctl.c         |    2 +-
- fs/utimes.c              |    2 +-
- fs/xattr.c               |    2 +-
- include/linux/fs.h       |    2 +-
- security/selinux/hooks.c |    2 +-
- 30 files changed, 47 insertions(+), 44 deletions(-)
+ arch/arm/mm/init.c        |    2 +-
+ arch/ia64/mm/contig.c     |    2 +-
+ arch/ia64/mm/discontig.c  |    2 +-
+ arch/parisc/mm/init.c     |    2 +-
+ arch/powerpc/xmon/xmon.c  |    2 +-
+ arch/sparc/mm/init_32.c   |    2 +-
+ arch/tile/mm/pgtable.c    |    2 +-
+ arch/unicore32/mm/init.c  |    2 +-
+ drivers/tty/sysrq.c       |    2 +-
+ drivers/tty/vt/keyboard.c |    2 +-
+ include/linux/mm.h        |    5 ++---
+ lib/show_mem.c            |    7 +------
+ mm/oom_kill.c             |    2 +-
+ mm/page_alloc.c           |    2 +-
+ 14 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN fs/9p/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/9p/acl.c
---- a/fs/9p/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/9p/acl.c
-@@ -323,7 +323,7 @@ static int v9fs_xattr_set_acl(struct den
- 
- 	if (S_ISLNK(inode->i_mode))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 	if (value) {
- 		/* update the cached acl value */
-diff -puN fs/attr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/attr.c
---- a/fs/attr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/attr.c
-@@ -59,7 +59,7 @@ int inode_change_ok(const struct inode *
- 
- 	/* Make sure a caller can chmod. */
- 	if (ia_valid & ATTR_MODE) {
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 		/* Also check the setgid bit! */
- 		if (!in_group_p((ia_valid & ATTR_GID) ? attr->ia_gid :
-@@ -69,7 +69,7 @@ int inode_change_ok(const struct inode *
- 
- 	/* Check for setting the inode time. */
- 	if (ia_valid & (ATTR_MTIME_SET | ATTR_ATIME_SET | ATTR_TIMES_SET)) {
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 	}
- 
-diff -puN fs/btrfs/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/btrfs/acl.c
---- a/fs/btrfs/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/btrfs/acl.c
-@@ -170,7 +170,7 @@ static int btrfs_xattr_acl_set(struct de
- 	int ret;
- 	struct posix_acl *acl = NULL;
- 
--	if (!is_owner_or_cap(dentry->d_inode))
-+	if (!inode_owner_or_capable(dentry->d_inode))
- 		return -EPERM;
- 
- 	if (!IS_POSIXACL(dentry->d_inode))
-diff -puN fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/btrfs/ioctl.c
---- a/fs/btrfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/btrfs/ioctl.c
-@@ -158,7 +158,7 @@ static int btrfs_ioctl_setflags(struct f
- 		      FS_SYNC_FL | FS_DIRSYNC_FL))
- 		return -EOPNOTSUPP;
- 
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EACCES;
- 
- 	mutex_lock(&inode->i_mutex);
-@@ -1077,7 +1077,7 @@ static noinline int btrfs_ioctl_subvol_s
- 	if (flags & ~BTRFS_SUBVOL_RDONLY)
- 		return -EOPNOTSUPP;
- 
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EACCES;
- 
- 	down_write(&root->fs_info->subvol_sem);
-diff -puN fs/ext2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext2/acl.c
---- a/fs/ext2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext2/acl.c
-@@ -406,7 +406,7 @@ ext2_xattr_set_acl(struct dentry *dentry
- 		return -EINVAL;
- 	if (!test_opt(dentry->d_sb, POSIX_ACL))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(dentry->d_inode))
-+	if (!inode_owner_or_capable(dentry->d_inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/ext2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext2/ioctl.c
-@@ -39,7 +39,7 @@ long ext2_ioctl(struct file *filp, unsig
- 		if (ret)
- 			return ret;
- 
--		if (!is_owner_or_cap(inode)) {
-+		if (!inode_owner_or_capable(inode)) {
- 			ret = -EACCES;
- 			goto setflags_out;
- 		}
-@@ -89,7 +89,7 @@ setflags_out:
- 	case EXT2_IOC_GETVERSION:
- 		return put_user(inode->i_generation, (int __user *) arg);
- 	case EXT2_IOC_SETVERSION:
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 		ret = mnt_want_write(filp->f_path.mnt);
- 		if (ret)
-@@ -115,7 +115,7 @@ setflags_out:
- 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
- 			return -ENOTTY;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		if (get_user(rsv_window_size, (int __user *)arg))
-diff -puN fs/ext3/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext3/acl.c
---- a/fs/ext3/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext3/acl.c
-@@ -435,7 +435,7 @@ ext3_xattr_set_acl(struct dentry *dentry
- 		return -EINVAL;
- 	if (!test_opt(inode->i_sb, POSIX_ACL))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/ext3/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext3/ioctl.c
-@@ -38,7 +38,7 @@ long ext3_ioctl(struct file *filp, unsig
- 		unsigned int oldflags;
- 		unsigned int jflag;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		if (get_user(flags, (int __user *) arg))
-@@ -123,7 +123,7 @@ flags_out:
- 		__u32 generation;
- 		int err;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 
- 		err = mnt_want_write(filp->f_path.mnt);
-@@ -192,7 +192,7 @@ setversion_out:
- 		if (err)
- 			return err;
- 
--		if (!is_owner_or_cap(inode)) {
-+		if (!inode_owner_or_capable(inode)) {
- 			err = -EACCES;
- 			goto setrsvsz_out;
- 		}
-diff -puN fs/ext4/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext4/acl.c
---- a/fs/ext4/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext4/acl.c
-@@ -433,7 +433,7 @@ ext4_xattr_set_acl(struct dentry *dentry
- 		return -EINVAL;
- 	if (!test_opt(inode->i_sb, POSIX_ACL))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/ext4/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ext4/ioctl.c
---- a/fs/ext4/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ext4/ioctl.c
-@@ -38,7 +38,7 @@ long ext4_ioctl(struct file *filp, unsig
- 		unsigned int oldflags;
- 		unsigned int jflag;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		if (get_user(flags, (int __user *) arg))
-@@ -146,7 +146,7 @@ flags_out:
- 		__u32 generation;
- 		int err;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 
- 		err = mnt_want_write(filp->f_path.mnt);
-@@ -298,7 +298,7 @@ mext_out:
- 	case EXT4_IOC_MIGRATE:
- 	{
- 		int err;
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		err = mnt_want_write(filp->f_path.mnt);
-@@ -320,7 +320,7 @@ mext_out:
- 	case EXT4_IOC_ALLOC_DA_BLKS:
- 	{
- 		int err;
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		err = mnt_want_write(filp->f_path.mnt);
-diff -puN fs/fcntl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/fcntl.c
---- a/fs/fcntl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/fcntl.c
-@@ -159,7 +159,7 @@ static int setfl(int fd, struct file * f
- 
- 	/* O_NOATIME can only be set by the owner or superuser */
- 	if ((arg & O_NOATIME) && !(filp->f_flags & O_NOATIME))
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EPERM;
- 
- 	/* required for strict SunOS emulation */
-diff -puN fs/generic_acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/generic_acl.c
---- a/fs/generic_acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/generic_acl.c
-@@ -74,7 +74,7 @@ generic_acl_set(struct dentry *dentry, c
- 		return -EINVAL;
- 	if (S_ISLNK(inode->i_mode))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 	if (value) {
- 		acl = posix_acl_from_xattr(value, size);
-diff -puN fs/gfs2/file.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/gfs2/file.c
---- a/fs/gfs2/file.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/gfs2/file.c
-@@ -221,7 +221,7 @@ static int do_gfs2_set_flags(struct file
- 		goto out_drop_write;
- 
- 	error = -EACCES;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		goto out;
- 
- 	error = 0;
-diff -puN fs/hfsplus/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/hfsplus/ioctl.c
---- a/fs/hfsplus/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/hfsplus/ioctl.c
-@@ -47,7 +47,7 @@ static int hfsplus_ioctl_setflags(struct
- 	if (err)
- 		goto out;
- 
--	if (!is_owner_or_cap(inode)) {
-+	if (!inode_owner_or_capable(inode)) {
- 		err = -EACCES;
- 		goto out_drop_write;
- 	}
-diff -puN fs/inode.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/inode.c
---- a/fs/inode.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/inode.c
-@@ -1735,11 +1735,14 @@ void inode_init_owner(struct inode *inod
- }
- EXPORT_SYMBOL(inode_init_owner);
- 
--/*
-- * return true if current either has CAP_FOWNER to the
-- * file, or owns the file.
-+/**
-+ * inode_owner_or_capable - check current task permissions to inode
-+ * @inode: inode being checked
-+ *
-+ * Return true if current either has CAP_FOWNER to the inode, or
-+ * owns the file.
+diff -puN arch/arm/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/arm/mm/init.c
+@@ -78,7 +78,7 @@ __tagtable(ATAG_INITRD2, parse_tag_initr
   */
--bool is_owner_or_cap(const struct inode *inode)
-+bool inode_owner_or_capable(const struct inode *inode)
+ struct meminfo meminfo;
+ 
+-void show_mem(void)
++void show_mem(unsigned int filter)
  {
- 	struct user_namespace *ns = inode_userns(inode);
- 
-@@ -1749,4 +1752,4 @@ bool is_owner_or_cap(const struct inode 
- 		return true;
- 	return false;
- }
--EXPORT_SYMBOL(is_owner_or_cap);
-+EXPORT_SYMBOL(inode_owner_or_capable);
-diff -puN fs/jffs2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/jffs2/acl.c
---- a/fs/jffs2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/jffs2/acl.c
-@@ -402,7 +402,7 @@ static int jffs2_acl_setxattr(struct den
- 
- 	if (name[0] != '\0')
- 		return -EINVAL;
--	if (!is_owner_or_cap(dentry->d_inode))
-+	if (!inode_owner_or_capable(dentry->d_inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/jfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/jfs/ioctl.c
---- a/fs/jfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/jfs/ioctl.c
-@@ -72,7 +72,7 @@ long jfs_ioctl(struct file *filp, unsign
- 		if (err)
- 			return err;
- 
--		if (!is_owner_or_cap(inode)) {
-+		if (!inode_owner_or_capable(inode)) {
- 			err = -EACCES;
- 			goto setflags_out;
- 		}
-diff -puN fs/jfs/xattr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/jfs/xattr.c
---- a/fs/jfs/xattr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/jfs/xattr.c
-@@ -678,7 +678,7 @@ static int can_set_system_xattr(struct i
- 	struct posix_acl *acl;
- 	int rc;
- 
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	/*
-diff -puN fs/logfs/file.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/logfs/file.c
---- a/fs/logfs/file.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/logfs/file.c
-@@ -196,7 +196,7 @@ long logfs_ioctl(struct file *file, unsi
- 		if (IS_RDONLY(inode))
- 			return -EROFS;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		err = get_user(flags, (int __user *)arg);
-diff -puN fs/namei.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/namei.c
---- a/fs/namei.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/namei.c
-@@ -2036,7 +2036,7 @@ static int may_open(struct path *path, i
- 	}
- 
- 	/* O_NOATIME can only be set by the owner or superuser */
--	if (flag & O_NOATIME && !is_owner_or_cap(inode))
-+	if (flag & O_NOATIME && !inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	/*
-diff -puN fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/nilfs2/ioctl.c
-@@ -113,7 +113,7 @@ static int nilfs_ioctl_setflags(struct i
- 	unsigned int flags, oldflags;
- 	int ret;
- 
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EACCES;
- 
- 	if (get_user(flags, (int __user *)argp))
-diff -puN fs/ocfs2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ocfs2/acl.c
-@@ -497,7 +497,7 @@ static int ocfs2_xattr_set_acl(struct de
- 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
- 		return -EOPNOTSUPP;
- 
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/ocfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ocfs2/ioctl.c
-@@ -82,7 +82,7 @@ static int ocfs2_set_inode_attr(struct i
- 	}
- 
- 	status = -EACCES;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		goto bail_unlock;
- 
- 	if (!S_ISDIR(inode->i_mode))
-diff -puN fs/reiserfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/reiserfs/ioctl.c
---- a/fs/reiserfs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/reiserfs/ioctl.c
-@@ -59,7 +59,7 @@ long reiserfs_ioctl(struct file *filp, u
- 			if (err)
- 				break;
- 
--			if (!is_owner_or_cap(inode)) {
-+			if (!inode_owner_or_capable(inode)) {
- 				err = -EPERM;
- 				goto setflags_out;
- 			}
-@@ -103,7 +103,7 @@ setflags_out:
- 		err = put_user(inode->i_generation, (int __user *)arg);
- 		break;
- 	case REISERFS_IOC_SETVERSION:
--		if (!is_owner_or_cap(inode)) {
-+		if (!inode_owner_or_capable(inode)) {
- 			err = -EPERM;
- 			break;
- 		}
-diff -puN fs/reiserfs/xattr_acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/reiserfs/xattr_acl.c
---- a/fs/reiserfs/xattr_acl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/reiserfs/xattr_acl.c
-@@ -26,7 +26,7 @@ posix_acl_set(struct dentry *dentry, con
- 	size_t jcreate_blocks;
- 	if (!reiserfs_posixacl(inode->i_sb))
- 		return -EOPNOTSUPP;
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
- 
- 	if (value) {
-diff -puN fs/ubifs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/ubifs/ioctl.c
---- a/fs/ubifs/ioctl.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/ubifs/ioctl.c
-@@ -160,7 +160,7 @@ long ubifs_ioctl(struct file *file, unsi
- 		if (IS_RDONLY(inode))
- 			return -EROFS;
- 
--		if (!is_owner_or_cap(inode))
-+		if (!inode_owner_or_capable(inode))
- 			return -EACCES;
- 
- 		if (get_user(flags, (int __user *) arg))
-diff -puN fs/utimes.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/utimes.c
---- a/fs/utimes.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/utimes.c
-@@ -95,7 +95,7 @@ static int utimes_common(struct path *pa
-                 if (IS_IMMUTABLE(inode))
- 			goto mnt_drop_write_and_out;
- 
--		if (!is_owner_or_cap(inode)) {
-+		if (!inode_owner_or_capable(inode)) {
- 			error = inode_permission(inode, MAY_WRITE);
- 			if (error)
- 				goto mnt_drop_write_and_out;
-diff -puN fs/xattr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable fs/xattr.c
---- a/fs/xattr.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/fs/xattr.c
-@@ -59,7 +59,7 @@ xattr_permission(struct inode *inode, co
- 		if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
- 			return -EPERM;
- 		if (S_ISDIR(inode->i_mode) && (inode->i_mode & S_ISVTX) &&
--		    (mask & MAY_WRITE) && !is_owner_or_cap(inode))
-+		    (mask & MAY_WRITE) && !inode_owner_or_capable(inode))
- 			return -EPERM;
- 	}
- 
-diff -puN include/linux/fs.h~userns-rename-is_owner_or_cap-to-inode_owner_or_capable include/linux/fs.h
---- a/include/linux/fs.h~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/include/linux/fs.h
-@@ -1463,7 +1463,7 @@ enum {
+ 	int free = 0, total = 0, reserved = 0;
+ 	int shared = 0, cached = 0, slab = 0, i;
+diff -puN arch/ia64/mm/contig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/ia64/mm/contig.c
+@@ -36,7 +36,7 @@ static unsigned long max_gap;
+  * Shows a simple page count of reserved and used pages in the system.
+  * For discontig machines, it does this on a per-pgdat basis.
   */
- extern struct user_namespace init_user_ns;
- #define inode_userns(inode) (&init_user_ns)
--extern bool is_owner_or_cap(const struct inode *inode);
-+extern bool inode_owner_or_capable(const struct inode *inode);
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	int i, total_reserved = 0;
+ 	int total_shared = 0, total_cached = 0;
+diff -puN arch/ia64/mm/discontig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/ia64/mm/discontig.c
+@@ -614,7 +614,7 @@ void __cpuinit *per_cpu_init(void)
+  * Shows a simple page count of reserved and used pages in the system.
+  * For discontig machines, it does this on a per-pgdat basis.
+  */
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	int i, total_reserved = 0;
+ 	int total_shared = 0, total_cached = 0;
+diff -puN arch/parisc/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/parisc/mm/init.c
+@@ -544,7 +544,7 @@ void __init mem_init(void)
+ unsigned long *empty_zero_page __read_mostly;
+ EXPORT_SYMBOL(empty_zero_page);
  
- /* not quite ready to be deprecated, but... */
- extern void lock_super(struct super_block *);
-diff -puN security/selinux/hooks.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable security/selinux/hooks.c
---- a/security/selinux/hooks.c~userns-rename-is_owner_or_cap-to-inode_owner_or_capable
-+++ a/security/selinux/hooks.c
-@@ -2725,7 +2725,7 @@ static int selinux_inode_setxattr(struct
- 	if (!(sbsec->flags & SE_SBLABELSUPP))
- 		return -EOPNOTSUPP;
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	int i,free = 0,total = 0,reserved = 0;
+ 	int shared = 0, cached = 0;
+diff -puN arch/powerpc/xmon/xmon.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/powerpc/xmon/xmon.c
+--- a/arch/powerpc/xmon/xmon.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/powerpc/xmon/xmon.c
+@@ -821,7 +821,7 @@ cmds(struct pt_regs *excp)
+ 				memzcan();
+ 				break;
+ 			case 'i':
+-				show_mem();
++				show_mem(0);
+ 				break;
+ 			default:
+ 				termch = cmd;
+diff -puN arch/sparc/mm/init_32.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/sparc/mm/init_32.c
+@@ -75,7 +75,7 @@ void __init kmap_init(void)
+ 	kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
+ }
  
--	if (!is_owner_or_cap(inode))
-+	if (!inode_owner_or_capable(inode))
- 		return -EPERM;
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	printk("Mem-info:\n");
+ 	show_free_areas();
+diff -puN arch/tile/mm/pgtable.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/tile/mm/pgtable.c
+@@ -41,7 +41,7 @@
+  * The normal show_free_areas() is too verbose on Tile, with dozens
+  * of processors and often four NUMA zones each with high and lowmem.
+  */
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	struct zone *zone;
  
- 	COMMON_AUDIT_DATA_INIT(&ad, FS);
+diff -puN arch/unicore32/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/unicore32/mm/init.c
+--- a/arch/unicore32/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/arch/unicore32/mm/init.c
+@@ -55,7 +55,7 @@ early_param("initrd", early_initrd);
+  */
+ struct meminfo meminfo;
+ 
+-void show_mem(void)
++void show_mem(unsigned int filter)
+ {
+ 	int free = 0, total = 0, reserved = 0;
+ 	int shared = 0, cached = 0, slab = 0, i;
+diff -puN drivers/tty/sysrq.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/drivers/tty/sysrq.c
+@@ -306,7 +306,7 @@ static struct sysrq_key_op sysrq_ftrace_
+ 
+ static void sysrq_handle_showmem(int key)
+ {
+-	show_mem();
++	show_mem(0);
+ }
+ static struct sysrq_key_op sysrq_showmem_op = {
+ 	.handler	= sysrq_handle_showmem,
+diff -puN drivers/tty/vt/keyboard.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations drivers/tty/vt/keyboard.c
+--- a/drivers/tty/vt/keyboard.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/drivers/tty/vt/keyboard.c
+@@ -604,7 +604,7 @@ static void fn_scroll_back(struct vc_dat
+ 
+ static void fn_show_mem(struct vc_data *vc)
+ {
+-	show_mem();
++	show_mem(0);
+ }
+ 
+ static void fn_show_state(struct vc_data *vc)
+diff -puN include/linux/mm.h~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations include/linux/mm.h
+--- a/include/linux/mm.h~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/include/linux/mm.h
+@@ -861,7 +861,7 @@ extern void pagefault_out_of_memory(void
+ #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
+ 
+ /*
+- * Flags passed to __show_mem() and __show_free_areas() to suppress output in
++ * Flags passed to show_mem() and __show_free_areas() to suppress output in
+  * various contexts.
+  */
+ #define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
+@@ -1358,8 +1358,7 @@ extern void setup_per_zone_wmarks(void);
+ extern void calculate_zone_inactive_ratio(struct zone *zone);
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+-extern void show_mem(void);
+-extern void __show_mem(unsigned int flags);
++extern void show_mem(unsigned int flags);
+ extern void si_meminfo(struct sysinfo * val);
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
+diff -puN lib/show_mem.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations lib/show_mem.c
+--- a/lib/show_mem.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/lib/show_mem.c
+@@ -9,7 +9,7 @@
+ #include <linux/nmi.h>
+ #include <linux/quicklist.h>
+ 
+-void __show_mem(unsigned int filter)
++void show_mem(unsigned int filter)
+ {
+ 	pg_data_t *pgdat;
+ 	unsigned long total = 0, reserved = 0, shared = 0,
+@@ -61,8 +61,3 @@ void __show_mem(unsigned int filter)
+ 		quicklist_total_size());
+ #endif
+ }
+-
+-void show_mem(void)
+-{
+-	__show_mem(0);
+-}
+diff -puN mm/oom_kill.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations mm/oom_kill.c
+--- a/mm/oom_kill.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/mm/oom_kill.c
+@@ -406,7 +406,7 @@ static void dump_header(struct task_stru
+ 	task_unlock(current);
+ 	dump_stack();
+ 	mem_cgroup_print_oom_info(mem, p);
+-	__show_mem(SHOW_MEM_FILTER_NODES);
++	show_mem(SHOW_MEM_FILTER_NODES);
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(mem, nodemask);
+ }
+diff -puN mm/page_alloc.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations mm/page_alloc.c
+--- a/mm/page_alloc.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
++++ a/mm/page_alloc.c
+@@ -2195,7 +2195,7 @@ nopage:
+ 			current->comm, order, gfp_mask);
+ 		dump_stack();
+ 		if (!should_suppress_show_mem())
+-			__show_mem(filter);
++			show_mem(filter);
+ 	}
+ 	return page;
+ got_pg:
 _
 
-Patches currently in -mm which might be from serge@hallyn.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+linux-next.patch
 
