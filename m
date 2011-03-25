@@ -1,38 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-modify-configuration-to-support-pci-srio-controller.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:08 -0700
-Message-ID: <201103250726.p2P7Q2c6026105@imap1.linux-foundation.org>
+Subject: [merged] rapidio-modify-mport-id-assignment.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:14 -0700
+Message-ID: <201103250726.p2P7Q8xY026113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754674Ab1CYH0k (ORCPT
+	by vger.kernel.org with ESMTP id S933986Ab1CYH0o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:40 -0400
+	Fri, 25 Mar 2011 03:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commi
 
 
 The patch titled
-     rapidio: modify configuration to support PCI-SRIO controller
+     rapidio: modify mport ID assignment
 has been removed from the -mm tree.  Its filename was
-     rapidio-modify-configuration-to-support-pci-srio-controller.patch
+     rapidio-modify-mport-id-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: modify configuration to support PCI-SRIO controller
+Subject: rapidio: modify mport ID assignment
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-1. Add an option to include RapidIO support if the PCI is available.
-2. Add FSL_RIO configuration option to enable controller selection.
-3. Add RapidIO support option into x86 and MIPS architectures.
+Changes mport ID and host destination ID assignment to implement unified
+method common to all mport drivers.  Makes "riohdid=" kernel command line
+parameter common for all architectures with support for more that one host
+destination ID assignment.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Cc: Li Yang <leoli@freescale.com>
 Cc: Thomas Moll <thomas.moll@sysgo.com>
@@ -41,134 +42,115 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig                         |   10 ++++++++++
- arch/powerpc/Kconfig                      |   10 +++++++++-
- arch/powerpc/kernel/cpu_setup_fsl_booke.S |    2 +-
- arch/powerpc/sysdev/Makefile              |    2 +-
- arch/x86/Kconfig                          |   10 ++++++++++
- drivers/net/rionet.c                      |    4 ++--
- drivers/rapidio/rio-sysfs.c               |    1 +
- 7 files changed, 34 insertions(+), 5 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |   25 -------------------------
+ drivers/rapidio/rio.c         |   26 ++++++++++++++++++++++++++
+ include/linux/rio.h           |    1 +
+ 3 files changed, 27 insertions(+), 25 deletions(-)
 
-diff -puN arch/mips/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/mips/Kconfig
---- a/arch/mips/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/arch/mips/Kconfig
-@@ -2344,6 +2344,16 @@ source "drivers/pcmcia/Kconfig"
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-mport-id-assignment arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-mport-id-assignment
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -1288,28 +1288,6 @@ err_out:
+ 	return rc;
+ }
  
- source "drivers/pci/hotplug/Kconfig"
- 
-+config RAPIDIO
-+	bool "RapidIO support"
-+	depends on PCI
-+	default n
-+	help
-+	  If you say Y here, the kernel will include drivers and
-+	  infrastructure code to support RapidIO interconnect devices.
-+
-+source "drivers/rapidio/Kconfig"
-+
- endmenu
- 
- menu "Executable file formats"
-diff -puN arch/powerpc/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/arch/powerpc/Kconfig
-@@ -772,11 +772,19 @@ config HAS_RAPIDIO
- 
- config RAPIDIO
- 	bool "RapidIO support"
--	depends on HAS_RAPIDIO
-+	depends on HAS_RAPIDIO || PCI
- 	help
- 	  If you say Y here, the kernel will include drivers and
- 	  infrastructure code to support RapidIO interconnect devices.
- 
-+config FSL_RIO
-+	bool "Freescale Embedded SRIO Controller support"
-+	depends on RAPIDIO && HAS_RAPIDIO
-+	default "n"
-+	---help---
-+	  Include support for RapidIO controller on Freescale embedded
-+	  processors (MPC8548, MPC8641, etc).
-+
- source "drivers/rapidio/Kconfig"
- 
- endmenu
-diff -puN arch/powerpc/kernel/cpu_setup_fsl_booke.S~rapidio-modify-configuration-to-support-pci-srio-controller arch/powerpc/kernel/cpu_setup_fsl_booke.S
---- a/arch/powerpc/kernel/cpu_setup_fsl_booke.S~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/arch/powerpc/kernel/cpu_setup_fsl_booke.S
-@@ -64,7 +64,7 @@ _GLOBAL(__setup_cpu_e500v2)
- 	bl	__e500_icache_setup
- 	bl	__e500_dcache_setup
- 	bl	__setup_e500_ivors
--#ifdef CONFIG_RAPIDIO
-+#ifdef CONFIG_FSL_RIO
- 	/* Ensure that RFXE is set */
- 	mfspr	r3,SPRN_HID1
- 	oris	r3,r3,HID1_RFXE@h
-diff -puN arch/powerpc/sysdev/Makefile~rapidio-modify-configuration-to-support-pci-srio-controller arch/powerpc/sysdev/Makefile
---- a/arch/powerpc/sysdev/Makefile~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/arch/powerpc/sysdev/Makefile
-@@ -20,7 +20,7 @@ obj-$(CONFIG_FSL_GTM)		+= fsl_gtm.o
- obj-$(CONFIG_MPC8xxx_GPIO)	+= mpc8xxx_gpio.o
- obj-$(CONFIG_FSL_85XX_CACHE_SRAM)	+= fsl_85xx_l2ctlr.o fsl_85xx_cache_sram.o
- obj-$(CONFIG_SIMPLE_GPIO)	+= simple_gpio.o
--obj-$(CONFIG_RAPIDIO)		+= fsl_rio.o
-+obj-$(CONFIG_FSL_RIO)		+= fsl_rio.o
- obj-$(CONFIG_TSI108_BRIDGE)	+= tsi108_pci.o tsi108_dev.o
- obj-$(CONFIG_QUICC_ENGINE)	+= qe_lib/
- obj-$(CONFIG_PPC_BESTCOMM)	+= bestcomm/
-diff -puN arch/x86/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller arch/x86/Kconfig
---- a/arch/x86/Kconfig~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/arch/x86/Kconfig
-@@ -2096,6 +2096,16 @@ source "drivers/pcmcia/Kconfig"
- 
- source "drivers/pci/hotplug/Kconfig"
- 
-+config RAPIDIO
-+	bool "RapidIO support"
-+	depends on PCI
-+	default n
-+	help
-+	  If you say Y here, the kernel will include drivers and
-+	  infrastructure code to support RapidIO interconnect devices.
-+
-+source "drivers/rapidio/Kconfig"
-+
- endmenu
- 
- 
-diff -puN drivers/net/rionet.c~rapidio-modify-configuration-to-support-pci-srio-controller drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/drivers/net/rionet.c
-@@ -382,7 +382,7 @@ static void rionet_remove(struct rio_dev
- 	struct rionet_peer *peer, *tmp;
- 
- 	free_pages((unsigned long)rionet_active, rdev->net->hport->sys_size ?
--					__ilog2(sizeof(void *)) + 4 : 0);
-+					__fls(sizeof(void *)) + 4 : 0);
- 	unregister_netdev(ndev);
- 	free_netdev(ndev);
- 
-@@ -450,7 +450,7 @@ static int rionet_setup_netdev(struct ri
- 	}
- 
- 	rionet_active = (struct rio_dev **)__get_free_pages(GFP_KERNEL,
--			mport->sys_size ? __ilog2(sizeof(void *)) + 4 : 0);
-+			mport->sys_size ? __fls(sizeof(void *)) + 4 : 0);
- 	if (!rionet_active) {
+-static char *cmdline = NULL;
+-
+-static int fsl_rio_get_hdid(int index)
+-{
+-	/* XXX Need to parse multiple entries in some format */
+-	if (!cmdline)
+-		return -1;
+-
+-	return simple_strtol(cmdline, NULL, 0);
+-}
+-
+-static int fsl_rio_get_cmdline(char *s)
+-{
+-	if (!s)
+-		return 0;
+-
+-	cmdline = s;
+-	return 1;
+-}
+-
+-__setup("riohdid=", fsl_rio_get_cmdline);
+-
+ static inline void fsl_rio_info(struct device *dev, u32 ccsr)
+ {
+ 	const char *str;
+@@ -1439,7 +1417,6 @@ int fsl_rio_setup(struct platform_device
  		rc = -ENOMEM;
- 		goto out;
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-modify-configuration-to-support-pci-srio-controller drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-modify-configuration-to-support-pci-srio-controller
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -14,6 +14,7 @@
- #include <linux/rio.h>
- #include <linux/rio_drv.h>
- #include <linux/stat.h>
-+#include <linux/capability.h>
+ 		goto err_port;
+ 	}
+-	port->id = 0;
+ 	port->index = 0;
  
+ 	priv = kzalloc(sizeof(struct rio_priv), GFP_KERNEL);
+@@ -1470,8 +1447,6 @@ int fsl_rio_setup(struct platform_device
+ 	priv->dev = &dev->dev;
+ 
+ 	port->ops = ops;
+-	port->host_deviceid = fsl_rio_get_hdid(port->id);
+-
+ 	port->priv = priv;
+ 	port->phys_efptr = 0x100;
+ 	rio_register_mport(port);
+diff -puN drivers/rapidio/rio.c~rapidio-modify-mport-id-assignment drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-modify-mport-id-assignment
++++ a/drivers/rapidio/rio.c
+@@ -32,6 +32,7 @@
  #include "rio.h"
+ 
+ static LIST_HEAD(rio_mports);
++static unsigned char next_portid;
+ 
+ /**
+  * rio_local_get_device_id - Get the base/extended device id for a port
+@@ -1164,8 +1165,33 @@ int __devinit rio_init_mports(void)
+ 
+ device_initcall_sync(rio_init_mports);
+ 
++static int hdids[RIO_MAX_MPORTS + 1];
++
++static int rio_get_hdid(int index)
++{
++	if (!hdids[0] || hdids[0] <= index || index >= RIO_MAX_MPORTS)
++		return -1;
++
++	return hdids[index + 1];
++}
++
++static int rio_hdid_setup(char *str)
++{
++	(void)get_options(str, ARRAY_SIZE(hdids), hdids);
++	return 1;
++}
++
++__setup("riohdid=", rio_hdid_setup);
++
+ void rio_register_mport(struct rio_mport *port)
+ {
++	if (next_portid >= RIO_MAX_MPORTS) {
++		pr_err("RIO: reached specified max number of mports\n");
++		return;
++	}
++
++	port->id = next_portid++;
++	port->host_deviceid = rio_get_hdid(port->id);
+ 	list_add_tail(&port->node, &rio_mports);
+ }
+ 
+diff -puN include/linux/rio.h~rapidio-modify-mport-id-assignment include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-modify-mport-id-assignment
++++ a/include/linux/rio.h
+@@ -24,6 +24,7 @@
+ #define RIO_NO_HOPCOUNT		-1
+ #define RIO_INVALID_DESTID	0xffff
+ 
++#define RIO_MAX_MPORTS		8
+ #define RIO_MAX_MPORT_RESOURCES	16
+ #define RIO_MAX_DEV_RESOURCES	16
  
 _
 
