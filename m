@@ -1,102 +1,585 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-restrict-write-access-to-dmesg_restrict.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:30 -0700
-Message-ID: <201103250726.p2P7QPmI026143__32347.3287550316$1301038022$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] userns-security-make-capabilities-relative-to-the-user-namespace.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:46 -0700
+Message-ID: <201103250726.p2P7QeeK026164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933989Ab1CYH0q (ORCPT
+	by vger.kernel.org with ESMTP id S933960Ab1CYH0z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:46 -0400
+	Fri, 25 Mar 2011 03:26:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, drosenberg@vsecurity.com, eparis@redhat.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, serge@hallyn.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: restrict write access to dmesg_restrict
+     userns: security: make capabilities relative to the user namespace
 has been removed from the -mm tree.  Its filename was
-     sysctl-restrict-write-access-to-dmesg_restrict.patch
+     userns-security-make-capabilities-relative-to-the-user-namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: restrict write access to dmesg_restrict
-From: Richard Weinberger <richard@nod.at>
+Subject: userns: security: make capabilities relative to the user namespace
+From: "Serge E. Hallyn" <serge@hallyn.com>
 
-When dmesg_restrict is set to 1 CAP_SYS_ADMIN is needed to read the kernel
-ring buffer.  But a root user without CAP_SYS_ADMIN is able to reset
-dmesg_restrict to 0.
+- Introduce ns_capable to test for a capability in a non-default
+  user namespace.
+- Teach cap_capable to handle capabilities in a non-default
+  user namespace.
 
-This is an issue when e.g.  LXC (Linux Containers) are used and complete
-user space is running without CAP_SYS_ADMIN.  A unprivileged and jailed
-root user can bypass the dmesg_restrict protection.
+The motivation is to get to the unprivileged creation of new
+namespaces.  It looks like this gets us 90% of the way there, with
+only potential uid confusion issues left.
 
-With this patch writing to dmesg_restrict is only allowed when root has
-CAP_SYS_ADMIN.
+I still need to handle getting all caps after creation but otherwise I
+think I have a good starter patch that achieves all of your goals.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Kees Cook <kees.cook@canonical.com>
+Changelog:
+	11/05/2010: [serge] add apparmor
+	12/14/2010: [serge] fix capabilities to created user namespaces
+	Without this, if user serge creates a user_ns, he won't have
+	capabilities to the user_ns he created.  THis is because we
+	were first checking whether his effective caps had the caps
+	he needed and returning -EPERM if not, and THEN checking whether
+	he was the creator.  Reverse those checks.
+	12/16/2010: [serge] security_real_capable needs ns argument in !security case
+	01/11/2011: [serge] add task_ns_capable helper
+	01/11/2011: [serge] add nsown_capable() helper per Bastian Blank suggestion
+	02/16/2011: [serge] fix a logic bug: the root user is always creator of
+		    init_user_ns, but should not always have capabilities to
+		    it!  Fix the check in cap_capable().
+	02/21/2011: Add the required user_ns parameter to security_capable,
+		    fixing a compile failure.
+	02/23/2011: Convert some macros to functions as per akpm comments.  Some
+		    couldn't be converted because we can't easily forward-declare
+		    them (they are inline if !SECURITY, extern if SECURITY).  Add
+		    a current_user_ns function so we can use it in capability.h
+		    without #including cred.h.  Move all forward declarations
+		    together to the top of the #ifdef __KERNEL__ section, and use
+		    kernel-doc format.
+	02/23/2011: Per dhowells, clean up comment in cap_capable().
+	02/23/2011: Per akpm, remove unreachable 'return -EPERM' in cap_capable.
+
+(Original written and signed off by Eric;  latest, modified version
+acked by him)
+
+[akpm@linux-foundation.org: fix build]
+[akpm@linux-foundation.org: export current_user_ns() for ecryptfs]
+[serge.hallyn@canonical.com: remove unneeded extra argument in selinux's task_has_capability]
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: David Howells <dhowells@redhat.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Eugene Teo <eugeneteo@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/pci/pci-sysfs.c    |    2 -
+ include/linux/capability.h |   36 +++++++++++++++++++++++-------
+ include/linux/cred.h       |    4 ++-
+ include/linux/security.h   |   28 ++++++++++++++---------
+ kernel/capability.c        |   42 ++++++++++++++++++++++++++++++-----
+ kernel/cred.c              |    6 +++++
+ security/apparmor/lsm.c    |    5 ++--
+ security/commoncap.c       |   38 +++++++++++++++++++++++++------
+ security/security.c        |   16 ++++++++-----
+ security/selinux/hooks.c   |   13 ++++++----
+ 10 files changed, 144 insertions(+), 46 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict
-+++ a/kernel/sysctl.c
-@@ -170,6 +170,11 @@ static int proc_taint(struct ctl_table *
- 			       void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
+diff -puN drivers/pci/pci-sysfs.c~userns-security-make-capabilities-relative-to-the-user-namespace drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/drivers/pci/pci-sysfs.c
+@@ -369,7 +369,7 @@ pci_read_config(struct file *filp, struc
+ 	u8 *data = (u8*) buf;
  
-+#ifdef CONFIG_PRINTK
-+static int proc_dmesg_restrict(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp, loff_t *ppos);
-+#endif
+ 	/* Several chips lock up trying to read undefined config space */
+-	if (security_capable(filp->f_cred, CAP_SYS_ADMIN) == 0) {
++	if (security_capable(&init_user_ns, filp->f_cred, CAP_SYS_ADMIN) == 0) {
+ 		size = dev->cfg_size;
+ 	} else if (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
+ 		size = 128;
+diff -puN include/linux/capability.h~userns-security-make-capabilities-relative-to-the-user-namespace include/linux/capability.h
+--- a/include/linux/capability.h~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/include/linux/capability.h
+@@ -368,6 +368,17 @@ struct cpu_vfs_cap_data {
+ 
+ #ifdef __KERNEL__
+ 
++struct dentry;
++struct user_namespace;
 +
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
- static int __sysrq_enabled = SYSRQ_DEFAULT_ENABLE;
-@@ -707,7 +712,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &kptr_restrict,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= proc_dmesg_restrict,
- 		.extra1		= &zero,
- 		.extra2		= &two,
- 	},
-@@ -2394,6 +2399,17 @@ static int proc_taint(struct ctl_table *
- 	return err;
++extern struct user_namespace init_user_ns;
++
++struct user_namespace *current_user_ns(void);
++
++extern const kernel_cap_t __cap_empty_set;
++extern const kernel_cap_t __cap_full_set;
++extern const kernel_cap_t __cap_init_eff_set;
++
+ /*
+  * Internal kernel functions only
+  */
+@@ -530,10 +541,6 @@ static inline kernel_cap_t cap_raise_nfs
+ 			   cap_intersect(permitted, __cap_nfsd_set));
  }
  
-+#ifdef CONFIG_PRINTK
-+static int proc_dmesg_restrict(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp, loff_t *ppos)
+-extern const kernel_cap_t __cap_empty_set;
+-extern const kernel_cap_t __cap_full_set;
+-extern const kernel_cap_t __cap_init_eff_set;
+-
+ /**
+  * has_capability - Determine if a task has a superior capability available
+  * @t: The task in question
+@@ -544,7 +551,7 @@ extern const kernel_cap_t __cap_init_eff
+  *
+  * Note that this does not set PF_SUPERPRIV on the task.
+  */
+-#define has_capability(t, cap) (security_real_capable((t), (cap)) == 0)
++#define has_capability(t, cap) (security_real_capable((t), &init_user_ns, (cap)) == 0)
+ 
+ /**
+  * has_capability_noaudit - Determine if a task has a superior capability available (unaudited)
+@@ -558,12 +565,25 @@ extern const kernel_cap_t __cap_init_eff
+  * Note that this does not set PF_SUPERPRIV on the task.
+  */
+ #define has_capability_noaudit(t, cap) \
+-	(security_real_capable_noaudit((t), (cap)) == 0)
++	(security_real_capable_noaudit((t), &init_user_ns, (cap)) == 0)
+ 
+-extern int capable(int cap);
++extern bool capable(int cap);
++extern bool ns_capable(struct user_namespace *ns, int cap);
++extern bool task_ns_capable(struct task_struct *t, int cap);
++
++/**
++ * nsown_capable - Check superior capability to one's own user_ns
++ * @cap: The capability in question
++ *
++ * Return true if the current task has the given superior capability
++ * targeted at its own user namespace.
++ */
++static inline bool nsown_capable(int cap)
 +{
-+	if (write && !capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	return ns_capable(current_user_ns(), cap);
 +}
-+#endif
+ 
+ /* audit system wants to get cap info from files as well */
+-struct dentry;
+ extern int get_vfs_caps_from_disk(const struct dentry *dentry, struct cpu_vfs_cap_data *cpu_caps);
+ 
+ #endif /* __KERNEL__ */
+diff -puN include/linux/cred.h~userns-security-make-capabilities-relative-to-the-user-namespace include/linux/cred.h
+--- a/include/linux/cred.h~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/include/linux/cred.h
+@@ -354,9 +354,11 @@ static inline void put_cred(const struct
+ #define current_fsgid() 	(current_cred_xxx(fsgid))
+ #define current_cap()		(current_cred_xxx(cap_effective))
+ #define current_user()		(current_cred_xxx(user))
+-#define current_user_ns()	(current_cred_xxx(user)->user_ns)
++#define _current_user_ns()	(current_cred_xxx(user)->user_ns)
+ #define current_security()	(current_cred_xxx(security))
+ 
++extern struct user_namespace *current_user_ns(void);
 +
- struct do_proc_dointvec_minmax_conv_param {
- 	int *min;
- 	int *max;
+ #define current_uid_gid(_uid, _gid)		\
+ do {						\
+ 	const struct cred *__cred;		\
+diff -puN include/linux/security.h~userns-security-make-capabilities-relative-to-the-user-namespace include/linux/security.h
+--- a/include/linux/security.h~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/include/linux/security.h
+@@ -47,13 +47,14 @@
+ 
+ struct ctl_table;
+ struct audit_krule;
++struct user_namespace;
+ 
+ /*
+  * These functions are in security/capability.c and are used
+  * as the default capabilities functions
+  */
+ extern int cap_capable(struct task_struct *tsk, const struct cred *cred,
+-		       int cap, int audit);
++		       struct user_namespace *ns, int cap, int audit);
+ extern int cap_settime(const struct timespec *ts, const struct timezone *tz);
+ extern int cap_ptrace_access_check(struct task_struct *child, unsigned int mode);
+ extern int cap_ptrace_traceme(struct task_struct *parent);
+@@ -1262,6 +1263,7 @@ static inline void security_free_mnt_opt
+  *	credentials.
+  *	@tsk contains the task_struct for the process.
+  *	@cred contains the credentials to use.
++ *      @ns contains the user namespace we want the capability in
+  *	@cap contains the capability <include/linux/capability.h>.
+  *	@audit: Whether to write an audit message or not
+  *	Return 0 if the capability is granted for @tsk.
+@@ -1384,7 +1386,7 @@ struct security_operations {
+ 		       const kernel_cap_t *inheritable,
+ 		       const kernel_cap_t *permitted);
+ 	int (*capable) (struct task_struct *tsk, const struct cred *cred,
+-			int cap, int audit);
++			struct user_namespace *ns, int cap, int audit);
+ 	int (*quotactl) (int cmds, int type, int id, struct super_block *sb);
+ 	int (*quota_on) (struct dentry *dentry);
+ 	int (*syslog) (int type);
+@@ -1665,9 +1667,12 @@ int security_capset(struct cred *new, co
+ 		    const kernel_cap_t *effective,
+ 		    const kernel_cap_t *inheritable,
+ 		    const kernel_cap_t *permitted);
+-int security_capable(const struct cred *cred, int cap);
+-int security_real_capable(struct task_struct *tsk, int cap);
+-int security_real_capable_noaudit(struct task_struct *tsk, int cap);
++int security_capable(struct user_namespace *ns, const struct cred *cred,
++			int cap);
++int security_real_capable(struct task_struct *tsk, struct user_namespace *ns,
++			int cap);
++int security_real_capable_noaudit(struct task_struct *tsk,
++			struct user_namespace *ns, int cap);
+ int security_quotactl(int cmds, int type, int id, struct super_block *sb);
+ int security_quota_on(struct dentry *dentry);
+ int security_syslog(int type);
+@@ -1860,28 +1865,29 @@ static inline int security_capset(struct
+ 	return cap_capset(new, old, effective, inheritable, permitted);
+ }
+ 
+-static inline int security_capable(const struct cred *cred, int cap)
++static inline int security_capable(struct user_namespace *ns,
++				   const struct cred *cred, int cap)
+ {
+-	return cap_capable(current, cred, cap, SECURITY_CAP_AUDIT);
++	return cap_capable(current, cred, ns, cap, SECURITY_CAP_AUDIT);
+ }
+ 
+-static inline int security_real_capable(struct task_struct *tsk, int cap)
++static inline int security_real_capable(struct task_struct *tsk, struct user_namespace *ns, int cap)
+ {
+ 	int ret;
+ 
+ 	rcu_read_lock();
+-	ret = cap_capable(tsk, __task_cred(tsk), cap, SECURITY_CAP_AUDIT);
++	ret = cap_capable(tsk, __task_cred(tsk), ns, cap, SECURITY_CAP_AUDIT);
+ 	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+ static inline
+-int security_real_capable_noaudit(struct task_struct *tsk, int cap)
++int security_real_capable_noaudit(struct task_struct *tsk, struct user_namespace *ns, int cap)
+ {
+ 	int ret;
+ 
+ 	rcu_read_lock();
+-	ret = cap_capable(tsk, __task_cred(tsk), cap,
++	ret = cap_capable(tsk, __task_cred(tsk), ns, cap,
+ 			       SECURITY_CAP_NOAUDIT);
+ 	rcu_read_unlock();
+ 	return ret;
+diff -puN kernel/capability.c~userns-security-make-capabilities-relative-to-the-user-namespace kernel/capability.c
+--- a/kernel/capability.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/kernel/capability.c
+@@ -14,6 +14,7 @@
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/pid_namespace.h>
++#include <linux/user_namespace.h>
+ #include <asm/uaccess.h>
+ 
+ /*
+@@ -299,17 +300,48 @@ error:
+  * This sets PF_SUPERPRIV on the task if the capability is available on the
+  * assumption that it's about to be used.
+  */
+-int capable(int cap)
++bool capable(int cap)
++{
++	return ns_capable(&init_user_ns, cap);
++}
++EXPORT_SYMBOL(capable);
++
++/**
++ * ns_capable - Determine if the current task has a superior capability in effect
++ * @ns:  The usernamespace we want the capability in
++ * @cap: The capability to be tested for
++ *
++ * Return true if the current task has the given superior capability currently
++ * available for use, false if not.
++ *
++ * This sets PF_SUPERPRIV on the task if the capability is available on the
++ * assumption that it's about to be used.
++ */
++bool ns_capable(struct user_namespace *ns, int cap)
+ {
+ 	if (unlikely(!cap_valid(cap))) {
+ 		printk(KERN_CRIT "capable() called with invalid cap=%u\n", cap);
+ 		BUG();
+ 	}
+ 
+-	if (security_capable(current_cred(), cap) == 0) {
++	if (security_capable(ns, current_cred(), cap) == 0) {
+ 		current->flags |= PF_SUPERPRIV;
+-		return 1;
++		return true;
+ 	}
+-	return 0;
++	return false;
+ }
+-EXPORT_SYMBOL(capable);
++EXPORT_SYMBOL(ns_capable);
++
++/**
++ * task_ns_capable - Determine whether current task has a superior
++ * capability targeted at a specific task's user namespace.
++ * @t: The task whose user namespace is targeted.
++ * @cap: The capability in question.
++ *
++ *  Return true if it does, false otherwise.
++ */
++bool task_ns_capable(struct task_struct *t, int cap)
++{
++	return ns_capable(task_cred_xxx(t, user)->user_ns, cap);
++}
++EXPORT_SYMBOL(task_ns_capable);
+diff -puN kernel/cred.c~userns-security-make-capabilities-relative-to-the-user-namespace kernel/cred.c
+--- a/kernel/cred.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/kernel/cred.c
+@@ -741,6 +741,12 @@ int set_create_files_as(struct cred *new
+ }
+ EXPORT_SYMBOL(set_create_files_as);
+ 
++struct user_namespace *current_user_ns(void)
++{
++	return _current_user_ns();
++}
++EXPORT_SYMBOL(current_user_ns);
++
+ #ifdef CONFIG_DEBUG_CREDENTIALS
+ 
+ bool creds_are_invalid(const struct cred *cred)
+diff -puN security/apparmor/lsm.c~userns-security-make-capabilities-relative-to-the-user-namespace security/apparmor/lsm.c
+--- a/security/apparmor/lsm.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/security/apparmor/lsm.c
+@@ -22,6 +22,7 @@
+ #include <linux/ctype.h>
+ #include <linux/sysctl.h>
+ #include <linux/audit.h>
++#include <linux/user_namespace.h>
+ #include <net/sock.h>
+ 
+ #include "include/apparmor.h"
+@@ -136,11 +137,11 @@ static int apparmor_capget(struct task_s
+ }
+ 
+ static int apparmor_capable(struct task_struct *task, const struct cred *cred,
+-			    int cap, int audit)
++			    struct user_namespace *ns, int cap, int audit)
+ {
+ 	struct aa_profile *profile;
+ 	/* cap_capable returns 0 on success, else -EPERM */
+-	int error = cap_capable(task, cred, cap, audit);
++	int error = cap_capable(task, cred, ns, cap, audit);
+ 	if (!error) {
+ 		profile = aa_cred_profile(cred);
+ 		if (!unconfined(profile))
+diff -puN security/commoncap.c~userns-security-make-capabilities-relative-to-the-user-namespace security/commoncap.c
+--- a/security/commoncap.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/security/commoncap.c
+@@ -27,6 +27,7 @@
+ #include <linux/sched.h>
+ #include <linux/prctl.h>
+ #include <linux/securebits.h>
++#include <linux/user_namespace.h>
+ 
+ /*
+  * If a non-root user executes a setuid-root binary in
+@@ -67,6 +68,7 @@ EXPORT_SYMBOL(cap_netlink_recv);
+  * cap_capable - Determine whether a task has a particular effective capability
+  * @tsk: The task to query
+  * @cred: The credentials to use
++ * @ns:  The user namespace in which we need the capability
+  * @cap: The capability to check for
+  * @audit: Whether to write an audit message or not
+  *
+@@ -78,10 +80,30 @@ EXPORT_SYMBOL(cap_netlink_recv);
+  * cap_has_capability() returns 0 when a task has a capability, but the
+  * kernel's capable() and has_capability() returns 1 for this case.
+  */
+-int cap_capable(struct task_struct *tsk, const struct cred *cred, int cap,
+-		int audit)
++int cap_capable(struct task_struct *tsk, const struct cred *cred,
++		struct user_namespace *targ_ns, int cap, int audit)
+ {
+-	return cap_raised(cred->cap_effective, cap) ? 0 : -EPERM;
++	for (;;) {
++		/* The creator of the user namespace has all caps. */
++		if (targ_ns != &init_user_ns && targ_ns->creator == cred->user)
++			return 0;
++
++		/* Do we have the necessary capabilities? */
++		if (targ_ns == cred->user->user_ns)
++			return cap_raised(cred->cap_effective, cap) ? 0 : -EPERM;
++
++		/* Have we tried all of the parent namespaces? */
++		if (targ_ns == &init_user_ns)
++			return -EPERM;
++
++		/*
++		 *If you have a capability in a parent user ns, then you have
++		 * it over all children user namespaces as well.
++		 */
++		targ_ns = targ_ns->creator->user_ns;
++	}
++
++	/* We never get here */
+ }
+ 
+ /**
+@@ -176,7 +198,8 @@ static inline int cap_inh_is_capped(void
+ 	/* they are so limited unless the current task has the CAP_SETPCAP
+ 	 * capability
+ 	 */
+-	if (cap_capable(current, current_cred(), CAP_SETPCAP,
++	if (cap_capable(current, current_cred(),
++			current_cred()->user->user_ns, CAP_SETPCAP,
+ 			SECURITY_CAP_AUDIT) == 0)
+ 		return 0;
+ 	return 1;
+@@ -828,7 +851,8 @@ int cap_task_prctl(int option, unsigned 
+ 		     & (new->securebits ^ arg2))			/*[1]*/
+ 		    || ((new->securebits & SECURE_ALL_LOCKS & ~arg2))	/*[2]*/
+ 		    || (arg2 & ~(SECURE_ALL_LOCKS | SECURE_ALL_BITS))	/*[3]*/
+-		    || (cap_capable(current, current_cred(), CAP_SETPCAP,
++		    || (cap_capable(current, current_cred(),
++				    current_cred()->user->user_ns, CAP_SETPCAP,
+ 				    SECURITY_CAP_AUDIT) != 0)		/*[4]*/
+ 			/*
+ 			 * [1] no changing of bits that are locked
+@@ -893,7 +917,7 @@ int cap_vm_enough_memory(struct mm_struc
+ {
+ 	int cap_sys_admin = 0;
+ 
+-	if (cap_capable(current, current_cred(), CAP_SYS_ADMIN,
++	if (cap_capable(current, current_cred(), &init_user_ns, CAP_SYS_ADMIN,
+ 			SECURITY_CAP_NOAUDIT) == 0)
+ 		cap_sys_admin = 1;
+ 	return __vm_enough_memory(mm, pages, cap_sys_admin);
+@@ -920,7 +944,7 @@ int cap_file_mmap(struct file *file, uns
+ 	int ret = 0;
+ 
+ 	if (addr < dac_mmap_min_addr) {
+-		ret = cap_capable(current, current_cred(), CAP_SYS_RAWIO,
++		ret = cap_capable(current, current_cred(), &init_user_ns, CAP_SYS_RAWIO,
+ 				  SECURITY_CAP_AUDIT);
+ 		/* set PF_SUPERPRIV if it turns out we allow the low mmap */
+ 		if (ret == 0)
+diff -puN security/security.c~userns-security-make-capabilities-relative-to-the-user-namespace security/security.c
+--- a/security/security.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/security/security.c
+@@ -154,29 +154,33 @@ int security_capset(struct cred *new, co
+ 				    effective, inheritable, permitted);
+ }
+ 
+-int security_capable(const struct cred *cred, int cap)
++int security_capable(struct user_namespace *ns, const struct cred *cred,
++		     int cap)
+ {
+-	return security_ops->capable(current, cred, cap, SECURITY_CAP_AUDIT);
++	return security_ops->capable(current, cred, ns, cap,
++				     SECURITY_CAP_AUDIT);
+ }
+ 
+-int security_real_capable(struct task_struct *tsk, int cap)
++int security_real_capable(struct task_struct *tsk, struct user_namespace *ns,
++			  int cap)
+ {
+ 	const struct cred *cred;
+ 	int ret;
+ 
+ 	cred = get_task_cred(tsk);
+-	ret = security_ops->capable(tsk, cred, cap, SECURITY_CAP_AUDIT);
++	ret = security_ops->capable(tsk, cred, ns, cap, SECURITY_CAP_AUDIT);
+ 	put_cred(cred);
+ 	return ret;
+ }
+ 
+-int security_real_capable_noaudit(struct task_struct *tsk, int cap)
++int security_real_capable_noaudit(struct task_struct *tsk,
++				  struct user_namespace *ns, int cap)
+ {
+ 	const struct cred *cred;
+ 	int ret;
+ 
+ 	cred = get_task_cred(tsk);
+-	ret = security_ops->capable(tsk, cred, cap, SECURITY_CAP_NOAUDIT);
++	ret = security_ops->capable(tsk, cred, ns, cap, SECURITY_CAP_NOAUDIT);
+ 	put_cred(cred);
+ 	return ret;
+ }
+diff -puN security/selinux/hooks.c~userns-security-make-capabilities-relative-to-the-user-namespace security/selinux/hooks.c
+--- a/security/selinux/hooks.c~userns-security-make-capabilities-relative-to-the-user-namespace
++++ a/security/selinux/hooks.c
+@@ -79,6 +79,7 @@
+ #include <linux/mutex.h>
+ #include <linux/posix-timers.h>
+ #include <linux/syslog.h>
++#include <linux/user_namespace.h>
+ 
+ #include "avc.h"
+ #include "objsec.h"
+@@ -1846,11 +1847,11 @@ static int selinux_capset(struct cred *n
+  */
+ 
+ static int selinux_capable(struct task_struct *tsk, const struct cred *cred,
+-			   int cap, int audit)
++			   struct user_namespace *ns, int cap, int audit)
+ {
+ 	int rc;
+ 
+-	rc = cap_capable(tsk, cred, cap, audit);
++	rc = cap_capable(tsk, cred, ns, cap, audit);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -1931,7 +1932,8 @@ static int selinux_vm_enough_memory(stru
+ {
+ 	int rc, cap_sys_admin = 0;
+ 
+-	rc = selinux_capable(current, current_cred(), CAP_SYS_ADMIN,
++	rc = selinux_capable(current, current_cred(),
++			     &init_user_ns, CAP_SYS_ADMIN,
+ 			     SECURITY_CAP_NOAUDIT);
+ 	if (rc == 0)
+ 		cap_sys_admin = 1;
+@@ -2834,7 +2836,8 @@ static int selinux_inode_getsecurity(con
+ 	 * and lack of permission just means that we fall back to the
+ 	 * in-core context value, not a denial.
+ 	 */
+-	error = selinux_capable(current, current_cred(), CAP_MAC_ADMIN,
++	error = selinux_capable(current, current_cred(),
++				&init_user_ns, CAP_MAC_ADMIN,
+ 				SECURITY_CAP_NOAUDIT);
+ 	if (!error)
+ 		error = security_sid_to_context_force(isec->sid, &context,
+@@ -2968,7 +2971,7 @@ static int selinux_file_ioctl(struct fil
+ 	case KDSKBENT:
+ 	case KDSKBSENT:
+ 		error = task_has_capability(current, cred, CAP_SYS_TTY_CONFIG,
+-					    SECURITY_CAP_AUDIT);
++					SECURITY_CAP_AUDIT);
+ 		break;
+ 
+ 	/* default case assumes that the command will go
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from serge@hallyn.com are
 
 origin.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 
