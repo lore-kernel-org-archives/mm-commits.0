@@ -1,61 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-fix-build-breakage-in-asm-thread_infoh.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:23:22 -0700
-Message-ID: <201103250723.p2P7NHa1025715@imap1.linux-foundation.org>
+Subject: [merged] rds-stop-including-asm-generic-bitops-leh-directly.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:23:30 -0700
+Message-ID: <201103250723.p2P7NOQV025724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402Ab1CYHXT (ORCPT
+	by vger.kernel.org with ESMTP id S1751402Ab1CYHX3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:23:19 -0400
+	Fri, 25 Mar 2011 03:23:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, andy.grover@oracle.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: fix build breakage in asm/thread_info.h
+     rds: stop including asm-generic/bitops/le.h directly
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-build-breakage-in-asm-thread_infoh.patch
+     rds-stop-including-asm-generic-bitops-leh-directly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix build breakage in asm/thread_info.h
-From: "Luck, Tony" <tony.luck@intel.com>
+Subject: rds: stop including asm-generic/bitops/le.h directly
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-In commit 504f52b5439aaf26d3e2c1d45ec10fce38c8dd27
-    mm: NUMA aware alloc_task_struct_node()
+asm-generic/bitops/le.h is only intended to be included directly from
+asm-generic/bitops/ext2-non-atomic.h or asm-generic/bitops/minix-le.h
+which implements generic ext2 or minix bit operations.
 
-Eric Dumazet forgot a "\".  Add it.
+This stops including asm-generic/bitops/le.h directly and use ext2
+non-atomic bit operations instead.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+It seems odd to use ext2_*_bit() on rds, but it will replaced with
+__{set,clear,test}_bit_le() after introducing little endian bit operations
+for all architectures.  This indirect step is necessary to maintain
+bisectability for some architectures which have their own little-endian
+bit operations.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Andy Grover <andy.grover@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/thread_info.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rds/cong.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/ia64/include/asm/thread_info.h~ia64-fix-build-breakage-in-asm-thread_infoh arch/ia64/include/asm/thread_info.h
---- a/arch/ia64/include/asm/thread_info.h~ia64-fix-build-breakage-in-asm-thread_infoh
-+++ a/arch/ia64/include/asm/thread_info.h
-@@ -91,7 +91,7 @@ struct thread_info {
- 					     KERNEL_STACK_SIZE_ORDER);		\
- 	struct task_struct *ret = page ? page_address(page) : NULL;		\
- 										\
--	ret;
-+	ret;									\
- })
- #define free_task_struct(tsk)	free_pages((unsigned long) (tsk), KERNEL_STACK_SIZE_ORDER)
+diff -puN net/rds/cong.c~rds-stop-including-asm-generic-bitops-leh-directly net/rds/cong.c
+--- a/net/rds/cong.c~rds-stop-including-asm-generic-bitops-leh-directly
++++ a/net/rds/cong.c
+@@ -33,8 +33,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/rbtree.h>
+-
+-#include <asm-generic/bitops/le.h>
++#include <linux/bitops.h>
  
+ #include "rds.h"
+ 
+@@ -285,7 +284,7 @@ void rds_cong_set_bit(struct rds_cong_ma
+ 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
+ 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ 
+-	generic___set_le_bit(off, (void *)map->m_page_addrs[i]);
++	ext2_set_bit(off, (void *)map->m_page_addrs[i]);
+ }
+ 
+ void rds_cong_clear_bit(struct rds_cong_map *map, __be16 port)
+@@ -299,7 +298,7 @@ void rds_cong_clear_bit(struct rds_cong_
+ 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
+ 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ 
+-	generic___clear_le_bit(off, (void *)map->m_page_addrs[i]);
++	ext2_clear_bit(off, (void *)map->m_page_addrs[i]);
+ }
+ 
+ static int rds_cong_test_bit(struct rds_cong_map *map, __be16 port)
+@@ -310,7 +309,7 @@ static int rds_cong_test_bit(struct rds_
+ 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
+ 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ 
+-	return generic_test_le_bit(off, (void *)map->m_page_addrs[i]);
++	return ext2_test_bit(off, (void *)map->m_page_addrs[i]);
+ }
+ 
+ void rds_cong_add_socket(struct rds_sock *rs)
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-llist-irq_work-use-llist-in-irq_work.patch
-llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
 
