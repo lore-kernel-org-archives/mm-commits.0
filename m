@@ -1,250 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-simplify-the-way-memory-limits-are-checked.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:24:31 -0700
-Message-ID: <201103250724.p2P7OPbB025857@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:24:26 -0700
+Message-ID: <201103250724.p2P7OKkr025851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933865Ab1CYHYh (ORCPT
+	by vger.kernel.org with ESMTP id S933644Ab1CYHYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:24:37 -0400
+	Fri, 25 Mar 2011 03:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: simplify the way memory limits are checked
+     memcg: fix ugly initialization of return value is in caller
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-the-way-memory-limits-are-checked.patch
+     memcg-fix-ugly-initialization-of-return-value-is-in-caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: simplify the way memory limits are checked
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: memcg: fix ugly initialization of return value is in caller
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Since transparent huge pages, checking whether memory cgroups are below
-their limits is no longer enough, but the actual amount of chargeable
-space is important.
+Remove initialization of vaiable in caller of memory cgroup function. 
+Actually, it's return value of memcg function but it's initialized in
+caller.
 
-To not have more than one limit-checking interface, replace
-memory_cgroup_check_under_limit() and memory_cgroup_check_margin() with a
-single memory_cgroup_margin() that returns the chargeable space and leaves
-the comparison to the callsite.
+Some memory cgroup uses following style to bring the result of start
+function to the end function for avoiding races.
 
-Soft limits are now checked the other way round, by using the already
-existing function that returns the amount by which soft limits are
-exceeded: res_counter_soft_limit_excess().
+   mem_cgroup_start_A(&(*ptr))
+   /* Something very complicated can happen here. */
+   mem_cgroup_end_A(*ptr)
 
-Also remove all the corresponding functions on the res_counter side that
-are now no longer used.
+In some calls, *ptr should be initialized to NULL be caller.  But it's
+ugly.  This patch fixes that *ptr is initialized by _start function.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   72 ++++++----------------------------
- mm/memcontrol.c             |   49 ++++++++---------------
- 2 files changed, 31 insertions(+), 90 deletions(-)
+ mm/memcontrol.c |    8 ++++++--
+ mm/memory.c     |    2 +-
+ mm/migrate.c    |    2 +-
+ mm/swapfile.c   |    2 +-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/res_counter.h~memcg-simplify-the-way-memory-limits-are-checked include/linux/res_counter.h
---- a/include/linux/res_counter.h~memcg-simplify-the-way-memory-limits-are-checked
-+++ a/include/linux/res_counter.h
-@@ -129,20 +129,22 @@ int __must_check res_counter_charge(stru
- void res_counter_uncharge_locked(struct res_counter *counter, unsigned long val);
- void res_counter_uncharge(struct res_counter *counter, unsigned long val);
- 
--static inline bool res_counter_limit_check_locked(struct res_counter *cnt)
--{
--	if (cnt->usage < cnt->limit)
--		return true;
--
--	return false;
--}
--
--static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
-+/**
-+ * res_counter_margin - calculate chargeable space of a counter
-+ * @cnt: the counter
-+ *
-+ * Returns the difference between the hard limit and the current usage
-+ * of resource counter @cnt.
-+ */
-+static inline unsigned long long res_counter_margin(struct res_counter *cnt)
- {
--	if (cnt->usage <= cnt->soft_limit)
--		return true;
-+	unsigned long long margin;
-+	unsigned long flags;
- 
--	return false;
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	margin = cnt->limit - cnt->usage;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return margin;
- }
- 
- /**
-@@ -167,52 +169,6 @@ res_counter_soft_limit_excess(struct res
- 	return excess;
- }
- 
--/*
-- * Helper function to detect if the cgroup is within it's limit or
-- * not. It's currently called from cgroup_rss_prepare()
-- */
--static inline bool res_counter_check_under_limit(struct res_counter *cnt)
--{
--	bool ret;
--	unsigned long flags;
--
--	spin_lock_irqsave(&cnt->lock, flags);
--	ret = res_counter_limit_check_locked(cnt);
--	spin_unlock_irqrestore(&cnt->lock, flags);
--	return ret;
--}
--
--/**
-- * res_counter_check_margin - check if the counter allows charging
-- * @cnt: the resource counter to check
-- * @bytes: the number of bytes to check the remaining space against
-- *
-- * Returns a boolean value on whether the counter can be charged
-- * @bytes or whether this would exceed the limit.
-- */
--static inline bool res_counter_check_margin(struct res_counter *cnt,
--					    unsigned long bytes)
--{
--	bool ret;
--	unsigned long flags;
--
--	spin_lock_irqsave(&cnt->lock, flags);
--	ret = cnt->limit - cnt->usage >= bytes;
--	spin_unlock_irqrestore(&cnt->lock, flags);
--	return ret;
--}
--
--static inline bool res_counter_check_within_soft_limit(struct res_counter *cnt)
--{
--	bool ret;
--	unsigned long flags;
--
--	spin_lock_irqsave(&cnt->lock, flags);
--	ret = res_counter_soft_limit_check_locked(cnt);
--	spin_unlock_irqrestore(&cnt->lock, flags);
--	return ret;
--}
--
- static inline void res_counter_reset_max(struct res_counter *cnt)
- {
- 	unsigned long flags;
-diff -puN mm/memcontrol.c~memcg-simplify-the-way-memory-limits-are-checked mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-the-way-memory-limits-are-checked
+diff -puN mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
 +++ a/mm/memcontrol.c
-@@ -504,11 +504,6 @@ static void mem_cgroup_remove_from_trees
- 	}
- }
+@@ -2475,7 +2475,7 @@ int mem_cgroup_cache_charge(struct page 
  
--static inline unsigned long mem_cgroup_get_excess(struct mem_cgroup *mem)
--{
--	return res_counter_soft_limit_excess(&mem->res) >> PAGE_SHIFT;
--}
--
- static struct mem_cgroup_per_zone *
- __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_zone *mctz)
- {
-@@ -1127,33 +1122,21 @@ unsigned long mem_cgroup_isolate_pages(u
- #define mem_cgroup_from_res_counter(counter, member)	\
- 	container_of(counter, struct mem_cgroup, member)
+ 	/* shmem */
+ 	if (PageSwapCache(page)) {
+-		struct mem_cgroup *mem = NULL;
++		struct mem_cgroup *mem;
  
--static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
--{
--	if (do_swap_account) {
--		if (res_counter_check_under_limit(&mem->res) &&
--			res_counter_check_under_limit(&mem->memsw))
--			return true;
--	} else
--		if (res_counter_check_under_limit(&mem->res))
--			return true;
--	return false;
--}
--
- /**
-- * mem_cgroup_check_margin - check if the memory cgroup allows charging
-- * @mem: memory cgroup to check
-- * @bytes: the number of bytes the caller intends to charge
-+ * mem_cgroup_margin - calculate chargeable space of a memory cgroup
-+ * @mem: the memory cgroup
-  *
-- * Returns a boolean value on whether @mem can be charged @bytes or
-- * whether this would exceed the limit.
-+ * Returns the maximum amount of memory @mem can be charged with, in
-+ * bytes.
-  */
--static bool mem_cgroup_check_margin(struct mem_cgroup *mem, unsigned long bytes)
-+static unsigned long long mem_cgroup_margin(struct mem_cgroup *mem)
- {
--	if (!res_counter_check_margin(&mem->res, bytes))
--		return false;
--	if (do_swap_account && !res_counter_check_margin(&mem->memsw, bytes))
--		return false;
--	return true;
-+	unsigned long long margin;
+ 		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
+ 		if (!ret)
+@@ -2501,6 +2501,8 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	struct mem_cgroup *mem;
+ 	int ret;
+ 
++	*ptr = NULL;
 +
-+	margin = res_counter_margin(&mem->res);
-+	if (do_swap_account)
-+		margin = min(margin, res_counter_margin(&mem->memsw));
-+	return margin;
- }
+ 	if (mem_cgroup_disabled())
+ 		return 0;
  
- static unsigned int get_swappiness(struct mem_cgroup *memcg)
-@@ -1420,7 +1403,9 @@ static int mem_cgroup_hierarchical_recla
- 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
- 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
- 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
--	unsigned long excess = mem_cgroup_get_excess(root_mem);
-+	unsigned long excess;
+@@ -2916,6 +2918,8 @@ int mem_cgroup_prepare_migration(struct 
+ 	enum charge_type ctype;
+ 	int ret = 0;
+ 
++	*ptr = NULL;
 +
-+	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
+ 	VM_BUG_ON(PageTransHuge(page));
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+@@ -3058,7 +3062,7 @@ int mem_cgroup_shmem_charge_fallback(str
+ 			    struct mm_struct *mm,
+ 			    gfp_t gfp_mask)
+ {
+-	struct mem_cgroup *mem = NULL;
++	struct mem_cgroup *mem;
+ 	int ret;
  
- 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
- 	if (root_mem->memsw_is_minimum)
-@@ -1477,9 +1462,9 @@ static int mem_cgroup_hierarchical_recla
- 			return ret;
- 		total += ret;
- 		if (check_soft) {
--			if (res_counter_check_within_soft_limit(&root_mem->res))
-+			if (!res_counter_soft_limit_excess(&root_mem->res))
- 				return total;
--		} else if (mem_cgroup_check_under_limit(root_mem))
-+		} else if (mem_cgroup_margin(root_mem))
- 			return 1 + total;
- 	}
- 	return total;
-@@ -1898,7 +1883,7 @@ static int __mem_cgroup_do_charge(struct
+ 	if (mem_cgroup_disabled())
+diff -puN mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/memory.c
+--- a/mm/memory.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/memory.c
+@@ -2767,7 +2767,7 @@ static int do_swap_page(struct mm_struct
+ 	swp_entry_t entry;
+ 	pte_t pte;
+ 	int locked;
+-	struct mem_cgroup *ptr = NULL;
++	struct mem_cgroup *ptr;
+ 	int exclusive = 0;
+ 	int ret = 0;
  
- 	ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, NULL,
- 					      gfp_mask, flags);
--	if (mem_cgroup_check_margin(mem_over_limit, csize))
-+	if (mem_cgroup_margin(mem_over_limit) >= csize)
- 		return CHARGE_RETRY;
- 	/*
- 	 * Even though the limit is exceeded at this point, reclaim
+diff -puN mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/migrate.c
+@@ -633,7 +633,7 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int remap_swapcache = 1;
+ 	int charge = 0;
+-	struct mem_cgroup *mem = NULL;
++	struct mem_cgroup *mem;
+ 	struct anon_vma *anon_vma = NULL;
+ 
+ 	if (!newpage)
+diff -puN mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller mm/swapfile.c
+--- a/mm/swapfile.c~memcg-fix-ugly-initialization-of-return-value-is-in-caller
++++ a/mm/swapfile.c
+@@ -880,7 +880,7 @@ unsigned int count_swap_pages(int type, 
+ static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
+ {
+-	struct mem_cgroup *ptr = NULL;
++	struct mem_cgroup *ptr;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+ 	int ret = 1;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-add-dirty-page-accounting-infrastructure.patch
