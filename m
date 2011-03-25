@@ -1,212 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-condense-page_cgroup-to-page-lookup-points.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:24:47 -0700
-Message-ID: <201103250724.p2P7Of2c025881@imap1.linux-foundation.org>
+Subject: [merged] memcg-fold-__mem_cgroup_move_account-into-caller.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:24:45 -0700
+Message-ID: <201103250724.p2P7OdpD025878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933849Ab1CYHYv (ORCPT
+	by vger.kernel.org with ESMTP id S933818Ab1CYHYt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:24:51 -0400
+	Fri, 25 Mar 2011 03:24:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: condense page_cgroup-to-page lookup points
+     memcg: fold __mem_cgroup_move_account into caller
 has been removed from the -mm tree.  Its filename was
-     memcg-condense-page_cgroup-to-page-lookup-points.patch
+     memcg-fold-__mem_cgroup_move_account-into-caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: condense page_cgroup-to-page lookup points
+Subject: memcg: fold __mem_cgroup_move_account into caller
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-The per-cgroup LRU lists string up 'struct page_cgroup's.  To get from
-those structures to the page they represent, a lookup is required. 
-Currently, the lookup is done through a direct pointer in struct
-page_cgroup, so a lot of functions down the callchain do this lookup by
-themselves instead of receiving the page pointer from their callers.
+It is one logical function, no need to have it split up.
 
-The next patch removes this pointer, however, and the lookup is no longer
-that straight-forward.  In preparation for that, this patch only leaves
-the non-optional lookups when coming directly from the LRU list and passes
-the page down the stack.
+Also, get rid of some checks from the inner function that ensured the
+sanity of the outer function.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ include/linux/page_cgroup.h |    5 --
+ mm/memcontrol.c             |   66 ++++++++++++++--------------------
+ 2 files changed, 29 insertions(+), 42 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-condense-page_cgroup-to-page-lookup-points
+diff -puN include/linux/page_cgroup.h~memcg-fold-__mem_cgroup_move_account-into-caller include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-fold-__mem_cgroup_move_account-into-caller
++++ a/include/linux/page_cgroup.h
+@@ -99,11 +99,6 @@ static inline void unlock_page_cgroup(st
+ 	bit_spin_unlock(PCG_LOCK, &pc->flags);
+ }
+ 
+-static inline int page_is_cgroup_locked(struct page_cgroup *pc)
+-{
+-	return bit_spin_is_locked(PCG_LOCK, &pc->flags);
+-}
+-
+ static inline void move_lock_page_cgroup(struct page_cgroup *pc,
+ 	unsigned long *flags)
+ {
+diff -puN mm/memcontrol.c~memcg-fold-__mem_cgroup_move_account-into-caller mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fold-__mem_cgroup_move_account-into-caller
 +++ a/mm/memcontrol.c
-@@ -1077,9 +1077,11 @@ unsigned long mem_cgroup_isolate_pages(u
- 		if (scan >= nr_to_scan)
- 			break;
- 
--		page = pc->page;
- 		if (unlikely(!PageCgroupUsed(pc)))
- 			continue;
-+
-+		page = pc->page;
-+
- 		if (unlikely(!PageLRU(page)))
- 			continue;
- 
-@@ -2108,6 +2110,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- }
- 
- static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
-+				       struct page *page,
- 				       struct page_cgroup *pc,
- 				       enum charge_type ctype,
- 				       int page_size)
-@@ -2154,7 +2157,7 @@ static void __mem_cgroup_commit_charge(s
- 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
- 	 * if they exceeds softlimit.
- 	 */
--	memcg_check_events(mem, pc->page);
-+	memcg_check_events(mem, page);
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -2201,6 +2204,7 @@ void mem_cgroup_split_huge_fixup(struct 
+@@ -2200,33 +2200,49 @@ void mem_cgroup_split_huge_fixup(struct 
+ #endif
  
  /**
-  * mem_cgroup_move_account - move account of the page
-+ * @page: the page
+- * __mem_cgroup_move_account - move account of the page
++ * mem_cgroup_move_account - move account of the page
   * @pc:	page_cgroup of the page.
   * @from: mem_cgroup which the page is moved from.
   * @to:	mem_cgroup which the page is moved to. @from != @to.
-@@ -2216,7 +2220,7 @@ void mem_cgroup_split_huge_fixup(struct 
+  * @uncharge: whether we should call uncharge and css_put against @from.
++ * @charge_size: number of bytes to charge (regular or huge page)
+  *
+  * The caller must confirm following.
+  * - page is not on LRU (isolate_page() is useful.)
+- * - the pc is locked, used, and ->mem_cgroup points to @from.
++ * - compound_lock is held when charge_size > PAGE_SIZE
+  *
+  * This function doesn't do "charge" nor css_get to new cgroup. It should be
+  * done by a caller(__mem_cgroup_try_charge would be usefull). If @uncharge is
   * true, this function does "uncharge" from old cgroup, but it doesn't if
   * @uncharge is false, so a caller should do "uncharge".
   */
--static int mem_cgroup_move_account(struct page_cgroup *pc,
-+static int mem_cgroup_move_account(struct page *page, struct page_cgroup *pc,
- 				   struct mem_cgroup *from, struct mem_cgroup *to,
- 				   bool uncharge, int charge_size)
+-
+-static void __mem_cgroup_move_account(struct page_cgroup *pc,
+-	struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge,
+-	int charge_size)
++static int mem_cgroup_move_account(struct page_cgroup *pc,
++				   struct mem_cgroup *from, struct mem_cgroup *to,
++				   bool uncharge, int charge_size)
  {
-@@ -2225,7 +2229,7 @@ static int mem_cgroup_move_account(struc
- 	int ret;
+ 	int nr_pages = charge_size >> PAGE_SHIFT;
++	unsigned long flags;
++	int ret;
  
  	VM_BUG_ON(from == to);
--	VM_BUG_ON(PageLRU(pc->page));
-+	VM_BUG_ON(PageLRU(page));
- 	/*
- 	 * The page is isolated from LRU. So, collapse function
- 	 * will not handle this page. But page splitting can happen.
-@@ -2233,7 +2237,7 @@ static int mem_cgroup_move_account(struc
- 	 * hold it.
- 	 */
- 	ret = -EBUSY;
--	if (charge_size > PAGE_SIZE && !PageTransHuge(pc->page))
-+	if (charge_size > PAGE_SIZE && !PageTransHuge(page))
- 		goto out;
+ 	VM_BUG_ON(PageLRU(pc->page));
+-	VM_BUG_ON(!page_is_cgroup_locked(pc));
+-	VM_BUG_ON(!PageCgroupUsed(pc));
+-	VM_BUG_ON(pc->mem_cgroup != from);
++	/*
++	 * The page is isolated from LRU. So, collapse function
++	 * will not handle this page. But page splitting can happen.
++	 * Do this check under compound_page_lock(). The caller should
++	 * hold it.
++	 */
++	ret = -EBUSY;
++	if (charge_size > PAGE_SIZE && !PageTransHuge(pc->page))
++		goto out;
++
++	lock_page_cgroup(pc);
++
++	ret = -EINVAL;
++	if (!PageCgroupUsed(pc) || pc->mem_cgroup != from)
++		goto unlock;
++
++	move_lock_page_cgroup(pc, &flags);
  
- 	lock_page_cgroup(pc);
-@@ -2273,8 +2277,8 @@ unlock:
+ 	if (PageCgroupFileMapped(pc)) {
+ 		/* Update mapped_file data for mem_cgroup */
+@@ -2250,40 +2266,16 @@ static void __mem_cgroup_move_account(st
+ 	 * garanteed that "to" is never removed. So, we don't check rmdir
+ 	 * status here.
+ 	 */
+-}
+-
+-/*
+- * check whether the @pc is valid for moving account and call
+- * __mem_cgroup_move_account()
+- */
+-static int mem_cgroup_move_account(struct page_cgroup *pc,
+-		struct mem_cgroup *from, struct mem_cgroup *to,
+-		bool uncharge, int charge_size)
+-{
+-	int ret = -EINVAL;
+-	unsigned long flags;
+-	/*
+-	 * The page is isolated from LRU. So, collapse function
+-	 * will not handle this page. But page splitting can happen.
+-	 * Do this check under compound_page_lock(). The caller should
+-	 * hold it.
+-	 */
+-	if ((charge_size > PAGE_SIZE) && !PageTransHuge(pc->page))
+-		return -EBUSY;
+-
+-	lock_page_cgroup(pc);
+-	if (PageCgroupUsed(pc) && pc->mem_cgroup == from) {
+-		move_lock_page_cgroup(pc, &flags);
+-		__mem_cgroup_move_account(pc, from, to, uncharge, charge_size);
+-		move_unlock_page_cgroup(pc, &flags);
+-		ret = 0;
+-	}
++	move_unlock_page_cgroup(pc, &flags);
++	ret = 0;
++unlock:
+ 	unlock_page_cgroup(pc);
  	/*
  	 * check events
  	 */
--	memcg_check_events(to, pc->page);
--	memcg_check_events(from, pc->page);
-+	memcg_check_events(to, page);
-+	memcg_check_events(from, page);
- out:
- 	return ret;
- }
-@@ -2283,11 +2287,11 @@ out:
-  * move charges to its parent.
-  */
- 
--static int mem_cgroup_move_parent(struct page_cgroup *pc,
-+static int mem_cgroup_move_parent(struct page *page,
-+				  struct page_cgroup *pc,
- 				  struct mem_cgroup *child,
- 				  gfp_t gfp_mask)
- {
--	struct page *page = pc->page;
- 	struct cgroup *cg = child->css.cgroup;
- 	struct cgroup *pcg = cg->parent;
- 	struct mem_cgroup *parent;
-@@ -2317,7 +2321,7 @@ static int mem_cgroup_move_parent(struct
- 	if (page_size > PAGE_SIZE)
- 		flags = compound_lock_irqsave(page);
- 
--	ret = mem_cgroup_move_account(pc, child, parent, true, page_size);
-+	ret = mem_cgroup_move_account(page, pc, child, parent, true, page_size);
- 	if (ret)
- 		mem_cgroup_cancel_charge(parent, page_size);
- 
-@@ -2363,7 +2367,7 @@ static int mem_cgroup_charge_common(stru
- 	if (ret || !mem)
- 		return ret;
- 
--	__mem_cgroup_commit_charge(mem, pc, ctype, page_size);
-+	__mem_cgroup_commit_charge(mem, page, pc, ctype, page_size);
- 	return 0;
- }
- 
-@@ -2501,7 +2505,7 @@ __mem_cgroup_commit_charge_swapin(struct
- 	cgroup_exclude_rmdir(&ptr->css);
- 	pc = lookup_page_cgroup(page);
- 	mem_cgroup_lru_del_before_commit_swapcache(page);
--	__mem_cgroup_commit_charge(ptr, pc, ctype, PAGE_SIZE);
-+	__mem_cgroup_commit_charge(ptr, page, pc, ctype, PAGE_SIZE);
- 	mem_cgroup_lru_add_after_commit_swapcache(page);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
-@@ -2956,7 +2960,7 @@ int mem_cgroup_prepare_migration(struct 
- 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	else
- 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
--	__mem_cgroup_commit_charge(mem, pc, ctype, PAGE_SIZE);
-+	__mem_cgroup_commit_charge(mem, page, pc, ctype, PAGE_SIZE);
+ 	memcg_check_events(to, pc->page);
+ 	memcg_check_events(from, pc->page);
++out:
  	return ret;
  }
  
-@@ -3323,6 +3327,8 @@ static int mem_cgroup_force_empty_list(s
- 	loop += 256;
- 	busy = NULL;
- 	while (loop--) {
-+		struct page *page;
-+
- 		ret = 0;
- 		spin_lock_irqsave(&zone->lru_lock, flags);
- 		if (list_empty(list)) {
-@@ -3338,7 +3344,9 @@ static int mem_cgroup_force_empty_list(s
- 		}
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
--		ret = mem_cgroup_move_parent(pc, mem, GFP_KERNEL);
-+		page = pc->page;
-+
-+		ret = mem_cgroup_move_parent(page, pc, mem, GFP_KERNEL);
- 		if (ret == -ENOMEM)
- 			break;
- 
-@@ -4956,7 +4964,7 @@ retry:
- 			if (isolate_lru_page(page))
- 				goto put;
- 			pc = lookup_page_cgroup(page);
--			if (!mem_cgroup_move_account(pc,
-+			if (!mem_cgroup_move_account(page, pc,
- 					mc.from, mc.to, false, PAGE_SIZE)) {
- 				mc.precharge--;
- 				/* we uncharge from mc.from later. */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
