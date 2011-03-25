@@ -1,263 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:27:10 -0700
-Message-ID: <201103250727.p2P7R4n2026218@imap1.linux-foundation.org>
+Subject: [merged] remove-dma64_addr_t.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:27:05 -0700
+Message-ID: <201103250726.p2P7Qxjb026203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933890Ab1CYH1R (ORCPT
+	by vger.kernel.org with ESMTP id S933600Ab1CYH1W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:27:17 -0400
+	Fri, 25 Mar 2011 03:27:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, James.Bottomley@hansenpartnership.com, akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib, arch: add filter argument to show_mem and fix private implementations
+     remove dma64_addr_t
 has been removed from the -mm tree.  Its filename was
-     lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations.patch
+     remove-dma64_addr_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib, arch: add filter argument to show_mem and fix private implementations
+Subject: remove dma64_addr_t
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
+There is no user now.
 
-ddd588b5dd55 ("oom: suppress nodes that are not allowed from meminfo on
-oom kill") moved lib/show_mem.o out of lib/lib.a, which resulted in build
-warnings on all architectures that implement their own versions of
-show_mem():
-
-	lib/lib.a(show_mem.o): In function `show_mem':
-	show_mem.c:(.text+0x1f4): multiple definition of `show_mem'
-	arch/sparc/mm/built-in.o:(.text+0xd70): first defined here
-
-The fix is to remove __show_mem() and add its argument to show_mem() in
-all implementations to prevent this breakage.
-
-Architectures that implement their own show_mem() actually don't do
-anything with the argument yet, but they could be made to filter nodes
-that aren't allowed in the current context in the future just like the
-generic implementation.
-
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: James Bottomley <James.Bottomley@hansenpartnership.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c        |    2 +-
- arch/ia64/mm/contig.c     |    2 +-
- arch/ia64/mm/discontig.c  |    2 +-
- arch/parisc/mm/init.c     |    2 +-
- arch/powerpc/xmon/xmon.c  |    2 +-
- arch/sparc/mm/init_32.c   |    2 +-
- arch/tile/mm/pgtable.c    |    2 +-
- arch/unicore32/mm/init.c  |    2 +-
- drivers/tty/sysrq.c       |    2 +-
- drivers/tty/vt/keyboard.c |    2 +-
- include/linux/mm.h        |    5 ++---
- lib/show_mem.c            |    7 +------
- mm/oom_kill.c             |    2 +-
- mm/page_alloc.c           |    2 +-
- 14 files changed, 15 insertions(+), 21 deletions(-)
+ arch/alpha/include/asm/types.h   |   11 -----------
+ arch/arm/include/asm/types.h     |    6 ------
+ arch/cris/include/asm/types.h    |    6 ------
+ arch/m32r/include/asm/types.h    |    6 ------
+ arch/m68k/include/asm/types.h    |    6 ------
+ arch/mips/include/asm/types.h    |    2 --
+ arch/parisc/include/asm/types.h  |   13 -------------
+ arch/powerpc/include/asm/types.h |    2 --
+ arch/s390/include/asm/types.h    |    2 --
+ arch/sparc/include/asm/types.h   |   18 ------------------
+ arch/x86/include/asm/types.h     |    8 --------
+ 11 files changed, 80 deletions(-)
 
-diff -puN arch/arm/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/arm/mm/init.c
-@@ -78,7 +78,7 @@ __tagtable(ATAG_INITRD2, parse_tag_initr
-  */
- struct meminfo meminfo;
+diff -puN arch/alpha/include/asm/types.h~remove-dma64_addr_t arch/alpha/include/asm/types.h
+--- a/arch/alpha/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/alpha/include/asm/types.h
+@@ -20,15 +20,4 @@
+ typedef unsigned int umode_t;
  
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	int free = 0, total = 0, reserved = 0;
- 	int shared = 0, cached = 0, slab = 0, i;
-diff -puN arch/ia64/mm/contig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/ia64/mm/contig.c
-@@ -36,7 +36,7 @@ static unsigned long max_gap;
-  * Shows a simple page count of reserved and used pages in the system.
-  * For discontig machines, it does this on a per-pgdat basis.
-  */
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	int i, total_reserved = 0;
- 	int total_shared = 0, total_cached = 0;
-diff -puN arch/ia64/mm/discontig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/ia64/mm/discontig.c
-@@ -614,7 +614,7 @@ void __cpuinit *per_cpu_init(void)
-  * Shows a simple page count of reserved and used pages in the system.
-  * For discontig machines, it does this on a per-pgdat basis.
-  */
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	int i, total_reserved = 0;
- 	int total_shared = 0, total_cached = 0;
-diff -puN arch/parisc/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/parisc/mm/init.c
-@@ -544,7 +544,7 @@ void __init mem_init(void)
- unsigned long *empty_zero_page __read_mostly;
- EXPORT_SYMBOL(empty_zero_page);
- 
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	int i,free = 0,total = 0,reserved = 0;
- 	int shared = 0, cached = 0;
-diff -puN arch/powerpc/xmon/xmon.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/powerpc/xmon/xmon.c
---- a/arch/powerpc/xmon/xmon.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/powerpc/xmon/xmon.c
-@@ -821,7 +821,7 @@ cmds(struct pt_regs *excp)
- 				memzcan();
- 				break;
- 			case 'i':
--				show_mem();
-+				show_mem(0);
- 				break;
- 			default:
- 				termch = cmd;
-diff -puN arch/sparc/mm/init_32.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/sparc/mm/init_32.c
---- a/arch/sparc/mm/init_32.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/sparc/mm/init_32.c
-@@ -75,7 +75,7 @@ void __init kmap_init(void)
- 	kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- }
- 
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	printk("Mem-info:\n");
- 	show_free_areas();
-diff -puN arch/tile/mm/pgtable.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/tile/mm/pgtable.c
-@@ -41,7 +41,7 @@
-  * The normal show_free_areas() is too verbose on Tile, with dozens
-  * of processors and often four NUMA zones each with high and lowmem.
-  */
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	struct zone *zone;
- 
-diff -puN arch/unicore32/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations arch/unicore32/mm/init.c
---- a/arch/unicore32/mm/init.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/arch/unicore32/mm/init.c
-@@ -55,7 +55,7 @@ early_param("initrd", early_initrd);
-  */
- struct meminfo meminfo;
- 
--void show_mem(void)
-+void show_mem(unsigned int filter)
- {
- 	int free = 0, total = 0, reserved = 0;
- 	int shared = 0, cached = 0, slab = 0, i;
-diff -puN drivers/tty/sysrq.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/drivers/tty/sysrq.c
-@@ -306,7 +306,7 @@ static struct sysrq_key_op sysrq_ftrace_
- 
- static void sysrq_handle_showmem(int key)
- {
--	show_mem();
-+	show_mem(0);
- }
- static struct sysrq_key_op sysrq_showmem_op = {
- 	.handler	= sysrq_handle_showmem,
-diff -puN drivers/tty/vt/keyboard.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations drivers/tty/vt/keyboard.c
---- a/drivers/tty/vt/keyboard.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/drivers/tty/vt/keyboard.c
-@@ -604,7 +604,7 @@ static void fn_scroll_back(struct vc_dat
- 
- static void fn_show_mem(struct vc_data *vc)
- {
--	show_mem();
-+	show_mem(0);
- }
- 
- static void fn_show_state(struct vc_data *vc)
-diff -puN include/linux/mm.h~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations include/linux/mm.h
---- a/include/linux/mm.h~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/include/linux/mm.h
-@@ -861,7 +861,7 @@ extern void pagefault_out_of_memory(void
- #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
- 
- /*
-- * Flags passed to __show_mem() and __show_free_areas() to suppress output in
-+ * Flags passed to show_mem() and __show_free_areas() to suppress output in
-  * various contexts.
-  */
- #define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
-@@ -1358,8 +1358,7 @@ extern void setup_per_zone_wmarks(void);
- extern void calculate_zone_inactive_ratio(struct zone *zone);
- extern void mem_init(void);
- extern void __init mmap_init(void);
--extern void show_mem(void);
--extern void __show_mem(unsigned int flags);
-+extern void show_mem(unsigned int flags);
- extern void si_meminfo(struct sysinfo * val);
- extern void si_meminfo_node(struct sysinfo *val, int nid);
- extern int after_bootmem;
-diff -puN lib/show_mem.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations lib/show_mem.c
---- a/lib/show_mem.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/lib/show_mem.c
-@@ -9,7 +9,7 @@
- #include <linux/nmi.h>
- #include <linux/quicklist.h>
- 
--void __show_mem(unsigned int filter)
-+void show_mem(unsigned int filter)
- {
- 	pg_data_t *pgdat;
- 	unsigned long total = 0, reserved = 0, shared = 0,
-@@ -61,8 +61,3 @@ void __show_mem(unsigned int filter)
- 		quicklist_total_size());
- #endif
- }
+ #endif /* __ASSEMBLY__ */
 -
--void show_mem(void)
--{
--	__show_mem(0);
--}
-diff -puN mm/oom_kill.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations mm/oom_kill.c
---- a/mm/oom_kill.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/mm/oom_kill.c
-@@ -406,7 +406,7 @@ static void dump_header(struct task_stru
- 	task_unlock(current);
- 	dump_stack();
- 	mem_cgroup_print_oom_info(mem, p);
--	__show_mem(SHOW_MEM_FILTER_NODES);
-+	show_mem(SHOW_MEM_FILTER_NODES);
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(mem, nodemask);
- }
-diff -puN mm/page_alloc.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations mm/page_alloc.c
---- a/mm/page_alloc.c~lib-arch-add-filter-argument-to-show_mem-and-fix-private-implementations
-+++ a/mm/page_alloc.c
-@@ -2195,7 +2195,7 @@ nopage:
- 			current->comm, order, gfp_mask);
- 		dump_stack();
- 		if (!should_suppress_show_mem())
--			__show_mem(filter);
-+			show_mem(filter);
- 	}
- 	return page;
- got_pg:
-_
-
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
-
-origin.patch
-linux-next.patch
-
+-/*
+- * These aren't exported outside the kernel to avoid name space clashes
+- */
+-#ifdef __KERNEL__
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-#endif /* __KERNEL__ */
+ #endif /* _ALPHA_TYPES_H */
+diff -puN arch/arm/include/asm/types.h~remove-dma64_addr_t arch/arm/include/asm/types.h
+--- a/arch/arm/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/arm/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff -puN arch/cris/include/asm/types.h~remove-dma64_addr_t arch/cris/include/asm/types.h
+--- a/arch/cris/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/cris/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff -puN arch/m32r/include/asm/types.h~remove-dma64_addr_t arch/m32r/include/asm/types.h
+--- a/arch/m32r/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/m32r/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _ASM_M32R_TYPES_H */
+diff -puN arch/m68k/include/asm/types.h~remove-dma64_addr_t arch/m68k/include/asm/types.h
+--- a/arch/m68k/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/m68k/include/asm/types.h
+@@ -23,12 +23,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _M68K_TYPES_H */
+diff -puN arch/mips/include/asm/types.h~remove-dma64_addr_t arch/mips/include/asm/types.h
+--- a/arch/mips/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/mips/include/asm/types.h
+@@ -33,8 +33,6 @@ typedef unsigned short umode_t;
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+-typedef u64 dma64_addr_t;
+-
+ /*
+  * Don't use phys_t.  You've been warned.
+  */
+diff -puN arch/parisc/include/asm/types.h~remove-dma64_addr_t arch/parisc/include/asm/types.h
+--- a/arch/parisc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/parisc/include/asm/types.h
+@@ -9,17 +9,4 @@ typedef unsigned short umode_t;
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-/*
+- * These aren't exported outside the kernel to avoid name space clashes
+- */
+-#ifdef __KERNEL__
+-
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+ #endif
+diff -puN arch/powerpc/include/asm/types.h~remove-dma64_addr_t arch/powerpc/include/asm/types.h
+--- a/arch/powerpc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/powerpc/include/asm/types.h
+@@ -44,8 +44,6 @@ typedef struct {
+ 
+ typedef __vector128 vector128;
+ 
+-typedef u64 dma64_addr_t;
+-
+ typedef struct {
+ 	unsigned long entry;
+ 	unsigned long toc;
+diff -puN arch/s390/include/asm/types.h~remove-dma64_addr_t arch/s390/include/asm/types.h
+--- a/arch/s390/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/s390/include/asm/types.h
+@@ -30,8 +30,6 @@ typedef __signed__ long saddr_t;
+ 
+ #ifndef __ASSEMBLY__
+ 
+-typedef u64 dma64_addr_t;
+-
+ #ifndef __s390x__
+ typedef union {
+ 	unsigned long long pair;
+diff -puN arch/sparc/include/asm/types.h~remove-dma64_addr_t arch/sparc/include/asm/types.h
+--- a/arch/sparc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/sparc/include/asm/types.h
+@@ -18,24 +18,6 @@ typedef unsigned short umode_t;
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-#ifdef __KERNEL__
+-
+-#ifndef __ASSEMBLY__
+-
+-#if defined(__arch64__)
+-
+-/*** SPARC 64 bit ***/
+-typedef u64 dma64_addr_t;
+-#else
+-/*** SPARC 32 bit ***/
+-typedef u32 dma64_addr_t;
+-
+-#endif /* defined(__arch64__) */
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+ #endif /* defined(__sparc__) */
+ 
+ #endif /* defined(_SPARC_TYPES_H) */
+diff -puN arch/x86/include/asm/types.h~remove-dma64_addr_t arch/x86/include/asm/types.h
+--- a/arch/x86/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/x86/include/asm/types.h
+@@ -3,12 +3,4 @@
+ 
+ #include <asm-generic/types.h>
+ 
+-#ifdef __KERNEL__
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-#endif /* __KERNEL__ */
