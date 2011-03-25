@@ -1,102 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-kill-the-global-proc_mnt-variable.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:40 -0700
-Message-ID: <201103250726.p2P7QYlg026156@imap1.linux-foundation.org>
+Subject: [merged] sysctl-restrict-write-access-to-dmesg_restrict.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:30 -0700
+Message-ID: <201103250726.p2P7QPmI026143__32347.3287550316$1301038022$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933986Ab1CYH0t (ORCPT
+	by vger.kernel.org with ESMTP id S933989Ab1CYH0q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:49 -0400
+	Fri, 25 Mar 2011 03:26:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, adobriyan@gmail.com, daniel.lezcano@free.fr, ebiederm@xmission.com, serge@hallyn.com, mm-commits@vger.kernel.org
+To: richard@nod.at, drosenberg@vsecurity.com, eparis@redhat.com, eugeneteo@kernel.org, jmorris@namei.org, kees.cook@canonical.com, serge@hallyn.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs: kill the global proc_mnt variable
+     sysctl: restrict write access to dmesg_restrict
 has been removed from the -mm tree.  Its filename was
-     procfs-kill-the-global-proc_mnt-variable.patch
+     sysctl-restrict-write-access-to-dmesg_restrict.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: kill the global proc_mnt variable
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: sysctl: restrict write access to dmesg_restrict
+From: Richard Weinberger <richard@nod.at>
 
-After the previous cleanup in proc_get_sb() the global proc_mnt has no
-reasons to exists, kill it.
+When dmesg_restrict is set to 1 CAP_SYS_ADMIN is needed to read the kernel
+ring buffer.  But a root user without CAP_SYS_ADMIN is able to reset
+dmesg_restrict to 0.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+This is an issue when e.g.  LXC (Linux Containers) are used and complete
+user space is running without CAP_SYS_ADMIN.  A unprivileged and jailed
+root user can bypass the dmesg_restrict protection.
+
+With this patch writing to dmesg_restrict is only allowed when root has
+CAP_SYS_ADMIN.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Dan Rosenberg <drosenberg@vsecurity.com>
 Acked-by: Serge E. Hallyn <serge@hallyn.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Kees Cook <kees.cook@canonical.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Eugene Teo <eugeneteo@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c    |    2 --
- fs/proc/internal.h |    1 -
- fs/proc/root.c     |    7 ++++---
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ kernel/sysctl.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~procfs-kill-the-global-proc_mnt-variable fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-kill-the-global-proc_mnt-variable
-+++ a/fs/proc/inode.c
-@@ -46,8 +46,6 @@ static void proc_evict_inode(struct inod
- 	}
+diff -puN kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-restrict-write-access-to-dmesg_restrict
++++ a/kernel/sysctl.c
+@@ -170,6 +170,11 @@ static int proc_taint(struct ctl_table *
+ 			       void __user *buffer, size_t *lenp, loff_t *ppos);
+ #endif
+ 
++#ifdef CONFIG_PRINTK
++static int proc_dmesg_restrict(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos);
++#endif
++
+ #ifdef CONFIG_MAGIC_SYSRQ
+ /* Note: sysrq code uses it's own private copy */
+ static int __sysrq_enabled = SYSRQ_DEFAULT_ENABLE;
+@@ -707,7 +712,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &kptr_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= proc_dmesg_restrict,
+ 		.extra1		= &zero,
+ 		.extra2		= &two,
+ 	},
+@@ -2394,6 +2399,17 @@ static int proc_taint(struct ctl_table *
+ 	return err;
  }
  
--struct vfsmount *proc_mnt;
--
- static struct kmem_cache * proc_inode_cachep;
- 
- static struct inode *proc_alloc_inode(struct super_block *sb)
-diff -puN fs/proc/internal.h~procfs-kill-the-global-proc_mnt-variable fs/proc/internal.h
---- a/fs/proc/internal.h~procfs-kill-the-global-proc_mnt-variable
-+++ a/fs/proc/internal.h
-@@ -107,7 +107,6 @@ static inline struct proc_dir_entry *pde
- }
- void pde_put(struct proc_dir_entry *pde);
- 
--extern struct vfsmount *proc_mnt;
- int proc_fill_super(struct super_block *);
- struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
- 
-diff -puN fs/proc/root.c~procfs-kill-the-global-proc_mnt-variable fs/proc/root.c
---- a/fs/proc/root.c~procfs-kill-the-global-proc_mnt-variable
-+++ a/fs/proc/root.c
-@@ -90,19 +90,20 @@ static struct file_system_type proc_fs_t
- 
- void __init proc_root_init(void)
- {
-+	struct vfsmount *mnt;
- 	int err;
- 
- 	proc_init_inodecache();
- 	err = register_filesystem(&proc_fs_type);
- 	if (err)
- 		return;
--	proc_mnt = kern_mount_data(&proc_fs_type, &init_pid_ns);
--	if (IS_ERR(proc_mnt)) {
-+	mnt = kern_mount_data(&proc_fs_type, &init_pid_ns);
-+	if (IS_ERR(mnt)) {
- 		unregister_filesystem(&proc_fs_type);
- 		return;
- 	}
- 
--	init_pid_ns.proc_mnt = proc_mnt;
-+	init_pid_ns.proc_mnt = mnt;
- 	proc_symlink("mounts", NULL, "self/mounts");
- 
- 	proc_net_init();
++#ifdef CONFIG_PRINTK
++static int proc_dmesg_restrict(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	if (write && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++}
++#endif
++
+ struct do_proc_dointvec_minmax_conv_param {
+ 	int *min;
+ 	int *max;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
