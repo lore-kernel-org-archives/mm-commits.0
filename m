@@ -1,93 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-remove-mport-resource-reservation-from-common-rio-code.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:17 -0700
-Message-ID: <201103250726.p2P7QBTg026117@imap1.linux-foundation.org>
+Subject: [merged] userns-allow-sethostname-in-a-container.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:48 -0700
+Message-ID: <201103250726.p2P7Qh3f026168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729Ab1CYH0l (ORCPT
+	by vger.kernel.org with ESMTP id S933986Ab1CYH0y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:41 -0400
+	Fri, 25 Mar 2011 03:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commi
+To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: remove mport resource reservation from common RIO code
+     userns: allow sethostname in a container
 has been removed from the -mm tree.  Its filename was
-     rapidio-remove-mport-resource-reservation-from-common-rio-code.patch
+     userns-allow-sethostname-in-a-container.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: remove mport resource reservation from common RIO code
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: userns: allow sethostname in a container
+From: "Serge E. Hallyn" <serge@hallyn.com>
 
-Removes resource reservation from the common sybsystem initialization code
-and make it part of mport driver initialization.  This resolves conflict
-with resource reservation by device specific mport drivers.
+Changelog:
+	Feb 23: let clone_uts_ns() handle setting uts->user_ns
+		To do so we need to pass in the task_struct who'll
+		get the utsname, so we can get its user_ns.
+	Feb 23: As per Oleg's coment, just pass in tsk, instead of two
+		of its members.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    9 +++++++++
- drivers/rapidio/rio.c         |   14 +-------------
- 2 files changed, 10 insertions(+), 13 deletions(-)
+ include/linux/utsname.h |    6 +++---
+ kernel/nsproxy.c        |    7 +------
+ kernel/sys.c            |    2 +-
+ kernel/utsname.c        |   12 +++++++-----
+ 4 files changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1432,6 +1432,14 @@ int fsl_rio_setup(struct platform_device
- 	port->iores.flags = IORESOURCE_MEM;
- 	port->iores.name = "rio_io_win";
+diff -puN include/linux/utsname.h~userns-allow-sethostname-in-a-container include/linux/utsname.h
+--- a/include/linux/utsname.h~userns-allow-sethostname-in-a-container
++++ a/include/linux/utsname.h
+@@ -54,7 +54,7 @@ static inline void get_uts_ns(struct uts
+ }
  
-+	if (request_resource(&iomem_resource, &port->iores) < 0) {
-+		dev_err(&dev->dev, "RIO: Error requesting master port region"
-+			" 0x%016llx-0x%016llx\n",
-+			(u64)port->iores.start, (u64)port->iores.end);
-+			rc = -ENOMEM;
-+			goto err_res;
-+	}
-+
- 	priv->pwirq   = irq_of_parse_and_map(dev->dev.of_node, 0);
- 	priv->bellirq = irq_of_parse_and_map(dev->dev.of_node, 2);
- 	priv->txirq = irq_of_parse_and_map(dev->dev.of_node, 3);
-@@ -1536,6 +1544,7 @@ int fsl_rio_setup(struct platform_device
- 	return 0;
- err:
- 	iounmap(priv->regs_win);
-+err_res:
- 	kfree(priv);
- err_priv:
- 	kfree(port);
-diff -puN drivers/rapidio/rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-remove-mport-resource-reservation-from-common-rio-code
-+++ a/drivers/rapidio/rio.c
-@@ -1137,20 +1137,9 @@ static int __devinit rio_init(void)
+ extern struct uts_namespace *copy_utsname(unsigned long flags,
+-					struct uts_namespace *ns);
++					  struct task_struct *tsk);
+ extern void free_uts_ns(struct kref *kref);
  
- int __devinit rio_init_mports(void)
+ static inline void put_uts_ns(struct uts_namespace *ns)
+@@ -71,12 +71,12 @@ static inline void put_uts_ns(struct uts
+ }
+ 
+ static inline struct uts_namespace *copy_utsname(unsigned long flags,
+-					struct uts_namespace *ns)
++						 struct task_struct *tsk)
  {
--	int rc = 0;
- 	struct rio_mport *port;
+ 	if (flags & CLONE_NEWUTS)
+ 		return ERR_PTR(-EINVAL);
  
- 	list_for_each_entry(port, &rio_mports, node) {
--		if (!request_mem_region(port->iores.start,
--					resource_size(&port->iores),
--					port->name)) {
--			printk(KERN_ERR
--			       "RIO: Error requesting master port region 0x%016llx-0x%016llx\n",
--			       (u64)port->iores.start, (u64)port->iores.end);
--			rc = -ENOMEM;
--			goto out;
--		}
+-	return ns;
++	return tsk->nsproxy->uts_ns;
+ }
+ #endif
+ 
+diff -puN kernel/nsproxy.c~userns-allow-sethostname-in-a-container kernel/nsproxy.c
+--- a/kernel/nsproxy.c~userns-allow-sethostname-in-a-container
++++ a/kernel/nsproxy.c
+@@ -69,16 +69,11 @@ static struct nsproxy *create_new_namesp
+ 		goto out_ns;
+ 	}
+ 
+-	new_nsp->uts_ns = copy_utsname(flags, tsk->nsproxy->uts_ns);
++	new_nsp->uts_ns = copy_utsname(flags, tsk);
+ 	if (IS_ERR(new_nsp->uts_ns)) {
+ 		err = PTR_ERR(new_nsp->uts_ns);
+ 		goto out_uts;
+ 	}
+-	if (new_nsp->uts_ns != tsk->nsproxy->uts_ns) {
+-		put_user_ns(new_nsp->uts_ns->user_ns);
+-		new_nsp->uts_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
+-		get_user_ns(new_nsp->uts_ns->user_ns);
+-	}
+ 
+ 	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
+ 	if (IS_ERR(new_nsp->ipc_ns)) {
+diff -puN kernel/sys.c~userns-allow-sethostname-in-a-container kernel/sys.c
+--- a/kernel/sys.c~userns-allow-sethostname-in-a-container
++++ a/kernel/sys.c
+@@ -1181,7 +1181,7 @@ SYSCALL_DEFINE2(sethostname, char __user
+ 	int errno;
+ 	char tmp[__NEW_UTS_LEN];
+ 
+-	if (!capable(CAP_SYS_ADMIN))
++	if (!ns_capable(current->nsproxy->uts_ns->user_ns, CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 	if (len < 0 || len > __NEW_UTS_LEN)
+ 		return -EINVAL;
+diff -puN kernel/utsname.c~userns-allow-sethostname-in-a-container kernel/utsname.c
+--- a/kernel/utsname.c~userns-allow-sethostname-in-a-container
++++ a/kernel/utsname.c
+@@ -31,7 +31,8 @@ static struct uts_namespace *create_uts_
+  * @old_ns: namespace to clone
+  * Return NULL on error (failure to kmalloc), new ns otherwise
+  */
+-static struct uts_namespace *clone_uts_ns(struct uts_namespace *old_ns)
++static struct uts_namespace *clone_uts_ns(struct task_struct *tsk,
++					  struct uts_namespace *old_ns)
+ {
+ 	struct uts_namespace *ns;
+ 
+@@ -41,8 +42,7 @@ static struct uts_namespace *clone_uts_n
+ 
+ 	down_read(&uts_sem);
+ 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
+-	ns->user_ns = old_ns->user_ns;
+-	get_user_ns(ns->user_ns);
++	ns->user_ns = get_user_ns(task_cred_xxx(tsk, user)->user_ns);
+ 	up_read(&uts_sem);
+ 	return ns;
+ }
+@@ -53,8 +53,10 @@ static struct uts_namespace *clone_uts_n
+  * utsname of this process won't be seen by parent, and vice
+  * versa.
+  */
+-struct uts_namespace *copy_utsname(unsigned long flags, struct uts_namespace *old_ns)
++struct uts_namespace *copy_utsname(unsigned long flags,
++				   struct task_struct *tsk)
+ {
++	struct uts_namespace *old_ns = tsk->nsproxy->uts_ns;
+ 	struct uts_namespace *new_ns;
+ 
+ 	BUG_ON(!old_ns);
+@@ -63,7 +65,7 @@ struct uts_namespace *copy_utsname(unsig
+ 	if (!(flags & CLONE_NEWUTS))
+ 		return old_ns;
+ 
+-	new_ns = clone_uts_ns(old_ns);
++	new_ns = clone_uts_ns(tsk, old_ns);
+ 
+ 	put_uts_ns(old_ns);
+ 	return new_ns;
+_
+
+Patches currently in -mm which might be from serge@hallyn.com are
+
+origin.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+
