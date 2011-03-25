@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-modify-mport-id-assignment.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:14 -0700
-Message-ID: <201103250726.p2P7Q8xY026113@imap1.linux-foundation.org>
+Subject: [merged] rapidio-modify-subsystem-and-driver-initialization-sequence.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:11 -0700
+Message-ID: <201103250726.p2P7Q5D9026109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933986Ab1CYH0o (ORCPT
+	by vger.kernel.org with ESMTP id S1754203Ab1CYH0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:44 -0400
+	Fri, 25 Mar 2011 03:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, benh@kernel.crashing.org, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commi
 
 
 The patch titled
-     rapidio: modify mport ID assignment
+     rapidio: modify subsystem and driver initialization sequence
 has been removed from the -mm tree.  Its filename was
-     rapidio-modify-mport-id-assignment.patch
+     rapidio-modify-subsystem-and-driver-initialization-sequence.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: modify mport ID assignment
+Subject: rapidio: modify subsystem and driver initialization sequence
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Changes mport ID and host destination ID assignment to implement unified
-method common to all mport drivers.  Makes "riohdid=" kernel command line
-parameter common for all architectures with support for more that one host
-destination ID assignment.
+Subsystem initialization sequence modified to support presence of multiple
+RapidIO controllers in the system.  The new sequence is compatible with
+initialization of PCI devices.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
@@ -42,116 +41,83 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   25 -------------------------
- drivers/rapidio/rio.c         |   26 ++++++++++++++++++++++++++
- include/linux/rio.h           |    1 +
- 3 files changed, 27 insertions(+), 25 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |   10 +---------
+ drivers/net/rionet.c          |    2 +-
+ drivers/rapidio/rio.c         |    6 ++++--
+ include/linux/rio.h           |    1 -
+ 4 files changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-mport-id-assignment arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-mport-id-assignment
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
 +++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1288,28 +1288,6 @@ err_out:
+@@ -1574,18 +1574,10 @@ err_ops:
+  */
+ static int __devinit fsl_of_rio_rpn_probe(struct platform_device *dev)
+ {
+-	int rc;
+ 	printk(KERN_INFO "Setting up RapidIO peer-to-peer network %s\n",
+ 			dev->dev.of_node->full_name);
+ 
+-	rc = fsl_rio_setup(dev);
+-	if (rc)
+-		goto out;
+-
+-	/* Enumerate all registered ports */
+-	rc = rio_init_mports();
+-out:
+-	return rc;
++	return fsl_rio_setup(dev);
+ };
+ 
+ static const struct of_device_id fsl_of_rio_rpn_ids[] = {
+diff -puN drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-modify-subsystem-and-driver-initialization-sequence
++++ a/drivers/net/rionet.c
+@@ -571,5 +571,5 @@ static void __exit rionet_exit(void)
+ 	rio_unregister_driver(&rionet_driver);
+ }
+ 
+-module_init(rionet_init);
++late_initcall(rionet_init);
+ module_exit(rionet_exit);
+diff -puN drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-modify-subsystem-and-driver-initialization-sequence
++++ a/drivers/rapidio/rio.c
+@@ -1134,8 +1134,6 @@ static int __devinit rio_init(void)
+ 	return 0;
+ }
+ 
+-device_initcall(rio_init);
+-
+ int __devinit rio_init_mports(void)
+ {
+ 	int rc = 0;
+@@ -1158,10 +1156,14 @@ int __devinit rio_init_mports(void)
+ 			rio_disc_mport(port);
+ 	}
+ 
++	rio_init();
++
+       out:
  	return rc;
  }
  
--static char *cmdline = NULL;
--
--static int fsl_rio_get_hdid(int index)
--{
--	/* XXX Need to parse multiple entries in some format */
--	if (!cmdline)
--		return -1;
--
--	return simple_strtol(cmdline, NULL, 0);
--}
--
--static int fsl_rio_get_cmdline(char *s)
--{
--	if (!s)
--		return 0;
--
--	cmdline = s;
--	return 1;
--}
--
--__setup("riohdid=", fsl_rio_get_cmdline);
--
- static inline void fsl_rio_info(struct device *dev, u32 ccsr)
- {
- 	const char *str;
-@@ -1439,7 +1417,6 @@ int fsl_rio_setup(struct platform_device
- 		rc = -ENOMEM;
- 		goto err_port;
- 	}
--	port->id = 0;
- 	port->index = 0;
- 
- 	priv = kzalloc(sizeof(struct rio_priv), GFP_KERNEL);
-@@ -1470,8 +1447,6 @@ int fsl_rio_setup(struct platform_device
- 	priv->dev = &dev->dev;
- 
- 	port->ops = ops;
--	port->host_deviceid = fsl_rio_get_hdid(port->id);
--
- 	port->priv = priv;
- 	port->phys_efptr = 0x100;
- 	rio_register_mport(port);
-diff -puN drivers/rapidio/rio.c~rapidio-modify-mport-id-assignment drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-modify-mport-id-assignment
-+++ a/drivers/rapidio/rio.c
-@@ -32,6 +32,7 @@
- #include "rio.h"
- 
- static LIST_HEAD(rio_mports);
-+static unsigned char next_portid;
- 
- /**
-  * rio_local_get_device_id - Get the base/extended device id for a port
-@@ -1164,8 +1165,33 @@ int __devinit rio_init_mports(void)
- 
- device_initcall_sync(rio_init_mports);
- 
-+static int hdids[RIO_MAX_MPORTS + 1];
-+
-+static int rio_get_hdid(int index)
-+{
-+	if (!hdids[0] || hdids[0] <= index || index >= RIO_MAX_MPORTS)
-+		return -1;
-+
-+	return hdids[index + 1];
-+}
-+
-+static int rio_hdid_setup(char *str)
-+{
-+	(void)get_options(str, ARRAY_SIZE(hdids), hdids);
-+	return 1;
-+}
-+
-+__setup("riohdid=", rio_hdid_setup);
++device_initcall_sync(rio_init_mports);
 +
  void rio_register_mport(struct rio_mport *port)
  {
-+	if (next_portid >= RIO_MAX_MPORTS) {
-+		pr_err("RIO: reached specified max number of mports\n");
-+		return;
-+	}
-+
-+	port->id = next_portid++;
-+	port->host_deviceid = rio_get_hdid(port->id);
  	list_add_tail(&port->node, &rio_mports);
- }
- 
-diff -puN include/linux/rio.h~rapidio-modify-mport-id-assignment include/linux/rio.h
---- a/include/linux/rio.h~rapidio-modify-mport-id-assignment
+diff -puN include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-modify-subsystem-and-driver-initialization-sequence
 +++ a/include/linux/rio.h
-@@ -24,6 +24,7 @@
- #define RIO_NO_HOPCOUNT		-1
- #define RIO_INVALID_DESTID	0xffff
+@@ -395,7 +395,6 @@ union rio_pw_msg {
+ };
  
-+#define RIO_MAX_MPORTS		8
- #define RIO_MAX_MPORT_RESOURCES	16
- #define RIO_MAX_DEV_RESOURCES	16
- 
+ /* Architecture and hardware-specific functions */
+-extern int rio_init_mports(void);
+ extern void rio_register_mport(struct rio_mport *);
+ extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
+ extern void rio_close_inb_mbox(struct rio_mport *, int);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
