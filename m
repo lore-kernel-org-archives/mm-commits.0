@@ -1,76 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kvm-stop-including-asm-generic-bitops-leh-directly.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:23:28 -0700
-Message-ID: <201103250723.p2P7NMO7025721@imap1.linux-foundation.org>
+Subject: [merged] fs-adfs-adfsh-fix-unsigned-comparison.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:23:25 -0700
+Message-ID: <201103250723.p2P7NJnv025718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402Ab1CYHXf (ORCPT
+	by vger.kernel.org with ESMTP id S933032Ab1CYHXh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:23:35 -0400
+	Fri, 25 Mar 2011 03:23:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, avi@redhat.com, mtosatti@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, rmk+kernel@arm.linux.org.uk, stuart.swales.croftnuisk@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm: stop including asm-generic/bitops/le.h directly
+     fs/adfs/adfs.h: fix unsigned comparison
 has been removed from the -mm tree.  Its filename was
-     kvm-stop-including-asm-generic-bitops-leh-directly.patch
+     fs-adfs-adfsh-fix-unsigned-comparison.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: stop including asm-generic/bitops/le.h directly
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fs/adfs/adfs.h: fix unsigned comparison
+From: Andrew Morton <akpm@linux-foundation.org>
 
-asm-generic/bitops/le.h is only intended to be included directly from
-asm-generic/bitops/ext2-non-atomic.h or asm-generic/bitops/minix-le.h
-which implements generic ext2 or minix bit operations.
+fs/adfs/adfs.h: In function 'append_filetype_suffix':
+fs/adfs/adfs.h:115: warning: comparison is always false due to limited range of data type
 
-This stops including asm-generic/bitops/le.h directly and use ext2
-non-atomic bit operations instead.
-
-It seems odd to use ext2_set_bit() on kvm, but it will replaced with
-__set_bit_le() after introducing little endian bit operations for all
-architectures.  This indirect step is necessary to maintain bisectability
-for some architectures which have their own little-endian bit operations.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/adfs/adfs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN virt/kvm/kvm_main.c~kvm-stop-including-asm-generic-bitops-leh-directly virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~kvm-stop-including-asm-generic-bitops-leh-directly
-+++ a/virt/kvm/kvm_main.c
-@@ -52,7 +52,6 @@
- #include <asm/io.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
--#include <asm-generic/bitops/le.h>
+diff -puN fs/adfs/adfs.h~fs-adfs-adfsh-fix-unsigned-comparison fs/adfs/adfs.h
+--- a/fs/adfs/adfs.h~fs-adfs-adfsh-fix-unsigned-comparison
++++ a/fs/adfs/adfs.h
+@@ -112,7 +112,7 @@ struct object_info {
+ /* RISC OS 12-bit filetype converts to ,xyz hex filename suffix */
+ static inline int append_filetype_suffix(char *buf, __u16 filetype)
+ {
+-	if (filetype == -1)
++	if (filetype == 0xffff)	/* no explicit 12-bit file type was set */
+ 		return 0;
  
- #include "coalesced_mmio.h"
- #include "async_pf.h"
-@@ -1439,7 +1438,7 @@ void mark_page_dirty_in_slot(struct kvm 
- 	if (memslot && memslot->dirty_bitmap) {
- 		unsigned long rel_gfn = gfn - memslot->base_gfn;
- 
--		generic___set_le_bit(rel_gfn, memslot->dirty_bitmap);
-+		ext2_set_bit(rel_gfn, memslot->dirty_bitmap);
- 	}
- }
- 
+ 	*buf++ = ',';
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drbd-fix-warning.patch
+mm.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix.patch
+ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages-fix-fix-fix.patch
+mm-add-vm-counters-for-transparent-hugepages-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
