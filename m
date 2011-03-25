@@ -1,300 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bitops-introduce-little-endian-bitops-for-most-architectures.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:23:55 -0700
-Message-ID: <201103250723.p2P7Nnap025761@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-leak-on-wrong-lru-with-fuse.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:25:18 -0700
+Message-ID: <201103250725.p2P7PC7f026005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48949 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933874Ab1CYHZt (ORCPT
+	by vger.kernel.org with ESMTP id S933899Ab1CYHZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Mar 2011 03:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, grundler@parisc-linux.org, hans-christian.egtvedt@atmel.com, hpa@zytor.com, ink@jurassic.park.msu.r
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hannes@cmpxchg.org, miklos@szeredi.hu, nishimura@mxp.nes.nec.co.jp, poelzi@poelzi.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: introduce little-endian bitops for most architectures
+     memcg: fix leak on wrong LRU with FUSE
 has been removed from the -mm tree.  Its filename was
-     bitops-introduce-little-endian-bitops-for-most-architectures.patch
+     memcg-fix-leak-on-wrong-lru-with-fuse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: introduce little-endian bitops for most architectures
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: memcg: fix leak on wrong LRU with FUSE
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Introduce little-endian bit operations to the big-endian architectures
-which do not have native little-endian bit operations and the
-little-endian architectures.  (alpha, avr32, blackfin, cris, frv, h8300,
-ia64, m32r, mips, mn10300, parisc, sh, sparc, tile, x86, xtensa)
+fs/fuse/dev.c::fuse_try_move_page() does
 
-These architectures can just include generic implementation
-(asm-generic/bitops/le.h).
+   (1) remove a page by ->steal()
+   (2) re-add the page to page cache
+   (3) link the page to LRU if it was not on LRU at (1)
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
+This implies the page is _on_ LRU when it's added to radix-tree.  So, the
+page is added to memory cgroup while it's on LRU.  because LRU is lazy and
+no one flushs it.
+
+This is the same behavior as SwapCache and needs special care as
+ - remove page from LRU before overwrite pc->mem_cgroup.
+ - add page to LRU after overwrite pc->mem_cgroup.
+
+And we need to taking care of pagevec.
+
+If PageLRU(page) is set before we add PCG_USED bit, the page will not be
+added to memcg's LRU (in short period).  So, regardlress of PageLRU(page)
+value before commit_charge(), we need to check PageLRU(page) after
+commit_charge().
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=30432
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Reported-by: Daniel Poelzleithner <poelzi@poelzi.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bitops.h              |    1 +
- arch/avr32/include/asm/bitops.h              |    1 +
- arch/blackfin/include/asm/bitops.h           |    1 +
- arch/cris/include/asm/bitops.h               |    1 +
- arch/frv/include/asm/bitops.h                |    1 +
- arch/h8300/include/asm/bitops.h              |    1 +
- arch/ia64/include/asm/bitops.h               |    1 +
- arch/m32r/include/asm/bitops.h               |    1 +
- arch/mips/include/asm/bitops.h               |    1 +
- arch/mn10300/include/asm/bitops.h            |    1 +
- arch/parisc/include/asm/bitops.h             |    1 +
- arch/sh/include/asm/bitops.h                 |    1 +
- arch/sparc/include/asm/bitops_32.h           |    1 +
- arch/sparc/include/asm/bitops_64.h           |    1 +
- arch/tile/include/asm/bitops.h               |    1 +
- arch/x86/include/asm/bitops.h                |    1 +
- arch/xtensa/include/asm/bitops.h             |    1 +
- include/asm-generic/bitops.h                 |    1 +
- include/asm-generic/bitops/ext2-non-atomic.h |    2 --
- include/asm-generic/bitops/minix-le.h        |    2 --
- 20 files changed, 18 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   70 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 52 insertions(+), 18 deletions(-)
 
-diff -puN arch/alpha/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/alpha/include/asm/bitops.h
---- a/arch/alpha/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/alpha/include/asm/bitops.h
-@@ -454,6 +454,7 @@ sched_find_first_bit(const unsigned long
- 	return __ffs(tmp) + ofs;
+diff -puN mm/memcontrol.c~memcg-fix-leak-on-wrong-lru-with-fuse mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-leak-on-wrong-lru-with-fuse
++++ a/mm/memcontrol.c
+@@ -926,18 +926,28 @@ void mem_cgroup_add_lru_list(struct page
  }
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
+ /*
+- * At handling SwapCache, pc->mem_cgroup may be changed while it's linked to
+- * lru because the page may.be reused after it's fully uncharged (because of
+- * SwapCache behavior).To handle that, unlink page_cgroup from LRU when charge
+- * it again. This function is only used to charge SwapCache. It's done under
+- * lock_page and expected that zone->lru_lock is never held.
++ * At handling SwapCache and other FUSE stuff, pc->mem_cgroup may be changed
++ * while it's linked to lru because the page may be reused after it's fully
++ * uncharged. To handle that, unlink page_cgroup from LRU when charge it again.
++ * It's done under lock_page and expected that zone->lru_lock isnever held.
+  */
+-static void mem_cgroup_lru_del_before_commit_swapcache(struct page *page)
++static void mem_cgroup_lru_del_before_commit(struct page *page)
+ {
+ 	unsigned long flags;
+ 	struct zone *zone = page_zone(page);
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
  
- #define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
-diff -puN arch/avr32/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/avr32/include/asm/bitops.h
---- a/arch/avr32/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/avr32/include/asm/bitops.h
-@@ -299,6 +299,7 @@ static inline int ffs(unsigned long word
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
++	/*
++	 * Doing this check without taking ->lru_lock seems wrong but this
++	 * is safe. Because if page_cgroup's USED bit is unset, the page
++	 * will not be added to any memcg's LRU. If page_cgroup's USED bit is
++	 * set, the commit after this will fail, anyway.
++	 * This all charge/uncharge is done under some mutual execustion.
++	 * So, we don't need to taking care of changes in USED bit.
++	 */
++	if (likely(!PageLRU(page)))
++		return;
++
+ 	spin_lock_irqsave(&zone->lru_lock, flags);
+ 	/*
+ 	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
+@@ -948,12 +958,15 @@ static void mem_cgroup_lru_del_before_co
+ 	spin_unlock_irqrestore(&zone->lru_lock, flags);
+ }
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix-le.h>
-diff -puN arch/blackfin/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/blackfin/include/asm/bitops.h
---- a/arch/blackfin/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/blackfin/include/asm/bitops.h
-@@ -25,6 +25,7 @@
- #include <asm-generic/bitops/const_hweight.h>
- #include <asm-generic/bitops/lock.h>
+-static void mem_cgroup_lru_add_after_commit_swapcache(struct page *page)
++static void mem_cgroup_lru_add_after_commit(struct page *page)
+ {
+ 	unsigned long flags;
+ 	struct zone *zone = page_zone(page);
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/cris/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/cris/include/asm/bitops.h
---- a/arch/cris/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/cris/include/asm/bitops.h
-@@ -154,6 +154,7 @@ static inline int test_and_change_bit(in
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/lock.h>
++	/* taking care of that the page is added to LRU while we commit it */
++	if (likely(!PageLRU(page)))
++		return;
+ 	spin_lock_irqsave(&zone->lru_lock, flags);
+ 	/* link when the page is linked to LRU but page_cgroup isn't */
+ 	if (PageLRU(page) && !PageCgroupAcctLRU(pc))
+@@ -2431,9 +2444,26 @@ static void
+ __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr,
+ 					enum charge_type ctype);
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
++static void
++__mem_cgroup_commit_charge_lrucare(struct page *page, struct mem_cgroup *mem,
++					enum charge_type ctype)
++{
++	struct page_cgroup *pc = lookup_page_cgroup(page);
++	/*
++	 * In some case, SwapCache, FUSE(splice_buf->radixtree), the page
++	 * is already on LRU. It means the page may on some other page_cgroup's
++	 * LRU. Take care of it.
++	 */
++	mem_cgroup_lru_del_before_commit(page);
++	__mem_cgroup_commit_charge(mem, page, 1, pc, ctype);
++	mem_cgroup_lru_add_after_commit(page);
++	return;
++}
++
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask)
+ {
++	struct mem_cgroup *mem = NULL;
+ 	int ret;
  
- #define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
-diff -puN arch/frv/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/frv/include/asm/bitops.h
---- a/arch/frv/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/frv/include/asm/bitops.h
-@@ -401,6 +401,7 @@ int __ilog2_u64(u64 n)
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
+ 	if (mem_cgroup_disabled())
+@@ -2468,14 +2498,22 @@ int mem_cgroup_cache_charge(struct page 
+ 	if (unlikely(!mm))
+ 		mm = &init_mm;
  
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
+-	if (page_is_file_cache(page))
+-		return mem_cgroup_charge_common(page, mm, gfp_mask,
+-				MEM_CGROUP_CHARGE_TYPE_CACHE);
++	if (page_is_file_cache(page)) {
++		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &mem, true);
++		if (ret || !mem)
++			return ret;
  
- #define ext2_set_bit_atomic(lock,nr,addr)	test_and_set_bit  ((nr) ^ 0x18, (addr))
-diff -puN arch/h8300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/h8300/include/asm/bitops.h
---- a/arch/h8300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/h8300/include/asm/bitops.h
-@@ -200,6 +200,7 @@ static __inline__ unsigned long __ffs(un
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/ia64/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/ia64/include/asm/bitops.h
---- a/arch/ia64/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/ia64/include/asm/bitops.h
-@@ -456,6 +456,7 @@ static __inline__ unsigned long __arch_h
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(l,n,a)	test_and_set_bit(n,a)
-diff -puN arch/m32r/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/m32r/include/asm/bitops.h
---- a/arch/m32r/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/m32r/include/asm/bitops.h
-@@ -266,6 +266,7 @@ static __inline__ int test_and_change_bi
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/mips/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/mips/include/asm/bitops.h
---- a/arch/mips/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/mips/include/asm/bitops.h
-@@ -676,6 +676,7 @@ static inline int ffs(int word)
- #include <asm/arch_hweight.h>
- #include <asm-generic/bitops/const_hweight.h>
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/mn10300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/mn10300/include/asm/bitops.h
---- a/arch/mn10300/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/mn10300/include/asm/bitops.h
-@@ -233,6 +233,7 @@ int ffs(int x)
- #define ext2_clear_bit_atomic(lock, nr, addr) \
- 	test_and_clear_bit((nr), (addr))
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/minix-le.h>
- 
-diff -puN arch/parisc/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/parisc/include/asm/bitops.h
---- a/arch/parisc/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/parisc/include/asm/bitops.h
-@@ -222,6 +222,7 @@ static __inline__ int fls(int x)
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- /* '3' is bits per byte */
-diff -puN arch/sh/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sh/include/asm/bitops.h
---- a/arch/sh/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sh/include/asm/bitops.h
-@@ -94,6 +94,7 @@ static inline unsigned long ffz(unsigned
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/sparc/include/asm/bitops_32.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sparc/include/asm/bitops_32.h
---- a/arch/sparc/include/asm/bitops_32.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sparc/include/asm/bitops_32.h
-@@ -103,6 +103,7 @@ static inline void change_bit(unsigned l
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN arch/sparc/include/asm/bitops_64.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/sparc/include/asm/bitops_64.h
---- a/arch/sparc/include/asm/bitops_64.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/sparc/include/asm/bitops_64.h
-@@ -89,6 +89,7 @@ static inline unsigned int __arch_hweigh
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(lock,nr,addr) \
-diff -puN arch/tile/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/tile/include/asm/bitops.h
---- a/arch/tile/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/tile/include/asm/bitops.h
-@@ -122,6 +122,7 @@ static inline unsigned long __arch_hweig
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/sched.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/minix.h>
- 
-diff -puN arch/x86/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/x86/include/asm/bitops.h
-@@ -456,6 +456,7 @@ static inline int fls(int x)
- 
- #ifdef __KERNEL__
- 
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #define ext2_set_bit_atomic(lock, nr, addr)			\
-diff -puN arch/xtensa/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures arch/xtensa/include/asm/bitops.h
---- a/arch/xtensa/include/asm/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/arch/xtensa/include/asm/bitops.h
-@@ -106,6 +106,7 @@ static inline unsigned long __fls(unsign
- 
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/find.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
- #ifdef __XTENSA_EL__
-diff -puN include/asm-generic/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops.h
---- a/include/asm-generic/bitops.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops.h
-@@ -38,6 +38,7 @@
- 
- #include <asm-generic/bitops/atomic.h>
- #include <asm-generic/bitops/non-atomic.h>
-+#include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN include/asm-generic/bitops/ext2-non-atomic.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops/ext2-non-atomic.h
---- a/include/asm-generic/bitops/ext2-non-atomic.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops/ext2-non-atomic.h
-@@ -1,8 +1,6 @@
- #ifndef _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
- #define _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_
- 
--#include <asm-generic/bitops/le.h>
++		/*
++		 * FUSE reuses pages without going through the final
++		 * put that would remove them from the LRU list, make
++		 * sure that they get relinked properly.
++		 */
++		__mem_cgroup_commit_charge_lrucare(page, mem,
++					MEM_CGROUP_CHARGE_TYPE_CACHE);
++		return ret;
++	}
+ 	/* shmem */
+ 	if (PageSwapCache(page)) {
+-		struct mem_cgroup *mem;
 -
- #define ext2_set_bit(nr,addr)	\
- 	__test_and_set_bit_le((nr), (unsigned long *)(addr))
- #define ext2_clear_bit(nr,addr)	\
-diff -puN include/asm-generic/bitops/minix-le.h~bitops-introduce-little-endian-bitops-for-most-architectures include/asm-generic/bitops/minix-le.h
---- a/include/asm-generic/bitops/minix-le.h~bitops-introduce-little-endian-bitops-for-most-architectures
-+++ a/include/asm-generic/bitops/minix-le.h
-@@ -1,8 +1,6 @@
- #ifndef _ASM_GENERIC_BITOPS_MINIX_LE_H_
- #define _ASM_GENERIC_BITOPS_MINIX_LE_H_
- 
--#include <asm-generic/bitops/le.h>
+ 		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &mem);
+ 		if (!ret)
+ 			__mem_cgroup_commit_charge_swapin(page, mem,
+@@ -2532,17 +2570,13 @@ static void
+ __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr,
+ 					enum charge_type ctype)
+ {
+-	struct page_cgroup *pc;
+-
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 	if (!ptr)
+ 		return;
+ 	cgroup_exclude_rmdir(&ptr->css);
+-	pc = lookup_page_cgroup(page);
+-	mem_cgroup_lru_del_before_commit_swapcache(page);
+-	__mem_cgroup_commit_charge(ptr, page, 1, pc, ctype);
+-	mem_cgroup_lru_add_after_commit_swapcache(page);
++
++	__mem_cgroup_commit_charge_lrucare(page, ptr, ctype);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+ 	 * counted both as mem and swap....double count.
+_
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+origin.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+memcg-document-cgroup-dirty-memory-interfaces.patch
+memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
+
