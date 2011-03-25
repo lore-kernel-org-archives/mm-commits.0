@@ -1,81 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:24:23 -0700
-Message-ID: <201103250724.p2P7OHst025848@imap1.linux-foundation.org>
+Subject: [merged] memcg-simplify-the-way-memory-limits-are-checked.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:24:31 -0700
+Message-ID: <201103250724.p2P7OPbB025857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933712Ab1CYHYc (ORCPT
+	by vger.kernel.org with ESMTP id S933865Ab1CYHYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:24:32 -0400
+	Fri, 25 Mar 2011 03:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: res_counter_read_u64(): fix potential races on 32-bit machines
+     memcg: simplify the way memory limits are checked
 has been removed from the -mm tree.  Its filename was
-     memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines.patch
+     memcg-simplify-the-way-memory-limits-are-checked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: res_counter_read_u64(): fix potential races on 32-bit machines
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: simplify the way memory limits are checked
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-res_counter_read_u64 reads u64 value without lock.  It's dangerous in a
-32bit environment.  Add locking.
+Since transparent huge pages, checking whether memory cgroups are below
+their limits is no longer enough, but the actual amount of chargeable
+space is important.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+To not have more than one limit-checking interface, replace
+memory_cgroup_check_under_limit() and memory_cgroup_check_margin() with a
+single memory_cgroup_margin() that returns the chargeable space and leaves
+the comparison to the callsite.
+
+Soft limits are now checked the other way round, by using the already
+existing function that returns the amount by which soft limits are
+exceeded: res_counter_soft_limit_excess().
+
+Also remove all the corresponding functions on the res_counter side that
+are now no longer used.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/res_counter.h |   72 ++++++----------------------------
+ mm/memcontrol.c             |   49 ++++++++---------------
+ 2 files changed, 31 insertions(+), 90 deletions(-)
 
-diff -puN kernel/res_counter.c~memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines kernel/res_counter.c
---- a/kernel/res_counter.c~memcg-res_counter_read_u64-fix-potential-races-on-32-bit-machines
-+++ a/kernel/res_counter.c
-@@ -126,10 +126,24 @@ ssize_t res_counter_read(struct res_coun
- 			pos, buf, s - buf);
- }
+diff -puN include/linux/res_counter.h~memcg-simplify-the-way-memory-limits-are-checked include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcg-simplify-the-way-memory-limits-are-checked
++++ a/include/linux/res_counter.h
+@@ -129,20 +129,22 @@ int __must_check res_counter_charge(stru
+ void res_counter_uncharge_locked(struct res_counter *counter, unsigned long val);
+ void res_counter_uncharge(struct res_counter *counter, unsigned long val);
  
-+#if BITS_PER_LONG == 32
-+u64 res_counter_read_u64(struct res_counter *counter, int member)
-+{
-+	unsigned long flags;
-+	u64 ret;
-+
-+	spin_lock_irqsave(&counter->lock, flags);
-+	ret = *res_counter_member(counter, member);
-+	spin_unlock_irqrestore(&counter->lock, flags);
-+
-+	return ret;
-+}
-+#else
- u64 res_counter_read_u64(struct res_counter *counter, int member)
+-static inline bool res_counter_limit_check_locked(struct res_counter *cnt)
+-{
+-	if (cnt->usage < cnt->limit)
+-		return true;
+-
+-	return false;
+-}
+-
+-static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
++/**
++ * res_counter_margin - calculate chargeable space of a counter
++ * @cnt: the counter
++ *
++ * Returns the difference between the hard limit and the current usage
++ * of resource counter @cnt.
++ */
++static inline unsigned long long res_counter_margin(struct res_counter *cnt)
  {
- 	return *res_counter_member(counter, member);
- }
-+#endif
+-	if (cnt->usage <= cnt->soft_limit)
+-		return true;
++	unsigned long long margin;
++	unsigned long flags;
  
- int res_counter_memparse_write_strategy(const char *buf,
- 					unsigned long long *res)
+-	return false;
++	spin_lock_irqsave(&cnt->lock, flags);
++	margin = cnt->limit - cnt->usage;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return margin;
+ }
+ 
+ /**
+@@ -167,52 +169,6 @@ res_counter_soft_limit_excess(struct res
+ 	return excess;
+ }
+ 
+-/*
+- * Helper function to detect if the cgroup is within it's limit or
+- * not. It's currently called from cgroup_rss_prepare()
+- */
+-static inline bool res_counter_check_under_limit(struct res_counter *cnt)
+-{
+-	bool ret;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cnt->lock, flags);
+-	ret = res_counter_limit_check_locked(cnt);
+-	spin_unlock_irqrestore(&cnt->lock, flags);
+-	return ret;
+-}
+-
+-/**
+- * res_counter_check_margin - check if the counter allows charging
+- * @cnt: the resource counter to check
+- * @bytes: the number of bytes to check the remaining space against
+- *
+- * Returns a boolean value on whether the counter can be charged
+- * @bytes or whether this would exceed the limit.
+- */
+-static inline bool res_counter_check_margin(struct res_counter *cnt,
+-					    unsigned long bytes)
+-{
+-	bool ret;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cnt->lock, flags);
+-	ret = cnt->limit - cnt->usage >= bytes;
+-	spin_unlock_irqrestore(&cnt->lock, flags);
+-	return ret;
+-}
+-
+-static inline bool res_counter_check_within_soft_limit(struct res_counter *cnt)
+-{
+-	bool ret;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cnt->lock, flags);
+-	ret = res_counter_soft_limit_check_locked(cnt);
+-	spin_unlock_irqrestore(&cnt->lock, flags);
+-	return ret;
+-}
+-
+ static inline void res_counter_reset_max(struct res_counter *cnt)
+ {
+ 	unsigned long flags;
+diff -puN mm/memcontrol.c~memcg-simplify-the-way-memory-limits-are-checked mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-the-way-memory-limits-are-checked
++++ a/mm/memcontrol.c
+@@ -504,11 +504,6 @@ static void mem_cgroup_remove_from_trees
+ 	}
+ }
+ 
+-static inline unsigned long mem_cgroup_get_excess(struct mem_cgroup *mem)
+-{
+-	return res_counter_soft_limit_excess(&mem->res) >> PAGE_SHIFT;
+-}
+-
+ static struct mem_cgroup_per_zone *
+ __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_zone *mctz)
+ {
+@@ -1127,33 +1122,21 @@ unsigned long mem_cgroup_isolate_pages(u
+ #define mem_cgroup_from_res_counter(counter, member)	\
+ 	container_of(counter, struct mem_cgroup, member)
+ 
+-static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
+-{
+-	if (do_swap_account) {
+-		if (res_counter_check_under_limit(&mem->res) &&
+-			res_counter_check_under_limit(&mem->memsw))
+-			return true;
+-	} else
+-		if (res_counter_check_under_limit(&mem->res))
+-			return true;
+-	return false;
+-}
+-
+ /**
+- * mem_cgroup_check_margin - check if the memory cgroup allows charging
+- * @mem: memory cgroup to check
+- * @bytes: the number of bytes the caller intends to charge
++ * mem_cgroup_margin - calculate chargeable space of a memory cgroup
++ * @mem: the memory cgroup
+  *
+- * Returns a boolean value on whether @mem can be charged @bytes or
+- * whether this would exceed the limit.
++ * Returns the maximum amount of memory @mem can be charged with, in
++ * bytes.
+  */
+-static bool mem_cgroup_check_margin(struct mem_cgroup *mem, unsigned long bytes)
++static unsigned long long mem_cgroup_margin(struct mem_cgroup *mem)
+ {
+-	if (!res_counter_check_margin(&mem->res, bytes))
+-		return false;
+-	if (do_swap_account && !res_counter_check_margin(&mem->memsw, bytes))
+-		return false;
+-	return true;
++	unsigned long long margin;
++
++	margin = res_counter_margin(&mem->res);
++	if (do_swap_account)
++		margin = min(margin, res_counter_margin(&mem->memsw));
++	return margin;
+ }
+ 
+ static unsigned int get_swappiness(struct mem_cgroup *memcg)
+@@ -1420,7 +1403,9 @@ static int mem_cgroup_hierarchical_recla
+ 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
+ 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
+ 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
+-	unsigned long excess = mem_cgroup_get_excess(root_mem);
++	unsigned long excess;
++
++	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
+ 
+ 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
+ 	if (root_mem->memsw_is_minimum)
+@@ -1477,9 +1462,9 @@ static int mem_cgroup_hierarchical_recla
+ 			return ret;
+ 		total += ret;
+ 		if (check_soft) {
+-			if (res_counter_check_within_soft_limit(&root_mem->res))
++			if (!res_counter_soft_limit_excess(&root_mem->res))
+ 				return total;
+-		} else if (mem_cgroup_check_under_limit(root_mem))
++		} else if (mem_cgroup_margin(root_mem))
+ 			return 1 + total;
+ 	}
+ 	return total;
+@@ -1898,7 +1883,7 @@ static int __mem_cgroup_do_charge(struct
+ 
+ 	ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, NULL,
+ 					      gfp_mask, flags);
+-	if (mem_cgroup_check_margin(mem_over_limit, csize))
++	if (mem_cgroup_margin(mem_over_limit) >= csize)
+ 		return CHARGE_RETRY;
+ 	/*
+ 	 * Even though the limit is exceeded at this point, reclaim
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
 memcg-document-cgroup-dirty-memory-interfaces.patch
 memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 memcg-add-dirty-page-accounting-infrastructure.patch
