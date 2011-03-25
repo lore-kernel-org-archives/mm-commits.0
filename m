@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:24:57 -0700
-Message-ID: <201103250724.p2P7OpKX025965@imap1.linux-foundation.org>
+Subject: [merged] memcg-keep-only-one-charge-cancelling-function.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:24:55 -0700
+Message-ID: <201103250724.p2P7On4N025961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933852Ab1CYHZB (ORCPT
+	by vger.kernel.org with ESMTP id S933849Ab1CYHZB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Mar 2011 03:25:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,21 @@ To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.co
 
 
 The patch titled
-     memcg: convert per-cpu stock from bytes to page granularity
+     memcg: keep only one charge cancelling function
 has been removed from the -mm tree.  Its filename was
-     memcg-convert-per-cpu-stock-from-bytes-to-page-granularity.patch
+     memcg-keep-only-one-charge-cancelling-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: convert per-cpu stock from bytes to page granularity
+Subject: memcg: keep only one charge cancelling function
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-We never keep subpage quantities in the per-cpu stock.
+We have two charge cancelling functions: one takes a page count, the other
+a page size.  The second one just divides the parameter by PAGE_SIZE and
+then calls the first one.  This is trivial, no need for an extra function.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -36,87 +38,75 @@ Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-convert-per-cpu-stock-from-bytes-to-page-granularity mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-convert-per-cpu-stock-from-bytes-to-page-granularity
+diff -puN mm/memcontrol.c~memcg-keep-only-one-charge-cancelling-function mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-keep-only-one-charge-cancelling-function
 +++ a/mm/memcontrol.c
-@@ -1650,14 +1650,14 @@ EXPORT_SYMBOL(mem_cgroup_update_page_sta
- #define CHARGE_SIZE	(32 * PAGE_SIZE)
- struct memcg_stock_pcp {
- 	struct mem_cgroup *cached; /* this never be root cgroup */
--	int charge;
-+	unsigned int nr_pages;
- 	struct work_struct work;
- };
- static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
- static atomic_t memcg_drain_count;
- 
- /*
-- * Try to consume stocked charge on this cpu. If success, PAGE_SIZE is consumed
-+ * Try to consume stocked charge on this cpu. If success, one page is consumed
-  * from local stock and true is returned. If the stock is 0 or charges from a
-  * cgroup which is not current target, returns false. This stock will be
-  * refilled.
-@@ -1668,8 +1668,8 @@ static bool consume_stock(struct mem_cgr
- 	bool ret = true;
- 
- 	stock = &get_cpu_var(memcg_stock);
--	if (mem == stock->cached && stock->charge)
--		stock->charge -= PAGE_SIZE;
-+	if (mem == stock->cached && stock->nr_pages)
-+		stock->nr_pages--;
- 	else /* need to call res_counter_charge */
- 		ret = false;
- 	put_cpu_var(memcg_stock);
-@@ -1683,13 +1683,15 @@ static void drain_stock(struct memcg_sto
- {
- 	struct mem_cgroup *old = stock->cached;
- 
--	if (stock->charge) {
--		res_counter_uncharge(&old->res, stock->charge);
-+	if (stock->nr_pages) {
-+		unsigned long bytes = stock->nr_pages * PAGE_SIZE;
-+
-+		res_counter_uncharge(&old->res, bytes);
- 		if (do_swap_account)
--			res_counter_uncharge(&old->memsw, stock->charge);
-+			res_counter_uncharge(&old->memsw, bytes);
-+		stock->nr_pages = 0;
- 	}
- 	stock->cached = NULL;
--	stock->charge = 0;
- }
- 
- /*
-@@ -1706,7 +1708,7 @@ static void drain_local_stock(struct wor
-  * Cache charges(val) which is from res_counter, to local per_cpu area.
-  * This will be consumed by consume_stock() function, later.
+@@ -2031,21 +2031,17 @@ bypass:
+  * gotten by try_charge().
   */
--static void refill_stock(struct mem_cgroup *mem, int val)
-+static void refill_stock(struct mem_cgroup *mem, unsigned int nr_pages)
+ static void __mem_cgroup_cancel_charge(struct mem_cgroup *mem,
+-							unsigned long count)
++				       unsigned int nr_pages)
  {
- 	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
- 
-@@ -1714,7 +1716,7 @@ static void refill_stock(struct mem_cgro
- 		drain_stock(stock);
- 		stock->cached = mem;
+ 	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE * count);
++		unsigned long bytes = nr_pages * PAGE_SIZE;
++
++		res_counter_uncharge(&mem->res, bytes);
+ 		if (do_swap_account)
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE * count);
++			res_counter_uncharge(&mem->memsw, bytes);
  	}
--	stock->charge += val;
-+	stock->nr_pages += nr_pages;
- 	put_cpu_var(memcg_stock);
  }
  
-@@ -2012,7 +2014,7 @@ again:
- 	} while (ret != CHARGE_OK);
+-static void mem_cgroup_cancel_charge(struct mem_cgroup *mem,
+-				     int page_size)
+-{
+-	__mem_cgroup_cancel_charge(mem, page_size >> PAGE_SHIFT);
+-}
+-
+ /*
+  * A helper function to get mem_cgroup from ID. must be called under
+  * rcu_read_lock(). The caller must check css_is_removed() or some if
+@@ -2104,7 +2100,7 @@ static void __mem_cgroup_commit_charge(s
+ 	lock_page_cgroup(pc);
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+-		mem_cgroup_cancel_charge(mem, page_size);
++		__mem_cgroup_cancel_charge(mem, nr_pages);
+ 		return;
+ 	}
+ 	/*
+@@ -2242,7 +2238,7 @@ static int mem_cgroup_move_account(struc
+ 	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -nr_pages);
+ 	if (uncharge)
+ 		/* This is not "cancel", but cancel_charge does all we need. */
+-		mem_cgroup_cancel_charge(from, charge_size);
++		__mem_cgroup_cancel_charge(from, nr_pages);
  
- 	if (csize > page_size)
--		refill_stock(mem, csize - page_size);
-+		refill_stock(mem, (csize - page_size) >> PAGE_SHIFT);
- 	css_put(&mem->css);
- done:
- 	*memcg = mem;
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+@@ -2307,7 +2303,7 @@ static int mem_cgroup_move_parent(struct
+ 
+ 	ret = mem_cgroup_move_account(page, pc, child, parent, true, page_size);
+ 	if (ret)
+-		mem_cgroup_cancel_charge(parent, page_size);
++		__mem_cgroup_cancel_charge(parent, page_size >> PAGE_SHIFT);
+ 
+ 	if (page_size > PAGE_SIZE)
+ 		compound_unlock_irqrestore(page, flags);
+@@ -2538,7 +2534,7 @@ void mem_cgroup_cancel_charge_swapin(str
+ 		return;
+ 	if (!mem)
+ 		return;
+-	mem_cgroup_cancel_charge(mem, PAGE_SIZE);
++	__mem_cgroup_cancel_charge(mem, 1);
+ }
+ 
+ static void
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
