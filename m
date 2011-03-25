@@ -1,127 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-add-some-missing-input-constraint-checks.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:27 -0700
-Message-ID: <201103250726.p2P7QLn7026140@imap1.linux-foundation.org>
+Subject: [merged] pid-remove-the-child_reaper-special-case-in-init-mainc.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:34 -0700
+Message-ID: <201103250726.p2P7QS0o026146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753752Ab1CYH0b (ORCPT
+	by vger.kernel.org with ESMTP id S1753752Ab1CYH0j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:31 -0400
+	Fri, 25 Mar 2011 03:26:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pholasek@redhat.com, adobriyan@gmail.com, fengguang.wu@intel.com, hidave.darkstar@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adobriyan@gmail.com, daniel.lezcano@free.fr, oleg@redhat.com, serge@hallyn.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: add some missing input constraint checks
+     pid: remove the child_reaper special case in init/main.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-some-missing-input-constraint-checks.patch
+     pid-remove-the-child_reaper-special-case-in-init-mainc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add some missing input constraint checks
-From: Petr Holasek <pholasek@redhat.com>
+Subject: pid: remove the child_reaper special case in init/main.c
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Add boundaries of allowed input ranges for: dirty_expire_centisecs,
-drop_caches, overcommit_memory, page-cluster and panic_on_oom.
+This patchset is a cleanup and a preparation to unshare the pid namespace.
+These prerequisites prepare for Eric's patchset to give a file descriptor
+to a namespace and join an existing namespace.
 
-Signed-off-by: Petr Holasek <pholasek@redhat.com>
-Acked-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+
+This patch:
+
+It turns out that the existing assignment in copy_process of the
+child_reaper can handle the initial assignment of child_reaper we just
+need to generalize the test in kernel/fork.c
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Serge E. Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c |    6 +++++-
- kernel/sysctl.c  |   17 +++++++++++++----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ include/linux/pid.h |   11 +++++++++++
+ init/main.c         |    9 ---------
+ kernel/fork.c       |    2 +-
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN fs/drop_caches.c~sysctl-add-some-missing-input-constraint-checks fs/drop_caches.c
---- a/fs/drop_caches.c~sysctl-add-some-missing-input-constraint-checks
-+++ a/fs/drop_caches.c
-@@ -45,7 +45,11 @@ static void drop_slab(void)
- int drop_caches_sysctl_handler(ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
--	proc_dointvec_minmax(table, write, buffer, length, ppos);
-+	int ret;
+diff -puN include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc include/linux/pid.h
+--- a/include/linux/pid.h~pid-remove-the-child_reaper-special-case-in-init-mainc
++++ a/include/linux/pid.h
+@@ -141,6 +141,17 @@ static inline struct pid_namespace *ns_o
+ }
+ 
+ /*
++ * is_child_reaper returns true if the pid is the init process
++ * of the current namespace. As this one could be checked before
++ * pid_ns->child_reaper is assigned in copy_process, we check
++ * with the pid number.
++ */
++static inline bool is_child_reaper(struct pid *pid)
++{
++	return pid->numbers[pid->level].nr == 1;
++}
 +
-+	ret = proc_dointvec_minmax(table, write, buffer, length, ppos);
-+	if (ret)
-+		return ret;
- 	if (write) {
- 		if (sysctl_drop_caches & 1)
- 			iterate_supers(drop_pagecache_sb, NULL);
-diff -puN kernel/sysctl.c~sysctl-add-some-missing-input-constraint-checks kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-some-missing-input-constraint-checks
-+++ a/kernel/sysctl.c
-@@ -117,6 +117,7 @@ static int neg_one = -1;
- static int zero;
- static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
-+static int __maybe_unused three = 3;
- static unsigned long one_ul = 1;
- static int one_hundred = 100;
- #ifdef CONFIG_PRINTK
-@@ -971,14 +972,18 @@ static struct ctl_table vm_table[] = {
- 		.data		= &sysctl_overcommit_memory,
- 		.maxlen		= sizeof(sysctl_overcommit_memory),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &two,
- 	},
- 	{
- 		.procname	= "panic_on_oom",
- 		.data		= &sysctl_panic_on_oom,
- 		.maxlen		= sizeof(sysctl_panic_on_oom),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &two,
- 	},
- 	{
- 		.procname	= "oom_kill_allocating_task",
-@@ -1006,7 +1011,8 @@ static struct ctl_table vm_table[] = {
- 		.data		= &page_cluster,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
- 	},
- 	{
- 		.procname	= "dirty_background_ratio",
-@@ -1054,7 +1060,8 @@ static struct ctl_table vm_table[] = {
- 		.data		= &dirty_expire_interval,
- 		.maxlen		= sizeof(dirty_expire_interval),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
- 	},
- 	{
- 		.procname	= "nr_pdflush_threads",
-@@ -1130,6 +1137,8 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= drop_caches_sysctl_handler,
-+		.extra1		= &one,
-+		.extra2		= &three,
- 	},
- #ifdef CONFIG_COMPACTION
- 	{
++/*
+  * the helpers to get the pid's id seen from different namespaces
+  *
+  * pid_nr()    : global id, i.e. the id seen from the init namespace;
+diff -puN init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc init/main.c
+--- a/init/main.c~pid-remove-the-child_reaper-special-case-in-init-mainc
++++ a/init/main.c
+@@ -787,15 +787,6 @@ static int __init kernel_init(void * unu
+ 	 * init can run on any cpu.
+ 	 */
+ 	set_cpus_allowed_ptr(current, cpu_all_mask);
+-	/*
+-	 * Tell the world that we're going to be the grim
+-	 * reaper of innocent orphaned children.
+-	 *
+-	 * We don't want people to have to make incorrect
+-	 * assumptions about where in the task array this
+-	 * can be found.
+-	 */
+-	init_pid_ns.child_reaper = current;
+ 
+ 	cad_pid = task_pid(current);
+ 
+diff -puN kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc kernel/fork.c
+--- a/kernel/fork.c~pid-remove-the-child_reaper-special-case-in-init-mainc
++++ a/kernel/fork.c
+@@ -1296,7 +1296,7 @@ static struct task_struct *copy_process(
+ 		tracehook_finish_clone(p, clone_flags, trace);
+ 
+ 		if (thread_group_leader(p)) {
+-			if (clone_flags & CLONE_NEWPID)
++			if (is_child_reaper(pid))
+ 				p->nsproxy->pid_ns->child_reaper = p;
+ 
+ 			p->signal->leader_pid = pid;
 _
 
-Patches currently in -mm which might be from pholasek@redhat.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
+ipcns-fix-use-after-free-in-free_ipc_ns.patch
+cgroup-remove-the-ns_cgroup.patch
+sysctl-add-proc_dointvec_bool-handler.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
+kexec-remove-kmsg_dump_kexec.patch
 
