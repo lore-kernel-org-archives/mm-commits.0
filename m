@@ -1,75 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-null-check-from-lookup_page_cgroup-result.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:24:37 -0700
-Message-ID: <201103250724.p2P7OVRS025866@imap1.linux-foundation.org>
+Subject: [merged] memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:24:41 -0700
+Message-ID: <201103250724.p2P7OZga025872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754696Ab1CYHYo (ORCPT
+	by vger.kernel.org with ESMTP id S933849Ab1CYHYt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:24:44 -0400
+	Fri, 25 Mar 2011 03:24:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: remove NULL check from lookup_page_cgroup() result
+     memcg: no uncharged pages reach page_cgroup_zoneinfo
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-null-check-from-lookup_page_cgroup-result.patch
+     memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove NULL check from lookup_page_cgroup() result
+Subject: memcg: no uncharged pages reach page_cgroup_zoneinfo
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-The page_cgroup array is set up before even fork is initialized.  I
-seriously doubt that this code executes before the array is alloc'd.
+This patch series removes the direct page pointer from struct page_cgroup,
+which saves 20% of per-page memcg memory overhead (Fedora and Ubuntu
+enable memcg per default, openSUSE apparently too).
+
+The node id or section number is encoded in the remaining free bits of
+pc->flags which allows calculating the corresponding page without the
+extra pointer.
+
+I ran, what I think is, a worst-case microbenchmark that just cats a large
+sparse file to /dev/null, because it means that walking the LRU list on
+behalf of per-cgroup reclaim and looking up pages from page_cgroups is
+happening constantly and at a high rate.  But it made no measurable
+difference.  A profile reported a 0.11% share of the new
+lookup_cgroup_page() function in this benchmark.
+
+
+This patch:
+
+All callsites check PCG_USED before passing pc->mem_cgroup, so the latter
+is never NULL.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-null-check-from-lookup_page_cgroup-result mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-null-check-from-lookup_page_cgroup-result
+diff -puN mm/memcontrol.c~memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-no-uncharged-pages-reach-page_cgroup_zoneinfo
 +++ a/mm/memcontrol.c
-@@ -2369,10 +2369,7 @@ static int mem_cgroup_charge_common(stru
- 	}
+@@ -370,9 +370,6 @@ page_cgroup_zoneinfo(struct page_cgroup 
+ 	int nid = page_cgroup_nid(pc);
+ 	int zid = page_cgroup_zid(pc);
  
- 	pc = lookup_page_cgroup(page);
--	/* can happen at boot */
--	if (unlikely(!pc))
--		return 0;
--	prefetchw(pc);
-+	BUG_ON(!pc); /* XXX: remove this and move pc lookup into commit */
- 
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, oom, page_size);
- 	if (ret || !mem)
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-memcg-document-cgroup-dirty-memory-interfaces.patch
-memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
-memcg-add-dirty-page-accounting-infrastructure.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
-memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
-memcg-add-dirty-limiting-routines.patch
-memcg-check-memcg-dirty-limits-in-page-writeback.patch
-memcg-make-background-writeback-memcg-aware.patch
-
+-	if (!mem)
+-		return NULL;
