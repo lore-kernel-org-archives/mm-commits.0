@@ -1,210 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-introduce-little-endian-bitops.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:23:51 -0700
-Message-ID: <201103250723.p2P7Njs4025752@imap1.linux-foundation.org>
+Subject: [merged] s390-introduce-little-endian-bitops.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:23:48 -0700
+Message-ID: <201103250723.p2P7NguO025746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402Ab1CYHXw (ORCPT
+	by vger.kernel.org with ESMTP id S1754729Ab1CYHXw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Mar 2011 03:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, geert@linux-m68k.org, hpa@zytor.com, schwab@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, heiko.carstens@de.ibm.com, hpa@zytor.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: introduce little-endian bitops
+     s390: introduce little-endian bitops
 has been removed from the -mm tree.  Its filename was
-     m68k-introduce-little-endian-bitops.patch
+     s390-introduce-little-endian-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: introduce little-endian bitops
+Subject: s390: introduce little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Introduce little-endian bit operations by renaming native ext2 bit
-operations and changing find_*_bit_le() to take a "void *".  The ext2 bit
-operations are kept as wrapper macros using little-endian bit operations
-to maintain bisectability until the conversions are finished.
+operations.  The ext2 bit operations are kept as wrapper macros using
+little-endian bit operations to maintain bisectability until the
+conversions are finished.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops_mm.h |   93 ++++++++++++++++++++--------
- 1 file changed, 67 insertions(+), 26 deletions(-)
+ arch/s390/include/asm/bitops.h |   69 +++++++++++++++++++++++--------
+ 1 file changed, 52 insertions(+), 17 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops_mm.h~m68k-introduce-little-endian-bitops arch/m68k/include/asm/bitops_mm.h
---- a/arch/m68k/include/asm/bitops_mm.h~m68k-introduce-little-endian-bitops
-+++ a/arch/m68k/include/asm/bitops_mm.h
-@@ -359,24 +359,45 @@ static inline int minix_test_bit(int nr,
- 	return (p[nr >> 4] & (1U << (nr & 15))) != 0;
+diff -puN arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops arch/s390/include/asm/bitops.h
+--- a/arch/s390/include/asm/bitops.h~s390-introduce-little-endian-bitops
++++ a/arch/s390/include/asm/bitops.h
+@@ -742,18 +742,42 @@ static inline int sched_find_first_bit(u
+  *    23 22 21 20 19 18 17 16 31 30 29 28 27 26 25 24
+  */
+ 
+-#define ext2_set_bit(nr, addr)       \
+-	__test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
+-#define ext2_set_bit_atomic(lock, nr, addr)       \
+-	test_and_set_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
+-#define ext2_clear_bit(nr, addr)     \
+-	__test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
+-#define ext2_clear_bit_atomic(lock, nr, addr)     \
+-	test_and_clear_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
+-#define ext2_test_bit(nr, addr)      \
+-	test_bit((nr)^(__BITOPS_WORDSIZE - 8), (unsigned long *)addr)
++static inline void __set_bit_le(unsigned long nr, void *addr)
++{
++	__set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline void __clear_bit_le(unsigned long nr, void *addr)
++{
++	__clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int __test_and_set_bit_le(unsigned long nr, void *addr)
++{
++	return __test_and_set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int test_and_set_bit_le(unsigned long nr, void *addr)
++{
++	return test_and_set_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
+ 
+-static inline int ext2_find_first_zero_bit(void *vaddr, unsigned int size)
++static inline int __test_and_clear_bit_le(unsigned long nr, void *addr)
++{
++	return __test_and_clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int test_and_clear_bit_le(unsigned long nr, void *addr)
++{
++	return test_and_clear_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int test_bit_le(unsigned long nr, const void *addr)
++{
++	return test_bit(nr ^ (__BITOPS_WORDSIZE - 8), addr);
++}
++
++static inline int find_first_zero_bit_le(void *vaddr, unsigned int size)
+ {
+ 	unsigned long bytes, bits;
+ 
+@@ -764,7 +788,7 @@ static inline int ext2_find_first_zero_b
+ 	return (bits < size) ? bits : size;
  }
  
--/* Bitmap functions for the ext2 filesystem. */
-+/* Bitmap functions for the little endian bitmap. */
- 
--#define ext2_set_bit(nr, addr)			__test_and_set_bit((nr) ^ 24, (unsigned long *)(addr))
--#define ext2_set_bit_atomic(lock, nr, addr)	test_and_set_bit((nr) ^ 24, (unsigned long *)(addr))
--#define ext2_clear_bit(nr, addr)		__test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
--#define ext2_clear_bit_atomic(lock, nr, addr)	test_and_clear_bit((nr) ^ 24, (unsigned long *)(addr))
--#define ext2_find_next_zero_bit(addr, size, offset) \
--	find_next_zero_bit_le((unsigned long *)addr, size, offset)
--#define ext2_find_next_bit(addr, size, offset) \
--	find_next_bit_le((unsigned long *)addr, size, offset)
-+static inline void __set_bit_le(int nr, void *addr)
-+{
-+	__set_bit(nr ^ 24, addr);
-+}
- 
--static inline int ext2_test_bit(int nr, const void *vaddr)
-+static inline void __clear_bit_le(int nr, void *addr)
-+{
-+	__clear_bit(nr ^ 24, addr);
-+}
-+
-+static inline int __test_and_set_bit_le(int nr, void *addr)
-+{
-+	return __test_and_set_bit(nr ^ 24, addr);
-+}
-+
-+static inline int test_and_set_bit_le(int nr, void *addr)
-+{
-+	return test_and_set_bit(nr ^ 24, addr);
-+}
-+
-+static inline int __test_and_clear_bit_le(int nr, void *addr)
-+{
-+	return __test_and_clear_bit(nr ^ 24, addr);
-+}
-+
-+static inline int test_and_clear_bit_le(int nr, void *addr)
-+{
-+	return test_and_clear_bit(nr ^ 24, addr);
-+}
-+
-+static inline int test_bit_le(int nr, const void *vaddr)
+-static inline int ext2_find_next_zero_bit(void *vaddr, unsigned long size,
++static inline int find_next_zero_bit_le(void *vaddr, unsigned long size,
+ 					  unsigned long offset)
  {
- 	const unsigned char *p = vaddr;
- 	return (p[nr >> 3] & (1U << (nr & 7))) != 0;
- }
- 
--static inline int ext2_find_first_zero_bit(const void *vaddr, unsigned size)
-+static inline int find_first_zero_bit_le(const void *vaddr, unsigned size)
- {
- 	const unsigned long *p = vaddr, *addr = vaddr;
- 	int res;
-@@ -393,33 +414,36 @@ static inline int ext2_find_first_zero_b
- 
- 	--p;
- 	for (res = 0; res < 32; res++)
--		if (!ext2_test_bit (res, p))
-+		if (!test_bit_le(res, p))
- 			break;
- 	return (p - addr) * 32 + res;
- }
- 
--static inline unsigned long find_next_zero_bit_le(const unsigned long *addr,
-+static inline unsigned long find_next_zero_bit_le(const void *addr,
- 		unsigned long size, unsigned long offset)
- {
--	const unsigned long *p = addr + (offset >> 5);
-+	const unsigned long *p = addr;
- 	int bit = offset & 31UL, res;
- 
- 	if (offset >= size)
- 		return size;
- 
-+	p += offset >> 5;
-+
- 	if (bit) {
-+		offset -= bit;
- 		/* Look for zero in first longword */
- 		for (res = bit; res < 32; res++)
--			if (!ext2_test_bit (res, p))
--				return (p - addr) * 32 + res;
-+			if (!test_bit_le(res, p))
-+				return offset + res;
+         unsigned long *addr = vaddr, *p;
+@@ -790,11 +814,10 @@ static inline int ext2_find_next_zero_bi
+ 		size -= __BITOPS_WORDSIZE;
  		p++;
-+		offset += 32;
- 	}
- 	/* No zero yet, search remaining full bytes for a zero */
--	res = ext2_find_first_zero_bit (p, size - 32 * (p - addr));
--	return (p - addr) * 32 + res;
-+	return offset + find_first_zero_bit_le(p, size - offset);
+         }
+-	return offset + ext2_find_first_zero_bit(p, size);
++	return offset + find_first_zero_bit_le(p, size);
  }
  
--static inline int ext2_find_first_bit(const void *vaddr, unsigned size)
-+static inline int find_first_bit_le(const void *vaddr, unsigned size)
+-static inline unsigned long ext2_find_first_bit(void *vaddr,
+-						unsigned long size)
++static inline unsigned long find_first_bit_le(void *vaddr, unsigned long size)
  {
- 	const unsigned long *p = vaddr, *addr = vaddr;
- 	int res;
-@@ -435,32 +459,49 @@ static inline int ext2_find_first_bit(co
+ 	unsigned long bytes, bits;
  
- 	--p;
- 	for (res = 0; res < 32; res++)
--		if (ext2_test_bit(res, p))
-+		if (test_bit_le(res, p))
- 			break;
- 	return (p - addr) * 32 + res;
+@@ -805,7 +828,7 @@ static inline unsigned long ext2_find_fi
+ 	return (bits < size) ? bits : size;
  }
  
--static inline unsigned long find_next_bit_le(const unsigned long *addr,
-+static inline unsigned long find_next_bit_le(const void *addr,
- 		unsigned long size, unsigned long offset)
+-static inline int ext2_find_next_bit(void *vaddr, unsigned long size,
++static inline int find_next_bit_le(void *vaddr, unsigned long size,
+ 				     unsigned long offset)
  {
--	const unsigned long *p = addr + (offset >> 5);
-+	const unsigned long *p = addr;
- 	int bit = offset & 31UL, res;
- 
- 	if (offset >= size)
- 		return size;
- 
-+	p += offset >> 5;
-+
- 	if (bit) {
-+		offset -= bit;
- 		/* Look for one in first longword */
- 		for (res = bit; res < 32; res++)
--			if (ext2_test_bit(res, p))
--				return (p - addr) * 32 + res;
-+			if (test_bit_le(res, p))
-+				return offset + res;
+ 	unsigned long *addr = vaddr, *p;
+@@ -831,9 +854,21 @@ static inline int ext2_find_next_bit(voi
+ 		size -= __BITOPS_WORDSIZE;
  		p++;
-+		offset += 32;
  	}
- 	/* No set bit yet, search remaining full bytes for a set bit */
--	res = ext2_find_first_bit(p, size - 32 * (p - addr));
--	return (p - addr) * 32 + res;
-+	return offset + find_first_bit_le(p, size - offset);
+-	return offset + ext2_find_first_bit(p, size);
++	return offset + find_first_bit_le(p, size);
  }
  
-+/* Bitmap functions for the ext2 filesystem. */
-+
 +#define ext2_set_bit __test_and_set_bit_le
 +#define ext2_set_bit_atomic(lock, nr, addr)	\
 +	test_and_set_bit_le(nr, addr)
 +#define ext2_clear_bit __test_and_clear_bit_le
 +#define ext2_clear_bit_atomic(lock, nr, addr)	\
 +	test_and_clear_bit_le(nr, addr)
-+#define ext2_find_next_zero_bit find_next_zero_bit_le
-+#define ext2_find_next_bit find_next_bit_le
 +#define ext2_test_bit test_bit_le
 +#define ext2_find_first_zero_bit find_first_zero_bit_le
++#define ext2_find_next_zero_bit find_next_zero_bit_le
 +#define ext2_find_first_bit find_first_bit_le
++#define ext2_find_next_bit find_next_bit_le
 +
- #endif /* __KERNEL__ */
+ #include <asm-generic/bitops/minix.h>
  
- #endif /* _M68K_BITOPS_H */
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
