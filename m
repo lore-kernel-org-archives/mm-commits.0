@@ -1,159 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch removed from -mm tree
-Date: Fri, 25 Mar 2011 00:26:37 -0700
-Message-ID: <201103250726.p2P7QV9q026150@imap1.linux-foundation.org>
+Subject: [merged] userns-add-a-user_namespace-as-creator-owner-of-uts_namespace.patch removed from -mm tree
+Date: Fri, 25 Mar 2011 00:26:43 -0700
+Message-ID: <201103250726.p2P7Qb5n026160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933863Ab1CYH0m (ORCPT
+	by vger.kernel.org with ESMTP id S933986Ab1CYH0v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:26:42 -0400
+	Fri, 25 Mar 2011 03:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@gmail.com, daniel.lezcano@free.fr, oleg@redhat.com, serge@hallyn.com, mm-commits@vger.kernel.org
+To: serge@hallyn.com, daniel.lezcano@free.fr, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pidns: call pid_ns_prepare_proc() from create_pid_namespace()
+     userns: add a user_namespace as creator/owner of uts_namespace
 has been removed from the -mm tree.  Its filename was
-     pidns-call-pid_ns_prepare_proc-from-create_pid_namespace.patch
+     userns-add-a-user_namespace-as-creator-owner-of-uts_namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pidns: call pid_ns_prepare_proc() from create_pid_namespace()
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: userns: add a user_namespace as creator/owner of uts_namespace
+From: "Serge E. Hallyn" <serge@hallyn.com>
 
-Reorganize proc_get_sb() so it can be called before the struct pid of the
-first process is allocated.
+The expected course of development for user namespaces targeted
+capabilities is laid out at https://wiki.ubuntu.com/UserNamespace.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
+Goals:
+
+- Make it safe for an unprivileged user to unshare namespaces.  They
+  will be privileged with respect to the new namespace, but this should
+  only include resources which the unprivileged user already owns.
+
+- Provide separate limits and accounting for userids in different
+  namespaces.  
+
+Status:
+
+  Currently (as of 2.6.38) you can clone with the CLONE_NEWUSER flag to
+  get a new user namespace if you have the CAP_SYS_ADMIN, CAP_SETUID, and
+  CAP_SETGID capabilities.  What this gets you is a whole new set of
+  userids, meaning that user 500 will have a different 'struct user' in
+  your namespace than in other namespaces.  So any accounting information
+  stored in struct user will be unique to your namespace.
+
+  However, throughout the kernel there are checks which
+
+  - simply check for a capability.  Since root in a child namespace
+    has all capabilities, this means that a child namespace is not
+    constrained.
+
+  - simply compare uid1 == uid2.  Since these are the integer uids,
+    uid 500 in namespace 1 will be said to be equal to uid 500 in
+    namespace 2.  
+
+  As a result, the lxc implementation at lxc.sf.net does not use user
+  namespaces.  This is actually helpful because it leaves us free to
+  develop user namespaces in such a way that, for some time, user
+  namespaces may be unuseful.  
+
+
+Bugs aside, this patchset is supposed to not at all affect systems which
+are not actively using user namespaces, and only restrict what tasks in
+child user namespace can do.  They begin to limit privilege to a user
+namespace, so that root in a container cannot kill or ptrace tasks in the
+parent user namespace, and can only get world access rights to files. 
+Since all files currently belong to the initila user namespace, that means
+that child user namespaces can only get world access rights to *all*
+files.  While this temporarily makes user namespaces bad for system
+containers, it starts to get useful for some sandboxing.
+
+I've run the 'runltplite.sh' with and without this patchset and found no
+difference.
+
+
+
+This patch:
+
+copy_process() handles CLONE_NEWUSER before the rest of the namespaces. 
+So in the case of clone(CLONE_NEWUSER|CLONE_NEWUTS) the new uts namespace
+will have the new user namespace as its owner.  That is what we want,
+since we want root in that new userns to be able to have privilege over
+it.
+
+Changelog:
+	Feb 15: don't set uts_ns->user_ns if we didn't create
+		a new uts_ns.
+	Feb 23: Move extern init_user_ns declaration from
+		init/version.c to utsname.h.
+
+Signed-off-by: Serge E. Hallyn <serge.hallyn@canonical.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c         |   25 +++++++------------------
- kernel/fork.c          |    6 ------
- kernel/pid_namespace.c |   11 +++++++++--
- 3 files changed, 16 insertions(+), 26 deletions(-)
+ include/linux/utsname.h |    4 ++++
+ init/version.c          |    1 +
+ kernel/nsproxy.c        |    5 +++++
+ kernel/user.c           |    8 ++++++--
+ kernel/utsname.c        |    4 ++++
+ 5 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace fs/proc/root.c
---- a/fs/proc/root.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
-+++ a/fs/proc/root.c
-@@ -43,17 +43,6 @@ static struct dentry *proc_mount(struct 
- 	struct pid_namespace *ns;
- 	struct proc_inode *ei;
- 
--	if (proc_mnt) {
--		/* Seed the root directory with a pid so it doesn't need
--		 * to be special in base.c.  I would do this earlier but
--		 * the only task alive when /proc is mounted the first time
--		 * is the init_task and it doesn't have any pids.
--		 */
--		ei = PROC_I(proc_mnt->mnt_sb->s_root->d_inode);
--		if (!ei->pid)
--			ei->pid = find_get_pid(1);
--	}
--
- 	if (flags & MS_KERNMOUNT)
- 		ns = (struct pid_namespace *)data;
- 	else
-@@ -71,16 +60,16 @@ static struct dentry *proc_mount(struct 
- 			return ERR_PTR(err);
- 		}
- 
--		ei = PROC_I(sb->s_root->d_inode);
--		if (!ei->pid) {
--			rcu_read_lock();
--			ei->pid = get_pid(find_pid_ns(1, ns));
--			rcu_read_unlock();
--		}
--
- 		sb->s_flags |= MS_ACTIVE;
- 	}
- 
-+	ei = PROC_I(sb->s_root->d_inode);
-+	if (!ei->pid) {
-+		rcu_read_lock();
-+		ei->pid = get_pid(find_pid_ns(1, ns));
-+		rcu_read_unlock();
-+	}
-+
- 	return dget(sb->s_root);
- }
- 
-diff -puN kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/fork.c
---- a/kernel/fork.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
-+++ a/kernel/fork.c
-@@ -1187,12 +1187,6 @@ static struct task_struct *copy_process(
- 		pid = alloc_pid(p->nsproxy->pid_ns);
- 		if (!pid)
- 			goto bad_fork_cleanup_io;
--
--		if (clone_flags & CLONE_NEWPID) {
--			retval = pid_ns_prepare_proc(p->nsproxy->pid_ns);
--			if (retval < 0)
--				goto bad_fork_free_pid;
--		}
- 	}
- 
- 	p->pid = pid_nr(pid);
-diff -puN kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-call-pid_ns_prepare_proc-from-create_pid_namespace
-+++ a/kernel/pid_namespace.c
-@@ -14,6 +14,7 @@
+diff -puN include/linux/utsname.h~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace include/linux/utsname.h
+--- a/include/linux/utsname.h~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/include/linux/utsname.h
+@@ -37,9 +37,13 @@ struct new_utsname {
+ #include <linux/nsproxy.h>
  #include <linux/err.h>
- #include <linux/acct.h>
- #include <linux/slab.h>
-+#include <linux/proc_fs.h>
  
- #define BITS_PER_PAGE		(PAGE_SIZE*8)
- 
-@@ -72,7 +73,7 @@ static struct pid_namespace *create_pid_
- {
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
--	int i;
-+	int i, err = -ENOMEM;
- 
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
- 	if (ns == NULL)
-@@ -96,14 +97,20 @@ static struct pid_namespace *create_pid_
- 	for (i = 1; i < PIDMAP_ENTRIES; i++)
- 		atomic_set(&ns->pidmap[i].nr_free, BITS_PER_PAGE);
- 
-+	err = pid_ns_prepare_proc(ns);
-+	if (err)
-+		goto out_put_parent_pid_ns;
++struct user_namespace;
++extern struct user_namespace init_user_ns;
 +
+ struct uts_namespace {
+ 	struct kref kref;
+ 	struct new_utsname name;
++	struct user_namespace *user_ns;
+ };
+ extern struct uts_namespace init_uts_ns;
+ 
+diff -puN init/version.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace init/version.c
+--- a/init/version.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/init/version.c
+@@ -33,6 +33,7 @@ struct uts_namespace init_uts_ns = {
+ 		.machine	= UTS_MACHINE,
+ 		.domainname	= UTS_DOMAINNAME,
+ 	},
++	.user_ns = &init_user_ns,
+ };
+ EXPORT_SYMBOL_GPL(init_uts_ns);
+ 
+diff -puN kernel/nsproxy.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/nsproxy.c
+--- a/kernel/nsproxy.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/nsproxy.c
+@@ -74,6 +74,11 @@ static struct nsproxy *create_new_namesp
+ 		err = PTR_ERR(new_nsp->uts_ns);
+ 		goto out_uts;
+ 	}
++	if (new_nsp->uts_ns != tsk->nsproxy->uts_ns) {
++		put_user_ns(new_nsp->uts_ns->user_ns);
++		new_nsp->uts_ns->user_ns = task_cred_xxx(tsk, user)->user_ns;
++		get_user_ns(new_nsp->uts_ns->user_ns);
++	}
+ 
+ 	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
+ 	if (IS_ERR(new_nsp->ipc_ns)) {
+diff -puN kernel/user.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/user.c
+--- a/kernel/user.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/user.c
+@@ -17,9 +17,13 @@
+ #include <linux/module.h>
+ #include <linux/user_namespace.h>
+ 
++/*
++ * userns count is 1 for root user, 1 for init_uts_ns,
++ * and 1 for... ?
++ */
+ struct user_namespace init_user_ns = {
+ 	.kref = {
+-		.refcount	= ATOMIC_INIT(2),
++		.refcount	= ATOMIC_INIT(3),
+ 	},
+ 	.creator = &root_user,
+ };
+@@ -47,7 +51,7 @@ static struct kmem_cache *uid_cachep;
+  */
+ static DEFINE_SPINLOCK(uidhash_lock);
+ 
+-/* root_user.__count is 2, 1 for init task cred, 1 for init_user_ns->creator */
++/* root_user.__count is 2, 1 for init task cred, 1 for init_user_ns->user_ns */
+ struct user_struct root_user = {
+ 	.__count	= ATOMIC_INIT(2),
+ 	.processes	= ATOMIC_INIT(1),
+diff -puN kernel/utsname.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace kernel/utsname.c
+--- a/kernel/utsname.c~userns-add-a-user_namespace-as-creator-owner-of-uts_namespace
++++ a/kernel/utsname.c
+@@ -14,6 +14,7 @@
+ #include <linux/utsname.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
++#include <linux/user_namespace.h>
+ 
+ static struct uts_namespace *create_uts_ns(void)
+ {
+@@ -40,6 +41,8 @@ static struct uts_namespace *clone_uts_n
+ 
+ 	down_read(&uts_sem);
+ 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
++	ns->user_ns = old_ns->user_ns;
++	get_user_ns(ns->user_ns);
+ 	up_read(&uts_sem);
  	return ns;
- 
-+out_put_parent_pid_ns:
-+	put_pid_ns(parent_pid_ns);
- out_free_map:
- 	kfree(ns->pidmap[0].page);
- out_free:
- 	kmem_cache_free(pid_ns_cachep, ns);
- out:
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(err);
  }
+@@ -71,5 +74,6 @@ void free_uts_ns(struct kref *kref)
+ 	struct uts_namespace *ns;
  
- static void destroy_pid_namespace(struct pid_namespace *ns)
+ 	ns = container_of(kref, struct uts_namespace, kref);
++	put_user_ns(ns->user_ns);
+ 	kfree(ns);
+ }
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from serge@hallyn.com are
 
 origin.patch
-ipcns-fix-use-after-free-in-free_ipc_ns.patch
-cgroup-remove-the-ns_cgroup.patch
-sysctl-add-proc_dointvec_bool-handler.patch
-fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
-kexec-remove-kmsg_dump_kexec.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 
