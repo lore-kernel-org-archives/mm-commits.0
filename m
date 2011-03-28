@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-mem_cgroup_rotate_reclaimable_page.patch added to -mm tree
-Date: Mon, 28 Mar 2011 15:09:15 -0700
-Message-ID: <201103282209.p2SM9Faj000315@imap1.linux-foundation.org>
+Subject: + mm-optimize-pfn-calculation-in-online_page.patch added to -mm tree
+Date: Mon, 28 Mar 2011 15:21:27 -0700
+Message-ID: <201103282221.p2SMLRg9000932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752923Ab1C1WJb (ORCPT
+	by vger.kernel.org with ESMTP id S1752400Ab1C1WWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Mar 2011 18:09:31 -0400
+	Mon, 28 Mar 2011 18:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
+Cc: dkiper@net-space.pl, cl@linux.com, dave@linux.vnet.ibm.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     memcg: fix mem_cgroup_rotate_reclaimable_page()
+     mm: optimize pfn calculation in online_page()
 has been added to the -mm tree.  Its filename is
-     memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
+     mm-optimize-pfn-calculation-in-online_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix mem_cgroup_rotate_reclaimable_page()
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: mm: optimize pfn calculation in online_page()
+From: Daniel Kiper <dkiper@net-space.pl>
 
-commit 3f58a8294333 ("move memcg reclaimable page into tail of inactive
-list") added inline keyword twice in its prototype.
+If CONFIG_FLATMEM is enabled pfn is calculated in online_page() more than
+once.  It is possible to optimize that and use value established at
+beginning of that function.
 
-  CC      arch/x86/kernel/asm-offsets.s
-In file included from include/linux/swap.h:8,
-                 from include/linux/suspend.h:4,
-                 from arch/x86/kernel/asm-offsets.c:12:
-include/linux/memcontrol.h:220: error: duplicate `inline'
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Daniel Kiper <dkiper@net-space.pl>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
+ mm/memory_hotplug.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-mem_cgroup_rotate_reclaimable_page include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-mem_cgroup_rotate_reclaimable_page
-+++ a/include/linux/memcontrol.h
-@@ -216,7 +216,7 @@ static inline void mem_cgroup_del_lru_li
- 	return ;
- }
+diff -puN mm/memory_hotplug.c~mm-optimize-pfn-calculation-in-online_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-optimize-pfn-calculation-in-online_page
++++ a/mm/memory_hotplug.c
+@@ -375,7 +375,7 @@ void online_page(struct page *page)
+ #endif
  
--static inline inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
-+static inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
- {
- 	return ;
- }
+ #ifdef CONFIG_FLATMEM
+-	max_mapnr = max(page_to_pfn(page), max_mapnr);
++	max_mapnr = max(pfn, max_mapnr);
+ #endif
+ 
+ 	ClearPageReserved(page);
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from dkiper@net-space.pl are
 
 origin.patch
-memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
-net-convert-%p-usage-to-%pk.patch
+mm-optimize-pfn-calculation-in-online_page.patch
 
