@@ -1,125 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-dma-ipu-ipu_irqc-irq_data-conversion.patch removed from -mm tree
-Date: Mon, 28 Mar 2011 13:40:16 -0700
-Message-ID: <201103282039.p2SKdcvf027634@imap1.linux-foundation.org>
+Subject: + acpi-remove-sysfs_create_link-from-video-driver.patch added to -mm tree
+Date: Mon, 28 Mar 2011 14:05:13 -0700
+Message-ID: <201103282105.p2SL5EBL029083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753911Ab1C1UkU (ORCPT
+	by vger.kernel.org with ESMTP id S1751276Ab1C1VFm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Mar 2011 16:40:20 -0400
+	Mon, 28 Mar 2011 17:05:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: buytenh@wantstofly.org, buytenh@secretlab.ca, dan.j.williams@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mjg@redhat.com, alessandro.suardi@gmail.com, jeff.chua.linux@gmail.com, lenb@kernel.org, rjw@sisk.pl, rui.zhang@intel.com
 
 
 The patch titled
-     drivers/dma/ipu/ipu_irq.c: irq_data conversion
-has been removed from the -mm tree.  Its filename was
-     drivers-dma-ipu-ipu_irqc-irq_data-conversion.patch
+     acpi: remove sysfs_create_link() from video driver
+has been added to the -mm tree.  Its filename is
+     acpi-remove-sysfs_create_link-from-video-driver.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/dma/ipu/ipu_irq.c: irq_data conversion
-From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: acpi: remove sysfs_create_link() from video driver
+From: Matthew Garrett <mjg@redhat.com>
 
-Signed-off-by: Lennert Buytenhek <buytenh@secretlab.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The acpi video driver attempts to explicitly create a sysfs link between
+the acpi device and the associated PCI device.  However, we're now also
+doing this from the backlight core, which means that we get a backtrace
+caused by a duplicate file.  Remove the code and leave it up to the
+backlight core.
+
+Reported-by: Jeff Chua <jeff.chua.linux@gmail.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Tested-by: Alessandro Suardi <alessandro.suardi@gmail.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ipu/ipu_irq.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/acpi/video.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/dma/ipu/ipu_irq.c~drivers-dma-ipu-ipu_irqc-irq_data-conversion drivers/dma/ipu/ipu_irq.c
---- a/drivers/dma/ipu/ipu_irq.c~drivers-dma-ipu-ipu_irqc-irq_data-conversion
-+++ a/drivers/dma/ipu/ipu_irq.c
-@@ -94,9 +94,9 @@ static struct ipu_irq_map *src2map(unsig
- 	return NULL;
- }
+diff -puN drivers/acpi/video.c~acpi-remove-sysfs_create_link-from-video-driver drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-remove-sysfs_create_link-from-video-driver
++++ a/drivers/acpi/video.c
+@@ -824,11 +824,6 @@ static void acpi_video_device_find_cap(s
+ 		device->backlight->props.brightness =
+ 				acpi_video_get_brightness(device->backlight);
  
--static void ipu_irq_unmask(unsigned int irq)
-+static void ipu_irq_unmask(struct irq_data *d)
- {
--	struct ipu_irq_map *map = get_irq_chip_data(irq);
-+	struct ipu_irq_map *map = irq_data_get_irq_chip_data(d);
- 	struct ipu_irq_bank *bank;
- 	uint32_t reg;
- 	unsigned long lock_flags;
-@@ -106,7 +106,7 @@ static void ipu_irq_unmask(unsigned int 
- 	bank = map->bank;
- 	if (!bank) {
- 		spin_unlock_irqrestore(&bank_lock, lock_flags);
--		pr_err("IPU: %s(%u) - unmapped!\n", __func__, irq);
-+		pr_err("IPU: %s(%u) - unmapped!\n", __func__, d->irq);
- 		return;
- 	}
- 
-@@ -117,9 +117,9 @@ static void ipu_irq_unmask(unsigned int 
- 	spin_unlock_irqrestore(&bank_lock, lock_flags);
- }
- 
--static void ipu_irq_mask(unsigned int irq)
-+static void ipu_irq_mask(struct irq_data *d)
- {
--	struct ipu_irq_map *map = get_irq_chip_data(irq);
-+	struct ipu_irq_map *map = irq_data_get_irq_chip_data(d);
- 	struct ipu_irq_bank *bank;
- 	uint32_t reg;
- 	unsigned long lock_flags;
-@@ -129,7 +129,7 @@ static void ipu_irq_mask(unsigned int ir
- 	bank = map->bank;
- 	if (!bank) {
- 		spin_unlock_irqrestore(&bank_lock, lock_flags);
--		pr_err("IPU: %s(%u) - unmapped!\n", __func__, irq);
-+		pr_err("IPU: %s(%u) - unmapped!\n", __func__, d->irq);
- 		return;
- 	}
- 
-@@ -140,9 +140,9 @@ static void ipu_irq_mask(unsigned int ir
- 	spin_unlock_irqrestore(&bank_lock, lock_flags);
- }
- 
--static void ipu_irq_ack(unsigned int irq)
-+static void ipu_irq_ack(struct irq_data *d)
- {
--	struct ipu_irq_map *map = get_irq_chip_data(irq);
-+	struct ipu_irq_map *map = irq_data_get_irq_chip_data(d);
- 	struct ipu_irq_bank *bank;
- 	unsigned long lock_flags;
- 
-@@ -151,7 +151,7 @@ static void ipu_irq_ack(unsigned int irq
- 	bank = map->bank;
- 	if (!bank) {
- 		spin_unlock_irqrestore(&bank_lock, lock_flags);
--		pr_err("IPU: %s(%u) - unmapped!\n", __func__, irq);
-+		pr_err("IPU: %s(%u) - unmapped!\n", __func__, d->irq);
- 		return;
- 	}
- 
-@@ -345,10 +345,10 @@ static void ipu_irq_fn(unsigned int irq,
- }
- 
- static struct irq_chip ipu_irq_chip = {
--	.name	= "ipu_irq",
--	.ack	= ipu_irq_ack,
--	.mask	= ipu_irq_mask,
--	.unmask	= ipu_irq_unmask,
-+	.name		= "ipu_irq",
-+	.irq_ack	= ipu_irq_ack,
-+	.irq_mask	= ipu_irq_mask,
-+	.irq_unmask	= ipu_irq_unmask,
- };
- 
- /* Install the IRQ handler */
-_
-
-Patches currently in -mm which might be from buytenh@wantstofly.org are
-
-origin.patch
-
+-		result = sysfs_create_link(&device->backlight->dev.kobj,
+-					   &device->dev->dev.kobj, "device");
+-		if (result)
+-			printk(KERN_ERR PREFIX "Create sysfs link\n");
