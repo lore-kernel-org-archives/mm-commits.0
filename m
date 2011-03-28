@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-make-enable_dma-less-generic-in-r592.patch added to -mm tree
-Date: Mon, 28 Mar 2011 15:47:11 -0700
-Message-ID: <201103282247.p2SMlBHq002127@imap1.linux-foundation.org>
+Subject: [withdrawn] memstick-make-enable_dma-less-generic-in-r592.patch removed from -mm tree
+Date: Mon, 28 Mar 2011 15:52:24 -0700
+Message-ID: <201103282252.p2SMqOqF002411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753098Ab1C1WsG (ORCPT
+	by vger.kernel.org with ESMTP id S1751971Ab1C1Ww6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Mar 2011 18:48:06 -0400
+	Mon, 28 Mar 2011 18:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, maximlevitsky@gmail.com, oakad@yahoo.com
+To: sfr@canb.auug.org.au, akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, maximlevitsky@gmail.com, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      memstick: make enable_dma less generic in r592
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      memstick-make-enable_dma-less-generic-in-r592.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -88,6 +78,5 @@ _
 Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-memstick-make-enable_dma-less-generic-in-r592.patch
 linux-next.patch
 
