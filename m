@@ -1,43 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-add-dirty-page-accounting-infrastructure.patch removed from -mm tree
-Date: Tue, 29 Mar 2011 16:11:48 -0700
-Message-ID: <201103292311.p2TNBmOZ011247@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-add-dirty-limits-to-mem_cgroup.patch removed from -mm tree
+Date: Tue, 29 Mar 2011 16:11:53 -0700
+Message-ID: <201103292311.p2TNBrXQ011254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754696Ab1C2XMc (ORCPT
+	by vger.kernel.org with ESMTP id S1754666Ab1C2XMb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:12:32 -0400
+	Tue, 29 Mar 2011 19:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@google.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.co
 
 
 The patch titled
-     memcg: add dirty page accounting infrastructure
+     memcg: add dirty limits to mem_cgroup
 has been removed from the -mm tree.  Its filename was
-     memcg-add-dirty-page-accounting-infrastructure.patch
+     memcg-add-dirty-limits-to-mem_cgroup.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add dirty page accounting infrastructure
+Subject: memcg: add dirty limits to mem_cgroup
 From: Greg Thelen <gthelen@google.com>
 
-Add memcg routines to track dirty, writeback, and unstable_NFS pages. 
-These routines are not yet used by the kernel to count such pages.  A
-later change adds kernel calls to these new routines.
+Extend mem_cgroup to contain dirty page limits.
 
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrea Righi <arighi@develer.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Chad Talbott <ctalbott@google.com>
@@ -45,177 +43,97 @@ Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++-
- mm/memcontrol.c            |   87 +++++++++++++++++++++++++++++++----
- 2 files changed, 86 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |   51 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 50 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-dirty-page-accounting-infrastructure
-+++ a/include/linux/memcontrol.h
-@@ -25,9 +25,15 @@ struct page_cgroup;
- struct page;
- struct mm_struct;
- 
--/* Stats that can be updated by kernel. */
-+/*
-+ * Per mem_cgroup page counts tracked by kernel.  As pages enter and leave these
-+ * states, the kernel notifies memcg using mem_cgroup_{inc,dec}_page_stat().
-+ */
- enum mem_cgroup_page_stat_item {
- 	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
-+	MEMCG_NR_FILE_DIRTY, /* # of dirty pages in page cache */
-+	MEMCG_NR_FILE_WRITEBACK, /* # of pages under writeback */
-+	MEMCG_NR_FILE_UNSTABLE_NFS, /* # of NFS unstable pages */
- };
- 
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-diff -puN mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-dirty-page-accounting-infrastructure
+diff -puN mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-dirty-limits-to-mem_cgroup
 +++ a/mm/memcontrol.c
-@@ -83,8 +83,11 @@ enum mem_cgroup_stat_index {
- 	 */
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
- 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
--	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
- 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
-+	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
-+	MEM_CGROUP_STAT_FILE_DIRTY,	/* # of dirty pages in page cache */
-+	MEM_CGROUP_STAT_FILE_WRITEBACK,		/* # of pages under writeback */
-+	MEM_CGROUP_STAT_FILE_UNSTABLE_NFS,	/* # of NFS unstable pages */
- 	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
- 	MEM_CGROUP_ON_MOVE,	/* someone is moving account between groups */
- 	MEM_CGROUP_STAT_NSTATS,
-@@ -1692,6 +1695,44 @@ void mem_cgroup_update_page_stat(struct 
- 			ClearPageCgroupFileMapped(pc);
- 		idx = MEM_CGROUP_STAT_FILE_MAPPED;
- 		break;
-+
-+	case MEMCG_NR_FILE_DIRTY:
-+		/* Use Test{Set,Clear} to only un/charge the memcg once. */
-+		if (val > 0) {
-+			if (TestSetPageCgroupFileDirty(pc))
-+				val = 0;
-+		} else {
-+			if (!TestClearPageCgroupFileDirty(pc))
-+				val = 0;
-+		}
-+		idx = MEM_CGROUP_STAT_FILE_DIRTY;
-+		break;
-+
-+	case MEMCG_NR_FILE_WRITEBACK:
-+		/*
-+		 * This counter is adjusted while holding the mapping's
-+		 * tree_lock.  Therefore there is no race between settings and
-+		 * clearing of this flag.
-+		 */
-+		if (val > 0)
-+			SetPageCgroupFileWriteback(pc);
-+		else
-+			ClearPageCgroupFileWriteback(pc);
-+		idx = MEM_CGROUP_STAT_FILE_WRITEBACK;
-+		break;
-+
-+	case MEMCG_NR_FILE_UNSTABLE_NFS:
-+		/* Use Test{Set,Clear} to only un/charge the memcg once. */
-+		if (val > 0) {
-+			if (TestSetPageCgroupFileUnstableNFS(pc))
-+				val = 0;
-+		} else {
-+			if (!TestClearPageCgroupFileUnstableNFS(pc))
-+				val = 0;
-+		}
-+		idx = MEM_CGROUP_STAT_FILE_UNSTABLE_NFS;
-+		break;
-+
- 	default:
- 		BUG();
- 	}
-@@ -2251,6 +2292,17 @@ void mem_cgroup_split_huge_fixup(struct 
- }
- #endif
+@@ -203,6 +203,14 @@ struct mem_cgroup_eventfd_list {
+ static void mem_cgroup_threshold(struct mem_cgroup *mem);
+ static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
  
-+static inline
-+void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
-+				       struct mem_cgroup *to,
-+				       enum mem_cgroup_stat_index idx)
++/* Dirty memory parameters */
++struct vm_dirty_param {
++	int dirty_ratio;
++	int dirty_background_ratio;
++	unsigned long dirty_bytes;
++	unsigned long dirty_background_bytes;
++};
++
+ /*
+  * The memory controller data structure. The memory controller controls both
+  * page cache and RSS per cgroup. We would eventually like to provide
+@@ -242,6 +250,10 @@ struct mem_cgroup {
+ 	atomic_t	refcnt;
+ 
+ 	unsigned int	swappiness;
++
++	/* control memory cgroup dirty pages */
++	struct vm_dirty_param dirty_param;
++
+ 	/* OOM-Killer disable */
+ 	int		oom_kill_disable;
+ 
+@@ -1198,6 +1210,36 @@ static unsigned int get_swappiness(struc
+ 	return memcg->swappiness;
+ }
+ 
++/*
++ * Return true if the current memory cgroup has local dirty memory settings.
++ * There is an allowed race between the current task migrating in-to/out-of the
++ * root cgroup while this routine runs.  So the return value may be incorrect if
++ * the current task is being simultaneously migrated.
++ */
++static bool mem_cgroup_has_dirty_limit(struct mem_cgroup *mem)
 +{
-+	preempt_disable();
-+	__this_cpu_dec(from->stat->count[idx]);
-+	__this_cpu_inc(to->stat->count[idx]);
-+	preempt_enable();
++	return mem && !mem_cgroup_is_root(mem);
 +}
 +
- /**
-  * mem_cgroup_move_account - move account of the page
-  * @page: the page
-@@ -2299,13 +2351,18 @@ static int mem_cgroup_move_account(struc
- 
- 	move_lock_page_cgroup(pc, &flags);
- 
--	if (PageCgroupFileMapped(pc)) {
--		/* Update mapped_file data for mem_cgroup */
--		preempt_disable();
--		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
--		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
--		preempt_enable();
--	}
-+	if (PageCgroupFileMapped(pc))
-+		mem_cgroup_move_account_page_stat(from, to,
-+					MEM_CGROUP_STAT_FILE_MAPPED);
-+	if (PageCgroupFileDirty(pc))
-+		mem_cgroup_move_account_page_stat(from, to,
-+					MEM_CGROUP_STAT_FILE_DIRTY);
-+	if (PageCgroupFileWriteback(pc))
-+		mem_cgroup_move_account_page_stat(from, to,
-+					MEM_CGROUP_STAT_FILE_WRITEBACK);
-+	if (PageCgroupFileUnstableNFS(pc))
-+		mem_cgroup_move_account_page_stat(from, to,
-+					MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
- 	mem_cgroup_charge_statistics(from, PageCgroupCache(pc), -nr_pages);
- 	if (uncharge)
- 		/* This is not "cancel", but cancel_charge does all we need. */
-@@ -3772,6 +3829,9 @@ enum {
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
- 	MCS_SWAP,
-+	MCS_FILE_DIRTY,
-+	MCS_WRITEBACK,
-+	MCS_UNSTABLE_NFS,
- 	MCS_INACTIVE_ANON,
- 	MCS_ACTIVE_ANON,
- 	MCS_INACTIVE_FILE,
-@@ -3794,6 +3854,9 @@ struct {
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
- 	{"swap", "total_swap"},
-+	{"dirty", "total_dirty"},
-+	{"writeback", "total_writeback"},
-+	{"nfs_unstable", "total_nfs_unstable"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
-@@ -3823,6 +3886,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
- 
-+	/* dirty stat */
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_DIRTY);
-+	s->stat[MCS_FILE_DIRTY] += val * PAGE_SIZE;
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_WRITEBACK);
-+	s->stat[MCS_WRITEBACK] += val * PAGE_SIZE;
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_UNSTABLE_NFS);
-+	s->stat[MCS_UNSTABLE_NFS] += val * PAGE_SIZE;
++/*
++ * Returns a snapshot of the current dirty limits which is not synchronized with
++ * the routines that change the dirty limits.  If this routine races with an
++ * update to the dirty bytes/ratio value, then the caller must handle the case
++ * where neither dirty_[background_]_ratio nor _bytes are set.
++ */
++static void mem_cgroup_dirty_param(struct vm_dirty_param *param,
++				   struct mem_cgroup *mem)
++{
++	if (mem_cgroup_has_dirty_limit(mem)) {
++		*param = mem->dirty_param;
++	} else {
++		param->dirty_ratio = vm_dirty_ratio;
++		param->dirty_bytes = vm_dirty_bytes;
++		param->dirty_background_ratio = dirty_background_ratio;
++		param->dirty_background_bytes = dirty_background_bytes;
++	}
++}
 +
- 	/* per zone stat */
- 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
- 	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
+ static void mem_cgroup_start_move(struct mem_cgroup *mem)
+ {
+ 	int cpu;
+@@ -4669,8 +4711,15 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	mem->last_scanned_child = 0;
+ 	INIT_LIST_HEAD(&mem->oom_notify);
+ 
+-	if (parent)
++	if (parent) {
+ 		mem->swappiness = get_swappiness(parent);
++		mem_cgroup_dirty_param(&mem->dirty_param, parent);
++	} else {
++		/*
++		 * The root cgroup dirty_param field is not used, instead,
++		 * system-wide dirty limits are used.
++		 */
++	}
+ 	atomic_set(&mem->refcnt, 1);
+ 	mem->move_charge_at_immigrate = 0;
+ 	mutex_init(&mem->thresholds_lock);
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
-memcg-add-dirty-limits-to-mem_cgroup.patch
 memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
 memcg-add-dirty-limiting-routines.patch
 memcg-check-memcg-dirty-limits-in-page-writeback.patch
