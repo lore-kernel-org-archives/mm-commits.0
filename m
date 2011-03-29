@@ -1,92 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-make-enable_dma-less-generic-in-r592.patch added to -mm tree
-Date: Mon, 28 Mar 2011 16:38:05 -0700
-Message-ID: <201103282338.p2SNc5au004870@imap1.linux-foundation.org>
+Subject: [merged] acpi-remove-sysfs_create_link-from-video-driver.patch removed from -mm tree
+Date: Tue, 29 Mar 2011 12:50:00 -0700
+Message-ID: <201103291949.p2TJnDW6001528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753044Ab1C1Xiq (ORCPT
+	by vger.kernel.org with ESMTP id S1754022Ab1C2TtY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Mar 2011 19:38:46 -0400
+	Tue, 29 Mar 2011 15:49:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, fujita.tomonori@lab.ntt.co.jp, maximlevitsky@gmail.com, oakad@yahoo.com
+To: mjg@redhat.com, alessandro.suardi@gmail.com, jeff.chua.linux@gmail.com, lenb@kernel.org, rjw@sisk.pl, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: make enable_dma less generic in r592
-has been added to the -mm tree.  Its filename is
-     memstick-make-enable_dma-less-generic-in-r592.patch
+     acpi: remove sysfs_create_link() from video driver
+has been removed from the -mm tree.  Its filename was
+     acpi-remove-sysfs_create_link-from-video-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: make enable_dma less generic in r592
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: acpi: remove sysfs_create_link() from video driver
+From: Matthew Garrett <mjg@redhat.com>
 
-Fixes this build error:
+The acpi video driver attempts to explicitly create a sysfs link between
+the acpi device and the associated PCI device.  However, we're now also
+doing this from the backlight core, which means that we get a backtrace
+caused by a duplicate file.  Remove the code and leave it up to the
+backlight core.
 
-drivers/memstick/host/r592.c:26: error: 'enable_dma' redeclared as different kind of symbol
-arch/powerpc/include/asm/dma.h:189: note: previous definition of 'enable_dma' was here
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Alex Dubov <oakad@yahoo.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Reported-by: Jeff Chua <jeff.chua.linux@gmail.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Tested-by: Alessandro Suardi <alessandro.suardi@gmail.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/r592.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/video.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/memstick/host/r592.c~memstick-make-enable_dma-less-generic-in-r592 drivers/memstick/host/r592.c
---- a/drivers/memstick/host/r592.c~memstick-make-enable_dma-less-generic-in-r592
-+++ a/drivers/memstick/host/r592.c
-@@ -23,7 +23,7 @@
- #include <linux/swab.h>
- #include "r592.h"
+diff -puN drivers/acpi/video.c~acpi-remove-sysfs_create_link-from-video-driver drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-remove-sysfs_create_link-from-video-driver
++++ a/drivers/acpi/video.c
+@@ -824,11 +824,6 @@ static void acpi_video_device_find_cap(s
+ 		device->backlight->props.brightness =
+ 				acpi_video_get_brightness(device->backlight);
  
--static int enable_dma = 1;
-+static int r592_enable_dma = 1;
- static int debug;
- 
- static const char *tpc_names[] = {
-@@ -267,7 +267,7 @@ static void r592_stop_dma(struct r592_de
- /* Test if hardware supports DMA */
- static void r592_check_dma(struct r592_device *dev)
- {
--	dev->dma_capable = enable_dma &&
-+	dev->dma_capable = r592_enable_dma &&
- 		(r592_read_reg(dev, R592_FIFO_DMA_SETTINGS) &
- 			R592_FIFO_DMA_SETTINGS_CAP);
- }
-@@ -898,7 +898,7 @@ static void __exit r592_module_exit(void
- module_init(r592_module_init);
- module_exit(r592_module_exit);
- 
--module_param(enable_dma, bool, S_IRUGO);
-+module_param_named(enable_dma, r592_enable_dma, bool, S_IRUGO);
- MODULE_PARM_DESC(enable_dma, "Enable usage of the DMA (default)");
- module_param(debug, int, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(debug, "Debug level (0-3)");
-_
-
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
-
-origin.patch
-memstick-make-enable_dma-less-generic-in-r592.patch
-linux-next.patch
-
+-		result = sysfs_create_link(&device->backlight->dev.kobj,
+-					   &device->dev->dev.kobj, "device");
+-		if (result)
+-			printk(KERN_ERR PREFIX "Create sysfs link\n");
