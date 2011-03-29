@@ -1,142 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: + kstrtox-convert-fs-proc.patch added to -mm tree
-Date: Tue, 29 Mar 2011 16:12:47 -0700
-Message-ID: <201103292312.p2TNCln5011312@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-make-background-writeback-memcg-aware.patch removed from -mm tree
+Date: Tue, 29 Mar 2011 16:12:02 -0700
+Message-ID: <201103292312.p2TNC2Vx011275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752932Ab1C2XNI (ORCPT
+	by vger.kernel.org with ESMTP id S1753445Ab1C2XRs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:13:08 -0400
+	Tue, 29 Mar 2011 19:17:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@google.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.co
 
 
 The patch titled
-     fs/proc: convert to kstrtoX()
-has been added to the -mm tree.  Its filename is
-     kstrtox-convert-fs-proc.patch
+     memcg: make background writeback memcg aware
+has been removed from the -mm tree.  Its filename was
+     memcg-make-background-writeback-memcg-aware.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/proc: convert to kstrtoX()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: memcg: make background writeback memcg aware
+From: Greg Thelen <gthelen@google.com>
 
-Convert fs/proc/ from strict_strto*() to kstrto*() functions.
+Add an memcg parameter to bdi_start_background_writeback().  If a memcg is
+specified then the resulting background writeback call to wb_writeback()
+will run until the memcg dirty memory usage drops below the memcg
+background limit.  This is used when balancing memcg dirty memory with
+mem_cgroup_balance_dirty_pages().
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+If the memcg parameter is not specified, then background writeback runs
+globally system dirty memory usage falls below the system background
+limit.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Andrea Righi <arighi@develer.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Chad Talbott <ctalbott@google.com>
+Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |   16 ++++++++--------
- fs/proc/task_mmu.c |    8 +++++---
- 2 files changed, 13 insertions(+), 11 deletions(-)
+ fs/fs-writeback.c           |   63 ++++++++++++++++------------------
+ include/linux/backing-dev.h |    3 +
+ mm/memcontrol.c             |    2 -
+ mm/page-writeback.c         |    2 -
+ 4 files changed, 34 insertions(+), 36 deletions(-)
 
-diff -puN fs/proc/base.c~kstrtox-convert-fs-proc fs/proc/base.c
---- a/fs/proc/base.c~kstrtox-convert-fs-proc
-+++ a/fs/proc/base.c
-@@ -1059,7 +1059,7 @@ static ssize_t oom_adjust_write(struct f
+diff -puN fs/fs-writeback.c~memcg-make-background-writeback-memcg-aware fs/fs-writeback.c
+--- a/fs/fs-writeback.c~memcg-make-background-writeback-memcg-aware
++++ a/fs/fs-writeback.c
+@@ -20,6 +20,7 @@
+ #include <linux/sched.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/memcontrol.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+ #include <linux/writeback.h>
+@@ -35,6 +36,7 @@
+ struct wb_writeback_work {
+ 	long nr_pages;
+ 	struct super_block *sb;
++	struct mem_cgroup *mem_cgroup;	/* NULL for global (root cgroup) */
+ 	enum writeback_sync_modes sync_mode;
+ 	unsigned int for_kupdate:1;
+ 	unsigned int range_cyclic:1;
+@@ -113,7 +115,8 @@ static void bdi_queue_work(struct backin
+ 
+ static void
+ __bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages,
+-		      bool range_cyclic)
++		      bool range_cyclic, bool for_background,
++		      struct mem_cgroup *mem_cgroup)
  {
- 	struct task_struct *task;
- 	char buffer[PROC_NUMBUF];
--	long oom_adjust;
-+	int oom_adjust;
- 	unsigned long flags;
- 	int err;
+ 	struct wb_writeback_work *work;
  
-@@ -1071,7 +1071,7 @@ static ssize_t oom_adjust_write(struct f
- 		goto out;
+@@ -133,6 +136,8 @@ __bdi_start_writeback(struct backing_dev
+ 	work->sync_mode	= WB_SYNC_NONE;
+ 	work->nr_pages	= nr_pages;
+ 	work->range_cyclic = range_cyclic;
++	work->for_background = for_background;
++	work->mem_cgroup = mem_cgroup;
+ 
+ 	bdi_queue_work(bdi, work);
+ }
+@@ -150,7 +155,7 @@ __bdi_start_writeback(struct backing_dev
+  */
+ void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages)
+ {
+-	__bdi_start_writeback(bdi, nr_pages, true);
++	__bdi_start_writeback(bdi, nr_pages, true, false, NULL);
+ }
+ 
+ /**
+@@ -163,16 +168,10 @@ void bdi_start_writeback(struct backing_
+  *   some IO is happening if we are over background dirty threshold.
+  *   Caller need not hold sb s_umount semaphore.
+  */
+-void bdi_start_background_writeback(struct backing_dev_info *bdi)
++void bdi_start_background_writeback(struct backing_dev_info *bdi,
++				    struct mem_cgroup *mem_cgroup)
+ {
+-	/*
+-	 * We just wake up the flusher thread. It will perform background
+-	 * writeback as soon as there is no other work to do.
+-	 */
+-	trace_writeback_wake_background(bdi);
+-	spin_lock_bh(&bdi->wb_lock);
+-	bdi_wakeup_flusher(bdi);
+-	spin_unlock_bh(&bdi->wb_lock);
++	__bdi_start_writeback(bdi, LONG_MAX, true, true, mem_cgroup);
+ }
+ 
+ /*
+@@ -593,10 +592,22 @@ static void __writeback_inodes_sb(struct
+  */
+ #define MAX_WRITEBACK_PAGES     1024
+ 
+-static inline bool over_bground_thresh(void)
++static inline bool over_bground_thresh(struct mem_cgroup *mem_cgroup)
+ {
+ 	unsigned long background_thresh, dirty_thresh;
+ 
++	if (mem_cgroup) {
++		struct dirty_info info;
++
++		if (!mem_cgroup_hierarchical_dirty_info(
++			    determine_dirtyable_memory(), false,
++			    mem_cgroup, &info))
++			return false;
++
++		return info.nr_file_dirty +
++			info.nr_unstable_nfs > info.background_thresh;
++	}
++
+ 	global_dirty_limits(&background_thresh, &dirty_thresh);
+ 
+ 	return (global_page_state(NR_FILE_DIRTY) +
+@@ -683,7 +694,8 @@ static long wb_writeback(struct bdi_writ
+ 		 * For background writeout, stop when we are below the
+ 		 * background dirty threshold
+ 		 */
+-		if (work->for_background && !over_bground_thresh())
++		if (work->for_background &&
++		    !over_bground_thresh(work->mem_cgroup))
+ 			break;
+ 
+ 		wbc.more_io = 0;
+@@ -761,23 +773,6 @@ static unsigned long get_nr_dirty_pages(
+ 		get_nr_dirty_inodes();
+ }
+ 
+-static long wb_check_background_flush(struct bdi_writeback *wb)
+-{
+-	if (over_bground_thresh()) {
+-
+-		struct wb_writeback_work work = {
+-			.nr_pages	= LONG_MAX,
+-			.sync_mode	= WB_SYNC_NONE,
+-			.for_background	= 1,
+-			.range_cyclic	= 1,
+-		};
+-
+-		return wb_writeback(wb, &work);
+-	}
+-
+-	return 0;
+-}
+-
+ static long wb_check_old_data_flush(struct bdi_writeback *wb)
+ {
+ 	unsigned long expired;
+@@ -839,15 +834,17 @@ long wb_do_writeback(struct bdi_writebac
+ 		 */
+ 		if (work->done)
+ 			complete(work->done);
+-		else
++		else {
++			if (work->mem_cgroup)
++				mem_cgroup_bg_writeback_done(work->mem_cgroup);
+ 			kfree(work);
++		}
  	}
  
--	err = strict_strtol(strstrip(buffer), 0, &oom_adjust);
-+	err = kstrtoint(strstrip(buffer), 0, &oom_adjust);
- 	if (err)
- 		goto out;
- 	if ((oom_adjust < OOM_ADJUST_MIN || oom_adjust > OOM_ADJUST_MAX) &&
-@@ -1168,7 +1168,7 @@ static ssize_t oom_score_adj_write(struc
- 	struct task_struct *task;
- 	char buffer[PROC_NUMBUF];
- 	unsigned long flags;
--	long oom_score_adj;
-+	int oom_score_adj;
- 	int err;
+ 	/*
+ 	 * Check for periodic writeback, kupdated() style
+ 	 */
+ 	wrote += wb_check_old_data_flush(wb);
+-	wrote += wb_check_background_flush(wb);
+ 	clear_bit(BDI_writeback_running, &wb->bdi->state);
  
- 	memset(buffer, 0, sizeof(buffer));
-@@ -1179,7 +1179,7 @@ static ssize_t oom_score_adj_write(struc
- 		goto out;
+ 	return wrote;
+@@ -934,7 +931,7 @@ void wakeup_flusher_threads(long nr_page
+ 	list_for_each_entry_rcu(bdi, &bdi_list, bdi_list) {
+ 		if (!bdi_has_dirty_io(bdi))
+ 			continue;
+-		__bdi_start_writeback(bdi, nr_pages, false);
++		__bdi_start_writeback(bdi, nr_pages, false, false, NULL);
  	}
+ 	rcu_read_unlock();
+ }
+diff -puN include/linux/backing-dev.h~memcg-make-background-writeback-memcg-aware include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~memcg-make-background-writeback-memcg-aware
++++ a/include/linux/backing-dev.h
+@@ -101,7 +101,8 @@ int bdi_register_dev(struct backing_dev_
+ void bdi_unregister(struct backing_dev_info *bdi);
+ int bdi_setup_and_register(struct backing_dev_info *, char *, unsigned int);
+ void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages);
+-void bdi_start_background_writeback(struct backing_dev_info *bdi);
++void bdi_start_background_writeback(struct backing_dev_info *bdi,
++				    struct mem_cgroup *mem_cgroup);
+ int bdi_writeback_thread(void *data);
+ int bdi_has_dirty_io(struct backing_dev_info *bdi);
+ void bdi_arm_supers_timer(void);
+diff -puN mm/memcontrol.c~memcg-make-background-writeback-memcg-aware mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-background-writeback-memcg-aware
++++ a/mm/memcontrol.c
+@@ -1489,7 +1489,7 @@ void mem_cgroup_balance_dirty_pages(stru
+ 			 * mem_cgroup_bg_writeback_done().
+ 			 */
+ 			css_get(&memcg->css);
+-			bdi_start_background_writeback(bdi);
++			bdi_start_background_writeback(bdi, memcg);
+ 		}
  
--	err = strict_strtol(strstrip(buffer), 0, &oom_score_adj);
-+	err = kstrtoint(strstrip(buffer), 0, &oom_score_adj);
- 	if (err)
- 		goto out;
- 	if (oom_score_adj < OOM_SCORE_ADJ_MIN ||
-@@ -1468,7 +1468,7 @@ sched_autogroup_write(struct file *file,
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct task_struct *p;
- 	char buffer[PROC_NUMBUF];
--	long nice;
-+	int nice;
- 	int err;
+ 		/* continue walking up hierarchy enabled parents */
+diff -puN mm/page-writeback.c~memcg-make-background-writeback-memcg-aware mm/page-writeback.c
+--- a/mm/page-writeback.c~memcg-make-background-writeback-memcg-aware
++++ a/mm/page-writeback.c
+@@ -597,7 +597,7 @@ static void balance_dirty_pages(struct a
+ 	 */
+ 	if ((laptop_mode && pages_written) ||
+ 	    (!laptop_mode && (nr_reclaimable > background_thresh)))
+-		bdi_start_background_writeback(bdi);
++		bdi_start_background_writeback(bdi, NULL);
+ }
  
- 	memset(buffer, 0, sizeof(buffer));
-@@ -1477,9 +1477,9 @@ sched_autogroup_write(struct file *file,
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
- 
--	err = strict_strtol(strstrip(buffer), 0, &nice);
--	if (err)
--		return -EINVAL;
-+	err = kstrtoint(strstrip(buffer), 0, &nice);
-+	if (err < 0)
-+		return err;
- 
- 	p = get_proc_task(inode);
- 	if (!p)
-diff -puN fs/proc/task_mmu.c~kstrtox-convert-fs-proc fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~kstrtox-convert-fs-proc
-+++ a/fs/proc/task_mmu.c
-@@ -534,15 +534,17 @@ static ssize_t clear_refs_write(struct f
- 	char buffer[PROC_NUMBUF];
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
--	long type;
-+	int type;
-+	int rv;
- 
- 	memset(buffer, 0, sizeof(buffer));
- 	if (count > sizeof(buffer) - 1)
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	if (strict_strtol(strstrip(buffer), 10, &type))
--		return -EINVAL;
-+	rv = kstrtoint(strstrip(buffer), 10, &type);
-+	if (rv < 0)
-+		return rv;
- 	if (type < CLEAR_REFS_ALL || type > CLEAR_REFS_MAPPED)
- 		return -EINVAL;
- 	task = get_proc_task(file->f_path.dentry->d_inode);
+ void set_page_dirty_balance(struct page *page, int page_mkwrite)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-kstrtox-convert-fs-proc.patch
-sysctl-add-proc_dointvec_bool-handler.patch
 
