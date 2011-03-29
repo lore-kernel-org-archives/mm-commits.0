@@ -1,116 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-avoid-merging-cloned-vmas.patch added to -mm tree
-Date: Tue, 29 Mar 2011 15:37:49 -0700
-Message-ID: <201103292237.p2TMbolo009763@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch removed from -mm tree
+Date: Tue, 29 Mar 2011 16:11:46 -0700
+Message-ID: <201103292311.p2TNBkcT011244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751197Ab1C2Wh7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752932Ab1C2XM2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Mar 2011 18:37:59 -0400
+	Tue, 29 Mar 2011 19:12:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, andi@firstfloor.org, hughd@google.com, riel@redhat.com
+To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@google.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.co
 
 
 The patch titled
-     mmap: avoid merging cloned VMAs
-has been added to the -mm tree.  Its filename is
-     mmap-avoid-merging-cloned-vmas.patch
+     memcg: add page_cgroup flags for dirty page tracking
+has been removed from the -mm tree.  Its filename was
+     memcg-add-page_cgroup-flags-for-dirty-page-tracking.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap: avoid merging cloned VMAs
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: memcg: add page_cgroup flags for dirty page tracking
+From: Greg Thelen <gthelen@google.com>
 
-Avoid merging a VMA with another VMA which is cloned from the parent process.
+Add additional flags to page_cgroup to track dirty pages within a
+mem_cgroup.
 
-The cloned VMA shares the anon_vma lock with the parent process's VMA.  If
-we do the merge, more vmas (even the new range is only for current
-process) use the perent process's anon_vma lock.  This introduces
-scalability issues.  find_mergeable_anon_vma() already considers this
-case.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrea Righi <arighi@develer.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Chad Talbott <ctalbott@google.com>
+Cc: Justin TerAvest <teravest@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ include/linux/page_cgroup.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN mm/mmap.c~mmap-avoid-merging-cloned-vmas mm/mmap.c
---- a/mm/mmap.c~mmap-avoid-merging-cloned-vmas
-+++ a/mm/mmap.c
-@@ -699,9 +699,17 @@ static inline int is_mergeable_vma(struc
- }
+diff -puN include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-add-page_cgroup-flags-for-dirty-page-tracking
++++ a/include/linux/page_cgroup.h
+@@ -10,6 +10,9 @@ enum {
+ 	/* flags for mem_cgroup and file and I/O status */
+ 	PCG_MOVE_LOCK, /* For race between move_account v.s. following bits */
+ 	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
++	PCG_FILE_DIRTY, /* page is dirty */
++	PCG_FILE_WRITEBACK, /* page is under writeback */
++	PCG_FILE_UNSTABLE_NFS, /* page is NFS unstable */
+ 	/* No lock in page_cgroup */
+ 	PCG_ACCT_LRU, /* page has been accounted for (under lru_lock) */
+ 	__NR_PCG_FLAGS,
+@@ -67,6 +70,10 @@ static inline void ClearPageCgroup##unam
+ static inline int TestClearPageCgroup##uname(struct page_cgroup *pc)	\
+ 	{ return test_and_clear_bit(PCG_##lname, &pc->flags);  }
  
- static inline int is_mergeable_anon_vma(struct anon_vma *anon_vma1,
--					struct anon_vma *anon_vma2)
-+					struct anon_vma *anon_vma2,
-+					struct vm_area_struct *vma)
- {
--	return !anon_vma1 || !anon_vma2 || (anon_vma1 == anon_vma2);
-+	/*
-+	 * The list_is_singular() test is to avoid merging VMA cloned from
-+	 * parents. This can improve scalability caused by anon_vma lock.
-+	 */
-+	if ((!anon_vma1 || !anon_vma2) && (!vma ||
-+		list_is_singular(&vma->anon_vma_chain)))
-+		return 1;
-+	return anon_vma1 == anon_vma2;
- }
++#define TESTSETPCGFLAG(uname, lname)			\
++static inline int TestSetPageCgroup##uname(struct page_cgroup *pc)	\
++	{ return test_and_set_bit(PCG_##lname, &pc->flags);  }
++
+ /* Cache flag is set only once (at allocation) */
+ TESTPCGFLAG(Cache, CACHE)
+ CLEARPCGFLAG(Cache, CACHE)
+@@ -86,6 +93,22 @@ SETPCGFLAG(FileMapped, FILE_MAPPED)
+ CLEARPCGFLAG(FileMapped, FILE_MAPPED)
+ TESTPCGFLAG(FileMapped, FILE_MAPPED)
  
- /*
-@@ -720,7 +728,7 @@ can_vma_merge_before(struct vm_area_stru
- 	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
- {
- 	if (is_mergeable_vma(vma, file, vm_flags) &&
--	    is_mergeable_anon_vma(anon_vma, vma->anon_vma)) {
-+	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		if (vma->vm_pgoff == vm_pgoff)
- 			return 1;
- 	}
-@@ -739,7 +747,7 @@ can_vma_merge_after(struct vm_area_struc
- 	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
- {
- 	if (is_mergeable_vma(vma, file, vm_flags) &&
--	    is_mergeable_anon_vma(anon_vma, vma->anon_vma)) {
-+	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		pgoff_t vm_pglen;
- 		vm_pglen = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- 		if (vma->vm_pgoff + vm_pglen == vm_pgoff)
-@@ -817,7 +825,7 @@ struct vm_area_struct *vma_merge(struct 
- 				can_vma_merge_before(next, vm_flags,
- 					anon_vma, file, pgoff+pglen) &&
- 				is_mergeable_anon_vma(prev->anon_vma,
--						      next->anon_vma)) {
-+						      next->anon_vma, NULL)) {
- 							/* cases 1, 6 */
- 			err = vma_adjust(prev, prev->vm_start,
- 				next->vm_end, prev->vm_pgoff, NULL);
++SETPCGFLAG(FileDirty, FILE_DIRTY)
++CLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTPCGFLAG(FileDirty, FILE_DIRTY)
++TESTCLEARPCGFLAG(FileDirty, FILE_DIRTY)
++TESTSETPCGFLAG(FileDirty, FILE_DIRTY)
++
++SETPCGFLAG(FileWriteback, FILE_WRITEBACK)
++CLEARPCGFLAG(FileWriteback, FILE_WRITEBACK)
++TESTPCGFLAG(FileWriteback, FILE_WRITEBACK)
++
++SETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++CLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTCLEARPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++TESTSETPCGFLAG(FileUnstableNFS, FILE_UNSTABLE_NFS)
++
+ SETPCGFLAG(Migration, MIGRATION)
+ CLEARPCGFLAG(Migration, MIGRATION)
+ TESTPCGFLAG(Migration, MIGRATION)
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-mmap-avoid-unnecessary-anon_vma-lock.patch
-mmap-avoid-merging-cloned-vmas.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
+memcg-add-dirty-page-accounting-infrastructure.patch
+memcg-add-kernel-calls-for-memcg-dirty-page-stats.patch
+memcg-add-dirty-limits-to-mem_cgroup.patch
+memcg-add-cgroupfs-interface-to-memcg-dirty-limits.patch
+memcg-add-dirty-limiting-routines.patch
+memcg-check-memcg-dirty-limits-in-page-writeback.patch
+memcg-make-background-writeback-memcg-aware.patch
 
