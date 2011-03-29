@@ -1,256 +1,389 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-make-background-writeback-memcg-aware.patch removed from -mm tree
-Date: Tue, 29 Mar 2011 16:12:02 -0700
-Message-ID: <201103292312.p2TNC2Vx011275@imap1.linux-foundation.org>
+Subject: [obsolete] llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch removed from -mm tree
+Date: Tue, 29 Mar 2011 16:37:36 -0700
+Message-ID: <201103292337.p2TNbaBE012323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753445Ab1C2XRs (ORCPT
+	by vger.kernel.org with ESMTP id S1751360Ab1C2XkO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:17:48 -0400
+	Tue, 29 Mar 2011 19:40:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, arighi@develer.com, balbir@linux.vnet.ibm.com, ctalbott@google.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.co
+To: ying.huang@intel.com, ak@linux.intel.com, andy.grover@oracle.com, benh@kernel.crashing.org, chris.mason@oracle.com, chris@zankel.net, cmetcalf@tilera.com, davem@davemloft.net, dhowells
 
 
 The patch titled
-     memcg: make background writeback memcg aware
+     llist: net, rds, Replace xlist in net/rds/xlist.h with llist
 has been removed from the -mm tree.  Its filename was
-     memcg-make-background-writeback-memcg-aware.patch
+     llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: make background writeback memcg aware
-From: Greg Thelen <gthelen@google.com>
+Subject: llist: net, rds, Replace xlist in net/rds/xlist.h with llist
+From: Huang Ying <ying.huang@intel.com>
 
-Add an memcg parameter to bdi_start_background_writeback().  If a memcg is
-specified then the resulting background writeback call to wb_writeback()
-will run until the memcg dirty memory usage drops below the memcg
-background limit.  This is used when balancing memcg dirty memory with
-mem_cgroup_balance_dirty_pages().
+The functionality of xlist and llist is almost same.  This patch replace
+xlist with llist to avoid code duplication.
 
-If the memcg parameter is not specified, then background writeback runs
-globally system dirty memory usage falls below the system background
-limit.
+Known issues: don't know how to test this, need special hardware?
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Andrea Righi <arighi@develer.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Chad Talbott <ctalbott@google.com>
-Cc: Justin TerAvest <teravest@google.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Andy Grover <andy.grover@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c           |   63 ++++++++++++++++------------------
- include/linux/backing-dev.h |    3 +
- mm/memcontrol.c             |    2 -
- mm/page-writeback.c         |    2 -
- 4 files changed, 34 insertions(+), 36 deletions(-)
+ net/rds/Kconfig   |    1 
+ net/rds/ib_rdma.c |  112 ++++++++++++++++++++------------------------
+ net/rds/xlist.h   |   80 -------------------------------
+ 3 files changed, 52 insertions(+), 141 deletions(-)
 
-diff -puN fs/fs-writeback.c~memcg-make-background-writeback-memcg-aware fs/fs-writeback.c
---- a/fs/fs-writeback.c~memcg-make-background-writeback-memcg-aware
-+++ a/fs/fs-writeback.c
-@@ -20,6 +20,7 @@
- #include <linux/sched.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/memcontrol.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
- #include <linux/writeback.h>
-@@ -35,6 +36,7 @@
- struct wb_writeback_work {
- 	long nr_pages;
- 	struct super_block *sb;
-+	struct mem_cgroup *mem_cgroup;	/* NULL for global (root cgroup) */
- 	enum writeback_sync_modes sync_mode;
- 	unsigned int for_kupdate:1;
- 	unsigned int range_cyclic:1;
-@@ -113,7 +115,8 @@ static void bdi_queue_work(struct backin
+diff -puN net/rds/Kconfig~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/Kconfig
+--- a/net/rds/Kconfig~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist
++++ a/net/rds/Kconfig
+@@ -9,6 +9,7 @@ config RDS
  
- static void
- __bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages,
--		      bool range_cyclic)
-+		      bool range_cyclic, bool for_background,
-+		      struct mem_cgroup *mem_cgroup)
- {
- 	struct wb_writeback_work *work;
+ config RDS_RDMA
+ 	tristate "RDS over Infiniband and iWARP"
++	select LLIST
+ 	depends on RDS && INFINIBAND && INFINIBAND_ADDR_TRANS
+ 	---help---
+ 	  Allow RDS to use Infiniband and iWARP as a transport.
+diff -puN net/rds/ib_rdma.c~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/ib_rdma.c
+--- a/net/rds/ib_rdma.c~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist
++++ a/net/rds/ib_rdma.c
+@@ -33,10 +33,10 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/rculist.h>
++#include <linux/llist.h>
  
-@@ -133,6 +136,8 @@ __bdi_start_writeback(struct backing_dev
- 	work->sync_mode	= WB_SYNC_NONE;
- 	work->nr_pages	= nr_pages;
- 	work->range_cyclic = range_cyclic;
-+	work->for_background = for_background;
-+	work->mem_cgroup = mem_cgroup;
+ #include "rds.h"
+ #include "ib.h"
+-#include "xlist.h"
  
- 	bdi_queue_work(bdi, work);
+ static DEFINE_PER_CPU(unsigned long, clean_list_grace);
+ #define CLEAN_LIST_BUSY_BIT 0
+@@ -49,7 +49,7 @@ struct rds_ib_mr {
+ 	struct rds_ib_mr_pool	*pool;
+ 	struct ib_fmr		*fmr;
+ 
+-	struct xlist_head	xlist;
++	struct llist_node	llnode;
+ 
+ 	/* unmap_list is for freeing */
+ 	struct list_head	unmap_list;
+@@ -71,9 +71,9 @@ struct rds_ib_mr_pool {
+ 	atomic_t		item_count;		/* total # of MRs */
+ 	atomic_t		dirty_count;		/* # dirty of MRs */
+ 
+-	struct xlist_head	drop_list;		/* MRs that have reached their max_maps limit */
+-	struct xlist_head	free_list;		/* unused MRs */
+-	struct xlist_head	clean_list;		/* global unused & unamapped MRs */
++	struct llist_head	drop_list;		/* MRs that have reached their max_maps limit */
++	struct llist_head	free_list;		/* unused MRs */
++	struct llist_head	clean_list;		/* global unused & unamapped MRs */
+ 	wait_queue_head_t	flush_wait;
+ 
+ 	atomic_t		free_pinned;		/* memory pinned by free MRs */
+@@ -220,9 +220,9 @@ struct rds_ib_mr_pool *rds_ib_create_mr_
+ 	if (!pool)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	INIT_XLIST_HEAD(&pool->free_list);
+-	INIT_XLIST_HEAD(&pool->drop_list);
+-	INIT_XLIST_HEAD(&pool->clean_list);
++	init_llist_head(&pool->free_list);
++	init_llist_head(&pool->drop_list);
++	init_llist_head(&pool->clean_list);
+ 	mutex_init(&pool->flush_lock);
+ 	init_waitqueue_head(&pool->flush_wait);
+ 	INIT_DELAYED_WORK(&pool->flush_worker, rds_ib_mr_pool_flush_worker);
+@@ -260,26 +260,18 @@ void rds_ib_destroy_mr_pool(struct rds_i
+ 	kfree(pool);
  }
-@@ -150,7 +155,7 @@ __bdi_start_writeback(struct backing_dev
-  */
- void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages)
- {
--	__bdi_start_writeback(bdi, nr_pages, true);
-+	__bdi_start_writeback(bdi, nr_pages, true, false, NULL);
- }
  
- /**
-@@ -163,16 +168,10 @@ void bdi_start_writeback(struct backing_
-  *   some IO is happening if we are over background dirty threshold.
-  *   Caller need not hold sb s_umount semaphore.
-  */
--void bdi_start_background_writeback(struct backing_dev_info *bdi)
-+void bdi_start_background_writeback(struct backing_dev_info *bdi,
-+				    struct mem_cgroup *mem_cgroup)
+-static void refill_local(struct rds_ib_mr_pool *pool, struct xlist_head *xl,
+-			 struct rds_ib_mr **ibmr_ret)
+-{
+-	struct xlist_head *ibmr_xl;
+-	ibmr_xl = xlist_del_head_fast(xl);
+-	*ibmr_ret = list_entry(ibmr_xl, struct rds_ib_mr, xlist);
+-}
+-
+ static inline struct rds_ib_mr *rds_ib_reuse_fmr(struct rds_ib_mr_pool *pool)
  {
--	/*
--	 * We just wake up the flusher thread. It will perform background
--	 * writeback as soon as there is no other work to do.
--	 */
--	trace_writeback_wake_background(bdi);
--	spin_lock_bh(&bdi->wb_lock);
--	bdi_wakeup_flusher(bdi);
--	spin_unlock_bh(&bdi->wb_lock);
-+	__bdi_start_writeback(bdi, LONG_MAX, true, true, mem_cgroup);
+ 	struct rds_ib_mr *ibmr = NULL;
+-	struct xlist_head *ret;
++	struct llist_node *ret;
+ 	unsigned long *flag;
+ 
+ 	preempt_disable();
+ 	flag = &__get_cpu_var(clean_list_grace);
+ 	set_bit(CLEAN_LIST_BUSY_BIT, flag);
+-	ret = xlist_del_head(&pool->clean_list);
++	ret = llist_del_first(&pool->clean_list);
+ 	if (ret)
+-		ibmr = list_entry(ret, struct rds_ib_mr, xlist);
++		ibmr = llist_entry(ret, struct rds_ib_mr, llnode);
+ 
+ 	clear_bit(CLEAN_LIST_BUSY_BIT, flag);
+ 	preempt_enable();
+@@ -529,46 +521,44 @@ static inline unsigned int rds_ib_flush_
  }
  
  /*
-@@ -593,10 +592,22 @@ static void __writeback_inodes_sb(struct
+- * given an xlist of mrs, put them all into the list_head for more processing
++ * given an llist of mrs, put them all into the list_head for more processing
   */
- #define MAX_WRITEBACK_PAGES     1024
- 
--static inline bool over_bground_thresh(void)
-+static inline bool over_bground_thresh(struct mem_cgroup *mem_cgroup)
+-static void xlist_append_to_list(struct xlist_head *xlist, struct list_head *list)
++static void llist_append_to_list(struct llist_head *llist, struct list_head *list)
  {
- 	unsigned long background_thresh, dirty_thresh;
- 
-+	if (mem_cgroup) {
-+		struct dirty_info info;
+ 	struct rds_ib_mr *ibmr;
+-	struct xlist_head splice;
+-	struct xlist_head *cur;
+-	struct xlist_head *next;
+-
+-	splice.next = NULL;
+-	xlist_splice(xlist, &splice);
+-	cur = splice.next;
+-	while (cur) {
+-		next = cur->next;
+-		ibmr = list_entry(cur, struct rds_ib_mr, xlist);
++	struct llist_node *node;
++	struct llist_node *next;
 +
-+		if (!mem_cgroup_hierarchical_dirty_info(
-+			    determine_dirtyable_memory(), false,
-+			    mem_cgroup, &info))
-+			return false;
-+
-+		return info.nr_file_dirty +
-+			info.nr_unstable_nfs > info.background_thresh;
-+	}
-+
- 	global_dirty_limits(&background_thresh, &dirty_thresh);
- 
- 	return (global_page_state(NR_FILE_DIRTY) +
-@@ -683,7 +694,8 @@ static long wb_writeback(struct bdi_writ
- 		 * For background writeout, stop when we are below the
- 		 * background dirty threshold
- 		 */
--		if (work->for_background && !over_bground_thresh())
-+		if (work->for_background &&
-+		    !over_bground_thresh(work->mem_cgroup))
- 			break;
- 
- 		wbc.more_io = 0;
-@@ -761,23 +773,6 @@ static unsigned long get_nr_dirty_pages(
- 		get_nr_dirty_inodes();
++	node = llist_del_all(llist);
++	while (node) {
++		next = node->next;
++		ibmr = llist_entry(node, struct rds_ib_mr, llnode);
+ 		list_add_tail(&ibmr->unmap_list, list);
+-		cur = next;
++		node = next;
+ 	}
  }
  
--static long wb_check_background_flush(struct bdi_writeback *wb)
+ /*
+- * this takes a list head of mrs and turns it into an xlist of clusters.
+- * each cluster has an xlist of MR_CLUSTER_SIZE mrs that are ready for
+- * reuse.
++ * this takes a list head of mrs and turns it into linked llist nodes
++ * of clusters.  Each cluster has linked llist nodes of
++ * MR_CLUSTER_SIZE mrs that are ready for reuse.
+  */
+-static void list_append_to_xlist(struct rds_ib_mr_pool *pool,
+-				struct list_head *list, struct xlist_head *xlist,
+-				struct xlist_head **tail_ret)
++static void list_to_llist_nodes(struct rds_ib_mr_pool *pool,
++				struct list_head *list,
++				struct llist_node **nodes_head,
++				struct llist_node **nodes_tail)
+ {
+ 	struct rds_ib_mr *ibmr;
+-	struct xlist_head *cur_mr = xlist;
+-	struct xlist_head *tail_mr = NULL;
++	struct llist_node *cur = NULL;
++	struct llist_node **next = nodes_head;
+ 
+ 	list_for_each_entry(ibmr, list, unmap_list) {
+-		tail_mr = &ibmr->xlist;
+-		tail_mr->next = NULL;
+-		cur_mr->next = tail_mr;
+-		cur_mr = tail_mr;
++		cur = &ibmr->llnode;
++		*next = cur;
++		next = &cur->next;
+ 	}
+-	*tail_ret = tail_mr;
++	*next = NULL;
++	*nodes_tail = cur;
+ }
+ 
+ /*
+@@ -581,8 +571,8 @@ static int rds_ib_flush_mr_pool(struct r
+ 			        int free_all, struct rds_ib_mr **ibmr_ret)
+ {
+ 	struct rds_ib_mr *ibmr, *next;
+-	struct xlist_head clean_xlist;
+-	struct xlist_head *clean_tail;
++	struct llist_node *clean_nodes;
++	struct llist_node *clean_tail;
+ 	LIST_HEAD(unmap_list);
+ 	LIST_HEAD(fmr_list);
+ 	unsigned long unpinned = 0;
+@@ -603,7 +593,7 @@ static int rds_ib_flush_mr_pool(struct r
+ 
+ 			prepare_to_wait(&pool->flush_wait, &wait,
+ 					TASK_UNINTERRUPTIBLE);
+-			if (xlist_empty(&pool->clean_list))
++			if (llist_empty(&pool->clean_list))
+ 				schedule();
+ 
+ 			ibmr = rds_ib_reuse_fmr(pool);
+@@ -628,10 +618,10 @@ static int rds_ib_flush_mr_pool(struct r
+ 	/* Get the list of all MRs to be dropped. Ordering matters -
+ 	 * we want to put drop_list ahead of free_list.
+ 	 */
+-	xlist_append_to_list(&pool->drop_list, &unmap_list);
+-	xlist_append_to_list(&pool->free_list, &unmap_list);
++	llist_append_to_list(&pool->drop_list, &unmap_list);
++	llist_append_to_list(&pool->free_list, &unmap_list);
+ 	if (free_all)
+-		xlist_append_to_list(&pool->clean_list, &unmap_list);
++		llist_append_to_list(&pool->clean_list, &unmap_list);
+ 
+ 	free_goal = rds_ib_flush_goal(pool, free_all);
+ 
+@@ -663,22 +653,22 @@ static int rds_ib_flush_mr_pool(struct r
+ 	if (!list_empty(&unmap_list)) {
+ 		/* we have to make sure that none of the things we're about
+ 		 * to put on the clean list would race with other cpus trying
+-		 * to pull items off.  The xlist would explode if we managed to
++		 * to pull items off.  The llist would explode if we managed to
+ 		 * remove something from the clean list and then add it back again
+-		 * while another CPU was spinning on that same item in xlist_del_head.
++		 * while another CPU was spinning on that same item in llist_del_first.
+ 		 *
+-		 * This is pretty unlikely, but just in case  wait for an xlist grace period
++		 * This is pretty unlikely, but just in case  wait for an llist grace period
+ 		 * here before adding anything back into the clean list.
+ 		 */
+ 		wait_clean_list_grace();
+ 
+-		list_append_to_xlist(pool, &unmap_list, &clean_xlist, &clean_tail);
++		list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
+ 		if (ibmr_ret)
+-			refill_local(pool, &clean_xlist, ibmr_ret);
++			*ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
+ 
+-		/* refill_local may have emptied our list */
+-		if (!xlist_empty(&clean_xlist))
+-			xlist_add(clean_xlist.next, clean_tail, &pool->clean_list);
++		/* more than one entry in llist nodes */
++		if (clean_nodes->next)
++			llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
+ 
+ 	}
+ 
+@@ -711,9 +701,9 @@ void rds_ib_free_mr(void *trans_private,
+ 
+ 	/* Return it to the pool's free list */
+ 	if (ibmr->remap_count >= pool->fmr_attr.max_maps)
+-		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->drop_list);
++		llist_add(&ibmr->llnode, &pool->drop_list);
+ 	else
+-		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->free_list);
++		llist_add(&ibmr->llnode, &pool->free_list);
+ 
+ 	atomic_add(ibmr->sg_len, &pool->free_pinned);
+ 	atomic_inc(&pool->dirty_count);
+diff -puN net/rds/xlist.h~llist-net-rds-replace-xlist-in-net-rds-xlisth-with-llist /dev/null
+--- a/net/rds/xlist.h
++++ /dev/null
+@@ -1,80 +0,0 @@
+-#ifndef _LINUX_XLIST_H
+-#define _LINUX_XLIST_H
+-
+-#include <linux/stddef.h>
+-#include <linux/poison.h>
+-#include <linux/prefetch.h>
+-#include <asm/system.h>
+-
+-struct xlist_head {
+-	struct xlist_head *next;
+-};
+-
+-static inline void INIT_XLIST_HEAD(struct xlist_head *list)
 -{
--	if (over_bground_thresh()) {
--
--		struct wb_writeback_work work = {
--			.nr_pages	= LONG_MAX,
--			.sync_mode	= WB_SYNC_NONE,
--			.for_background	= 1,
--			.range_cyclic	= 1,
--		};
--
--		return wb_writeback(wb, &work);
--	}
--
--	return 0;
+-	list->next = NULL;
 -}
 -
- static long wb_check_old_data_flush(struct bdi_writeback *wb)
- {
- 	unsigned long expired;
-@@ -839,15 +834,17 @@ long wb_do_writeback(struct bdi_writebac
- 		 */
- 		if (work->done)
- 			complete(work->done);
--		else
-+		else {
-+			if (work->mem_cgroup)
-+				mem_cgroup_bg_writeback_done(work->mem_cgroup);
- 			kfree(work);
-+		}
- 	}
- 
- 	/*
- 	 * Check for periodic writeback, kupdated() style
- 	 */
- 	wrote += wb_check_old_data_flush(wb);
--	wrote += wb_check_background_flush(wb);
- 	clear_bit(BDI_writeback_running, &wb->bdi->state);
- 
- 	return wrote;
-@@ -934,7 +931,7 @@ void wakeup_flusher_threads(long nr_page
- 	list_for_each_entry_rcu(bdi, &bdi_list, bdi_list) {
- 		if (!bdi_has_dirty_io(bdi))
- 			continue;
--		__bdi_start_writeback(bdi, nr_pages, false);
-+		__bdi_start_writeback(bdi, nr_pages, false, false, NULL);
- 	}
- 	rcu_read_unlock();
- }
-diff -puN include/linux/backing-dev.h~memcg-make-background-writeback-memcg-aware include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~memcg-make-background-writeback-memcg-aware
-+++ a/include/linux/backing-dev.h
-@@ -101,7 +101,8 @@ int bdi_register_dev(struct backing_dev_
- void bdi_unregister(struct backing_dev_info *bdi);
- int bdi_setup_and_register(struct backing_dev_info *, char *, unsigned int);
- void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages);
--void bdi_start_background_writeback(struct backing_dev_info *bdi);
-+void bdi_start_background_writeback(struct backing_dev_info *bdi,
-+				    struct mem_cgroup *mem_cgroup);
- int bdi_writeback_thread(void *data);
- int bdi_has_dirty_io(struct backing_dev_info *bdi);
- void bdi_arm_supers_timer(void);
-diff -puN mm/memcontrol.c~memcg-make-background-writeback-memcg-aware mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-background-writeback-memcg-aware
-+++ a/mm/memcontrol.c
-@@ -1489,7 +1489,7 @@ void mem_cgroup_balance_dirty_pages(stru
- 			 * mem_cgroup_bg_writeback_done().
- 			 */
- 			css_get(&memcg->css);
--			bdi_start_background_writeback(bdi);
-+			bdi_start_background_writeback(bdi, memcg);
- 		}
- 
- 		/* continue walking up hierarchy enabled parents */
-diff -puN mm/page-writeback.c~memcg-make-background-writeback-memcg-aware mm/page-writeback.c
---- a/mm/page-writeback.c~memcg-make-background-writeback-memcg-aware
-+++ a/mm/page-writeback.c
-@@ -597,7 +597,7 @@ static void balance_dirty_pages(struct a
- 	 */
- 	if ((laptop_mode && pages_written) ||
- 	    (!laptop_mode && (nr_reclaimable > background_thresh)))
--		bdi_start_background_writeback(bdi);
-+		bdi_start_background_writeback(bdi, NULL);
- }
- 
- void set_page_dirty_balance(struct page *page, int page_mkwrite)
-_
-
-Patches currently in -mm which might be from gthelen@google.com are
-
-origin.patch
-
+-static inline int xlist_empty(struct xlist_head *head)
+-{
+-	return head->next == NULL;
+-}
+-
+-static inline void xlist_add(struct xlist_head *new, struct xlist_head *tail,
+-			     struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-	struct xlist_head *check;
+-
+-	while (1) {
+-		cur = head->next;
+-		tail->next = cur;
+-		check = cmpxchg(&head->next, cur, new);
+-		if (check == cur)
+-			break;
+-	}
+-}
+-
+-static inline struct xlist_head *xlist_del_head(struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-	struct xlist_head *check;
+-	struct xlist_head *next;
+-
+-	while (1) {
+-		cur = head->next;
+-		if (!cur)
+-			goto out;
+-
+-		next = cur->next;
+-		check = cmpxchg(&head->next, cur, next);
+-		if (check == cur)
+-			goto out;
+-	}
+-out:
+-	return cur;
+-}
+-
+-static inline struct xlist_head *xlist_del_head_fast(struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-
+-	cur = head->next;
+-	if (!cur)
+-		return NULL;
+-
+-	head->next = cur->next;
+-	return cur;
+-}
+-
+-static inline void xlist_splice(struct xlist_head *list,
+-				struct xlist_head *head)
+-{
+-	struct xlist_head *cur;
+-
+-	WARN_ON(head->next);
+-	cur = xchg(&list->next, NULL);
+-	head->next = cur;
+-}
