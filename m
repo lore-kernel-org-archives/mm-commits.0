@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-stat-use-defined-macro-kmalloc_max_size.patch added to -mm tree
-Date: Wed, 30 Mar 2011 12:50:24 -0700
-Message-ID: <201103301950.p2UJoOsT003944@imap1.linux-foundation.org>
+Subject: + mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch added to -mm tree
+Date: Wed, 30 Mar 2011 12:51:48 -0700
+Message-ID: <201103301951.p2UJpmGi004055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932153Ab1C3Tuz (ORCPT
+	by vger.kernel.org with ESMTP id S1755737Ab1C3TwX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Mar 2011 15:50:55 -0400
+	Wed, 30 Mar 2011 15:52:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yuanhan.liu@linux.intel.com, adobriyan@gmail.com
+Cc: sergey.senozhatsky@gmail.com, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     proc/stat: use defined macro KMALLOC_MAX_SIZE
+     mm: remove unused zone_idx variable from set_migratetype_isolate
 has been added to the -mm tree.  Its filename is
-     proc-stat-use-defined-macro-kmalloc_max_size.patch
+     mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc/stat: use defined macro KMALLOC_MAX_SIZE
-From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Subject: mm: remove unused zone_idx variable from set_migratetype_isolate
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-There is a macro for the max size kmalloc can allocate, so use it instead
-of a hardcoded number.
-
-Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-stat-use-defined-macro-kmalloc_max_size fs/proc/stat.c
---- a/fs/proc/stat.c~proc-stat-use-defined-macro-kmalloc_max_size
-+++ a/fs/proc/stat.c
-@@ -138,9 +138,9 @@ static int stat_open(struct inode *inode
- 	struct seq_file *m;
- 	int res;
+diff -puN mm/page_alloc.c~mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate
++++ a/mm/page_alloc.c
+@@ -5474,10 +5474,8 @@ int set_migratetype_isolate(struct page 
+ 	struct memory_isolate_notify arg;
+ 	int notifier_ret;
+ 	int ret = -EBUSY;
+-	int zone_idx;
  
--	/* don't ask for more than the kmalloc() max size, currently 128 KB */
--	if (size > 128 * 1024)
--		size = 128 * 1024;
-+	/* don't ask for more than the kmalloc() max size */
-+	if (size > KMALLOC_MAX_SIZE)
-+		size = KMALLOC_MAX_SIZE;
- 	buf = kmalloc(size, GFP_KERNEL);
- 	if (!buf)
- 		return -ENOMEM;
+ 	zone = page_zone(page);
+-	zone_idx = zone_idx(zone);
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 
 _
 
-Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-proc-stat-use-defined-macro-kmalloc_max_size.patch
+mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch
 
