@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch added to -mm tree
-Date: Thu, 31 Mar 2011 11:52:28 -0700
-Message-ID: <201103311852.p2VIqTKO021903@imap1.linux-foundation.org>
+Subject: + mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch added to -mm tree
+Date: Thu, 31 Mar 2011 11:52:33 -0700
+Message-ID: <201103311852.p2VIqXut021909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759135Ab1CaSwp (ORCPT
+	by vger.kernel.org with ESMTP id S1759122Ab1CaSwv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Mar 2011 14:52:45 -0400
+	Thu, 31 Mar 2011 14:52:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: namhyung@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.
 
 
 The patch titled
-     mm: nommu: check the vma list when unmapping file-mapped vma
+     mm: nommu: fix a compile warning in do_mmap_pgoff()
 has been added to the -mm tree.  Its filename is
-     mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
+     mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: nommu: check the vma list when unmapping file-mapped vma
+Subject: mm: nommu: fix a compile warning in do_mmap_pgoff()
 From: Namhyung Kim <namhyung@gmail.com>
 
-Now we have the sorted vma list, use it in do_munmap() to check that we
-have an exact match.
+Because 'ret' is declared as int, not unsigned long, no need to cast the
+error contants into unsigned long.  If you compile this code on a 64-bit
+machine somehow, you'll see following warning:
+
+  CC      mm/nommu.o
+mm/nommu.c: In function `do_mmap_pgoff':
+mm/nommu.c:1411: warning: overflow in implicit constant conversion
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Acked-by: Greg Ungerer <gerg@uclinux.org>
@@ -48,32 +53,31 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/nommu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/nommu.c~mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma mm/nommu.c
---- a/mm/nommu.c~mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma
+diff -puN mm/nommu.c~mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff
 +++ a/mm/nommu.c
-@@ -1635,7 +1635,6 @@ static int shrink_vma(struct mm_struct *
- int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
- {
- 	struct vm_area_struct *vma;
--	struct rb_node *rb;
- 	unsigned long end = start + len;
- 	int ret;
+@@ -1376,15 +1376,15 @@ unsigned long do_mmap_pgoff(struct file 
+ 		if (capabilities & BDI_CAP_MAP_DIRECT) {
+ 			addr = file->f_op->get_unmapped_area(file, addr, len,
+ 							     pgoff, flags);
+-			if (IS_ERR((void *) addr)) {
++			if (IS_ERR_VALUE(addr)) {
+ 				ret = addr;
+-				if (ret != (unsigned long) -ENOSYS)
++				if (ret != -ENOSYS)
+ 					goto error_just_free;
  
-@@ -1668,9 +1667,8 @@ int do_munmap(struct mm_struct *mm, unsi
- 			}
- 			if (end == vma->vm_end)
- 				goto erase_whole_vma;
--			rb = rb_next(&vma->vm_rb);
--			vma = rb_entry(rb, struct vm_area_struct, vm_rb);
--		} while (rb);
-+			vma = vma->vm_next;
-+		} while (vma);
- 		kleave(" = -EINVAL [split file]");
- 		return -EINVAL;
- 	} else {
+ 				/* the driver refused to tell us where to site
+ 				 * the mapping so we'll have to attempt to copy
+ 				 * it */
+-				ret = (unsigned long) -ENODEV;
++				ret = -ENODEV;
+ 				if (!(capabilities & BDI_CAP_MAP_COPY))
+ 					goto error_just_free;
+ 
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
