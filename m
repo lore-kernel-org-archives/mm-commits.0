@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-remove-kmsg_dump_kexec-fix.patch added to -mm tree
-Date: Thu, 31 Mar 2011 13:46:15 -0700
-Message-ID: <201103312121.p2VLLfLj030041@imap1.linux-foundation.org>
+Subject: + sound-soc-codecs-sn95031c-needs-delayh.patch added to -mm tree
+Date: Thu, 31 Mar 2011 14:41:44 -0700
+Message-ID: <201103312217.p2VMHAO9000673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753668Ab1CaVVu (ORCPT
+	by vger.kernel.org with ESMTP id S1759375Ab1CaWRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Mar 2011 17:21:50 -0400
+	Thu, 31 Mar 2011 18:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, jarod@redhat.com, kosaki.motohiro@jp.fujitsu.com, vgoyal@redhat.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, tiwai@suse.de
 
 
 The patch titled
-     kexec-remove-kmsg_dump_kexec-fix
+     sound/soc/codecs/sn95031.c needs delay.h
 has been added to the -mm tree.  Its filename is
-     kexec-remove-kmsg_dump_kexec-fix.patch
+     sound-soc-codecs-sn95031c-needs-delayh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-remove-kmsg_dump_kexec-fix
+Subject: sound/soc/codecs/sn95031.c needs delay.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix powerpc build
+i386 allmodconfig:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+sound/soc/codecs/sn95031.c: In function 'sn95031_get_mic_bias':
+sound/soc/codecs/sn95031.c:153: error: implicit declaration of function 'msleep'
+
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/nvram.c |    1 -
- 1 file changed, 1 deletion(-)
+ sound/soc/codecs/sn95031.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec-fix arch/powerpc/platforms/pseries/nvram.c
---- a/arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec-fix
-+++ a/arch/powerpc/platforms/pseries/nvram.c
-@@ -490,7 +490,6 @@ static void oops_to_nvram(struct kmsg_du
- 		/* These are almost always orderly shutdowns. */
- 		return;
- 	case KMSG_DUMP_OOPS:
--	case KMSG_DUMP_KEXEC:
- 		break;
- 	case KMSG_DUMP_PANIC:
- 		panicking = true;
+diff -puN sound/soc/codecs/sn95031.c~sound-soc-codecs-sn95031c-needs-delayh sound/soc/codecs/sn95031.c
+--- a/sound/soc/codecs/sn95031.c~sound-soc-codecs-sn95031c-needs-delayh
++++ a/sound/soc/codecs/sn95031.c
+@@ -27,6 +27,7 @@
+ 
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/delay.h>
+ #include <asm/intel_scu_ipc.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +69,7 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+sound-soc-codecs-sn95031c-needs-delayh.patch
 fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
