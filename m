@@ -1,279 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages.patch removed from -mm tree
-Date: Thu, 31 Mar 2011 11:17:44 -0700
-Message-ID: <201103311816.p2VIGeg6020023@imap1.linux-foundation.org>
+Subject: + mm-nommu-sort-mm-mmap-list-properly.patch added to -mm tree
+Date: Thu, 31 Mar 2011 11:52:17 -0700
+Message-ID: <201103311852.p2VIqIOx021887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752665Ab1CaSQz (ORCPT
+	by vger.kernel.org with ESMTP id S1759072Ab1CaSwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Mar 2011 14:16:55 -0400
+	Thu, 31 Mar 2011 14:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nai.xia@gmail.com, aarcange@redhat.com, chrisw@sous-sol.org, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: namhyung@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org
 
 
 The patch titled
-     ksm: add vm_stat and meminfo entry to reflect pte mapping to ksm pages
-has been removed from the -mm tree.  Its filename was
-     ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages.patch
+     mm: nommu: sort mm->mmap list properly
+has been added to the -mm tree.  Its filename is
+     mm-nommu-sort-mm-mmap-list-properly.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: add vm_stat and meminfo entry to reflect pte mapping to ksm pages
-From: Nai Xia <nai.xia@gmail.com>
+Subject: mm: nommu: sort mm->mmap list properly
+From: Namhyung Kim <namhyung@gmail.com>
 
-ksm_pages_sharing is updated by ksmd periodically.  In some cases, it
-cannot reflect the actual savings and makes the benchmarks on volatile
-VMAs very inaccurate.
+When I was reading nommu code, I found that it handles the vma list/tree
+in an unusual way.  IIUC, because there can be more than one
+identical/overrapped vmas in the list/tree, it sorts the tree more
+strictly and does a linear search on the tree.  But it doesn't applied to
+the list (i.e.  the list could be constructed in a different order than
+the tree so that we can't use the list when finding the first vma in that
+order).
 
-This patch adds a vm_stat entry and lets the /proc/meminfo show
-information about how much virutal address pte is being mapped to ksm
-pages.  With default ksm paramters (pages_to_scan==100 &&
-sleep_millisecs==20), this can result in 50% more accurate averaged
-savings result for the following test program.  Bigger sleep_millisecs
-values will increase this deviation.
+Since inserting/sorting a vma in the tree and link is done at the same
+time, we can easily construct both of them in the same order.  And linear
+searching on the tree could be more costly than doing it on the list, it
+can be converted to use the list.
 
-/*
- * This test program triggers frequent faults on merged ksm pages but 
- * still keeps the faulted pages mergeable.
- */
+Also, after the commit 297c5eee3724 ("mm: make the vma list be doubly
+linked") made the list be doubly linked, there were a couple of code need
+to be fixed to construct the list properly.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/mman.h>
-
-#define MADV_MERGEABLE   12
-#define MADV_UNMERGEABLE 13
+Patch 1/6 is a preparation.  It maintains the list sorted same as the tree
+and construct doubly-linked list properly.  Patch 2/6 is a simple
+optimization for the vma deletion.  Patch 3/6 and 4/6 convert tree
+traversal to list traversal and the rest are simple fixes and cleanups.
 
 
-#define SIZE (1000*1024*1024)
-#define SEED	1
-#define PAGE_SIZE 4096
 
-int main(int argc, char **argv)
-{
-	char *p;
-	int j;
-	long feed = 1, new_feed, tmp;
-	unsigned int offset;
-	int status;
-	int ret;
+This patch:
 
-	pid_t child;
+@vma added into @mm should be sorted by start addr, end addr and VMA
+struct addr in that order because we may get identical VMAs in the @mm. 
+However this was true only for the rbtree, not for the list.
 
-	child = fork();
+This patch fixes this by remembering 'rb_prev' during the tree traversal
+like find_vma_prepare() does and linking the @vma via __vma_link_list(). 
+After this patch, we can iterate the whole VMAs in correct order simply by
+using @mm->mmap list.
 
-	p = mmap(NULL, SIZE, PROT_WRITE|PROT_READ, 
-		 MAP_PRIVATE|MAP_ANONYMOUS, 0, 0);
-    	if (p == MAP_FAILED) {
-    		printf("mmap error\n");
-    		return 0;
-    	}
-
-	ret = madvise(p, SIZE, MADV_MERGEABLE);
-
-	if (ret==-1) {
-		printf("madvise failed \n");
-		return 0;
-	}
-
-	memset(p, feed, SIZE);
-
-	while (1) {
-		for (j=0; j<SIZE; j+= PAGE_SIZE) {
-			    p[j] *= p[j]*1;
-		}
-	}
-
-	return 0;
-}
-
-Some of the patch lines removes trailing spaces in related files.
-
-[hannes@cmpxchg.org: update vmstat_text for nr_ksm_pages_sharing]
-Signed-off-by: Nai Xia <nai.xia@gmail.com>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Rik van Riel <riel@redhat.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c      |    6 ++++++
- include/linux/mmzone.h |    7 +++++--
- mm/ksm.c               |    7 +++++++
- mm/memory.c            |    6 +++++-
- mm/rmap.c              |   15 +++++++++++----
- mm/vmstat.c            |    3 +++
- 6 files changed, 37 insertions(+), 7 deletions(-)
+ mm/nommu.c |   62 ++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 40 insertions(+), 22 deletions(-)
 
-diff -puN fs/proc/meminfo.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/fs/proc/meminfo.c
-@@ -87,6 +87,9 @@ static int meminfo_proc_show(struct seq_
- 		"SUnreclaim:     %8lu kB\n"
- 		"KernelStack:    %8lu kB\n"
- 		"PageTables:     %8lu kB\n"
-+#ifdef CONFIG_KSM
-+		"KsmSharing:     %8lu kB\n"
-+#endif
- #ifdef CONFIG_QUICKLIST
- 		"Quicklists:     %8lu kB\n"
+diff -puN mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly
++++ a/mm/nommu.c
+@@ -672,6 +672,30 @@ static void protect_vma(struct vm_area_s
  #endif
-@@ -145,6 +148,9 @@ static int meminfo_proc_show(struct seq_
- 		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
- 		global_page_state(NR_KERNEL_STACK) * THREAD_SIZE / 1024,
- 		K(global_page_state(NR_PAGETABLE)),
-+#ifdef CONFIG_KSM
-+		K(global_page_state(NR_KSM_PAGES_SHARING)),
-+#endif
- #ifdef CONFIG_QUICKLIST
- 		K(quicklist_total_size()),
- #endif
-diff -puN include/linux/mmzone.h~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages include/linux/mmzone.h
---- a/include/linux/mmzone.h~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/include/linux/mmzone.h
-@@ -115,6 +115,9 @@ enum zone_stat_item {
- 	NUMA_OTHER,		/* allocation from other node */
- #endif
- 	NR_ANON_TRANSPARENT_HUGEPAGES,
-+#ifdef CONFIG_KSM
-+	NR_KSM_PAGES_SHARING,
-+#endif
- 	NR_VM_ZONE_STAT_ITEMS };
- 
- /*
-@@ -344,7 +347,7 @@ struct zone {
- 	ZONE_PADDING(_pad1_)
- 
- 	/* Fields commonly accessed by the page reclaim scanner */
--	spinlock_t		lru_lock;	
-+	spinlock_t		lru_lock;
- 	struct zone_lru {
- 		struct list_head list;
- 	} lru[NR_LRU_LISTS];
-@@ -722,7 +725,7 @@ static inline int is_normal_idx(enum zon
  }
  
- /**
-- * is_highmem - helper function to quickly check if a struct zone is a 
-+ * is_highmem - helper function to quickly check if a struct zone is a
-  *              highmem zone or not.  This is an attempt to keep references
-  *              to ZONE_{DMA/NORMAL/HIGHMEM/etc} in general code to a minimum.
-  * @zone - pointer to struct zone variable
-diff -puN mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages mm/ksm.c
---- a/mm/ksm.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/mm/ksm.c
-@@ -883,6 +883,8 @@ static int try_to_merge_one_page(struct 
- 	 */
- 	if (write_protect_page(vma, page, &orig_pte) == 0) {
- 		if (!kpage) {
-+			int mapcount;
++/* borrowed from mm/mmap.c */
++static inline void
++__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct rb_node *rb_parent)
++{
++	struct vm_area_struct *next;
 +
- 			/*
- 			 * While we hold page lock, upgrade page from
- 			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
-@@ -890,6 +892,11 @@ static int try_to_merge_one_page(struct 
- 			 */
- 			set_page_stable_node(page, NULL);
- 			mark_page_accessed(page);
-+			mapcount = page_mapcount(page);
-+			if (mapcount)
-+				add_zone_page_state(page_zone(page),
-+						NR_KSM_PAGES_SHARING,
-+						mapcount);
- 			err = 0;
- 		} else if (pages_identical(page, kpage))
- 			err = replace_page(vma, page, kpage, orig_pte);
-diff -puN mm/memory.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages mm/memory.c
---- a/mm/memory.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/mm/memory.c
-@@ -719,6 +719,10 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 			rss[MM_ANONPAGES]++;
- 		else
- 			rss[MM_FILEPAGES]++;
-+#ifdef CONFIG_KSM
-+		if (PageKsm(page)) /* follows page_dup_rmap() */
-+			inc_zone_page_state(page, NR_KSM_PAGES_SHARING);
-+#endif
- 	}
- 
- out_set_pte:
-@@ -1472,7 +1476,7 @@ int __get_user_pages(struct task_struct 
- 
- 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
- 
--	/* 
-+	/*
- 	 * Require read or write permissions.
- 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
- 	 */
-diff -puN mm/rmap.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages mm/rmap.c
---- a/mm/rmap.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/mm/rmap.c
-@@ -822,9 +822,9 @@ void page_move_anon_rmap(struct page *pa
- 
- /**
-  * __page_set_anon_rmap - set up new anonymous rmap
-- * @page:	Page to add to rmap	
-+ * @page:	Page to add to rmap
-  * @vma:	VM area to add page to.
-- * @address:	User virtual address of the mapping	
-+ * @address:	User virtual address of the mapping
-  * @exclusive:	the page is exclusively owned by the current process
-  */
- static void __page_set_anon_rmap(struct page *page,
-@@ -910,9 +910,12 @@ void do_page_add_anon_rmap(struct page *
- 			__inc_zone_page_state(page,
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 	}
--	if (unlikely(PageKsm(page)))
-+#ifdef CONFIG_KSM
-+	if (unlikely(PageKsm(page))) {
-+		__inc_zone_page_state(page, NR_KSM_PAGES_SHARING);
- 		return;
--
++	vma->vm_prev = prev;
++	if (prev) {
++		next = prev->vm_next;
++		prev->vm_next = vma;
++	} else {
++		mm->mmap = vma;
++		if (rb_parent)
++			next = rb_entry(rb_parent,
++					struct vm_area_struct, vm_rb);
++		else
++			next = NULL;
 +	}
-+#endif
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	if (first)
-@@ -970,6 +973,10 @@ void page_add_file_rmap(struct page *pag
++	vma->vm_next = next;
++	if (next)
++		next->vm_prev = vma;
++}
++
+ /*
+  * add a VMA into a process's mm_struct in the appropriate place in the list
+  * and tree and add to the address space's page tree also if not an anonymous
+@@ -680,9 +704,9 @@ static void protect_vma(struct vm_area_s
   */
- void page_remove_rmap(struct page *page)
+ static void add_vma_to_mm(struct mm_struct *mm, struct vm_area_struct *vma)
  {
-+#ifdef CONFIG_KSM
-+	if (PageKsm(page))
-+		__dec_zone_page_state(page, NR_KSM_PAGES_SHARING);
-+#endif
- 	/* page still mapped by someone else? */
- 	if (!atomic_add_negative(-1, &page->_mapcount))
- 		return;
-diff -puN mm/vmstat.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages mm/vmstat.c
---- a/mm/vmstat.c~ksm-add-vm_stat-and-meminfo-entry-to-reflect-pte-mapping-to-ksm-pages
-+++ a/mm/vmstat.c
-@@ -889,6 +889,9 @@ static const char * const vmstat_text[] 
- 	"numa_other",
- #endif
- 	"nr_anon_transparent_hugepages",
-+#ifdef CONFIG_KSM
-+	"nr_ksm_pages_sharing",
-+#endif
- 	"nr_dirty_threshold",
- 	"nr_dirty_background_threshold",
+-	struct vm_area_struct *pvma, **pp, *next;
++	struct vm_area_struct *pvma, *prev;
+ 	struct address_space *mapping;
+-	struct rb_node **p, *parent;
++	struct rb_node **p, *parent, *rb_prev;
  
+ 	kenter(",%p", vma);
+ 
+@@ -703,7 +727,7 @@ static void add_vma_to_mm(struct mm_stru
+ 	}
+ 
+ 	/* add the VMA to the tree */
+-	parent = NULL;
++	parent = rb_prev = NULL;
+ 	p = &mm->mm_rb.rb_node;
+ 	while (*p) {
+ 		parent = *p;
+@@ -713,17 +737,20 @@ static void add_vma_to_mm(struct mm_stru
+ 		 * (the latter is necessary as we may get identical VMAs) */
+ 		if (vma->vm_start < pvma->vm_start)
+ 			p = &(*p)->rb_left;
+-		else if (vma->vm_start > pvma->vm_start)
++		else if (vma->vm_start > pvma->vm_start) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else if (vma->vm_end < pvma->vm_end)
++		} else if (vma->vm_end < pvma->vm_end)
+ 			p = &(*p)->rb_left;
+-		else if (vma->vm_end > pvma->vm_end)
++		else if (vma->vm_end > pvma->vm_end) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else if (vma < pvma)
++		} else if (vma < pvma)
+ 			p = &(*p)->rb_left;
+-		else if (vma > pvma)
++		else if (vma > pvma) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else
++		} else
+ 			BUG();
+ 	}
+ 
+@@ -731,20 +758,11 @@ static void add_vma_to_mm(struct mm_stru
+ 	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
+ 
+ 	/* add VMA to the VMA list also */
+-	for (pp = &mm->mmap; (pvma = *pp); pp = &(*pp)->vm_next) {
+-		if (pvma->vm_start > vma->vm_start)
+-			break;
+-		if (pvma->vm_start < vma->vm_start)
+-			continue;
+-		if (pvma->vm_end < vma->vm_end)
+-			break;
+-	}
++	prev = NULL;
++	if (rb_prev)
++		prev = rb_entry(rb_prev, struct vm_area_struct, vm_rb);
+ 
+-	next = *pp;
+-	*pp = vma;
+-	vma->vm_next = next;
+-	if (next)
+-		next->vm_prev = vma;
++	__vma_link_list(mm, vma, prev, parent);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from nai.xia@gmail.com are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
+mm-nommu-sort-mm-mmap-list-properly.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-nommu-dont-scan-the-vma-list-when-deleting.patch
+mm-nommu-find-vma-using-the-sorted-vma-list.patch
+mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
+mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch
+mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
 
