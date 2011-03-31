@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch added to -mm tree
-Date: Thu, 31 Mar 2011 11:52:33 -0700
-Message-ID: <201103311852.p2VIqXut021909@imap1.linux-foundation.org>
+Subject: + mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch added to -mm tree
+Date: Thu, 31 Mar 2011 11:52:30 -0700
+Message-ID: <201103311852.p2VIqVSm021906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759122Ab1CaSwv (ORCPT
+	by vger.kernel.org with ESMTP id S1759135Ab1CaSwq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Mar 2011 14:52:51 -0400
+	Thu, 31 Mar 2011 14:52:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: namhyung@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.
 
 
 The patch titled
-     mm: nommu: fix a compile warning in do_mmap_pgoff()
+     mm: nommu: fix a potential memory leak in do_mmap_private()
 has been added to the -mm tree.  Its filename is
-     mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
+     mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: nommu: fix a compile warning in do_mmap_pgoff()
+Subject: mm: nommu: fix a potential memory leak in do_mmap_private()
 From: Namhyung Kim <namhyung@gmail.com>
 
-Because 'ret' is declared as int, not unsigned long, no need to cast the
-error contants into unsigned long.  If you compile this code on a 64-bit
-machine somehow, you'll see following warning:
-
-  CC      mm/nommu.o
-mm/nommu.c: In function `do_mmap_pgoff':
-mm/nommu.c:1411: warning: overflow in implicit constant conversion
+If f_op->read() fails and sysctl_nr_trim_pages > 1, there could be a
+memory leak between @region->vm_end and @region->vm_top.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Acked-by: Greg Ungerer <gerg@uclinux.org>
@@ -53,31 +48,21 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff mm/nommu.c
---- a/mm/nommu.c~mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff
+diff -puN mm/nommu.c~mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private
 +++ a/mm/nommu.c
-@@ -1376,15 +1376,15 @@ unsigned long do_mmap_pgoff(struct file 
- 		if (capabilities & BDI_CAP_MAP_DIRECT) {
- 			addr = file->f_op->get_unmapped_area(file, addr, len,
- 							     pgoff, flags);
--			if (IS_ERR((void *) addr)) {
-+			if (IS_ERR_VALUE(addr)) {
- 				ret = addr;
--				if (ret != (unsigned long) -ENOSYS)
-+				if (ret != -ENOSYS)
- 					goto error_just_free;
+@@ -1217,7 +1217,7 @@ static int do_mmap_private(struct vm_are
+ 	return 0;
  
- 				/* the driver refused to tell us where to site
- 				 * the mapping so we'll have to attempt to copy
- 				 * it */
--				ret = (unsigned long) -ENODEV;
-+				ret = -ENODEV;
- 				if (!(capabilities & BDI_CAP_MAP_COPY))
- 					goto error_just_free;
- 
+ error_free:
+-	free_page_series(region->vm_start, region->vm_end);
++	free_page_series(region->vm_start, region->vm_top);
+ 	region->vm_start = vma->vm_start = 0;
+ 	region->vm_end   = vma->vm_end = 0;
+ 	region->vm_top   = 0;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
