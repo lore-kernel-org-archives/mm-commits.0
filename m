@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-new-pcengines-alix-led-driver-using-gpio-interface.patch added to -mm tree
-Date: Thu, 07 Apr 2011 14:58:41 -0700
-Message-ID: <201104072158.p37Lwfjv002520@imap1.linux-foundation.org>
+Subject: + rtc-add-basic-support-for-st-m41t93-spi-rtc.patch added to -mm tree
+Date: Thu, 07 Apr 2011 15:08:00 -0700
+Message-ID: <201104072208.p37M80jg003012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754961Ab1DGV7J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 17:59:09 -0400
+	by vger.kernel.org with ESMTP id S1755466Ab1DGWIX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kernel@wildgooses.com, a.zummo@towertech.it, daniel@caiaq.de, rpurdie@rpsys.net
+Cc: N.Voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca, n.voss@weinmann.de
 
 
 The patch titled
-     leds: new PCEngines Alix LED driver using gpio interface
+     rtc: add basic support for ST M41T93 SPI RTC
 has been added to the -mm tree.  Its filename is
-     leds-new-pcengines-alix-led-driver-using-gpio-interface.patch
+     rtc-add-basic-support-for-st-m41t93-spi-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,270 +33,285 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: new PCEngines Alix LED driver using gpio interface
-From: Ed Wildgoose <kernel@wildgooses.com>
+Subject: rtc: add basic support for ST M41T93 SPI RTC
+From: "Voss, Nikolaus" <N.Voss@weinmann.de>
 
-This new driver replaces the old PCEngines Alix 2/3 LED driver with a new
-driver that controls the LEDs through the leds-gpio driver.  The old
-driver accessed GPIOs directly, which created a conflict and prevented
-also loading the cs5535-gio driver to read other GPIOs on the Alix board. 
-With this new driver, both are loaded and therefore it's possible to
-access both the LEDs and onboard GPIOs
+Add basic support for ST m41t93 SPI RTCs.  Tested with factory-new and
+with "run-in" species with and without backup batteries.
 
-This driver is based on leds-net5501.c by Alessandro Zummo.
-
-Additionally it relies on parts of the patch: 7f131cf3ed ("leds:
-leds-alix2c - take port address from MSR") by Daniel Mack to perform
-detection of the Alix board.
-
-Signed-off-by: Ed Wildgoose <kernel@wildgooses.com>
+Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Daniel Mack <daniel@caiaq.de> 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig      |    2 
- drivers/leds/leds-alix2.c |  196 ++++++++----------------------------
- 2 files changed, 46 insertions(+), 152 deletions(-)
+ drivers/rtc/Kconfig      |    9 +
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-m41t93.c |  225 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 235 insertions(+)
 
-diff -puN drivers/leds/Kconfig~leds-new-pcengines-alix-led-driver-using-gpio-interface drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-new-pcengines-alix-led-driver-using-gpio-interface
-+++ a/drivers/leds/Kconfig
-@@ -110,7 +110,7 @@ config LEDS_WRAP
- config LEDS_ALIX2
- 	tristate "LED Support for ALIX.2 and ALIX.3 series"
- 	depends on LEDS_CLASS
--	depends on X86 && !GPIO_CS5535 && !CS5535_GPIO
-+	depends on X86 && LEDS_GPIO_PLATFORM && GPIO_CS5535
+diff -puN drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc
++++ a/drivers/rtc/Kconfig
+@@ -378,6 +378,15 @@ comment "SPI RTC drivers"
+ 
+ if SPI_MASTER
+ 
++config RTC_DRV_M41T93
++        tristate "ST M41T93"
++        help
++          If you say yes here you will get support for the
++          ST M41T93 SPI RTC chip.
++
++          This driver can also be built as a module. If so, the module
++          will be called rtc-m41t93.
++
+ config RTC_DRV_M41T94
+ 	tristate "ST M41T94"
  	help
- 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
- 	  You have to set leds-alix2.force=1 for boards with Award BIOS.
-diff -puN drivers/leds/leds-alix2.c~leds-new-pcengines-alix-led-driver-using-gpio-interface drivers/leds/leds-alix2.c
---- a/drivers/leds/leds-alix2.c~leds-new-pcengines-alix-led-driver-using-gpio-interface
-+++ a/drivers/leds/leds-alix2.c
-@@ -1,119 +1,66 @@
- /*
-  * LEDs driver for PCEngines ALIX.2 and ALIX.3
-  *
-- * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-+ * Copyright (C) 2011 Nippy Networks Ltd
-+ * Written by Ed Wildgoose <kernel@wildgooses.com>
-+ * Based on leds-net5501.c by Alessandro Zummo <a.zummo@towertech.it>
+diff -puN drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc
++++ a/drivers/rtc/Makefile
+@@ -53,6 +53,7 @@ obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-is
+ obj-$(CONFIG_RTC_DRV_JZ4740)	+= rtc-jz4740.o
+ obj-$(CONFIG_RTC_DRV_LPC32XX)	+= rtc-lpc32xx.o
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
++obj-$(CONFIG_RTC_DRV_M41T93)	+= rtc-m41t93.o
+ obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
+ obj-$(CONFIG_RTC_DRV_M48T35)	+= rtc-m48t35.o
+ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+diff -puN /dev/null drivers/rtc/rtc-m41t93.c
+--- /dev/null
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -0,0 +1,225 @@
++/*
++ *
++ * Driver for ST M41T93 SPI RTC
++ *
++ * (c) 2010 Nikolaus Voss, Weinmann Medical GmbH
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-  */
- 
--#include <linux/err.h>
--#include <linux/io.h>
- #include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/string.h>
- #include <linux/leds.h>
--#include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/string.h>
--#include <linux/pci.h>
-+#include <linux/gpio.h>
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+#include <asm/geode.h>
- 
- static int force = 0;
- module_param(force, bool, 0444);
- MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
- 
--#define MSR_LBAR_GPIO		0x5140000C
--#define CS5535_GPIO_SIZE	256
--
--static u32 gpio_base;
--
--static struct pci_device_id divil_pci[] = {
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
--	{ } /* NULL entry */
--};
--MODULE_DEVICE_TABLE(pci, divil_pci);
--
--struct alix_led {
--	struct led_classdev cdev;
--	unsigned short port;
--	unsigned int on_value;
--	unsigned int off_value;
--};
--
--static void alix_led_set(struct led_classdev *led_cdev,
--			 enum led_brightness brightness)
--{
--	struct alix_led *led_dev =
--		container_of(led_cdev, struct alix_led, cdev);
--
--	if (brightness)
--		outl(led_dev->on_value, gpio_base + led_dev->port);
--	else
--		outl(led_dev->off_value, gpio_base + led_dev->port);
--}
--
--static struct alix_led alix_leds[] = {
-+static struct gpio_led alix_leds[] = {
- 	{
--		.cdev = {
--			.name = "alix:1",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x00,
--		.on_value = 1 << 22,
--		.off_value = 1 << 6,
-+		.name = "alix:1",
-+		.gpio = 6,
-+		.default_trigger = "default-on",
-+		.active_low = 1,
- 	},
- 	{
--		.cdev = {
--			.name = "alix:2",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x80,
--		.on_value = 1 << 25,
--		.off_value = 1 << 9,
-+		.name = "alix:2",
-+		.gpio = 25,
-+		.default_trigger = "default-off",
-+		.active_low = 1,
- 	},
- 	{
--		.cdev = {
--			.name = "alix:3",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x80,
--		.on_value = 1 << 27,
--		.off_value = 1 << 11,
-+		.name = "alix:3",
-+		.gpio = 27,
-+		.default_trigger = "default-off",
-+		.active_low = 1,
- 	},
- };
- 
--static int __init alix_led_probe(struct platform_device *pdev)
--{
--	int i;
--	int ret;
--
--	for (i = 0; i < ARRAY_SIZE(alix_leds); i++) {
--		alix_leds[i].cdev.flags |= LED_CORE_SUSPENDRESUME;
--		ret = led_classdev_register(&pdev->dev, &alix_leds[i].cdev);
--		if (ret < 0)
--			goto fail;
--	}
--	return 0;
-+static struct gpio_led_platform_data alix_leds_data = {
-+	.num_leds = ARRAY_SIZE(alix_leds),
-+	.leds = alix_leds,
-+};
- 
--fail:
--	while (--i >= 0)
--		led_classdev_unregister(&alix_leds[i].cdev);
--	return ret;
--}
-+static struct platform_device alix_leds_dev = {
-+	.name = "leds-gpio",
-+	.id = -1,
-+	.dev.platform_data = &alix_leds_data,
-+};
- 
--static int alix_led_remove(struct platform_device *pdev)
-+static void __init register_alix(void)
- {
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
--		led_classdev_unregister(&alix_leds[i].cdev);
--	return 0;
-+	platform_device_register(&alix_leds_dev);
- }
- 
--static struct platform_driver alix_led_driver = {
--	.remove = alix_led_remove,
--	.driver = {
--		.name = KBUILD_MODNAME,
--		.owner = THIS_MODULE,
--	},
--};
--
- static int __init alix_present(unsigned long bios_phys,
- 				const char *alix_sig,
- 				size_t alix_sig_len)
-@@ -164,76 +111,23 @@ static int __init alix_present(unsigned 
- 	return 0;
- }
- 
--static struct platform_device *pdev;
--
--static int __init alix_pci_led_init(void)
-+static int __init alix_init(void)
- {
--	u32 low, hi;
--
--	if (pci_dev_present(divil_pci) == 0) {
--		printk(KERN_WARNING KBUILD_MODNAME": DIVIL not found\n");
--		return -ENODEV;
--	}
--
--	/* Grab the GPIO I/O range */
--	rdmsr(MSR_LBAR_GPIO, low, hi);
--
--	/* Check the mask and whether GPIO is enabled (sanity check) */
--	if (hi != 0x0000f001) {
--		printk(KERN_WARNING KBUILD_MODNAME": GPIO not enabled\n");
--		return -ENODEV;
--	}
--
--	/* Mask off the IO base address */
--	gpio_base = low & 0x0000ff00;
--
--	if (!request_region(gpio_base, CS5535_GPIO_SIZE, KBUILD_MODNAME)) {
--		printk(KERN_ERR KBUILD_MODNAME": can't allocate I/O for GPIO\n");
--		return -ENODEV;
--	}
--
--	/* Set GPIO function to output */
--	outl(1 << 6, gpio_base + 0x04);
--	outl(1 << 9, gpio_base + 0x84);
--	outl(1 << 11, gpio_base + 0x84);
--
--	return 0;
--}
--
--static int __init alix_led_init(void)
--{
--	int ret = -ENODEV;
- 	const char tinybios_sig[] = "PC Engines ALIX.";
- 	const char coreboot_sig[] = "PC Engines\0ALIX.";
- 
-+	if (!is_geode())
-+		return 0;
++#include <linux/bcd.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
 +
- 	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
- 	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
--		ret = alix_pci_led_init();
-+		register_alix();
- 
--	if (ret < 0)
--		return ret;
--
--	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
--	if (!IS_ERR(pdev)) {
--		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
--		if (ret)
--			platform_device_unregister(pdev);
--	} else
--		ret = PTR_ERR(pdev);
--
--	return ret;
--}
++#define M41T93_REG_SSEC			0
++#define M41T93_REG_ST_SEC		1
++#define M41T93_REG_MIN			2
++#define M41T93_REG_CENT_HOUR		3
++#define M41T93_REG_WDAY			4
++#define M41T93_REG_DAY			5
++#define M41T93_REG_MON			6
++#define M41T93_REG_YEAR			7
++
++
++#define M41T93_REG_ALM_HOUR_HT		0xc
++#define M41T93_REG_FLAGS		0xf
++
++#define M41T93_FLAG_ST			(1 << 7)
++#define M41T93_FLAG_OF			(1 << 2)
++#define M41T93_FLAG_BL			(1 << 4)
++#define M41T93_FLAG_HT			(1 << 6)
++
++static inline int m41t93_set_reg(struct spi_device *spi, u8 addr, u8 data)
++{
++	u8 buf[2];
++
++	/* MSB must be '1' to write */
++	buf[0] = addr | 0x80;
++	buf[1] = data;
++
++	return spi_write(spi, buf, sizeof(buf));
++}
++
++static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
++	u8 * const data = &buf[1]; /* ptr to first data byte */
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"write", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	if (tm->tm_year < 100) {
++		dev_warn(&spi->dev, "unsupported date (before 2000-01-01).\n");
++		return -EINVAL;
++	}
++
++	data[M41T93_REG_SSEC]		= 0;
++	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
++	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
++	data[M41T93_REG_CENT_HOUR]	= bin2bcd(tm->tm_hour) |
++						((tm->tm_year/100-1) << 6);
++	data[M41T93_REG_DAY]		= bin2bcd(tm->tm_mday);
++	data[M41T93_REG_WDAY]		= bin2bcd(tm->tm_wday + 1);
++	data[M41T93_REG_MON]		= bin2bcd(tm->tm_mon + 1);
++	data[M41T93_REG_YEAR]		= bin2bcd(tm->tm_year % 100);
++
++	return spi_write(spi, buf, sizeof(buf));
++}
++
++
++static int m41t93_get_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	const u8 start_addr = 0;
++	u8 buf[8];
++	int century_after_1900;
++	int tmp;
++	int ret = 0;
++
++	/* Check status of clock. Two states must be considered:
++	   1. halt bit (HT) is set: the clock is running but update of readout
++	      registers has been disabled due to power failure. This is normal
++	      case after poweron. Time is valid after resetting HT bit.
++	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
++	      time is invalid:
++	      a) OF can be immeditely reset.
++	      b) OF cannot be immediately reset: oscillator has to be restarted.
++	*/
++	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_HT) {
++		dev_dbg(&spi->dev, "HT bit is set, reenable clock update.\n");
++		m41t93_set_reg(spi, M41T93_REG_ALM_HOUR_HT,
++			       tmp & ~M41T93_FLAG_HT);
++	}
++
++	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_OF) {
++		ret = -EINVAL;
++		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
++		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
++
++		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++		if (tmp < 0)
++			return tmp;
++		else if (tmp & M41T93_FLAG_OF) {
++			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
++
++			dev_warn(&spi->dev,
++				 "OF bit is still set, kickstarting clock.\n");
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++			reset_osc &= ~M41T93_FLAG_ST;
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++		}
++	}
++
++	if (tmp & M41T93_FLAG_BL)
++		dev_warn(&spi->dev, "BL bit is set, replace battery.\n");
++
++	/* read actual time/date */
++	tmp = spi_write_then_read(spi, &start_addr, 1, buf, sizeof(buf));
++	if (tmp < 0)
++		return tmp;
++
++	tm->tm_sec	= bcd2bin(buf[M41T93_REG_ST_SEC]);
++	tm->tm_min	= bcd2bin(buf[M41T93_REG_MIN]);
++	tm->tm_hour	= bcd2bin(buf[M41T93_REG_CENT_HOUR] & 0x3f);
++	tm->tm_mday	= bcd2bin(buf[M41T93_REG_DAY]);
++	tm->tm_mon	= bcd2bin(buf[M41T93_REG_MON]) - 1;
++	tm->tm_wday	= bcd2bin(buf[M41T93_REG_WDAY] & 0x0f) - 1;
++
++	century_after_1900 = (buf[M41T93_REG_CENT_HOUR] >> 6) + 1;
++	tm->tm_year = bcd2bin(buf[M41T93_REG_YEAR]) + century_after_1900 * 100;
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"read", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	return ret < 0 ? ret : rtc_valid_tm(tm);
++}
++
++
++static const struct rtc_class_ops m41t93_rtc_ops = {
++	.read_time	= m41t93_get_time,
++	.set_time	= m41t93_set_time,
++};
++
++static struct spi_driver m41t93_driver;
++
++static int __devinit m41t93_probe(struct spi_device *spi)
++{
++	struct rtc_device *rtc;
++	int res;
++
++	spi->bits_per_word = 8;
++	spi_setup(spi);
++
++	res = spi_w8r8(spi, M41T93_REG_WDAY);
++	if (res < 0 || (res & 0xf8) != 0) {
++		dev_err(&spi->dev, "not found 0x%x.\n", res);
++		return -ENODEV;
++	}
++
++	rtc = rtc_device_register(m41t93_driver.driver.name,
++		&spi->dev, &m41t93_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	dev_set_drvdata(&spi->dev, rtc);
++
++	return 0;
++}
++
++
++static int __devexit m41t93_remove(struct spi_device *spi)
++{
++	struct rtc_device *rtc = platform_get_drvdata(spi);
++
++	if (rtc)
++		rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct spi_driver m41t93_driver = {
++	.driver = {
++		.name	= "rtc-m41t93",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= m41t93_probe,
++	.remove = __devexit_p(m41t93_remove),
++};
++
++static __init int m41t93_init(void)
++{
++	return spi_register_driver(&m41t93_driver);
++}
++module_init(m41t93_init);
++
++static __exit void m41t93_exit(void)
++{
++	spi_unregister_driver(&m41t93_driver);
++}
++module_exit(m41t93_exit);
++
++MODULE_AUTHOR("Nikolaus Voss <n.voss@weinmann.de>");
++MODULE_DESCRIPTION("Driver for ST M41T93 SPI RTC");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-m41t93");
+_
+
+Patches currently in -mm which might be from N.Voss@weinmann.de are
+
+rtc-add-basic-support-for-st-m41t93-spi-rtc.patch
+
