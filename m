@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-show-explicit-dependency-between-gpio_cs5535-and-mfd_cs5535.patch added to -mm tree
-Date: Thu, 07 Apr 2011 15:51:15 -0700
-Message-ID: <201104072251.p37MpFcn005184@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch added to -mm tree
+Date: Thu, 07 Apr 2011 16:02:26 -0700
+Message-ID: <201104072302.p37N2QON005629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756880Ab1DGWvh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:51:37 -0400
+	by vger.kernel.org with ESMTP id S1751661Ab1DGXDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 19:03:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kernel@wildgooses.com, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: julia@diku.dk, a.zummo@towertech.it
 
 
 The patch titled
-     From: kernel@wildgooses.com
+     drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
 has been added to the -mm tree.  Its filename is
-     gpio-show-explicit-dependency-between-gpio_cs5535-and-mfd_cs5535.patch
+     drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: kernel@wildgooses.com
-From: Ed Wildgoose <kernel@wildgooses.com>
+Subject: drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
+From: Julia Lawall <julia@diku.dk>
 
+The memory allocated using request_mem_region should be released using
+release_mem_region, not release_region.
 
-cs5535-gpio.c has been split into two, with various setup moved
-into cs5535-mfd.c.  Given that cs5535-gpio will not load without
-the -mfd part, lets make that dependency explicit in Kconfig
+The semantic patch that fixes part of this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Ed Wildgoose <kernel@wildgooses.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Acked-by: Andres Salomon <dilinger@queued.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+// <smpl>
+@@
+expression E1,E2,E3;
+@@
+
+request_mem_region(E1,E2,E3)
+...
+?- release_region(E1,E2)
++ release_mem_region(E1,E2)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mrst.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-show-explicit-dependency-between-gpio_cs5535-and-mfd_cs5535 drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-show-explicit-dependency-between-gpio_cs5535-and-mfd_cs5535
-+++ a/drivers/gpio/Kconfig
-@@ -298,7 +298,7 @@ comment "PCI GPIO expanders:"
+diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region
++++ a/drivers/rtc/rtc-mrst.c
+@@ -380,7 +380,7 @@ cleanup1:
+ cleanup0:
+ 	dev_set_drvdata(dev, NULL);
+ 	mrst_rtc.dev = NULL;
+-	release_region(iomem->start, iomem->end + 1 - iomem->start);
++	release_mem_region(iomem->start, iomem->end + 1 - iomem->start);
+ 	dev_err(dev, "rtc-mrst: unable to initialise\n");
+ 	return retval;
+ }
+@@ -406,7 +406,7 @@ static void __devexit rtc_mrst_do_remove
+ 	mrst->rtc = NULL;
  
- config GPIO_CS5535
- 	tristate "AMD CS5535/CS5536 GPIO support"
--	depends on PCI && X86 && !CS5535_GPIO
-+	depends on PCI && X86 && !CS5535_GPIO && MFD_CS5535
- 	help
- 	  The AMD CS5535 and CS5536 southbridges support 28 GPIO pins that
- 	  can be used for quite a number of things.  The CS5535/6 is found on
+ 	iomem = mrst->iomem;
+-	release_region(iomem->start, iomem->end + 1 - iomem->start);
++	release_mem_region(iomem->start, iomem->end + 1 - iomem->start);
+ 	mrst->iomem = NULL;
+ 
+ 	mrst->dev = NULL;
 _
 
-Patches currently in -mm which might be from kernel@wildgooses.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
-gpio-show-explicit-dependency-between-gpio_cs5535-and-mfd_cs5535.patch
+linux-next.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
 
