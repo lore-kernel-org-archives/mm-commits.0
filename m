@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch added to -mm tree
-Date: Thu, 07 Apr 2011 16:02:28 -0700
-Message-ID: <201104072302.p37N2S7e005702@imap1.linux-foundation.org>
+Subject: + drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch added to -mm tree
+Date: Thu, 07 Apr 2011 16:13:01 -0700
+Message-ID: <201104072313.p37ND1nP006142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661Ab1DGXDT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 19:03:19 -0400
+	by vger.kernel.org with ESMTP id S1757114Ab1DGXNd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 19:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, julia@diku.dk
+Cc: akpm@linux-foundation.org, art@ified.ca, gregkh@suse.de
 
 
 The patch titled
-     drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix
+     drivers/tty/vt/vt_ioctl.c: repair insane ?: expression
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+     drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix
+Subject: drivers/tty/vt/vt_ioctl.c: repair insane ?: expression
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use resource_size()
-
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Arthur Taylor <art@ified.ca>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mrst.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/tty/vt/vt_ioctl.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix drivers/rtc/rtc-mrst.c
---- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix
-+++ a/drivers/rtc/rtc-mrst.c
-@@ -380,7 +380,7 @@ cleanup1:
- cleanup0:
- 	dev_set_drvdata(dev, NULL);
- 	mrst_rtc.dev = NULL;
--	release_mem_region(iomem->start, iomem->end + 1 - iomem->start);
-+	release_mem_region(iomem->start, resource_size(iomem));
- 	dev_err(dev, "rtc-mrst: unable to initialise\n");
- 	return retval;
- }
-@@ -406,7 +406,7 @@ static void __devexit rtc_mrst_do_remove
- 	mrst->rtc = NULL;
+diff -puN drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-repair-insane-expression drivers/tty/vt/vt_ioctl.c
+--- a/drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-repair-insane-expression
++++ a/drivers/tty/vt/vt_ioctl.c
+@@ -698,11 +698,23 @@ int vt_ioctl(struct tty_struct *tty,
+ 		break;
  
- 	iomem = mrst->iomem;
--	release_mem_region(iomem->start, iomem->end + 1 - iomem->start);
-+	release_mem_region(iomem->start, resource_size(iomem));
- 	mrst->iomem = NULL;
+ 	case KDGKBMODE:
+-		uival = ((kbd->kbdmode == VC_RAW) ? K_RAW :
+-				 (kbd->kbdmode == VC_MEDIUMRAW) ? K_MEDIUMRAW :
+-				 (kbd->kbdmode == VC_UNICODE) ? K_UNICODE :
+-				 (kbd->kbdmode == VC_OFF) ? K_OFF :
+-				 K_XLATE);
++		switch (kbd->kbdmode) {
++		case VC_RAW:
++			uival = K_RAW;
++			break;
++		case VC_MEDIUMRAW:
++			uival = K_MEDIUMRAW;
++			break;
++		case VC_UNICODE:
++			uival = K_UNICODE;
++			break;
++		case VC_OFF:
++			uival = K_OFF;
++			break;
++		default:
++			uival = K_XLATE;
++			break;
++		}
+ 		goto setint;
  
- 	mrst->dev = NULL;
+ 	/* this could be folded into KDSKBMODE, but for compatibility
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +105,7 @@ lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
 lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
 drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
 rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
 rtc-driver-for-pt7c4338-chip-fix.patch
