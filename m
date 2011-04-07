@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-basic-support-for-st-m41t93-spi-rtc.patch added to -mm tree
-Date: Thu, 07 Apr 2011 15:08:00 -0700
-Message-ID: <201104072208.p37M80jg003012@imap1.linux-foundation.org>
+Subject: + init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure.patch added to -mm tree
+Date: Thu, 07 Apr 2011 15:17:51 -0700
+Message-ID: <201104072217.p37MHp6G003462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755466Ab1DGWIX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:08:23 -0400
+	by vger.kernel.org with ESMTP id S1755798Ab1DGWR7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: N.Voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca, n.voss@weinmann.de
+Cc: amworsley@gmail.com, ext-phil.2.carmody@nokia.com
 
 
 The patch titled
-     rtc: add basic support for ST M41T93 SPI RTC
+     init/calibrate.c: fix for critical bogoMIPS intermittent calculation failure
 has been added to the -mm tree.  Its filename is
-     rtc-add-basic-support-for-st-m41t93-spi-rtc.patch
+     init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,285 +33,208 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add basic support for ST M41T93 SPI RTC
-From: "Voss, Nikolaus" <N.Voss@weinmann.de>
+Subject: init/calibrate.c: fix for critical bogoMIPS intermittent calculation failure
+From: Andrew Worsley <amworsley@gmail.com>
 
-Add basic support for ST m41t93 SPI RTCs.  Tested with factory-new and
-with "run-in" species with and without backup batteries.
+A fix to the TSC (Time Stamp Counter) based bogoMIPS calculation used on
+secondary CPUs which has two faults:
 
-Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+1: Not handling wrapping of the lower 32 bits of the TSC counter on
+   32bit kernel - perhaps TSC is not reset by a warm reset?
+
+2: TSC and Jiffies are no incrementing together properly.  Either
+   jiffies increment too quickly or Time Stamp Counter isn't incremented
+   in during an SMI but the real time clock is and jiffies are
+   incremented.
+
+Case 1 can result in a factor of 16 too large a value which makes udelay()
+values too small and can cause mysterious driver errors.  Case 2 appears
+to give smaller 10-15% errors after averaging but enough to cause
+occasional failures on my own board
+
+I have tested this code on my own branch and attach patch suitable for
+current kernel code.  See below for examples of the failures and how the
+fix handles these situations now.
+
+I reported this issue earlier here:
+     Intermittent problem with BogoMIPs calculation on Intel AP CPUs -
+http://marc.info/?l=linux-kernel&m=129947246316875&w=4
+
+I suspect this issue has been seen by others but as it is intermittent and
+bogoMIPS for secondary CPUs are no longer printed out it might have been
+difficult to identify this as the cause.  Perhaps these unresolved issues,
+although quite old, might be relevant as possibly this fault has been
+around for a while.  In particular Case 1 may only be relevant to 32bit
+kernels on newer HW (most people run 64bit kernels?).  Case 2 is less
+dramatic since the earlier fix in this area and also intermittent.
+
+   Re: bogomips discrepancy on Intel Core2 Quad CPU -
+http://marc.info/?l=linux-kernel&m=118929277524298&w=4
+   slow system and bogus bogomips  -
+http://marc.info/?l=linux-kernel&m=116791286716107&w=4
+   Re: Re: [RFC-PATCH] clocksource: update lpj if clocksource has -
+http://marc.info/?l=linux-kernel&m=128952775819467&w=4
+
+This issue is masked a little by commit feae3203d711db0a ("timers, init:
+Limit the number of per cpu calibration bootup messages") which only
+prints out the first bogoMIPS value making it much harder to notice other
+values differing.  Perhaps it should be changed to only suppress them when
+they are similar values?
+
+Here are some outputs showing faults occurring and the new code handling
+them properly.  See my earlier message for examples of the original
+failure.
+
+    Case 1:   A Time Stamp Counter wrap:
+...
+Calibrating delay loop (skipped), value calculated using timer
+frequency.. 6332.70 BogoMIPS (lpj=31663540)
+....
+calibrate_delay_direct() timer_rate_max=31666493
+timer_rate_min=31666151 pre_start=4170369255 pre_end=4202035539
+calibrate_delay_direct() timer_rate_max=2425955274
+timer_rate_min=2425954941 pre_start=4265368533 pre_end=2396356387
+calibrate_delay_direct() ignoring timer_rate as we had a TSC wrap
+around start=4265368581 >=post_end=2396356511
+calibrate_delay_direct() timer_rate_max=31666274
+timer_rate_min=31665942 pre_start=2440373374 pre_end=2472039515
+calibrate_delay_direct() timer_rate_max=31666492
+timer_rate_min=31666160 pre_start=2535372139 pre_end=2567038422
+calibrate_delay_direct() timer_rate_max=31666455
+timer_rate_min=31666207 pre_start=2630371084 pre_end=2662037415
+Calibrating delay using timer specific routine.. 6333.28 BogoMIPS (lpj=31666428)
+Total of 2 processors activated (12665.99 BogoMIPS).
+....
+
+    Case 2:  Some thing (presumably the SMM interrupt?) causing the
+very low increase in TSC counter for the DELAY_CALIBRATION_TICKS
+increase in jiffies
+...
+Calibrating delay loop (skipped), value calculated using timer
+frequency.. 6333.25 BogoMIPS (lpj=31666270)
+...
+calibrate_delay_direct() timer_rate_max=31666483
+timer_rate_min=31666074 pre_start=4199536526 pre_end=4231202809
+calibrate_delay_direct() timer_rate_max=864348 timer_rate_min=864016
+pre_start=2405343672 pre_end=2406207897
+calibrate_delay_direct() timer_rate_max=31666483
+timer_rate_min=31666179 pre_start=2469540464 pre_end=2501206823
+calibrate_delay_direct() timer_rate_max=31666511
+timer_rate_min=31666122 pre_start=2564539400 pre_end=2596205712
+calibrate_delay_direct() timer_rate_max=31666084
+timer_rate_min=31665685 pre_start=2659538782 pre_end=2691204657
+calibrate_delay_direct() dropping min bogoMips estimate 1 = 864348
+Calibrating delay using timer specific routine.. 6333.27 BogoMIPS (lpj=31666390)
+Total of 2 processors activated (12666.53 BogoMIPS).
+...
+
+After 70 boots I saw 2 variations <1% slip through
+
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    9 +
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-m41t93.c |  225 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 235 insertions(+)
+ init/calibrate.c |   70 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 65 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -378,6 +378,15 @@ comment "SPI RTC drivers"
+diff -puN init/calibrate.c~init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure init/calibrate.c
+--- a/init/calibrate.c~init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure
++++ a/init/calibrate.c
+@@ -38,6 +38,9 @@ static unsigned long __cpuinit calibrate
+ 	unsigned long timer_rate_min, timer_rate_max;
+ 	unsigned long good_timer_sum = 0;
+ 	unsigned long good_timer_count = 0;
++	unsigned long measured_times[MAX_DIRECT_CALIBRATION_RETRIES];
++	int max = -1; /* index of measured_times with max/min values or not set */
++	int min = -1;
+ 	int i;
  
- if SPI_MASTER
+ 	if (read_current_timer(&pre_start) < 0 )
+@@ -90,17 +93,74 @@ static unsigned long __cpuinit calibrate
+ 		 * If the upper limit and lower limit of the timer_rate is
+ 		 * >= 12.5% apart, redo calibration.
+ 		 */
+-		if (pre_start != 0 && pre_end != 0 &&
++		printk(KERN_DEBUG
++"calibrate_delay_direct() timer_rate_max=%lu timer_rate_min=%lu pre_start=%lu pre_end=%lu\n",
++			  timer_rate_max, timer_rate_min, pre_start, pre_end);
++		if (start >= post_end)
++			printk(KERN_NOTICE
++				"calibrate_delay_direct() ignoring timer_rate as we had a TSC wrap around start=%lu >=post_end=%lu\n",
++				start, post_end);
++		if (start < post_end && pre_start != 0 && pre_end != 0 &&
+ 		    (timer_rate_max - timer_rate_min) < (timer_rate_max >> 3)) {
+ 			good_timer_count++;
+ 			good_timer_sum += timer_rate_max;
+-		}
++			measured_times[i] = timer_rate_max;
++			if (max < 0 || timer_rate_max > measured_times[max])
++				max = i;
++			if (min < 0 || timer_rate_max < measured_times[min])
++				min = i;
++		} else
++			measured_times[i] = 0;
++
+ 	}
  
-+config RTC_DRV_M41T93
-+        tristate "ST M41T93"
-+        help
-+          If you say yes here you will get support for the
-+          ST M41T93 SPI RTC chip.
+-	if (good_timer_count)
+-		return (good_timer_sum/good_timer_count);
++	/*
++	 * Find the maximum & minimum - if they differ too much throw out the one with
++	 * the largest difference from the mean and try again...
++	 */
++	while (good_timer_count > 1) {
++		unsigned long estimate;
++		unsigned long maxdiff;
 +
-+          This driver can also be built as a module. If so, the module
-+          will be called rtc-m41t93.
++		/* compute the estimate */
++		estimate = (good_timer_sum/good_timer_count);
++		maxdiff = estimate >> 3;
 +
- config RTC_DRV_M41T94
- 	tristate "ST M41T94"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc
-+++ a/drivers/rtc/Makefile
-@@ -53,6 +53,7 @@ obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-is
- obj-$(CONFIG_RTC_DRV_JZ4740)	+= rtc-jz4740.o
- obj-$(CONFIG_RTC_DRV_LPC32XX)	+= rtc-lpc32xx.o
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
-+obj-$(CONFIG_RTC_DRV_M41T93)	+= rtc-m41t93.o
- obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
- obj-$(CONFIG_RTC_DRV_M48T35)	+= rtc-m48t35.o
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
-diff -puN /dev/null drivers/rtc/rtc-m41t93.c
---- /dev/null
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -0,0 +1,225 @@
-+/*
-+ *
-+ * Driver for ST M41T93 SPI RTC
-+ *
-+ * (c) 2010 Nikolaus Voss, Weinmann Medical GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++		/* if range is within 12% let's take it */
++		if ((measured_times[max] - measured_times[min]) < maxdiff)
++			return (estimate);
 +
-+#include <linux/bcd.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/spi/spi.h>
-+
-+#define M41T93_REG_SSEC			0
-+#define M41T93_REG_ST_SEC		1
-+#define M41T93_REG_MIN			2
-+#define M41T93_REG_CENT_HOUR		3
-+#define M41T93_REG_WDAY			4
-+#define M41T93_REG_DAY			5
-+#define M41T93_REG_MON			6
-+#define M41T93_REG_YEAR			7
-+
-+
-+#define M41T93_REG_ALM_HOUR_HT		0xc
-+#define M41T93_REG_FLAGS		0xf
-+
-+#define M41T93_FLAG_ST			(1 << 7)
-+#define M41T93_FLAG_OF			(1 << 2)
-+#define M41T93_FLAG_BL			(1 << 4)
-+#define M41T93_FLAG_HT			(1 << 6)
-+
-+static inline int m41t93_set_reg(struct spi_device *spi, u8 addr, u8 data)
-+{
-+	u8 buf[2];
-+
-+	/* MSB must be '1' to write */
-+	buf[0] = addr | 0x80;
-+	buf[1] = data;
-+
-+	return spi_write(spi, buf, sizeof(buf));
-+}
-+
-+static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
-+	u8 * const data = &buf[1]; /* ptr to first data byte */
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"write", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	if (tm->tm_year < 100) {
-+		dev_warn(&spi->dev, "unsupported date (before 2000-01-01).\n");
-+		return -EINVAL;
-+	}
-+
-+	data[M41T93_REG_SSEC]		= 0;
-+	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
-+	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
-+	data[M41T93_REG_CENT_HOUR]	= bin2bcd(tm->tm_hour) |
-+						((tm->tm_year/100-1) << 6);
-+	data[M41T93_REG_DAY]		= bin2bcd(tm->tm_mday);
-+	data[M41T93_REG_WDAY]		= bin2bcd(tm->tm_wday + 1);
-+	data[M41T93_REG_MON]		= bin2bcd(tm->tm_mon + 1);
-+	data[M41T93_REG_YEAR]		= bin2bcd(tm->tm_year % 100);
-+
-+	return spi_write(spi, buf, sizeof(buf));
-+}
-+
-+
-+static int m41t93_get_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	const u8 start_addr = 0;
-+	u8 buf[8];
-+	int century_after_1900;
-+	int tmp;
-+	int ret = 0;
-+
-+	/* Check status of clock. Two states must be considered:
-+	   1. halt bit (HT) is set: the clock is running but update of readout
-+	      registers has been disabled due to power failure. This is normal
-+	      case after poweron. Time is valid after resetting HT bit.
-+	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
-+	      time is invalid:
-+	      a) OF can be immeditely reset.
-+	      b) OF cannot be immediately reset: oscillator has to be restarted.
-+	*/
-+	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
-+	if (tmp < 0)
-+		return tmp;
-+
-+	if (tmp & M41T93_FLAG_HT) {
-+		dev_dbg(&spi->dev, "HT bit is set, reenable clock update.\n");
-+		m41t93_set_reg(spi, M41T93_REG_ALM_HOUR_HT,
-+			       tmp & ~M41T93_FLAG_HT);
-+	}
-+
-+	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+	if (tmp < 0)
-+		return tmp;
-+
-+	if (tmp & M41T93_FLAG_OF) {
-+		ret = -EINVAL;
-+		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
-+		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
-+
-+		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+		if (tmp < 0)
-+			return tmp;
-+		else if (tmp & M41T93_FLAG_OF) {
-+			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
-+
-+			dev_warn(&spi->dev,
-+				 "OF bit is still set, kickstarting clock.\n");
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+			reset_osc &= ~M41T93_FLAG_ST;
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++		/* ok - drop the worse value and try again... */
++		good_timer_sum = 0;
++		good_timer_count = 0;
++		if ((measured_times[max] - estimate) < (estimate - measured_times[min])) {
++			printk(KERN_NOTICE
++	"calibrate_delay_direct() dropping min bogoMips estimate %d = %lu\n",
++				min, measured_times[min]);
++			measured_times[min] = 0;
++			min = max;
++		} else {
++			printk(KERN_NOTICE
++	"calibrate_delay_direct() dropping max bogoMips estimate %d = %lu\n",
++				max, measured_times[max]);
++			measured_times[max] = 0;
++			max = min;
 +		}
++
++		for (i = 0; i < MAX_DIRECT_CALIBRATION_RETRIES; i++) {
++			if (measured_times[i] == 0)
++				continue;
++			good_timer_count++;
++			good_timer_sum += measured_times[i];
++			if (measured_times[i] < measured_times[min])
++				min = i;
++			if (measured_times[i] > measured_times[max])
++				max = i;
++		}
++
 +	}
-+
-+	if (tmp & M41T93_FLAG_BL)
-+		dev_warn(&spi->dev, "BL bit is set, replace battery.\n");
-+
-+	/* read actual time/date */
-+	tmp = spi_write_then_read(spi, &start_addr, 1, buf, sizeof(buf));
-+	if (tmp < 0)
-+		return tmp;
-+
-+	tm->tm_sec	= bcd2bin(buf[M41T93_REG_ST_SEC]);
-+	tm->tm_min	= bcd2bin(buf[M41T93_REG_MIN]);
-+	tm->tm_hour	= bcd2bin(buf[M41T93_REG_CENT_HOUR] & 0x3f);
-+	tm->tm_mday	= bcd2bin(buf[M41T93_REG_DAY]);
-+	tm->tm_mon	= bcd2bin(buf[M41T93_REG_MON]) - 1;
-+	tm->tm_wday	= bcd2bin(buf[M41T93_REG_WDAY] & 0x0f) - 1;
-+
-+	century_after_1900 = (buf[M41T93_REG_CENT_HOUR] >> 6) + 1;
-+	tm->tm_year = bcd2bin(buf[M41T93_REG_YEAR]) + century_after_1900 * 100;
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"read", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	return ret < 0 ? ret : rtc_valid_tm(tm);
-+}
-+
-+
-+static const struct rtc_class_ops m41t93_rtc_ops = {
-+	.read_time	= m41t93_get_time,
-+	.set_time	= m41t93_set_time,
-+};
-+
-+static struct spi_driver m41t93_driver;
-+
-+static int __devinit m41t93_probe(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc;
-+	int res;
-+
-+	spi->bits_per_word = 8;
-+	spi_setup(spi);
-+
-+	res = spi_w8r8(spi, M41T93_REG_WDAY);
-+	if (res < 0 || (res & 0xf8) != 0) {
-+		dev_err(&spi->dev, "not found 0x%x.\n", res);
-+		return -ENODEV;
-+	}
-+
-+	rtc = rtc_device_register(m41t93_driver.driver.name,
-+		&spi->dev, &m41t93_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+
-+	dev_set_drvdata(&spi->dev, rtc);
-+
-+	return 0;
-+}
-+
-+
-+static int __devexit m41t93_remove(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(spi);
-+
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver m41t93_driver = {
-+	.driver = {
-+		.name	= "rtc-m41t93",
-+		.bus	= &spi_bus_type,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= m41t93_probe,
-+	.remove = __devexit_p(m41t93_remove),
-+};
-+
-+static __init int m41t93_init(void)
-+{
-+	return spi_register_driver(&m41t93_driver);
-+}
-+module_init(m41t93_init);
-+
-+static __exit void m41t93_exit(void)
-+{
-+	spi_unregister_driver(&m41t93_driver);
-+}
-+module_exit(m41t93_exit);
-+
-+MODULE_AUTHOR("Nikolaus Voss <n.voss@weinmann.de>");
-+MODULE_DESCRIPTION("Driver for ST M41T93 SPI RTC");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("spi:rtc-m41t93");
+ 
+-	printk(KERN_WARNING "calibrate_delay_direct() failed to get a good "
++	printk(KERN_NOTICE "calibrate_delay_direct() failed to get a good "
+ 	       "estimate for loops_per_jiffy.\nProbably due to long platform interrupts. Consider using \"lpj=\" boot option.\n");
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from N.Voss@weinmann.de are
+Patches currently in -mm which might be from amworsley@gmail.com are
 
-rtc-add-basic-support-for-st-m41t93-spi-rtc.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
 
