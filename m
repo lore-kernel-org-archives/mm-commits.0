@@ -1,172 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: + w1-add-1-wire-w1-reset-and-resume-command-api-support.patch added to -mm tree
-Date: Thu, 07 Apr 2011 15:43:38 -0700
-Message-ID: <201104072243.p37Mhd06004872@imap1.linux-foundation.org>
+Subject: [to-be-updated] leds-new-pcengines-alix-led-driver-using-gpio-interface.patch removed from -mm tree
+Date: Thu, 07 Apr 2011 15:48:13 -0700
+Message-ID: <201104072248.p37MmDoV005091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756878Ab1DGWo2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:44:28 -0400
+	by vger.kernel.org with ESMTP id S1756604Ab1DGWs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 18:48:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, szabolcs.gyurko@tlt.hu
+To: kernel@wildgooses.com, a.zummo@towertech.it, daniel@caiaq.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: add 1-wire (w1) reset and resume command API support
-has been added to the -mm tree.  Its filename is
-     w1-add-1-wire-w1-reset-and-resume-command-api-support.patch
+     leds: new PCEngines Alix LED driver using gpio interface
+has been removed from the -mm tree.  Its filename was
+     leds-new-pcengines-alix-led-driver-using-gpio-interface.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: add 1-wire (w1) reset and resume command API support
-=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Subject: leds: new PCEngines Alix LED driver using gpio interface
+From: Ed Wildgoose <kernel@wildgooses.com>
 
-The first patch adds generic functionnality to w1_io for Resume Command
-[A5h] lots of slaves support.  I found it useful for multi-commands/res=
-et
-workflows with the same slave on a multi-slave bus.
+This new driver replaces the old PCEngines Alix 2/3 LED driver with a new
+driver that controls the LEDs through the leds-gpio driver.  The old
+driver accessed GPIOs directly, which created a conflict and prevented
+also loading the cs5535-gio driver to read other GPIOs on the Alix board. 
+With this new driver, both are loaded and therefore it's possible to
+access both the LEDs and onboard GPIOs
 
-This DS2408 w1 slave driver is not complete for all the features of the
-chip, but its sufficient if you use it as a simple IO expander.  Enjoy!
+This driver is based on leds-net5501.c by Alessandro Zummo.
 
-The ds1wm had Kconfig dependencies towards ARM && HAVE_CLK.  I took the=
-m
-out since I was using the ds1wm on an x86_64 platform (ds1wm in a FPGA
-through pcie) and found them irrelevant.
+Additionally it relies on parts of the patch: 7f131cf3ed ("leds:
+leds-alix2c - take port address from MSR") by Daniel Mack to perform
+detection of the Alix board.
 
-The clock freq/divisors at the top of ds1wm.c did not have the MSB set =
-to
-1.  This bit is CLK_EN which turns the whole prescaler and dividers on.=
-=20
-The driver never mentionned this bit either, so I just included this bi=
-t
-right in the table entries.  I also took the liberty to add a couple of
-entries to the table.  The spec doesn't explicitely mentions these
-possibilities but the description and examination of the core shows the
-prescalers & dividers can be used for more than the table explicitely
-shows.  The table I enlarged still doesn't cover all possibilities, but
-it's a good start.
-
-I also made a few tweaks to a couple of the read and write algorithms
-which made sense while I had my head very deep in the ds1wm documentati=
-on.
- We stressed it a lot with 10+ slaves on the bus, many ds2408, ds2431 a=
-nd
-ds2433 at the same time doing extensive interaction.  It proved quite
-stable in our production environment.
-
-This patch:
-
-Add generic functionnality to w1_io for Resume Command [A5h] lots of
-slaves support.
-
-Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
-Cc: Matt Reimer <mreimer@vpop.net>
+Signed-off-by: Ed Wildgoose <kernel@wildgooses.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Daniel Mack <daniel@caiaq.de> 
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.h    |    2 ++
- drivers/w1/w1_io.c |   26 ++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ drivers/leds/Kconfig      |    2 
+ drivers/leds/leds-alix2.c |  196 ++++++++----------------------------
+ 2 files changed, 46 insertions(+), 152 deletions(-)
 
-diff -puN drivers/w1/w1.h~w1-add-1-wire-w1-reset-and-resume-command-api=
--support drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-add-1-wire-w1-reset-and-resume-command-api-sup=
-port
-+++ a/drivers/w1/w1.h
-@@ -55,6 +55,7 @@ struct w1_reg_num
- #define W1_READ_ROM		0x33
- #define W1_READ_PSUPPLY		0xB4
- #define W1_MATCH_ROM		0x55
-+#define W1_RESUME_CMD		0xA5
-=20
- #define W1_SLAVE_ACTIVE		0
-=20
-@@ -213,6 +214,7 @@ void w1_write_block(struct w1_master *,=20
- void w1_touch_block(struct w1_master *, u8 *, int);
- u8 w1_read_block(struct w1_master *, u8 *, int);
- int w1_reset_select_slave(struct w1_slave *sl);
-+int w1_reset_resume_command(struct w1_master *);
- void w1_next_pullup(struct w1_master *, int);
-=20
- static inline struct w1_slave* dev_to_w1_slave(struct device *dev)
-diff -puN drivers/w1/w1_io.c~w1-add-1-wire-w1-reset-and-resume-command-=
-api-support drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-add-1-wire-w1-reset-and-resume-command-api-=
-support
-+++ a/drivers/w1/w1_io.c
-@@ -390,6 +390,32 @@ int w1_reset_select_slave(struct w1_slav
- EXPORT_SYMBOL_GPL(w1_reset_select_slave);
-=20
- /**
-+ * When the workflow with a slave amongst many requires several
-+ * successive commands a reset between each, this function is similar
-+ * to doing a reset then a match ROM for the last matched ROM. The
-+ * advantage being that the matched ROM step is skipped in favor of th=
-e
-+ * resume command. The slave must support the command of course.
+diff -puN drivers/leds/Kconfig~leds-new-pcengines-alix-led-driver-using-gpio-interface drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-new-pcengines-alix-led-driver-using-gpio-interface
++++ a/drivers/leds/Kconfig
+@@ -110,7 +110,7 @@ config LEDS_WRAP
+ config LEDS_ALIX2
+ 	tristate "LED Support for ALIX.2 and ALIX.3 series"
+ 	depends on LEDS_CLASS
+-	depends on X86 && !GPIO_CS5535 && !CS5535_GPIO
++	depends on X86 && LEDS_GPIO_PLATFORM && GPIO_CS5535
+ 	help
+ 	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
+ 	  You have to set leds-alix2.force=1 for boards with Award BIOS.
+diff -puN drivers/leds/leds-alix2.c~leds-new-pcengines-alix-led-driver-using-gpio-interface drivers/leds/leds-alix2.c
+--- a/drivers/leds/leds-alix2.c~leds-new-pcengines-alix-led-driver-using-gpio-interface
++++ a/drivers/leds/leds-alix2.c
+@@ -1,119 +1,66 @@
+ /*
+  * LEDs driver for PCEngines ALIX.2 and ALIX.3
+  *
+- * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
++ * Copyright (C) 2011 Nippy Networks Ltd
++ * Written by Ed Wildgoose <kernel@wildgooses.com>
++ * Based on leds-net5501.c by Alessandro Zummo <a.zummo@towertech.it>
 + *
-+ * If the bus has only one slave, traditionnaly the match ROM is skipp=
-ed
-+ * and a "SKIP ROM" is done for efficiency. On multi-slave busses, thi=
-s
-+ * doesn't work of course, but the resume command is the next best thi=
-ng.
-+ *
-+ * The w1 master lock must be held.
-+ *
-+ * @param dev     the master device
-+ */
-+int w1_reset_resume_command(struct w1_master *dev)
-+{
-+	if (w1_reset_bus(dev))
-+		return -1;
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
+  */
+ 
+-#include <linux/err.h>
+-#include <linux/io.h>
+ #include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/string.h>
+ #include <linux/leds.h>
+-#include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/string.h>
+-#include <linux/pci.h>
++#include <linux/gpio.h>
 +
-+	/* This will make only the last matched slave perform a skip ROM. */
-+	w1_write_8(dev, W1_RESUME_CMD);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(w1_reset_resume_command);
++#include <asm/geode.h>
+ 
+ static int force = 0;
+ module_param(force, bool, 0444);
+ MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
+ 
+-#define MSR_LBAR_GPIO		0x5140000C
+-#define CS5535_GPIO_SIZE	256
+-
+-static u32 gpio_base;
+-
+-static struct pci_device_id divil_pci[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+-	{ } /* NULL entry */
+-};
+-MODULE_DEVICE_TABLE(pci, divil_pci);
+-
+-struct alix_led {
+-	struct led_classdev cdev;
+-	unsigned short port;
+-	unsigned int on_value;
+-	unsigned int off_value;
+-};
+-
+-static void alix_led_set(struct led_classdev *led_cdev,
+-			 enum led_brightness brightness)
+-{
+-	struct alix_led *led_dev =
+-		container_of(led_cdev, struct alix_led, cdev);
+-
+-	if (brightness)
+-		outl(led_dev->on_value, gpio_base + led_dev->port);
+-	else
+-		outl(led_dev->off_value, gpio_base + led_dev->port);
+-}
+-
+-static struct alix_led alix_leds[] = {
++static struct gpio_led alix_leds[] = {
+ 	{
+-		.cdev = {
+-			.name = "alix:1",
+-			.brightness_set = alix_led_set,
+-		},
+-		.port = 0x00,
+-		.on_value = 1 << 22,
+-		.off_value = 1 << 6,
++		.name = "alix:1",
++		.gpio = 6,
++		.default_trigger = "default-on",
++		.active_low = 1,
+ 	},
+ 	{
+-		.cdev = {
+-			.name = "alix:2",
+-			.brightness_set = alix_led_set,
+-		},
+-		.port = 0x80,
+-		.on_value = 1 << 25,
+-		.off_value = 1 << 9,
++		.name = "alix:2",
++		.gpio = 25,
++		.default_trigger = "default-off",
++		.active_low = 1,
+ 	},
+ 	{
+-		.cdev = {
+-			.name = "alix:3",
+-			.brightness_set = alix_led_set,
+-		},
+-		.port = 0x80,
+-		.on_value = 1 << 27,
+-		.off_value = 1 << 11,
++		.name = "alix:3",
++		.gpio = 27,
++		.default_trigger = "default-off",
++		.active_low = 1,
+ 	},
+ };
+ 
+-static int __init alix_led_probe(struct platform_device *pdev)
+-{
+-	int i;
+-	int ret;
+-
+-	for (i = 0; i < ARRAY_SIZE(alix_leds); i++) {
+-		alix_leds[i].cdev.flags |= LED_CORE_SUSPENDRESUME;
+-		ret = led_classdev_register(&pdev->dev, &alix_leds[i].cdev);
+-		if (ret < 0)
+-			goto fail;
+-	}
+-	return 0;
++static struct gpio_led_platform_data alix_leds_data = {
++	.num_leds = ARRAY_SIZE(alix_leds),
++	.leds = alix_leds,
++};
+ 
+-fail:
+-	while (--i >= 0)
+-		led_classdev_unregister(&alix_leds[i].cdev);
+-	return ret;
+-}
++static struct platform_device alix_leds_dev = {
++	.name = "leds-gpio",
++	.id = -1,
++	.dev.platform_data = &alix_leds_data,
++};
+ 
+-static int alix_led_remove(struct platform_device *pdev)
++static void __init register_alix(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
+-		led_classdev_unregister(&alix_leds[i].cdev);
+-	return 0;
++	platform_device_register(&alix_leds_dev);
+ }
+ 
+-static struct platform_driver alix_led_driver = {
+-	.remove = alix_led_remove,
+-	.driver = {
+-		.name = KBUILD_MODNAME,
+-		.owner = THIS_MODULE,
+-	},
+-};
+-
+ static int __init alix_present(unsigned long bios_phys,
+ 				const char *alix_sig,
+ 				size_t alix_sig_len)
+@@ -164,76 +111,23 @@ static int __init alix_present(unsigned 
+ 	return 0;
+ }
+ 
+-static struct platform_device *pdev;
+-
+-static int __init alix_pci_led_init(void)
++static int __init alix_init(void)
+ {
+-	u32 low, hi;
+-
+-	if (pci_dev_present(divil_pci) == 0) {
+-		printk(KERN_WARNING KBUILD_MODNAME": DIVIL not found\n");
+-		return -ENODEV;
+-	}
+-
+-	/* Grab the GPIO I/O range */
+-	rdmsr(MSR_LBAR_GPIO, low, hi);
+-
+-	/* Check the mask and whether GPIO is enabled (sanity check) */
+-	if (hi != 0x0000f001) {
+-		printk(KERN_WARNING KBUILD_MODNAME": GPIO not enabled\n");
+-		return -ENODEV;
+-	}
+-
+-	/* Mask off the IO base address */
+-	gpio_base = low & 0x0000ff00;
+-
+-	if (!request_region(gpio_base, CS5535_GPIO_SIZE, KBUILD_MODNAME)) {
+-		printk(KERN_ERR KBUILD_MODNAME": can't allocate I/O for GPIO\n");
+-		return -ENODEV;
+-	}
+-
+-	/* Set GPIO function to output */
+-	outl(1 << 6, gpio_base + 0x04);
+-	outl(1 << 9, gpio_base + 0x84);
+-	outl(1 << 11, gpio_base + 0x84);
+-
+-	return 0;
+-}
+-
+-static int __init alix_led_init(void)
+-{
+-	int ret = -ENODEV;
+ 	const char tinybios_sig[] = "PC Engines ALIX.";
+ 	const char coreboot_sig[] = "PC Engines\0ALIX.";
+ 
++	if (!is_geode())
++		return 0;
 +
-+/**
-  * Put out a strong pull-up of the specified duration after the next w=
-rite
-  * operation.  Not all hardware supports strong pullups.  Hardware tha=
-t
-  * doesn't support strong pullups will sleep for the given time after =
-the
-_
-
-Patches currently in -mm which might be from dagenaisj@sonatest.com are
-
-w1-add-1-wire-w1-reset-and-resume-command-api-support.patch
-w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch
-w1-complete-the-1-wire-w1-ds1wm-driver-search-algorithm.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
+ 	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
+-		ret = alix_pci_led_init();
++		register_alix();
+ 
+-	if (ret < 0)
+-		return ret;
+-
+-	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
+-	if (!IS_ERR(pdev)) {
+-		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
+-		if (ret)
+-			platform_device_unregister(pdev);
+-	} else
+-		ret = PTR_ERR(pdev);
+-
+-	return ret;
+-}
