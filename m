@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-mpt2sas-prevent-heap-overflows.patch added to -mm tree
-Date: Thu, 07 Apr 2011 16:53:42 -0700
-Message-ID: <201104072353.p37NrgEH007806@imap1.linux-foundation.org>
+Subject: [to-be-updated] drivers-scsi-mpt2sas-prevent-heap-overflows.patch removed from -mm tree
+Date: Thu, 07 Apr 2011 16:54:55 -0700
+Message-ID: <201104072354.p37NstuK007858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751861Ab1DGXxt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 19:53:49 -0400
+	by vger.kernel.org with ESMTP id S1751861Ab1DGXzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2011 19:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, James.Bottomley@HansenPartnership.com, eric.moore@lsi.com, eugeneteo@kernel.sg, kashyap.desai@lsi.com, stable@kernel.org
+To: drosenberg@vsecurity.com, James.Bottomley@HansenPartnership.com, eric.moore@lsi.com, eugeneteo@kernel.sg, kashyap.desai@lsi.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      drivers/scsi/mpt2sas: prevent heap overflows
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-scsi-mpt2sas-prevent-heap-overflows.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -74,6 +64,5 @@ _
 
 Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
-drivers-scsi-mpt2sas-prevent-heap-overflows.patch
 net-convert-%p-usage-to-%pk.patch
 
