@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-stable-branch-info.patch added to -mm tree
-Date: Fri, 08 Apr 2011 11:53:41 -0700
-Message-ID: <201104081853.p38IrfLM023482@imap1.linux-foundation.org>
+Subject: + drivers-scsi-pmcraid-reject-negative-request-size.patch added to -mm tree
+Date: Fri, 08 Apr 2011 12:02:00 -0700
+Message-ID: <201104081902.p38J20w4023817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757660Ab1DHSxu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 14:53:50 -0400
+	by vger.kernel.org with ESMTP id S1756846Ab1DHTCa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 15:02:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, chrisw@sous-sol.org, gregkh@suse.de
+Cc: drosenberg@vsecurity.com, James.Bottomley@HansenPartnership.com, anil_ravindranath@pmc-sierra.com
 
 
 The patch titled
-     MAINTAINERS: update STABLE BRANCH info
+     drivers/scsi/pmcraid: reject negative request size
 has been added to the -mm tree.  Its filename is
-     maintainers-update-stable-branch-info.patch
+     drivers-scsi-pmcraid-reject-negative-request-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update STABLE BRANCH info
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers/scsi/pmcraid: reject negative request size
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-Drop Chris Wright from STABLE maintainers.  He hasn't done STABLE release
-work for quite some time.
+There's a code path in pmcraid that can be reached via device ioctl that
+causes all sorts of ugliness, including heap corruption or triggering the
+OOM killer due to consecutive allocation of large numbers of pages.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Chris Wright <chrisw@sous-sol.org>
-Cc: Greg KH <gregkh@suse.de>
+First, the user can call pmcraid_chr_ioctl(), with a type
+PMCRAID_PASSTHROUGH_IOCTL.  This calls through to
+pmcraid_ioctl_passthrough().  Next, a pmcraid_passthrough_ioctl_buffer is
+copied in, and the request_size variable is set to
+buffer->ioarcb.data_transfer_length, which is an arbitrary 32-bit signed
+value provided by the user.  If a negative value is provided here, bad
+things can happen.  For example, pmcraid_build_passthrough_ioadls() is
+called with this request_size, which immediately calls
+pmcraid_alloc_sglist() with a negative size.  The resulting math on
+allocating a scatter list can result in an overflow in the kzalloc() call
+(if num_elem is 0, the sglist will be smaller than expected), or if
+num_elem is unexpectedly large the subsequent loop will call alloc_pages()
+repeatedly, a high number of pages will be allocated and the OOM killer
+might be invoked.
+
+It looks like preventing this value from being negative in
+pmcraid_ioctl_passthrough() would be sufficient.  Something like this
+might do:
+
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/pmcraid.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-stable-branch-info MAINTAINERS
---- a/MAINTAINERS~maintainers-update-stable-branch-info
-+++ a/MAINTAINERS
-@@ -5980,7 +5980,6 @@ F:	arch/alpha/kernel/srm_env.c
+diff -puN drivers/scsi/pmcraid.c~drivers-scsi-pmcraid-reject-negative-request-size drivers/scsi/pmcraid.c
+--- a/drivers/scsi/pmcraid.c~drivers-scsi-pmcraid-reject-negative-request-size
++++ a/drivers/scsi/pmcraid.c
+@@ -3814,6 +3814,9 @@ static long pmcraid_ioctl_passthrough(
+ 			rc = -EFAULT;
+ 			goto out_free_buffer;
+ 		}
++	} else if (request_size < 0) {
++		rc = -EINVAL;
++		goto out_free_buffer;
+ 	}
  
- STABLE BRANCH
- M:	Greg Kroah-Hartman <greg@kroah.com>
--M:	Chris Wright <chrisw@sous-sol.org>
- L:	stable@kernel.org
- S:	Maintained
- 
+ 	/* check if we have any additional command parameters */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
-origin.patch
-linux-next.patch
-mm-page_allocc-silence-build_all_zonelists-section-mismatch.patch
-maintainers-update-stable-branch-info.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+drivers-scsi-pmcraid-reject-negative-request-size.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+net-convert-%p-usage-to-%pk.patch
 
