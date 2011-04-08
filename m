@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 08 Apr 2011 12:33:27 -0700
-Message-ID: <201104081933.p38JXRH8025238@imap1.linux-foundation.org>
+Subject: + tmpfs-fix-off-by-one-in-max_blocks-checks.patch added to -mm tree
+Date: Fri, 08 Apr 2011 12:34:08 -0700
+Message-ID: <201104081934.p38JY8DA025278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757360Ab1DHTd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 15:33:58 -0400
+	by vger.kernel.org with ESMTP id S1757764Ab1DHTeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 15:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roel.kluin@gmail.com
+Cc: hughd@google.com, tim.c.chen@linux.intel.com
 
 
 The patch titled
-     osst-wrong-index-used-in-inner-loop-checkpatch-fixes
+     tmpfs: fix off-by-one in max_blocks checks
 has been added to the -mm tree.  Its filename is
-     osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+     tmpfs-fix-off-by-one-in-max_blocks-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: osst-wrong-index-used-in-inner-loop-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tmpfs: fix off-by-one in max_blocks checks
+From: Hugh Dickins <hughd@google.com>
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#25: FILE: drivers/scsi/osst.c:4706:
-+				for (j=0; j < ST_NBR_PARTITIONS; j++) {
- 				      ^
+If you fill up a tmpfs, df was showing
+tmpfs                   460800         -         -   -  /tmp
+because of an off-by-one in the max_blocks checks.  Fix it so df shows
+tmpfs                   460800    460800         0 100% /tmp
 
-total: 1 errors, 0 warnings, 11 lines checked
-
-./patches/osst-wrong-index-used-in-inner-loop.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes
-+++ a/drivers/scsi/osst.c
-@@ -4703,7 +4703,7 @@ static int __os_scsi_tape_open(struct in
- 				if (STp->can_partitions)
- 					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
- 				int j;
--				for (j=0; j < ST_NBR_PARTITIONS; j++) {
-+				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
- 					STps = &(STp->ps[j]);
- 					STps->rw = ST_IDLE;
- 					STps->eof = ST_NOEOF;
+diff -puN mm/shmem.c~tmpfs-fix-off-by-one-in-max_blocks-checks mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-off-by-one-in-max_blocks-checks
++++ a/mm/shmem.c
+@@ -421,7 +421,8 @@ static swp_entry_t *shmem_swp_alloc(stru
+ 		 * a waste to allocate index if we cannot allocate data.
+ 		 */
+ 		if (sbinfo->max_blocks) {
+-			if (percpu_counter_compare(&sbinfo->used_blocks, (sbinfo->max_blocks - 1)) > 0)
++			if (percpu_counter_compare(&sbinfo->used_blocks,
++						sbinfo->max_blocks - 1) >= 0)
+ 				return ERR_PTR(-ENOSPC);
+ 			percpu_counter_inc(&sbinfo->used_blocks);
+ 			spin_lock(&inode->i_lock);
+@@ -1397,7 +1398,8 @@ repeat:
+ 		shmem_swp_unmap(entry);
+ 		sbinfo = SHMEM_SB(inode->i_sb);
+ 		if (sbinfo->max_blocks) {
+-			if ((percpu_counter_compare(&sbinfo->used_blocks, sbinfo->max_blocks) > 0) ||
++			if (percpu_counter_compare(&sbinfo->used_blocks,
++						sbinfo->max_blocks) >= 0 ||
+ 			    shmem_acct_block(info->flags)) {
+ 				spin_unlock(&info->lock);
+ 				error = -ENOSPC;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drbd-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+origin.patch
+tmpfs-fix-off-by-one-in-max_blocks-checks.patch
+mmap-add-alignment-for-some-variables.patch
+mmap-avoid-unnecessary-anon_vma-lock.patch
+mmap-avoid-merging-cloned-vmas.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+prio_tree-debugging-patch.patch
 
