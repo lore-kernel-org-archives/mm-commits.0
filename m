@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + osst-wrong-index-used-in-inner-loop.patch added to -mm tree
-Date: Fri, 08 Apr 2011 12:33:03 -0700
-Message-ID: <201104081933.p38JX3Y0025219@imap1.linux-foundation.org>
+Subject: + osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 08 Apr 2011 12:33:27 -0700
+Message-ID: <201104081933.p38JXRH8025238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031Ab1DHTdo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 15:33:44 -0400
+	by vger.kernel.org with ESMTP id S1757360Ab1DHTd6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2011 15:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, osst@riede.org
+Cc: akpm@linux-foundation.org, roel.kluin@gmail.com
 
 
 The patch titled
-     osst: wrong index used in inner loop
+     osst-wrong-index-used-in-inner-loop-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     osst-wrong-index-used-in-inner-loop.patch
+     osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: osst: wrong index used in inner loop
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: osst-wrong-index-used-in-inner-loop-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Index i was already used in the outer loop.  Fixes a potentially-infinite
-loop.
+ERROR: spaces required around that '=' (ctx:VxV)
+#25: FILE: drivers/scsi/osst.c:4706:
++				for (j=0; j < ST_NBR_PARTITIONS; j++) {
+ 				      ^
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Willem Riede <osst@riede.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+total: 1 errors, 0 warnings, 11 lines checked
+
+./patches/osst-wrong-index-used-in-inner-loop.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/scsi/osst.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop
+diff -puN drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes
 +++ a/drivers/scsi/osst.c
-@@ -4702,8 +4702,9 @@ static int __os_scsi_tape_open(struct in
- 				STp->partition = STp->new_partition = 0;
+@@ -4703,7 +4703,7 @@ static int __os_scsi_tape_open(struct in
  				if (STp->can_partitions)
  					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
--				for (i=0; i < ST_NBR_PARTITIONS; i++) {
--					STps = &(STp->ps[i]);
-+				int j;
-+				for (j=0; j < ST_NBR_PARTITIONS; j++) {
-+					STps = &(STp->ps[j]);
+ 				int j;
+-				for (j=0; j < ST_NBR_PARTITIONS; j++) {
++				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
+ 					STps = &(STp->ps[j]);
  					STps->rw = ST_IDLE;
  					STps->eof = ST_NOEOF;
- 					STps->at_sm = 0;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-btrfs-dont-dereference-extent_mapping-if-null.patch
-osst-wrong-index-used-in-inner-loop.patch
-frv-duplicate-output_buffer-of-e03.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drbd-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
