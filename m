@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch added to -mm tree
-Date: Mon, 11 Apr 2011 14:27:31 -0700
-Message-ID: <201104112127.p3BLRVXT002173@imap1.linux-foundation.org>
+Subject: + mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch added to -mm tree
+Date: Mon, 11 Apr 2011 14:27:34 -0700
+Message-ID: <201104112127.p3BLRYoq002176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755170Ab1DKV1p (ORCPT
+	by vger.kernel.org with ESMTP id S1754004Ab1DKV21 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Apr 2011 17:27:45 -0400
+	Mon, 11 Apr 2011 17:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com, y-goto@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
+     mm, mem-hotplug: recalculate lowmem_reserve when memory hotplug occurs
 has been added to the -mm tree.  Its filename is
-     mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+     mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
+Subject: mm, mem-hotplug: recalculate lowmem_reserve when memory hotplug occurs
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Commit bce7394a3e ("page-allocator: reset wmark_min and inactive ratio of
-zone when hotplug happens") introduced invalid section references.  Now,
-setup_per_zone_inactive_ratio() is marked __init and then it can't be
-referenced from memory hotplug code.
+Currently, memory hotplug calls setup_per_zone_wmarks() and
+calculate_zone_inactive_ratio(), but doesn't call
+setup_per_zone_lowmem_reserve().
 
-This patch marks it as __meminit and also marks caller as __ref.
+It means the number of reserved pages aren't updated even if memory hot
+plug occur.  This patch fixes it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
+ include/linux/mm.h  |    2 +-
+ mm/memory_hotplug.c |    9 +++++----
  mm/page_alloc.c     |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
+diff -puN include/linux/mm.h~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur include/linux/mm.h
+--- a/include/linux/mm.h~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
++++ a/include/linux/mm.h
+@@ -1357,7 +1357,7 @@ extern void set_dma_reserve(unsigned lon
+ extern void memmap_init_zone(unsigned long, int, unsigned long,
+ 				unsigned long, enum memmap_context);
+ extern void setup_per_zone_wmarks(void);
+-extern void calculate_zone_inactive_ratio(struct zone *zone);
++extern int __meminit init_per_zone_wmark_min(void);
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+ extern void show_mem(unsigned int flags);
+diff -puN mm/memory_hotplug.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
 +++ a/mm/memory_hotplug.c
-@@ -400,7 +400,7 @@ static int online_pages_range(unsigned l
- }
+@@ -459,8 +459,9 @@ int __ref online_pages(unsigned long pfn
+ 		zone_pcp_update(zone);
  
+ 	mutex_unlock(&zonelists_mutex);
+-	setup_per_zone_wmarks();
+-	calculate_zone_inactive_ratio(zone);
++
++	init_per_zone_wmark_min();
++
+ 	if (onlined_pages) {
+ 		kswapd_run(zone_to_nid(zone));
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+@@ -893,8 +894,8 @@ repeat:
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+ 	totalram_pages -= offlined_pages;
  
--int online_pages(unsigned long pfn, unsigned long nr_pages)
-+int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
- {
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
-@@ -795,7 +795,7 @@ check_pages_isolated(unsigned long start
- 	return offlined;
- }
- 
--static int offline_pages(unsigned long start_pfn,
-+static int __ref offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
- {
- 	unsigned long pfn, nr_pages, expire;
-diff -puN mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/page_alloc.c
---- a/mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
+-	setup_per_zone_wmarks();
+-	calculate_zone_inactive_ratio(zone);
++	init_per_zone_wmark_min();
++
+ 	if (!node_present_pages(node)) {
+ 		node_clear_state(node, N_HIGH_MEMORY);
+ 		kswapd_stop(node);
+diff -puN mm/page_alloc.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
 +++ a/mm/page_alloc.c
 @@ -5066,7 +5066,7 @@ void setup_per_zone_wmarks(void)
   *    1TB     101        10GB
   *   10TB     320        32GB
   */
--void calculate_zone_inactive_ratio(struct zone *zone)
-+void __meminit calculate_zone_inactive_ratio(struct zone *zone)
+-void __meminit calculate_zone_inactive_ratio(struct zone *zone)
++static void __meminit calculate_zone_inactive_ratio(struct zone *zone)
  {
  	unsigned int gb, ratio;
  
-@@ -5080,7 +5080,7 @@ void calculate_zone_inactive_ratio(struc
- 	zone->inactive_ratio = ratio;
- }
- 
--static void __init setup_per_zone_inactive_ratio(void)
-+static void __meminit setup_per_zone_inactive_ratio(void)
+@@ -5112,7 +5112,7 @@ static void __meminit setup_per_zone_ina
+  * 8192MB:	11584k
+  * 16384MB:	16384k
+  */
+-static int __init init_per_zone_wmark_min(void)
++int __meminit init_per_zone_wmark_min(void)
  {
- 	struct zone *zone;
+ 	unsigned long lowmem_kbytes;
  
 _
 
