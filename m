@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch added to -mm tree
-Date: Mon, 11 Apr 2011 14:27:34 -0700
-Message-ID: <201104112127.p3BLRYoq002176@imap1.linux-foundation.org>
+Subject: + mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch added to -mm tree
+Date: Mon, 11 Apr 2011 14:27:37 -0700
+Message-ID: <201104112127.p3BLRcB7002179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754004Ab1DKV21 (ORCPT
+	by vger.kernel.org with ESMTP id S1754004Ab1DKV23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Apr 2011 17:28:27 -0400
+	Mon, 11 Apr 2011 17:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm, mem-hotplug: recalculate lowmem_reserve when memory hotplug occurs
+     mm, mem-hotplug: update pcp->stat_threshold when memory hotplug occur
 has been added to the -mm tree.  Its filename is
-     mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+     mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, mem-hotplug: recalculate lowmem_reserve when memory hotplug occurs
+Subject: mm, mem-hotplug: update pcp->stat_threshold when memory hotplug occur
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, memory hotplug calls setup_per_zone_wmarks() and
-calculate_zone_inactive_ratio(), but doesn't call
-setup_per_zone_lowmem_reserve().
-
-It means the number of reserved pages aren't updated even if memory hot
-plug occur.  This patch fixes it.
+Currently, cpu hotplug updates pcp->stat_threshold, but memory hotplug
+doesn't.  There is no reason for this.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    2 +-
- mm/memory_hotplug.c |    9 +++++----
- mm/page_alloc.c     |    4 ++--
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ include/linux/vmstat.h |    1 +
+ mm/page_alloc.c        |    2 ++
+ mm/vmstat.c            |    3 +--
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur include/linux/mm.h
---- a/include/linux/mm.h~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
-+++ a/include/linux/mm.h
-@@ -1357,7 +1357,7 @@ extern void set_dma_reserve(unsigned lon
- extern void memmap_init_zone(unsigned long, int, unsigned long,
- 				unsigned long, enum memmap_context);
- extern void setup_per_zone_wmarks(void);
--extern void calculate_zone_inactive_ratio(struct zone *zone);
-+extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
- extern void __init mmap_init(void);
- extern void show_mem(unsigned int flags);
-diff -puN mm/memory_hotplug.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
-+++ a/mm/memory_hotplug.c
-@@ -459,8 +459,9 @@ int __ref online_pages(unsigned long pfn
- 		zone_pcp_update(zone);
+diff -puN include/linux/vmstat.h~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur
++++ a/include/linux/vmstat.h
+@@ -261,6 +261,7 @@ extern void dec_zone_state(struct zone *
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
  
- 	mutex_unlock(&zonelists_mutex);
--	setup_per_zone_wmarks();
--	calculate_zone_inactive_ratio(zone);
-+
-+	init_per_zone_wmark_min();
-+
- 	if (onlined_pages) {
- 		kswapd_run(zone_to_nid(zone));
- 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
-@@ -893,8 +894,8 @@ repeat:
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
- 	totalram_pages -= offlined_pages;
+ void refresh_cpu_vm_stats(int);
++void refresh_zone_stat_thresholds(void);
  
--	setup_per_zone_wmarks();
--	calculate_zone_inactive_ratio(zone);
-+	init_per_zone_wmark_min();
-+
- 	if (!node_present_pages(node)) {
- 		node_clear_state(node, N_HIGH_MEMORY);
- 		kswapd_stop(node);
-diff -puN mm/page_alloc.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur mm/page_alloc.c
---- a/mm/page_alloc.c~mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur
+ int calculate_pressure_threshold(struct zone *zone);
+ int calculate_normal_threshold(struct zone *zone);
+diff -puN mm/page_alloc.c~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur
 +++ a/mm/page_alloc.c
-@@ -5066,7 +5066,7 @@ void setup_per_zone_wmarks(void)
-  *    1TB     101        10GB
-  *   10TB     320        32GB
-  */
--void __meminit calculate_zone_inactive_ratio(struct zone *zone)
-+static void __meminit calculate_zone_inactive_ratio(struct zone *zone)
- {
- 	unsigned int gb, ratio;
+@@ -54,6 +54,7 @@
+ #include <trace/events/kmem.h>
+ #include <linux/ftrace_event.h>
+ #include <linux/memcontrol.h>
++#include <linux/vmstat.h>
  
-@@ -5112,7 +5112,7 @@ static void __meminit setup_per_zone_ina
-  * 8192MB:	11584k
-  * 16384MB:	16384k
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -5124,6 +5125,7 @@ int __meminit init_per_zone_wmark_min(vo
+ 	if (min_free_kbytes > 65536)
+ 		min_free_kbytes = 65536;
+ 	setup_per_zone_wmarks();
++	refresh_zone_stat_thresholds();
+ 	setup_per_zone_lowmem_reserve();
+ 	setup_per_zone_inactive_ratio();
+ 	return 0;
+diff -puN mm/vmstat.c~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur mm/vmstat.c
+--- a/mm/vmstat.c~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur
++++ a/mm/vmstat.c
+@@ -157,7 +157,7 @@ int calculate_normal_threshold(struct zo
+ /*
+  * Refresh the thresholds for each zone.
   */
--static int __init init_per_zone_wmark_min(void)
-+int __meminit init_per_zone_wmark_min(void)
+-static void refresh_zone_stat_thresholds(void)
++void refresh_zone_stat_thresholds(void)
  {
- 	unsigned long lowmem_kbytes;
+ 	struct zone *zone;
+ 	int cpu;
+@@ -1198,7 +1198,6 @@ static int __init setup_vmstat(void)
+ #ifdef CONFIG_SMP
+ 	int cpu;
  
+-	refresh_zone_stat_thresholds();
+ 	register_cpu_notifier(&vmstat_notifier);
+ 
+ 	for_each_online_cpu(cpu)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
