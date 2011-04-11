@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-increase-reclaim_distance-to-30.patch added to -mm tree
-Date: Mon, 11 Apr 2011 14:22:03 -0700
-Message-ID: <201104112122.p3BLM3DW001867@imap1.linux-foundation.org>
+Subject: + mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch added to -mm tree
+Date: Mon, 11 Apr 2011 14:27:31 -0700
+Message-ID: <201104112127.p3BLRVXT002173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754947Ab1DKVWK (ORCPT
+	by vger.kernel.org with ESMTP id S1755170Ab1DKV1p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Apr 2011 17:22:10 -0400
+	Mon, 11 Apr 2011 17:27:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, benh@kernel.crashing.org, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com, tony.luck@intel.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     mm: increase RECLAIM_DISTANCE to 30
+     mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
 has been added to the -mm tree.  Its filename is
-     mm-increase-reclaim_distance-to-30.patch
+     mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: increase RECLAIM_DISTANCE to 30
+Subject: mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Recently, Robert Mueller reported that zone_reclaim_mode doesn't work
-properly on his new NUMA server (Dual Xeon E5520 + Intel S5520UR MB).  He
-is using Cyrus IMAPd and it's built on a very traditional single-process
-model.
+Commit bce7394a3e ("page-allocator: reset wmark_min and inactive ratio of
+zone when hotplug happens") introduced invalid section references.  Now,
+setup_per_zone_inactive_ratio() is marked __init and then it can't be
+referenced from memory hotplug code.
 
-  * a master process which reads config files and manages the other
-    process
-  * multiple imapd processes, one per connection
-  * multiple pop3d processes, one per connection
-  * multiple lmtpd processes, one per connection
-  * periodical "cleanup" processes.
-
-There are thousands of independent processes.  The problem is, recent
-Intel motherboard turn on zone_reclaim_mode by default and traditional
-prefork model software don't work well on it.  Unfortunatelly, such models
-are still typical even in the 21st century.  We can't ignore them.
-
-This patch raises the zone_reclaim_mode threshold to 30.  30 doesn't have
-any specific meaning.  but 20 means that one-hop QPI/Hypertransport and
-such relatively cheap 2-4 socket machine are often used for tradiotional
-servers as above.  The intention is that these machines don't use
-zone_reclaim_mode.
-
-Note: ia64 and Power have arch specific RECLAIM_DISTANCE definitions. 
-This patch doesn't change such high-end NUMA machine behavior.
+This patch marks it as __meminit and also marks caller as __ref.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/topology.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 ++--
+ mm/page_alloc.c     |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/topology.h~mm-increase-reclaim_distance-to-30 include/linux/topology.h
---- a/include/linux/topology.h~mm-increase-reclaim_distance-to-30
-+++ a/include/linux/topology.h
-@@ -60,7 +60,7 @@ int arch_update_cpu_topology(void);
-  * (in whatever arch specific measurement units returned by node_distance())
-  * then switch on zone reclaim on boot.
+diff -puN mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
++++ a/mm/memory_hotplug.c
+@@ -400,7 +400,7 @@ static int online_pages_range(unsigned l
+ }
+ 
+ 
+-int online_pages(unsigned long pfn, unsigned long nr_pages)
++int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
+ {
+ 	unsigned long onlined_pages = 0;
+ 	struct zone *zone;
+@@ -795,7 +795,7 @@ check_pages_isolated(unsigned long start
+ 	return offlined;
+ }
+ 
+-static int offline_pages(unsigned long start_pfn,
++static int __ref offline_pages(unsigned long start_pfn,
+ 		  unsigned long end_pfn, unsigned long timeout)
+ {
+ 	unsigned long pfn, nr_pages, expire;
+diff -puN mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
++++ a/mm/page_alloc.c
+@@ -5066,7 +5066,7 @@ void setup_per_zone_wmarks(void)
+  *    1TB     101        10GB
+  *   10TB     320        32GB
   */
--#define RECLAIM_DISTANCE 20
-+#define RECLAIM_DISTANCE 30
- #endif
- #ifndef PENALTY_FOR_NODE_WITH_CPUS
- #define PENALTY_FOR_NODE_WITH_CPUS	(1)
+-void calculate_zone_inactive_ratio(struct zone *zone)
++void __meminit calculate_zone_inactive_ratio(struct zone *zone)
+ {
+ 	unsigned int gb, ratio;
+ 
+@@ -5080,7 +5080,7 @@ void calculate_zone_inactive_ratio(struc
+ 	zone->inactive_ratio = ratio;
+ }
+ 
+-static void __init setup_per_zone_inactive_ratio(void)
++static void __meminit setup_per_zone_inactive_ratio(void)
+ {
+ 	struct zone *zone;
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -95,6 +106,9 @@ memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
 mm-per-node-vmstat-show-proper-vmstats.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
 mm-increase-reclaim_distance-to-30.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 mm-batch-activate_page-to-reduce-lock-contention.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
