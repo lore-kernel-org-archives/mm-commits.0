@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + signal-sigprocmask-should-do-retarget_shared_pending.patch added to -mm tree
-Date: Mon, 11 Apr 2011 13:38:15 -0700
-Message-ID: <201104112038.p3BKcGxY032220@imap1.linux-foundation.org>
+Subject: + signal-introduce-retarget_shared_pending.patch added to -mm tree
+Date: Mon, 11 Apr 2011 13:38:06 -0700
+Message-ID: <201104112038.p3BKc87I032208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755482Ab1DKUjO (ORCPT
+	by vger.kernel.org with ESMTP id S1753836Ab1DKUjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 11 Apr 2011 16:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyous
 
 
 The patch titled
-     signal: sigprocmask() should do retarget_shared_pending()
+     signal: introduce retarget_shared_pending()
 has been added to the -mm tree.  Its filename is
-     signal-sigprocmask-should-do-retarget_shared_pending.patch
+     signal-introduce-retarget_shared_pending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal: sigprocmask() should do retarget_shared_pending()
+Subject: signal: introduce retarget_shared_pending()
 From: Oleg Nesterov <oleg@redhat.com>
 
-In short, almost every changing of current->blocked is wrong, or at least
-can lead to the unexpected results.
-
-For example.  Two threads T1 and T2, T1 sleeps in sigtimedwait/pause/etc. 
-kill(tgid, SIG) can pick T2 for TIF_SIGPENDING.  If T2 calls sigprocmask()
-and blocks SIG before it notices the pending signal, nobody else can
-handle this pending shared signal.
-
-I am not sure this is bug, but at least this looks strange imho.  T1
-should not sleep forever, there is a signal which should wake it up.
-
-This patch changes sigprocmask() to call retarget_shared_pending() as
-exit_signals() does.  To calculate the "blocked" argument we add the new
-helper, signorsets(), although we could do ~(newset & ~current->blocked)
-instead.  According to grep, nobody in arch/ defines
-__HAVE_ARCH_SIG_SETOPS, we only need to change linux/signal.h.
-
-Note: for this particular case we could simply change sigprocmask() to
-return -EINTR if signal_pending(), but then we should change other callers
-and, more importantly, if we need this fix then sigprocmask() will have
-more callers and some of them can't restart.  See the next patch as a
-random example.
+No functional changes.  Move the notyfy-other-threads code from
+exit_signals() to the new helper, retarget_shared_pending().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -70,43 +50,55 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |    4 ++++
- kernel/signal.c        |    5 +++++
- 2 files changed, 9 insertions(+)
+ kernel/signal.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/signal.h~signal-sigprocmask-should-do-retarget_shared_pending include/linux/signal.h
---- a/include/linux/signal.h~signal-sigprocmask-should-do-retarget_shared_pending
-+++ a/include/linux/signal.h
-@@ -126,10 +126,14 @@ _SIG_SET_BINOP(sigandsets, _sig_and)
- #define _sig_nand(x,y)	((x) & ~(y))
- _SIG_SET_BINOP(signandsets, _sig_nand)
- 
-+#define _sig_nor(x,y)	((x) | ~(y))
-+_SIG_SET_BINOP(signorsets, _sig_nor)
-+
- #undef _SIG_SET_BINOP
- #undef _sig_or
- #undef _sig_and
- #undef _sig_nand
-+#undef _sig_nor
- 
- #define _SIG_SET_OP(name, op)						\
- static inline void name(sigset_t *set)					\
-diff -puN kernel/signal.c~signal-sigprocmask-should-do-retarget_shared_pending kernel/signal.c
---- a/kernel/signal.c~signal-sigprocmask-should-do-retarget_shared_pending
+diff -puN kernel/signal.c~signal-introduce-retarget_shared_pending kernel/signal.c
+--- a/kernel/signal.c~signal-introduce-retarget_shared_pending
 +++ a/kernel/signal.c
-@@ -2314,6 +2314,11 @@ int sigprocmask(int how, sigset_t *set, 
- 	}
+@@ -2198,10 +2198,25 @@ relock:
+ 	return signr;
+ }
  
- 	spin_lock_irq(&tsk->sighand->siglock);
-+	if (signal_pending(tsk) && !thread_group_empty(tsk)) {
-+		sigset_t not_newblocked;
-+		signorsets(&not_newblocked, &current->blocked, &newset);
-+		retarget_shared_pending(tsk, &not_newblocked);
++/*
++ * It could be that complete_signal() picked us to notify about the
++ * group-wide signal. Another thread should be notified now to take
++ * the signal since we will not.
++ */
++static void retarget_shared_pending(struct task_struct *tsk)
++{
++	struct task_struct *t;
++
++	t = tsk;
++	while_each_thread(tsk, t) {
++		if (!signal_pending(t) && !(t->flags & PF_EXITING))
++			recalc_sigpending_and_wake(t);
 +	}
- 	tsk->blocked = newset;
- 	recalc_sigpending();
- 	spin_unlock_irq(&tsk->sighand->siglock);
++}
++
+ void exit_signals(struct task_struct *tsk)
+ {
+ 	int group_stop = 0;
+-	struct task_struct *t;
+ 
+ 	if (thread_group_empty(tsk) || signal_group_exit(tsk->signal)) {
+ 		tsk->flags |= PF_EXITING;
+@@ -2217,14 +2232,7 @@ void exit_signals(struct task_struct *ts
+ 	if (!signal_pending(tsk))
+ 		goto out;
+ 
+-	/*
+-	 * It could be that __group_complete_signal() choose us to
+-	 * notify about group-wide signal. Another thread should be
+-	 * woken now to take the signal since we will not.
+-	 */
+-	for (t = tsk; (t = next_thread(t)) != tsk; )
+-		if (!signal_pending(t) && !(t->flags & PF_EXITING))
+-			recalc_sigpending_and_wake(t);
++	retarget_shared_pending(tsk);
+ 
+ 	if (unlikely(tsk->group_stop & GROUP_STOP_PENDING) &&
+ 	    task_participate_group_stop(tsk))
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
