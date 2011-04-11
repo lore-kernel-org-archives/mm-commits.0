@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86mm-make-pagefault-killable.patch added to -mm tree
-Date: Mon, 11 Apr 2011 15:05:25 -0700
-Message-ID: <201104112205.p3BM5Qbr004025@imap1.linux-foundation.org>
+Subject: + fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch added to -mm tree
+Date: Mon, 11 Apr 2011 16:18:42 -0700
+Message-ID: <201104112318.p3BNIgwZ010130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756089Ab1DKWFq (ORCPT
+	by vger.kernel.org with ESMTP id S1753424Ab1DKXSq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Apr 2011 18:05:46 -0400
+	Mon, 11 Apr 2011 19:18:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, mingo@elte.hu, tglx@linutronix.de, willy@linux.intel.com
+Cc: akpm@linux-foundation.org, jiaweiwei.xiyou@gmail.com, petr@vandrovec.name
 
 
 The patch titled
-     x86,mm: make pagefault killable
+     fs/ncpfs/inode.c: suppress used-uninitialised warning
 has been added to the -mm tree.  Its filename is
-     x86mm-make-pagefault-killable.patch
+     fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,145 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86,mm: make pagefault killable
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: fs/ncpfs/inode.c: suppress used-uninitialised warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When an oom killing occurs, almost all processes are getting stuck at the
-following two points.
+fs/ncpfs/inode.c: In function 'ncp_fill_super':
+fs/ncpfs/inode.c:451: warning: 'data.mounted_vol[1u]' may be used uninitialized in this function
+fs/ncpfs/inode.c:451: warning: 'data.mounted_vol[2u]' may be used uninitialized in this function
+fs/ncpfs/inode.c:451: warning: 'data.mounted_vol[3u]' may be used uninitialized in this function
+...
 
-	1) __alloc_pages_nodemask
-	2) __lock_page_or_retry
+It's notabug, but we can easily fix it with a memset().
 
-1) is not very problematic because TIF_MEMDIE leads to an allocation
-failure and getting out from page allocator.
-
-2) is more problematic.  In an OOM situation, zones typically don't have
-page cache at all and memory starvation might lead to greatly reduced IO
-performance.  When a fork bomb occurs, TIF_MEMDIE tasks don't die quickly,
-meaning that a fork bomb may create new process quickly rather than the
-oom-killer killing it.  Then, the system may become livelocked.
-
-This patch makes the pagefault interruptible by SIGKILL.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Reported-by: Harry Wei <jiaweiwei.xiyou@gmail.com>
+Cc: Petr Vandrovec <petr@vandrovec.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   12 +++++++++++-
- include/linux/mm.h  |    1 +
- mm/filemap.c        |   31 ++++++++++++++++++++++++-------
- 3 files changed, 36 insertions(+), 8 deletions(-)
+ fs/ncpfs/inode.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/x86/mm/fault.c~x86mm-make-pagefault-killable arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~x86mm-make-pagefault-killable
-+++ a/arch/x86/mm/fault.c
-@@ -964,7 +964,7 @@ do_page_fault(struct pt_regs *regs, unsi
- 	struct mm_struct *mm;
- 	int fault;
- 	int write = error_code & PF_WRITE;
--	unsigned int flags = FAULT_FLAG_ALLOW_RETRY |
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
- 					(write ? FAULT_FLAG_WRITE : 0);
+diff -puN fs/ncpfs/inode.c~fs-ncpfs-inodec-suppress-used-uninitialised-warning fs/ncpfs/inode.c
+--- a/fs/ncpfs/inode.c~fs-ncpfs-inodec-suppress-used-uninitialised-warning
++++ a/fs/ncpfs/inode.c
+@@ -461,7 +461,7 @@ static int ncp_fill_super(struct super_b
+ #endif
+ 	struct ncp_entry_info finfo;
  
- 	tsk = current;
-@@ -1138,6 +1138,16 @@ good_area:
- 	}
+-	data.wdog_pid = NULL;
++	memset(data, 0, sizeof(data));
+ 	server = kzalloc(sizeof(struct ncp_server), GFP_KERNEL);
+ 	if (!server)
+ 		return -ENOMEM;
+@@ -496,7 +496,6 @@ static int ncp_fill_super(struct super_b
+ 				struct ncp_mount_data_v4* md = (struct ncp_mount_data_v4*)raw_data;
  
- 	/*
-+	 * Pagefault was interrupted by SIGKILL. We have no reason to
-+	 * continue pagefault.
-+	 */
-+	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
-+		if (!(error_code & PF_USER))
-+			no_context(regs, error_code, address);
-+		return;
-+	}
-+
-+	/*
- 	 * Major/minor page fault accounting is only done on the
- 	 * initial attempt. If we go through a retry, it is extremely
- 	 * likely that the page will be found in page cache at that point.
-diff -puN include/linux/mm.h~x86mm-make-pagefault-killable include/linux/mm.h
---- a/include/linux/mm.h~x86mm-make-pagefault-killable
-+++ a/include/linux/mm.h
-@@ -152,6 +152,7 @@ extern pgprot_t protection_map[16];
- #define FAULT_FLAG_MKWRITE	0x04	/* Fault was mkwrite of existing pte */
- #define FAULT_FLAG_ALLOW_RETRY	0x08	/* Retry fault if blocking */
- #define FAULT_FLAG_RETRY_NOWAIT	0x10	/* Don't drop mmap_sem and wait when retrying */
-+#define FAULT_FLAG_KILLABLE	0x20	/* The fault task is in SIGKILL killable region */
- 
- /*
-  * This interface is used by x86 PAT code to identify a pfn mapping that is
-diff -puN mm/filemap.c~x86mm-make-pagefault-killable mm/filemap.c
---- a/mm/filemap.c~x86mm-make-pagefault-killable
-+++ a/mm/filemap.c
-@@ -665,15 +665,32 @@ EXPORT_SYMBOL_GPL(__lock_page_killable);
- int __lock_page_or_retry(struct page *page, struct mm_struct *mm,
- 			 unsigned int flags)
- {
--	if (!(flags & FAULT_FLAG_ALLOW_RETRY)) {
--		__lock_page(page);
--		return 1;
--	} else {
--		if (!(flags & FAULT_FLAG_RETRY_NOWAIT)) {
--			up_read(&mm->mmap_sem);
-+	if (flags & FAULT_FLAG_ALLOW_RETRY) {
-+		/*
-+		 * CAUTION! In this case, mmap_sem is not released
-+		 * even though return 0.
-+		 */
-+		if (flags & FAULT_FLAG_RETRY_NOWAIT)
-+			return 0;
-+
-+		up_read(&mm->mmap_sem);
-+		if (flags & FAULT_FLAG_KILLABLE)
-+			wait_on_page_locked_killable(page);
-+		else
- 			wait_on_page_locked(page);
--		}
- 		return 0;
-+	} else {
-+		if (flags & FAULT_FLAG_KILLABLE) {
-+			int ret;
-+
-+			ret = __lock_page_killable(page);
-+			if (ret) {
-+				up_read(&mm->mmap_sem);
-+				return 0;
-+			}
-+		} else
-+			__lock_page(page);
-+		return 1;
- 	}
- }
- 
+ 				data.flags = md->flags;
+-				data.int_flags = 0;
+ 				data.mounted_uid = md->mounted_uid;
+ 				data.wdog_pid = find_get_pid(md->wdog_pid);
+ 				data.ncp_fd = md->ncp_fd;
+@@ -507,7 +506,6 @@ static int ncp_fill_super(struct super_b
+ 				data.file_mode = md->file_mode;
+ 				data.dir_mode = md->dir_mode;
+ 				data.info_fd = -1;
+-				data.mounted_vol[0] = 0;
+ 			}
+ 			break;
+ 		default:
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drbd-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-vmscan-all_unreclaimable-use-zone-all_unreclaimable-as-a-name.patch
-oom-kill-remove-boost_dying_task_prio.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
 kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
