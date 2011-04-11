@@ -1,61 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-enable-aspm-state-clearing-regardless-of-policy.patch removed from -mm tree
-Date: Mon, 11 Apr 2011 12:05:33 -0700
-Message-ID: <201104111902.p3BJ2mVc028014@imap1.linux-foundation.org>
+Subject: + signal-sigprocmask-narrow-the-scope-of-sigloc.patch added to -mm tree
+Date: Mon, 11 Apr 2011 13:38:13 -0700
+Message-ID: <201104112038.p3BKcDTZ032214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755518Ab1DKTD1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753836Ab1DKUjM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Apr 2011 15:03:27 -0400
+	Mon, 11 Apr 2011 16:39:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.williamson@redhat.com, jbarnes@virtuousgeek.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyoushchenko@mvista.com, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     pci: enable ASPM state clearing regardless of policy
-has been removed from the -mm tree.  Its filename was
-     pci-enable-aspm-state-clearing-regardless-of-policy.patch
+     signal: sigprocmask: narrow the scope of ->sigloc
+has been added to the -mm tree.  Its filename is
+     signal-sigprocmask-narrow-the-scope-of-sigloc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: enable ASPM state clearing regardless of policy
-From: Alex Williamson <alex.williamson@redhat.com>
+Subject: signal: sigprocmask: narrow the scope of ->sigloc
+From: Oleg Nesterov <oleg@redhat.com>
 
-Commit 2f671e2d ("PCI: Disable ASPM if BIOS asks us to") allowed us to
-clear ASPM state when the FADT tells us it isn't supported, but we don't
-put this into effect if the aspm_policy is set to POLICY_POWERSAVE. 
-Enable the state to be cleared regardless of policy.
+No functional changes, preparation to simplify the review of the next change.
 
-Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+1. We can read current->block lockless, nobody else can ever change this mask.
+
+2. Calculate the resulting sigset_t outside of ->siglock into the temporary
+   variable, then take ->siglock and change ->blocked.
+
+Also, kill the stale comment about BKL.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Nikita V. Youshchenko" <nyoushchenko@mvista.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aspm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/signal.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN drivers/pci/pcie/aspm.c~pci-enable-aspm-state-clearing-regardless-of-policy drivers/pci/pcie/aspm.c
---- a/drivers/pci/pcie/aspm.c~pci-enable-aspm-state-clearing-regardless-of-policy
-+++ a/drivers/pci/pcie/aspm.c
-@@ -608,7 +608,7 @@ void pcie_aspm_init_link_state(struct pc
- 	 * the BIOS's expectation, we'll do so once pci_enable_device() is
- 	 * called.
- 	 */
--	if (aspm_policy != POLICY_POWERSAVE) {
-+	if (aspm_policy != POLICY_POWERSAVE || aspm_clear_state) {
- 		pcie_config_aspm_path(link);
- 		pcie_set_clkpm(link, policy_to_clkpm_state(link));
+diff -puN kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-sigloc kernel/signal.c
+--- a/kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-sigloc
++++ a/kernel/signal.c
+@@ -2284,12 +2284,6 @@ long do_no_restart_syscall(struct restar
+ }
+ 
+ /*
+- * We don't need to get the kernel lock - this is all local to this
+- * particular thread.. (and that's good, because this is _heavily_
+- * used by various programs)
+- */
+-
+-/*
+  * This is also useful for kernel threads that want to temporarily
+  * (or permanently) block certain signals.
+  *
+@@ -2299,30 +2293,32 @@ long do_no_restart_syscall(struct restar
+  */
+ int sigprocmask(int how, sigset_t *set, sigset_t *oldset)
+ {
+-	int error;
++	struct task_struct *tsk = current;
++	sigset_t newset;
+ 
+-	spin_lock_irq(&current->sighand->siglock);
+ 	if (oldset)
+-		*oldset = current->blocked;
++		*oldset = tsk->blocked;
+ 
+-	error = 0;
+ 	switch (how) {
+ 	case SIG_BLOCK:
+-		sigorsets(&current->blocked, &current->blocked, set);
++		sigorsets(&newset, &tsk->blocked, set);
+ 		break;
+ 	case SIG_UNBLOCK:
+-		signandsets(&current->blocked, &current->blocked, set);
++		signandsets(&newset, &tsk->blocked, set);
+ 		break;
+ 	case SIG_SETMASK:
+-		current->blocked = *set;
++		newset = *set;
+ 		break;
+ 	default:
+-		error = -EINVAL;
++		return -EINVAL;
  	}
++
++	spin_lock_irq(&tsk->sighand->siglock);
++	tsk->blocked = newset;
+ 	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	spin_unlock_irq(&tsk->sighand->siglock);
+ 
+-	return error;
++	return 0;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from alex.williamson@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
+signal-introduce-retarget_shared_pending.patch
+signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch
+signal-sigprocmask-narrow-the-scope-of-sigloc.patch
+signal-sigprocmask-should-do-retarget_shared_pending.patch
+x86-signal-handle_signal-should-use-sigprocmask.patch
+x86-signal-sys_rt_sigreturn-should-use-sigprocmask.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
