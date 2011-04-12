@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch added to -mm tree
-Date: Tue, 12 Apr 2011 15:00:23 -0700
-Message-ID: <201104122200.p3CM0NuI005283@imap1.linux-foundation.org>
+Subject: + include-linux-genalloch-add-multiple-inclusion-guards.patch added to -mm tree
+Date: Tue, 12 Apr 2011 15:38:06 -0700
+Message-ID: <201104122238.p3CMc617006968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52495 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932419Ab1DLWAk (ORCPT
+	by vger.kernel.org with ESMTP id S1753386Ab1DLWil (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 18:00:40 -0400
+	Tue, 12 Apr 2011 18:38:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lethal@linux-sh.org, michael.hennerich@analog.com, rpurdie@rpsys.net, tailai.ly@taobao.com
+Cc: plagnioj@jcrosoft.com, jes@wildopensource.com, nicolas.ferre@atmel.com, patrice.vilchez@atmel.com
 
 
 The patch titled
-     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
+     include/linux/genalloc.h: add multiple-inclusion guards
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+     include-linux-genalloch-add-multiple-inclusion-guards.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/genalloc.h: add multiple-inclusion guards
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 
-don't override strict_strtoul() return value
-
-Cc: Liu Yuan <tailai.ly@taobao.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Patrice VILCHEZ <patrice.vilchez@atmel.com>
+Cc: Jes Sorensen <jes@wildopensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/genalloc.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -211,9 +211,11 @@ static ssize_t adp5520_bl_daylight_max_s
- 			const char *buf, size_t count)
- {
- 	struct adp5520_bl *data = dev_get_drvdata(dev);
-+	int ret;
+diff -puN include/linux/genalloc.h~include-linux-genalloch-add-multiple-inclusion-guards include/linux/genalloc.h
+--- a/include/linux/genalloc.h~include-linux-genalloch-add-multiple-inclusion-guards
++++ a/include/linux/genalloc.h
+@@ -9,6 +9,8 @@
+  */
  
--	if (strict_strtoul(buf, 10, &data->cached_daylight_max) < 0)
--		return -EINVAL;
-+	ret = strict_strtoul(buf, 10, &data->cached_daylight_max);
-+	if (ret < 0)
-+		return ret;
  
- 	return adp5520_store(dev, buf, count, ADP5520_DAYLIGHT_MAX);
- }
++#ifndef __GENALLOC_H__
++#define __GENALLOC_H__
+ /*
+  *  General purpose special memory pool descriptor.
+  */
+@@ -34,3 +36,4 @@ extern int gen_pool_add(struct gen_pool 
+ extern void gen_pool_destroy(struct gen_pool *);
+ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
+ extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
++#endif /* __GENALLOC_H__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from plagnioj@jcrosoft.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drbd-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+bluetooth-fix-build-warnings-on-defconfigs.patch
+include-linux-genalloch-add-multiple-inclusion-guards.patch
+lib-genallocc-add-support-for-specifying-the-physical-address.patch
+lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
 
