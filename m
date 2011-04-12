@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch added to -mm tree
-Date: Tue, 12 Apr 2011 13:54:16 -0700
-Message-ID: <201104122054.p3CKsGvC002193@imap1.linux-foundation.org>
+Subject: + lib-remove-abs64-rework-abs.patch added to -mm tree
+Date: Tue, 12 Apr 2011 14:08:50 -0700
+Message-ID: <201104122108.p3CL8oH1002827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932155Ab1DLUyw (ORCPT
+	by vger.kernel.org with ESMTP id S932568Ab1DLVIy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 16:54:52 -0400
+	Tue, 12 Apr 2011 17:08:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Matt_Domsch@dell.com, davej@codemonkey.org.uk, eugeneteo@kernel.sg, warns@pre-sense.de
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
+     lib: remove abs64(), rework abs()
 has been added to the -mm tree.  Its filename is
-     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+     lib-remove-abs64-rework-abs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: remove abs64(), rework abs()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-fix layout and indenting
+We don't need no stinking abs64() given some GCC extensions (especially
+__builtin_choose_expr()).
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Timo Warns <warns@pre-sense.de>
+One abs() implementation is better than two abs() implementations.
+
+New abs() doesn't expand type needlessly.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/drm_irq.c |    4 +--
+ include/linux/kernel.h    |   43 +++++++++++++++++-------------------
+ lib/div64.c               |    2 -
+ 3 files changed, 24 insertions(+), 25 deletions(-)
 
-diff -puN fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix fs/partitions/efi.c
---- a/fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
-+++ a/fs/partitions/efi.c
-@@ -311,11 +311,11 @@ static int is_gpt_valid(struct parsed_pa
+diff -puN drivers/gpu/drm/drm_irq.c~lib-remove-abs64-rework-abs drivers/gpu/drm/drm_irq.c
+--- a/drivers/gpu/drm/drm_irq.c~lib-remove-abs64-rework-abs
++++ a/drivers/gpu/drm/drm_irq.c
+@@ -154,7 +154,7 @@ static void vblank_disable_and_save(stru
+ 	 * available. In that case we can't account for this and just
+ 	 * hope for the best.
+ 	 */
+-	if ((vblrc > 0) && (abs64(diff_ns) > 1000000)) {
++	if ((vblrc > 0) && (abs(diff_ns) > 1000000)) {
+ 		atomic_inc(&dev->_vblank_count[crtc]);
+ 		smp_mb__after_atomic_inc();
  	}
+@@ -1290,7 +1290,7 @@ bool drm_handle_vblank(struct drm_device
+ 	 * e.g., due to spurious vblank interrupts. We need to
+ 	 * ignore those for accounting.
+ 	 */
+-	if (abs64(diff_ns) > DRM_REDUNDANT_VBLIRQ_THRESH_NS) {
++	if (abs(diff_ns) > DRM_REDUNDANT_VBLIRQ_THRESH_NS) {
+ 		/* Store new timestamp in ringbuffer. */
+ 		vblanktimestamp(dev, crtc, vblcount + 1) = tvblank;
  
- 	/* Check the GUID Partition Table header size */
--	if (le32_to_cpu((*gpt)->header_size) > bdev_logical_block_size(state->bdev)) {
--		pr_debug("GUID Partition Table Header size is wrong:"
--			 "%u > %u\n",
--             le32_to_cpu((*gpt)->header_size),
--             bdev_logical_block_size(state->bdev));
-+	if (le32_to_cpu((*gpt)->header_size) >
-+			bdev_logical_block_size(state->bdev)) {
-+		pr_debug("GUID Partition Table Header size is wrong: %u > %u\n",
-+			le32_to_cpu((*gpt)->header_size),
-+			bdev_logical_block_size(state->bdev));
- 		goto fail;
- 	}
+diff -puN include/linux/kernel.h~lib-remove-abs64-rework-abs include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-remove-abs64-rework-abs
++++ a/include/linux/kernel.h
+@@ -143,28 +143,27 @@ extern int _cond_resched(void);
  
+ #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
+ 
+-/*
+- * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
+- * input types abs() returns a signed long.
+- * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
+- * for those.
+- */
+-#define abs(x) ({						\
+-		long ret;					\
+-		if (sizeof(x) == sizeof(long)) {		\
+-			long __x = (x);				\
+-			ret = (__x < 0) ? -__x : __x;		\
+-		} else {					\
+-			int __x = (x);				\
+-			ret = (__x < 0) ? -__x : __x;		\
+-		}						\
+-		ret;						\
+-	})
+-
+-#define abs64(x) ({				\
+-		s64 __x = (x);			\
+-		(__x < 0) ? -__x : __x;		\
+-	})
++#define abs(x)								\
++({									\
++	typeof(x) _x = (x);						\
++									\
++	__builtin_choose_expr(						\
++		__builtin_types_compatible_p(typeof(_x), signed char),	\
++		(unsigned char)({ _x < 0 ? -_x : _x; }),		\
++	__builtin_choose_expr(						\
++		__builtin_types_compatible_p(typeof(_x), short),	\
++		(unsigned short)({ _x < 0 ? -_x : _x; }),		\
++	__builtin_choose_expr(						\
++		__builtin_types_compatible_p(typeof(_x), int),		\
++		(unsigned int)({ _x < 0 ? -_x : _x; }),			\
++	__builtin_choose_expr(						\
++		__builtin_types_compatible_p(typeof(_x), long),		\
++		(unsigned long)({ _x < 0 ? -_x : _x; }),		\
++	__builtin_choose_expr(						\
++		__builtin_types_compatible_p(typeof(_x), long long),	\
++		(unsigned long long)({ _x < 0 ? -_x : _x; }),		\
++	_x)))));							\
++})
+ 
+ #ifdef CONFIG_PROVE_LOCKING
+ void might_fault(void);
+diff -puN lib/div64.c~lib-remove-abs64-rework-abs lib/div64.c
+--- a/lib/div64.c~lib-remove-abs64-rework-abs
++++ a/lib/div64.c
+@@ -121,7 +121,7 @@ s64 div64_s64(s64 dividend, s64 divisor)
+ {
+ 	s64 quot, t;
+ 
+-	quot = div64_u64(abs64(dividend), abs64(divisor));
++	quot = div64_u64(abs(dividend), abs(divisor));
+ 	t = (dividend ^ divisor) >> 63;
+ 
+ 	return (quot ^ t) - t;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drbd-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kstrtox-fix-compile-warnings-in-test.patch
+kstrtox-simpler-code-in-_kstrtoull.patch
+lib-add-kstrto_from_user.patch
+lib-remove-abs64-rework-abs.patch
+kstrtox-convert-fs-proc.patch
+proc-constify-status-array.patch
+proc-stat-use-defined-macro-kmalloc_max_size.patch
+sysctl-add-proc_dointvec_bool-handler.patch
 
