@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch added to -mm tree
-Date: Tue, 12 Apr 2011 13:53:16 -0700
-Message-ID: <201104122053.p3CKrG0M002146@imap1.linux-foundation.org>
+Subject: + fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch added to -mm tree
+Date: Tue, 12 Apr 2011 13:54:16 -0700
+Message-ID: <201104122054.p3CKsGvC002193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932227Ab1DLUyG (ORCPT
+	by vger.kernel.org with ESMTP id S932155Ab1DLUyw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 16:54:06 -0400
+	Tue, 12 Apr 2011 16:54:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Warns@pre-sense.de, Matt_Domsch@dell.com, davej@codemonkey.org.uk, eugeneteo@kernel.sg, warns@pre-sense.de
+Cc: akpm@linux-foundation.org, Matt_Domsch@dell.com, davej@codemonkey.org.uk, eugeneteo@kernel.sg, warns@pre-sense.de
 
 
 The patch titled
-     fs/partitions/efi.c: corrupted GUID partition tables can cause kernel oops
+     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
 has been added to the -mm tree.  Its filename is
-     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
+     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/efi.c: corrupted GUID partition tables can cause kernel oops
-From: Timo Warns <Warns@pre-sense.de>
+Subject: fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The kernel automatically evaluates partition tables of storage devices.
-The code for evaluating GUID partitions (in fs/partitions/efi.c) contains
-a bug that causes a kernel oops on certain corrupted GUID partition
-tables.
+fix layout and indenting
 
-This bug has security impacts, because it allows, for example, to
-prepare a storage device that crashes a kernel subsystem upon connecting
-the device (e.g., a "USB Stick of (Partial) Death").
-
-	crc = efi_crc32((const unsigned char *) (*gpt), le32_to_cpu((*gpt)->header_size));
-
-computes a CRC32 checksum over gpt covering (*gpt)->header_size bytes. 
-There is no validation of (*gpt)->header_size before the efi_crc32 call.
-
-A corrupted partition table may have large values for (*gpt)->header_size.
- In this case, the CRC32 computation access memory beyond the memory
-allocated for gpt, which may cause a kernel heap overflow.
-
-Validate value of GUID partition table header size.
-
-Signed-off-by: Timo Warns <warns@pre-sense.de>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
 Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Timo Warns <warns@pre-sense.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/partitions/efi.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops fs/partitions/efi.c
---- a/fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops
+diff -puN fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix fs/partitions/efi.c
+--- a/fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
 +++ a/fs/partitions/efi.c
-@@ -310,6 +310,15 @@ static int is_gpt_valid(struct parsed_pa
+@@ -311,11 +311,11 @@ static int is_gpt_valid(struct parsed_pa
+ 	}
+ 
+ 	/* Check the GUID Partition Table header size */
+-	if (le32_to_cpu((*gpt)->header_size) > bdev_logical_block_size(state->bdev)) {
+-		pr_debug("GUID Partition Table Header size is wrong:"
+-			 "%u > %u\n",
+-             le32_to_cpu((*gpt)->header_size),
+-             bdev_logical_block_size(state->bdev));
++	if (le32_to_cpu((*gpt)->header_size) >
++			bdev_logical_block_size(state->bdev)) {
++		pr_debug("GUID Partition Table Header size is wrong: %u > %u\n",
++			le32_to_cpu((*gpt)->header_size),
++			bdev_logical_block_size(state->bdev));
  		goto fail;
  	}
  
-+	/* Check the GUID Partition Table header size */
-+	if (le32_to_cpu((*gpt)->header_size) > bdev_logical_block_size(state->bdev)) {
-+		pr_debug("GUID Partition Table Header size is wrong:"
-+			 "%u > %u\n",
-+             le32_to_cpu((*gpt)->header_size),
-+             bdev_logical_block_size(state->bdev));
-+		goto fail;
-+	}
-+
- 	/* Check the GUID Partition Table CRC */
- 	origcrc = le32_to_cpu((*gpt)->header_crc32);
- 	(*gpt)->header_crc32 = 0;
 _
 
-Patches currently in -mm which might be from Warns@pre-sense.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drbd-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
