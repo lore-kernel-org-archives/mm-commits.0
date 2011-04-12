@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-mark-init_section_page_cgroup-properly.patch added to -mm tree
-Date: Tue, 12 Apr 2011 14:43:11 -0700
-Message-ID: <201104122143.p3CLhBpt004420@imap1.linux-foundation.org>
+Subject: + memcg-move-page-freeing-code-out-of-lock.patch added to -mm tree
+Date: Tue, 12 Apr 2011 14:43:15 -0700
+Message-ID: <201104122143.p3CLhFTf004429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932668Ab1DLVnx (ORCPT
+	by vger.kernel.org with ESMTP id S932668Ab1DLVny (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 17:43:53 -0400
+	Tue, 12 Apr 2011 17:43:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: namhyung@gmail.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.co
 
 
 The patch titled
-     memcg: mark init_section_page_cgroup() properly
+     memcg: move page-freeing code out of lock
 has been added to the -mm tree.  Its filename is
-     memcg-mark-init_section_page_cgroup-properly.patch
+     memcg-move-page-freeing-code-out-of-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: mark init_section_page_cgroup() properly
+Subject: memcg: move page-freeing code out of lock
 From: Namhyung Kim <namhyung@gmail.com>
 
-Commit ca371c0d7e23 ("memcg: fix page_cgroup fatal error in FLATMEM")
-removes call to alloc_bootmem() in the function so that it can be marked
-as __meminit to reduce memory usage when MEMORY_HOTPLUG=n.
+Move page-freeing code out of swap_cgroup_mutex in the hope that it could
+reduce few of theoretical contentions between swapons and/or swapoffs.
 
-Also as the new helper function alloc_page_cgroup() is called only in the
-function, it should be marked too.
+This is just a cleanup, no functional changes.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_cgroup.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_cgroup.c~memcg-mark-init_section_page_cgroup-properly mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-mark-init_section_page_cgroup-properly
+diff -puN mm/page_cgroup.c~memcg-move-page-freeing-code-out-of-lock mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-move-page-freeing-code-out-of-lock
 +++ a/mm/page_cgroup.c
-@@ -130,7 +130,7 @@ struct page *lookup_cgroup_page(struct p
- 	return page;
- }
+@@ -492,8 +492,8 @@ int swap_cgroup_swapon(int type, unsigne
+ 		/* memory shortage */
+ 		ctrl->map = NULL;
+ 		ctrl->length = 0;
+-		vfree(array);
+ 		mutex_unlock(&swap_cgroup_mutex);
++		vfree(array);
+ 		goto nomem;
+ 	}
+ 	mutex_unlock(&swap_cgroup_mutex);
+@@ -508,7 +508,8 @@ nomem:
  
--static void *__init_refok alloc_page_cgroup(size_t size, int nid)
-+static void *__meminit alloc_page_cgroup(size_t size, int nid)
+ void swap_cgroup_swapoff(int type)
  {
- 	void *addr = NULL;
+-	int i;
++	struct page **map;
++	unsigned long i, length;
+ 	struct swap_cgroup_ctrl *ctrl;
  
-@@ -162,7 +162,7 @@ static void free_page_cgroup(void *addr)
+ 	if (!do_swap_account)
+@@ -516,17 +517,20 @@ void swap_cgroup_swapoff(int type)
+ 
+ 	mutex_lock(&swap_cgroup_mutex);
+ 	ctrl = &swap_cgroup_ctrl[type];
+-	if (ctrl->map) {
+-		for (i = 0; i < ctrl->length; i++) {
+-			struct page *page = ctrl->map[i];
++	map = ctrl->map;
++	length = ctrl->length;
++	ctrl->map = NULL;
++	ctrl->length = 0;
++	mutex_unlock(&swap_cgroup_mutex);
++
++	if (map) {
++		for (i = 0; i < length; i++) {
++			struct page *page = map[i];
+ 			if (page)
+ 				__free_page(page);
+ 		}
+-		vfree(ctrl->map);
+-		ctrl->map = NULL;
+-		ctrl->length = 0;
++		vfree(map);
+ 	}
+-	mutex_unlock(&swap_cgroup_mutex);
  }
+ 
  #endif
- 
--static int __init_refok init_section_page_cgroup(unsigned long pfn)
-+static int __meminit init_section_page_cgroup(unsigned long pfn)
- {
- 	struct page_cgroup *base, *pc;
- 	struct mem_section *section;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
