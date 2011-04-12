@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-consolidate-debug_per_cpu_maps.patch added to -mm tree
-Date: Tue, 12 Apr 2011 14:48:43 -0700
-Message-ID: <201104122148.p3CLmhea004694__9228.10844281248$1302644955$gmane$org@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch added to -mm tree
+Date: Tue, 12 Apr 2011 15:00:21 -0700
+Message-ID: <201104122200.p3CM0L3b005278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932485Ab1DLVtE (ORCPT
+	by vger.kernel.org with ESMTP id S932322Ab1DLWAk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 17:49:04 -0400
+	Tue, 12 Apr 2011 18:00:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sboyd@codeaurora.org, benh@kernel.crashing.org, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: tailai.ly@taobao.com, lethal@linux-sh.org, michael.hennerich@analog.com, rpurdie@rpsys.net
 
 
 The patch titled
-     lib: consolidate DEBUG_PER_CPU_MAPS
+     drivers/video/backlight/adp5520_bl.c: check strict_strtoul() return value
 has been added to the -mm tree.  Its filename is
-     lib-consolidate-debug_per_cpu_maps.patch
+     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: consolidate DEBUG_PER_CPU_MAPS
-From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: drivers/video/backlight/adp5520_bl.c: check strict_strtoul() return value
+From: Liu Yuan <tailai.ly@taobao.com>
 
-DEBUG_PER_CPU_MAPS is used in lib/cpumask.c as well as in
-inlcude/linux/cpumask.h and thus it has outgrown its use within x86 and
-powerpc alone.  Any arch with SMP support may want to get some more
-debugging, so make this option generic.
+It should check if strict_strtoul() succeeds.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Liu Yuan <tailai.ly@taobao.com>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig.debug |   12 ------------
- arch/x86/Kconfig.debug     |   11 -----------
- lib/Kconfig.debug          |   11 +++++++++++
- 3 files changed, 11 insertions(+), 23 deletions(-)
+ drivers/video/backlight/adp5520_bl.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/Kconfig.debug~lib-consolidate-debug_per_cpu_maps arch/powerpc/Kconfig.debug
---- a/arch/powerpc/Kconfig.debug~lib-consolidate-debug_per_cpu_maps
-+++ a/arch/powerpc/Kconfig.debug
-@@ -44,18 +44,6 @@ config DEBUG_STACK_USAGE
+diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value drivers/video/backlight/adp5520_bl.c
+--- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value
++++ a/drivers/video/backlight/adp5520_bl.c
+@@ -212,7 +212,9 @@ static ssize_t adp5520_bl_daylight_max_s
+ {
+ 	struct adp5520_bl *data = dev_get_drvdata(dev);
  
- 	  This option will slow down process creation somewhat.
- 
--config DEBUG_PER_CPU_MAPS
--	bool "Debug access to per_cpu maps"
--	depends on DEBUG_KERNEL
--	depends on SMP
--	default n
--	---help---
--	  Say Y to verify that the per_cpu map being accessed has
--	  been setup.  Adds a fair amount of code to kernel memory
--	  and decreases performance.
--
--	  Say N if unsure.
--
- config HCALL_STATS
- 	bool "Hypervisor call instrumentation"
- 	depends on PPC_PSERIES && DEBUG_FS && TRACEPOINTS
-diff -puN arch/x86/Kconfig.debug~lib-consolidate-debug_per_cpu_maps arch/x86/Kconfig.debug
---- a/arch/x86/Kconfig.debug~lib-consolidate-debug_per_cpu_maps
-+++ a/arch/x86/Kconfig.debug
-@@ -75,17 +75,6 @@ config DEBUG_STACK_USAGE
- 
- 	  This option will slow down process creation somewhat.
- 
--config DEBUG_PER_CPU_MAPS
--	bool "Debug access to per_cpu maps"
--	depends on DEBUG_KERNEL
--	depends on SMP
--	---help---
--	  Say Y to verify that the per_cpu map being accessed has
--	  been setup.  Adds a fair amount of code to kernel memory
--	  and decreases performance.
--
--	  Say N if unsure.
--
- config X86_PTDUMP
- 	bool "Export kernel pagetable layout to userspace via debugfs"
- 	depends on DEBUG_KERNEL
-diff -puN lib/Kconfig.debug~lib-consolidate-debug_per_cpu_maps lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-consolidate-debug_per_cpu_maps
-+++ a/lib/Kconfig.debug
-@@ -968,6 +968,17 @@ config DEBUG_FORCE_WEAK_PER_CPU
- 	  To ensure that generic code follows the above rules, this
- 	  option forces all percpu variables to be defined as weak.
- 
-+config DEBUG_PER_CPU_MAPS
-+	bool "Debug access to per_cpu maps"
-+	depends on DEBUG_KERNEL
-+	depends on SMP
-+	help
-+	  Say Y to verify that the per_cpu map being accessed has
-+	  been set up. This adds a fair amount of code to kernel memory
-+	  and decreases performance.
+-	strict_strtoul(buf, 10, &data->cached_daylight_max);
++	if (strict_strtoul(buf, 10, &data->cached_daylight_max) < 0)
++		return -EINVAL;
 +
-+	  Say N if unsure.
-+
- config LKDTM
- 	tristate "Linux Kernel Dump Test Tool Module"
- 	depends on DEBUG_FS
+ 	return adp5520_store(dev, buf, count, ADP5520_DAYLIGHT_MAX);
+ }
+ static DEVICE_ATTR(daylight_max, 0664, adp5520_bl_daylight_max_show,
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from tailai.ly@taobao.com are
 
-linux-next.patch
-msm-timer-migrate-to-timer-based-__delay.patch
-lib-consolidate-debug_per_cpu_maps.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
 
