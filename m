@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-use-flex_array-in-attach_proc.patch added to -mm tree
-Date: Tue, 12 Apr 2011 16:25:32 -0700
-Message-ID: <201104122325.p3CNPW00009141@imap1.linux-foundation.org>
+Subject: + cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch added to -mm tree
+Date: Tue, 12 Apr 2011 16:25:23 -0700
+Message-ID: <201104122325.p3CNPOdU009132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757038Ab1DLXZq (ORCPT
+	by vger.kernel.org with ESMTP id S1757048Ab1DLXZo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 19:25:46 -0400
+	Tue, 12 Apr 2011 19:25:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bblum@andrew.cmu.edu, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@u
 
 
 The patch titled
-     cgroups: use flex_array in attach_proc
+     cgroups: read-write lock CLONE_THREAD forking per threadgroup
 has been added to the -mm tree.  Its filename is
-     cgroups-use-flex_array-in-attach_proc.patch
+     cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: use flex_array in attach_proc
+Subject: cgroups: read-write lock CLONE_THREAD forking per threadgroup
 From: Ben Blum <bblum@andrew.cmu.edu>
 
-Convert cgroup_attach_proc to use flex_array.
+Adds functionality to read/write lock CLONE_THREAD fork()ing per-threadgroup
 
-The cgroup_attach_proc implementation requires a pre-allocated array to
-store task pointers to atomically move a thread-group, but asking for a
-monolithic array with kmalloc() may be unreliable for very large groups. 
-Using flex_array provides the same functionality with less risk of
-failure.
+Add an rwsem that lives in a threadgroup's signal_struct that's taken for
+reading in the fork path, under CONFIG_CGROUPS.  If another part of the
+kernel later wants to use such a locking mechanism, the CONFIG_CGROUPS
+ifdefs should be changed to a higher-up flag that CGROUPS and the other
+system would both depend on.
 
-This is a post-patch for cgroup-procs-write.patch.
+This is a pre-patch for cgroup-procs-write.patch.
 
 Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -58,104 +58,138 @@ Cc: Miao Xie <miaox@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ include/linux/init_task.h |    9 +++++++++
+ include/linux/sched.h     |   36 ++++++++++++++++++++++++++++++++++++
+ kernel/fork.c             |   10 ++++++++++
+ 3 files changed, 55 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-use-flex_array-in-attach_proc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-use-flex_array-in-attach_proc
-+++ a/kernel/cgroup.c
-@@ -57,6 +57,7 @@
- #include <linux/vmalloc.h> /* TODO: replace with more sophisticated array */
- #include <linux/eventfd.h>
- #include <linux/poll.h>
-+#include <linux/flex_array.h> /* used in cgroup_attach_proc */
+diff -puN include/linux/init_task.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup include/linux/init_task.h
+--- a/include/linux/init_task.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
++++ a/include/linux/init_task.h
+@@ -22,6 +22,14 @@
+ extern struct files_struct init_files;
+ extern struct fs_struct init_fs;
  
- #include <asm/atomic.h>
- 
-@@ -2008,7 +2009,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 	struct cgroupfs_root *root = cgrp->root;
- 	/* threadgroup list cursor and array */
- 	struct task_struct *tsk;
--	struct task_struct **group;
-+	struct flex_array *group;
- 	/*
- 	 * we need to make sure we have css_sets for all the tasks we're
- 	 * going to move -before- we actually start moving them, so that in
-@@ -2025,9 +2026,15 @@ int cgroup_attach_proc(struct cgroup *cg
- 	 * and if threads exit, this will just be an over-estimate.
- 	 */
- 	group_size = get_nr_threads(leader);
--	group = kmalloc(group_size * sizeof(*group), GFP_KERNEL);
-+	/* flex_array supports very large thread-groups better than kmalloc. */
-+	group = flex_array_alloc(sizeof(struct task_struct *), group_size,
-+				 GFP_KERNEL);
- 	if (!group)
- 		return -ENOMEM;
-+	/* pre-allocate to guarantee space while iterating in rcu read-side. */
-+	retval = flex_array_prealloc(group, 0, group_size - 1, GFP_KERNEL);
-+	if (retval)
-+		goto out_free_group_list;
- 
- 	/* prevent changes to the threadgroup list while we take a snapshot. */
- 	rcu_read_lock();
-@@ -2050,7 +2057,12 @@ int cgroup_attach_proc(struct cgroup *cg
- 		/* as per above, nr_threads may decrease, but not increase. */
- 		BUG_ON(i >= group_size);
- 		get_task_struct(tsk);
--		group[i] = tsk;
-+		/*
-+		 * saying GFP_ATOMIC has no effect here because we did prealloc
-+		 * earlier, but it's good form to communicate our expectations.
-+		 */
-+		retval = flex_array_put_ptr(group, i, tsk, GFP_ATOMIC);
-+		BUG_ON(retval != 0);
- 		i++;
- 	} while_each_thread(leader, tsk);
- 	/* remember the number of threads in the array for later. */
-@@ -2072,7 +2084,8 @@ int cgroup_attach_proc(struct cgroup *cg
- 		if (ss->can_attach_task) {
- 			/* run on each task in the threadgroup. */
- 			for (i = 0; i < group_size; i++) {
--				retval = ss->can_attach_task(cgrp, group[i]);
-+				tsk = flex_array_get_ptr(group, i);
-+				retval = ss->can_attach_task(cgrp, tsk);
- 				if (retval) {
- 					failed_ss = ss;
- 					cancel_failed_ss = true;
-@@ -2088,7 +2101,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 	 */
- 	INIT_LIST_HEAD(&newcg_list);
- 	for (i = 0; i < group_size; i++) {
--		tsk = group[i];
-+		tsk = flex_array_get_ptr(group, i);
- 		/* nothing to do if this task is already in the cgroup */
- 		oldcgrp = task_cgroup_from_root(tsk, root);
- 		if (cgrp == oldcgrp)
-@@ -2127,7 +2140,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 			ss->pre_attach(cgrp);
- 	}
- 	for (i = 0; i < group_size; i++) {
--		tsk = group[i];
-+		tsk = flex_array_get_ptr(group, i);
- 		/* leave current thread as it is if it's already there */
- 		oldcgrp = task_cgroup_from_root(tsk, root);
- 		if (cgrp == oldcgrp)
-@@ -2180,10 +2193,12 @@ out_cancel_attach:
- 		}
- 	}
- 	/* clean up the array of referenced threads in the group. */
--	for (i = 0; i < group_size; i++)
--		put_task_struct(group[i]);
-+	for (i = 0; i < group_size; i++) {
-+		tsk = flex_array_get_ptr(group, i);
-+		put_task_struct(tsk);
-+	}
- out_free_group_list:
--	kfree(group);
-+	flex_array_free(group);
- 	return retval;
++#ifdef CONFIG_CGROUPS
++#define INIT_THREADGROUP_FORK_LOCK(sig)					\
++	.threadgroup_fork_lock =					\
++		__RWSEM_INITIALIZER(sig.threadgroup_fork_lock),
++#else
++#define INIT_THREADGROUP_FORK_LOCK(sig)
++#endif
++
+ #define INIT_SIGNALS(sig) {						\
+ 	.nr_threads	= 1,						\
+ 	.wait_chldexit	= __WAIT_QUEUE_HEAD_INITIALIZER(sig.wait_chldexit),\
+@@ -38,6 +46,7 @@ extern struct fs_struct init_fs;
+ 	},								\
+ 	.cred_guard_mutex =						\
+ 		 __MUTEX_INITIALIZER(sig.cred_guard_mutex),		\
++	INIT_THREADGROUP_FORK_LOCK(sig)					\
  }
  
+ extern struct nsproxy init_nsproxy;
+diff -puN include/linux/sched.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup include/linux/sched.h
+--- a/include/linux/sched.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
++++ a/include/linux/sched.h
+@@ -514,6 +514,7 @@ struct thread_group_cputimer {
+ 	spinlock_t lock;
+ };
+ 
++#include <linux/rwsem.h>
+ struct autogroup;
+ 
+ /*
+@@ -633,6 +634,16 @@ struct signal_struct {
+ 	unsigned audit_tty;
+ 	struct tty_audit_buf *tty_audit_buf;
+ #endif
++#ifdef CONFIG_CGROUPS
++	/*
++	 * The threadgroup_fork_lock prevents threads from forking with
++	 * CLONE_THREAD while held for writing. Use this for fork-sensitive
++	 * threadgroup-wide operations. It's taken for reading in fork.c in
++	 * copy_process().
++	 * Currently only needed write-side by cgroups.
++	 */
++	struct rw_semaphore threadgroup_fork_lock;
++#endif
+ 
+ 	int oom_adj;		/* OOM kill score adjustment (bit shift) */
+ 	int oom_score_adj;	/* OOM kill score adjustment */
+@@ -2305,6 +2316,31 @@ static inline void unlock_task_sighand(s
+ 	spin_unlock_irqrestore(&tsk->sighand->siglock, *flags);
+ }
+ 
++/* See the declaration of threadgroup_fork_lock in signal_struct. */
++#ifdef CONFIG_CGROUPS
++static inline void threadgroup_fork_read_lock(struct task_struct *tsk)
++{
++	down_read(&tsk->signal->threadgroup_fork_lock);
++}
++static inline void threadgroup_fork_read_unlock(struct task_struct *tsk)
++{
++	up_read(&tsk->signal->threadgroup_fork_lock);
++}
++static inline void threadgroup_fork_write_lock(struct task_struct *tsk)
++{
++	down_write(&tsk->signal->threadgroup_fork_lock);
++}
++static inline void threadgroup_fork_write_unlock(struct task_struct *tsk)
++{
++	up_write(&tsk->signal->threadgroup_fork_lock);
++}
++#else
++static inline void threadgroup_fork_read_lock(struct task_struct *tsk) {}
++static inline void threadgroup_fork_read_unlock(struct task_struct *tsk) {}
++static inline void threadgroup_fork_write_lock(struct task_struct *tsk) {}
++static inline void threadgroup_fork_write_unlock(struct task_struct *tsk) {}
++#endif
++
+ #ifndef __HAVE_THREAD_FUNCTIONS
+ 
+ #define task_thread_info(task)	((struct thread_info *)(task)->stack)
+diff -puN kernel/fork.c~cgroups-read-write-lock-clone_thread-forking-per-threadgroup kernel/fork.c
+--- a/kernel/fork.c~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
++++ a/kernel/fork.c
+@@ -927,6 +927,10 @@ static int copy_signal(unsigned long clo
+ 	tty_audit_fork(sig);
+ 	sched_autogroup_fork(sig);
+ 
++#ifdef CONFIG_CGROUPS
++	init_rwsem(&sig->threadgroup_fork_lock);
++#endif
++
+ 	sig->oom_adj = current->signal->oom_adj;
+ 	sig->oom_score_adj = current->signal->oom_score_adj;
+ 	sig->oom_score_adj_min = current->signal->oom_score_adj_min;
+@@ -1109,6 +1113,8 @@ static struct task_struct *copy_process(
+ 	monotonic_to_bootbased(&p->real_start_time);
+ 	p->io_context = NULL;
+ 	p->audit_context = NULL;
++	if (clone_flags & CLONE_THREAD)
++		threadgroup_fork_read_lock(current);
+ 	cgroup_fork(p);
+ #ifdef CONFIG_NUMA
+ 	p->mempolicy = mpol_dup(p->mempolicy);
+@@ -1313,6 +1319,8 @@ static struct task_struct *copy_process(
+ 	write_unlock_irq(&tasklist_lock);
+ 	proc_fork_connector(p);
+ 	cgroup_post_fork(p);
++	if (clone_flags & CLONE_THREAD)
++		threadgroup_fork_read_unlock(current);
+ 	perf_event_fork(p);
+ 	return p;
+ 
+@@ -1351,6 +1359,8 @@ bad_fork_cleanup_policy:
+ 	mpol_put(p->mempolicy);
+ bad_fork_cleanup_cgroup:
+ #endif
++	if (clone_flags & CLONE_THREAD)
++		threadgroup_fork_read_unlock(current);
+ 	cgroup_exit(p, cgroup_callbacks_done);
+ 	delayacct_tsk_free(p);
+ 	module_put(task_thread_info(p)->exec_domain->module);
 _
 
 Patches currently in -mm which might be from bblum@andrew.cmu.edu are
