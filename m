@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-use-conventional-format-for-boolean-attributes-fix.patch added to -mm tree
-Date: Wed, 13 Apr 2011 12:31:53 -0700
-Message-ID: <201104131931.p3DJVr2V028415@imap1.linux-foundation.org>
+Subject: + vfs-avoid-large-kmallocs-for-the-fdtable.patch added to -mm tree
+Date: Wed, 13 Apr 2011 14:17:26 -0700
+Message-ID: <201104132117.p3DLHQee000789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758152Ab1DMTdD (ORCPT
+	by vger.kernel.org with ESMTP id S932094Ab1DMVS0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 15:33:03 -0400
+	Wed, 13 Apr 2011 17:18:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, ben@decadent.org.uk, hughd@google.com, jweiner@redhat.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, azurit@pobox.sk, eric.dumazet@gmail.com, jslaby@suse.cz, mel@csn.ul.ie, stable@kernel.org, xiaosuo@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     mm-thp-use-conventional-format-for-boolean-attributes-fix
+     vfs: avoid large kmalloc()s for the fdtable
 has been added to the -mm tree.  Its filename is
-     mm-thp-use-conventional-format-for-boolean-attributes-fix.patch
+     vfs-avoid-large-kmallocs-for-the-fdtable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-thp-use-conventional-format-for-boolean-attributes-fix
+Subject: vfs: avoid large kmalloc()s for the fdtable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use kstrtoul()
+Azurit reports large increases in system time after 2.6.36 when running
+Apache.  It was bisected down to a892e2d7dcdfa6c76e6 ("vfs: use kmalloc()
+to allocate fdmem if possible").
 
-Cc: <stable@kernel.org> 	[2.6.38.x]
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
+That patch caused the vfs to use kmalloc() for very large allocations and
+this is causing excessive work (and presumably excessive reclaim) within
+the page allocator.
+
+Fix it by falling back to vmalloc() earlier - when the allocation attempt
+would have been considered "costly" by reclaim.
+
+Reported-by: azurIt <azurit@pobox.sk>
+Cc: Changli Gao <xiaosuo@gmail.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/file.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix
-+++ a/mm/huge_memory.c
-@@ -247,16 +247,19 @@ static ssize_t single_flag_show(struct k
- 	return sprintf(buf, "%d\n",
- 		       test_bit(flag, &transparent_hugepage_flags));
- }
-+
- static ssize_t single_flag_store(struct kobject *kobj,
- 				 struct kobj_attribute *attr,
- 				 const char *buf, size_t count,
- 				 enum transparent_hugepage_flag flag)
+diff -puN fs/file.c~a fs/file.c
+--- a/fs/file.c~a
++++ a/fs/file.c
+@@ -39,14 +39,17 @@ int sysctl_nr_open_max = 1024 * 1024; /*
+  */
+ static DEFINE_PER_CPU(struct fdtable_defer, fdtable_defer_list);
+ 
+-static inline void *alloc_fdmem(unsigned int size)
++static void *alloc_fdmem(unsigned int size)
  {
- 	unsigned long value;
--	char *endp;
-+	int ret;
+-	void *data;
+-
+-	data = kmalloc(size, GFP_KERNEL|__GFP_NOWARN);
+-	if (data != NULL)
+-		return data;
+-
++	/*
++	 * Very large allocations can stress page reclaim, so fall back to
++	 * vmalloc() if the allocation size will be considered "large" by the VM.
++	 */
++	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER) {
++		void *data = kmalloc(size, GFP_KERNEL|__GFP_NOWARN);
++		if (data != NULL)
++			return data;
++	}
+ 	return vmalloc(size);
+ }
  
--	value = simple_strtoul(buf, &endp, 0);
--	if (endp == buf || value > 1)
-+	ret = kstrtoul(buf, 10, &value);
-+	if (ret < 0)
-+		return ret;
-+	if (value > 1)
- 		return -EINVAL;
- 
- 	if (value)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +102,7 @@ drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
 mm-thp-use-conventional-format-for-boolean-attributes-fix.patch
+vfs-avoid-large-kmallocs-for-the-fdtable.patch
 drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
