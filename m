@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fremap-convert-vm_flags-to-unsigned-long-long.patch added to -mm tree
-Date: Wed, 13 Apr 2011 14:51:03 -0700
-Message-ID: <201104132151.p3DLp3sX002433@imap1.linux-foundation.org>
+Subject: + mm-add-__nocast-attribute-to-vm_flags.patch added to -mm tree
+Date: Wed, 13 Apr 2011 14:51:01 -0700
+Message-ID: <201104132151.p3DLp1VB002430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933052Ab1DMVvY (ORCPT
+	by vger.kernel.org with ESMTP id S933052Ab1DMVve (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 17:51:24 -0400
+	Wed, 13 Apr 2011 17:51:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, benh@kernel.crashing.or
 
 
 The patch titled
-     fremap: convert vm_flags to unsigned long long
+     mm: add __nocast attribute to vm_flags
 has been added to the -mm tree.  Its filename is
-     fremap-convert-vm_flags-to-unsigned-long-long.patch
+     mm-add-__nocast-attribute-to-vm_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fremap: convert vm_flags to unsigned long long
+Subject: mm: add __nocast attribute to vm_flags
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-unsigned int is completely the wrong type.
+Now, We are converting vm_flags to 64bit.  so nocast attribute help to
+find hidden wrong vm_flags usage.
 
+Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
@@ -50,21 +51,30 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_types.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/fremap.c~fremap-convert-vm_flags-to-unsigned-long-long mm/fremap.c
---- a/mm/fremap.c~fremap-convert-vm_flags-to-unsigned-long-long
-+++ a/mm/fremap.c
-@@ -224,7 +224,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 		/*
- 		 * drop PG_Mlocked flag for over-mapped range
- 		 */
--		unsigned int saved_flags = vma->vm_flags;
-+		unsigned long long saved_flags = vma->vm_flags;
- 		munlock_vma_pages_range(vma, start, start + size);
- 		vma->vm_flags = saved_flags;
- 	}
+diff -puN include/linux/mm_types.h~mm-add-__nocast-attribute-to-vm_flags include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-add-__nocast-attribute-to-vm_flags
++++ a/include/linux/mm_types.h
+@@ -109,7 +109,7 @@ struct page {
+  */
+ struct vm_region {
+ 	struct rb_node	vm_rb;		/* link in global region tree */
+-	unsigned long long vm_flags;	/* VMA vm_flags */
++	unsigned long long __nocast vm_flags;	/* VMA vm_flags */
+ 	unsigned long	vm_start;	/* start address of region */
+ 	unsigned long	vm_end;		/* region initialised to here */
+ 	unsigned long	vm_top;		/* region allocated to here */
+@@ -137,7 +137,7 @@ struct vm_area_struct {
+ 	struct vm_area_struct *vm_next, *vm_prev;
+ 
+ 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
+-	unsigned long long vm_flags;		/* Flags, see mm.h. */
++	unsigned long long __nocast vm_flags;	/* Flags, see mm.h. */
+ 
+ 	struct rb_node vm_rb;
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
