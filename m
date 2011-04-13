@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-accounting-getdelaysc-handle-sendto-failures.patch added to -mm tree
-Date: Tue, 12 Apr 2011 17:29:50 -0700
-Message-ID: <201104130029.p3D0ToCU012089@imap1.linux-foundation.org>
+Subject: + mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch added to -mm tree
+Date: Tue, 12 Apr 2011 18:13:29 -0700
+Message-ID: <201104130110.p3D1AXxx013813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757163Ab1DMA35 (ORCPT
+	by vger.kernel.org with ESMTP id S1757447Ab1DMBL5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Apr 2011 20:29:57 -0400
+	Tue, 12 Apr 2011 21:11:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, justinmattock@gmail.com
+Cc: akpm@linux-foundation.org, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     Documentation/accounting/getdelays.c: handle sendto() failures
+     mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix
 has been added to the -mm tree.  Its filename is
-     documentation-accounting-getdelaysc-handle-sendto-failures.patch
+     mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/accounting/getdelays.c: handle sendto() failures
+Subject: mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Documentation/accounting/getdelays.c: In function `get_family_id':
-Documentation/accounting/getdelays.c:172:14: warning: variable `rc' set but not used [-Wunused-but-set-variable]
+fix CONFIG_SMP=n build
 
-Reported-by: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    2 ++
+ include/linux/vmstat.h |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-handle-sendto-failures Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-handle-sendto-failures
-+++ a/Documentation/accounting/getdelays.c
-@@ -177,6 +177,8 @@ static int get_family_id(int sd)
- 	rc = send_cmd(sd, GENL_ID_CTRL, getpid(), CTRL_CMD_GETFAMILY,
- 			CTRL_ATTR_FAMILY_NAME, (void *)name,
- 			strlen(TASKSTATS_GENL_NAME)+1);
-+	if (rc < 0)
-+		return 0;	/* sendto() failure? */
+diff -puN include/linux/vmstat.h~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix
++++ a/include/linux/vmstat.h
+@@ -314,6 +314,8 @@ static inline void __dec_zone_page_state
+ #define set_pgdat_percpu_threshold(pgdat, callback) { }
  
- 	rep_len = recv(sd, &ans, sizeof(ans), 0);
- 	if (ans.n.nlmsg_type == NLMSG_ERROR ||
+ static inline void refresh_cpu_vm_stats(int cpu) { }
++static inline void refresh_zone_stat_thresholds(void) { }
++
+ #endif		/* CONFIG_SMP */
+ 
+ extern const char * const vmstat_text[];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +85,7 @@ drbd-fix-warning.patch
 mm.patch
 mm-nommu-sort-mm-mmap-list-properly-fix.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
