@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-convert-vm_flags-to-unsigned-long-long.patch added to -mm tree
-Date: Wed, 13 Apr 2011 14:51:05 -0700
-Message-ID: <201104132151.p3DLp5KO002436@imap1.linux-foundation.org>
+Subject: + fremap-convert-vm_flags-to-unsigned-long-long.patch added to -mm tree
+Date: Wed, 13 Apr 2011 14:51:03 -0700
+Message-ID: <201104132151.p3DLp3sX002433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933052Ab1DMVvR (ORCPT
+	by vger.kernel.org with ESMTP id S933052Ab1DMVvY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 17:51:17 -0400
+	Wed, 13 Apr 2011 17:51:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, benh@kernel.crashing.or
 
 
 The patch titled
-     procfs: convert vm_flags to unsigned long long
+     fremap: convert vm_flags to unsigned long long
 has been added to the -mm tree.  Its filename is
-     procfs-convert-vm_flags-to-unsigned-long-long.patch
+     fremap-convert-vm_flags-to-unsigned-long-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: convert vm_flags to unsigned long long
+Subject: fremap: convert vm_flags to unsigned long long
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-int is a crazy mistake. ;-)
+unsigned int is completely the wrong type.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -50,36 +50,21 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/fremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-convert-vm_flags-to-unsigned-long-long fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-convert-vm_flags-to-unsigned-long-long
-+++ a/fs/proc/task_mmu.c
-@@ -211,7 +211,7 @@ static void show_map_vma(struct seq_file
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
--	int flags = vma->vm_flags;
-+	unsigned long long vm_flags = vma->vm_flags;
- 	unsigned long ino = 0;
- 	unsigned long long pgoff = 0;
- 	unsigned long start;
-@@ -234,10 +234,10 @@ static void show_map_vma(struct seq_file
- 	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu %n",
- 			start,
- 			vma->vm_end,
--			flags & VM_READ ? 'r' : '-',
--			flags & VM_WRITE ? 'w' : '-',
--			flags & VM_EXEC ? 'x' : '-',
--			flags & VM_MAYSHARE ? 's' : 'p',
-+			vm_flags & VM_READ ? 'r' : '-',
-+			vm_flags & VM_WRITE ? 'w' : '-',
-+			vm_flags & VM_EXEC ? 'x' : '-',
-+			vm_flags & VM_MAYSHARE ? 's' : 'p',
- 			pgoff,
- 			MAJOR(dev), MINOR(dev), ino, &len);
- 
+diff -puN mm/fremap.c~fremap-convert-vm_flags-to-unsigned-long-long mm/fremap.c
+--- a/mm/fremap.c~fremap-convert-vm_flags-to-unsigned-long-long
++++ a/mm/fremap.c
+@@ -224,7 +224,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 		/*
+ 		 * drop PG_Mlocked flag for over-mapped range
+ 		 */
+-		unsigned int saved_flags = vma->vm_flags;
++		unsigned long long saved_flags = vma->vm_flags;
+ 		munlock_vma_pages_range(vma, start, start + size);
+ 		vma->vm_flags = saved_flags;
+ 	}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
