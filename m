@@ -1,144 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 13 Apr 2011 12:15:03 -0700
-Message-ID: <201104131912.p3DJBxe7027467@imap1.linux-foundation.org>
+Subject: [merged] avr32-s-irq_chip-irq_data-in-various-places.patch removed from -mm tree
+Date: Wed, 13 Apr 2011 12:15:27 -0700
+Message-ID: <201104131912.p3DJCOoW027485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755001Ab1DMTMU (ORCPT
+	by vger.kernel.org with ESMTP id S1755001Ab1DMTNC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 15:12:20 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p3DJC0bk016124
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2011 12:12:00 -0700
+	Wed, 13 Apr 2011 15:13:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: wanlong.gao@gmail.com, hans-christian.egtvedt@atmel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     avr32: s/irq_chip/irq_data/ in various places
+has been removed from the -mm tree.  Its filename was
+     avr32-s-irq_chip-irq_data-in-various-places.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: avr32: s/irq_chip/irq_data/ in various places
+From: Wanlong Gao <wanlong.gao@gmail.com>
 
+The functions of eic_chip's memebers use the wrong argument.
+
+Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ arch/avr32/mach-at32ap/extint.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/sched.c~linux-next-git-rejects kernel/sched.c
---- a/kernel/sched.c~linux-next-git-rejects
-+++ a/kernel/sched.c
-@@ -4187,26 +4187,11 @@ need_resched:
- 			if (prev->flags & PF_WQ_WORKER)
- 				to_wakeup = wq_worker_sleeping(prev, cpu);
- 			deactivate_task(rq, prev, DEQUEUE_SLEEP);
--<<<<<<< HEAD
--
--			/*
--			 * If we are going to sleep and we have plugged IO queued, make
--			 * sure to submit it to avoid deadlocks.
--			 */
--			if (blk_needs_flush_plug(prev)) {
--				raw_spin_unlock(&rq->lock);
--				blk_flush_plug(prev);
--				raw_spin_lock(&rq->lock);
--			}
--=======
- 			prev->on_rq = 0;
-->>>>>>> FETCH_HEAD
- 		}
- 		switch_count = &prev->nvcsw;
- 	}
+diff -puN arch/avr32/mach-at32ap/extint.c~avr32-s-irq_chip-irq_data-in-various-places arch/avr32/mach-at32ap/extint.c
+--- a/arch/avr32/mach-at32ap/extint.c~avr32-s-irq_chip-irq_data-in-various-places
++++ a/arch/avr32/mach-at32ap/extint.c
+@@ -61,34 +61,34 @@ struct eic {
+ static struct eic *nmi_eic;
+ static bool nmi_enabled;
  
--<<<<<<< HEAD
--=======
- 	/*
- 	 * If we are going to sleep and we have plugged IO queued, make
- 	 * sure to submit it to avoid deadlocks.
-@@ -4223,7 +4208,6 @@ need_resched:
- 	 */
- 	if (to_wakeup)
- 		try_to_wake_up_local(to_wakeup);
-->>>>>>> FETCH_HEAD
- 	pre_schedule(rq, prev);
- 	if (unlikely(!rq->nr_running))
- 		idle_balance(cpu, rq);
+-static void eic_ack_irq(struct irq_chip *d)
++static void eic_ack_irq(struct irq_data *d)
+ {
+-	struct eic *eic = irq_data_get_irq_chip_data(data);
++	struct eic *eic = irq_data_get_irq_chip_data(d);
+ 	eic_writel(eic, ICR, 1 << (d->irq - eic->first_irq));
+ }
+ 
+-static void eic_mask_irq(struct irq_chip *d)
++static void eic_mask_irq(struct irq_data *d)
+ {
+-	struct eic *eic = irq_data_get_irq_chip_data(data);
++	struct eic *eic = irq_data_get_irq_chip_data(d);
+ 	eic_writel(eic, IDR, 1 << (d->irq - eic->first_irq));
+ }
+ 
+-static void eic_mask_ack_irq(struct irq_chip *d)
++static void eic_mask_ack_irq(struct irq_data *d)
+ {
+-	struct eic *eic = irq_data_get_irq_chip_data(data);
++	struct eic *eic = irq_data_get_irq_chip_data(d);
+ 	eic_writel(eic, ICR, 1 << (d->irq - eic->first_irq));
+ 	eic_writel(eic, IDR, 1 << (d->irq - eic->first_irq));
+ }
+ 
+-static void eic_unmask_irq(struct irq_chip *d)
++static void eic_unmask_irq(struct irq_data *d)
+ {
+-	struct eic *eic = irq_data_get_irq_chip_data(data);
++	struct eic *eic = irq_data_get_irq_chip_data(d);
+ 	eic_writel(eic, IER, 1 << (d->irq - eic->first_irq));
+ }
+ 
+-static int eic_set_irq_type(struct irq_chip *d, unsigned int flow_type)
++static int eic_set_irq_type(struct irq_data *d, unsigned int flow_type)
+ {
+-	struct eic *eic = irq_data_get_irq_chip_data(data);
++	struct eic *eic = irq_data_get_irq_chip_data(d);
+ 	unsigned int irq = d->irq;
+ 	unsigned int i = irq - eic->first_irq;
+ 	u32 mode, edge, level;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wanlong.gao@gmail.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
-mm-add-vm-counters-for-transparent-hugepages.patch
-drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drbd-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-dev-kmsg-properly-support-writev-to-avoid-interleaved-printk-lines-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+drivers-misc-sgi-gru-grufilec-fix-the-wrong-members-of-gru_chip.patch
+xtensa-s-irq_chip-irq_data-in-various-places.patch
+bluetooth-fix-build-warnings-on-defconfigs.patch
 
