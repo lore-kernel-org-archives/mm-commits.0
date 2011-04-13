@@ -1,98 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] avr32-s-irq_chip-irq_data-in-various-places.patch removed from -mm tree
-Date: Wed, 13 Apr 2011 12:15:27 -0700
-Message-ID: <201104131912.p3DJCOoW027485@imap1.linux-foundation.org>
+Subject: + mm-thp-use-conventional-format-for-boolean-attributes.patch added to -mm tree
+Date: Wed, 13 Apr 2011 12:19:29 -0700
+Message-ID: <201104131919.p3DJJTNP027848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755001Ab1DMTNC (ORCPT
+	by vger.kernel.org with ESMTP id S1757408Ab1DMTVL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 15:13:02 -0400
+	Wed, 13 Apr 2011 15:21:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanlong.gao@gmail.com, hans-christian.egtvedt@atmel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ben@decadent.org.uk, aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     avr32: s/irq_chip/irq_data/ in various places
-has been removed from the -mm tree.  Its filename was
-     avr32-s-irq_chip-irq_data-in-various-places.patch
+     mm/thp: use conventional format for boolean attributes
+has been added to the -mm tree.  Its filename is
+     mm-thp-use-conventional-format-for-boolean-attributes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: s/irq_chip/irq_data/ in various places
-From: Wanlong Gao <wanlong.gao@gmail.com>
+Subject: mm/thp: use conventional format for boolean attributes
+From: Ben Hutchings <ben@decadent.org.uk>
 
-The functions of eic_chip's memebers use the wrong argument.
+The conventional format for boolean attributes in sysfs is numeric ("0" or
+"1" followed by new-line).  Any boolean attribute can then be read and
+written using a generic function.  Using the strings "yes [no]", "[yes]
+no" (read), "yes" and "no" (write) will frustrate this.
 
-Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
-Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org> 	[2.6.38.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mach-at32ap/extint.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/huge_memory.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/avr32/mach-at32ap/extint.c~avr32-s-irq_chip-irq_data-in-various-places arch/avr32/mach-at32ap/extint.c
---- a/arch/avr32/mach-at32ap/extint.c~avr32-s-irq_chip-irq_data-in-various-places
-+++ a/arch/avr32/mach-at32ap/extint.c
-@@ -61,34 +61,34 @@ struct eic {
- static struct eic *nmi_eic;
- static bool nmi_enabled;
- 
--static void eic_ack_irq(struct irq_chip *d)
-+static void eic_ack_irq(struct irq_data *d)
+diff -puN mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes
++++ a/mm/huge_memory.c
+@@ -244,24 +244,25 @@ static ssize_t single_flag_show(struct k
+ 				struct kobj_attribute *attr, char *buf,
+ 				enum transparent_hugepage_flag flag)
  {
--	struct eic *eic = irq_data_get_irq_chip_data(data);
-+	struct eic *eic = irq_data_get_irq_chip_data(d);
- 	eic_writel(eic, ICR, 1 << (d->irq - eic->first_irq));
+-	if (test_bit(flag, &transparent_hugepage_flags))
+-		return sprintf(buf, "[yes] no\n");
+-	else
+-		return sprintf(buf, "yes [no]\n");
++	return sprintf(buf, "%d\n",
++		       test_bit(flag, &transparent_hugepage_flags));
  }
- 
--static void eic_mask_irq(struct irq_chip *d)
-+static void eic_mask_irq(struct irq_data *d)
+ static ssize_t single_flag_store(struct kobject *kobj,
+ 				 struct kobj_attribute *attr,
+ 				 const char *buf, size_t count,
+ 				 enum transparent_hugepage_flag flag)
  {
--	struct eic *eic = irq_data_get_irq_chip_data(data);
-+	struct eic *eic = irq_data_get_irq_chip_data(d);
- 	eic_writel(eic, IDR, 1 << (d->irq - eic->first_irq));
+-	if (!memcmp("yes", buf,
+-		    min(sizeof("yes")-1, count))) {
++	unsigned long value;
++	char *endp;
++
++	value = simple_strtoul(buf, &endp, 0);
++	if (endp == buf || value > 1)
++		return -EINVAL;
++
++	if (value)
+ 		set_bit(flag, &transparent_hugepage_flags);
+-	} else if (!memcmp("no", buf,
+-			   min(sizeof("no")-1, count))) {
++	else
+ 		clear_bit(flag, &transparent_hugepage_flags);
+-	} else
+-		return -EINVAL;
+ 
+ 	return count;
  }
- 
--static void eic_mask_ack_irq(struct irq_chip *d)
-+static void eic_mask_ack_irq(struct irq_data *d)
- {
--	struct eic *eic = irq_data_get_irq_chip_data(data);
-+	struct eic *eic = irq_data_get_irq_chip_data(d);
- 	eic_writel(eic, ICR, 1 << (d->irq - eic->first_irq));
- 	eic_writel(eic, IDR, 1 << (d->irq - eic->first_irq));
- }
- 
--static void eic_unmask_irq(struct irq_chip *d)
-+static void eic_unmask_irq(struct irq_data *d)
- {
--	struct eic *eic = irq_data_get_irq_chip_data(data);
-+	struct eic *eic = irq_data_get_irq_chip_data(d);
- 	eic_writel(eic, IER, 1 << (d->irq - eic->first_irq));
- }
- 
--static int eic_set_irq_type(struct irq_chip *d, unsigned int flow_type)
-+static int eic_set_irq_type(struct irq_data *d, unsigned int flow_type)
- {
--	struct eic *eic = irq_data_get_irq_chip_data(data);
-+	struct eic *eic = irq_data_get_irq_chip_data(d);
- 	unsigned int irq = d->irq;
- 	unsigned int i = irq - eic->first_irq;
- 	u32 mode, edge, level;
 _
 
-Patches currently in -mm which might be from wanlong.gao@gmail.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
 linux-next.patch
-drivers-misc-sgi-gru-grufilec-fix-the-wrong-members-of-gru_chip.patch
-xtensa-s-irq_chip-irq_data-in-various-places.patch
-bluetooth-fix-build-warnings-on-defconfigs.patch
+mm-thp-use-conventional-format-for-boolean-attributes.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 
