@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-agp-genericc-fix-oom-and-buffer-overflow.patch added to -mm tree
-Date: Thu, 14 Apr 2011 13:25:50 -0700
-Message-ID: <201104142025.p3EKPoJD004375@imap1.linux-foundation.org>
+Subject: + oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch added to -mm tree
+Date: Thu, 14 Apr 2011 13:27:43 -0700
+Message-ID: <201104142027.p3EKRh0n004520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752320Ab1DNU0o (ORCPT
+	by vger.kernel.org with ESMTP id S1751152Ab1DNU2X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 16:26:44 -0400
+	Thu, 14 Apr 2011 16:28:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, airlied@linux.ie
+Cc: rientjes@google.com, hughd@google.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
 
 
 The patch titled
-     drivers/char/agp/generic.c: fix OOM and buffer overflow
+     oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
 has been added to the -mm tree.  Its filename is
-     drivers-char-agp-genericc-fix-oom-and-buffer-overflow.patch
+     oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/agp/generic.c: fix OOM and buffer overflow
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
+From: David Rientjes <rientjes@google.com>
 
-page_count is copied from userspace.  agp_allocate_memory() tries to check
-whether this number is too big, but doesn't take into account the wrap
-case.  Also agp_create_user_memory() doesn't check whether alloc_size is
-calculated from num_agp_pages variable without overflow.  This may lead to
-allocation of too small buffer with following buffer overflow.
+ v3: add comment for test_set_oom_score_adj()
+     disable irqs when taking siglock, thanks to Matt Fleming
 
-Another problem in agp code is not addressed in the patch - kernel memory
-exhaustion (AGPIOC_RESERVE and AGPIOC_ALLOCATE ioctls).  It is not checked
-whether requested pid is a pid of the caller (no check in
-agpioc_reserve_wrap()).  Each allocation is limited to 16KB, though, there
-is no per-process limit.  This might lead to OOM situation, which is not
-even solved in case of the caller death by OOM killer - the memory is
-allocated for another (faked) process.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-oom-and-buffer-overflow drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-oom-and-buffer-overflow
-+++ a/drivers/char/agp/generic.c
-@@ -115,6 +115,9 @@ static struct agp_memory *agp_create_use
- 	struct agp_memory *new;
- 	unsigned long alloc_size = num_agp_pages*sizeof(struct page *);
+diff -puN mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
++++ a/mm/oom_kill.c
+@@ -38,12 +38,20 @@ int sysctl_oom_kill_allocating_task;
+ int sysctl_oom_dump_tasks = 1;
+ static DEFINE_SPINLOCK(zone_scan_lock);
  
-+	if (INT_MAX/sizeof(struct page *) < num_agp_pages)
-+		return NULL;
-+
- 	new = kzalloc(sizeof(struct agp_memory), GFP_KERNEL);
- 	if (new == NULL)
- 		return NULL;
-@@ -234,11 +237,14 @@ struct agp_memory *agp_allocate_memory(s
- 	int scratch_pages;
- 	struct agp_memory *new;
- 	size_t i;
-+	int cur_memory;
++/**
++ * test_set_oom_score_adj() - set current's oom_score_adj and return old value
++ * @new_val: new oom_score_adj value
++ *
++ * Sets the oom_score_adj value for current to @new_val with proper
++ * synchronization and returns the old value.  Usually used to temporarily
++ * set a value, save the old value in the caller, and then reinstate it later.
++ */
+ int test_set_oom_score_adj(int new_val)
+ {
+ 	struct sighand_struct *sighand = current->sighand;
+ 	int old_val;
  
- 	if (!bridge)
- 		return NULL;
+-	spin_lock(&sighand->siglock);
++	spin_lock_irq(&sighand->siglock);
+ 	old_val = current->signal->oom_score_adj;
+ 	if (new_val != old_val) {
+ 		if (new_val == OOM_SCORE_ADJ_MIN)
+@@ -52,7 +60,7 @@ int test_set_oom_score_adj(int new_val)
+ 			atomic_dec(&current->mm->oom_disable_count);
+ 		current->signal->oom_score_adj = new_val;
+ 	}
+-	spin_unlock(&sighand->siglock);
++	spin_unlock_irq(&sighand->siglock);
  
--	if ((atomic_read(&bridge->current_memory_agp) + page_count) > bridge->max_memory_agp)
-+	cur_memory = atomic_read(&bridge->current_memory_agp);
-+	if ((cur_memory + page_count > bridge->max_memory_agp) ||
-+	    (cur_memory + page_count < page_count))
- 		return NULL;
- 
- 	if (type >= AGP_USER_TYPES) {
+ 	return old_val;
+ }
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-drivers-char-agp-genericc-fix-arbitrary-kernel-memory-writes.patch
-drivers-char-agp-genericc-fix-oom-and-buffer-overflow.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-aic94xx-world-writable-sysfs-update_bios-file.patch
+mm-optimize-pfn-calculation-in-online_page.patch
+linux-next.patch
+vmscan-all_unreclaimable-use-zone-all_unreclaimable-as-a-name.patch
+oom-kill-remove-boost_dying_task_prio.patch
+mm-thp-use-conventional-format-for-boolean-attributes.patch
+arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-increase-reclaim_distance-to-30.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-per-thread-subsystem-callbacks.patch
+cgroups-make-procs-file-writable.patch
+cgroups-use-flex_array-in-attach_proc.patch
 
