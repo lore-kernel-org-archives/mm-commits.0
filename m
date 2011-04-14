@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-osstc-fix-warning.patch added to -mm tree
-Date: Thu, 14 Apr 2011 13:43:40 -0700
-Message-ID: <201104142119.p3ELJOAv006917@imap1.linux-foundation.org>
+Subject: + hid-examplec-is-borked.patch added to -mm tree
+Date: Thu, 14 Apr 2011 14:14:03 -0700
+Message-ID: <201104142149.p3ELnnoF008424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752911Ab1DNVT1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751152Ab1DNVty (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 17:19:27 -0400
+	Thu, 14 Apr 2011 17:49:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
+Cc: akpm@linux-foundation.org, jkosina@suse.cz
 
 
 The patch titled
-     drivers/scsi/osst.c: fix warning
+     hid-example.c is borked
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-osstc-fix-warning.patch
+     hid-examplec-is-borked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/osst.c: fix warning
+Subject: hid-example.c is borked
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/osst.c: In function '__os_scsi_tape_open':
-drivers/scsi/osst.c:4705: warning: ISO C90 forbids mixed declarations and code
+samples/hidraw/hid-example.c:29:23: error: sys/ioctl.h: No such file or directory
+samples/hidraw/hid-example.c:30:23: error: sys/types.h: No such file or directory
+samples/hidraw/hid-example.c:31:22: error: sys/stat.h: No such file or directory
+samples/hidraw/hid-example.c:32:19: error: fcntl.h: No such file or directory
+samples/hidraw/hid-example.c:33:20: error: unistd.h: No such file or directory
+samples/hidraw/hid-example.c:36:19: error: stdio.h: No such file or directory
+samples/hidraw/hid-example.c:37:20: error: string.h: No such file or directory
+samples/hidraw/hid-example.c:38:20: error: stdlib.h: No such file or directory
+samples/hidraw/hid-example.c:39:19: error: errno.h: No such file or directory
+samples/hidraw/hid-example.c: In function 'main':
+samples/hidraw/hid-example.c:53: error: implicit declaration of function 'open'
+samples/hidraw/hid-example.c:56: error: implicit declaration of function 'perror'
+samples/hidraw/hid-example.c:65: error: implicit declaration of function 'ioctl'
+samples/hidraw/hid-example.c:69: error: implicit declaration of function 'printf'
+samples/hidraw/hid-example.c:69: warning: incompatible implicit declaration of built-in function 'printf'
+samples/hidraw/hid-example.c:80: error: implicit declaration of function 'puts'
+samples/hidraw/hid-example.c:136: error: implicit declaration of function 'write'
+samples/hidraw/hid-example.c:138: error: 'errno' undeclared (first use in this function)
+samples/hidraw/hid-example.c:138: error: (Each undeclared identifier is reported only once
+samples/hidraw/hid-example.c:138: error: for each function it appears in.)
+samples/hidraw/hid-example.c:145: error: implicit declaration of function 'read'
+samples/hidraw/hid-example.c:154: error: implicit declaration of function 'close'
+make[1]: *** [samples/hidraw/hid-example.o] Error 1
+make: *** [samples/hidraw/hid-example.o] Error 2
+**FAILED**
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ samples/hidraw/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning
-+++ a/drivers/scsi/osst.c
-@@ -4698,11 +4698,12 @@ static int __os_scsi_tape_open(struct in
- 			break;
+diff -puN samples/hidraw/Makefile~hid-examplec-is-borked samples/hidraw/Makefile
+--- a/samples/hidraw/Makefile~hid-examplec-is-borked
++++ a/samples/hidraw/Makefile
+@@ -2,7 +2,7 @@
+ obj- := dummy.o
  
- 			if ((SRpnt->sense[2] & 0x0f) == UNIT_ATTENTION) {
-+				int j;
-+
- 				STp->pos_unknown = 0;
- 				STp->partition = STp->new_partition = 0;
- 				if (STp->can_partitions)
- 					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
--				int j;
- 				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
- 					STps = &(STp->ps[j]);
- 					STps->rw = ST_IDLE;
+ # List of programs to build
+-hostprogs-y := hid-example
++hostprogs-y := 
+ 
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,4 +143,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+hid-examplec-is-borked.patch
 
