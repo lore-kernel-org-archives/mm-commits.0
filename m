@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch added to -mm tree
-Date: Thu, 14 Apr 2011 13:27:43 -0700
-Message-ID: <201104142027.p3EKRh0n004520@imap1.linux-foundation.org>
+Subject: + drivers-usb-misc-usbtestc-fix-warning.patch added to -mm tree
+Date: Thu, 14 Apr 2011 13:42:37 -0700
+Message-ID: <201104142118.p3ELIMsu006835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152Ab1DNU2X (ORCPT
+	by vger.kernel.org with ESMTP id S1752978Ab1DNVSa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 16:28:23 -0400
+	Thu, 14 Apr 2011 17:18:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, hughd@google.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
+Cc: akpm@linux-foundation.org, gregkh@suse.de
 
 
 The patch titled
-     oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
+     drivers/usb/misc/usbtest.c: fix warning
 has been added to the -mm tree.  Its filename is
-     oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+     drivers-usb-misc-usbtestc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
-From: David Rientjes <rientjes@google.com>
+Subject: drivers/usb/misc/usbtest.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
- v3: add comment for test_set_oom_score_adj()
-     disable irqs when taking siglock, thanks to Matt Fleming
+drivers/usb/misc/usbtest.c: In function 'buffer_offset':
+drivers/usb/misc/usbtest.c:273: warning: cast from pointer to integer of different size
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/usb/misc/usbtest.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update mm/oom_kill.c
---- a/mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update
-+++ a/mm/oom_kill.c
-@@ -38,12 +38,20 @@ int sysctl_oom_kill_allocating_task;
- int sysctl_oom_dump_tasks = 1;
- static DEFINE_SPINLOCK(zone_scan_lock);
+diff -puN drivers/usb/misc/usbtest.c~drivers-usb-misc-usbtestc-fix-warning drivers/usb/misc/usbtest.c
+--- a/drivers/usb/misc/usbtest.c~drivers-usb-misc-usbtestc-fix-warning
++++ a/drivers/usb/misc/usbtest.c
+@@ -270,7 +270,7 @@ static inline void simple_fill_buf(struc
  
-+/**
-+ * test_set_oom_score_adj() - set current's oom_score_adj and return old value
-+ * @new_val: new oom_score_adj value
-+ *
-+ * Sets the oom_score_adj value for current to @new_val with proper
-+ * synchronization and returns the old value.  Usually used to temporarily
-+ * set a value, save the old value in the caller, and then reinstate it later.
-+ */
- int test_set_oom_score_adj(int new_val)
+ static inline unsigned buffer_offset(void *buf)
  {
- 	struct sighand_struct *sighand = current->sighand;
- 	int old_val;
- 
--	spin_lock(&sighand->siglock);
-+	spin_lock_irq(&sighand->siglock);
- 	old_val = current->signal->oom_score_adj;
- 	if (new_val != old_val) {
- 		if (new_val == OOM_SCORE_ADJ_MIN)
-@@ -52,7 +60,7 @@ int test_set_oom_score_adj(int new_val)
- 			atomic_dec(&current->mm->oom_disable_count);
- 		current->signal->oom_score_adj = new_val;
- 	}
--	spin_unlock(&sighand->siglock);
-+	spin_unlock_irq(&sighand->siglock);
- 
- 	return old_val;
+-	return (unsigned)buf & (ARCH_KMALLOC_MINALIGN - 1);
++	return (unsigned long)buf & (ARCH_KMALLOC_MINALIGN - 1);
  }
+ 
+ static int check_guard_bytes(struct usbtest_dev *tdev, struct urb *urb)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-optimize-pfn-calculation-in-online_page.patch
-linux-next.patch
-vmscan-all_unreclaimable-use-zone-all_unreclaimable-as-a-name.patch
-oom-kill-remove-boost_dying_task_prio.patch
+origin.patch
+fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
 mm-thp-use-conventional-format-for-boolean-attributes.patch
-arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-increase-reclaim_distance-to-30.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
-cgroups-add-per-thread-subsystem-callbacks.patch
-cgroups-make-procs-file-writable.patch
-cgroups-use-flex_array-in-attach_proc.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+vfs-avoid-large-kmallocs-for-the-fdtable.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+dev-kmsg-properly-support-writev-to-avoid-interleaved-printk-lines-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
