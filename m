@@ -1,98 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + hid-examplec-is-borked.patch added to -mm tree
-Date: Thu, 14 Apr 2011 14:14:03 -0700
-Message-ID: <201104142149.p3ELnnoF008424@imap1.linux-foundation.org>
+Subject: [folded] fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 14 Apr 2011 15:19:56 -0700
+Message-ID: <201104142219.p3EMJugX009796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152Ab1DNVty (ORCPT
+	by vger.kernel.org with ESMTP id S1753932Ab1DNWUI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 17:49:54 -0400
+	Thu, 14 Apr 2011 18:20:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jkosina@suse.cz
+To: akpm@linux-foundation.org, Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, rich@flatcap.org, warns@pre-sense.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hid-example.c is borked
-has been added to the -mm tree.  Its filename is
-     hid-examplec-is-borked.patch
+     fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid-example.c is borked
+Subject: fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-samples/hidraw/hid-example.c:29:23: error: sys/ioctl.h: No such file or directory
-samples/hidraw/hid-example.c:30:23: error: sys/types.h: No such file or directory
-samples/hidraw/hid-example.c:31:22: error: sys/stat.h: No such file or directory
-samples/hidraw/hid-example.c:32:19: error: fcntl.h: No such file or directory
-samples/hidraw/hid-example.c:33:20: error: unistd.h: No such file or directory
-samples/hidraw/hid-example.c:36:19: error: stdio.h: No such file or directory
-samples/hidraw/hid-example.c:37:20: error: string.h: No such file or directory
-samples/hidraw/hid-example.c:38:20: error: stdlib.h: No such file or directory
-samples/hidraw/hid-example.c:39:19: error: errno.h: No such file or directory
-samples/hidraw/hid-example.c: In function 'main':
-samples/hidraw/hid-example.c:53: error: implicit declaration of function 'open'
-samples/hidraw/hid-example.c:56: error: implicit declaration of function 'perror'
-samples/hidraw/hid-example.c:65: error: implicit declaration of function 'ioctl'
-samples/hidraw/hid-example.c:69: error: implicit declaration of function 'printf'
-samples/hidraw/hid-example.c:69: warning: incompatible implicit declaration of built-in function 'printf'
-samples/hidraw/hid-example.c:80: error: implicit declaration of function 'puts'
-samples/hidraw/hid-example.c:136: error: implicit declaration of function 'write'
-samples/hidraw/hid-example.c:138: error: 'errno' undeclared (first use in this function)
-samples/hidraw/hid-example.c:138: error: (Each undeclared identifier is reported only once
-samples/hidraw/hid-example.c:138: error: for each function it appears in.)
-samples/hidraw/hid-example.c:145: error: implicit declaration of function 'read'
-samples/hidraw/hid-example.c:154: error: implicit declaration of function 'close'
-make[1]: *** [samples/hidraw/hid-example.o] Error 1
-make: *** [samples/hidraw/hid-example.o] Error 2
-**FAILED**
+WARNING: space prohibited between function name and open parenthesis '('
+#29: FILE: fs/partitions/ldm.c:1303:
++		ldm_error ("Value of size is to small.");
 
-Cc: Jiri Kosina <jkosina@suse.cz>
+WARNING: space prohibited between function name and open parenthesis '('
+#41: FILE: fs/partitions/ldm.c:1315:
++		ldm_error ("REC value (%d) exceeds NUM value (%d)", rec, num);
+
+total: 0 errors, 2 warnings, 34 lines checked
+
+./patches/fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Richard Russon <rich@flatcap.org>
+Cc: Timo Warns <Warns@pre-sense.de>
+Cc: Timo Warns <warns@pre-sense.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/hidraw/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/partitions/ldm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN samples/hidraw/Makefile~hid-examplec-is-borked samples/hidraw/Makefile
---- a/samples/hidraw/Makefile~hid-examplec-is-borked
-+++ a/samples/hidraw/Makefile
-@@ -2,7 +2,7 @@
- obj- := dummy.o
+diff -puN fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes fs/partitions/ldm.c
+--- a/fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
++++ a/fs/partitions/ldm.c
+@@ -1299,8 +1299,8 @@ static bool ldm_frag_add (const u8 *data
  
- # List of programs to build
--hostprogs-y := hid-example
-+hostprogs-y := 
+ 	BUG_ON (!data || !frags);
  
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
+-	if (size < 2*VBLK_SIZE_HEAD) {
+-		ldm_error ("Value of size is to small.");
++	if (size < 2 * VBLK_SIZE_HEAD) {
++		ldm_error("Value of size is to small.");
+ 		return false;
+ 	}
+ 
+@@ -1312,7 +1312,7 @@ static bool ldm_frag_add (const u8 *data
+ 		return false;
+ 	}
+ 	if (rec >= num) {
+-		ldm_error ("REC value (%d) exceeds NUM value (%d)", rec, num);
++		ldm_error("REC value (%d) exceeds NUM value (%d)", rec, num);
+ 		return false;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
 mm-thp-use-conventional-format-for-boolean-attributes.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
+hid-examplec-is-borked.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 vfs-avoid-large-kmallocs-for-the-fdtable.patch
@@ -143,5 +139,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-hid-examplec-is-borked.patch
 
