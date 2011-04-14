@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-misc-usbtestc-fix-warning.patch added to -mm tree
-Date: Thu, 14 Apr 2011 13:42:37 -0700
-Message-ID: <201104142118.p3ELIMsu006835@imap1.linux-foundation.org>
+Subject: + drivers-scsi-osstc-fix-warning.patch added to -mm tree
+Date: Thu, 14 Apr 2011 13:43:40 -0700
+Message-ID: <201104142119.p3ELJOAv006917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752978Ab1DNVSa (ORCPT
+	by vger.kernel.org with ESMTP id S1752911Ab1DNVT1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 17:18:30 -0400
+	Thu, 14 Apr 2011 17:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     drivers/usb/misc/usbtest.c: fix warning
+     drivers/scsi/osst.c: fix warning
 has been added to the -mm tree.  Its filename is
-     drivers-usb-misc-usbtestc-fix-warning.patch
+     drivers-scsi-osstc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/misc/usbtest.c: fix warning
+Subject: drivers/scsi/osst.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/misc/usbtest.c: In function 'buffer_offset':
-drivers/usb/misc/usbtest.c:273: warning: cast from pointer to integer of different size
+drivers/scsi/osst.c: In function '__os_scsi_tape_open':
+drivers/scsi/osst.c:4705: warning: ISO C90 forbids mixed declarations and code
 
-Cc: Greg KH <gregkh@suse.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/usbtest.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/osst.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/misc/usbtest.c~drivers-usb-misc-usbtestc-fix-warning drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~drivers-usb-misc-usbtestc-fix-warning
-+++ a/drivers/usb/misc/usbtest.c
-@@ -270,7 +270,7 @@ static inline void simple_fill_buf(struc
+diff -puN drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning
++++ a/drivers/scsi/osst.c
+@@ -4698,11 +4698,12 @@ static int __os_scsi_tape_open(struct in
+ 			break;
  
- static inline unsigned buffer_offset(void *buf)
- {
--	return (unsigned)buf & (ARCH_KMALLOC_MINALIGN - 1);
-+	return (unsigned long)buf & (ARCH_KMALLOC_MINALIGN - 1);
- }
- 
- static int check_guard_bytes(struct usbtest_dev *tdev, struct urb *urb)
+ 			if ((SRpnt->sense[2] & 0x0f) == UNIT_ATTENTION) {
++				int j;
++
+ 				STp->pos_unknown = 0;
+ 				STp->partition = STp->new_partition = 0;
+ 				if (STp->can_partitions)
+ 					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
+-				int j;
+ 				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
+ 					STps = &(STp->ps[j]);
+ 					STps->rw = ST_IDLE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +87,7 @@ backlight-add-backlight-type-fix-fix.patch
 drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
 drivers-message-fusion-mptsasc-fix-warning.patch
 osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
 drbd-fix-warning.patch
 drivers-usb-misc-usbtestc-fix-warning.patch
 mm.patch
