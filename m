@@ -1,82 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 14 Apr 2011 15:19:56 -0700
-Message-ID: <201104142219.p3EMJugX009796@imap1.linux-foundation.org>
+Subject: + sound-pci-hda-hda_codecc-fix-warning.patch added to -mm tree
+Date: Thu, 14 Apr 2011 15:06:13 -0700
+Message-ID: <201104142241.p3EMfwxI010830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753932Ab1DNWUI (ORCPT
+	by vger.kernel.org with ESMTP id S1754158Ab1DNWma (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 18:20:08 -0400
+	Thu, 14 Apr 2011 18:42:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, rich@flatcap.org, warns@pre-sense.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, tiwai@suse.de
 
 
 The patch titled
-     fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+     sound/pci/hda/hda_codec.c: fix warning
+has been added to the -mm tree.  Its filename is
+     sound-pci-hda-hda_codecc-fix-warning.patch
 
-This patch was dropped because it was folded into fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
+Subject: sound/pci/hda/hda_codec.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#29: FILE: fs/partitions/ldm.c:1303:
-+		ldm_error ("Value of size is to small.");
+sound/pci/hda/hda_codec.c: In function 'snd_hda_get_connections':
+sound/pci/hda/hda_codec.c:332: warning: unused variable 'j'
 
-WARNING: space prohibited between function name and open parenthesis '('
-#41: FILE: fs/partitions/ldm.c:1315:
-+		ldm_error ("REC value (%d) exceeds NUM value (%d)", rec, num);
-
-total: 0 errors, 2 warnings, 34 lines checked
-
-./patches/fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Richard Russon <rich@flatcap.org>
-Cc: Timo Warns <Warns@pre-sense.de>
-Cc: Timo Warns <warns@pre-sense.de>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/ldm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ sound/pci/hda/hda_codec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes fs/partitions/ldm.c
---- a/fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes
-+++ a/fs/partitions/ldm.c
-@@ -1299,8 +1299,8 @@ static bool ldm_frag_add (const u8 *data
+diff -puN sound/pci/hda/hda_codec.c~sound-pci-hda-hda_codecc-fix-warning sound/pci/hda/hda_codec.c
+--- a/sound/pci/hda/hda_codec.c~sound-pci-hda-hda_codecc-fix-warning
++++ a/sound/pci/hda/hda_codec.c
+@@ -329,7 +329,7 @@ int snd_hda_get_connections(struct hda_c
+ 			     hda_nid_t *conn_list, int max_conns)
+ {
+ 	struct snd_array *array = &codec->conn_lists;
+-	int i, j, len, old_used;
++	int i, len, old_used;
+ 	hda_nid_t list[HDA_MAX_CONNECTIONS];
  
- 	BUG_ON (!data || !frags);
- 
--	if (size < 2*VBLK_SIZE_HEAD) {
--		ldm_error ("Value of size is to small.");
-+	if (size < 2 * VBLK_SIZE_HEAD) {
-+		ldm_error("Value of size is to small.");
- 		return false;
- 	}
- 
-@@ -1312,7 +1312,7 @@ static bool ldm_frag_add (const u8 *data
- 		return false;
- 	}
- 	if (rec >= num) {
--		ldm_error ("REC value (%d) exceeds NUM value (%d)", rec, num);
-+		ldm_error("REC value (%d) exceeds NUM value (%d)", rec, num);
- 		return false;
- 	}
- 
+ 	/* look up the cached results */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,4 +121,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+sound-pci-hda-hda_codecc-fix-warning.patch
 
