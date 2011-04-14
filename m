@@ -1,107 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-__nocast-attribute-to-vm_flags.patch added to -mm tree
-Date: Wed, 13 Apr 2011 14:51:01 -0700
-Message-ID: <201104132151.p3DLp1VB002430@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 14 Apr 2011 11:37:05 -0700
+Message-ID: <201104141833.p3EIXrqO031443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933052Ab1DMVve (ORCPT
+	by vger.kernel.org with ESMTP id S932742Ab1DNSeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Apr 2011 17:51:34 -0400
+	Thu, 14 Apr 2011 14:34:24 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p3EIXsP5023234
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2011 11:33:54 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, benh@kernel.crashing.org, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, lethal@linux-sh.org, linux@arm.linux.org.uk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add __nocast attribute to vm_flags
-has been added to the -mm tree.  Its filename is
-     mm-add-__nocast-attribute-to-vm_flags.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add __nocast attribute to vm_flags
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now, We are converting vm_flags to 64bit.  so nocast attribute help to
-find hidden wrong vm_flags usage.
-
-Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-add-__nocast-attribute-to-vm_flags include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-add-__nocast-attribute-to-vm_flags
-+++ a/include/linux/mm_types.h
-@@ -109,7 +109,7 @@ struct page {
-  */
- struct vm_region {
- 	struct rb_node	vm_rb;		/* link in global region tree */
--	unsigned long long vm_flags;	/* VMA vm_flags */
-+	unsigned long long __nocast vm_flags;	/* VMA vm_flags */
- 	unsigned long	vm_start;	/* start address of region */
- 	unsigned long	vm_end;		/* region initialised to here */
- 	unsigned long	vm_top;		/* region allocated to here */
-@@ -137,7 +137,7 @@ struct vm_area_struct {
- 	struct vm_area_struct *vm_next, *vm_prev;
+diff -puN kernel/sched.c~linux-next-git-rejects kernel/sched.c
+--- a/kernel/sched.c~linux-next-git-rejects
++++ a/kernel/sched.c
+@@ -4187,26 +4187,11 @@ need_resched:
+ 			if (prev->flags & PF_WQ_WORKER)
+ 				to_wakeup = wq_worker_sleeping(prev, cpu);
+ 			deactivate_task(rq, prev, DEQUEUE_SLEEP);
+-<<<<<<< HEAD
+-
+-			/*
+-			 * If we are going to sleep and we have plugged IO queued, make
+-			 * sure to submit it to avoid deadlocks.
+-			 */
+-			if (blk_needs_flush_plug(prev)) {
+-				raw_spin_unlock(&rq->lock);
+-				blk_flush_plug(prev);
+-				raw_spin_lock(&rq->lock);
+-			}
+-=======
+ 			prev->on_rq = 0;
+->>>>>>> FETCH_HEAD
+ 		}
+ 		switch_count = &prev->nvcsw;
+ 	}
  
- 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
--	unsigned long long vm_flags;		/* Flags, see mm.h. */
-+	unsigned long long __nocast vm_flags;	/* Flags, see mm.h. */
- 
- 	struct rb_node vm_rb;
- 
+-<<<<<<< HEAD
+-=======
+ 	/*
+ 	 * If we are going to sleep and we have plugged IO queued, make
+ 	 * sure to submit it to avoid deadlocks.
+@@ -4223,7 +4208,6 @@ need_resched:
+ 	 */
+ 	if (to_wakeup)
+ 		try_to_wake_up_local(to_wakeup);
+->>>>>>> FETCH_HEAD
+ 	pre_schedule(rq, prev);
+ 	if (unlikely(!rq->nr_running))
+ 		idle_balance(cpu, rq);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
-mm-check-that-we-have-the-right-vma-in-__access_remote_vm.patch
-vmscan-all_unreclaimable-use-zone-all_unreclaimable-as-a-name.patch
-oom-kill-remove-boost_dying_task_prio.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
+mm-add-vm-counters-for-transparent-hugepages.patch
+mm-thp-use-conventional-format-for-boolean-attributes-fix.patch
+vfs-avoid-large-kmallocs-for-the-fdtable.patch
+drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drbd-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
+dev-kmsg-properly-support-writev-to-avoid-interleaved-printk-lines-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
 kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
