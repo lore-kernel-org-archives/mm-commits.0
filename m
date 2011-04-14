@@ -1,44 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-use-conventional-format-for-boolean-attributes-fix-fix.patch added to -mm tree
-Date: Thu, 14 Apr 2011 12:06:53 -0700
-Message-ID: <201104141906.p3EJ6rkA000723@imap1.linux-foundation.org>
+Subject: [folded] mm-thp-use-conventional-format-for-boolean-attributes-fix.patch removed from -mm tree
+Date: Thu, 14 Apr 2011 12:07:38 -0700
+Message-ID: <201104141907.p3EJ7ckF000810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932485Ab1DNTIi (ORCPT
+	by vger.kernel.org with ESMTP id S933962Ab1DNTJX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Apr 2011 15:08:38 -0400
+	Thu, 14 Apr 2011 15:09:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, ben@decadent.org.uk, hughd@google.com, jweiner@redhat.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com
+To: akpm@linux-foundation.org, aarcange@redhat.com, ben@decadent.org.uk, hughd@google.com, jweiner@redhat.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com, stable@kernel.org, mm-c
 
 
 The patch titled
-     mm-thp-use-conventional-format-for-boolean-attributes-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-thp-use-conventional-format-for-boolean-attributes-fix-fix.patch
+     mm-thp-use-conventional-format-for-boolean-attributes-fix
+has been removed from the -mm tree.  Its filename was
+     mm-thp-use-conventional-format-for-boolean-attributes-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-thp-use-conventional-format-for-boolean-attributes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-thp-use-conventional-format-for-boolean-attributes-fix-fix
+Subject: mm-thp-use-conventional-format-for-boolean-attributes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-test_bit() doesn't return 1/0
+use kstrtoul()
 
+Cc: <stable@kernel.org> 	[2.6.38.x]
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Ben Hutchings <ben@decadent.org.uk>
 Cc: David Rientjes <rientjes@google.com>
@@ -49,21 +40,35 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix-fix
+diff -puN mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes-fix
 +++ a/mm/huge_memory.c
-@@ -245,7 +245,7 @@ static ssize_t single_flag_show(struct k
- 				enum transparent_hugepage_flag flag)
- {
+@@ -247,16 +247,19 @@ static ssize_t single_flag_show(struct k
  	return sprintf(buf, "%d\n",
--		       test_bit(flag, &transparent_hugepage_flags));
-+		       !!test_bit(flag, &transparent_hugepage_flags));
+ 		       test_bit(flag, &transparent_hugepage_flags));
  }
- 
++
  static ssize_t single_flag_store(struct kobject *kobj,
+ 				 struct kobj_attribute *attr,
+ 				 const char *buf, size_t count,
+ 				 enum transparent_hugepage_flag flag)
+ {
+ 	unsigned long value;
+-	char *endp;
++	int ret;
+ 
+-	value = simple_strtoul(buf, &endp, 0);
+-	if (endp == buf || value > 1)
++	ret = kstrtoul(buf, 10, &value);
++	if (ret < 0)
++		return ret;
++	if (value > 1)
+ 		return -EINVAL;
+ 
+ 	if (value)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +81,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table-checkpatch-fixes.patch
 mm-add-vm-counters-for-transparent-hugepages.patch
-mm-thp-use-conventional-format-for-boolean-attributes-fix.patch
+mm-thp-use-conventional-format-for-boolean-attributes.patch
 mm-thp-use-conventional-format-for-boolean-attributes-fix-fix.patch
 vfs-avoid-large-kmallocs-for-the-fdtable.patch
 drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
