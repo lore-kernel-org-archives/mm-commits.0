@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparse-define-dummy-build_bug_on-definition-for-sparse.patch added to -mm tree
-Date: Mon, 18 Apr 2011 12:41:11 -0700
-Message-ID: <201104181941.p3IJfBKC020982@imap1.linux-foundation.org>
+Subject: + sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch added to -mm tree
+Date: Mon, 18 Apr 2011 12:41:15 -0700
+Message-ID: <201104181941.p3IJfFJm020994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752296Ab1DRTlU (ORCPT
+	by vger.kernel.org with ESMTP id S1752296Ab1DRTlY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 15:41:20 -0400
+	Mon, 18 Apr 2011 15:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, dave@linux.vnet.ibm.com
+Cc: kosaki.motohiro@jp.fujitsu.com, arjan@infradead.org, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     sparse: define dummy BUILD_BUG_ON definition for sparse
+     sparse: Undef __compiletime_{warning,error} if __CHECKER__ is defined
 has been added to the -mm tree.  Its filename is
-     sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+     sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparse: define dummy BUILD_BUG_ON definition for sparse
+Subject: sparse: Undef __compiletime_{warning,error} if __CHECKER__ is defined
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-BUILD_BUG_ON() causes a syntax error to detect coding errors.  So it
-causes sparse to detect an error too.  This reduces sparse's usefulness.
-
-This patch makes a dummy BUILD_BUG_ON() definition for sparse.
+sparse can't parse warning and error attribute.  then they should be
+hidden from sparse.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/compiler-gcc4.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~sparse-define-dummy-build_bug_on-definition-for-sparse include/linux/kernel.h
---- a/include/linux/kernel.h~sparse-define-dummy-build_bug_on-definition-for-sparse
-+++ a/include/linux/kernel.h
-@@ -637,6 +637,13 @@ struct sysinfo {
- 	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
- };
- 
-+#ifdef __CHECKER__
-+#define BUILD_BUG_ON_NOT_POWER_OF_2(n)
-+#define BUILD_BUG_ON_ZERO(e)
-+#define BUILD_BUG_ON_NULL(e)
-+#define BUILD_BUG_ON(condition)
-+#else /* __CHECKER__ */
-+
- /* Force a compilation error if a constant expression is not a power of 2 */
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
- 	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
-@@ -673,6 +680,7 @@ extern int __build_bug_on_failed;
- 		if (condition) __build_bug_on_failed = 1;	\
- 	} while(0)
+diff -puN include/linux/compiler-gcc4.h~sparse-undef-__compiletime_warningerror-if-__checker__-is-defined include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~sparse-undef-__compiletime_warningerror-if-__checker__-is-defined
++++ a/include/linux/compiler-gcc4.h
+@@ -51,7 +51,7 @@
+ #if __GNUC_MINOR__ > 0
+ #define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
  #endif
-+#endif	/* __CHECKER__ */
- 
- /* Trap pasters of __FUNCTION__ at compile-time */
- #define __FUNCTION__ (__func__)
+-#if __GNUC_MINOR__ >= 4
++#if __GNUC_MINOR__ >= 4 && !defined(__CHECKER__)
+ #define __compiletime_warning(message) __attribute__((warning(message)))
+ #define __compiletime_error(message) __attribute__((error(message)))
+ #endif
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
