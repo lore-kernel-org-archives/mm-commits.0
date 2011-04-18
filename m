@@ -1,60 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-arm-ts78xx-setup-platform-maintainer.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:02:39 -0700
-Message-ID: <201104181758.p3IHwoeK016090@imap1.linux-foundation.org>
+Subject: [merged] rapidio-mpc85xx-fix-possible-mport-registration-problems.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:03:05 -0700
+Message-ID: <201104181759.p3IHxGoi016135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756231Ab1DRSEJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756238Ab1DRSEQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:04:09 -0400
+	Mon, 18 Apr 2011 14:04:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex@digriz.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: add ARM/ts78xx-setup platform maintainer
+     RapidIO/mpc85xx: fix possible mport registration problems
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-arm-ts78xx-setup-platform-maintainer.patch
+     rapidio-mpc85xx-fix-possible-mport-registration-problems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add ARM/ts78xx-setup platform maintainer
-From: Alexander Clouter <alex@digriz.org.uk>
+Subject: RapidIO/mpc85xx: fix possible mport registration problems
+From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Signed-off-by: Alexander Clouter <alex@digriz.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Fix a possible problem with mport registration left non-cleared after
+fsl_rio_setup() exits on link error.  Abort mport initialization if
+registration failed.
+
+This patch is applicable to 2.6.39-rc1 only.  The problem does not exist
+for earlier versions.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Thomas Moll <thomas.moll@sysgo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/powerpc/sysdev/fsl_rio.c |    4 +++-
+ drivers/rapidio/rio.c         |    5 +++--
+ include/linux/rio.h           |    2 +-
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-arm-ts78xx-setup-platform-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-add-arm-ts78xx-setup-platform-maintainer
-+++ a/MAINTAINERS
-@@ -877,6 +877,13 @@ F:	arch/arm/mach-mv78xx0/
- F:	arch/arm/mach-orion5x/
- F:	arch/arm/plat-orion/
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -1457,7 +1457,6 @@ int fsl_rio_setup(struct platform_device
+ 	port->ops = ops;
+ 	port->priv = priv;
+ 	port->phys_efptr = 0x100;
+-	rio_register_mport(port);
  
-+ARM/Orion SoC/Technologic Systems TS-78xx platform support
-+M:	Alexander Clouter <alex@digriz.org.uk>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+W:	http://www.digriz.org.uk/ts78xx/kernel
-+S:	Maintained
-+F:	arch/arm/mach-orion5x/ts78xx-*
+ 	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
+ 	rio_regs_win = priv->regs_win;
+@@ -1504,6 +1503,9 @@ int fsl_rio_setup(struct platform_device
+ 	dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
+ 			port->sys_size ? 65536 : 256);
+ 
++	if (rio_register_mport(port))
++		goto err;
 +
- ARM/MIOA701 MACHINE SUPPORT
- M:	Robert Jarzmik <robert.jarzmik@free.fr>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ 	if (port->host_deviceid >= 0)
+ 		out_be32(priv->regs_win + RIO_GCCSR, RIO_PORT_GEN_HOST |
+ 			RIO_PORT_GEN_MASTER | RIO_PORT_GEN_DISCOVERED);
+diff -puN drivers/rapidio/rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems
++++ a/drivers/rapidio/rio.c
+@@ -1171,16 +1171,17 @@ static int rio_hdid_setup(char *str)
+ 
+ __setup("riohdid=", rio_hdid_setup);
+ 
+-void rio_register_mport(struct rio_mport *port)
++int rio_register_mport(struct rio_mport *port)
+ {
+ 	if (next_portid >= RIO_MAX_MPORTS) {
+ 		pr_err("RIO: reached specified max number of mports\n");
+-		return;
++		return 1;
+ 	}
+ 
+ 	port->id = next_portid++;
+ 	port->host_deviceid = rio_get_hdid(port->id);
+ 	list_add_tail(&port->node, &rio_mports);
++	return 0;
+ }
+ 
+ EXPORT_SYMBOL_GPL(rio_local_get_device_id);
+diff -puN include/linux/rio.h~rapidio-mpc85xx-fix-possible-mport-registration-problems include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-mpc85xx-fix-possible-mport-registration-problems
++++ a/include/linux/rio.h
+@@ -396,7 +396,7 @@ union rio_pw_msg {
+ };
+ 
+ /* Architecture and hardware-specific functions */
+-extern void rio_register_mport(struct rio_mport *);
++extern int rio_register_mport(struct rio_mport *);
+ extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
+ extern void rio_close_inb_mbox(struct rio_mport *, int);
+ extern int rio_open_outb_mbox(struct rio_mport *, void *, int, int);
 _
 
-Patches currently in -mm which might be from alex@digriz.org.uk are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 origin.patch
 
