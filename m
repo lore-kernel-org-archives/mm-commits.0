@@ -1,81 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_allocc-silence-build_all_zonelists-section-mismatch.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:02:27 -0700
-Message-ID: <201104181758.p3IHwcBX016055@imap1.linux-foundation.org>
+Subject: [merged] mm-optimize-pfn-calculation-in-online_page.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:02:18 -0700
+Message-ID: <201104181758.p3IHwTjA016033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756225Ab1DRSAH (ORCPT
+	by vger.kernel.org with ESMTP id S1756225Ab1DRSAN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:00:07 -0400
+	Mon, 18 Apr 2011 14:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dkiper@net-space.pl, cl@linux.com, dave@linux.vnet.ibm.com, fengguang.wu@intel.com, jj@chaosbits.net, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vg
 
 
 The patch titled
-     mm/page_alloc.c: silence build_all_zonelists() section mismatch
+     mm: optimize pfn calculation in online_page()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-silence-build_all_zonelists-section-mismatch.patch
+     mm-optimize-pfn-calculation-in-online_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: silence build_all_zonelists() section mismatch
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: mm: optimize pfn calculation in online_page()
+From: Daniel Kiper <dkiper@net-space.pl>
 
-The memory hotplug case involves calling to build_all_zonelists() which in
-turns calls in to setup_zone_pageset().  The latter is marked __meminit
-while build_all_zonelists() itself has no particular annotation. 
-build_all_zonelists() is only handed a non-NULL pointer in the case of
-memory hotplug through an existing __meminit path, so the
-setup_zone_pageset() reference is always safe.
+If CONFIG_FLATMEM is enabled pfn is calculated in online_page() more than
+once.  It is possible to optimize that and use value established at
+beginning of that function.
 
-The options as such are either to flag build_all_zonelists() as __ref (as
-per __build_all_zonelists()), or to simply discard the __meminit
-annotation from setup_zone_pageset().
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Daniel Kiper <dkiper@net-space.pl>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Jesper Juhl <jj@chaosbits.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/memory_hotplug.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-silence-build_all_zonelists-section-mismatch mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-silence-build_all_zonelists-section-mismatch
-+++ a/mm/page_alloc.c
-@@ -3176,7 +3176,7 @@ static __init_refok int __build_all_zone
-  * Called with zonelists_mutex held always
-  * unless system_state == SYSTEM_BOOTING.
-  */
--void build_all_zonelists(void *data)
-+void __ref build_all_zonelists(void *data)
- {
- 	set_zonelist_order();
+diff -puN mm/memory_hotplug.c~mm-optimize-pfn-calculation-in-online_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-optimize-pfn-calculation-in-online_page
++++ a/mm/memory_hotplug.c
+@@ -375,7 +375,7 @@ void online_page(struct page *page)
+ #endif
  
+ #ifdef CONFIG_FLATMEM
+-	max_mapnr = max(page_to_pfn(page), max_mapnr);
++	max_mapnr = max(pfn, max_mapnr);
+ #endif
+ 
+ 	ClearPageReserved(page);
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from dkiper@net-space.pl are
 
 origin.patch
-linux-next.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-mm-nommu-sort-mm-mmap-list-properly.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-nommu-dont-scan-the-vma-list-when-deleting.patch
-mm-nommu-find-vma-using-the-sorted-vma-list.patch
-mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
-mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch
-mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
 
