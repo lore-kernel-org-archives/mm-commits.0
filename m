@@ -1,101 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thp-use-conventional-format-for-boolean-attributes.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:03:18 -0700
-Message-ID: <201104181759.p3IHxTCN016159@imap1.linux-foundation.org>
+Subject: [to-be-updated] drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:29:20 -0700
+Message-ID: <201104181829.p3IITKu0017682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756238Ab1DRSFE (ORCPT
+	by vger.kernel.org with ESMTP id S1751621Ab1DRS37 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:05:04 -0400
+	Mon, 18 Apr 2011 14:29:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@decadent.org.uk, aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mel@csn.ul.ie, neilb@suse.de, riel@redhat.com, rientjes@google.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, drosenberg@vsecurity.com, eric.moore@lsi.com, eugeneteo@kernel.sg, kashyap.desai@lsi.com, stable@kernel.org, mm-commi
 
 
 The patch titled
-     mm/thp: use conventional format for boolean attributes
+     drivers/scsi/mpt2sas/mpt2sas_ctl.c: fix unbounded copy_to_user()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-use-conventional-format-for-boolean-attributes.patch
+     drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/thp: use conventional format for boolean attributes
-From: Ben Hutchings <ben@decadent.org.uk>
+Subject: drivers/scsi/mpt2sas/mpt2sas_ctl.c: fix unbounded copy_to_user()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The conventional format for boolean attributes in sysfs is numeric ("0" or
-"1" followed by new-line).  Any boolean attribute can then be read and
-written using a generic function.  Using the strings "yes [no]", "[yes]
-no" (read), "yes" and "no" (write) will frustrate this.
+In _ctl_diag_read_buffer() on line 2019, user-supplied values are
+used to determine the size of a copy_to_user() as well as the offset
+into the buffer to be read, with no bounds checking.  I'm not familiar
+with this code, so I'm not sure what checks would be appropriate, but
+letting unprivileged users read arbitrary kernel memory probably isn't
+intended.
 
-[akpm@linux-foundation.org: use kstrtoul()]
-[akpm@linux-foundation.org: test_bit() doesn't return 1/0, per Neil]
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Tested-by: David Rientjes <rientjes@google.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: <stable@kernel.org> 	[2.6.38.x]
+Reported-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Eric Moore <eric.moore@lsi.com>
+Cc: Desai Kashyap <kashyap.desai@lsi.com>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ drivers/scsi/mpt2sas/mpt2sas_ctl.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-use-conventional-format-for-boolean-attributes
-+++ a/mm/huge_memory.c
-@@ -244,24 +244,28 @@ static ssize_t single_flag_show(struct k
- 				struct kobj_attribute *attr, char *buf,
- 				enum transparent_hugepage_flag flag)
- {
--	if (test_bit(flag, &transparent_hugepage_flags))
--		return sprintf(buf, "[yes] no\n");
--	else
--		return sprintf(buf, "yes [no]\n");
-+	return sprintf(buf, "%d\n",
-+		       !!test_bit(flag, &transparent_hugepage_flags));
- }
-+
- static ssize_t single_flag_store(struct kobject *kobj,
- 				 struct kobj_attribute *attr,
- 				 const char *buf, size_t count,
- 				 enum transparent_hugepage_flag flag)
- {
--	if (!memcmp("yes", buf,
--		    min(sizeof("yes")-1, count))) {
-+	unsigned long value;
-+	int ret;
-+
-+	ret = kstrtoul(buf, 10, &value);
-+	if (ret < 0)
-+		return ret;
-+	if (value > 1)
+diff -puN drivers/scsi/mpt2sas/mpt2sas_ctl.c~drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user drivers/scsi/mpt2sas/mpt2sas_ctl.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_ctl.c~drivers-scsi-mpt2sas-mpt2sas_ctlc-fix-unbounded-copy_to_user
++++ a/drivers/scsi/mpt2sas/mpt2sas_ctl.c
+@@ -2011,6 +2011,9 @@ _ctl_diag_read_buffer(void __user *arg, 
+ 	    "offset(%d), sz(%d)\n", ioc->name, __func__,
+ 	    diag_data, karg.starting_offset, karg.bytes_to_read));
+ 
++	if (karg.bytes_to_read != sizeof(uarg->diagnostic_data))
 +		return -EINVAL;
 +
-+	if (value)
- 		set_bit(flag, &transparent_hugepage_flags);
--	} else if (!memcmp("no", buf,
--			   min(sizeof("no")-1, count))) {
-+	else
- 		clear_bit(flag, &transparent_hugepage_flags);
--	} else
--		return -EINVAL;
- 
- 	return count;
- }
+ 	if (copy_to_user((void __user *)uarg->diagnostic_data,
+ 	    diag_data, karg.bytes_to_read)) {
+ 		printk(MPT2SAS_ERR_FMT "%s: Unable to write "
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+hid-examplec-is-borked.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+vfs-avoid-large-kmallocs-for-the-fdtable.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+dev-kmsg-properly-support-writev-to-avoid-interleaved-printk-lines-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
