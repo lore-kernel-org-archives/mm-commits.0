@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sparse-define-__must_be_array-for-__checker__.patch added to -mm tree
-Date: Mon, 18 Apr 2011 12:41:13 -0700
-Message-ID: <201104181941.p3IJfDus020991@imap1.linux-foundation.org>
+Subject: + sparse-define-dummy-build_bug_on-definition-for-sparse.patch added to -mm tree
+Date: Mon, 18 Apr 2011 12:41:11 -0700
+Message-ID: <201104181941.p3IJfBKC020982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43556 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752296Ab1DRTlW (ORCPT
+	by vger.kernel.org with ESMTP id S1752296Ab1DRTlU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 15:41:22 -0400
+	Mon, 18 Apr 2011 15:41:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     sparse: define __must_be_array() for __CHECKER__
+     sparse: define dummy BUILD_BUG_ON definition for sparse
 has been added to the -mm tree.  Its filename is
-     sparse-define-__must_be_array-for-__checker__.patch
+     sparse-define-dummy-build_bug_on-definition-for-sparse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparse: define __must_be_array() for __CHECKER__
+Subject: sparse: define dummy BUILD_BUG_ON definition for sparse
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-commit c5e631cf65f ("ARRAY_SIZE: check for type") added __must_be_array().
-But sparse can't parse this gcc extention.
+BUILD_BUG_ON() causes a syntax error to detect coding errors.  So it
+causes sparse to detect an error too.  This reduces sparse's usefulness.
 
-Now make C=2 makes following sparse errors a lot.
-
-  kernel/futex.c:2699:25: error: No right hand side of '+'-expression
-
-Because __must_be_array() is used for ARRAY_SIZE() macro and it is
-used very widely.
-
-This patch fixes it.
+This patch makes a dummy BUILD_BUG_ON() definition for sparse.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/kernel.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/compiler-gcc.h~sparse-define-__must_be_array-for-__checker__ include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~sparse-define-__must_be_array-for-__checker__
-+++ a/include/linux/compiler-gcc.h
-@@ -34,8 +34,12 @@
-     __asm__ ("" : "=r"(__ptr) : "0"(ptr));		\
-     (typeof(ptr)) (__ptr + (off)); })
+diff -puN include/linux/kernel.h~sparse-define-dummy-build_bug_on-definition-for-sparse include/linux/kernel.h
+--- a/include/linux/kernel.h~sparse-define-dummy-build_bug_on-definition-for-sparse
++++ a/include/linux/kernel.h
+@@ -637,6 +637,13 @@ struct sysinfo {
+ 	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+ };
  
 +#ifdef __CHECKER__
-+#define __must_be_array(arr) 0
-+#else
- /* &a[0] degrades to a pointer: a different type from an array */
- #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-+#endif
++#define BUILD_BUG_ON_NOT_POWER_OF_2(n)
++#define BUILD_BUG_ON_ZERO(e)
++#define BUILD_BUG_ON_NULL(e)
++#define BUILD_BUG_ON(condition)
++#else /* __CHECKER__ */
++
+ /* Force a compilation error if a constant expression is not a power of 2 */
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
+ 	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
+@@ -673,6 +680,7 @@ extern int __build_bug_on_failed;
+ 		if (condition) __build_bug_on_failed = 1;	\
+ 	} while(0)
+ #endif
++#endif	/* __CHECKER__ */
  
- /*
-  * Force always-inline if the user requests it so via the .config,
+ /* Trap pasters of __FUNCTION__ at compile-time */
+ #define __FUNCTION__ (__func__)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
