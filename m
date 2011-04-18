@@ -1,155 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ramfs-fix-memleak-on-no-mmu-arch.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:03:16 -0700
-Message-ID: <201104181759.p3IHxSrA016156@imap1.linux-foundation.org>
+Subject: [merged] mm-page_allocc-silence-build_all_zonelists-section-mismatch.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:02:27 -0700
+Message-ID: <201104181758.p3IHwcBX016055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756220Ab1DRSAG (ORCPT
+	by vger.kernel.org with ESMTP id S1756225Ab1DRSAH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:00:06 -0400
+	Mon, 18 Apr 2011 14:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lliubbo@gmail.com, dhowells@redhat.com, hughd@google.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ramfs: fix memleak on no-mmu arch
+     mm/page_alloc.c: silence build_all_zonelists() section mismatch
 has been removed from the -mm tree.  Its filename was
-     ramfs-fix-memleak-on-no-mmu-arch.patch
+     mm-page_allocc-silence-build_all_zonelists-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramfs: fix memleak on no-mmu arch
-From: Bob Liu <lliubbo@gmail.com>
+Subject: mm/page_alloc.c: silence build_all_zonelists() section mismatch
+From: Paul Mundt <lethal@linux-sh.org>
 
-On no-mmu arch, there is a memleak duirng shmem test.  The cause of this
-memleak is ramfs_nommu_expand_for_mapping() added page refcount to 2 which
-makes iput() can't free that pages.
+The memory hotplug case involves calling to build_all_zonelists() which in
+turns calls in to setup_zone_pageset().  The latter is marked __meminit
+while build_all_zonelists() itself has no particular annotation. 
+build_all_zonelists() is only handed a non-NULL pointer in the case of
+memory hotplug through an existing __meminit path, so the
+setup_zone_pageset() reference is always safe.
 
-The simple test file is like this:
-int main(void)
-{
-	int i;
-	key_t k = ftok("/etc", 42);
+The options as such are either to flag build_all_zonelists() as __ref (as
+per __build_all_zonelists()), or to simply discard the __meminit
+annotation from setup_zone_pageset().
 
-	for ( i=0; i<100; ++i) {
-		int id = shmget(k, 10000, 0644|IPC_CREAT);
-		if (id == -1) {
-			printf("shmget error\n");
-		}
-		if(shmctl(id, IPC_RMID, NULL ) == -1) {
-			printf("shm  rm error\n");
-			return -1;
-		}
-	}
-	printf("run ok...\n");
-	return 0;
-}
-
-And the result:
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16644        43676            0            0
--/+ buffers:              16644        43676
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        17912        42408            0            0
--/+ buffers:              17912        42408
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        19096        41224            0            0
--/+ buffers:              19096        41224
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        20296        40024            0            0
--/+ buffers:              20296        40024
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        21496        38824            0            0
--/+ buffers:              21496        38824
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        22692        37628            0            0
--/+ buffers:              22692        37628
-root:/>
-
-After this patch the test result is:(no memleak anymore)
-root:/>
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16580        43740            0            0
--/+ buffers:              16580        43740
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16668        43652            0            0
--/+ buffers:              16668        43652
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16668        43652            0            0
--/+ buffers:              16668        43652
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16668        43652            0            0
--/+ buffers:              16668        43652
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16668        43652            0            0
--/+ buffers:              16668        43652
-root:/> shmem
-run ok...
-root:/> free
-             total         used         free       shared      buffers
-Mem:         60320        16668        43652            0            0
--/+ buffers:              16668        43652
-root:/>
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~ramfs-fix-memleak-on-no-mmu-arch fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~ramfs-fix-memleak-on-no-mmu-arch
-+++ a/fs/ramfs/file-nommu.c
-@@ -112,6 +112,7 @@ int ramfs_nommu_expand_for_mapping(struc
- 		SetPageDirty(page);
+diff -puN mm/page_alloc.c~mm-page_allocc-silence-build_all_zonelists-section-mismatch mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-silence-build_all_zonelists-section-mismatch
++++ a/mm/page_alloc.c
+@@ -3176,7 +3176,7 @@ static __init_refok int __build_all_zone
+  * Called with zonelists_mutex held always
+  * unless system_state == SYSTEM_BOOTING.
+  */
+-void build_all_zonelists(void *data)
++void __ref build_all_zonelists(void *data)
+ {
+ 	set_zonelist_order();
  
- 		unlock_page(page);
-+		put_page(page);
- 	}
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
+linux-next.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+mm-nommu-sort-mm-mmap-list-properly.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-nommu-dont-scan-the-vma-list-when-deleting.patch
+mm-nommu-find-vma-using-the-sorted-vma-list.patch
+mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
+mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch
+mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
 
