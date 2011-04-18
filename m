@@ -1,82 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-fix-off-by-one-in-max_blocks-checks.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:02:50 -0700
-Message-ID: <201104181759.p3IHx1Zo016111@imap1.linux-foundation.org>
+Subject: [merged] maintainers-change-mail-adress-of-hans-j-koch.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:03:08 -0700
+Message-ID: <201104181759.p3IHxJ41016138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756231Ab1DRSD4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756231Ab1DRSD6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:03:56 -0400
+	Mon, 18 Apr 2011 14:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
+To: hjk@hansjkoch.de, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: fix off-by-one in max_blocks checks
+     MAINTAINERS: change mail adress of Hans J. Koch
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-off-by-one-in-max_blocks-checks.patch
+     maintainers-change-mail-adress-of-hans-j-koch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: fix off-by-one in max_blocks checks
-From: Hugh Dickins <hughd@google.com>
+Subject: MAINTAINERS: change mail adress of Hans J. Koch
+From: "Hans J. Koch" <hjk@hansjkoch.de>
 
-If you fill up a tmpfs, df was showing
-tmpfs                   460800         -         -   -  /tmp
-because of an off-by-one in the max_blocks checks.  Fix it so df shows
-tmpfs                   460800    460800         0 100% /tmp
+My old mail address doesn't exist anymore.  This patch changes all
+occurences in MAINTAINERS to my new address.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Hans J. Koch <hjk@hansjkoch.de>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-off-by-one-in-max_blocks-checks mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-off-by-one-in-max_blocks-checks
-+++ a/mm/shmem.c
-@@ -421,7 +421,8 @@ static swp_entry_t *shmem_swp_alloc(stru
- 		 * a waste to allocate index if we cannot allocate data.
- 		 */
- 		if (sbinfo->max_blocks) {
--			if (percpu_counter_compare(&sbinfo->used_blocks, (sbinfo->max_blocks - 1)) > 0)
-+			if (percpu_counter_compare(&sbinfo->used_blocks,
-+						sbinfo->max_blocks - 1) >= 0)
- 				return ERR_PTR(-ENOSPC);
- 			percpu_counter_inc(&sbinfo->used_blocks);
- 			spin_lock(&inode->i_lock);
-@@ -1397,7 +1398,8 @@ repeat:
- 		shmem_swp_unmap(entry);
- 		sbinfo = SHMEM_SB(inode->i_sb);
- 		if (sbinfo->max_blocks) {
--			if ((percpu_counter_compare(&sbinfo->used_blocks, sbinfo->max_blocks) > 0) ||
-+			if (percpu_counter_compare(&sbinfo->used_blocks,
-+						sbinfo->max_blocks) >= 0 ||
- 			    shmem_acct_block(info->flags)) {
- 				spin_unlock(&info->lock);
- 				error = -ENOSPC;
+diff -puN MAINTAINERS~maintainers-change-mail-adress-of-hans-j-koch MAINTAINERS
+--- a/MAINTAINERS~maintainers-change-mail-adress-of-hans-j-koch
++++ a/MAINTAINERS
+@@ -1069,7 +1069,7 @@ F:	arch/arm/mach-shmobile/
+ F:	drivers/sh/
+ 
+ ARM/TELECHIPS ARM ARCHITECTURE
+-M:	"Hans J. Koch" <hjk@linutronix.de>
++M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/plat-tcc/
+@@ -4082,7 +4082,7 @@ F:	drivers/video/matrox/matroxfb_*
+ F:	include/linux/matroxfb.h
+ 
+ MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
+-M:	"Hans J. Koch" <hjk@linutronix.de>
++M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/max6650
+@@ -6622,7 +6622,7 @@ F:	fs/hostfs/
+ F:	fs/hppfs/
+ 
+ USERSPACE I/O (UIO)
+-M:	"Hans J. Koch" <hjk@linutronix.de>
++M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ M:	Greg Kroah-Hartman <gregkh@suse.de>
+ S:	Maintained
+ F:	Documentation/DocBook/uio-howto.tmpl
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from hjk@hansjkoch.de are
 
 origin.patch
-mmap-add-alignment-for-some-variables.patch
-mmap-avoid-unnecessary-anon_vma-lock.patch
-mmap-avoid-merging-cloned-vmas.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-prio_tree-debugging-patch.patch
 
