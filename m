@@ -1,111 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-mpc85xx-fix-possible-mport-registration-problems.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:03:05 -0700
-Message-ID: <201104181759.p3IHxGoi016135@imap1.linux-foundation.org>
+Subject: [merged] leds-leds-regulatorc-fix-handling-of-already-enabled-regulators.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:02:32 -0700
+Message-ID: <201104181758.p3IHwhEu016061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756238Ab1DRSEQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756238Ab1DRSES (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:04:16 -0400
+	Mon, 18 Apr 2011 14:04:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org, thomas.moll@sysgo.com, mm-commits@vger.kernel.org
+To: ospite@studenti.unina.it, broonie@opensource.wolfsonmicro.com, drwyrm@gmail.com, lrg@slimlogic.co.uk, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RapidIO/mpc85xx: fix possible mport registration problems
+     leds/leds-regulator.c: fix handling of already enabled regulators
 has been removed from the -mm tree.  Its filename was
-     rapidio-mpc85xx-fix-possible-mport-registration-problems.patch
+     leds-leds-regulatorc-fix-handling-of-already-enabled-regulators.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: RapidIO/mpc85xx: fix possible mport registration problems
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: leds/leds-regulator.c: fix handling of already enabled regulators
+From: Antonio Ospite <ospite@studenti.unina.it>
 
-Fix a possible problem with mport registration left non-cleared after
-fsl_rio_setup() exits on link error.  Abort mport initialization if
-registration failed.
+Make the driver aware of the initial status of the regulator.
 
-This patch is applicable to 2.6.39-rc1 only.  The problem does not exist
-for earlier versions.
+The leds-regulator driver was ignoring the initial status of the
+regulator; this resulted in rdev->use_count being incremented to 2 after
+calling regulator_led_set_value() in the .probe method when a regulator
+was already enabled at insmod time, which made it impossible to ever
+disable the regulator.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Antonio Ospite <ospite@studenti.unina.it>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Daniel Ribeiro <drwyrm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    4 +++-
- drivers/rapidio/rio.c         |    5 +++--
- include/linux/rio.h           |    2 +-
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/leds/leds-regulator.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1457,7 +1457,6 @@ int fsl_rio_setup(struct platform_device
- 	port->ops = ops;
- 	port->priv = priv;
- 	port->phys_efptr = 0x100;
--	rio_register_mport(port);
+diff -puN drivers/leds/leds-regulator.c~leds-leds-regulatorc-fix-handling-of-already-enabled-regulators drivers/leds/leds-regulator.c
+--- a/drivers/leds/leds-regulator.c~leds-leds-regulatorc-fix-handling-of-already-enabled-regulators
++++ a/drivers/leds/leds-regulator.c
+@@ -178,6 +178,10 @@ static int __devinit regulator_led_probe
+ 	led->cdev.flags |= LED_CORE_SUSPENDRESUME;
+ 	led->vcc = vcc;
  
- 	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
- 	rio_regs_win = priv->regs_win;
-@@ -1504,6 +1503,9 @@ int fsl_rio_setup(struct platform_device
- 	dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
- 			port->sys_size ? 65536 : 256);
- 
-+	if (rio_register_mport(port))
-+		goto err;
++	/* to handle correctly an already enabled regulator */
++	if (regulator_is_enabled(led->vcc))
++		led->enabled = 1;
 +
- 	if (port->host_deviceid >= 0)
- 		out_be32(priv->regs_win + RIO_GCCSR, RIO_PORT_GEN_HOST |
- 			RIO_PORT_GEN_MASTER | RIO_PORT_GEN_DISCOVERED);
-diff -puN drivers/rapidio/rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-mpc85xx-fix-possible-mport-registration-problems
-+++ a/drivers/rapidio/rio.c
-@@ -1171,16 +1171,17 @@ static int rio_hdid_setup(char *str)
+ 	mutex_init(&led->mutex);
+ 	INIT_WORK(&led->work, led_work);
  
- __setup("riohdid=", rio_hdid_setup);
- 
--void rio_register_mport(struct rio_mport *port)
-+int rio_register_mport(struct rio_mport *port)
- {
- 	if (next_portid >= RIO_MAX_MPORTS) {
- 		pr_err("RIO: reached specified max number of mports\n");
--		return;
-+		return 1;
- 	}
- 
- 	port->id = next_portid++;
- 	port->host_deviceid = rio_get_hdid(port->id);
- 	list_add_tail(&port->node, &rio_mports);
-+	return 0;
- }
- 
- EXPORT_SYMBOL_GPL(rio_local_get_device_id);
-diff -puN include/linux/rio.h~rapidio-mpc85xx-fix-possible-mport-registration-problems include/linux/rio.h
---- a/include/linux/rio.h~rapidio-mpc85xx-fix-possible-mport-registration-problems
-+++ a/include/linux/rio.h
-@@ -396,7 +396,7 @@ union rio_pw_msg {
- };
- 
- /* Architecture and hardware-specific functions */
--extern void rio_register_mport(struct rio_mport *);
-+extern int rio_register_mport(struct rio_mport *);
- extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
- extern void rio_close_inb_mbox(struct rio_mport *, int);
- extern int rio_open_outb_mbox(struct rio_mport *, void *, int, int);
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from ospite@studenti.unina.it are
 
 origin.patch
+linux-next.patch
 
