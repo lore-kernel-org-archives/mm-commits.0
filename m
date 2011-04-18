@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-check-if-pte-is-already-allocated-during-page-fault.patch added to -mm tree
-Date: Mon, 18 Apr 2011 13:47:15 -0700
-Message-ID: <201104182047.p3IKlFWB023903@imap1.linux-foundation.org>
+Subject: + mm-make-expand_downwards-symmetrical-with-expand_upwards.patch added to -mm tree
+Date: Mon, 18 Apr 2011 13:56:42 -0700
+Message-ID: <201104182056.p3IKugne024313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290Ab1DRUrY (ORCPT
+	by vger.kernel.org with ESMTP id S1751949Ab1DRU5U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 16:47:24 -0400
+	Mon, 18 Apr 2011 16:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aarcange@redhat.com, raziebe@gmail.com, riel@redhat.com, stable@kernel.org
+Cc: mhocko@suse.cz, hughd@google.com
 
 
 The patch titled
-     mm: check if PTE is already allocated during page fault
+     mm: make expand_downwards() symmetrical with expand_upwards()
 has been added to the -mm tree.  Its filename is
-     mm-check-if-pte-is-already-allocated-during-page-fault.patch
+     mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: check if PTE is already allocated during page fault
-From: Mel Gorman <mgorman@suse.de>
+Subject: mm: make expand_downwards() symmetrical with expand_upwards()
+From: Michal Hocko <mhocko@suse.cz>
 
-With transparent hugepage support, handle_mm_fault() has to be careful
-that a normal PMD has been established before handling a PTE fault.  To
-achieve this, it used __pte_alloc() directly instead of pte_alloc_map as
-pte_alloc_map is unsafe to run against a huge PMD.  pte_offset_map() is
-called once it is known the PMD is safe.
+Currently we have expand_upwards() exported while expand_downwards() is
+accessible only via expand_stack() or expand_stack_downwards().
 
-pte_alloc_map() is smart enough to check if a PTE is already present
-before calling __pte_alloc but this check was lost.  As a consequence,
-PTEs may be allocated unnecessarily and the page table lock taken.  Thi
-useless PTE does get cleaned up but it's a performance hit which is
-visible in page_test from aim9.
+check_stack_guard_page() is a nice example of the asymmetry.  It uses
+expand_stack for VM_GROWSDOWN while expand_upwards is called for
+VM_GROWSUP case.
 
-This patch simply re-adds the check normally done by pte_alloc_map to
-check if the PTE needs to be allocated before taking the page table lock. 
-The effect is noticable in page_test from aim9.
+Let's clean this up by exporting both functions and make those name
+consistent.  Let's use expand_stack_{upwards,downwards} so that we are
+explicit about stack manipulation in the name.  expand_stack_downwards has
+to be defined for both CONFIG_STACK_GROWS{UP,DOWN} because get_arg_page
+calls the downwards version in the early process initialization phase for
+growsup configuration.
 
-AIM9
-                2.6.38-vanilla 2.6.38-checkptenone
-creat-clo      446.10 ( 0.00%)   424.47 (-5.10%)
-page_test       38.10 ( 0.00%)    42.04 ( 9.37%)
-brk_test        52.45 ( 0.00%)    51.57 (-1.71%)
-exec_test      382.00 ( 0.00%)   456.90 (16.39%)
-fork_test       60.11 ( 0.00%)    67.79 (11.34%)
-MMTests Statistics: duration
-Total Elapsed Time (seconds)                611.90    612.22
-
-(While this affects 2.6.38, it is a performance rather than a functional
-bug and normally outside the rules -stable.  While the big performance
-differences are to a microbench, the difference in fork and exec
-performance may be significant enough that -stable wants to consider the
-patch)
-
-Reported-by: Raz Ben Yehuda <raziebe@gmail.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@kernel.org>		[2.6.38.x]
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |   13 ++++++++-----
+ mm/memory.c        |    4 ++--
+ mm/mmap.c          |   13 ++++---------
+ 3 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN mm/memory.c~mm-check-if-pte-is-already-allocated-during-page-fault mm/memory.c
---- a/mm/memory.c~mm-check-if-pte-is-already-allocated-during-page-fault
+diff -puN include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards include/linux/mm.h
+--- a/include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards
++++ a/include/linux/mm.h
+@@ -1496,15 +1496,18 @@ unsigned long ra_submit(struct file_ra_s
+ 			struct address_space *mapping,
+ 			struct file *filp);
+ 
+-/* Do stack extension */
++/* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
++
++/* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
++extern int expand_stack_downwards(struct vm_area_struct *vma,
++		unsigned long address);
+ #if VM_GROWSUP
+-extern int expand_upwards(struct vm_area_struct *vma, unsigned long address);
++extern int expand_stack_upwards(struct vm_area_struct *vma,
++		unsigned long address);
+ #else
+-  #define expand_upwards(vma, address) do { } while (0)
++  #define expand_stack_upwards(vma, address) do { } while (0)
+ #endif
+-extern int expand_stack_downwards(struct vm_area_struct *vma,
+-				  unsigned long address);
+ 
+ /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
+ extern struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr);
+diff -puN mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards mm/memory.c
+--- a/mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards
 +++ a/mm/memory.c
-@@ -3396,7 +3396,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	 * run pte_offset_map on the pmd, if an huge pmd could
- 	 * materialize from under us from a different thread.
- 	 */
--	if (unlikely(__pte_alloc(mm, vma, pmd, address)))
-+	if (unlikely(pmd_none(*pmd)) && __pte_alloc(mm, vma, pmd, address))
- 		return VM_FAULT_OOM;
- 	/* if an huge pmd materialized from under us just retry later */
- 	if (unlikely(pmd_trans_huge(*pmd)))
+@@ -2969,7 +2969,7 @@ static inline int check_stack_guard_page
+ 		if (prev && prev->vm_end == address)
+ 			return prev->vm_flags & VM_GROWSDOWN ? 0 : -ENOMEM;
+ 
+-		expand_stack(vma, address - PAGE_SIZE);
++		expand_stack_downwards(vma, address - PAGE_SIZE);
+ 	}
+ 	if ((vma->vm_flags & VM_GROWSUP) && address + PAGE_SIZE == vma->vm_end) {
+ 		struct vm_area_struct *next = vma->vm_next;
+@@ -2978,7 +2978,7 @@ static inline int check_stack_guard_page
+ 		if (next && next->vm_start == address + PAGE_SIZE)
+ 			return next->vm_flags & VM_GROWSUP ? 0 : -ENOMEM;
+ 
+-		expand_upwards(vma, address + PAGE_SIZE);
++		expand_stack_upwards(vma, address + PAGE_SIZE);
+ 	}
+ 	return 0;
+ }
+diff -puN mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards mm/mmap.c
+--- a/mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards
++++ a/mm/mmap.c
+@@ -1721,7 +1721,7 @@ static int acct_stack_growth(struct vm_a
+  * PA-RISC uses this for its stack; IA64 for its Register Backing Store.
+  * vma is the last one with address > vma->vm_end.  Have to extend vma.
+  */
+-int expand_upwards(struct vm_area_struct *vma, unsigned long address)
++int expand_stack_upwards(struct vm_area_struct *vma, unsigned long address)
+ {
+ 	int error;
+ 
+@@ -1772,7 +1772,7 @@ int expand_upwards(struct vm_area_struct
+ /*
+  * vma is the first one with address < vma->vm_start.  Have to extend vma.
+  */
+-static int expand_downwards(struct vm_area_struct *vma,
++int expand_stack_downwards(struct vm_area_struct *vma,
+ 				   unsigned long address)
+ {
+ 	int error;
+@@ -1819,15 +1819,10 @@ static int expand_downwards(struct vm_ar
+ 	return error;
+ }
+ 
+-int expand_stack_downwards(struct vm_area_struct *vma, unsigned long address)
+-{
+-	return expand_downwards(vma, address);
+-}
+-
+ #ifdef CONFIG_STACK_GROWSUP
+ int expand_stack(struct vm_area_struct *vma, unsigned long address)
+ {
+-	return expand_upwards(vma, address);
++	return expand_stack_upwards(vma, address);
+ }
+ 
+ struct vm_area_struct *
+@@ -1849,7 +1844,7 @@ find_extend_vma(struct mm_struct *mm, un
+ #else
+ int expand_stack(struct vm_area_struct *vma, unsigned long address)
+ {
+-	return expand_downwards(vma, address);
++	return expand_stack_downwards(vma, address);
+ }
+ 
+ struct vm_area_struct *
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-mm-check-if-pte-is-already-allocated-during-page-fault.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
