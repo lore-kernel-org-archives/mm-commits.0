@@ -1,95 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:02:24 -0700
-Message-ID: <201104181758.p3IHwZFu016047@imap1.linux-foundation.org>
+Subject: [merged] maintainers-update-various-tty-patterns.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:02:44 -0700
+Message-ID: <201104181758.p3IHwtWj016096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756123Ab1DRR7P (ORCPT
+	by vger.kernel.org with ESMTP id S1756173Ab1DRR72 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 13:59:15 -0400
+	Mon, 18 Apr 2011 13:59:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Warns@pre-sense.de, eugeneteo@kernel.sg, harvey.harrison@gmail.com, rich@flatcap.org, warns@pre-sense.de, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/partitions/ldm.c: fix oops caused by corrupted partition table
+     MAINTAINERS: update various tty patterns
 has been removed from the -mm tree.  Its filename was
-     fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table.patch
+     maintainers-update-various-tty-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/ldm.c: fix oops caused by corrupted partition table
-From: Timo Warns <Warns@pre-sense.de>
+Subject: MAINTAINERS: update various tty patterns
+From: Joe Perches <joe@perches.com>
 
-The kernel automatically evaluates partition tables of storage devices.
-The code for evaluating LDM partitions (in fs/partitions/ldm.c) contains
-a bug that causes a kernel oops on certain corrupted LDM partitions.
-A kernel subsystem seems to crash, because, after the oops, the kernel no
-longer recognizes newly connected storage devices.
+Commits 4a6514e6d0 ("tty: move obsolete and broken tty drivers to
+drivers/staging/tty/") and a6afd9f3e8 ("tty: move a number of tty drivers
+from drivers/char/ to drivers/tty/") moved files around.
 
-The patch validates the value of vblk_size.
+Update patterns and orphan some files that were moved to staging.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Timo Warns <warns@pre-sense.de>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Richard Russon <rich@flatcap.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/ldm.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ MAINTAINERS |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table fs/partitions/ldm.c
---- a/fs/partitions/ldm.c~fs-partitions-ldmc-fix-oops-caused-by-corrupted-partition-table
-+++ a/fs/partitions/ldm.c
-@@ -1299,6 +1299,11 @@ static bool ldm_frag_add (const u8 *data
+diff -puN MAINTAINERS~maintainers-update-various-tty-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-various-tty-patterns
++++ a/MAINTAINERS
+@@ -184,10 +184,9 @@ F:	Documentation/filesystems/9p.txt
+ F:	fs/9p/
  
- 	BUG_ON (!data || !frags);
+ A2232 SERIAL BOARD DRIVER
+-M:	Enver Haase <A2232@gmx.net>
+ L:	linux-m68k@lists.linux-m68k.org
+-S:	Maintained
+-F:	drivers/char/ser_a2232*
++S:	Orphan
++F:	drivers/staging/generic_serial/ser_a2232*
  
-+	if (size < 2 * VBLK_SIZE_HEAD) {
-+		ldm_error("Value of size is to small.");
-+		return false;
-+	}
-+
- 	group = get_unaligned_be32(data + 0x08);
- 	rec   = get_unaligned_be16(data + 0x0C);
- 	num   = get_unaligned_be16(data + 0x0E);
-@@ -1306,6 +1311,10 @@ static bool ldm_frag_add (const u8 *data
- 		ldm_error ("A VBLK claims to have %d parts.", num);
- 		return false;
- 	}
-+	if (rec >= num) {
-+		ldm_error("REC value (%d) exceeds NUM value (%d)", rec, num);
-+		return false;
-+	}
+ AACRAID SCSI RAID DRIVER
+ M:	Adaptec OEM Raid Solutions <aacraid@adaptec.com>
+@@ -1830,11 +1829,10 @@ S:	Maintained
+ F:	drivers/platform/x86/compal-laptop.c
  
- 	list_for_each (item, frags) {
- 		f = list_entry (item, struct frag, list);
-@@ -1334,10 +1343,9 @@ found:
+ COMPUTONE INTELLIPORT MULTIPORT CARD
+-M:	"Michael H. Warfield" <mhw@wittsend.com>
+ W:	http://www.wittsend.com/computone.html
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/serial/computone.txt
+-F:	drivers/char/ip2/
++F:	drivers/staging/tty/ip2/
  
- 	f->map |= (1 << rec);
+ CONEXANT ACCESSRUNNER USB DRIVER
+ M:	Simon Arlott <cxacru@fire.lp0.eu>
+@@ -2017,7 +2015,7 @@ F:	drivers/net/wan/cycx*
+ CYCLADES ASYNC MUX DRIVER
+ W:	http://www.cyclades.com/
+ S:	Orphan
+-F:	drivers/char/cyclades.c
++F:	drivers/tty/cyclades.c
+ F:	include/linux/cyclades.h
  
--	if (num > 0) {
--		data += VBLK_SIZE_HEAD;
--		size -= VBLK_SIZE_HEAD;
--	}
-+	data += VBLK_SIZE_HEAD;
-+	size -= VBLK_SIZE_HEAD;
-+
- 	memcpy (f->data+rec*(size-VBLK_SIZE_HEAD)+VBLK_SIZE_HEAD, data, size);
+ CYCLADES PC300 DRIVER
+@@ -2131,8 +2129,8 @@ L:	Eng.Linux@digi.com
+ W:	http://www.digi.com
+ S:	Orphan
+ F:	Documentation/serial/digiepca.txt
+-F:	drivers/char/epca*
+-F:	drivers/char/digi*
++F:	drivers/staging/tty/epca*
++F:	drivers/staging/tty/digi*
  
- 	return true;
+ DIOLAN U2C-12 I2C DRIVER
+ M:	Guenter Roeck <guenter.roeck@ericsson.com>
+@@ -4199,7 +4197,7 @@ MOXA SMARTIO/INDUSTIO/INTELLIO SERIAL CA
+ M:	Jiri Slaby <jirislaby@gmail.com>
+ S:	Maintained
+ F:	Documentation/serial/moxa-smartio
+-F:	drivers/char/mxser.*
++F:	drivers/tty/mxser.*
+ 
+ MSI LAPTOP SUPPORT
+ M:	"Lee, Chun-Yi" <jlee@novell.com>
+@@ -4241,7 +4239,7 @@ F:	sound/oss/msnd*
+ 
+ MULTITECH MULTIPORT CARD (ISICOM)
+ S:	Orphan
+-F:	drivers/char/isicom.c
++F:	drivers/tty/isicom.c
+ F:	include/linux/isicom.h
+ 
+ MUSB MULTIPOINT HIGH SPEED DUAL-ROLE CONTROLLER
+@@ -5280,14 +5278,14 @@ F:	drivers/memstick/host/r592.*
+ RISCOM8 DRIVER
+ S:	Orphan
+ F:	Documentation/serial/riscom8.txt
+-F:	drivers/char/riscom8*
++F:	drivers/staging/tty/riscom8*
+ 
+ ROCKETPORT DRIVER
+ P:	Comtrol Corp.
+ W:	http://www.comtrol.com
+ S:	Maintained
+ F:	Documentation/serial/rocket.txt
+-F:	drivers/char/rocket*
++F:	drivers/tty/rocket*
+ 
+ ROSE NETWORK LAYER
+ M:	Ralf Baechle <ralf@linux-mips.org>
+@@ -5923,10 +5921,9 @@ F:	arch/arm/mach-spear6xx/spear600.c
+ F:	arch/arm/mach-spear6xx/spear600_evb.c
+ 
+ SPECIALIX IO8+ MULTIPORT SERIAL CARD DRIVER
+-M:	Roger Wolff <R.E.Wolff@BitWizard.nl>
+-S:	Supported
++S:	Orphan
+ F:	Documentation/serial/specialix.txt
+-F:	drivers/char/specialix*
++F:	drivers/staging/tty/specialix*
+ 
+ SPI SUBSYSTEM
+ M:	David Brownell <dbrownell@users.sourceforge.net>
 _
 
-Patches currently in -mm which might be from Warns@pre-sense.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
+linux-next.patch
+checkpatch-add-check-for-line-continuations-in-quoted-strings.patch
 
