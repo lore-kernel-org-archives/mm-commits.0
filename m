@@ -1,72 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-mem_cgroup_rotate_reclaimable_page.patch removed from -mm tree
-Date: Mon, 18 Apr 2011 11:02:15 -0700
-Message-ID: <201104181758.p3IHwRdN016030@imap1.linux-foundation.org>
+Subject: [merged] rtc-rtc-mc13xxx-fix-unterminated-platform_device_id-table.patch removed from -mm tree
+Date: Mon, 18 Apr 2011 11:02:22 -0700
+Message-ID: <201104181758.p3IHwX9r016039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754235Ab1DRR7O (ORCPT
+	by vger.kernel.org with ESMTP id S1754235Ab1DRR7P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 13:59:14 -0400
+	Mon, 18 Apr 2011 13:59:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix mem_cgroup_rotate_reclaimable_page()
+     drivers/rtc/rtc-mc13xxx.c: fix unterminated platform_device_id tab=
+le
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-mem_cgroup_rotate_reclaimable_page.patch
+     rtc-rtc-mc13xxx-fix-unterminated-platform_device_id-table.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: memcg: fix mem_cgroup_rotate_reclaimable_page()
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: drivers/rtc/rtc-mc13xxx.c: fix unterminated platform_device_id=
+ table
+=46rom: Axel Lin <axel.lin@gmail.com>
 
-commit 3f58a8294333 ("move memcg reclaimable page into tail of inactive
-list") added inline keyword twice in its prototype.
+The platform_device_id table is supposed to be zero-terminated.
 
-  CC      arch/x86/kernel/asm-offsets.s
-In file included from include/linux/swap.h:8,
-                 from include/linux/suspend.h:4,
-                 from arch/x86/kernel/asm-offsets.c:12:
-include/linux/memcontrol.h:220: error: duplicate `inline'
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mc13xxx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-mem_cgroup_rotate_reclaimable_page include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-mem_cgroup_rotate_reclaimable_page
-+++ a/include/linux/memcontrol.h
-@@ -216,7 +216,7 @@ static inline void mem_cgroup_del_lru_li
- 	return ;
- }
- 
--static inline inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
-+static inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
- {
- 	return ;
- }
+diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-fix-unterminated-pl=
+atform_device_id-table drivers/rtc/rtc-mc13xxx.c
+--- a/drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-fix-unterminated-platfo=
+rm_device_id-table
++++ a/drivers/rtc/rtc-mc13xxx.c
+@@ -401,6 +401,7 @@ const struct platform_device_id mc13xxx_
+ 	}, {
+ 		.name =3D "mc13892-rtc",
+ 	},
++	{ }
+ };
+=20
+ static struct platform_driver mc13xxx_rtc_driver =3D {
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
 linux-next.patch
-vfs-avoid-large-kmallocs-for-the-fdtable.patch
-net-convert-%p-usage-to-%pk.patch
-percpu_counter-change-return-value-and-add-comments.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
