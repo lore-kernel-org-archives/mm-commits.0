@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-expand_downwards-symmetrical-with-expand_upwards.patch added to -mm tree
-Date: Mon, 18 Apr 2011 13:56:42 -0700
-Message-ID: <201104182056.p3IKugne024313@imap1.linux-foundation.org>
+Subject: + include-linux-gfph-convert-bug_on-into-vm_bug_on.patch added to -mm tree
+Date: Mon, 18 Apr 2011 13:58:19 -0700
+Message-ID: <201104182058.p3IKwJKK024450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751949Ab1DRU5U (ORCPT
+	by vger.kernel.org with ESMTP id S1751833Ab1DRU66 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 16:57:20 -0400
+	Mon, 18 Apr 2011 16:58:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, hughd@google.com
+Cc: dave@linux.vnet.ibm.com, cl@linux.com
 
 
 The patch titled
-     mm: make expand_downwards() symmetrical with expand_upwards()
+     include/linux/gfp.h: convert BUG_ON() into VM_BUG_ON()
 has been added to the -mm tree.  Its filename is
-     mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+     include-linux-gfph-convert-bug_on-into-vm_bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make expand_downwards() symmetrical with expand_upwards()
-From: Michal Hocko <mhocko@suse.cz>
+Subject: include/linux/gfp.h: convert BUG_ON() into VM_BUG_ON()
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Currently we have expand_upwards() exported while expand_downwards() is
-accessible only via expand_stack() or expand_stack_downwards().
+VM_BUG_ON() if effectively a BUG_ON() undef #ifdef CONFIG_DEBUG_VM.  That
+is exactly what we have here now, and two different folks have suggested
+doing it this way.
 
-check_stack_guard_page() is a nice example of the asymmetry.  It uses
-expand_stack for VM_GROWSDOWN while expand_upwards is called for
-VM_GROWSUP case.
-
-Let's clean this up by exporting both functions and make those name
-consistent.  Let's use expand_stack_{upwards,downwards} so that we are
-explicit about stack manipulation in the name.  expand_stack_downwards has
-to be defined for both CONFIG_STACK_GROWS{UP,DOWN} because get_arg_page
-calls the downwards version in the early process initialization phase for
-growsup configuration.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 ++++++++-----
- mm/memory.c        |    4 ++--
- mm/mmap.c          |   13 ++++---------
- 3 files changed, 14 insertions(+), 16 deletions(-)
+ include/linux/gfp.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards include/linux/mm.h
---- a/include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards
-+++ a/include/linux/mm.h
-@@ -1496,15 +1496,18 @@ unsigned long ra_submit(struct file_ra_s
- 			struct address_space *mapping,
- 			struct file *filp);
+diff -puN include/linux/gfp.h~include-linux-gfph-convert-bug_on-into-vm_bug_on include/linux/gfp.h
+--- a/include/linux/gfp.h~include-linux-gfph-convert-bug_on-into-vm_bug_on
++++ a/include/linux/gfp.h
+@@ -249,9 +249,7 @@ static inline enum zone_type gfp_zone(gf
  
--/* Do stack extension */
-+/* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
-+
-+/* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
-+extern int expand_stack_downwards(struct vm_area_struct *vma,
-+		unsigned long address);
- #if VM_GROWSUP
--extern int expand_upwards(struct vm_area_struct *vma, unsigned long address);
-+extern int expand_stack_upwards(struct vm_area_struct *vma,
-+		unsigned long address);
- #else
--  #define expand_upwards(vma, address) do { } while (0)
-+  #define expand_stack_upwards(vma, address) do { } while (0)
- #endif
--extern int expand_stack_downwards(struct vm_area_struct *vma,
--				  unsigned long address);
- 
- /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
- extern struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr);
-diff -puN mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards mm/memory.c
---- a/mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards
-+++ a/mm/memory.c
-@@ -2969,7 +2969,7 @@ static inline int check_stack_guard_page
- 		if (prev && prev->vm_end == address)
- 			return prev->vm_flags & VM_GROWSDOWN ? 0 : -ENOMEM;
- 
--		expand_stack(vma, address - PAGE_SIZE);
-+		expand_stack_downwards(vma, address - PAGE_SIZE);
- 	}
- 	if ((vma->vm_flags & VM_GROWSUP) && address + PAGE_SIZE == vma->vm_end) {
- 		struct vm_area_struct *next = vma->vm_next;
-@@ -2978,7 +2978,7 @@ static inline int check_stack_guard_page
- 		if (next && next->vm_start == address + PAGE_SIZE)
- 			return next->vm_flags & VM_GROWSUP ? 0 : -ENOMEM;
- 
--		expand_upwards(vma, address + PAGE_SIZE);
-+		expand_stack_upwards(vma, address + PAGE_SIZE);
- 	}
- 	return 0;
- }
-diff -puN mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards mm/mmap.c
---- a/mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards
-+++ a/mm/mmap.c
-@@ -1721,7 +1721,7 @@ static int acct_stack_growth(struct vm_a
-  * PA-RISC uses this for its stack; IA64 for its Register Backing Store.
-  * vma is the last one with address > vma->vm_end.  Have to extend vma.
-  */
--int expand_upwards(struct vm_area_struct *vma, unsigned long address)
-+int expand_stack_upwards(struct vm_area_struct *vma, unsigned long address)
- {
- 	int error;
- 
-@@ -1772,7 +1772,7 @@ int expand_upwards(struct vm_area_struct
- /*
-  * vma is the first one with address < vma->vm_start.  Have to extend vma.
-  */
--static int expand_downwards(struct vm_area_struct *vma,
-+int expand_stack_downwards(struct vm_area_struct *vma,
- 				   unsigned long address)
- {
- 	int error;
-@@ -1819,15 +1819,10 @@ static int expand_downwards(struct vm_ar
- 	return error;
+ 	z = (GFP_ZONE_TABLE >> (bit * ZONES_SHIFT)) &
+ 					 ((1 << ZONES_SHIFT) - 1);
+-#ifdef CONFIG_DEBUG_VM
+-	BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+-#endif
++	VM_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+ 	return z;
  }
  
--int expand_stack_downwards(struct vm_area_struct *vma, unsigned long address)
--{
--	return expand_downwards(vma, address);
--}
--
- #ifdef CONFIG_STACK_GROWSUP
- int expand_stack(struct vm_area_struct *vma, unsigned long address)
- {
--	return expand_upwards(vma, address);
-+	return expand_stack_upwards(vma, address);
- }
- 
- struct vm_area_struct *
-@@ -1849,7 +1844,7 @@ find_extend_vma(struct mm_struct *mm, un
- #else
- int expand_stack(struct vm_area_struct *vma, unsigned long address)
- {
--	return expand_downwards(vma, address);
-+	return expand_stack_downwards(vma, address);
- }
- 
- struct vm_area_struct *
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
-memsw-remove-noswapaccount-kernel-parameter.patch
-memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
-memcg-mark-init_section_page_cgroup-properly.patch
-memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
-memcg-move-page-freeing-code-out-of-lock.patch
-maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+origin.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+include-linux-gfph-work-around-apparent-sparse-confusion.patch
+include-linux-gfph-convert-bug_on-into-vm_bug_on.patch
+mm-rename-alloc_pages_exact.patch
+mm-make-new-alloc_pages_exact.patch
+mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
 
