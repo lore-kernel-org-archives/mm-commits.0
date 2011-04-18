@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch added to -mm tree
-Date: Mon, 18 Apr 2011 11:49:33 -0700
-Message-ID: <201104181849.p3IInXXY018651@imap1.linux-foundation.org>
+Subject: + mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch added to -mm tree
+Date: Mon, 18 Apr 2011 11:55:35 -0700
+Message-ID: <201104181855.p3IItZqu018901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756418Ab1DRSyp (ORCPT
+	by vger.kernel.org with ESMTP id S1754822Ab1DRS4q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Apr 2011 14:54:45 -0400
+	Mon, 18 Apr 2011 14:56:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, ak@linux.intel.com, mel@csn.ul.ie, mina86@mina86.com, rientjes@google.com, timur@freescale.com
+Cc: hannes@cmpxchg.org, david@fromorbit.com, hch@infradead.org, hughd@google.com, mel@csn.ul.ie, npiggin@kernel.dk
 
 
 The patch titled
-     mm: reuse __free_pages_exact() in __alloc_pages_exact()
+     mm/vmalloc: remove guard page from between vmap blocks
 has been added to the -mm tree.  Its filename is
-     mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+     mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reuse __free_pages_exact() in __alloc_pages_exact()
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: mm/vmalloc: remove guard page from between vmap blocks
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Michal Nazarewicz noticed that __alloc_pages_exact()'s __free_page() loop
-was really close to something he was using in one of his patches.  That
-made me realize that it was actually very similar to __free_pages_exact().
+The vmap allocator is used to, among other things, allocate per-cpu vmap
+blocks, where each vmap block is naturally aligned to its own size. 
+Obviously, leaving a guard page after each vmap area forbids packing vmap
+blocks efficiently and can make the kernel run out of possible vmap blocks
+long before overall vmap space is exhausted.
 
-This uses __free_pages_exact() in place of the loop that we had in
-__alloc_pages_exact().  Since we had to change the temporary variables
-around anyway, I gave them some better names to hopefully address some
-other review comments.
+The new interface to map a user-supplied page array into linear vmalloc
+space (vm_map_ram) insists on allocating from a vmap block (instead of
+falling back to a custom area) when the area size is below a certain
+threshold.  With heavy users of this interface (e.g.  XFS) and limited
+vmalloc space on 32-bit, vmap block exhaustion is a real problem.
 
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Suggested-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Timur Tabi <timur@freescale.com>
+Remove the guard page from the core vmap allocator.  vmalloc and the old
+vmap interface enforce a guard page on their own at a higher level.
+
+Note that without this patch, we had accidental guard pages after those
+vm_map_ram areas that happened to be at the end of a vmap block, but not
+between every area.  This patch removes this accidental guard page only.
+
+If we want guard pages after every vm_map_ram area, this should be done
+separately.  And just like with vmalloc and the old interface on a
+different level, not in the core allocator.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-reuse-__free_pages_exact-in-__alloc_pages_exact mm/page_alloc.c
---- a/mm/page_alloc.c~mm-reuse-__free_pages_exact-in-__alloc_pages_exact
-+++ a/mm/page_alloc.c
-@@ -2339,14 +2339,11 @@ struct page *__alloc_pages_exact(gfp_t g
- 
- 	page = alloc_pages(gfp_mask, order);
- 	if (page) {
--		struct page *alloc_end = page + (1 << order);
--		struct page *used = page + nr_pages;
-+		struct page *unused_start = page + nr_pages;
-+		unsigned long nr_unused = (1 << order) - nr_pages;
- 
- 		split_page(page, order);
--		while (used < alloc_end) {
--			__free_page(used);
--			used++;
--		}
-+		__free_pages_exact(unused_start, nr_unused);
+diff -puN mm/vmalloc.c~mm-vmalloc-remove-guard-page-from-between-vmap-blocks mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-remove-guard-page-from-between-vmap-blocks
++++ a/mm/vmalloc.c
+@@ -375,7 +375,7 @@ nocache:
+ 	/* find starting point for our search */
+ 	if (free_vmap_cache) {
+ 		first = rb_entry(free_vmap_cache, struct vmap_area, rb_node);
+-		addr = ALIGN(first->va_end + PAGE_SIZE, align);
++		addr = ALIGN(first->va_end, align);
+ 		if (addr < vstart)
+ 			goto nocache;
+ 		if (addr + size - 1 < addr)
+@@ -406,10 +406,10 @@ nocache:
  	}
  
- 	return page;
+ 	/* from the starting point, walk areas until a suitable hole is found */
+-	while (addr + size >= first->va_start && addr + size <= vend) {
++	while (addr + size > first->va_start && addr + size <= vend) {
+ 		if (addr + cached_hole_size < first->va_start)
+ 			cached_hole_size = first->va_start - addr;
+-		addr = ALIGN(first->va_end + PAGE_SIZE, align);
++		addr = ALIGN(first->va_end, align);
+ 		if (addr + size - 1 < addr)
+ 			goto overflow;
+ 
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-include-linux-gfph-work-around-apparent-sparse-confusion.patch
-mm-rename-alloc_pages_exact.patch
-mm-make-new-alloc_pages_exact.patch
-mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
 
