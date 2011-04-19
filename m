@@ -1,59 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-omapc-fix-a-leak-of-the-irq-during-init-failure.patch removed from -mm tree
-Date: Tue, 19 Apr 2011 10:59:21 -0700
-Message-ID: <201104191755.p3JHtOtg014106@imap1.linux-foundation.org>
+Subject: + mm-make-expand_downwards-symmetrical-with-expand_upwards-v3.patch added to -mm tree
+Date: Tue, 19 Apr 2011 11:30:04 -0700
+Message-ID: <201104191830.p3JIU57E015744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab1DSR42 (ORCPT
+	by vger.kernel.org with ESMTP id S1752821Ab1DSSaJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 13:56:28 -0400
+	Tue, 19 Apr 2011 14:30:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mhocko@suse.cz
 
 
 The patch titled
-     drivers/rtc/rtc-omap.c: fix a leak of the IRQ during init failure
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-omapc-fix-a-leak-of-the-irq-during-init-failure.patch
+     mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
+has been added to the -mm tree.  Its filename is
+     mm-make-expand_downwards-symmetrical-with-expand_upwards-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-omap.c: fix a leak of the IRQ during init failure
-From: Axel Lin <axel.lin@gmail.com>
+Subject: mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
+From: Michal Hocko <mhocko@suse.cz>
 
-In omap_rtc_probe error path, free_irq() was using NULL rather than the
-driver data as the data pointer so free_irq() wouldn't have matched.
+fix compilation error on ia64
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    2 +-
+ arch/ia64/mm/fault.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-fix-a-leak-of-the-irq-during-init-failure drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-fix-a-leak-of-the-irq-during-init-failure
-+++ a/drivers/rtc/rtc-omap.c
-@@ -394,7 +394,7 @@ static int __init omap_rtc_probe(struct 
- 	return 0;
- 
- fail2:
--	free_irq(omap_rtc_timer, NULL);
-+	free_irq(omap_rtc_timer, rtc);
- fail1:
- 	rtc_device_unregister(rtc);
- fail0:
+diff -puN arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v3 arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
++++ a/arch/ia64/mm/fault.c
+@@ -197,7 +197,7 @@ ia64_do_page_fault (unsigned long addres
+ 		 */
+ 		if (address > vma->vm_end + PAGE_SIZE - sizeof(long))
+ 			goto bad_area;
+-		if (expand_upwards(vma, address))
++		if (expand_stack_upwards(vma, address))
+ 			goto bad_area;
+ 	}
+ 	goto good_area;
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-origin.patch
-linux-next.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards-v3.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
