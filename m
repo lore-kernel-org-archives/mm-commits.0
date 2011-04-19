@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups.patch added to -mm tree
-Date: Tue, 19 Apr 2011 11:37:30 -0700
-Message-ID: <201104191837.p3JIbUWQ016132@imap1.linux-foundation.org>
+Subject: + mm-mmu_gather-rework-fix.patch added to -mm tree
+Date: Tue, 19 Apr 2011 13:10:00 -0700
+Message-ID: <201104192010.p3JKA0W5020462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752663Ab1DSSi3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751761Ab1DSUKE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 14:38:29 -0400
+	Tue, 19 Apr 2011 16:10:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, bugs@casparzhang.com, mel@csn.ul.ie, riel@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm: thp: fix /dev/zero MAP_PRIVATE and vm_flags cleanups
+     mm-mmu_gather-rework-fix
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups.patch
+     mm-mmu_gather-rework-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: thp: fix /dev/zero MAP_PRIVATE and vm_flags cleanups
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm-mmu_gather-rework-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The huge_memory.c THP page fault was allowed to run if vm_ops was null
-(which would succeed for /dev/zero MAP_PRIVATE, as the f_op->mmap wouldn't
-setup a special vma->vm_ops and it would fallback to regular anonymous
-memory) but other THP logics weren't fully activated for vmas with vm_file
-not NULL (/dev/zero has a not NULL vma->vm_file).
+fix comment tpyo
 
-So this removes the vm_file checks so that /dev/zero also can safely use
-THP (the other albeit safer approach to fix this bug would have been to
-prevent the THP initial page fault to run if vm_file was set).
-
-After removing the vm_file checks, this also makes huge_memory.c stricter
-in khugepaged for the DEBUG_VM=y case.  It doesn't replace the vm_file
-check with a is_pfn_mapping check (but it keeps checking for VM_PFNMAP
-under VM_BUG_ON) because for a is_cow_mapping() mapping VM_PFNMAP should
-only be allowed to exist before the first page fault, and in turn when
-vma->anon_vma is null (so preventing khugepaged registration).  So I tend
-to think the previous comment saying if vm_file was set, VM_PFNMAP might
-have been set and we could still be registered in khugepaged (despite
-anon_vma was not NULL to be registered in khugepaged) was too paranoid. 
-The is_linear_pfn_mapping check is also I think superfluous (as described
-by comment) but under DEBUG_VM it is safe to stay.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=33682
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Caspar Zhang <bugs@casparzhang.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@kernel.org>		[2.6.38.x]
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 -
- include/linux/mm.h      |    3 +-
- mm/huge_memory.c        |   43 +++++++++++++++++++++-----------------
- 3 files changed, 27 insertions(+), 21 deletions(-)
+ include/asm-generic/tlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups
-+++ a/include/linux/huge_mm.h
-@@ -117,7 +117,7 @@ static inline void vma_adjust_trans_huge
- 					 unsigned long end,
- 					 long adjust_next)
- {
--	if (!vma->anon_vma || vma->vm_ops || vma->vm_file)
-+	if (!vma->anon_vma || vma->vm_ops)
- 		return;
- 	__vma_adjust_trans_huge(vma, start, end, adjust_next);
- }
-diff -puN include/linux/mm.h~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups include/linux/mm.h
---- a/include/linux/mm.h~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups
-+++ a/include/linux/mm.h
-@@ -137,7 +137,8 @@ extern unsigned int kobjsize(const void 
- #define VM_RandomReadHint(v)		((v)->vm_flags & VM_RAND_READ)
+diff -puN include/asm-generic/tlb.h~mm-mmu_gather-rework-fix include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-rework-fix
++++ a/include/asm-generic/tlb.h
+@@ -30,7 +30,7 @@
+ #endif
  
  /*
-- * special vmas that are non-mergable, non-mlock()able
-+ * Special vmas that are non-mergable, non-mlock()able.
-+ * Note: mm/huge_memory.c VM_NO_THP depends on this definition.
+- * If we can't allocate a page to make a big patch of page pointers
++ * If we can't allocate a page to make a big batch of page pointers
+  * to work on, then just handle a few from the on-stack structure.
   */
- #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_RESERVED | VM_PFNMAP)
- 
-diff -puN mm/huge_memory.c~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-fix-dev-zero-map_private-and-vm_flags-cleanups
-+++ a/mm/huge_memory.c
-@@ -1408,6 +1408,9 @@ out:
- 	return ret;
- }
- 
-+#define VM_NO_THP (VM_SPECIAL|VM_INSERTPAGE|VM_MIXEDMAP|VM_SAO| \
-+		   VM_HUGETLB|VM_SHARED|VM_MAYSHARE)
-+
- int hugepage_madvise(struct vm_area_struct *vma,
- 		     unsigned long *vm_flags, int advice)
- {
-@@ -1416,11 +1419,7 @@ int hugepage_madvise(struct vm_area_stru
- 		/*
- 		 * Be somewhat over-protective like KSM for now!
- 		 */
--		if (*vm_flags & (VM_HUGEPAGE |
--				 VM_SHARED   | VM_MAYSHARE   |
--				 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
--				 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
--				 VM_MIXEDMAP | VM_SAO))
-+		if (*vm_flags & (VM_HUGEPAGE | VM_NO_THP))
- 			return -EINVAL;
- 		*vm_flags &= ~VM_NOHUGEPAGE;
- 		*vm_flags |= VM_HUGEPAGE;
-@@ -1436,11 +1435,7 @@ int hugepage_madvise(struct vm_area_stru
- 		/*
- 		 * Be somewhat over-protective like KSM for now!
- 		 */
--		if (*vm_flags & (VM_NOHUGEPAGE |
--				 VM_SHARED   | VM_MAYSHARE   |
--				 VM_PFNMAP   | VM_IO      | VM_DONTEXPAND |
--				 VM_RESERVED | VM_HUGETLB | VM_INSERTPAGE |
--				 VM_MIXEDMAP | VM_SAO))
-+		if (*vm_flags & (VM_NOHUGEPAGE | VM_NO_THP))
- 			return -EINVAL;
- 		*vm_flags &= ~VM_HUGEPAGE;
- 		*vm_flags |= VM_NOHUGEPAGE;
-@@ -1574,10 +1569,14 @@ int khugepaged_enter_vma_merge(struct vm
- 		 * page fault if needed.
- 		 */
- 		return 0;
--	if (vma->vm_file || vma->vm_ops)
-+	if (vma->vm_ops)
- 		/* khugepaged not yet working on file or special mappings */
- 		return 0;
--	VM_BUG_ON(is_linear_pfn_mapping(vma) || is_pfn_mapping(vma));
-+	/*
-+	 * If is_pfn_mapping() is true is_learn_pfn_mapping() must be
-+	 * true too, verify it here.
-+	 */
-+	VM_BUG_ON(is_linear_pfn_mapping(vma) || vma->vm_flags & VM_NO_THP);
- 	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
- 	hend = vma->vm_end & HPAGE_PMD_MASK;
- 	if (hstart < hend)
-@@ -1828,12 +1827,15 @@ static void collapse_huge_page(struct mm
- 	    (vma->vm_flags & VM_NOHUGEPAGE))
- 		goto out;
- 
--	/* VM_PFNMAP vmas may have vm_ops null but vm_file set */
--	if (!vma->anon_vma || vma->vm_ops || vma->vm_file)
-+	if (!vma->anon_vma || vma->vm_ops)
- 		goto out;
- 	if (is_vma_temporary_stack(vma))
- 		goto out;
--	VM_BUG_ON(is_linear_pfn_mapping(vma) || is_pfn_mapping(vma));
-+	/*
-+	 * If is_pfn_mapping() is true is_learn_pfn_mapping() must be
-+	 * true too, verify it here.
-+	 */
-+	VM_BUG_ON(is_linear_pfn_mapping(vma) || vma->vm_flags & VM_NO_THP);
- 
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
-@@ -2066,13 +2068,16 @@ static unsigned int khugepaged_scan_mm_s
- 			progress++;
- 			continue;
- 		}
--		/* VM_PFNMAP vmas may have vm_ops null but vm_file set */
--		if (!vma->anon_vma || vma->vm_ops || vma->vm_file)
-+		if (!vma->anon_vma || vma->vm_ops)
- 			goto skip;
- 		if (is_vma_temporary_stack(vma))
- 			goto skip;
+ #define MMU_GATHER_BUNDLE	8
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+hid-examplec-is-borked.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+vfs-avoid-large-kmallocs-for-the-fdtable.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-tty-vt-vt_ioctlc-repair-insane-expression.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+dev-kmsg-properly-support-writev-to-avoid-interleaved-printk-lines-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
