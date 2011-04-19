@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-rcu-conversion.patch added to -mm tree
-Date: Tue, 19 Apr 2011 14:58:39 -0700
-Message-ID: <201104192158.p3JLwdPF027719@imap1.linux-foundation.org>
+Subject: + drivers-scsi-megaraidc-fix-sparse-warnings.patch added to -mm tree
+Date: Tue, 19 Apr 2011 15:01:14 -0700
+Message-ID: <201104192201.p3JM1EVx027859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751044Ab1DSV7W (ORCPT
+	by vger.kernel.org with ESMTP id S1753493Ab1DSWBV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 17:59:22 -0400
+	Tue, 19 Apr 2011 18:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, avi@redhat.com, ben@iagu.net, johnstul@us.ibm.com, paulmck@linux.vnet.ibm.com, richard.cochran@omicron.at, tglx@linutronix.de
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, megaraidlinux@lsi.com, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     posix-timers: RCU conversion
+     drivers/scsi/megaraid.c: fix sparse warnings
 has been added to the -mm tree.  Its filename is
-     posix-timers-rcu-conversion.patch
+     drivers-scsi-megaraidc-fix-sparse-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: RCU conversion
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: drivers/scsi/megaraid.c: fix sparse warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Ben Nagy reported a scalability problem with KVM/QEMU that hit very hard a
-single spinlock (idr_lock) in posix-timers code, on its 48 core machine.
+Fix sparse warnings of right shift bigger than source value size:
 
-Even on a 16 cpu machine (2x4x2), a single test can show 98% of cpu time
-used in ticket_spin_lock, from lock_timer
+drivers/scsi/megaraid.c:311:65: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:313:65: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:317:67: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:319:67: warning: right shift by bigger than source value
 
-Ref: http://www.spinics.net/lists/kvm/msg51526.html
+Patch suggestion from email by Al Viro:
 
-Switching to RCU is quite easy, IDR being already RCU ready.
+"Since both are claimed to be strings, I really suspect that this >> 8 is
+misspelled >> 4 and they have a character followed by pair of two-digit
+packed decimals in there..."
 
-idr_lock should be locked only for an insert/delete, not a lookup.
-
-Benchmark on a 2x4x2 machine, 16 processes calling timer_gettime().
-
-Before :
-
-real    1m18.669s
-user    0m1.346s
-sys     1m17.180s
-
-After :
-
-real    0m3.296s
-user    0m1.366s
-sys     0m1.926s
-
-Reported-by: Ben Nagy <ben@iagu.net>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Tested-by: Ben Nagy <ben@iagu.net>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Richard Cochran <richard.cochran@omicron.at>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/posix-timers.h |    1 +
- kernel/posix-timers.c        |   25 ++++++++++++++-----------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/scsi/megaraid.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/posix-timers.h~posix-timers-rcu-conversion include/linux/posix-timers.h
---- a/include/linux/posix-timers.h~posix-timers-rcu-conversion
-+++ a/include/linux/posix-timers.h
-@@ -81,6 +81,7 @@ struct k_itimer {
- 			unsigned long expires;
- 		} mmtimer;
- 	} it;
-+	struct rcu_head rcu;
- };
- 
- struct k_clock {
-diff -puN kernel/posix-timers.c~posix-timers-rcu-conversion kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-rcu-conversion
-+++ a/kernel/posix-timers.c
-@@ -491,6 +491,13 @@ static struct k_itimer * alloc_posix_tim
- 	return tmr;
- }
- 
-+static void k_itimer_rcu_free(struct rcu_head *head)
-+{
-+	struct k_itimer *tmr = container_of(head, struct k_itimer, rcu);
-+
-+	kmem_cache_free(posix_timers_cache, tmr);
-+}
-+
- #define IT_ID_SET	1
- #define IT_ID_NOT_SET	0
- static void release_posix_timer(struct k_itimer *tmr, int it_id_set)
-@@ -503,7 +510,7 @@ static void release_posix_timer(struct k
- 	}
- 	put_pid(tmr->it_pid);
- 	sigqueue_free(tmr->sigq);
--	kmem_cache_free(posix_timers_cache, tmr);
-+	call_rcu(&tmr->rcu, k_itimer_rcu_free);
- }
- 
- static struct k_clock *clockid_to_kclock(const clockid_t id)
-@@ -631,22 +638,18 @@ out:
- static struct k_itimer *__lock_timer(timer_t timer_id, unsigned long *flags)
- {
- 	struct k_itimer *timr;
--	/*
--	 * Watch out here.  We do a irqsave on the idr_lock and pass the
--	 * flags part over to the timer lock.  Must not let interrupts in
--	 * while we are moving the lock.
--	 */
--	spin_lock_irqsave(&idr_lock, *flags);
-+
-+	rcu_read_lock();
- 	timr = idr_find(&posix_timers_id, (int)timer_id);
- 	if (timr) {
--		spin_lock(&timr->it_lock);
-+		spin_lock_irqsave(&timr->it_lock, *flags);
- 		if (timr->it_signal == current->signal) {
--			spin_unlock(&idr_lock);
-+			rcu_read_unlock();
- 			return timr;
- 		}
--		spin_unlock(&timr->it_lock);
-+		spin_unlock_irqrestore(&timr->it_lock, *flags);
- 	}
--	spin_unlock_irqrestore(&idr_lock, *flags);
-+	rcu_read_unlock();
- 
- 	return NULL;
- }
+diff -puN drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings
++++ a/drivers/scsi/megaraid.c
+@@ -310,15 +310,15 @@ mega_query_adapter(adapter_t *adapter)
+ 	if (adapter->product_info.subsysvid == HP_SUBSYS_VID) {
+ 		sprintf (adapter->fw_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.fw_version[2],
+-			 adapter->product_info.fw_version[1] >> 8,
++			 adapter->product_info.fw_version[1] >> 4,
+ 			 adapter->product_info.fw_version[1] & 0x0f,
+-			 adapter->product_info.fw_version[0] >> 8,
++			 adapter->product_info.fw_version[0] >> 4,
+ 			 adapter->product_info.fw_version[0] & 0x0f);
+ 		sprintf (adapter->bios_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.bios_version[2],
+-			 adapter->product_info.bios_version[1] >> 8,
++			 adapter->product_info.bios_version[1] >> 4,
+ 			 adapter->product_info.bios_version[1] & 0x0f,
+-			 adapter->product_info.bios_version[0] >> 8,
++			 adapter->product_info.bios_version[0] >> 4,
+ 			 adapter->product_info.bios_version[0] & 0x0f);
+ 	} else {
+ 		memcpy(adapter->fw_version,
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-vfs-avoid-large-kmallocs-for-the-fdtable.patch
-posix-timers-rcu-conversion.patch
-net-convert-%p-usage-to-%pk.patch
-percpu_counter-change-return-value-and-add-comments.patch
+drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch
+drivers-leds-leds-pca9532c-add-gpio-capability-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
