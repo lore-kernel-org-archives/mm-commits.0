@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-mutex-provide-mutex_lock_nest_lock.patch added to -mm tree
-Date: Tue, 19 Apr 2011 13:10:32 -0700
-Message-ID: <201104192010.p3JKAXol020506@imap1.linux-foundation.org>
+Subject: + mm-extended-batches-for-generic-mmu_gather.patch added to -mm tree
+Date: Tue, 19 Apr 2011 13:10:29 -0700
+Message-ID: <201104192010.p3JKAUmH020503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48792 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751931Ab1DSULX (ORCPT
+	by vger.kernel.org with ESMTP id S1751931Ab1DSULW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 16:11:23 -0400
+	Tue, 19 Apr 2011 16:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd
 
 
 The patch titled
-     lockdep, mutex: provide mutex_lock_nest_lock
+     mm: Extended batches for generic mmu_gather
 has been added to the -mm tree.  Its filename is
-     lockdep-mutex-provide-mutex_lock_nest_lock.patch
+     mm-extended-batches-for-generic-mmu_gather.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep, mutex: provide mutex_lock_nest_lock
+Subject: mm: Extended batches for generic mmu_gather
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Provide the mutex_lock_nest_lock() annotation.
+Instead of using a single batch (the small on-stack, or an allocated
+page), try and extend the batch every time it runs out and only flush once
+either the extend fails or we're done.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Requested-by: Nick Piggin <npiggin@kernel.dk>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: David Miller <davem@davemloft.net>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -48,8 +53,6 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Tony Luck <tony.luck@intel.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -57,147 +60,214 @@ Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    3 +++
- include/linux/mutex.h   |    9 +++++++++
- kernel/mutex.c          |   25 +++++++++++++++++--------
- 3 files changed, 29 insertions(+), 8 deletions(-)
+ include/asm-generic/tlb.h |  129 +++++++++++++++++++++++-------------
+ 1 file changed, 83 insertions(+), 46 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-mutex-provide-mutex_lock_nest_lock include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-mutex-provide-mutex_lock_nest_lock
-+++ a/include/linux/lockdep.h
-@@ -487,12 +487,15 @@ static inline void print_irqtrace_events
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
- #  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
-+#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
- # else
- #  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
-+#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
- # endif
- # define mutex_release(l, n, i)			lock_release(l, n, i)
- #else
- # define mutex_acquire(l, s, t, i)		do { } while (0)
-+# define mutex_acquire_nest(l, s, t, n, i)	do { } while (0)
- # define mutex_release(l, n, i)			do { } while (0)
- #endif
+diff -puN include/asm-generic/tlb.h~mm-extended-batches-for-generic-mmu_gather include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-extended-batches-for-generic-mmu_gather
++++ a/include/asm-generic/tlb.h
+@@ -19,16 +19,6 @@
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
  
-diff -puN include/linux/mutex.h~lockdep-mutex-provide-mutex_lock_nest_lock include/linux/mutex.h
---- a/include/linux/mutex.h~lockdep-mutex-provide-mutex_lock_nest_lock
-+++ a/include/linux/mutex.h
-@@ -132,6 +132,7 @@ static inline int mutex_is_locked(struct
-  */
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
-+extern void _mutex_lock_nest_lock(struct mutex *lock, struct lockdep_map *nest_lock);
- extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
- 					unsigned int subclass);
- extern int __must_check mutex_lock_killable_nested(struct mutex *lock,
-@@ -140,6 +141,13 @@ extern int __must_check mutex_lock_killa
- #define mutex_lock(lock) mutex_lock_nested(lock, 0)
- #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
- #define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
-+
-+#define mutex_lock_nest_lock(lock, nest_lock)				\
-+do {									\
-+	typecheck(struct lockdep_map *, &(nest_lock)->dep_map);		\
-+	_mutex_lock_nest_lock(lock, &(nest_lock)->dep_map);		\
-+} while (0)
-+
- #else
- extern void mutex_lock(struct mutex *lock);
- extern int __must_check mutex_lock_interruptible(struct mutex *lock);
-@@ -148,6 +156,7 @@ extern int __must_check mutex_lock_killa
- # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
- # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
- # define mutex_lock_killable_nested(lock, subclass) mutex_lock_killable(lock)
-+# define mutex_lock_nest_lock(lock, nest_lock) mutex_lock(lock)
- #endif
- 
+-/*
+- * For UP we don't need to worry about TLB flush
+- * and page free order so much..
+- */
+-#ifdef CONFIG_SMP
+-  #define tlb_fast_mode(tlb) ((tlb)->nr == ~0U)
+-#else
+-  #define tlb_fast_mode(tlb) 1
+-#endif
+-
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
  /*
-diff -puN kernel/mutex.c~lockdep-mutex-provide-mutex_lock_nest_lock kernel/mutex.c
---- a/kernel/mutex.c~lockdep-mutex-provide-mutex_lock_nest_lock
-+++ a/kernel/mutex.c
-@@ -131,14 +131,14 @@ EXPORT_SYMBOL(mutex_unlock);
+  * Semi RCU freeing of the page directories.
+@@ -78,6 +68,16 @@ extern void tlb_remove_table(struct mmu_
   */
- static inline int __sched
- __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
--	       	unsigned long ip)
-+		    struct lockdep_map *nest_lock, unsigned long ip)
- {
- 	struct task_struct *task = current;
- 	struct mutex_waiter waiter;
- 	unsigned long flags;
+ #define MMU_GATHER_BUNDLE	8
  
- 	preempt_disable();
--	mutex_acquire(&lock->dep_map, subclass, 0, ip);
-+	mutex_acquire_nest(&lock->dep_map, subclass, 0, nest_lock, ip);
- 
- #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
- 	/*
-@@ -276,16 +276,25 @@ void __sched
- mutex_lock_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
--	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, subclass, _RET_IP_);
-+	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, subclass, NULL, _RET_IP_);
- }
- 
- EXPORT_SYMBOL_GPL(mutex_lock_nested);
- 
-+void __sched
-+_mutex_lock_nest_lock(struct mutex *lock, struct lockdep_map *nest)
-+{
-+	might_sleep();
-+	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, nest, _RET_IP_);
-+}
++struct mmu_gather_batch {
++	struct mmu_gather_batch	*next;
++	unsigned int		nr;
++	unsigned int		max;
++	struct page		*pages[0];
++};
 +
-+EXPORT_SYMBOL_GPL(_mutex_lock_nest_lock);
++#define MAX_GATHER_BATCH	\
++	((PAGE_SIZE - sizeof(struct mmu_gather_batch)) / sizeof(void *))
 +
- int __sched
- mutex_lock_killable_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
--	return __mutex_lock_common(lock, TASK_KILLABLE, subclass, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_KILLABLE, subclass, NULL, _RET_IP_);
- }
- EXPORT_SYMBOL_GPL(mutex_lock_killable_nested);
- 
-@@ -294,7 +303,7 @@ mutex_lock_interruptible_nested(struct m
- {
- 	might_sleep();
- 	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE,
--				   subclass, _RET_IP_);
-+				   subclass, NULL, _RET_IP_);
- }
- 
- EXPORT_SYMBOL_GPL(mutex_lock_interruptible_nested);
-@@ -400,7 +409,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
-+	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, NULL, _RET_IP_);
- }
- 
- static noinline int __sched
-@@ -408,7 +417,7 @@ __mutex_lock_killable_slowpath(atomic_t 
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	return __mutex_lock_common(lock, TASK_KILLABLE, 0, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_KILLABLE, 0, NULL, _RET_IP_);
- }
- 
- static noinline int __sched
-@@ -416,7 +425,7 @@ __mutex_lock_interruptible_slowpath(atom
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
- 
--	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, _RET_IP_);
-+	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, NULL, _RET_IP_);
- }
+ /* struct mmu_gather is an opaque type used by the mm code for passing around
+  * any data needed by arch specific code for tlb_remove_page.
+  */
+@@ -86,22 +86,48 @@ struct mmu_gather {
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
+ 	struct mmu_table_batch	*batch;
  #endif
+-	unsigned int		nr;	/* set to ~0U means fast mode */
+-	unsigned int		max;	/* nr < max */
+-	unsigned int		need_flush;/* Really unmapped some ptes? */
+-	unsigned int		fullmm; /* non-zero means full mm flush */
+-	struct page		**pages;
+-	struct page		*local[MMU_GATHER_BUNDLE];
++	unsigned int		need_flush : 1,	/* Did free PTEs */
++				fast_mode  : 1; /* No batching   */
++
++	unsigned int		fullmm;
++
++	struct mmu_gather_batch *active;
++	struct mmu_gather_batch	local;
++	struct page		*__pages[MMU_GATHER_BUNDLE];
+ };
  
+-static inline void __tlb_alloc_page(struct mmu_gather *tlb)
++/*
++ * For UP we don't need to worry about TLB flush
++ * and page free order so much..
++ */
++#ifdef CONFIG_SMP
++  #define tlb_fast_mode(tlb) (tlb->fast_mode)
++#else
++  #define tlb_fast_mode(tlb) 1
++#endif
++
++static inline int tlb_next_batch(struct mmu_gather *tlb)
+ {
+-	unsigned long addr = __get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
++	struct mmu_gather_batch *batch;
+ 
+-	if (addr) {
+-		tlb->pages = (void *)addr;
+-		tlb->max = PAGE_SIZE / sizeof(struct page *);
++	batch = tlb->active;
++	if (batch->next) {
++		tlb->active = batch->next;
++		return 1;
+ 	}
++
++	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
++	if (!batch)
++		return 0;
++
++	batch->next = NULL;
++	batch->nr   = 0;
++	batch->max  = MAX_GATHER_BATCH;
++
++	tlb->active->next = batch;
++	tlb->active = batch;
++
++	return 1;
+ }
+ 
+ /* tlb_gather_mmu
+@@ -114,16 +140,13 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
+ {
+ 	tlb->mm = mm;
+ 
+-	tlb->max = ARRAY_SIZE(tlb->local);
+-	tlb->pages = tlb->local;
+-
+-	if (num_online_cpus() > 1) {
+-		tlb->nr = 0;
+-		__tlb_alloc_page(tlb);
+-	} else /* Use fast mode if only one CPU is online */
+-		tlb->nr = ~0U;
+-
+-	tlb->fullmm = fullmm;
++	tlb->fullmm     = fullmm;
++	tlb->need_flush = 0;
++	tlb->fast_mode  = (num_possible_cpus() == 1);
++	tlb->local.next = NULL;
++	tlb->local.nr   = 0;
++	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
++	tlb->active     = &tlb->local;
+ 
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
+ 	tlb->batch = NULL;
+@@ -133,6 +156,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
+ static inline void
+ tlb_flush_mmu(struct mmu_gather *tlb)
+ {
++	struct mmu_gather_batch *batch;
++
+ 	if (!tlb->need_flush)
+ 		return;
+ 	tlb->need_flush = 0;
+@@ -140,17 +165,15 @@ tlb_flush_mmu(struct mmu_gather *tlb)
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
+ 	tlb_table_flush(tlb);
+ #endif
+-	if (!tlb_fast_mode(tlb)) {
+-		free_pages_and_swap_cache(tlb->pages, tlb->nr);
+-		tlb->nr = 0;
+-		/*
+-		 * If we are using the local on-stack array of pages for MMU
+-		 * gather, try allocating an off-stack array again as we have
+-		 * recently freed pages.
+-		 */
+-		if (tlb->pages == tlb->local)
+-			__tlb_alloc_page(tlb);
++
++	if (tlb_fast_mode(tlb))
++		return;
++
++	for (batch = &tlb->local; batch; batch = batch->next) {
++		free_pages_and_swap_cache(batch->pages, batch->nr);
++		batch->nr = 0;
+ 	}
++	tlb->active = &tlb->local;
+ }
+ 
+ /* tlb_finish_mmu
+@@ -160,13 +183,18 @@ tlb_flush_mmu(struct mmu_gather *tlb)
+ static inline void
+ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
+ {
++	struct mmu_gather_batch *batch, *next;
++
+ 	tlb_flush_mmu(tlb);
+ 
+ 	/* keep the page table cache within bounds */
+ 	check_pgt_cache();
+ 
+-	if (tlb->pages != tlb->local)
+-		free_pages((unsigned long)tlb->pages, 0);
++	for (batch = tlb->local.next; batch; batch = next) {
++		next = batch->next;
++		free_pages((unsigned long)batch, 0);
++	}
++	tlb->local.next = NULL;
+ }
+ 
+ /* __tlb_remove_page
+@@ -177,15 +205,24 @@ tlb_finish_mmu(struct mmu_gather *tlb, u
+  */
+ static inline int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
+ {
++	struct mmu_gather_batch *batch;
++
+ 	tlb->need_flush = 1;
++
+ 	if (tlb_fast_mode(tlb)) {
+ 		free_page_and_swap_cache(page);
+ 		return 1; /* avoid calling tlb_flush_mmu() */
+ 	}
+-	tlb->pages[tlb->nr++] = page;
+-	VM_BUG_ON(tlb->nr > tlb->max);
+ 
+-	return tlb->max - tlb->nr;
++	batch = tlb->active;
++	batch->pages[batch->nr++] = page;
++	VM_BUG_ON(batch->nr > batch->max);
++	if (batch->nr == batch->max) {
++		if (!tlb_next_batch(tlb))
++			return 0;
++	}
++
++	return batch->max - batch->nr;
+ }
+ 
+ /* tlb_remove_page
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
