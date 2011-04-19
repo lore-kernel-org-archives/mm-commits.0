@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-refcounts-for-page_lock_anon_vma.patch added to -mm tree
-Date: Tue, 19 Apr 2011 13:10:48 -0700
-Message-ID: <201104192010.p3JKAmPP020525@imap1.linux-foundation.org>
+Subject: + mm-optimize-page_lock_anon_vma-fast-path.patch added to -mm tree
+Date: Tue, 19 Apr 2011 13:13:36 -0700
+Message-ID: <201104192013.p3JKDbBt020686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752544Ab1DSUMJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751434Ab1DSUOb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 16:12:09 -0400
+	Tue, 19 Apr 2011 16:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd
 
 
 The patch titled
-     mm: use refcounts for page_lock_anon_vma()
+     mm: optimize page_lock_anon_vma() fast-path
 has been added to the -mm tree.  Its filename is
-     mm-use-refcounts-for-page_lock_anon_vma.patch
+     mm-optimize-page_lock_anon_vma-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use refcounts for page_lock_anon_vma()
+Subject: mm: optimize page_lock_anon_vma() fast-path
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Convert page_lock_anon_vma() over to use refcounts.  This is done to
-prepare for the conversion of anon_vma from spinlock to mutex.
-
-Sadly this inceases the cost of page_lock_anon_vma() from one to two
-atomics, a follow up patch addresses this, lets keep that simple for now.
+Optimize the page_lock_anon_vma() fast path to be one atomic op, instead
+of two.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: David Miller <davem@davemloft.net>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -55,121 +50,127 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
 Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   17 ++++-------------
- mm/rmap.c    |   42 +++++++++++++++++++++++++++---------------
- 2 files changed, 31 insertions(+), 28 deletions(-)
+ mm/rmap.c |   86 +++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 82 insertions(+), 4 deletions(-)
 
-diff -puN mm/migrate.c~mm-use-refcounts-for-page_lock_anon_vma mm/migrate.c
---- a/mm/migrate.c~mm-use-refcounts-for-page_lock_anon_vma
-+++ a/mm/migrate.c
-@@ -721,15 +721,11 @@ static int unmap_and_move(new_page_t get
- 		 * Only page_lock_anon_vma() understands the subtleties of
- 		 * getting a hold on an anon_vma from outside one of its mms.
- 		 */
--		anon_vma = page_lock_anon_vma(page);
-+		anon_vma = page_get_anon_vma(page);
- 		if (anon_vma) {
- 			/*
--			 * Take a reference count on the anon_vma if the
--			 * page is mapped so that it is guaranteed to
--			 * exist when the page is remapped later
-+			 * Anon page
- 			 */
--			get_anon_vma(anon_vma);
--			page_unlock_anon_vma(anon_vma);
- 		} else if (PageSwapCache(page)) {
- 			/*
- 			 * We cannot be sure that the anon_vma of an unmapped
-@@ -857,13 +853,8 @@ static int unmap_and_move_huge_page(new_
- 		lock_page(hpage);
- 	}
- 
--	if (PageAnon(hpage)) {
--		anon_vma = page_lock_anon_vma(hpage);
--		if (anon_vma) {
--			get_anon_vma(anon_vma);
--			page_unlock_anon_vma(anon_vma);
--		}
--	}
-+	if (PageAnon(hpage))
-+		anon_vma = page_get_anon_vma(hpage);
- 
- 	try_to_unmap(hpage, TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
- 
-diff -puN mm/rmap.c~mm-use-refcounts-for-page_lock_anon_vma mm/rmap.c
---- a/mm/rmap.c~mm-use-refcounts-for-page_lock_anon_vma
+diff -puN mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path mm/rmap.c
+--- a/mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path
 +++ a/mm/rmap.c
-@@ -337,9 +337,9 @@ void __init anon_vma_init(void)
-  * that the anon_vma pointer from page->mapping is valid if there is a
-  * mapcount, we can dereference the anon_vma after observing those.
-  */
--struct anon_vma *page_lock_anon_vma(struct page *page)
-+struct anon_vma *page_get_anon_vma(struct page *page)
+@@ -86,6 +86,29 @@ static inline struct anon_vma *anon_vma_
+ static inline void anon_vma_free(struct anon_vma *anon_vma)
  {
--	struct anon_vma *anon_vma, *root_anon_vma;
+ 	VM_BUG_ON(atomic_read(&anon_vma->refcount));
++
++	/*
++	 * Synchronize against page_lock_anon_vma() such that
++	 * we can safely hold the lock without the anon_vma getting
++	 * freed.
++	 *
++	 * Relies on the full mb implied by the atomic_dec_and_test() from
++	 * put_anon_vma() against the acquire barrier implied by
++	 * mutex_trylock() from page_lock_anon_vma(). This orders:
++	 *
++	 * page_lock_anon_vma()		VS	put_anon_vma()
++	 *   mutex_trylock()			  atomic_dec_and_test()
++	 *   LOCK				  MB
++	 *   atomic_read()			  mutex_is_locked()
++	 *
++	 * LOCK should suffice since the actual taking of the lock must
++	 * happen _before_ what follows.
++	 */
++	if (mutex_is_locked(&anon_vma->root->mutex)) {
++		anon_vma_lock(anon_vma);
++		anon_vma_unlock(anon_vma);
++	}
++
+ 	kmem_cache_free(anon_vma_cachep, anon_vma);
+ }
+ 
+@@ -372,20 +395,75 @@ out:
+ 	return anon_vma;
+ }
+ 
++/*
++ * Similar to page_get_anon_vma() except it locks the anon_vma.
++ *
++ * Its a little more complex as it tries to keep the fast path to a single
++ * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
++ * reference like with page_get_anon_vma() and then block on the mutex.
++ */
+ struct anon_vma *page_lock_anon_vma(struct page *page)
+ {
+-	struct anon_vma *anon_vma = page_get_anon_vma(page);
 +	struct anon_vma *anon_vma = NULL;
- 	unsigned long anon_mapping;
++	unsigned long anon_mapping;
  
- 	rcu_read_lock();
-@@ -350,30 +350,42 @@ struct anon_vma *page_lock_anon_vma(stru
- 		goto out;
- 
- 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
--	root_anon_vma = ACCESS_ONCE(anon_vma->root);
--	spin_lock(&root_anon_vma->lock);
+-	if (anon_vma)
+-		anon_vma_lock(anon_vma);
++	rcu_read_lock();
++	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
++	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
++		goto out;
++	if (!page_mapped(page))
++		goto out;
++
++	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
++	if (mutex_trylock(&anon_vma->root->mutex)) {
++		/*
++		 * If we observe a !0 refcount, then holding the lock ensures
++		 * the anon_vma will not go away, see __put_anon_vma().
++		 */
++		if (!atomic_read(&anon_vma->refcount)) {
++			anon_vma_unlock(anon_vma);
++			anon_vma = NULL;
++		}
++		goto out;
++	}
++
++	/* trylock failed, we got to sleep */
 +	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
 +		anon_vma = NULL;
 +		goto out;
 +	}
  
- 	/*
- 	 * If this page is still mapped, then its anon_vma cannot have been
--	 * freed.  But if it has been unmapped, we have no security against
--	 * the anon_vma structure being freed and reused (for another anon_vma:
--	 * SLAB_DESTROY_BY_RCU guarantees that - so the spin_lock above cannot
--	 * corrupt): with anon_vma_prepare() or anon_vma_fork() redirecting
--	 * anon_vma->root before page_unlock_anon_vma() is called to unlock.
-+	 * freed.  But if it has been unmapped, we have no security against the
-+	 * anon_vma structure being freed and reused (for another anon_vma:
-+	 * SLAB_DESTROY_BY_RCU guarantees that - so the atomic_inc_not_zero()
-+	 * above cannot corrupt).
- 	 */
--	if (page_mapped(page))
--		return anon_vma;
--
--	spin_unlock(&root_anon_vma->lock);
 +	if (!page_mapped(page)) {
 +		put_anon_vma(anon_vma);
 +		anon_vma = NULL;
++		goto out;
 +	}
- out:
- 	rcu_read_unlock();
--	return NULL;
++
++	/* we pinned the anon_vma, its safe to sleep */
++	rcu_read_unlock();
++	anon_vma_lock(anon_vma);
++
++	if (atomic_dec_and_test(&anon_vma->refcount)) {
++		/*
++		 * Oops, we held the last refcount, release the lock
++		 * and bail -- can't simply use put_anon_vma() because
++		 * we'll deadlock on the anon_vma_lock() recursion.
++		 */
++		anon_vma_unlock(anon_vma);
++		__put_anon_vma(anon_vma);
++		anon_vma = NULL;
++	}
 +
 +	return anon_vma;
-+}
 +
-+struct anon_vma *page_lock_anon_vma(struct page *page)
-+{
-+	struct anon_vma *anon_vma = page_get_anon_vma(page);
-+
-+	if (anon_vma)
-+		anon_vma_lock(anon_vma);
-+
-+	return anon_vma;
++out:
++	rcu_read_unlock();
+ 	return anon_vma;
  }
  
  void page_unlock_anon_vma(struct anon_vma *anon_vma)
  {
  	anon_vma_unlock(anon_vma);
--	rcu_read_unlock();
-+	put_anon_vma(anon_vma);
+-	put_anon_vma(anon_vma);
  }
  
  /*
