@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-optimize-page_lock_anon_vma-fast-path.patch added to -mm tree
-Date: Tue, 19 Apr 2011 13:13:36 -0700
-Message-ID: <201104192013.p3JKDbBt020686@imap1.linux-foundation.org>
+Subject: + drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch added to -mm tree
+Date: Tue, 19 Apr 2011 14:37:57 -0700
+Message-ID: <201104192137.p3JLbvHR026505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434Ab1DSUOb (ORCPT
+	by vger.kernel.org with ESMTP id S1752382Ab1DSViE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Apr 2011 16:14:31 -0400
+	Tue, 19 Apr 2011 17:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd@google.com, jdike@addtoit.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lethal@linux-sh.org, mel@csn.ul.ie, namhyung@gmail.com, npiggin@kernel.dk, richard@nod.at, rmk@arm.linux.org.uk, schwidefsky@de.ibm.com, tony.luck@intel.com
+Cc: randy.dunlap@oracle.com, dilinger@queued.net, greg@kroah.com
 
 
 The patch titled
-     mm: optimize page_lock_anon_vma() fast-path
+     drivers/staging/olpc_dcon/olpc_dcon_xo_1.c needs delay.h
 has been added to the -mm tree.  Its filename is
-     mm-optimize-page_lock_anon_vma-fast-path.patch
+     drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,170 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: optimize page_lock_anon_vma() fast-path
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: drivers/staging/olpc_dcon/olpc_dcon_xo_1.c needs delay.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Optimize the page_lock_anon_vma() fast path to be one atomic op, instead
-of two.
+Fix build error, needs delay.h:
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Namhyung Kim <namhyung@gmail.com>
+drivers/staging/olpc_dcon/olpc_dcon_xo_1.c:168: error: implicit declaration of function 'udelay'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   86 +++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 82 insertions(+), 4 deletions(-)
+ drivers/staging/olpc_dcon/olpc_dcon_xo_1.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path mm/rmap.c
---- a/mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path
-+++ a/mm/rmap.c
-@@ -86,6 +86,29 @@ static inline struct anon_vma *anon_vma_
- static inline void anon_vma_free(struct anon_vma *anon_vma)
- {
- 	VM_BUG_ON(atomic_read(&anon_vma->refcount));
-+
-+	/*
-+	 * Synchronize against page_lock_anon_vma() such that
-+	 * we can safely hold the lock without the anon_vma getting
-+	 * freed.
-+	 *
-+	 * Relies on the full mb implied by the atomic_dec_and_test() from
-+	 * put_anon_vma() against the acquire barrier implied by
-+	 * mutex_trylock() from page_lock_anon_vma(). This orders:
-+	 *
-+	 * page_lock_anon_vma()		VS	put_anon_vma()
-+	 *   mutex_trylock()			  atomic_dec_and_test()
-+	 *   LOCK				  MB
-+	 *   atomic_read()			  mutex_is_locked()
-+	 *
-+	 * LOCK should suffice since the actual taking of the lock must
-+	 * happen _before_ what follows.
-+	 */
-+	if (mutex_is_locked(&anon_vma->root->mutex)) {
-+		anon_vma_lock(anon_vma);
-+		anon_vma_unlock(anon_vma);
-+	}
-+
- 	kmem_cache_free(anon_vma_cachep, anon_vma);
- }
+diff -puN drivers/staging/olpc_dcon/olpc_dcon_xo_1.c~drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh drivers/staging/olpc_dcon/olpc_dcon_xo_1.c
+--- a/drivers/staging/olpc_dcon/olpc_dcon_xo_1.c~drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh
++++ a/drivers/staging/olpc_dcon/olpc_dcon_xo_1.c
+@@ -11,6 +11,7 @@
+  * License as published by the Free Software Foundation.
+  */
+ #include <linux/cs5535.h>
++#include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <asm/olpc.h>
  
-@@ -372,20 +395,75 @@ out:
- 	return anon_vma;
- }
- 
-+/*
-+ * Similar to page_get_anon_vma() except it locks the anon_vma.
-+ *
-+ * Its a little more complex as it tries to keep the fast path to a single
-+ * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
-+ * reference like with page_get_anon_vma() and then block on the mutex.
-+ */
- struct anon_vma *page_lock_anon_vma(struct page *page)
- {
--	struct anon_vma *anon_vma = page_get_anon_vma(page);
-+	struct anon_vma *anon_vma = NULL;
-+	unsigned long anon_mapping;
- 
--	if (anon_vma)
--		anon_vma_lock(anon_vma);
-+	rcu_read_lock();
-+	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
-+	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
-+		goto out;
-+	if (!page_mapped(page))
-+		goto out;
-+
-+	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
-+	if (mutex_trylock(&anon_vma->root->mutex)) {
-+		/*
-+		 * If we observe a !0 refcount, then holding the lock ensures
-+		 * the anon_vma will not go away, see __put_anon_vma().
-+		 */
-+		if (!atomic_read(&anon_vma->refcount)) {
-+			anon_vma_unlock(anon_vma);
-+			anon_vma = NULL;
-+		}
-+		goto out;
-+	}
-+
-+	/* trylock failed, we got to sleep */
-+	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
-+		anon_vma = NULL;
-+		goto out;
-+	}
- 
-+	if (!page_mapped(page)) {
-+		put_anon_vma(anon_vma);
-+		anon_vma = NULL;
-+		goto out;
-+	}
-+
-+	/* we pinned the anon_vma, its safe to sleep */
-+	rcu_read_unlock();
-+	anon_vma_lock(anon_vma);
-+
-+	if (atomic_dec_and_test(&anon_vma->refcount)) {
-+		/*
-+		 * Oops, we held the last refcount, release the lock
-+		 * and bail -- can't simply use put_anon_vma() because
-+		 * we'll deadlock on the anon_vma_lock() recursion.
-+		 */
-+		anon_vma_unlock(anon_vma);
-+		__put_anon_vma(anon_vma);
-+		anon_vma = NULL;
-+	}
-+
-+	return anon_vma;
-+
-+out:
-+	rcu_read_unlock();
- 	return anon_vma;
- }
- 
- void page_unlock_anon_vma(struct anon_vma *anon_vma)
- {
- 	anon_vma_unlock(anon_vma);
--	put_anon_vma(anon_vma);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-net-convert-%p-usage-to-%pk.patch
-mm-mmu_gather-rework.patch
-mm-mmu_gather-rework-fix.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
+drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
