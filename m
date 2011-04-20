@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch added to -mm tree
-Date: Wed, 20 Apr 2011 14:12:00 -0700
-Message-ID: <201104202112.p3KLC0CO027269@imap1.linux-foundation.org>
+Subject: + tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch added to -mm tree
+Date: Wed, 20 Apr 2011 14:12:03 -0700
+Message-ID: <201104202112.p3KLC3NU027281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750814Ab1DTVMP (ORCPT
+	by vger.kernel.org with ESMTP id S1750814Ab1DTVMU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 17:12:15 -0400
+	Wed, 20 Apr 2011 17:12:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, cmetcalf@tilera.com, dhowells@redhat.com, hu
 
 
 The patch titled
-     mn10300: replace mm->cpu_vm_mask with mm_cpumask
+     tile: replace mm->cpu_vm_mask with mm_cpumask()
 has been added to the -mm tree.  Its filename is
-     mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+     tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: replace mm->cpu_vm_mask with mm_cpumask
+Subject: tile: replace mm->cpu_vm_mask with mm_cpumask()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-We plan to change mm->cpu_vm_mask definition later.  Thus this patch
-convert it into mm_cpumask().
+We plan to change mm->cpu_vm_mask definition later. Thus, this patch convert
+it into proper macro.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -48,52 +48,65 @@ Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/smp.c |    2 +-
- arch/mn10300/mm/tlb-smp.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/tile/include/asm/mmu_context.h |    4 ++--
+ arch/tile/kernel/tlb.c              |   12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/mn10300/kernel/smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask arch/mn10300/kernel/smp.c
---- a/arch/mn10300/kernel/smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask
-+++ a/arch/mn10300/kernel/smp.c
-@@ -986,7 +986,7 @@ int __cpu_disable(void)
- 		return -EBUSY;
+diff -puN arch/tile/include/asm/mmu_context.h~tile-replace-mm-cpu_vm_mask-with-mm_cpumask arch/tile/include/asm/mmu_context.h
+--- a/arch/tile/include/asm/mmu_context.h~tile-replace-mm-cpu_vm_mask-with-mm_cpumask
++++ a/arch/tile/include/asm/mmu_context.h
+@@ -100,8 +100,8 @@ static inline void switch_mm(struct mm_s
+ 		__get_cpu_var(current_asid) = asid;
  
- 	migrate_irqs();
--	cpu_clear(cpu, current->active_mm->cpu_vm_mask);
-+	cpu_clear(cpu, mm_cpumask(current->active_mm));
- 	return 0;
+ 		/* Clear cpu from the old mm, and set it in the new one. */
+-		cpumask_clear_cpu(cpu, &prev->cpu_vm_mask);
+-		cpumask_set_cpu(cpu, &next->cpu_vm_mask);
++		cpumask_clear_cpu(cpu, mm_cpumask(prev));
++		cpumask_set_cpu(cpu, mm_cpumask(next));
+ 
+ 		/* Re-load page tables */
+ 		install_page_table(next->pgd, asid);
+diff -puN arch/tile/kernel/tlb.c~tile-replace-mm-cpu_vm_mask-with-mm_cpumask arch/tile/kernel/tlb.c
+--- a/arch/tile/kernel/tlb.c~tile-replace-mm-cpu_vm_mask-with-mm_cpumask
++++ a/arch/tile/kernel/tlb.c
+@@ -34,13 +34,13 @@ void flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	HV_Remote_ASID asids[NR_CPUS];
+ 	int i = 0, cpu;
+-	for_each_cpu(cpu, &mm->cpu_vm_mask) {
++	for_each_cpu(cpu, mm_cpumask(mm)) {
+ 		HV_Remote_ASID *asid = &asids[i++];
+ 		asid->y = cpu / smp_topology.width;
+ 		asid->x = cpu % smp_topology.width;
+ 		asid->asid = per_cpu(current_asid, cpu);
+ 	}
+-	flush_remote(0, HV_FLUSH_EVICT_L1I, &mm->cpu_vm_mask,
++	flush_remote(0, HV_FLUSH_EVICT_L1I, mm_cpumask(mm),
+ 		     0, 0, 0, NULL, asids, i);
  }
  
-diff -puN arch/mn10300/mm/tlb-smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask arch/mn10300/mm/tlb-smp.c
---- a/arch/mn10300/mm/tlb-smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask
-+++ a/arch/mn10300/mm/tlb-smp.c
-@@ -146,7 +146,7 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	cpumask_t cpu_mask;
+@@ -54,8 +54,8 @@ void flush_tlb_page_mm(const struct vm_a
+ {
+ 	unsigned long size = hv_page_size(vma);
+ 	int cache = (vma->vm_flags & VM_EXEC) ? HV_FLUSH_EVICT_L1I : 0;
+-	flush_remote(0, cache, &mm->cpu_vm_mask,
+-		     va, size, size, &mm->cpu_vm_mask, NULL, 0);
++	flush_remote(0, cache, mm_cpumask(mm),
++		     va, size, size, mm_cpumask(mm), NULL, 0);
+ }
  
- 	preempt_disable();
--	cpu_mask = mm->cpu_vm_mask;
-+	cpu_mask = mm_cpumask(mm);
- 	cpu_clear(smp_processor_id(), cpu_mask);
+ void flush_tlb_page(const struct vm_area_struct *vma, unsigned long va)
+@@ -70,8 +70,8 @@ void flush_tlb_range(const struct vm_are
+ 	unsigned long size = hv_page_size(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int cache = (vma->vm_flags & VM_EXEC) ? HV_FLUSH_EVICT_L1I : 0;
+-	flush_remote(0, cache, &mm->cpu_vm_mask, start, end - start, size,
+-		     &mm->cpu_vm_mask, NULL, 0);
++	flush_remote(0, cache, mm_cpumask(mm), start, end - start, size,
++		     mm_cpumask(mm), NULL, 0);
+ }
  
- 	local_flush_tlb();
-@@ -165,7 +165,7 @@ void flush_tlb_current_task(void)
- 	cpumask_t cpu_mask;
- 
- 	preempt_disable();
--	cpu_mask = mm->cpu_vm_mask;
-+	cpu_mask = mm_cpumask(mm);
- 	cpu_clear(smp_processor_id(), cpu_mask);
- 
- 	local_flush_tlb();
-@@ -186,7 +186,7 @@ void flush_tlb_page(struct vm_area_struc
- 	cpumask_t cpu_mask;
- 
- 	preempt_disable();
--	cpu_mask = mm->cpu_vm_mask;
-+	cpu_mask = mm_cpumask(mm);
- 	cpu_clear(smp_processor_id(), cpu_mask);
- 
- 	local_flush_tlb_page(mm, va);
+ void flush_tlb_all(void)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
