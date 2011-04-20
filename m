@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-convert-to-asm-generic-ptraceh.patch added to -mm tree
-Date: Wed, 20 Apr 2011 14:07:23 -0700
-Message-ID: <201104202107.p3KL7N5Z027020@imap1.linux-foundation.org>
+Subject: + mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch added to -mm tree
+Date: Wed, 20 Apr 2011 14:12:00 -0700
+Message-ID: <201104202112.p3KLC0CO027269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755876Ab1DTVHl (ORCPT
+	by vger.kernel.org with ESMTP id S1750814Ab1DTVMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 17:07:41 -0400
+	Wed, 20 Apr 2011 17:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, hpa@zytor.com, jason.wessel@windriver.com, lethal@linux-sh.org, mingo@redhat.com, oleg@redhat.com, sshtylyov@mvista.com, tglx@linutronix.de
+Cc: kosaki.motohiro@jp.fujitsu.com, cmetcalf@tilera.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     Blackfin: convert to asm-generic ptrace.h
+     mn10300: replace mm->cpu_vm_mask with mm_cpumask
 has been added to the -mm tree.  Its filename is
-     blackfin-convert-to-asm-generic-ptraceh.patch
+     mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin: convert to asm-generic ptrace.h
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: mn10300: replace mm->cpu_vm_mask with mm_cpumask
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
+We plan to change mm->cpu_vm_mask definition later.  Thus this patch
+convert it into mm_cpumask().
 
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/ptrace.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/mn10300/kernel/smp.c |    2 +-
+ arch/mn10300/mm/tlb-smp.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/blackfin/include/asm/ptrace.h~blackfin-convert-to-asm-generic-ptraceh arch/blackfin/include/asm/ptrace.h
---- a/arch/blackfin/include/asm/ptrace.h~blackfin-convert-to-asm-generic-ptraceh
-+++ a/arch/blackfin/include/asm/ptrace.h
-@@ -102,9 +102,6 @@ struct pt_regs {
- /* user_mode returns true if only one bit is set in IPEND, other than the
-    master interrupt enable.  */
- #define user_mode(regs) (!(((regs)->ipend & ~0x10) & (((regs)->ipend & ~0x10) - 1)))
--#define instruction_pointer(regs) ((regs)->pc)
--#define user_stack_pointer(regs)  ((regs)->usp)
--#define profile_pc(regs) instruction_pointer(regs)
- extern void show_regs(struct pt_regs *);
+diff -puN arch/mn10300/kernel/smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask arch/mn10300/kernel/smp.c
+--- a/arch/mn10300/kernel/smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask
++++ a/arch/mn10300/kernel/smp.c
+@@ -986,7 +986,7 @@ int __cpu_disable(void)
+ 		return -EBUSY;
  
- #define arch_has_single_step()	(1)
-@@ -128,6 +125,8 @@ extern int is_user_addr_valid(struct tas
- 	    ((unsigned long)task_stack_page(task) + \
- 	     (THREAD_SIZE - sizeof(struct pt_regs)))
+ 	migrate_irqs();
+-	cpu_clear(cpu, current->active_mm->cpu_vm_mask);
++	cpu_clear(cpu, mm_cpumask(current->active_mm));
+ 	return 0;
+ }
  
-+#include <asm-generic/ptrace.h>
-+
- #endif  /*  __KERNEL__  */
+diff -puN arch/mn10300/mm/tlb-smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask arch/mn10300/mm/tlb-smp.c
+--- a/arch/mn10300/mm/tlb-smp.c~mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask
++++ a/arch/mn10300/mm/tlb-smp.c
+@@ -146,7 +146,7 @@ void flush_tlb_mm(struct mm_struct *mm)
+ 	cpumask_t cpu_mask;
  
- #endif				/* __ASSEMBLY__ */
+ 	preempt_disable();
+-	cpu_mask = mm->cpu_vm_mask;
++	cpu_mask = mm_cpumask(mm);
+ 	cpu_clear(smp_processor_id(), cpu_mask);
+ 
+ 	local_flush_tlb();
+@@ -165,7 +165,7 @@ void flush_tlb_current_task(void)
+ 	cpumask_t cpu_mask;
+ 
+ 	preempt_disable();
+-	cpu_mask = mm->cpu_vm_mask;
++	cpu_mask = mm_cpumask(mm);
+ 	cpu_clear(smp_processor_id(), cpu_mask);
+ 
+ 	local_flush_tlb();
+@@ -186,7 +186,7 @@ void flush_tlb_page(struct vm_area_struc
+ 	cpumask_t cpu_mask;
+ 
+ 	preempt_disable();
+-	cpu_mask = mm->cpu_vm_mask;
++	cpu_mask = mm_cpumask(mm);
+ 	cpu_clear(smp_processor_id(), cpu_mask);
+ 
+ 	local_flush_tlb_page(mm, va);
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-linux-next.patch
-net-irda-convert-bfin_sir-to-common-blackfin-uart-header.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-asm-generic-ptraceh-start-a-common-low-level-ptrace-helper.patch
-blackfin-convert-to-asm-generic-ptraceh.patch
-x86-convert-to-asm-generic-ptraceh.patch
-sh-convert-to-asm-generic-ptraceh.patch
-kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
-proc-constify-status-array.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
