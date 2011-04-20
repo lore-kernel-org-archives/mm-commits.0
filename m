@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-print-vmalloc-state-after-allocation-failures.patch added to -mm tree
-Date: Wed, 20 Apr 2011 15:57:32 -0700
-Message-ID: <201104202257.p3KMvXj3032330@imap1.linux-foundation.org>
+Subject: + memcg-update-documentation-to-describe-usage_in_bytes.patch added to -mm tree
+Date: Wed, 20 Apr 2011 16:01:50 -0700
+Message-ID: <201104202301.p3KN1ob3032498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752737Ab1DTW5z (ORCPT
+	by vger.kernel.org with ESMTP id S1752413Ab1DTXCH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 18:57:55 -0400
+	Wed, 20 Apr 2011 19:02:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mina86@mina86.com, rientjes@google.com
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     mm: print vmalloc() state after allocation failures
+     memcg: update documentation to describe usage_in_bytes
 has been added to the -mm tree.  Its filename is
-     mm-print-vmalloc-state-after-allocation-failures.patch
+     memcg-update-documentation-to-describe-usage_in_bytes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: print vmalloc() state after allocation failures
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: memcg: update documentation to describe usage_in_bytes
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-I was tracking down a page allocation failure that ended up in vmalloc(). 
-Since vmalloc() uses 0-order pages, if somebody asks for an insane amount
-of memory, we'll still get a warning with "order:0" in it.  That's not
-very useful.
+Since 569b846d ("memcg: coalesce uncharge during unmap/truncate"), we do
+batched (delayed) uncharge at truncation/unmap.  And since cdec2e42(memcg:
+coalesce charging via percpu storage), we have percpu cache for
+res_counter.
 
-During recovery, vmalloc() also nicely frees all of the memory that it got
-up to the point of the failure.  That is wonderful, but it also quickly
-hides any issues.  We have a much different sitation if vmalloc()
-repeatedly fails 10GB in to:
+These changes improved performance of memory cgroup very much, but made
+res_counter->usage usually have a bigger value than the actual value of
+memory usage.  So, *.usage_in_bytes, which show res_counter->usage, are
+not desirable for precise values of memory(and swap) usage anymore.
 
-	vmalloc(100 * 1<<30);
+Instead of removing these files completely(because we cannot know
+res_counter->usage without them), this patch updates the meaning of those
+files.
 
-versus repeatedly failing 4096 bytes in to a:
-
-	vmalloc(8192);
-
-This patch will print out messages that look like this:
-
-[   68.123503] vmalloc: allocation failure, allocated 6680576 of 13426688 bytes
-[   68.124218] bash: page allocation failure: order:0, mode:0xd2
-[   68.124811] Pid: 3770, comm: bash Not tainted 2.6.39-rc3-00082-g85f2e68-dirty #333
-[   68.125579] Call Trace:
-[   68.125853]  [<ffffffff810f6da6>] warn_alloc_failed+0x146/0x170
-[   68.126464]  [<ffffffff8107e05c>] ? printk+0x6c/0x70
-[   68.126791]  [<ffffffff8112b5d4>] ? alloc_pages_current+0x94/0xe0
-[   68.127661]  [<ffffffff8111ed37>] __vmalloc_node_range+0x237/0x290
-...
-
-The 'order' variable is added for clarity when calling warn_alloc_failed()
-to avoid having an unexplained '0' as an argument.
-
-The 'tmp_mask' is because adding an open-coded '| __GFP_NOWARN' would take
-us over 80 columns for the alloc_pages_node() call.  If we are going to
-add a line, it might as well be one that makes the sucker easier to read.
-
-As a side issue, I also noticed that ctl_ioctl() does vmalloc() based
-solely on an unverified value passed in from userspace.  Granted, it's
-under CAP_SYS_ADMIN, but it still frightens me a bit.
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ Documentation/cgroups/memory.txt |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures mm/vmalloc.c
---- a/mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures
-+++ a/mm/vmalloc.c
-@@ -1534,6 +1534,7 @@ static void *__vmalloc_node(unsigned lon
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node, void *caller)
- {
-+	const int order = 0;
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
- 	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
-@@ -1560,11 +1561,12 @@ static void *__vmalloc_area_node(struct 
+diff -puN Documentation/cgroups/memory.txt~memcg-update-documentation-to-describe-usage_in_bytes Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-update-documentation-to-describe-usage_in_bytes
++++ a/Documentation/cgroups/memory.txt
+@@ -52,8 +52,10 @@ Brief summary of control files.
+  tasks				 # attach a task(thread) and show list of threads
+  cgroup.procs			 # show list of processes
+  cgroup.event_control		 # an interface for event_fd()
+- memory.usage_in_bytes		 # show current memory(RSS+Cache) usage.
+- memory.memsw.usage_in_bytes	 # show current memory+Swap usage
++ memory.usage_in_bytes		 # show current res_counter usage for memory
++				 (See 5.5 for details)
++ memory.memsw.usage_in_bytes	 # show current res_counter usage for memory+Swap
++				 (See 5.5 for details)
+  memory.limit_in_bytes		 # set/show limit of memory usage
+  memory.memsw.limit_in_bytes	 # set/show limit of memory+Swap usage
+  memory.failcnt			 # show the number of memory usage hits limits
+@@ -453,6 +455,15 @@ memory under it will be reclaimed.
+ You can reset failcnt by writing 0 to failcnt file.
+ # echo 0 > .../memory.failcnt
  
- 	for (i = 0; i < area->nr_pages; i++) {
- 		struct page *page;
-+		gfp_t tmp_mask = gfp_mask | __GFP_NOWARN;
++5.5 usage_in_bytes
++
++For efficiency, as other kernel components, memory cgroup uses some optimization
++to avoid unnecessary cacheline false sharing. usage_in_bytes is affected by the
++method and doesn't show 'exact' value of memory(and swap) usage, it's an fuzz
++value for efficient access. (Of course, when necessary, it's synchronized.)
++If you want to know more exact memory usage, you should use RSS+CACHE(+SWAP)
++value in memory.stat(see 5.2).
++
+ 6. Hierarchy support
  
- 		if (node < 0)
--			page = alloc_page(gfp_mask);
-+			page = alloc_page(tmp_mask);
- 		else
--			page = alloc_pages_node(node, gfp_mask, 0);
-+			page = alloc_pages_node(node, tmp_mask, order);
- 
- 		if (unlikely(!page)) {
- 			/* Successfully allocated i pages, free them in __vunmap() */
-@@ -1579,6 +1581,9 @@ static void *__vmalloc_area_node(struct 
- 	return area->addr;
- 
- fail:
-+	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
-+			  "allocated %ld of %ld bytes\n",
-+			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
- 	return NULL;
- }
+ The memory controller supports a deep hierarchy and hierarchical accounting.
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-mm-increase-reclaim_distance-to-30.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-include-linux-gfph-work-around-apparent-sparse-confusion.patch
-include-linux-gfph-convert-bug_on-into-vm_bug_on.patch
-mm-rename-alloc_pages_exact.patch
-mm-make-new-alloc_pages_exact.patch
-mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
-mm-break-out-page-allocation-warning-code.patch
-mm-print-vmalloc-state-after-allocation-failures.patch
-sparse-define-dummy-build_bug_on-definition-for-sparse.patch
-sparse-define-__must_be_array-for-__checker__.patch
-sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
+memcg-update-documentation-to-describe-usage_in_bytes.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
 
