@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch removed from -mm tree
-Date: Wed, 20 Apr 2011 16:14:25 -0700
-Message-ID: <201104202314.p3KNEPTC000714@imap1.linux-foundation.org>
+Subject: + writeback-sync-expired-inodes-first-in-background-writeback-fix.patch added to -mm tree
+Date: Wed, 20 Apr 2011 16:44:36 -0700
+Message-ID: <201104202344.p3KNia0F002180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752292Ab1DTXOb (ORCPT
+	by vger.kernel.org with ESMTP id S1753567Ab1DTXpJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 19:14:31 -0400
+	Wed, 20 Apr 2011 19:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jes@wildopensource.com, nicolas.ferre@atmel.com, patrice.vilchez@atmel.com, plagnioj@jcrosoft.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com
 
 
 The patch titled
-     lib/genpool.c: document return values, fix gen_pool_add_virt() return value
-has been removed from the -mm tree.  Its filename was
-     lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value.patch
+     writeback-sync-expired-inodes-first-in-background-writeback-fix
+has been added to the -mm tree.  Its filename is
+     writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/genpool.c: document return values, fix gen_pool_add_virt() return value
+Subject: writeback-sync-expired-inodes-first-in-background-writeback-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Jes Sorensen <jes@wildopensource.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Patrice VILCHEZ <patrice.vilchez@atmel.com>
+tweak a comment
+
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    2 ++
- lib/genalloc.c           |    6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/genalloc.h~lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value include/linux/genalloc.h
---- a/include/linux/genalloc.h~lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value
-+++ a/include/linux/genalloc.h
-@@ -45,6 +45,8 @@ extern int gen_pool_add_virt(struct gen_
-  *       allocated on, or -1
-  *
-  * Add a new chunk of special memory to the specified pool.
-+ *
-+ * Returns 0 on success or a -ve errno on failure.
-  */
- static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
- 			       size_t size, int nid)
-diff -puN lib/genalloc.c~lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value lib/genalloc.c
---- a/lib/genalloc.c~lib-genpoolc-document-return-values-fix-gen_pool_add_virt-return-value
-+++ a/lib/genalloc.c
-@@ -48,6 +48,8 @@ EXPORT_SYMBOL(gen_pool_create);
-  *       allocated on, or -1
-  *
-  * Add a new chunk of special memory to the specified pool.
-+ *
-+ * Returns 0 on success or a -ve errno on failure.
-  */
- int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, unsigned long phys,
- 		 size_t size, int nid)
-@@ -59,7 +61,7 @@ int gen_pool_add_virt(struct gen_pool *p
- 
- 	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
- 	if (unlikely(chunk == NULL))
--		return -1;
-+		return -ENOMEM;
- 
- 	spin_lock_init(&chunk->lock);
- 	chunk->phys_addr = phys;
-@@ -78,6 +80,8 @@ EXPORT_SYMBOL(gen_pool_add_virt);
-  * gen_pool_virt_to_phys - return the physical address of memory
-  * @pool: pool to allocate from
-  * @addr: starting address of memory
-+ *
-+ * Returns the physical address on success, or ~0UL on error.
-  */
- unsigned long gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
- {
+diff -puN fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback-fix
++++ a/fs/fs-writeback.c
+@@ -744,10 +744,10 @@ retry:
+ 		if (wbc.inodes_cleaned)
+ 			continue;
+ 		/*
+-		 * background writeback will start with expired inodes, and
+-		 * if none is found, fallback to all inodes. This order helps
+-		 * reduce the number of dirty pages reaching the end of LRU
+-		 * lists and cause trouble to the page reclaim.
++		 * background writeback will start with expired inodes and if
++		 * none are found, fall back to all inodes. This order helps
++		 * reduce the number of dirty pages reaching the end of LRU lists
++		 * and causing difficulty in page reclaim.
+ 		 */
+ 		if (work->for_background &&
+ 		    wbc.older_than_this &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +92,7 @@ mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
 mm-mmu_gather-rework-fix.patch
 mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
