@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-sync-expired-inodes-first-in-background-writeback.patch added to -mm tree
-Date: Wed, 20 Apr 2011 16:44:34 -0700
-Message-ID: <201104202344.p3KNiYqV002177@imap1.linux-foundation.org>
+Subject: + writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch added to -mm tree
+Date: Wed, 20 Apr 2011 16:44:32 -0700
+Message-ID: <201104202344.p3KNiXKp002174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753567Ab1DTXqC (ORCPT
+	by vger.kernel.org with ESMTP id S1753567Ab1DTXqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 19:46:02 -0400
+	Wed, 20 Apr 2011 19:46:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.
 
 
 The patch titled
-     writeback: sync expired inodes first in background writeback
+     writeback: the kupdate expire timestamp should be a moving target
 has been added to the -mm tree.  Its filename is
-     writeback-sync-expired-inodes-first-in-background-writeback.patch
+     writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: sync expired inodes first in background writeback
+Subject: writeback: the kupdate expire timestamp should be a moving target
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-A background flush work may run for ever.  So it's reasonable for it to
-mimic the kupdate behavior of syncing old/expired inodes first.
+Dynamically compute the dirty expire timestamp at queue_io() time.
 
-At each queue_io() time, first try enqueuing only newly expired inodes. 
-If there are zero expired inodes to work with, then relax the rule and
-enqueue all dirty inodes.
+writeback_control.older_than_this used to be determined at entrance to the
+kupdate writeback work.  This _static_ timestamp may go stale if the
+kupdate work runs on and on.  The flusher may then stuck with some old
+busy inodes, never considering newly expired inodes thereafter.
 
-This will help reduce the number of dirty pages encountered by page
-reclaim, eg.  the pageout() calls.  Normally older inodes contain older
-dirty pages, which are more close to the end of the LRU lists.  So syncing
-older inodes first helps reducing the dirty pages reached by the page
-reclaim code.
+This has two possible problems:
 
-More background: as Mel put it, "it makes sense to write old pages first
-to reduce the chances page reclaim is initiating IO."
+- It is unfair for a large dirty inode to delay (for a long time) the
+  writeback of small dirty inodes.
 
-Rik also presented the situation with a graph:
-
-LRU head                                 [*] dirty page
-[                          *              *      * *  *  * * * * * *]
-
-Ideally, most dirty pages should lie close to the LRU tail instead of LRU
-head.  That requires the flusher thread to sync old/expired inodes first
-(as there are obvious correlations between inode age and page age), and to
-give fair opportunities to newly expired inodes rather than sticking with
-some large eldest inodes (as larger inodes have weaker correlations in the
-inode<=>page ages).
-
-This patch helps the flusher to meet both the above requirements.
-
-Side effects: it might reduce the batch size and hence reduce
-inode_wb_list_lock hold time, but in turn make the cluster-by-partition
-logic in the same function less effective on reducing disk seeks.
+- As time goes by, the large and busy dirty inode may contain only
+  _freshly_ dirtied pages. Ignoring newly expired dirty inodes risks
+  delaying the expired dirty pages to the end of LRU lists, triggering
+  the evil pageout(). Nevertheless this patch merely addresses part
+  of the problem.
 
 v2: keep policy changes inside wb_writeback() and keep the
 wbc.older_than_this visibility as suggested by Dave.
 
+Signed-off-by: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback
+diff -puN fs/fs-writeback.c~writeback-the-kupdate-expire-timestamp-should-be-a-moving-target fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-the-kupdate-expire-timestamp-should-be-a-moving-target
 +++ a/fs/fs-writeback.c
-@@ -709,7 +709,7 @@ static long wb_writeback(struct bdi_writ
+@@ -661,11 +661,6 @@ static long wb_writeback(struct bdi_writ
+ 	long write_chunk;
+ 	struct inode *inode;
+ 
+-	if (wbc.for_kupdate) {
+-		wbc.older_than_this = &oldest_jif;
+-		oldest_jif = jiffies -
+-				msecs_to_jiffies(dirty_expire_interval * 10);
+-	}
+ 	if (!wbc.range_cyclic) {
+ 		wbc.range_start = 0;
+ 		wbc.range_end = LLONG_MAX;
+@@ -714,6 +709,12 @@ static long wb_writeback(struct bdi_writ
  		if (work->for_background && !over_bground_thresh())
  			break;
  
--		if (work->for_kupdate) {
-+		if (work->for_kupdate || work->for_background) {
- 			oldest_jif = jiffies -
- 				msecs_to_jiffies(dirty_expire_interval * 10);
- 			wbc.older_than_this = &oldest_jif;
-@@ -720,6 +720,7 @@ static long wb_writeback(struct bdi_writ
- 		wbc.pages_skipped = 0;
- 		wbc.inodes_cleaned = 0;
- 
-+retry:
- 		trace_wbc_writeback_start(&wbc, wb->bdi);
- 		if (work->sb)
- 			__writeback_inodes_sb(work->sb, wb, &wbc);
-@@ -743,6 +744,19 @@ static long wb_writeback(struct bdi_writ
- 		if (wbc.inodes_cleaned)
- 			continue;
- 		/*
-+		 * background writeback will start with expired inodes, and
-+		 * if none is found, fallback to all inodes. This order helps
-+		 * reduce the number of dirty pages reaching the end of LRU
-+		 * lists and cause trouble to the page reclaim.
-+		 */
-+		if (work->for_background &&
-+		    wbc.older_than_this &&
-+		    list_empty(&wb->b_io) &&
-+		    list_empty(&wb->b_more_io)) {
-+			wbc.older_than_this = NULL;
-+			goto retry;
++		if (work->for_kupdate) {
++			oldest_jif = jiffies -
++				msecs_to_jiffies(dirty_expire_interval * 10);
++			wbc.older_than_this = &oldest_jif;
 +		}
-+		/*
- 		 * No more inodes for IO, bail
- 		 */
- 		if (!wbc.more_io)
++
+ 		wbc.more_io = 0;
+ 		wbc.nr_to_write = write_chunk;
+ 		wbc.pages_skipped = 0;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
