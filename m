@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + x86-signal-handle_signal-should-use-set_current_blocked.patch added to -mm tree
-Date: Wed, 20 Apr 2011 14:19:03 -0700
-Message-ID: <201104202119.p3KLJ3eB027684@imap1.linux-foundation.org>
+Subject: + signal-sigprocmask-should-do-retarget_shared_pending.patch added to -mm tree
+Date: Wed, 20 Apr 2011 14:19:01 -0700
+Message-ID: <201104202119.p3KLJ2LC027677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756061Ab1DTVTZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755861Ab1DTVTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 20 Apr 2011 17:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyous
 
 
 The patch titled
-     x86: signal: handle_signal() should use set_current_blocked()
+     signal: sigprocmask() should do retarget_shared_pending()
 has been added to the -mm tree.  Its filename is
-     x86-signal-handle_signal-should-use-set_current_blocked.patch
+     signal-sigprocmask-should-do-retarget_shared_pending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: signal: handle_signal() should use set_current_blocked()
+Subject: signal: sigprocmask() should do retarget_shared_pending()
 From: Oleg Nesterov <oleg@redhat.com>
 
-This is ugly, but if sigprocmask() needs retarget_shared_pending() then
-handle signal should follow this logic.  In theory it is newer correct to
-add the new signals to current->blocked, the signal handler can sleep/etc
-so we should notify other threads in case we block the pending signal and
-nobody else has TIF_SIGPENDING.
+In short, almost every changing of current->blocked is wrong, or at least
+can lead to the unexpected results.
 
-Of course, this change doesn't make signals faster :/
+For example.  Two threads T1 and T2, T1 sleeps in sigtimedwait/pause/etc. 
+kill(tgid, SIG) can pick T2 for TIF_SIGPENDING.  If T2 calls sigprocmask()
+and blocks SIG before it notices the pending signal, nobody else can
+handle this pending shared signal.
+
+I am not sure this is bug, but at least this looks strange imho.  T1
+should not sleep forever, there is a signal which should wake it up.
+
+This patch moves the code which actually changes ->blocked into the new
+helper, set_current_blocked() and changes this code to call
+retarget_shared_pending() as exit_signals() does.  We should only care
+about the signals we just blocked, we use "newset & ~current->blocked" as
+a mask.
+
+We do not check !sigisemptyset(newblocked), retarget_shared_pending() is
+cheap unless mask & shared_pending.
+
+Note: for this particular case we could simply change sigprocmask() to
+return -EINTR if signal_pending(), but then we should change other callers
+and, more importantly, if we need this fix then set_current_blocked() will
+have more callers and some of them can't restart.  See the next patch as a
+random example.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -55,36 +73,59 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/signal.h |    1 +
+ kernel/signal.c        |   21 ++++++++++++++++-----
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked arch/x86/kernel/signal.c
---- a/arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked
-+++ a/arch/x86/kernel/signal.c
-@@ -682,6 +682,7 @@ static int
- handle_signal(unsigned long sig, siginfo_t *info, struct k_sigaction *ka,
- 	      sigset_t *oldset, struct pt_regs *regs)
- {
-+	sigset_t blocked;
- 	int ret;
+diff -puN include/linux/signal.h~signal-sigprocmask-should-do-retarget_shared_pending include/linux/signal.h
+--- a/include/linux/signal.h~signal-sigprocmask-should-do-retarget_shared_pending
++++ a/include/linux/signal.h
+@@ -243,6 +243,7 @@ extern long do_rt_tgsigqueueinfo(pid_t t
+ 				 siginfo_t *info);
+ extern long do_sigpending(void __user *, unsigned long);
+ extern int sigprocmask(int, sigset_t *, sigset_t *);
++extern void set_current_blocked(const sigset_t *);
+ extern int show_unhandled_signals;
  
- 	/* Are we from a system call? */
-@@ -741,12 +742,10 @@ handle_signal(unsigned long sig, siginfo
- 	 */
- 	regs->flags &= ~X86_EFLAGS_TF;
+ struct pt_regs;
+diff -puN kernel/signal.c~signal-sigprocmask-should-do-retarget_shared_pending kernel/signal.c
+--- a/kernel/signal.c~signal-sigprocmask-should-do-retarget_shared_pending
++++ a/kernel/signal.c
+@@ -2298,6 +2298,21 @@ long do_no_restart_syscall(struct restar
+ 	return -EINTR;
+ }
  
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
-+	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
- 	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
++void set_current_blocked(const sigset_t *newset)
++{
++	struct task_struct *tsk = current;
++
++	spin_lock_irq(&tsk->sighand->siglock);
++	if (signal_pending(tsk) && !thread_group_empty(tsk)) {
++		sigset_t newblocked;
++		signandsets(&newblocked, newset, &current->blocked);
++		retarget_shared_pending(tsk, &newblocked);
++	}
++	tsk->blocked = *newset;
++	recalc_sigpending();
++	spin_unlock_irq(&tsk->sighand->siglock);
++}
++
+ /*
+  * This is also useful for kernel threads that want to temporarily
+  * (or permanently) block certain signals.
+@@ -2329,11 +2344,7 @@ int sigprocmask(int how, sigset_t *set, 
+ 		return -EINVAL;
+ 	}
+ 
+-	spin_lock_irq(&tsk->sighand->siglock);
+-	tsk->blocked = newset;
 -	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+		sigaddset(&blocked, sig);
-+	set_current_blocked(&blocked);
+-	spin_unlock_irq(&tsk->sighand->siglock);
+-
++	set_current_blocked(&newset);
+ 	return 0;
+ }
  
- 	tracehook_signal_handler(sig, info, ka, regs,
- 				 test_thread_flag(TIF_SINGLESTEP));
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
