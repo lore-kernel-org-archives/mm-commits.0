@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + signal-sigprocmask-narrow-the-scope-of-siglock.patch added to -mm tree
-Date: Wed, 20 Apr 2011 14:18:59 -0700
-Message-ID: <201104202119.p3KLIxYa027667@imap1.linux-foundation.org>
+Subject: + signal-retarget_shared_pending-optimize-while_each_thread-loop.patch added to -mm tree
+Date: Wed, 20 Apr 2011 14:18:57 -0700
+Message-ID: <201104202118.p3KLIwaG027664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755863Ab1DTVTS (ORCPT
+	by vger.kernel.org with ESMTP id S1755863Ab1DTVTT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 17:19:18 -0400
+	Wed, 20 Apr 2011 17:19:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyous
 
 
 The patch titled
-     signal: sigprocmask: narrow the scope of ->siglock
+     signal: retarget_shared_pending: optimize while_each_thread() loop
 has been added to the -mm tree.  Its filename is
-     signal-sigprocmask-narrow-the-scope-of-siglock.patch
+     signal-retarget_shared_pending-optimize-while_each_thread-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal: sigprocmask: narrow the scope of ->siglock
+Subject: signal: retarget_shared_pending: optimize while_each_thread() loop
 From: Oleg Nesterov <oleg@redhat.com>
 
-No functional changes, preparation to simplify the review of the next change.
+retarget_shared_pending() blindly does recalc_sigpending_and_wake() for
+every sub-thread, this is suboptimal.  We can check t->blocked and stop
+looping once every bit in shared_pending has the new target.
 
-1. We can read current->block lockless, nobody else can ever change this mask.
-
-2. Calculate the resulting sigset_t outside of ->siglock into the temporary
-   variable, then take ->siglock and change ->blocked.
-
-Also, kill the stale comment about BKL.
+Note: we do not take task_is_stopped_or_traced(t) into account, we are not
+trying to speed up the signal delivery or to avoid the unnecessary (but
+harmless) signal_wake_up(0) in this unlikely case.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -56,69 +55,33 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ kernel/signal.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-siglock kernel/signal.c
---- a/kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-siglock
+diff -puN kernel/signal.c~signal-retarget_shared_pending-optimize-while_each_thread-loop kernel/signal.c
+--- a/kernel/signal.c~signal-retarget_shared_pending-optimize-while_each_thread-loop
 +++ a/kernel/signal.c
-@@ -2299,12 +2299,6 @@ long do_no_restart_syscall(struct restar
- }
+@@ -2214,8 +2214,18 @@ static void retarget_shared_pending(stru
  
- /*
-- * We don't need to get the kernel lock - this is all local to this
-- * particular thread.. (and that's good, because this is _heavily_
-- * used by various programs)
-- */
--
--/*
-  * This is also useful for kernel threads that want to temporarily
-  * (or permanently) block certain signals.
-  *
-@@ -2314,30 +2308,33 @@ long do_no_restart_syscall(struct restar
-  */
- int sigprocmask(int how, sigset_t *set, sigset_t *oldset)
- {
--	int error;
-+	struct task_struct *tsk = current;
-+	sigset_t newset;
- 
--	spin_lock_irq(&current->sighand->siglock);
-+	/* Lockless, only current can change ->blocked, never from irq */
- 	if (oldset)
--		*oldset = current->blocked;
-+		*oldset = tsk->blocked;
- 
--	error = 0;
- 	switch (how) {
- 	case SIG_BLOCK:
--		sigorsets(&current->blocked, &current->blocked, set);
-+		sigorsets(&newset, &tsk->blocked, set);
- 		break;
- 	case SIG_UNBLOCK:
--		signandsets(&current->blocked, &current->blocked, set);
-+		signandsets(&newset, &tsk->blocked, set);
- 		break;
- 	case SIG_SETMASK:
--		current->blocked = *set;
-+		newset = *set;
- 		break;
- 	default:
--		error = -EINVAL;
-+		return -EINVAL;
- 	}
+ 	t = tsk;
+ 	while_each_thread(tsk, t) {
+-		if (!signal_pending(t) && !(t->flags & PF_EXITING))
+-			recalc_sigpending_and_wake(t);
++		if ((t->flags & PF_EXITING))
++			continue;
++		if (!has_pending_signals(&shared_pending, &t->blocked))
++			continue;
 +
-+	spin_lock_irq(&tsk->sighand->siglock);
-+	tsk->blocked = newset;
- 	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	spin_unlock_irq(&tsk->sighand->siglock);
- 
--	return error;
-+	return 0;
++		sigandsets(&shared_pending, &shared_pending, &t->blocked);
++
++		if (!signal_pending(t))
++			signal_wake_up(t, 0);
++
++		if (sigisemptyset(&shared_pending))
++			break;
+ 	}
  }
  
- /**
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
