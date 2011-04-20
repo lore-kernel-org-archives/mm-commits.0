@@ -1,34 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] signal-introduce-retarget_shared_pending.patch removed from -mm tree
-Date: Wed, 20 Apr 2011 14:13:46 -0700
-Message-ID: <201104202113.p3KLDl4x027424@imap1.linux-foundation.org>
+Subject: [to-be-updated] signal-sigprocmask-narrow-the-scope-of-sigloc.patch removed from -mm tree
+Date: Wed, 20 Apr 2011 14:13:53 -0700
+Message-ID: <201104202113.p3KLDrBU027430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135Ab1DTVOM (ORCPT
+	by vger.kernel.org with ESMTP id S1752135Ab1DTVOR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 17:14:12 -0400
+	Wed, 20 Apr 2011 17:14:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyoushchenko@mvista.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal: introduce retarget_shared_pending()
+     signal: sigprocmask: narrow the scope of ->sigloc
 has been removed from the -mm tree.  Its filename was
-     signal-introduce-retarget_shared_pending.patch
+     signal-sigprocmask-narrow-the-scope-of-sigloc.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal: introduce retarget_shared_pending()
+Subject: signal: sigprocmask: narrow the scope of ->sigloc
 From: Oleg Nesterov <oleg@redhat.com>
 
-No functional changes.  Move the notyfy-other-threads code from
-exit_signals() to the new helper, retarget_shared_pending().
+No functional changes, preparation to simplify the review of the next change.
+
+1. We can read current->block lockless, nobody else can ever change this mask.
+
+2. Calculate the resulting sigset_t outside of ->siglock into the temporary
+   variable, then take ->siglock and change ->blocked.
+
+Also, kill the stale comment about BKL.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -40,55 +46,68 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ kernel/signal.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN kernel/signal.c~signal-introduce-retarget_shared_pending kernel/signal.c
---- a/kernel/signal.c~signal-introduce-retarget_shared_pending
+diff -puN kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-sigloc kernel/signal.c
+--- a/kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-sigloc
 +++ a/kernel/signal.c
-@@ -2198,10 +2198,25 @@ relock:
- 	return signr;
+@@ -2284,12 +2284,6 @@ long do_no_restart_syscall(struct restar
  }
  
-+/*
-+ * It could be that complete_signal() picked us to notify about the
-+ * group-wide signal. Another thread should be notified now to take
-+ * the signal since we will not.
-+ */
-+static void retarget_shared_pending(struct task_struct *tsk)
-+{
-+	struct task_struct *t;
-+
-+	t = tsk;
-+	while_each_thread(tsk, t) {
-+		if (!signal_pending(t) && !(t->flags & PF_EXITING))
-+			recalc_sigpending_and_wake(t);
-+	}
-+}
-+
- void exit_signals(struct task_struct *tsk)
+ /*
+- * We don't need to get the kernel lock - this is all local to this
+- * particular thread.. (and that's good, because this is _heavily_
+- * used by various programs)
+- */
+-
+-/*
+  * This is also useful for kernel threads that want to temporarily
+  * (or permanently) block certain signals.
+  *
+@@ -2299,30 +2293,32 @@ long do_no_restart_syscall(struct restar
+  */
+ int sigprocmask(int how, sigset_t *set, sigset_t *oldset)
  {
- 	int group_stop = 0;
--	struct task_struct *t;
+-	int error;
++	struct task_struct *tsk = current;
++	sigset_t newset;
  
- 	if (thread_group_empty(tsk) || signal_group_exit(tsk->signal)) {
- 		tsk->flags |= PF_EXITING;
-@@ -2217,14 +2232,7 @@ void exit_signals(struct task_struct *ts
- 	if (!signal_pending(tsk))
- 		goto out;
+-	spin_lock_irq(&current->sighand->siglock);
+ 	if (oldset)
+-		*oldset = current->blocked;
++		*oldset = tsk->blocked;
  
--	/*
--	 * It could be that __group_complete_signal() choose us to
--	 * notify about group-wide signal. Another thread should be
--	 * woken now to take the signal since we will not.
--	 */
--	for (t = tsk; (t = next_thread(t)) != tsk; )
--		if (!signal_pending(t) && !(t->flags & PF_EXITING))
--			recalc_sigpending_and_wake(t);
-+	retarget_shared_pending(tsk);
+-	error = 0;
+ 	switch (how) {
+ 	case SIG_BLOCK:
+-		sigorsets(&current->blocked, &current->blocked, set);
++		sigorsets(&newset, &tsk->blocked, set);
+ 		break;
+ 	case SIG_UNBLOCK:
+-		signandsets(&current->blocked, &current->blocked, set);
++		signandsets(&newset, &tsk->blocked, set);
+ 		break;
+ 	case SIG_SETMASK:
+-		current->blocked = *set;
++		newset = *set;
+ 		break;
+ 	default:
+-		error = -EINVAL;
++		return -EINVAL;
+ 	}
++
++	spin_lock_irq(&tsk->sighand->siglock);
++	tsk->blocked = newset;
+ 	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	spin_unlock_irq(&tsk->sighand->siglock);
  
- 	if (unlikely(tsk->group_stop & GROUP_STOP_PENDING) &&
- 	    task_participate_group_stop(tsk))
+-	return error;
++	return 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -103,8 +122,6 @@ blackfin-convert-to-asm-generic-ptraceh.patch
 x86-convert-to-asm-generic-ptraceh.patch
 sh-convert-to-asm-generic-ptraceh.patch
 kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
-signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch
-signal-sigprocmask-narrow-the-scope-of-sigloc.patch
 signal-sigprocmask-should-do-retarget_shared_pending.patch
 x86-signal-handle_signal-should-use-sigprocmask.patch
 x86-signal-sys_rt_sigreturn-should-use-sigprocmask.patch
