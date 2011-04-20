@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch added to -mm tree
-Date: Wed, 20 Apr 2011 14:19:05 -0700
-Message-ID: <201104202119.p3KLJ5YD027689@imap1.linux-foundation.org>
+Subject: + x86-signal-handle_signal-should-use-set_current_blocked.patch added to -mm tree
+Date: Wed, 20 Apr 2011 14:19:03 -0700
+Message-ID: <201104202119.p3KLJ3eB027684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57727 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755861Ab1DTVTW (ORCPT
+	by vger.kernel.org with ESMTP id S1756061Ab1DTVTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 17:19:22 -0400
+	Wed, 20 Apr 2011 17:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyous
 
 
 The patch titled
-     x86: signal: sys_rt_sigreturn() should use set_current_blocked()
+     x86: signal: handle_signal() should use set_current_blocked()
 has been added to the -mm tree.  Its filename is
-     x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
+     x86-signal-handle_signal-should-use-set_current_blocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: signal: sys_rt_sigreturn() should use set_current_blocked()
+Subject: x86: signal: handle_signal() should use set_current_blocked()
 From: Oleg Nesterov <oleg@redhat.com>
 
-Normally sys_rt_sigreturn() restores the old current->blocked which was
-changed by handle_signal(), and unblocking is always fine.
+This is ugly, but if sigprocmask() needs retarget_shared_pending() then
+handle signal should follow this logic.  In theory it is newer correct to
+add the new signals to current->blocked, the signal handler can sleep/etc
+so we should notify other threads in case we block the pending signal and
+nobody else has TIF_SIGPENDING.
 
-But the debugger or application itself can change frame->uc_sigmask and
-thus we need set_current_blocked()->retarget_shared_pending().
+Of course, this change doesn't make signals faster :/
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -53,24 +55,36 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/x86/kernel/signal.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/signal.c~x86-signal-sys_rt_sigreturn-should-use-set_current_blocked arch/x86/kernel/signal.c
---- a/arch/x86/kernel/signal.c~x86-signal-sys_rt_sigreturn-should-use-set_current_blocked
+diff -puN arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked arch/x86/kernel/signal.c
+--- a/arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked
 +++ a/arch/x86/kernel/signal.c
-@@ -601,10 +601,7 @@ long sys_rt_sigreturn(struct pt_regs *re
- 		goto badframe;
+@@ -682,6 +682,7 @@ static int
+ handle_signal(unsigned long sig, siginfo_t *info, struct k_sigaction *ka,
+ 	      sigset_t *oldset, struct pt_regs *regs)
+ {
++	sigset_t blocked;
+ 	int ret;
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
+ 	/* Are we from a system call? */
+@@ -741,12 +742,10 @@ handle_signal(unsigned long sig, siginfo
+ 	 */
+ 	regs->flags &= ~X86_EFLAGS_TF;
+ 
 -	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
+-	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked, sig);
 -	recalc_sigpending();
 -	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
++		sigaddset(&blocked, sig);
++	set_current_blocked(&blocked);
  
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &ax))
- 		goto badframe;
+ 	tracehook_signal_handler(sig, info, ka, regs,
+ 				 test_thread_flag(TIF_SINGLESTEP));
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
