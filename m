@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-use-pte-pages-in-oom-score.patch added to -mm tree
-Date: Wed, 20 Apr 2011 17:04:17 -0700
-Message-ID: <201104210004.p3L04Hg5003081@imap1.linux-foundation.org>
+Subject: + mm-uninline-large-generic-tlbh-functions.patch added to -mm tree
+Date: Wed, 20 Apr 2011 17:11:38 -0700
+Message-ID: <201104210011.p3L0BcbB003333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752292Ab1DUAEe (ORCPT
+	by vger.kernel.org with ESMTP id S1752097Ab1DUALr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 20:04:34 -0400
+	Wed, 20 Apr 2011 20:11:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, oleg@redhat.com, rientjes@google.com, stable@kernel.org
+Cc: a.p.zijlstra@chello.nl, akpm@linux-foundation.org, hughd@google.com
 
 
 The patch titled
-     oom: use pte pages in OOM score
+     mm: uninline large generic tlb.h functions
 has been added to the -mm tree.  Its filename is
-     oom-use-pte-pages-in-oom-score.patch
+     mm-uninline-large-generic-tlbh-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,331 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: use pte pages in OOM score
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: uninline large generic tlb.h functions
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-PTE pages eat up memory just like anything else, but we do not account for
-them in any way in the OOM scores.  They are also _guaranteed_ to get
-freed up when a process is OOM killed, while RSS is not.
+Some of these functions have grown beyond inline sanity, move them
+out-of-line.
 
-Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@kernel.org>		[2.6.36+]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Requested-by: Andrew Morton <akpm@linux-foundation.org>
+Requested-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/asm-generic/tlb.h |  135 +++---------------------------------
+ mm/memory.c               |  124 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 135 insertions(+), 124 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-use-pte-pages-in-oom-score mm/oom_kill.c
---- a/mm/oom_kill.c~oom-use-pte-pages-in-oom-score
-+++ a/mm/oom_kill.c
-@@ -172,10 +172,13 @@ unsigned int oom_badness(struct task_str
+diff -puN include/asm-generic/tlb.h~mm-uninline-large-generic-tlbh-functions include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-uninline-large-generic-tlbh-functions
++++ a/include/asm-generic/tlb.h
+@@ -96,134 +96,25 @@ struct mmu_gather {
+ 	struct page		*__pages[MMU_GATHER_BUNDLE];
+ };
  
- 	/*
- 	 * The baseline for the badness score is the proportion of RAM that each
--	 * task's rss and swap space use.
-+	 * task's rss, pagetable and swap space use.
- 	 */
--	points = (get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS)) * 1000 /
--			totalpages;
-+	points = get_mm_rss(p->mm) + p->mm->nr_ptes;
-+	points += get_mm_counter(p->mm, MM_SWAPENTS);
+-/*
+- * For UP we don't need to worry about TLB flush
+- * and page free order so much..
+- */
+-#ifdef CONFIG_SMP
+-  #define tlb_fast_mode(tlb) (tlb->fast_mode)
+-#else
+-  #define tlb_fast_mode(tlb) 1
+-#endif
++#define HAVE_GENERIC_MMU_GATHER
+ 
+-static inline int tlb_next_batch(struct mmu_gather *tlb)
++static inline int tlb_fast_mode(struct mmu_gather *tlb)
+ {
+-	struct mmu_gather_batch *batch;
+-
+-	batch = tlb->active;
+-	if (batch->next) {
+-		tlb->active = batch->next;
+-		return 1;
+-	}
+-
+-	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
+-	if (!batch)
+-		return 0;
+-
+-	batch->next = NULL;
+-	batch->nr   = 0;
+-	batch->max  = MAX_GATHER_BATCH;
+-
+-	tlb->active->next = batch;
+-	tlb->active = batch;
+-
++#ifdef CONFIG_SMP
++	return tlb->fast_mode;
++#else
++	/*
++	 * For UP we don't need to worry about TLB flush
++	 * and page free order so much..
++	 */
+ 	return 1;
+-}
+-
+-/* tlb_gather_mmu
+- *	Called to initialize an (on-stack) mmu_gather structure for page-table
+- *	tear-down from @mm. The @fullmm argument is used when @mm is without
+- *	users and we're going to destroy the full address space (exit/execve).
+- */
+-static inline void
+-tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm)
+-{
+-	tlb->mm = mm;
+-
+-	tlb->fullmm     = fullmm;
+-	tlb->need_flush = 0;
+-	tlb->fast_mode  = (num_possible_cpus() == 1);
+-	tlb->local.next = NULL;
+-	tlb->local.nr   = 0;
+-	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
+-	tlb->active     = &tlb->local;
+-
+-#ifdef CONFIG_HAVE_RCU_TABLE_FREE
+-	tlb->batch = NULL;
+ #endif
+ }
+ 
+-static inline void
+-tlb_flush_mmu(struct mmu_gather *tlb)
+-{
+-	struct mmu_gather_batch *batch;
+-
+-	if (!tlb->need_flush)
+-		return;
+-	tlb->need_flush = 0;
+-	tlb_flush(tlb);
+-#ifdef CONFIG_HAVE_RCU_TABLE_FREE
+-	tlb_table_flush(tlb);
+-#endif
+-
+-	if (tlb_fast_mode(tlb))
+-		return;
+-
+-	for (batch = &tlb->local; batch; batch = batch->next) {
+-		free_pages_and_swap_cache(batch->pages, batch->nr);
+-		batch->nr = 0;
+-	}
+-	tlb->active = &tlb->local;
+-}
+-
+-/* tlb_finish_mmu
+- *	Called at the end of the shootdown operation to free up any resources
+- *	that were required.
+- */
+-static inline void
+-tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
+-{
+-	struct mmu_gather_batch *batch, *next;
+-
+-	tlb_flush_mmu(tlb);
+-
+-	/* keep the page table cache within bounds */
+-	check_pgt_cache();
+-
+-	for (batch = tlb->local.next; batch; batch = next) {
+-		next = batch->next;
+-		free_pages((unsigned long)batch, 0);
+-	}
+-	tlb->local.next = NULL;
+-}
+-
+-/* __tlb_remove_page
+- *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)), while
+- *	handling the additional races in SMP caused by other CPUs caching valid
+- *	mappings in their TLBs. Returns the number of free page slots left.
+- *	When out of page slots we must call tlb_flush_mmu().
+- */
+-static inline int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
+-{
+-	struct mmu_gather_batch *batch;
+-
+-	tlb->need_flush = 1;
+-
+-	if (tlb_fast_mode(tlb)) {
+-		free_page_and_swap_cache(page);
+-		return 1; /* avoid calling tlb_flush_mmu() */
+-	}
+-
+-	batch = tlb->active;
+-	batch->pages[batch->nr++] = page;
+-	VM_BUG_ON(batch->nr > batch->max);
+-	if (batch->nr == batch->max) {
+-		if (!tlb_next_batch(tlb))
+-			return 0;
+-	}
+-
+-	return batch->max - batch->nr;
+-}
++void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm);
++void tlb_flush_mmu(struct mmu_gather *tlb);
++void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end);
++int __tlb_remove_page(struct mmu_gather *tlb, struct page *page);
+ 
+ /* tlb_remove_page
+  *	Similar to __tlb_remove_page but will call tlb_flush_mmu() itself when
+diff -puN mm/memory.c~mm-uninline-large-generic-tlbh-functions mm/memory.c
+--- a/mm/memory.c~mm-uninline-large-generic-tlbh-functions
++++ a/mm/memory.c
+@@ -182,7 +182,7 @@ void sync_mm_rss(struct task_struct *tas
+ {
+ 	__sync_task_rss_stat(task, mm);
+ }
+-#else
++#else /* SPLIT_RSS_COUNTING */
+ 
+ #define inc_mm_counter_fast(mm, member) inc_mm_counter(mm, member)
+ #define dec_mm_counter_fast(mm, member) dec_mm_counter(mm, member)
+@@ -191,7 +191,127 @@ static void check_sync_rss_stat(struct t
+ {
+ }
+ 
++#endif /* SPLIT_RSS_COUNTING */
 +
-+	points *= 1000;
-+	points /= totalpages;
- 	task_unlock(p);
++#ifdef HAVE_GENERIC_MMU_GATHER
++
++static int tlb_next_batch(struct mmu_gather *tlb)
++{
++	struct mmu_gather_batch *batch;
++
++	batch = tlb->active;
++	if (batch->next) {
++		tlb->active = batch->next;
++		return 1;
++	}
++
++	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
++	if (!batch)
++		return 0;
++
++	batch->next = NULL;
++	batch->nr   = 0;
++	batch->max  = MAX_GATHER_BATCH;
++
++	tlb->active->next = batch;
++	tlb->active = batch;
++
++	return 1;
++}
++
++/* tlb_gather_mmu
++ *	Called to initialize an (on-stack) mmu_gather structure for page-table
++ *	tear-down from @mm. The @fullmm argument is used when @mm is without
++ *	users and we're going to destroy the full address space (exit/execve).
++ */
++void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm)
++{
++	tlb->mm = mm;
++
++	tlb->fullmm     = fullmm;
++	tlb->need_flush = 0;
++	tlb->fast_mode  = (num_possible_cpus() == 1);
++	tlb->local.next = NULL;
++	tlb->local.nr   = 0;
++	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
++	tlb->active     = &tlb->local;
++
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++	tlb->batch = NULL;
+ #endif
++}
++
++void tlb_flush_mmu(struct mmu_gather *tlb)
++{
++	struct mmu_gather_batch *batch;
++
++	if (!tlb->need_flush)
++		return;
++	tlb->need_flush = 0;
++	tlb_flush(tlb);
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++	tlb_table_flush(tlb);
++#endif
++
++	if (tlb_fast_mode(tlb))
++		return;
++
++	for (batch = &tlb->local; batch; batch = batch->next) {
++		free_pages_and_swap_cache(batch->pages, batch->nr);
++		batch->nr = 0;
++	}
++	tlb->active = &tlb->local;
++}
++
++/* tlb_finish_mmu
++ *	Called at the end of the shootdown operation to free up any resources
++ *	that were required.
++ */
++void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
++{
++	struct mmu_gather_batch *batch, *next;
++
++	tlb_flush_mmu(tlb);
++
++	/* keep the page table cache within bounds */
++	check_pgt_cache();
++
++	for (batch = tlb->local.next; batch; batch = next) {
++		next = batch->next;
++		free_pages((unsigned long)batch, 0);
++	}
++	tlb->local.next = NULL;
++}
++
++/* __tlb_remove_page
++ *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)), while
++ *	handling the additional races in SMP caused by other CPUs caching valid
++ *	mappings in their TLBs. Returns the number of free page slots left.
++ *	When out of page slots we must call tlb_flush_mmu().
++ */
++int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
++{
++	struct mmu_gather_batch *batch;
++
++	tlb->need_flush = 1;
++
++	if (tlb_fast_mode(tlb)) {
++		free_page_and_swap_cache(page);
++		return 1; /* avoid calling tlb_flush_mmu() */
++	}
++
++	batch = tlb->active;
++	batch->pages[batch->nr++] = page;
++	if (batch->nr == batch->max) {
++		if (!tlb_next_batch(tlb))
++			return 0;
++	}
++	VM_BUG_ON(batch->nr > batch->max);
++
++	return batch->max - batch->nr;
++}
++
++#endif /* HAVE_GENERIC_MMU_GATHER */
  
- 	/*
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
+ 
+@@ -268,7 +388,7 @@ void tlb_remove_table(struct mmu_gather 
+ 		tlb_table_flush(tlb);
+ }
+ 
+-#endif
++#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+ 
+ /*
+  * If a p?d_bad entry is found while walking page tables, report
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-oom-use-pte-pages-in-oom-score.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+origin.patch
+linux-next.patch
+net-convert-%p-usage-to-%pk.patch
 mm-mmu_gather-rework.patch
+mm-mmu_gather-rework-fix.patch
 powerpc-mmu_gather-rework.patch
 sparc-mmu_gather-rework.patch
 s390-mmu_gather-rework.patch
@@ -113,21 +377,5 @@ mm-improve-page_lock_anon_vma-comment.patch
 mm-use-refcounts-for-page_lock_anon_vma.patch
 mm-convert-anon_vma-lock-to-a-mutex.patch
 mm-optimize-page_lock_anon_vma-fast-path.patch
-mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
-tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-sparse-define-dummy-build_bug_on-definition-for-sparse.patch
-sparse-define-__must_be_array-for-__checker__.patch
-sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-add-the-pagefault-count-into-memcg-stats.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
 
