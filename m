@@ -1,88 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-agp-genericc-fix-oom-and-buffer-overflow.patch removed from -mm tree
-Date: Thu, 21 Apr 2011 11:16:38 -0700
-Message-ID: <201104211812.p3LICMIV021567@imap1.linux-foundation.org>
+Subject: + um-adjust-current_thread_info-for-gcc-46.patch added to -mm tree
+Date: Thu, 21 Apr 2011 12:25:57 -0700
+Message-ID: <201104211925.p3LJPw3G025365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750948Ab1DUSNR (ORCPT
+	by vger.kernel.org with ESMTP id S1750829Ab1DUT0h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Apr 2011 14:13:17 -0400
+	Thu, 21 Apr 2011 15:26:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: richard@nod.at
 
 
 The patch titled
-     drivers/char/agp/generic.c: fix OOM and buffer overflow
-has been removed from the -mm tree.  Its filename was
-     drivers-char-agp-genericc-fix-oom-and-buffer-overflow.patch
+     um: adjust current_thread_info() for gcc-4.6
+has been added to the -mm tree.  Its filename is
+     um-adjust-current_thread_info-for-gcc-46.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/agp/generic.c: fix OOM and buffer overflow
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: um: adjust current_thread_info() for gcc-4.6
+From: Richard Weinberger <richard@nod.at>
 
-page_count is copied from userspace.  agp_allocate_memory() tries to check
-whether this number is too big, but doesn't take into account the wrap
-case.  Also agp_create_user_memory() doesn't check whether alloc_size is
-calculated from num_agp_pages variable without overflow.  This may lead to
-allocation of too small buffer with following buffer overflow.
+In some cases gcc-4.6 will optimize away current_thread_info().  To
+prevent gcc from doing so the stack address has to be obtained via inline
+asm.
 
-Another problem in agp code is not addressed in the patch - kernel memory
-exhaustion (AGPIOC_RESERVE and AGPIOC_ALLOCATE ioctls).  It is not checked
-whether requested pid is a pid of the caller (no check in
-agpioc_reserve_wrap()).  Each allocation is limited to 16KB, though, there
-is no per-process limit.  This might lead to OOM situation, which is not
-even solved in case of the caller death by OOM killer - the memory is
-allocated for another (faked) process.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/um/include/asm/thread_info.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-oom-and-buffer-overflow drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-oom-and-buffer-overflow
-+++ a/drivers/char/agp/generic.c
-@@ -115,6 +115,9 @@ static struct agp_memory *agp_create_use
- 	struct agp_memory *new;
- 	unsigned long alloc_size = num_agp_pages*sizeof(struct page *);
- 
-+	if (INT_MAX/sizeof(struct page *) < num_agp_pages)
-+		return NULL;
+diff -puN arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-gcc-46 arch/um/include/asm/thread_info.h
+--- a/arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-gcc-46
++++ a/arch/um/include/asm/thread_info.h
+@@ -49,7 +49,10 @@ static inline struct thread_info *curren
+ {
+ 	struct thread_info *ti;
+ 	unsigned long mask = THREAD_SIZE - 1;
+-	ti = (struct thread_info *) (((unsigned long) &ti) & ~mask);
++	void *p;
 +
- 	new = kzalloc(sizeof(struct agp_memory), GFP_KERNEL);
- 	if (new == NULL)
- 		return NULL;
-@@ -234,11 +237,14 @@ struct agp_memory *agp_allocate_memory(s
- 	int scratch_pages;
- 	struct agp_memory *new;
- 	size_t i;
-+	int cur_memory;
++	asm volatile ("" : "=r" (p) : "0" (&ti));
++	ti = (struct thread_info *) (((unsigned long)p) & ~mask);
+ 	return ti;
+ }
  
- 	if (!bridge)
- 		return NULL;
- 
--	if ((atomic_read(&bridge->current_memory_agp) + page_count) > bridge->max_memory_agp)
-+	cur_memory = atomic_read(&bridge->current_memory_agp);
-+	if ((cur_memory + page_count > bridge->max_memory_agp) ||
-+	    (cur_memory + page_count < page_count))
- 		return NULL;
- 
- 	if (type >= AGP_USER_TYPES) {
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from richard@nod.at are
 
-origin.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-aic94xx-world-writable-sysfs-update_bios-file.patch
+um-adjust-current_thread_info-for-gcc-46.patch
+um-mdd-support-for-64-bit-atomic-operations.patch
+uml-fix-hppfs-build.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
 
