@@ -1,135 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-pass-writeback_control-down-to-move_expired_inodes.patch added to -mm tree
-Date: Wed, 20 Apr 2011 17:24:12 -0700
-Message-ID: <201104210024.p3L0OCXl003918@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-agp-genericc-fix-arbitrary-kernel-memory-writes.patch removed from -mm tree
+Date: Thu, 21 Apr 2011 11:16:35 -0700
+Message-ID: <201104211812.p3LICKuV021564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811Ab1DUAZL (ORCPT
+	by vger.kernel.org with ESMTP id S1750887Ab1DUSNR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 20:25:11 -0400
+	Thu, 21 Apr 2011 14:13:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com
+To: segoon@openwall.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: pass writeback_control down to move_expired_inodes()
-has been added to the -mm tree.  Its filename is
-     writeback-pass-writeback_control-down-to-move_expired_inodes.patch
+     drivers/char/agp/generic.c: fix arbitrary kernel memory writes
+has been removed from the -mm tree.  Its filename was
+     drivers-char-agp-genericc-fix-arbitrary-kernel-memory-writes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: pass writeback_control down to move_expired_inodes()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: drivers/char/agp/generic.c: fix arbitrary kernel memory writes
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-This patchset aims to reduce possible pageout() calls by making the
-flusher concentrate a bit more on old/expired dirty inodes.
+pg_start is copied from userspace on AGPIOC_BIND and AGPIOC_UNBIND ioctl
+cmds of agp_ioctl() and passed to agpioc_bind_wrap().  As said in the
+comment, (pg_start + mem->page_count) may wrap in case of AGPIOC_BIND, and
+it is not checked at all in case of AGPIOC_UNBIND.  As a result, user with
+sufficient privileges (usually "video" group) may generate either local
+DoS or privilege escalation.
 
-Rationales and benchmark numbers are provided in patches 5 and 6.
-
-
-This patch:
-
-Pass writeback_control down to move_expired_inodes().
-
-No behavior change.  This will add debug visibility to the code, for
-example, to dump the wbc contents when kprobing queue_io().
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/char/agp/generic.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-pass-writeback_control-down-to-move_expired_inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-pass-writeback_control-down-to-move_expired_inodes
-+++ a/fs/fs-writeback.c
-@@ -251,8 +251,8 @@ static bool inode_dirtied_after(struct i
-  * Move expired dirty inodes from @delaying_queue to @dispatch_queue.
-  */
- static void move_expired_inodes(struct list_head *delaying_queue,
--			       struct list_head *dispatch_queue,
--				unsigned long *older_than_this)
-+				struct list_head *dispatch_queue,
-+				struct writeback_control *wbc)
+diff -puN drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-arbitrary-kernel-memory-writes drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~drivers-char-agp-genericc-fix-arbitrary-kernel-memory-writes
++++ a/drivers/char/agp/generic.c
+@@ -1089,8 +1089,8 @@ int agp_generic_insert_memory(struct agp
+ 		return -EINVAL;
+ 	}
+ 
+-	/* AK: could wrap */
+-	if ((pg_start + mem->page_count) > num_entries)
++	if (((pg_start + mem->page_count) > num_entries) ||
++	    ((pg_start + mem->page_count) < pg_start))
+ 		return -EINVAL;
+ 
+ 	j = pg_start;
+@@ -1124,7 +1124,7 @@ int agp_generic_remove_memory(struct agp
  {
- 	LIST_HEAD(tmp);
- 	struct list_head *pos, *node;
-@@ -262,8 +262,8 @@ static void move_expired_inodes(struct l
+ 	size_t i;
+ 	struct agp_bridge_data *bridge;
+-	int mask_type;
++	int mask_type, num_entries;
  
- 	while (!list_empty(delaying_queue)) {
- 		inode = wb_inode(delaying_queue->prev);
--		if (older_than_this &&
--		    inode_dirtied_after(inode, *older_than_this))
-+		if (wbc->older_than_this &&
-+		    inode_dirtied_after(inode, *wbc->older_than_this))
- 			break;
- 		if (sb && sb != inode->i_sb)
- 			do_sb_sort = 1;
-@@ -299,11 +299,11 @@ static void move_expired_inodes(struct l
-  *                                           |
-  *                                           +--> dequeue for IO
-  */
--static void queue_io(struct bdi_writeback *wb, unsigned long *older_than_this)
-+static void queue_io(struct bdi_writeback *wb, struct writeback_control *wbc)
- {
- 	assert_spin_locked(&inode_wb_list_lock);
- 	list_splice_init(&wb->b_more_io, &wb->b_io);
--	move_expired_inodes(&wb->b_dirty, &wb->b_io, older_than_this);
-+	move_expired_inodes(&wb->b_dirty, &wb->b_io, wbc);
- }
+ 	bridge = mem->bridge;
+ 	if (!bridge)
+@@ -1136,6 +1136,11 @@ int agp_generic_remove_memory(struct agp
+ 	if (type != mem->type)
+ 		return -EINVAL;
  
- static int write_inode(struct inode *inode, struct writeback_control *wbc)
-@@ -579,7 +579,7 @@ void writeback_inodes_wb(struct bdi_writ
- 		wbc->wb_start = jiffies; /* livelock avoidance */
- 	spin_lock(&inode_wb_list_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
--		queue_io(wb, wbc->older_than_this);
-+		queue_io(wb, wbc);
- 
- 	while (!list_empty(&wb->b_io)) {
- 		struct inode *inode = wb_inode(wb->b_io.prev);
-@@ -606,7 +606,7 @@ static void __writeback_inodes_sb(struct
- 
- 	spin_lock(&inode_wb_list_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
--		queue_io(wb, wbc->older_than_this);
-+		queue_io(wb, wbc);
- 	writeback_sb_inodes(sb, wb, wbc, true);
- 	spin_unlock(&inode_wb_list_lock);
- }
++	num_entries = agp_num_entries();
++	if (((pg_start + mem->page_count) > num_entries) ||
++	    ((pg_start + mem->page_count) < pg_start))
++		return -EINVAL;
++
+ 	mask_type = bridge->driver->agp_type_to_mask_type(bridge, type);
+ 	if (mask_type != 0) {
+ 		/* The generic routines know nothing of memory types */
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-writeback-pass-writeback_control-down-to-move_expired_inodes.patch
-writeback-introduce-writeback_controlinodes_cleaned.patch
-writeback-try-more-writeback-as-long-as-something-was-written.patch
-writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-refill-b_io-iff-empty.patch
+origin.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+aic94xx-world-writable-sysfs-update_bios-file.patch
 
