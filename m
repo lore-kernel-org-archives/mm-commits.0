@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-refill-b_io-iff-empty.patch added to -mm tree
-Date: Wed, 20 Apr 2011 16:44:39 -0700
-Message-ID: <201104202344.p3KNid9g002183@imap1.linux-foundation.org>
+Subject: + oom-use-pte-pages-in-oom-score.patch added to -mm tree
+Date: Wed, 20 Apr 2011 17:04:17 -0700
+Message-ID: <201104210004.p3L04Hg5003081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48719 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752408Ab1DTXqM (ORCPT
+	by vger.kernel.org with ESMTP id S1752292Ab1DUAEe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 19:46:12 -0400
+	Wed, 20 Apr 2011 20:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, oleg@redhat.com, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     writeback: refill b_io iff empty
+     oom: use pte pages in OOM score
 has been added to the -mm tree.  Its filename is
-     writeback-refill-b_io-iff-empty.patch
+     oom-use-pte-pages-in-oom-score.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: refill b_io iff empty
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: oom: use pte pages in OOM score
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-There is no point in carrying different refill policies between
-for_kupdate and other type of works.  Use a consistent "refill b_io iff
-empty" policy which can guarantee fairness in an easy to understand way.
+PTE pages eat up memory just like anything else, but we do not account for
+them in any way in the OOM scores.  They are also _guaranteed_ to get
+freed up when a process is OOM killed, while RSS is not.
 
-A b_io refill will setup a _fixed_ work set with all currently eligible
-inodes and start a new round of walking through b_io.  The "fixed" work
-set means no new inodes will be added to the work set during the walk. 
-Only when a complete walk over b_io is done, new inodes that are eligible
-at the time will be enqueued and the walk will be started over.
-
-This procedure provides fairness among the inodes because it guarantees
-that each inode will be synced once and only once in each round.  So all
-inodes will be free from starvation.
-
-This change relies on wb_writeback() keeping retrying as long as we made
-some progress on cleaning some pages and/or inodes.  Without that ability,
-the old logic for background works relies on aggressively queuing all
-eligible inodes into b_io at every time.  But that's not a guarantee.
-
-The below test script completes slightly faster now on XFS:
-
-             2.6.39-rc3	  2.6.39-rc3-dyn-expire+
-================================================
-all elapsed     256.043      252.367
-stddev           24.381       12.530
-
-tar elapsed      30.097       28.808
-dd  elapsed      13.214       11.782
-
-	#!/bin/zsh
-
-	cp /c/linux-2.6.38.3.tar.bz2 /dev/shm/
-
-	umount /dev/sda7
-	mkfs.xfs -f /dev/sda7
-	mount /dev/sda7 /fs
-
-	echo 3 > /proc/sys/vm/drop_caches
-
-	tic=$(cat /proc/uptime|cut -d' ' -f2)
-
-	cd /fs
-	time tar jxf /dev/shm/linux-2.6.38.3.tar.bz2 &
-	time dd if=/dev/zero of=/fs/zero bs=1M count=1000 &
-
-	wait
-	sync
-	tac=$(cat /proc/uptime|cut -d' ' -f2)
-	echo elapsed: $((tac - tic))
-
-It maintains roughly the same small vs.  large file writeout shares, and
-offers large files better chances to be written in nice 4M chunks.
-
-Analysis from Dave Chinner in great detail:
-
-Let's say we have lots of inodes with 100 dirty pages being created, and
-one large writeback going on.  We expire 8 new inodes for every 1024 pages
-we write back.
-
-With the old code, we do:
-
-	b_more_io (large inode) -> b_io (1l)
-	8 newly expired inodes -> b_io (1l, 8s)
-
-	writeback  large inode 1024 pages -> b_more_io
-
-	b_more_io (large inode) -> b_io (8s, 1l)
-	8 newly expired inodes -> b_io (8s, 1l, 8s)
-
-	writeback  8 small inodes 800 pages
-		   1 large inode 224 pages -> b_more_io
-
-	b_more_io (large inode) -> b_io (8s, 1l)
-	8 newly expired inodes -> b_io (8s, 1l, 8s)
-	.....
-
-Your new code:
-
-	b_more_io (large inode) -> b_io (1l)
-	8 newly expired inodes -> b_io (1l, 8s)
-
-	writeback  large inode 1024 pages -> b_more_io
-	(b_io == 8s)
-	writeback  8 small inodes 800 pages
-
-	b_io empty: (1800 pages written)
-		b_more_io (large inode) -> b_io (1l)
-		14 newly expired inodes -> b_io (1l, 14s)
-
-	writeback  large inode 1024 pages -> b_more_io
-	(b_io == 14s)
-	writeback  10 small inodes 1000 pages
-		   1 small inode 24 pages -> b_more_io (1l, 1s(24))
-	writeback  5 small inodes 500 pages
-	b_io empty: (2548 pages written)
-		b_more_io (large inode) -> b_io (1l, 1s(24))
-		20 newly expired inodes -> b_io (1l, 1s(24), 20s)
-	......
-
-Rough progression of pages written at b_io refill:
-
-Old code:
-
-	total	large file	% of writeback
-	1024	224		21.9% (fixed)
-
-New code:
-	total	large file	% of writeback
-	1800	1024		~55%
-	2550	1024		~40%
-	3050	1024		~33%
-	3500	1024		~29%
-	3950	1024		~26%
-	4250	1024		~24%
-	4500	1024		~22.7%
-	4700	1024		~21.7%
-	4800	1024		~21.3%
-	4800	1024		~21.3%
-	(pretty much steady state from here)
-
-Ok, so the steady state is reached with a similar percentage of writeback
-to the large file as the existing code.  Ok, that's good, but providing
-some evidence that is doesn't change the shared of writeback to the large
-should be in the commit message ;)
-
-The other advantage to this is that we always write 1024 page chunks to
-the large file, rather than smaller "whatever remains" chunks.
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Rik van Riel <riel@redhat.com>
+Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org>		[2.6.36+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-refill-b_io-iff-empty fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-refill-b_io-iff-empty
-+++ a/fs/fs-writeback.c
-@@ -579,7 +579,8 @@ void writeback_inodes_wb(struct bdi_writ
- 	if (!wbc->wb_start)
- 		wbc->wb_start = jiffies; /* livelock avoidance */
- 	spin_lock(&inode_wb_list_lock);
--	if (!wbc->for_kupdate || list_empty(&wb->b_io))
+diff -puN mm/oom_kill.c~oom-use-pte-pages-in-oom-score mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-use-pte-pages-in-oom-score
++++ a/mm/oom_kill.c
+@@ -172,10 +172,13 @@ unsigned int oom_badness(struct task_str
+ 
+ 	/*
+ 	 * The baseline for the badness score is the proportion of RAM that each
+-	 * task's rss and swap space use.
++	 * task's rss, pagetable and swap space use.
+ 	 */
+-	points = (get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS)) * 1000 /
+-			totalpages;
++	points = get_mm_rss(p->mm) + p->mm->nr_ptes;
++	points += get_mm_counter(p->mm, MM_SWAPENTS);
 +
-+	if (list_empty(&wb->b_io))
- 		queue_io(wb, wbc);
++	points *= 1000;
++	points /= totalpages;
+ 	task_unlock(p);
  
- 	while (!list_empty(&wb->b_io)) {
-@@ -606,7 +607,7 @@ static void __writeback_inodes_sb(struct
- 	WARN_ON(!rwsem_is_locked(&sb->s_umount));
- 
- 	spin_lock(&inode_wb_list_lock);
--	if (!wbc->for_kupdate || list_empty(&wb->b_io))
-+	if (list_empty(&wb->b_io))
- 		queue_io(wb, wbc);
- 	writeback_sb_inodes(sb, wb, wbc, true);
- 	spin_unlock(&inode_wb_list_lock);
+ 	/*
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+oom-use-pte-pages-in-oom-score.patch
 mm-per-node-vmstat-show-proper-vmstats.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
-writeback-pass-writeback_control-down-to-move_expired_inodes.patch
-writeback-introduce-writeback_controlinodes_cleaned.patch
-writeback-try-more-writeback-as-long-as-something-was-written.patch
-writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-refill-b_io-iff-empty.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
