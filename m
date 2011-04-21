@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-uninline-large-generic-tlbh-functions.patch added to -mm tree
-Date: Wed, 20 Apr 2011 17:11:38 -0700
-Message-ID: <201104210011.p3L0BcbB003333@imap1.linux-foundation.org>
+Subject: + signal-cleanup-sys_rt_sigprocmask.patch added to -mm tree
+Date: Wed, 20 Apr 2011 17:23:53 -0700
+Message-ID: <201104210023.p3L0Nrjr003900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752097Ab1DUALr (ORCPT
+	by vger.kernel.org with ESMTP id S1752420Ab1DUAYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Apr 2011 20:11:47 -0400
+	Wed, 20 Apr 2011 20:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, akpm@linux-foundation.org, hughd@google.com
+Cc: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyoushchenko@mvista.com, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     mm: uninline large generic tlb.h functions
+     signal: cleanup sys_rt_sigprocmask()
 has been added to the -mm tree.  Its filename is
-     mm-uninline-large-generic-tlbh-functions.patch
+     signal-cleanup-sys_rt_sigprocmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,348 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: uninline large generic tlb.h functions
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: signal: cleanup sys_rt_sigprocmask()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Some of these functions have grown beyond inline sanity, move them
-out-of-line.
+sys_rt_sigprocmask() looks unnecessarily complicated, simplify it.  We can
+just read current->blocked lockless unconditionally before anything else
+and then copy-to-user it if needed.  At worst we copy 4 words on mips.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Requested-by: Andrew Morton <akpm@linux-foundation.org>
-Requested-by: Hugh Dickins <hughd@google.com>
+We could copy-to-user the old mask first and simplify the code even more,
+but the patch tries to keep the current behaviour: we change
+current->block even if copy_to_user(oset) fails.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Nikita V. Youshchenko" <nyoushchenko@mvista.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |  135 +++---------------------------------
- mm/memory.c               |  124 ++++++++++++++++++++++++++++++++-
- 2 files changed, 135 insertions(+), 124 deletions(-)
+ kernel/signal.c |   40 +++++++++++++++++-----------------------
+ 1 file changed, 17 insertions(+), 23 deletions(-)
 
-diff -puN include/asm-generic/tlb.h~mm-uninline-large-generic-tlbh-functions include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-uninline-large-generic-tlbh-functions
-+++ a/include/asm-generic/tlb.h
-@@ -96,134 +96,25 @@ struct mmu_gather {
- 	struct page		*__pages[MMU_GATHER_BUNDLE];
- };
- 
--/*
-- * For UP we don't need to worry about TLB flush
-- * and page free order so much..
-- */
--#ifdef CONFIG_SMP
--  #define tlb_fast_mode(tlb) (tlb->fast_mode)
--#else
--  #define tlb_fast_mode(tlb) 1
--#endif
-+#define HAVE_GENERIC_MMU_GATHER
- 
--static inline int tlb_next_batch(struct mmu_gather *tlb)
-+static inline int tlb_fast_mode(struct mmu_gather *tlb)
+diff -puN kernel/signal.c~signal-cleanup-sys_rt_sigprocmask kernel/signal.c
+--- a/kernel/signal.c~signal-cleanup-sys_rt_sigprocmask
++++ a/kernel/signal.c
+@@ -2355,40 +2355,34 @@ int sigprocmask(int how, sigset_t *set, 
+  *  @oset: previous value of signal mask if non-null
+  *  @sigsetsize: size of sigset_t type
+  */
+-SYSCALL_DEFINE4(rt_sigprocmask, int, how, sigset_t __user *, set,
++SYSCALL_DEFINE4(rt_sigprocmask, int, how, sigset_t __user *, nset,
+ 		sigset_t __user *, oset, size_t, sigsetsize)
  {
--	struct mmu_gather_batch *batch;
--
--	batch = tlb->active;
--	if (batch->next) {
--		tlb->active = batch->next;
--		return 1;
--	}
--
--	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
--	if (!batch)
--		return 0;
--
--	batch->next = NULL;
--	batch->nr   = 0;
--	batch->max  = MAX_GATHER_BATCH;
--
--	tlb->active->next = batch;
--	tlb->active = batch;
--
-+#ifdef CONFIG_SMP
-+	return tlb->fast_mode;
-+#else
-+	/*
-+	 * For UP we don't need to worry about TLB flush
-+	 * and page free order so much..
-+	 */
- 	return 1;
--}
--
--/* tlb_gather_mmu
-- *	Called to initialize an (on-stack) mmu_gather structure for page-table
-- *	tear-down from @mm. The @fullmm argument is used when @mm is without
-- *	users and we're going to destroy the full address space (exit/execve).
-- */
--static inline void
--tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm)
--{
--	tlb->mm = mm;
--
--	tlb->fullmm     = fullmm;
--	tlb->need_flush = 0;
--	tlb->fast_mode  = (num_possible_cpus() == 1);
--	tlb->local.next = NULL;
--	tlb->local.nr   = 0;
--	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
--	tlb->active     = &tlb->local;
--
--#ifdef CONFIG_HAVE_RCU_TABLE_FREE
--	tlb->batch = NULL;
- #endif
+-	int error = -EINVAL;
+ 	sigset_t old_set, new_set;
++	int error;
+ 
+-	/* XXX: Don't preclude handling different sized sigset_t's.  */
++	/* Don't preclude handling different sized sigset_t's. */
+ 	if (sigsetsize != sizeof(sigset_t))
+-		goto out;
++		return -EINVAL;
+ 
+-	if (set) {
+-		error = -EFAULT;
+-		if (copy_from_user(&new_set, set, sizeof(*set)))
+-			goto out;
++	old_set = current->blocked;
++
++	if (nset) {
++		if (copy_from_user(&new_set, nset, sizeof(sigset_t)))
++			return -EFAULT;
+ 		sigdelsetmask(&new_set, sigmask(SIGKILL)|sigmask(SIGSTOP));
+ 
+-		error = sigprocmask(how, &new_set, &old_set);
++		error = sigprocmask(how, &new_set, NULL);
+ 		if (error)
+-			goto out;
+-		if (oset)
+-			goto set_old;
+-	} else if (oset) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		old_set = current->blocked;
+-		spin_unlock_irq(&current->sighand->siglock);
++			return error;
++	}
+ 
+-	set_old:
+-		error = -EFAULT;
+-		if (copy_to_user(oset, &old_set, sizeof(*oset)))
+-			goto out;
++	if (oset) {
++		if (copy_to_user(oset, &old_set, sizeof(sigset_t)))
++			return -EFAULT;
+ 	}
+-	error = 0;
+-out:
+-	return error;
++
++	return 0;
  }
  
--static inline void
--tlb_flush_mmu(struct mmu_gather *tlb)
--{
--	struct mmu_gather_batch *batch;
--
--	if (!tlb->need_flush)
--		return;
--	tlb->need_flush = 0;
--	tlb_flush(tlb);
--#ifdef CONFIG_HAVE_RCU_TABLE_FREE
--	tlb_table_flush(tlb);
--#endif
--
--	if (tlb_fast_mode(tlb))
--		return;
--
--	for (batch = &tlb->local; batch; batch = batch->next) {
--		free_pages_and_swap_cache(batch->pages, batch->nr);
--		batch->nr = 0;
--	}
--	tlb->active = &tlb->local;
--}
--
--/* tlb_finish_mmu
-- *	Called at the end of the shootdown operation to free up any resources
-- *	that were required.
-- */
--static inline void
--tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
--{
--	struct mmu_gather_batch *batch, *next;
--
--	tlb_flush_mmu(tlb);
--
--	/* keep the page table cache within bounds */
--	check_pgt_cache();
--
--	for (batch = tlb->local.next; batch; batch = next) {
--		next = batch->next;
--		free_pages((unsigned long)batch, 0);
--	}
--	tlb->local.next = NULL;
--}
--
--/* __tlb_remove_page
-- *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)), while
-- *	handling the additional races in SMP caused by other CPUs caching valid
-- *	mappings in their TLBs. Returns the number of free page slots left.
-- *	When out of page slots we must call tlb_flush_mmu().
-- */
--static inline int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
--{
--	struct mmu_gather_batch *batch;
--
--	tlb->need_flush = 1;
--
--	if (tlb_fast_mode(tlb)) {
--		free_page_and_swap_cache(page);
--		return 1; /* avoid calling tlb_flush_mmu() */
--	}
--
--	batch = tlb->active;
--	batch->pages[batch->nr++] = page;
--	VM_BUG_ON(batch->nr > batch->max);
--	if (batch->nr == batch->max) {
--		if (!tlb_next_batch(tlb))
--			return 0;
--	}
--
--	return batch->max - batch->nr;
--}
-+void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm);
-+void tlb_flush_mmu(struct mmu_gather *tlb);
-+void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end);
-+int __tlb_remove_page(struct mmu_gather *tlb, struct page *page);
- 
- /* tlb_remove_page
-  *	Similar to __tlb_remove_page but will call tlb_flush_mmu() itself when
-diff -puN mm/memory.c~mm-uninline-large-generic-tlbh-functions mm/memory.c
---- a/mm/memory.c~mm-uninline-large-generic-tlbh-functions
-+++ a/mm/memory.c
-@@ -182,7 +182,7 @@ void sync_mm_rss(struct task_struct *tas
- {
- 	__sync_task_rss_stat(task, mm);
- }
--#else
-+#else /* SPLIT_RSS_COUNTING */
- 
- #define inc_mm_counter_fast(mm, member) inc_mm_counter(mm, member)
- #define dec_mm_counter_fast(mm, member) dec_mm_counter(mm, member)
-@@ -191,7 +191,127 @@ static void check_sync_rss_stat(struct t
- {
- }
- 
-+#endif /* SPLIT_RSS_COUNTING */
-+
-+#ifdef HAVE_GENERIC_MMU_GATHER
-+
-+static int tlb_next_batch(struct mmu_gather *tlb)
-+{
-+	struct mmu_gather_batch *batch;
-+
-+	batch = tlb->active;
-+	if (batch->next) {
-+		tlb->active = batch->next;
-+		return 1;
-+	}
-+
-+	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-+	if (!batch)
-+		return 0;
-+
-+	batch->next = NULL;
-+	batch->nr   = 0;
-+	batch->max  = MAX_GATHER_BATCH;
-+
-+	tlb->active->next = batch;
-+	tlb->active = batch;
-+
-+	return 1;
-+}
-+
-+/* tlb_gather_mmu
-+ *	Called to initialize an (on-stack) mmu_gather structure for page-table
-+ *	tear-down from @mm. The @fullmm argument is used when @mm is without
-+ *	users and we're going to destroy the full address space (exit/execve).
-+ */
-+void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, bool fullmm)
-+{
-+	tlb->mm = mm;
-+
-+	tlb->fullmm     = fullmm;
-+	tlb->need_flush = 0;
-+	tlb->fast_mode  = (num_possible_cpus() == 1);
-+	tlb->local.next = NULL;
-+	tlb->local.nr   = 0;
-+	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
-+	tlb->active     = &tlb->local;
-+
-+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
-+	tlb->batch = NULL;
- #endif
-+}
-+
-+void tlb_flush_mmu(struct mmu_gather *tlb)
-+{
-+	struct mmu_gather_batch *batch;
-+
-+	if (!tlb->need_flush)
-+		return;
-+	tlb->need_flush = 0;
-+	tlb_flush(tlb);
-+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
-+	tlb_table_flush(tlb);
-+#endif
-+
-+	if (tlb_fast_mode(tlb))
-+		return;
-+
-+	for (batch = &tlb->local; batch; batch = batch->next) {
-+		free_pages_and_swap_cache(batch->pages, batch->nr);
-+		batch->nr = 0;
-+	}
-+	tlb->active = &tlb->local;
-+}
-+
-+/* tlb_finish_mmu
-+ *	Called at the end of the shootdown operation to free up any resources
-+ *	that were required.
-+ */
-+void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+	struct mmu_gather_batch *batch, *next;
-+
-+	tlb_flush_mmu(tlb);
-+
-+	/* keep the page table cache within bounds */
-+	check_pgt_cache();
-+
-+	for (batch = tlb->local.next; batch; batch = next) {
-+		next = batch->next;
-+		free_pages((unsigned long)batch, 0);
-+	}
-+	tlb->local.next = NULL;
-+}
-+
-+/* __tlb_remove_page
-+ *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)), while
-+ *	handling the additional races in SMP caused by other CPUs caching valid
-+ *	mappings in their TLBs. Returns the number of free page slots left.
-+ *	When out of page slots we must call tlb_flush_mmu().
-+ */
-+int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
-+{
-+	struct mmu_gather_batch *batch;
-+
-+	tlb->need_flush = 1;
-+
-+	if (tlb_fast_mode(tlb)) {
-+		free_page_and_swap_cache(page);
-+		return 1; /* avoid calling tlb_flush_mmu() */
-+	}
-+
-+	batch = tlb->active;
-+	batch->pages[batch->nr++] = page;
-+	if (batch->nr == batch->max) {
-+		if (!tlb_next_batch(tlb))
-+			return 0;
-+	}
-+	VM_BUG_ON(batch->nr > batch->max);
-+
-+	return batch->max - batch->nr;
-+}
-+
-+#endif /* HAVE_GENERIC_MMU_GATHER */
- 
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- 
-@@ -268,7 +388,7 @@ void tlb_remove_table(struct mmu_gather 
- 		tlb_table_flush(tlb);
- }
- 
--#endif
-+#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
- 
- /*
-  * If a p?d_bad entry is found while walking page tables, report
+ long do_sigpending(void __user *set, unsigned long sigsetsize)
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
 linux-next.patch
-net-convert-%p-usage-to-%pk.patch
-mm-mmu_gather-rework.patch
-mm-mmu_gather-rework-fix.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
-mm-uninline-large-generic-tlbh-functions.patch
+oom-use-pte-pages-in-oom-score.patch
+cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-per-thread-subsystem-callbacks.patch
+cgroups-make-procs-file-writable.patch
+cgroups-use-flex_array-in-attach_proc.patch
+asm-generic-ptraceh-start-a-common-low-level-ptrace-helper.patch
+blackfin-convert-to-asm-generic-ptraceh.patch
+x86-convert-to-asm-generic-ptraceh.patch
+sh-convert-to-asm-generic-ptraceh.patch
+kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
+signal-introduce-retarget_shared_pending.patch
+signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch
+signal-retarget_shared_pending-optimize-while_each_thread-loop.patch
+signal-sigprocmask-narrow-the-scope-of-siglock.patch
+signal-sigprocmask-should-do-retarget_shared_pending.patch
+x86-signal-handle_signal-should-use-set_current_blocked.patch
+x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
+signal-cleanup-sys_rt_sigprocmask.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
