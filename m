@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-mm-set-all-online-nodes-in-n_normal_memory.patch added to -mm tree
-Date: Fri, 22 Apr 2011 13:29:17 -0700
-Message-ID: <201104222029.p3MKTHd8030483@imap1.linux-foundation.org>
+Subject: + alpha-mm-set-all-online-nodes-in-n_normal_memory.patch added to -mm tree
+Date: Fri, 22 Apr 2011 13:29:14 -0700
+Message-ID: <201104222029.p3MKTEZ7030480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756471Ab1DVU3a (ORCPT
+	by vger.kernel.org with ESMTP id S1756471Ab1DVU3f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Apr 2011 16:29:30 -0400
+	Fri, 22 Apr 2011 16:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, takata@linux-m32r.org
+Cc: rientjes@google.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     m32r, mm: set all online nodes in N_NORMAL_MEMORY
+     alpha, mm: set all online nodes in N_NORMAL_MEMORY
 has been added to the -mm tree.  Its filename is
-     m32r-mm-set-all-online-nodes-in-n_normal_memory.patch
+     alpha-mm-set-all-online-nodes-in-n_normal_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r, mm: set all online nodes in N_NORMAL_MEMORY
+Subject: alpha, mm: set all online nodes in N_NORMAL_MEMORY
 From: David Rientjes <rientjes@google.com>
 
-For m32r, N_NORMAL_MEMORY represents all nodes that have present memory
+For alpha, N_NORMAL_MEMORY represents all nodes that have present memory
 since it does not support HIGHMEM.  This patch sets the bit at the time
 the node is initialized.
 
@@ -45,22 +45,24 @@ If N_NORMAL_MEMORY is not accurate, slub may encounter errors since it
 uses this nodemask to setup per-cache kmem_cache_node data structures.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/discontig.c |    1 +
+ arch/alpha/mm/numa.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/m32r/mm/discontig.c~m32r-mm-set-all-online-nodes-in-n_normal_memory arch/m32r/mm/discontig.c
---- a/arch/m32r/mm/discontig.c~m32r-mm-set-all-online-nodes-in-n_normal_memory
-+++ a/arch/m32r/mm/discontig.c
-@@ -149,6 +149,7 @@ unsigned long __init zone_sizes_init(voi
- 		zholes_size[ZONE_DMA] = mp->holes;
- 		holes += zholes_size[ZONE_DMA];
- 
+diff -puN arch/alpha/mm/numa.c~alpha-mm-set-all-online-nodes-in-n_normal_memory arch/alpha/mm/numa.c
+--- a/arch/alpha/mm/numa.c~alpha-mm-set-all-online-nodes-in-n_normal_memory
++++ a/arch/alpha/mm/numa.c
+@@ -313,6 +313,7 @@ void __init paging_init(void)
+ 			zones_size[ZONE_DMA] = dma_local_pfn;
+ 			zones_size[ZONE_NORMAL] = (end_pfn - start_pfn) - dma_local_pfn;
+ 		}
 +		node_set_state(nid, N_NORMAL_MEMORY);
- 		free_area_init_node(nid, zones_size, start_pfn, zholes_size);
+ 		free_area_init_node(nid, zones_size, start_pfn, NULL);
  	}
  
 _
