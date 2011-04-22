@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch added to -mm tree
-Date: Fri, 22 Apr 2011 13:15:56 -0700
-Message-ID: <201104222015.p3MKFuun029722@imap1.linux-foundation.org>
+Subject: + m68k-mm-set-all-online-nodes-in-n_normal_memory.patch added to -mm tree
+Date: Fri, 22 Apr 2011 13:29:20 -0700
+Message-ID: <201104222029.p3MKTKbZ030486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51152 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756256Ab1DVUQn (ORCPT
+	by vger.kernel.org with ESMTP id S1755894Ab1DVU31 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Apr 2011 16:16:43 -0400
+	Fri, 22 Apr 2011 16:29:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, riel@redhat.com
+Cc: rientjes@google.com, geert@linux-m68k.org
 
 
 The patch titled
-     mem-hwpoison: fix page refcount around isolate_lru_page()
+     m68k, mm: set all online nodes in N_NORMAL_MEMORY
 has been added to the -mm tree.  Its filename is
-     mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+     m68k-mm-set-all-online-nodes-in-n_normal_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mem-hwpoison: fix page refcount around isolate_lru_page()
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: m68k, mm: set all online nodes in N_NORMAL_MEMORY
+From: David Rientjes <rientjes@google.com>
 
-Drop first page reference only after calling isolate_lru_page() to keep
-page stable reference while isolating.
+For m68k, N_NORMAL_MEMORY represents all nodes that have present memory
+since it does not support HIGHMEM.  This patch sets the bit at the time
+the node is brought online.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+If N_NORMAL_MEMORY is not accurate, slub may encounter errors since it
+uses this nodemask to setup per-cache kmem_cache_node data structures.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/m68k/mm/init_mm.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memory-failure.c~mem-hwpoison-fix-page-refcount-around-isolate_lru_page mm/memory-failure.c
---- a/mm/memory-failure.c~mem-hwpoison-fix-page-refcount-around-isolate_lru_page
-+++ a/mm/memory-failure.c
-@@ -1440,16 +1440,12 @@ int soft_offline_page(struct page *page,
- 	 */
- 	ret = invalidate_inode_page(page);
- 	unlock_page(page);
--
- 	/*
--	 * Drop count because page migration doesn't like raised
--	 * counts. The page could get re-allocated, but if it becomes
--	 * LRU the isolation will just fail.
- 	 * RED-PEN would be better to keep it isolated here, but we
- 	 * would need to fix isolation locking first.
- 	 */
--	put_page(page);
- 	if (ret == 1) {
-+		put_page(page);
- 		ret = 0;
- 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
- 		goto done;
-@@ -1461,6 +1457,11 @@ int soft_offline_page(struct page *page,
- 	 * handles a large number of cases for us.
- 	 */
- 	ret = isolate_lru_page(page);
-+	/*
-+	 * Drop page reference which is came from get_any_page()
-+	 * successful isolate_lru_page() already took another one.
-+	 */
-+	put_page(page);
- 	if (!ret) {
- 		LIST_HEAD(pagelist);
+diff -puN arch/m68k/mm/init_mm.c~m68k-mm-set-all-online-nodes-in-n_normal_memory arch/m68k/mm/init_mm.c
+--- a/arch/m68k/mm/init_mm.c~m68k-mm-set-all-online-nodes-in-n_normal_memory
++++ a/arch/m68k/mm/init_mm.c
+@@ -57,6 +57,8 @@ void __init m68k_setup_node(int node)
+ 	}
+ #endif
+ 	pg_data_map[node].bdata = bootmem_node_data + node;
++	if (node_present_pages(node))
++		node_set_state(node, N_NORMAL_MEMORY);
+ 	node_set_online(node);
+ }
  
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
+origin.patch
 linux-next.patch
-tmpfs-fix-race-between-umount-and-writepage.patch
-mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
-mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
-mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+oom-use-pte-pages-in-oom-score.patch
+arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-increase-reclaim_distance-to-30.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-rename-alloc_pages_exact.patch
+mm-make-new-alloc_pages_exact.patch
+mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+mm-break-out-page-allocation-warning-code.patch
+mm-print-vmalloc-state-after-allocation-failures.patch
+parisc-enable-config_numa-for-discontigmem-and-fix-build-errors.patch
+parisc-set-memory-ranges-in-n_normal_memory-when-onlined.patch
+alpha-mm-set-all-online-nodes-in-n_normal_memory.patch
+m32r-mm-set-all-online-nodes-in-n_normal_memory.patch
+m68k-mm-set-all-online-nodes-in-n_normal_memory.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-per-thread-subsystem-callbacks.patch
+cgroups-make-procs-file-writable.patch
+cgroups-use-flex_array-in-attach_proc.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
