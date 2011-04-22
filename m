@@ -1,93 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + um-adjust-current_thread_info-for-newer-gcc-versions.patch added to -mm tree
-Date: Fri, 22 Apr 2011 11:45:33 -0700
-Message-ID: <201104221845.p3MIjXnX025319@imap1.linux-foundation.org>
+Subject: [withdrawn] mm-always-set-nodes-with-regular-memory-in-n_normal_memory.patch removed from -mm tree
+Date: Fri, 22 Apr 2011 13:00:05 -0700
+Message-ID: <201104222000.p3MK06we028943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754052Ab1DVSpl (ORCPT
+	by vger.kernel.org with ESMTP id S1752984Ab1DVUAl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Apr 2011 14:45:41 -0400
+	Fri, 22 Apr 2011 16:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, kirill@shutemov.name
+To: rientjes@google.com, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: adjust current_thread_info() for newer gcc versions
-has been added to the -mm tree.  Its filename is
-     um-adjust-current_thread_info-for-newer-gcc-versions.patch
+     mm: always set nodes with regular memory in N_NORMAL_MEMORY
+has been removed from the -mm tree.  Its filename was
+     mm-always-set-nodes-with-regular-memory-in-n_normal_memory.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: adjust current_thread_info() for newer gcc versions
-From: Richard Weinberger <richard@nod.at>
+Subject: mm: always set nodes with regular memory in N_NORMAL_MEMORY
+From: David Rientjes <rientjes@google.com>
 
-In some cases gcc >= 4.5.2 will optimize away current_thread_info().  To
-prevent gcc from doing so the stack address has to be obtained via inline
-asm.
+N_NORMAL_MEMORY is intended to include all nodes that have present memory
+in regular zones, that is, zones below ZONE_HIGHMEM.  This should be done
+regardless of whether CONFIG_HIGHMEM is set or not.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+This fixes ia64 so that the nodes get set appropriately in the nodemask
+for DISCONTIGMEM and mips if it does not enable CONFIG_HIGHMEM even for
+32-bit kernels.
+
+If N_NORMAL_MEMORY is not accurate, slub may encounter errors since it
+relies on this nodemask to setup kmem_cache_node data structures for each
+cache.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/thread_info.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-newer-gcc-versions arch/um/include/asm/thread_info.h
---- a/arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-newer-gcc-versions
-+++ a/arch/um/include/asm/thread_info.h
-@@ -49,7 +49,10 @@ static inline struct thread_info *curren
+diff -puN mm/page_alloc.c~mm-always-set-nodes-with-regular-memory-in-n_normal_memory mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-always-set-nodes-with-regular-memory-in-n_normal_memory
++++ a/mm/page_alloc.c
+@@ -4727,7 +4727,6 @@ out:
+ /* Any regular memory on that node ? */
+ static void check_for_regular_memory(pg_data_t *pgdat)
  {
- 	struct thread_info *ti;
- 	unsigned long mask = THREAD_SIZE - 1;
--	ti = (struct thread_info *) (((unsigned long) &ti) & ~mask);
-+	void *p;
-+
-+	asm volatile ("" : "=r" (p) : "0" (&ti));
-+	ti = (struct thread_info *) (((unsigned long)p) & ~mask);
- 	return ti;
+-#ifdef CONFIG_HIGHMEM
+ 	enum zone_type zone_type;
+ 
+ 	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
+@@ -4735,7 +4734,6 @@ static void check_for_regular_memory(pg_
+ 		if (zone->present_pages)
+ 			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
+ 	}
+-#endif
  }
  
+ /**
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from rientjes@google.com are
 
-um-mdd-support-for-64-bit-atomic-operations.patch
-uml-fix-hppfs-build.patch
-um-adjust-current_thread_info-for-newer-gcc-versions.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
+origin.patch
+linux-next.patch
+oom-use-pte-pages-in-oom-score.patch
+arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-increase-reclaim_distance-to-30.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-rename-alloc_pages_exact.patch
+mm-make-new-alloc_pages_exact.patch
+mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+mm-break-out-page-allocation-warning-code.patch
+mm-print-vmalloc-state-after-allocation-failures.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-per-thread-subsystem-callbacks.patch
+cgroups-make-procs-file-writable.patch
+cgroups-use-flex_array-in-attach_proc.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
