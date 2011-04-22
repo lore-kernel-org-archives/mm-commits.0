@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch added to -mm tree
-Date: Fri, 22 Apr 2011 13:15:58 -0700
-Message-ID: <201104222015.p3MKFxXm029725@imap1.linux-foundation.org>
+Subject: + mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch added to -mm tree
+Date: Fri, 22 Apr 2011 13:15:53 -0700
+Message-ID: <201104222015.p3MKFsMb029718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756253Ab1DVUQl (ORCPT
+	by vger.kernel.org with ESMTP id S1756240Ab1DVUQk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Apr 2011 16:16:41 -0400
+	Fri, 22 Apr 2011 16:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: khlebnikov@openvz.org, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com, 
 
 
 The patch titled
-     mm: strictly require elevated page refcount in isolate_lru_page()
+     mem-hotplug: call isolate_lru_page with elevated refcount
 has been added to the -mm tree.  Its filename is
-     mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+     mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: strictly require elevated page refcount in isolate_lru_page()
+Subject: mem-hotplug: call isolate_lru_page with elevated refcount
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-isolate_lru_page() must be called only with stable reference to the page,
-this is what is written in the comment above it, this is reasonable.
-
-current isolate_lru_page() users and its page extra reference sources:
-
-mm/huge_memory.c
-__collapse_huge_page_isolate()		- reference from pte
-
-mm/memcontrol.c
-mem_cgroup_move_parent()		- get_page_unless_zero()
-mem_cgroup_move_charge_pte_range()	- reference from pte
-
-mm/memory-failure.c
-soft_offline_page()			- fixed, reference from get_any_page()
-delete_from_lru_cache() - reference from caller or get_page_unless_zero()
-[seems like there bug, because __memory_failure() can call page_action() for
- hpages tail, but it is ok for isolate_lru_page(), tail getted and not in lru]
-
-mm/memory_hotplug.c
-do_migrate_range()			- fixed, get_page_unless_zero()
-
-mm/mempolicy.c
-migrate_page_add()			- reference from pte
-
-mm/migrate.c
-do_move_page_to_node_array()		- reference from follow_page()
-
-mlock.c					- various external references
-
-mm/vmscan.c
-putback_lru_page()			- reference from isolate_lru_page()
-
-It seems that all isolate_lru_page() users are ready now for this restriction.
-So, let's replace redundant get_page_unless_zero() with get_page() and
-add page initial reference count check with VM_BUG_ON()
+isolate_lru_page() must be called only with stable reference to page.  So,
+let's grab normal page reference.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -83,30 +50,37 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-strictly-require-elevated-page-refcount-in-isolate_lru_page mm/vmscan.c
---- a/mm/vmscan.c~mm-strictly-require-elevated-page-refcount-in-isolate_lru_page
-+++ a/mm/vmscan.c
-@@ -1201,13 +1201,16 @@ int isolate_lru_page(struct page *page)
- {
- 	int ret = -EBUSY;
- 
-+	VM_BUG_ON(!page_count(page));
-+
- 	if (PageLRU(page)) {
- 		struct zone *zone = page_zone(page);
- 
- 		spin_lock_irq(&zone->lru_lock);
--		if (PageLRU(page) && get_page_unless_zero(page)) {
-+		if (PageLRU(page)) {
- 			int lru = page_lru(page);
- 			ret = 0;
-+			get_page(page);
- 			ClearPageLRU(page);
- 
- 			del_page_from_lru_list(zone, page, lru);
+diff -puN mm/memory_hotplug.c~mem-hotplug-call-isolate_lru_page-with-elevated-refcount mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-call-isolate_lru_page-with-elevated-refcount
++++ a/mm/memory_hotplug.c
+@@ -706,7 +706,7 @@ do_migrate_range(unsigned long start_pfn
+ 		if (!pfn_valid(pfn))
+ 			continue;
+ 		page = pfn_to_page(pfn);
+-		if (!page_count(page))
++		if (!get_page_unless_zero(page))
+ 			continue;
+ 		/*
+ 		 * We can skip free pages. And we can only deal with pages on
+@@ -714,6 +714,7 @@ do_migrate_range(unsigned long start_pfn
+ 		 */
+ 		ret = isolate_lru_page(page);
+ 		if (!ret) { /* Success */
++			put_page(page);
+ 			list_add_tail(&page->lru, &source);
+ 			move_pages--;
+ 			inc_zone_page_state(page, NR_ISOLATED_ANON +
+@@ -725,6 +726,7 @@ do_migrate_range(unsigned long start_pfn
+ 			       pfn);
+ 			dump_page(page);
+ #endif
++			put_page(page);
+ 			/* Because we don't have big zone->lock. we should
+ 			   check this again here. */
+ 			if (page_count(page)) {
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
