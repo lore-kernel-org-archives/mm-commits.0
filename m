@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-set-memory-ranges-in-n_normal_memory-when-onlined.patch added to -mm tree
-Date: Fri, 22 Apr 2011 13:29:12 -0700
-Message-ID: <201104222029.p3MKTCur030477@imap1.linux-foundation.org>
+Subject: + parisc-enable-config_numa-for-discontigmem-and-fix-build-errors.patch added to -mm tree
+Date: Fri, 22 Apr 2011 13:29:09 -0700
+Message-ID: <201104222029.p3MKTA2Q030471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50377 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755894Ab1DVU32 (ORCPT
+	by vger.kernel.org with ESMTP id S1756521Ab1DVU32 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 22 Apr 2011 16:29:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, James.Bottomley@hansenpartnership.com, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca
+Cc: kosaki.motohiro@jp.fujitsu.com, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca, rientjes@google.com
 
 
 The patch titled
-     parisc: set memory ranges in N_NORMAL_MEMORY when onlined
+     parisc: enable CONFIG_NUMA for DISCONTIGMEM and fix build errors
 has been added to the -mm tree.  Its filename is
-     parisc-set-memory-ranges-in-n_normal_memory-when-onlined.patch
+     parisc-enable-config_numa-for-discontigmem-and-fix-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: set memory ranges in N_NORMAL_MEMORY when onlined
-From: David Rientjes <rientjes@google.com>
+Subject: parisc: enable CONFIG_NUMA for DISCONTIGMEM and fix build errors
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-When a DISCONTIGMEM memory range is brought online as a NUMA node, it also
-needs to have its bet set in N_NORMAL_MEMORY.  This is necessary for
-generic kernel code that utilizes N_NORMAL_MEMORY as a subset of N_ONLINE
-for memory savings.
+CONFIG_DISCONTIGMEM requires CONFIG_NUMA because it represents its memory
+regions as individual nodes that lack remote proximity, hence it already
+has a default CONFIG_NODES_SHIFT of 3.
 
-These types of hacks can hopefully be removed once DISCONTIGMEM is either
-removed or abstracted away from CONFIG_NUMA.
+This configuration causes build errors, however, so fix them as well.
 
-Fixes a panic in the slub code which only initializes structures for
-N_NORMAL_MEMORY to save memory:
+This was first realized when CONFIG_DISCONTIGMEM was used with CONFIG_SLUB
+which depends heavily on CONFIG_NUMA being enabled or disabled to support
+these memory regions.
 
-	Backtrace:
-	 [<000000004021c938>] add_partial+0x28/0x98
-	 [<000000004021faa0>] __slab_free+0x1d0/0x1d8
-	 [<000000004021fd04>] kmem_cache_free+0xc4/0x128
-	 [<000000004033bf9c>] ida_get_new_above+0x21c/0x2c0
-	 [<00000000402a8980>] sysfs_new_dirent+0xd0/0x238
-	 [<00000000402a974c>] create_dir+0x5c/0x168
-	 [<00000000402a9ab0>] sysfs_create_dir+0x98/0x128
-	 [<000000004033d6c4>] kobject_add_internal+0x114/0x258
-	 [<000000004033d9ac>] kobject_add_varg+0x7c/0xa0
-	 [<000000004033df20>] kobject_add+0x50/0x90
-	 [<000000004033dfb4>] kobject_create_and_add+0x54/0xc8
-	 [<00000000407862a0>] cgroup_init+0x138/0x1f0
-	 [<000000004077ce50>] start_kernel+0x5a0/0x840
-	 [<000000004011fa3c>] start_parisc+0xa4/0xb8
-	 [<00000000404bb034>] packet_ioctl+0x16c/0x208
-	 [<000000004049ac30>] ip_mroute_setsockopt+0x260/0xf20
+A long-term fix is to separate the memory region abstraction required for
+DISCONTIGMEM away from NUMA and then build NUMA on top of it with
+proximity domains.
 
-Tested-by: James Bottomley <James.Bottomley@hansenpartnership.com>
+[rientjes@google.com: implicitly enable NUMA for DISCONTIGMEM, changelog]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: Helge Deller <deller@gmx.de>
@@ -74,53 +60,116 @@ Cc: James Bottomley <jejb@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/mm/init.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/parisc/Kconfig            |    3 +++
+ include/asm-generic/topology.h |    4 ----
+ include/linux/topology.h       |    2 +-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/parisc/mm/init.c~parisc-set-memory-ranges-in-n_normal_memory-when-onlined arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~parisc-set-memory-ranges-in-n_normal_memory-when-onlined
-+++ a/arch/parisc/mm/init.c
-@@ -264,8 +264,10 @@ static void __init setup_bootmem(void)
- 	}
- 	memset(pfnnid_map, 0xff, sizeof(pfnnid_map));
+diff -puN arch/parisc/Kconfig~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors
++++ a/arch/parisc/Kconfig
+@@ -244,6 +244,9 @@ config ARCH_DISCONTIGMEM_DEFAULT
+ 	def_bool y
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
  
--	for (i = 0; i < npmem_ranges; i++)
-+	for (i = 0; i < npmem_ranges; i++) {
-+		node_set_state(i, N_NORMAL_MEMORY);
- 		node_set_online(i);
-+	}
++config NUMA
++	def_bool ARCH_DISCONTIGMEM_ENABLE
++
+ config NODES_SHIFT
+ 	int
+ 	default "3"
+diff -puN include/asm-generic/topology.h~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors
++++ a/include/asm-generic/topology.h
+@@ -27,8 +27,6 @@
+ #ifndef _ASM_GENERIC_TOPOLOGY_H
+ #define _ASM_GENERIC_TOPOLOGY_H
+ 
+-#ifndef	CONFIG_NUMA
+-
+ /* Other architectures wishing to use this simple topology API should fill
+    in the below functions as appropriate in their own <asm/topology.h> file. */
+ #ifndef cpu_to_node
+@@ -60,8 +58,6 @@
+ 				 cpumask_of_node(pcibus_to_node(bus)))
  #endif
  
- 	/*
+-#endif	/* CONFIG_NUMA */
+-
+ #if !defined(CONFIG_NUMA) || !defined(CONFIG_HAVE_MEMORYLESS_NODES)
+ 
+ #ifndef set_numa_mem
+diff -puN include/linux/topology.h~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors include/linux/topology.h
+--- a/include/linux/topology.h~parisc-enable-config_numa-for-discontigmem-and-fix-build-errors
++++ a/include/linux/topology.h
+@@ -209,7 +209,7 @@ int arch_update_cpu_topology(void);
+ 
+ #ifdef CONFIG_NUMA
+ #ifndef SD_NODE_INIT
+-#error Please define an appropriate SD_NODE_INIT in include/asm/topology.h!!!
++#define SD_NODE_INIT SD_ALLNODES_INIT
+ #endif
+ 
+ #endif /* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
 oom-use-pte-pages-in-oom-score.patch
-arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
 mm-per-node-vmstat-show-proper-vmstats.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
 mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
 oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
 oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-rename-alloc_pages_exact.patch
-mm-make-new-alloc_pages_exact.patch
-mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
-mm-thp-optimize-memcg-charge-in-khugepaged.patch
-mm-break-out-page-allocation-warning-code.patch
-mm-print-vmalloc-state-after-allocation-failures.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
 parisc-enable-config_numa-for-discontigmem-and-fix-build-errors.patch
-parisc-set-memory-ranges-in-n_normal_memory-when-onlined.patch
-alpha-mm-set-all-online-nodes-in-n_normal_memory.patch
-m32r-mm-set-all-online-nodes-in-n_normal_memory.patch
-m68k-mm-set-all-online-nodes-in-n_normal_memory.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
-cgroups-add-per-thread-subsystem-callbacks.patch
-cgroups-make-procs-file-writable.patch
-cgroups-use-flex_array-in-attach_proc.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
