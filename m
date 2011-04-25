@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch added to -mm tree
-Date: Mon, 25 Apr 2011 13:17:30 -0700
-Message-ID: <201104252017.p3PKHUx4006192@imap1.linux-foundation.org>
+Subject: + drivers-char-ppdevc-put-gotten-port-value.patch added to -mm tree
+Date: Mon, 25 Apr 2011 13:47:14 -0700
+Message-ID: <201104252047.p3PKlEkp008330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751095Ab1DYUSI (ORCPT
+	by vger.kernel.org with ESMTP id S932836Ab1DYUrS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Apr 2011 16:18:08 -0400
+	Mon, 25 Apr 2011 16:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tim.gardner@canonical.com, dank@kegel.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: julia@diku.dk
 
 
 The patch titled
-     ulimit: raise default hard ulimit on number of files to 4096
+     drivers/char/ppdev.c: put gotten port value
 has been added to the -mm tree.  Its filename is
-     ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch
+     drivers-char-ppdevc-put-gotten-port-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ulimit: raise default hard ulimit on number of files to 4096
-From: Tim Gardner <tim.gardner@canonical.com>
+Subject: drivers/char/ppdev.c: put gotten port value
+From: Julia Lawall <julia@diku.dk>
 
-Apps are increasingly using more than 1024 file descriptors.  See
-discussion in several distro bug trackers, e.g.  BugLink:
-http://bugs.launchpad.net/bugs/663090
-https://issues.rpath.com/browse/RPL-2054
+parport_find_number() calls parport_get_port() on its result, so there
+should be a corresponding call to parport_put_port() before dropping the
+reference.  Similar code is found in the function register_device() in the
+same file.
 
-You don't want to raise the default soft limit, since that might break
-apps that use select(), but it's safe to raise the default hard limit;
-that way, apps that know they need lots of file descriptors can raise
-their soft limit without needing root, and without user intervention.
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Ubuntu is doing this with a kernel change because they have a policy of
-not changing kernel defaults in userland.
+// <smpl>
+@exists@
+local idexpression struct parport * x;
+expression ra,rr;
+statement S1,S2;
+@@
 
-While 4096 might not be enough for *all* apps, it seems to be plenty for
-the apps I've seen lately that are unhappy with 1024.
+x = parport_find_number(...)
+... when != x = rr
+    when any
+    when != parport_put_port(x,...)
+    when != if (...) { ... parport_put_port(x,...) ...}
+(
+if(<+...x...+>) S1 else S2
+|
+if(...) { ... when != x = ra
+     when forall
+     when != parport_put_port(x,...)
+*return...;
+}
+)
+// </smpl>
 
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Cc: Dan Kegel <dank@kegel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/resource.h |    2 +-
- include/linux/fs.h             |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/char/ppdev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/asm-generic/resource.h
---- a/include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
-+++ a/include/asm-generic/resource.h
-@@ -78,7 +78,7 @@
- 	[RLIMIT_CORE]		= {              0,  RLIM_INFINITY },	\
- 	[RLIMIT_RSS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
- 	[RLIMIT_NPROC]		= {              0,              0 },	\
--	[RLIMIT_NOFILE]		= {       INR_OPEN,       INR_OPEN },	\
-+	[RLIMIT_NOFILE]		= {   INR_OPEN_CUR,   INR_OPEN_MAX },	\
- 	[RLIMIT_MEMLOCK]	= {    MLOCK_LIMIT,    MLOCK_LIMIT },	\
- 	[RLIMIT_AS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
- 	[RLIMIT_LOCKS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
-diff -puN include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/linux/fs.h
---- a/include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
-+++ a/include/linux/fs.h
-@@ -23,7 +23,8 @@
+diff -puN drivers/char/ppdev.c~drivers-char-ppdevc-put-gotten-port-value drivers/char/ppdev.c
+--- a/drivers/char/ppdev.c~drivers-char-ppdevc-put-gotten-port-value
++++ a/drivers/char/ppdev.c
+@@ -457,6 +457,7 @@ static int pp_do_ioctl(struct file *file
+ 			return -ENODEV;
  
- /* Fixed constants first: */
- #undef NR_OPEN
--#define INR_OPEN 1024		/* Initial setting for nfile rlimits */
-+#define INR_OPEN_CUR 1024	/* Initial setting for nfile rlimits */
-+#define INR_OPEN_MAX 4096	/* Hard limit for nfile rlimits */
- 
- #define BLOCK_SIZE_BITS 10
- #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
+ 		modes = port->modes;
++		parport_put_port(port);
+ 		if (copy_to_user (argp, &modes, sizeof (modes))) {
+ 			return -EFAULT;
+ 		}
 _
 
-Patches currently in -mm which might be from tim.gardner@canonical.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch
+origin.patch
+linux-next.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+drivers-char-ppdevc-put-gotten-port-value.patch
 
