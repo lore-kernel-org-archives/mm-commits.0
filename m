@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-remove-redundant-declaration.patch added to -mm tree
-Date: Mon, 25 Apr 2011 14:50:57 -0700
-Message-ID: <201104252150.p3PLovRI012610@imap1.linux-foundation.org>
+Subject: + m32r-fix-spin_lock_irqsave-misuse.patch added to -mm tree
+Date: Mon, 25 Apr 2011 14:49:10 -0700
+Message-ID: <201104252149.p3PLnAHv012515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755888Ab1DYVy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751184Ab1DYWDn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Apr 2011 17:54:58 -0400
+	Mon, 25 Apr 2011 18:03:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, takata@linux-m32r.org
 
 
 The patch titled
-     m32r: remove redundant declaration
+     m32r: fix spin_lock_irqsave() misuse
 has been added to the -mm tree.  Its filename is
-     m32r-remove-redundant-declaration.patch
+     m32r-fix-spin_lock_irqsave-misuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove redundant declaration
+Subject: m32r: fix spin_lock_irqsave() misuse
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-They has no meanings.
+spin_lock_irqsave() require unsigned long.  fix it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/smp.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/tty/serial/m32r_sio.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/smp.c~m32r-remove-redundant-declaration arch/m32r/kernel/smp.c
---- a/arch/m32r/kernel/smp.c~m32r-remove-redundant-declaration
-+++ a/arch/m32r/kernel/smp.c
-@@ -30,6 +30,7 @@
- #include <asm/io.h>
- #include <asm/mmu_context.h>
- #include <asm/m32r.h>
-+#include <asm/tlbflush.h>
+diff -puN drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse drivers/tty/serial/m32r_sio.c
+--- a/drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse
++++ a/drivers/tty/serial/m32r_sio.c
+@@ -907,9 +907,10 @@ static int m32r_sio_request_port(struct 
+ 	return ret;
+ }
  
- /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
- /* Data structures and variables                                             */
-@@ -61,27 +62,17 @@ extern spinlock_t ipi_lock[];
- /* Function Prototypes                                                       */
- /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+-static void m32r_sio_config_port(struct uart_port *port, int flags)
++static void m32r_sio_config_port(struct uart_port *port, int unused)
+ {
+ 	struct uart_sio_port *up = (struct uart_sio_port *)port;
++	unsigned long flags;
  
--void smp_send_reschedule(int);
- void smp_reschedule_interrupt(void);
--
--void smp_flush_cache_all(void);
- void smp_flush_cache_all_interrupt(void);
- 
--void smp_flush_tlb_all(void);
- static void flush_tlb_all_ipi(void *);
--
--void smp_flush_tlb_mm(struct mm_struct *);
--void smp_flush_tlb_range(struct vm_area_struct *, unsigned long, \
--	unsigned long);
--void smp_flush_tlb_page(struct vm_area_struct *, unsigned long);
- static void flush_tlb_others(cpumask_t, struct mm_struct *,
- 	struct vm_area_struct *, unsigned long);
-+
- void smp_invalidate_interrupt(void);
- 
--void smp_send_stop(void);
- static void stop_this_cpu(void *);
- 
--void smp_send_timer(void);
- void smp_ipi_timer_interrupt(struct pt_regs *);
- void smp_local_timer_interrupt(void);
+ 	spin_lock_irqsave(&up->port.lock, flags);
  
 _
 
