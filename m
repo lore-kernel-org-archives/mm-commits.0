@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-convert-for_each_cpumask-with-for_each_cpu.patch added to -mm tree
-Date: Mon, 25 Apr 2011 15:06:57 -0700
-Message-ID: <201104252206.p3PM6vdt013385@imap1.linux-foundation.org>
+Subject: + cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch added to -mm tree
+Date: Mon, 25 Apr 2011 15:07:46 -0700
+Message-ID: <201104252207.p3PM7k9H013480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751924Ab1DYWH0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751924Ab1DYWIk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Apr 2011 18:07:26 -0400
+	Mon, 25 Apr 2011 18:08:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, efault@gmx.de, mingo@elte.hu
 
 
 The patch titled
-     cpumask: convert for_each_cpumask() with for_each_cpu()
+     cpumask: convert cpumask_of_cpu() to cpumask_of()
 has been added to the -mm tree.  Its filename is
-     cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+     cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpumask: convert for_each_cpumask() with for_each_cpu()
+Subject: cpumask: convert cpumask_of_cpu() to cpumask_of()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Adapt new API fashion.
+Adapt the code to the new api fashion.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cpumask.c |    2 +-
+ kernel/kthread.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu lib/cpumask.c
---- a/lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu
-+++ a/lib/cpumask.c
-@@ -30,7 +30,7 @@ int __any_online_cpu(const cpumask_t *ma
- {
- 	int cpu;
- 
--	for_each_cpu_mask(cpu, *mask) {
-+	for_each_cpu(cpu, mask) {
- 		if (cpu_online(cpu))
- 			break;
+diff -puN kernel/kthread.c~cpumask-convert-cpumask_of_cpu-to-cpumask_of kernel/kthread.c
+--- a/kernel/kthread.c~cpumask-convert-cpumask_of_cpu-to-cpumask_of
++++ a/kernel/kthread.c
+@@ -202,7 +202,7 @@ void kthread_bind(struct task_struct *p,
+ 		return;
  	}
+ 
+-	p->cpus_allowed = cpumask_of_cpu(cpu);
++	cpumask_copy(&p->cpus_allowed, cpumask_of(cpu));
+ 	p->rt.nr_cpus_allowed = 1;
+ 	p->flags |= PF_THREAD_BOUND;
+ }
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -122,6 +125,7 @@ cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
 proc-put-check_mem_permission-before-__get_free_page-in-mem_read.patch
 cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 kexec-remove-kmsg_dump_kexec.patch
 kexec-remove-kmsg_dump_kexec-fix.patch
 
