@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-spin_lock_irqsave-misuse.patch added to -mm tree
-Date: Mon, 25 Apr 2011 14:49:10 -0700
-Message-ID: <201104252149.p3PLnAHv012515@imap1.linux-foundation.org>
+Subject: + cpumask-convert-for_each_cpumask-with-for_each_cpu.patch added to -mm tree
+Date: Mon, 25 Apr 2011 15:06:57 -0700
+Message-ID: <201104252206.p3PM6vdt013385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751184Ab1DYWDn (ORCPT
+	by vger.kernel.org with ESMTP id S1751924Ab1DYWH0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Apr 2011 18:03:43 -0400
+	Mon, 25 Apr 2011 18:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, takata@linux-m32r.org
+Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     m32r: fix spin_lock_irqsave() misuse
+     cpumask: convert for_each_cpumask() with for_each_cpu()
 has been added to the -mm tree.  Its filename is
-     m32r-fix-spin_lock_irqsave-misuse.patch
+     cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: fix spin_lock_irqsave() misuse
+Subject: cpumask: convert for_each_cpumask() with for_each_cpu()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-spin_lock_irqsave() require unsigned long.  fix it.
+Adapt new API fashion.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/m32r_sio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/cpumask.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse drivers/tty/serial/m32r_sio.c
---- a/drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse
-+++ a/drivers/tty/serial/m32r_sio.c
-@@ -907,9 +907,10 @@ static int m32r_sio_request_port(struct 
- 	return ret;
- }
- 
--static void m32r_sio_config_port(struct uart_port *port, int flags)
-+static void m32r_sio_config_port(struct uart_port *port, int unused)
+diff -puN lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu lib/cpumask.c
+--- a/lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu
++++ a/lib/cpumask.c
+@@ -30,7 +30,7 @@ int __any_online_cpu(const cpumask_t *ma
  {
- 	struct uart_sio_port *up = (struct uart_sio_port *)port;
-+	unsigned long flags;
+ 	int cpu;
  
- 	spin_lock_irqsave(&up->port.lock, flags);
- 
+-	for_each_cpu_mask(cpu, *mask) {
++	for_each_cpu(cpu, mask) {
+ 		if (cpu_online(cpu))
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
