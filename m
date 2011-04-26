@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-remove-config_generic_find_next_bitbit_lelast_bit.patch added to -mm tree
-Date: Tue, 26 Apr 2011 14:29:12 -0700
-Message-ID: <201104262129.p3QLTCdI020626@imap1.linux-foundation.org>
+Subject: + proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch added to -mm tree
+Date: Tue, 26 Apr 2011 15:03:40 -0700
+Message-ID: <201104262203.p3QM3fqA022609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932231Ab1DZWA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752683Ab1DZWEd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 18:00:56 -0400
+	Tue, 26 Apr 2011 18:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, heiko.carstens@de.ibm.com, linux@arm.linux.org.uk, schwidefsky@de.ibm.com
+Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, bookjovi@gmail.com, hughd@google.com, wilsons@start.ca
 
 
 The patch titled
-     arch: remove CONFIG_GENERIC_FIND_{NEXT_BIT,BIT_LE,LAST_BIT}
+     proc: put check_mem_permission after __get_free_page in mem_write
 has been added to the -mm tree.  Its filename is
-     arch-remove-config_generic_find_next_bitbit_lelast_bit.patch
+     proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,469 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch: remove CONFIG_GENERIC_FIND_{NEXT_BIT,BIT_LE,LAST_BIT}
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: proc: put check_mem_permission after __get_free_page in mem_write
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-By the previous style change, CONFIG_GENERIC_FIND_NEXT_BIT,
-CONFIG_GENERIC_FIND_BIT_LE, and CONFIG_GENERIC_FIND_LAST_BIT are not used
-to test for existence of find bitops anymore.
+It whould be better if put check_mem_permission after __get_free_page in
+mem_write, to be same as function mem_read.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Hugh Dickins explained the reason.
+
+    check_mem_permission gets a reference to the mm.  If we __get_free_page
+    after check_mem_permission, imagine what happens if the system is out
+    of memory, and the mm we're looking at is selected for killing by the
+    OOM killer: while we wait in __get_free_page for more memory, no memory
+    is freed from the selected mm because it cannot reach exit_mmap while
+    we hold that reference.
+
+Reported-by: Jovi Zhang <bookjovi@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Stephen Wilson <wilsons@start.ca>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig      |    4 ----
- arch/blackfin/Kconfig   |    3 ---
- arch/cris/Kconfig       |    4 ----
- arch/frv/Kconfig        |    8 --------
- arch/h8300/Kconfig      |    8 --------
- arch/ia64/Kconfig       |    4 ----
- arch/m32r/Kconfig       |    8 --------
- arch/m68k/Kconfig.nommu |    4 ----
- arch/microblaze/Kconfig |    6 ------
- arch/mips/Kconfig       |    8 --------
- arch/mn10300/Kconfig    |    3 ---
- arch/parisc/Kconfig     |    8 --------
- arch/powerpc/Kconfig    |    8 --------
- arch/score/Kconfig      |    3 ---
- arch/sh/Kconfig         |    6 ------
- arch/sparc/Kconfig      |    8 --------
- arch/tile/Kconfig       |    1 -
- arch/um/Kconfig.x86     |    1 -
- arch/x86/Kconfig        |    1 -
- arch/xtensa/Kconfig     |    6 ------
- include/linux/bitops.h  |    2 --
- lib/Kconfig             |   10 ----------
- lib/Makefile            |    9 +++------
- lib/find_next_bit.c     |    6 ------
- 24 files changed, 3 insertions(+), 126 deletions(-)
+ fs/proc/base.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN arch/alpha/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/alpha/Kconfig
-@@ -40,10 +40,6 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
+diff -puN fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write fs/proc/base.c
+--- a/fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write
++++ a/fs/proc/base.c
+@@ -894,20 +894,20 @@ static ssize_t mem_write(struct file * f
+ 	if (!task)
+ 		goto out_no_task;
  
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
++	copied = -ENOMEM;
++	page = (char *)__get_free_page(GFP_TEMPORARY);
++	if (!page)
++		goto out_task;
++
+ 	mm = check_mem_permission(task);
+ 	copied = PTR_ERR(mm);
+ 	if (IS_ERR(mm))
+-		goto out_task;
++		goto out_free;
+ 
+ 	copied = -EIO;
+ 	if (file->private_data != (void *)((long)current->self_exec_id))
+ 		goto out_mm;
+ 
+-	copied = -ENOMEM;
+-	page = (char *)__get_free_page(GFP_TEMPORARY);
+-	if (!page)
+-		goto out_mm;
 -
- config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
-diff -puN arch/blackfin/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/blackfin/Kconfig
-@@ -45,9 +45,6 @@ config GENERIC_BUG
- config ZONE_DMA
- 	def_bool y
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
- config GENERIC_GPIO
- 	def_bool y
- 
-diff -puN arch/cris/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/cris/Kconfig
---- a/arch/cris/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/cris/Kconfig
-@@ -31,10 +31,6 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/frv/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/frv/Kconfig
---- a/arch/frv/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/frv/Kconfig
-@@ -19,14 +19,6 @@ config RWSEM_GENERIC_SPINLOCK
- config RWSEM_XCHGADD_ALGORITHM
- 	bool
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/h8300/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/h8300/Kconfig
-@@ -41,14 +41,6 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/ia64/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/ia64/Kconfig
-@@ -78,10 +78,6 @@ config HUGETLB_PAGE_SIZE_VARIABLE
- 	depends on HUGETLB_PAGE
- 	default y
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
- config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
-diff -puN arch/m32r/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/m32r/Kconfig
-@@ -256,14 +256,6 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/m68k/Kconfig.nommu~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/m68k/Kconfig.nommu
---- a/arch/m68k/Kconfig.nommu~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/m68k/Kconfig.nommu
-@@ -2,10 +2,6 @@ config FPU
- 	bool
- 	default n
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
- config GENERIC_GPIO
- 	bool
- 	default n
-diff -puN arch/microblaze/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/microblaze/Kconfig
-@@ -33,12 +33,6 @@ config ARCH_HAS_ILOG2_U32
- config ARCH_HAS_ILOG2_U64
- 	def_bool n
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
--config GENERIC_FIND_BIT_LE
--	def_bool y
--
- config GENERIC_HWEIGHT
- 	def_bool y
- 
-diff -puN arch/mips/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/mips/Kconfig
---- a/arch/mips/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/mips/Kconfig
-@@ -793,14 +793,6 @@ config ARCH_SUPPORTS_OPROFILE
- 	bool
- 	default y if !MIPS_MT_SMTC
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN arch/mn10300/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/mn10300/Kconfig
---- a/arch/mn10300/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/mn10300/Kconfig
-@@ -44,9 +44,6 @@ config GENERIC_CALIBRATE_DELAY
- config GENERIC_CMOS_UPDATE
-         def_bool n
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
- config GENERIC_HWEIGHT
- 	def_bool y
- 
-diff -puN arch/parisc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/parisc/Kconfig
-@@ -47,14 +47,6 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_BUG
- 	bool
- 	default y
-diff -puN arch/powerpc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/powerpc/Kconfig
-@@ -91,14 +91,6 @@ config GENERIC_HWEIGHT
- 	bool
- 	default y
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_GPIO
- 	bool
- 	help
-diff -puN arch/score/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/score/Kconfig
---- a/arch/score/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/score/Kconfig
-@@ -43,9 +43,6 @@ config NO_DMA
- config RWSEM_GENERIC_SPINLOCK
- 	def_bool y
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
- config GENERIC_HWEIGHT
- 	def_bool y
- 
-diff -puN arch/sh/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/sh/Kconfig
---- a/arch/sh/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/sh/Kconfig
-@@ -70,12 +70,6 @@ config GENERIC_CSUM
- 	def_bool y
- 	depends on SUPERH64
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
--config GENERIC_FIND_BIT_LE
--	def_bool y
--
- config GENERIC_HWEIGHT
- 	def_bool y
- 
-diff -puN arch/sparc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/sparc/Kconfig
-@@ -191,14 +191,6 @@ config RWSEM_XCHGADD_ALGORITHM
- 	bool
- 	default y if SPARC64
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--	default y
--
--config GENERIC_FIND_BIT_LE
--	bool
--	default y
--
- config GENERIC_HWEIGHT
- 	bool
- 	default y if !ULTRA_HAS_POPULATION_COUNT
-diff -puN arch/tile/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/tile/Kconfig
---- a/arch/tile/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/tile/Kconfig
-@@ -5,7 +5,6 @@ config TILE
- 	def_bool y
- 	select HAVE_KVM if !TILEGX
- 	select GENERIC_FIND_FIRST_BIT
--	select GENERIC_FIND_NEXT_BIT
- 	select USE_GENERIC_SMP_HELPERS
- 	select CC_OPTIMIZE_FOR_SIZE
- 	select HAVE_GENERIC_HARDIRQS
-diff -puN arch/um/Kconfig.x86~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/um/Kconfig.x86
---- a/arch/um/Kconfig.x86~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/um/Kconfig.x86
-@@ -15,7 +15,6 @@ endmenu
- config UML_X86
- 	def_bool y
- 	select GENERIC_FIND_FIRST_BIT
--	select GENERIC_FIND_NEXT_BIT
- 
- config 64BIT
- 	bool
-diff -puN arch/x86/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/x86/Kconfig
---- a/arch/x86/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/x86/Kconfig
-@@ -65,7 +65,6 @@ config X86
- 	select HAVE_GENERIC_HARDIRQS
- 	select HAVE_SPARSE_IRQ
- 	select GENERIC_FIND_FIRST_BIT
--	select GENERIC_FIND_NEXT_BIT
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_PENDING_IRQ if SMP
- 	select GENERIC_IRQ_SHOW
-diff -puN arch/xtensa/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/arch/xtensa/Kconfig
-@@ -20,12 +20,6 @@ config XTENSA
- config RWSEM_XCHGADD_ALGORITHM
- 	def_bool y
- 
--config GENERIC_FIND_NEXT_BIT
--	def_bool y
--
--config GENERIC_FIND_BIT_LE
--	def_bool y
--
- config GENERIC_HWEIGHT
- 	def_bool y
- 
-diff -puN include/linux/bitops.h~arch-remove-config_generic_find_next_bitbit_lelast_bit include/linux/bitops.h
---- a/include/linux/bitops.h~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/include/linux/bitops.h
-@@ -148,7 +148,6 @@ static inline unsigned long __ffs64(u64 
- 
- #ifdef __KERNEL__
- 
--#ifdef CONFIG_GENERIC_FIND_LAST_BIT
- #ifndef find_last_bit
- /**
-  * find_last_bit - find the last set bit in a memory region
-@@ -160,7 +159,6 @@ static inline unsigned long __ffs64(u64 
- extern unsigned long find_last_bit(const unsigned long *addr,
- 				   unsigned long size);
- #endif
--#endif /* CONFIG_GENERIC_FIND_LAST_BIT */
- 
- #endif /* __KERNEL__ */
- #endif
-diff -puN lib/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit lib/Kconfig
---- a/lib/Kconfig~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/lib/Kconfig
-@@ -19,16 +19,6 @@ config RATIONAL
- config GENERIC_FIND_FIRST_BIT
- 	bool
- 
--config GENERIC_FIND_NEXT_BIT
--	bool
--
--config GENERIC_FIND_BIT_LE
--	bool
--
--config GENERIC_FIND_LAST_BIT
--	bool
--	default y
--
- config CRC_CCITT
- 	tristate "CRC-CCITT functions"
- 	help
-diff -puN lib/Makefile~arch-remove-config_generic_find_next_bitbit_lelast_bit lib/Makefile
---- a/lib/Makefile~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o
-+	 is_single_threaded.o plist.o decompress.o find_next_bit.o
- 
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -21,7 +21,8 @@ lib-y	+= kobject.o kref.o klist.o
- 
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
--	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o
-+	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
-+	 find_last_bit.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
- 
-@@ -38,10 +39,6 @@ obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS
- obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock_debug.o
- lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += rwsem-spinlock.o
- lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
--lib-$(CONFIG_GENERIC_FIND_FIRST_BIT) += find_next_bit.o
--lib-$(CONFIG_GENERIC_FIND_NEXT_BIT) += find_next_bit.o
--lib-$(CONFIG_GENERIC_FIND_BIT_LE) += find_next_bit.o
--obj-$(CONFIG_GENERIC_FIND_LAST_BIT) += find_last_bit.o
- 
- CFLAGS_hweight.o = $(subst $(quote),,$(CONFIG_ARCH_HWEIGHT_CFLAGS))
- obj-$(CONFIG_GENERIC_HWEIGHT) += hweight.o
-diff -puN lib/find_next_bit.c~arch-remove-config_generic_find_next_bitbit_lelast_bit lib/find_next_bit.c
---- a/lib/find_next_bit.c~arch-remove-config_generic_find_next_bitbit_lelast_bit
-+++ a/lib/find_next_bit.c
-@@ -16,7 +16,6 @@
- 
- #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
- 
--#ifdef CONFIG_GENERIC_FIND_NEXT_BIT
- #ifndef find_next_bit
- /*
-  * Find the next set bit in a memory region.
-@@ -107,9 +106,7 @@ found_middle:
- }
- EXPORT_SYMBOL(find_next_zero_bit);
- #endif
--#endif /* CONFIG_GENERIC_FIND_NEXT_BIT */
- 
--#ifdef CONFIG_GENERIC_FIND_FIRST_BIT
- #ifndef find_first_bit
- /*
-  * Find the first set bit in a memory region.
-@@ -165,10 +162,8 @@ found:
- }
- EXPORT_SYMBOL(find_first_zero_bit);
- #endif
--#endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
- 
- #ifdef __BIG_ENDIAN
--#ifdef CONFIG_GENERIC_FIND_BIT_LE
- 
- /* include/linux/byteorder does not support "unsigned long" type */
- static inline unsigned long ext2_swabp(const unsigned long * x)
-@@ -287,5 +282,4 @@ found_middle_swap:
- EXPORT_SYMBOL(find_next_bit_le);
- #endif
- 
--#endif /* CONFIG_GENERIC_FIND_BIT_LE */
- #endif /* __BIG_ENDIAN */
+ 	copied = 0;
+ 	while (count > 0) {
+ 		int this_len, retval;
+@@ -929,9 +929,11 @@ static ssize_t mem_write(struct file * f
+ 		count -= retval;			
+ 	}
+ 	*ppos = dst;
+-	free_page((unsigned long) page);
++
+ out_mm:
+ 	mmput(mm);
++out_free:
++	free_page((unsigned long) page);
+ out_task:
+ 	put_task_struct(task);
+ out_no_task:
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
-arch-add-define-for-each-of-optimized-find-bitops.patch
-bitops-add-ifndef-for-each-of-find-bitops.patch
-arch-remove-config_generic_find_next_bitbit_lelast_bit.patch
-arm-use-asm-generic-bitops-leh.patch
-s390-use-asm-generic-bitops-leh.patch
-m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
+origin.patch
+oom-use-pte-pages-in-oom-score.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve.patch
+mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix.patch
+readahead-readahead-page-allocations-are-ok-to-fail.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+alpha-replace-with-new-cpumask-apis.patch
+m32r-convert-cpumask-api.patch
+m32r-fix-spin_lock_irqsave-misuse.patch
+m32r-remove-redundant-declaration.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+proc-fix-pagemap_read-error-case-was-re-proc-put-check_mem_permission-before-__get_free_page-in-mem_read.patch
 
