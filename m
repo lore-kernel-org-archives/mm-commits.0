@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch added to -mm tree
-Date: Tue, 26 Apr 2011 15:03:40 -0700
-Message-ID: <201104262203.p3QM3fqA022609@imap1.linux-foundation.org>
+Subject: + proc-fix-pagemap_read-error-case.patch added to -mm tree
+Date: Tue, 26 Apr 2011 15:04:54 -0700
+Message-ID: <201104262204.p3QM4sgZ022666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752683Ab1DZWEd (ORCPT
+	by vger.kernel.org with ESMTP id S1752683Ab1DZWFV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 18:04:33 -0400
+	Tue, 26 Apr 2011 18:05:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, bookjovi@gmail.com, hug
 
 
 The patch titled
-     proc: put check_mem_permission after __get_free_page in mem_write
+     proc: fix pagemap_read() error case
 has been added to the -mm tree.  Its filename is
-     proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+     proc-fix-pagemap_read-error-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: put check_mem_permission after __get_free_page in mem_write
+Subject: proc: fix pagemap_read() error case
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-It whould be better if put check_mem_permission after __get_free_page in
-mem_write, to be same as function mem_read.
+Currently, pagemap_read() has three error and/or corner case handling
+mistake.
 
-Hugh Dickins explained the reason.
+ (1) If ppos parameter is wrong, mm refcount will be leak.
+ (2) If count parameter is 0, mm refcount will be leak too.
+ (3) If the current task is sleeping in kmalloc() and the system
+     is out of memory and oom-killer kill the proc associated task,
+     mm_refcount prevent the task free its memory. then system may
+     hang up.
 
-    check_mem_permission gets a reference to the mm.  If we __get_free_page
-    after check_mem_permission, imagine what happens if the system is out
-    of memory, and the mm we're looking at is selected for killing by the
-    OOM killer: while we wait in __get_free_page for more memory, no memory
-    is freed from the selected mm because it cannot reach exit_mmap while
-    we hold that reference.
+<Quote Hugh's explain why we shold call kmalloc() before get_mm()>
 
-Reported-by: Jovi Zhang <bookjovi@gmail.com>
+  check_mem_permission gets a reference to the mm.  If we
+  __get_free_page after check_mem_permission, imagine what happens if the
+  system is out of memory, and the mm we're looking at is selected for
+  killing by the OOM killer: while we wait in __get_free_page for more
+  memory, no memory is freed from the selected mm because it cannot reach
+  exit_mmap while we hold that reference.
+
+This patch fixes the above three.
+
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jovi Zhang <bookjovi@gmail.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Stephen Wilson <wilsons@start.ca>
+Cc: Stephen Wilson <wilsons@start.ca>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ fs/proc/task_mmu.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write fs/proc/base.c
---- a/fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write
-+++ a/fs/proc/base.c
-@@ -894,20 +894,20 @@ static ssize_t mem_write(struct file * f
+diff -puN fs/proc/task_mmu.c~proc-fix-pagemap_read-error-case fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-fix-pagemap_read-error-case
++++ a/fs/proc/task_mmu.c
+@@ -769,18 +769,12 @@ static ssize_t pagemap_read(struct file 
  	if (!task)
- 		goto out_no_task;
+ 		goto out;
  
-+	copied = -ENOMEM;
-+	page = (char *)__get_free_page(GFP_TEMPORARY);
-+	if (!page)
+-	mm = mm_for_maps(task);
+-	ret = PTR_ERR(mm);
+-	if (!mm || IS_ERR(mm))
+-		goto out_task;
+-
+ 	ret = -EINVAL;
+ 	/* file position must be aligned */
+ 	if ((*ppos % PM_ENTRY_BYTES) || (count % PM_ENTRY_BYTES))
+ 		goto out_task;
+ 
+ 	ret = 0;
+-
+ 	if (!count)
+ 		goto out_task;
+ 
+@@ -788,7 +782,12 @@ static ssize_t pagemap_read(struct file 
+ 	pm.buffer = kmalloc(pm.len, GFP_TEMPORARY);
+ 	ret = -ENOMEM;
+ 	if (!pm.buffer)
+-		goto out_mm;
 +		goto out_task;
 +
- 	mm = check_mem_permission(task);
- 	copied = PTR_ERR(mm);
- 	if (IS_ERR(mm))
--		goto out_task;
++	mm = mm_for_maps(task);
++	ret = PTR_ERR(mm);
++	if (!mm || IS_ERR(mm))
 +		goto out_free;
  
- 	copied = -EIO;
- 	if (file->private_data != (void *)((long)current->self_exec_id))
- 		goto out_mm;
+ 	pagemap_walk.pmd_entry = pagemap_pte_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
+@@ -831,7 +830,7 @@ static ssize_t pagemap_read(struct file 
+ 		len = min(count, PM_ENTRY_BYTES * pm.pos);
+ 		if (copy_to_user(buf, pm.buffer, len)) {
+ 			ret = -EFAULT;
+-			goto out_free;
++			goto out_mm;
+ 		}
+ 		copied += len;
+ 		buf += len;
+@@ -841,10 +840,10 @@ static ssize_t pagemap_read(struct file 
+ 	if (!ret || ret == PM_END_OF_BUFFER)
+ 		ret = copied;
  
--	copied = -ENOMEM;
--	page = (char *)__get_free_page(GFP_TEMPORARY);
--	if (!page)
--		goto out_mm;
--
- 	copied = 0;
- 	while (count > 0) {
- 		int this_len, retval;
-@@ -929,9 +929,11 @@ static ssize_t mem_write(struct file * f
- 		count -= retval;			
- 	}
- 	*ppos = dst;
--	free_page((unsigned long) page);
-+
+-out_free:
+-	kfree(pm.buffer);
  out_mm:
  	mmput(mm);
 +out_free:
-+	free_page((unsigned long) page);
++	kfree(pm.buffer);
  out_task:
  	put_task_struct(task);
- out_no_task:
+ out:
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -173,9 +198,9 @@ vmscanmemcg-memcg-aware-swap-token-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
 proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
 cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
 cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 kexec-remove-kmsg_dump_kexec.patch
 kexec-remove-kmsg_dump_kexec-fix.patch
-proc-fix-pagemap_read-error-case-was-re-proc-put-check_mem_permission-before-__get_free_page-in-mem_read.patch
 
