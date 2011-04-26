@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-elevate-queue_io-into-wb_writeback.patch added to -mm tree
-Date: Tue, 26 Apr 2011 14:42:22 -0700
-Message-ID: <201104262142.p3QLgMvg021322@imap1.linux-foundation.org>
+Subject: + m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch added to -mm tree
+Date: Tue, 26 Apr 2011 14:29:18 -0700
+Message-ID: <201104262129.p3QLTJ5W020636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932957Ab1DZV6X (ORCPT
+	by vger.kernel.org with ESMTP id S932957Ab1DZV6x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 17:58:23 -0400
+	Tue, 26 Apr 2011 17:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, hch@lst.de, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@linux.vnet.ibm.com, minchan.kim@gmail.com, npiggin@kernel.dk
+Cc: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, heiko.carstens@de.ibm.com, linux@arm.linux.org.uk, schwidefsky@de.ibm.com
 
 
 The patch titled
-     writeback: elevate queue_io() into wb_writeback()
+     m68knommu: fix build error due to the lack of find_next_bit_le()
 has been added to the -mm tree.  Its filename is
-     writeback-elevate-queue_io-into-wb_writeback.patch
+     m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: elevate queue_io() into wb_writeback()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: m68knommu: fix build error due to the lack of find_next_bit_le()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Code refactor for more logical code layout.
-No behavior change.
+m68knommu can't build ext4 and udf due to the lack of find_next_bit_le(). 
+By the previous style change, m68knommu got generic find_next_bit_le(). 
+The extern declaration is only needed to fix the build error.
 
-- remove the mis-named __writeback_inodes_sb()
-
-- wb_writeback()/writeback_inodes_wb() will decide when to queue_io()
-  before calling __writeback_inodes_wb()
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Mel Gorman <mel@linux.vnet.ibm.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ arch/m68k/include/asm/bitops_no.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-elevate-queue_io-into-wb_writeback fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-elevate-queue_io-into-wb_writeback
-+++ a/fs/fs-writeback.c
-@@ -570,17 +570,13 @@ static int writeback_sb_inodes(struct su
- 	return 1;
+diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le arch/m68k/include/asm/bitops_no.h
+--- a/arch/m68k/include/asm/bitops_no.h~m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le
++++ a/arch/m68k/include/asm/bitops_no.h
+@@ -321,6 +321,9 @@ found_middle:
  }
+ #define find_next_zero_bit_le find_next_zero_bit_le
  
--void writeback_inodes_wb(struct bdi_writeback *wb,
--		struct writeback_control *wbc)
-+static void __writeback_inodes_wb(struct bdi_writeback *wb,
-+				  struct writeback_control *wbc)
- {
- 	int ret = 0;
++extern unsigned long find_next_bit_le(const void *addr,
++		unsigned long size, unsigned long offset);
++
+ #endif /* __KERNEL__ */
  
- 	if (!wbc->wb_start)
- 		wbc->wb_start = jiffies; /* livelock avoidance */
--	spin_lock(&wb->list_lock);
--
--	if (list_empty(&wb->b_io))
--		queue_io(wb, wbc);
- 
- 	while (!list_empty(&wb->b_io)) {
- 		struct inode *inode = wb_inode(wb->b_io.prev);
-@@ -596,19 +592,16 @@ void writeback_inodes_wb(struct bdi_writ
- 		if (ret)
- 			break;
- 	}
--	spin_unlock(&wb->list_lock);
- 	/* Leave any unwritten inodes on b_io */
- }
- 
--static void __writeback_inodes_sb(struct super_block *sb,
--		struct bdi_writeback *wb, struct writeback_control *wbc)
-+void writeback_inodes_wb(struct bdi_writeback *wb,
-+		struct writeback_control *wbc)
- {
--	WARN_ON(!rwsem_is_locked(&sb->s_umount));
--
- 	spin_lock(&wb->list_lock);
- 	if (list_empty(&wb->b_io))
- 		queue_io(wb, wbc);
--	writeback_sb_inodes(sb, wb, wbc, true);
-+	__writeback_inodes_wb(wb, wbc);
- 	spin_unlock(&wb->list_lock);
- }
- 
-@@ -674,7 +667,7 @@ static long wb_writeback(struct bdi_writ
- 	 * The intended call sequence for WB_SYNC_ALL writeback is:
- 	 *
- 	 *      wb_writeback()
--	 *          __writeback_inodes_sb()     <== called only once
-+	 *          writeback_sb_inodes()       <== called only once
- 	 *              write_cache_pages()     <== called once for each inode
- 	 *                   (quickly) tag currently dirty pages
- 	 *                   (maybe slowly) sync all tagged pages
-@@ -722,10 +715,14 @@ static long wb_writeback(struct bdi_writ
- 
- retry:
- 		trace_wbc_writeback_start(&wbc, wb->bdi);
-+		spin_lock(&wb->list_lock);
-+		if (list_empty(&wb->b_io))
-+			queue_io(wb, &wbc);
- 		if (work->sb)
--			__writeback_inodes_sb(work->sb, wb, &wbc);
-+			writeback_sb_inodes(work->sb, wb, &wbc, true);
- 		else
--			writeback_inodes_wb(wb, &wbc);
-+			__writeback_inodes_wb(wb, &wbc);
-+		spin_unlock(&wb->list_lock);
- 		trace_wbc_writeback_written(&wbc, wb->bdi);
- 
- 		work->nr_pages -= write_chunk - wbc.nr_to_write;
+ #include <asm-generic/bitops/fls.h>
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-writeback-pass-writeback_control-down-to-move_expired_inodes.patch
-writeback-introduce-writeback_controlinodes_cleaned.patch
-writeback-try-more-writeback-as-long-as-something-was-written.patch
-writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-refill-b_io-iff-empty.patch
-readahead-readahead-page-allocations-are-ok-to-fail.patch
-readahead-return-early-when-readahead-is-disabled.patch
-readahead-reduce-unnecessary-mmap_miss-increases.patch
-readahead-trigger-mmap-sequential-readahead-on-pg_readahead.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-writeback-elevate-queue_io-into-wb_writeback.patch
+linux-next.patch
+arch-add-define-for-each-of-optimized-find-bitops.patch
+bitops-add-ifndef-for-each-of-find-bitops.patch
+arch-remove-config_generic_find_next_bitbit_lelast_bit.patch
+arm-use-asm-generic-bitops-leh.patch
+s390-use-asm-generic-bitops-leh.patch
+m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
 
