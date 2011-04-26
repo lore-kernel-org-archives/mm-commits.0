@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch added to -mm tree
-Date: Tue, 26 Apr 2011 13:19:04 -0700
-Message-ID: <201104262019.p3QKJ4lA016458@imap1.linux-foundation.org>
+Subject: + readahead-reduce-unnecessary-mmap_miss-increases.patch added to -mm tree
+Date: Tue, 26 Apr 2011 14:03:44 -0700
+Message-ID: <201104262103.p3QL3iS9019049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752047Ab1DZUTX (ORCPT
+	by vger.kernel.org with ESMTP id S1754071Ab1DZVDq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 16:19:23 -0400
+	Tue, 26 Apr 2011 17:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, pefoley2@verizon.net, rientjes@google.com
+Cc: ak@linux.intel.com, fengguang.wu@intel.com, tim.c.chen@intel.com
 
 
 The patch titled
-     init/Kconfig: use if/endif to surround the EXPERT menu kconfig symbols
+     readahead: reduce unnecessary mmap_miss increases
 has been added to the -mm tree.  Its filename is
-     init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch
+     readahead-reduce-unnecessary-mmap_miss-increases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/Kconfig: use if/endif to surround the EXPERT menu kconfig symbols
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: readahead: reduce unnecessary mmap_miss increases
+From: Andi Kleen <ak@linux.intel.com>
 
-Surround the EXPERT menu with "if EXPERT" and "endif" so that it is forced
-to stay as one unit.  Hopefully this will help to prevent it being broken
-in the future.
+The original INT_MAX is too large, reduce it to
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Peter Foley <pefoley2@verizon.net>
+- avoid unnecessarily dirtying/bouncing the cache line
+- restore mmap read-around faster on changed access pattern
+
+Tested-by: Tim Chen <tim.c.chen@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols init/Kconfig
---- a/init/Kconfig~init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols
-+++ a/init/Kconfig
-@@ -929,15 +929,17 @@ menuconfig EXPERT
-           environments which can tolerate a "non-standard" kernel.
-           Only use this if you really know what you are doing.
+diff -puN mm/filemap.c~readahead-reduce-unnecessary-mmap_miss-increases mm/filemap.c
+--- a/mm/filemap.c~readahead-reduce-unnecessary-mmap_miss-increases
++++ a/mm/filemap.c
+@@ -1577,7 +1577,8 @@ static void do_sync_mmap_readahead(struc
+ 		return;
+ 	}
  
-+if EXPERT
-+
- config UID16
--	bool "Enable 16-bit UID system calls" if EXPERT
-+	bool "Enable 16-bit UID system calls"
- 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
- 	default y
- 	help
- 	  This enables the legacy 16-bit UID syscall wrappers.
+-	if (ra->mmap_miss < INT_MAX)
++	/* Avoid banging the cache line if not needed */
++	if (ra->mmap_miss < MMAP_LOTSAMISS * 10)
+ 		ra->mmap_miss++;
  
- config SYSCTL_SYSCALL
--	bool "Sysctl syscall support" if EXPERT
-+	bool "Sysctl syscall support"
- 	depends on PROC_SYSCTL
- 	default y
- 	select SYSCTL
-@@ -954,7 +956,7 @@ config SYSCTL_SYSCALL
- 	  If unsure say Y here.
- 
- config KALLSYMS
--	 bool "Load all symbols for debugging/ksymoops" if EXPERT
-+	 bool "Load all symbols for debugging/ksymoops"
- 	 default y
- 	 help
- 	   Say Y here to let the kernel print out symbolic crash information and
-@@ -979,7 +981,7 @@ config KALLSYMS_ALL
- 	   Say N unless you really need all symbols.
- 
- config HOTPLUG
--	bool "Support for hot-pluggable devices" if EXPERT
-+	bool "Support for hot-pluggable devices"
- 	default y
- 	help
- 	  This option is provided for the case where no hotplug or uevent
-@@ -989,7 +991,7 @@ config HOTPLUG
- 
- config PRINTK
- 	default y
--	bool "Enable support for printk" if EXPERT
-+	bool "Enable support for printk"
- 	help
- 	  This option enables normal printk support. Removing it
- 	  eliminates most of the message strings from the kernel image
-@@ -998,7 +1000,7 @@ config PRINTK
- 	  strongly discouraged.
- 
- config BUG
--	bool "BUG() support" if EXPERT
-+	bool "BUG() support"
- 	default y
- 	help
-           Disabling this option eliminates support for BUG and WARN, reducing
-@@ -1009,12 +1011,12 @@ config BUG
- 
- config ELF_CORE
- 	default y
--	bool "Enable ELF core dumps" if EXPERT
-+	bool "Enable ELF core dumps"
- 	help
- 	  Enable support for generating core dumps. Disabling saves about 4k.
- 
- config PCSPKR_PLATFORM
--	bool "Enable PC-Speaker support" if EXPERT
-+	bool "Enable PC-Speaker support"
- 	depends on ALPHA || X86 || MIPS || PPC_PREP || PPC_CHRP || PPC_PSERIES
- 	default y
- 	help
-@@ -1023,14 +1025,14 @@ config PCSPKR_PLATFORM
- 
- config BASE_FULL
- 	default y
--	bool "Enable full-sized data structures for core" if EXPERT
-+	bool "Enable full-sized data structures for core"
- 	help
- 	  Disabling this option reduces the size of miscellaneous core
- 	  kernel data structures. This saves memory on small machines,
- 	  but may reduce performance.
- 
- config FUTEX
--	bool "Enable futex support" if EXPERT
-+	bool "Enable futex support"
- 	default y
- 	select RT_MUTEXES
- 	help
-@@ -1039,7 +1041,7 @@ config FUTEX
- 	  run glibc-based applications correctly.
- 
- config EPOLL
--	bool "Enable eventpoll support" if EXPERT
-+	bool "Enable eventpoll support"
- 	default y
- 	select ANON_INODES
- 	help
-@@ -1047,7 +1049,7 @@ config EPOLL
- 	  support for epoll family of system calls.
- 
- config SIGNALFD
--	bool "Enable signalfd() system call" if EXPERT
-+	bool "Enable signalfd() system call"
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1057,7 +1059,7 @@ config SIGNALFD
- 	  If unsure, say Y.
- 
- config TIMERFD
--	bool "Enable timerfd() system call" if EXPERT
-+	bool "Enable timerfd() system call"
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1067,7 +1069,7 @@ config TIMERFD
- 	  If unsure, say Y.
- 
- config EVENTFD
--	bool "Enable eventfd() system call" if EXPERT
-+	bool "Enable eventfd() system call"
- 	select ANON_INODES
- 	default y
- 	help
-@@ -1077,7 +1079,7 @@ config EVENTFD
- 	  If unsure, say Y.
- 
- config SHMEM
--	bool "Use full shmem filesystem" if EXPERT
-+	bool "Use full shmem filesystem"
- 	default y
- 	depends on MMU
- 	help
-@@ -1088,13 +1090,15 @@ config SHMEM
- 	  which may be appropriate on small systems without swap.
- 
- config AIO
--	bool "Enable AIO support" if EXPERT
-+	bool "Enable AIO support"
- 	default y
- 	help
- 	  This option enables POSIX asynchronous I/O which may by used
-           by some high performance threaded applications. Disabling
-           this option saves about 7k.
- 
-+endif # EXPERT menu
-+
- config EMBEDDED
- 	bool "Embedded system"
- 	select EXPERT
+ 	/*
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
 linux-next.patch
-uml-fix-hppfs-build.patch
-init-kconfig-fix-expert-menu-list.patch
-drivers-leds-leds-pca9532c-add-gpio-capability.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+mm-rename-alloc_pages_exact.patch
+mm-make-new-alloc_pages_exact.patch
+mm-reuse-__free_pages_exact-in-__alloc_pages_exact.patch
+readahead-return-early-when-readahead-is-disabled.patch
+readahead-reduce-unnecessary-mmap_miss-increases.patch
+readahead-trigger-mmap-sequential-readahead-on-pg_readahead.patch
 
