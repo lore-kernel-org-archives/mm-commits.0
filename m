@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscanmemcg-memcg-aware-swap-token-fix.patch added to -mm tree
-Date: Tue, 26 Apr 2011 13:07:55 -0700
-Message-ID: <201104262007.p3QK7t8C015900@imap1.linux-foundation.org>
+Subject: + init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch added to -mm tree
+Date: Tue, 26 Apr 2011 13:19:04 -0700
+Message-ID: <201104262019.p3QKJ4lA016458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753154Ab1DZUH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752047Ab1DZUTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 16:07:58 -0400
+	Tue, 26 Apr 2011 16:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Cc: randy.dunlap@oracle.com, pefoley2@verizon.net, rientjes@google.com
 
 
 The patch titled
-     vmscanmemcg-memcg-aware-swap-token-fix
+     init/Kconfig: use if/endif to surround the EXPERT menu kconfig symbols
 has been added to the -mm tree.  Its filename is
-     vmscanmemcg-memcg-aware-swap-token-fix.patch
+     init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,187 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscanmemcg-memcg-aware-swap-token-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init/Kconfig: use if/endif to surround the EXPERT menu kconfig symbols
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-unbreak code layout
+Surround the EXPERT menu with "if EXPERT" and "endif" so that it is forced
+to stay as one unit.  Hopefully this will help to prevent it being broken
+in the future.
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Peter Foley <pefoley2@verizon.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ init/Kconfig |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/swap.h~vmscanmemcg-memcg-aware-swap-token-fix include/linux/swap.h
---- a/include/linux/swap.h~vmscanmemcg-memcg-aware-swap-token-fix
-+++ a/include/linux/swap.h
-@@ -360,27 +360,24 @@ extern void grab_swap_token(struct mm_st
- extern void __put_swap_token(struct mm_struct *);
- extern int has_swap_token_memcg(struct mm_struct *mm, struct mem_cgroup *memcg);
+diff -puN init/Kconfig~init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols init/Kconfig
+--- a/init/Kconfig~init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols
++++ a/init/Kconfig
+@@ -929,15 +929,17 @@ menuconfig EXPERT
+           environments which can tolerate a "non-standard" kernel.
+           Only use this if you really know what you are doing.
  
--static inline
--int has_swap_token(struct mm_struct *mm)
-+static inline int has_swap_token(struct mm_struct *mm)
- {
- 	return has_swap_token_memcg(mm, NULL);
- }
++if EXPERT
++
+ config UID16
+-	bool "Enable 16-bit UID system calls" if EXPERT
++	bool "Enable 16-bit UID system calls"
+ 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
+ 	default y
+ 	help
+ 	  This enables the legacy 16-bit UID syscall wrappers.
  
--static inline
--void put_swap_token_memcg(struct mm_struct *mm, struct mem_cgroup *memcg)
-+static inline void put_swap_token_memcg(struct mm_struct *mm,
-+					struct mem_cgroup *memcg)
- {
- 	if (has_swap_token_memcg(mm, memcg))
- 		__put_swap_token(mm);
- }
+ config SYSCTL_SYSCALL
+-	bool "Sysctl syscall support" if EXPERT
++	bool "Sysctl syscall support"
+ 	depends on PROC_SYSCTL
+ 	default y
+ 	select SYSCTL
+@@ -954,7 +956,7 @@ config SYSCTL_SYSCALL
+ 	  If unsure say Y here.
  
--static inline
--void put_swap_token(struct mm_struct *mm)
-+static inline void put_swap_token(struct mm_struct *mm)
- {
- 	return put_swap_token_memcg(mm, NULL);
- }
+ config KALLSYMS
+-	 bool "Load all symbols for debugging/ksymoops" if EXPERT
++	 bool "Load all symbols for debugging/ksymoops"
+ 	 default y
+ 	 help
+ 	   Say Y here to let the kernel print out symbolic crash information and
+@@ -979,7 +981,7 @@ config KALLSYMS_ALL
+ 	   Say N unless you really need all symbols.
  
--static inline
--void disable_swap_token(struct mem_cgroup *memcg)
-+static inline void disable_swap_token(struct mem_cgroup *memcg)
- {
- 	put_swap_token_memcg(swap_token_mm, memcg);
- }
+ config HOTPLUG
+-	bool "Support for hot-pluggable devices" if EXPERT
++	bool "Support for hot-pluggable devices"
+ 	default y
+ 	help
+ 	  This option is provided for the case where no hotplug or uevent
+@@ -989,7 +991,7 @@ config HOTPLUG
+ 
+ config PRINTK
+ 	default y
+-	bool "Enable support for printk" if EXPERT
++	bool "Enable support for printk"
+ 	help
+ 	  This option enables normal printk support. Removing it
+ 	  eliminates most of the message strings from the kernel image
+@@ -998,7 +1000,7 @@ config PRINTK
+ 	  strongly discouraged.
+ 
+ config BUG
+-	bool "BUG() support" if EXPERT
++	bool "BUG() support"
+ 	default y
+ 	help
+           Disabling this option eliminates support for BUG and WARN, reducing
+@@ -1009,12 +1011,12 @@ config BUG
+ 
+ config ELF_CORE
+ 	default y
+-	bool "Enable ELF core dumps" if EXPERT
++	bool "Enable ELF core dumps"
+ 	help
+ 	  Enable support for generating core dumps. Disabling saves about 4k.
+ 
+ config PCSPKR_PLATFORM
+-	bool "Enable PC-Speaker support" if EXPERT
++	bool "Enable PC-Speaker support"
+ 	depends on ALPHA || X86 || MIPS || PPC_PREP || PPC_CHRP || PPC_PSERIES
+ 	default y
+ 	help
+@@ -1023,14 +1025,14 @@ config PCSPKR_PLATFORM
+ 
+ config BASE_FULL
+ 	default y
+-	bool "Enable full-sized data structures for core" if EXPERT
++	bool "Enable full-sized data structures for core"
+ 	help
+ 	  Disabling this option reduces the size of miscellaneous core
+ 	  kernel data structures. This saves memory on small machines,
+ 	  but may reduce performance.
+ 
+ config FUTEX
+-	bool "Enable futex support" if EXPERT
++	bool "Enable futex support"
+ 	default y
+ 	select RT_MUTEXES
+ 	help
+@@ -1039,7 +1041,7 @@ config FUTEX
+ 	  run glibc-based applications correctly.
+ 
+ config EPOLL
+-	bool "Enable eventpoll support" if EXPERT
++	bool "Enable eventpoll support"
+ 	default y
+ 	select ANON_INODES
+ 	help
+@@ -1047,7 +1049,7 @@ config EPOLL
+ 	  support for epoll family of system calls.
+ 
+ config SIGNALFD
+-	bool "Enable signalfd() system call" if EXPERT
++	bool "Enable signalfd() system call"
+ 	select ANON_INODES
+ 	default y
+ 	help
+@@ -1057,7 +1059,7 @@ config SIGNALFD
+ 	  If unsure, say Y.
+ 
+ config TIMERFD
+-	bool "Enable timerfd() system call" if EXPERT
++	bool "Enable timerfd() system call"
+ 	select ANON_INODES
+ 	default y
+ 	help
+@@ -1067,7 +1069,7 @@ config TIMERFD
+ 	  If unsure, say Y.
+ 
+ config EVENTFD
+-	bool "Enable eventfd() system call" if EXPERT
++	bool "Enable eventfd() system call"
+ 	select ANON_INODES
+ 	default y
+ 	help
+@@ -1077,7 +1079,7 @@ config EVENTFD
+ 	  If unsure, say Y.
+ 
+ config SHMEM
+-	bool "Use full shmem filesystem" if EXPERT
++	bool "Use full shmem filesystem"
+ 	default y
+ 	depends on MMU
+ 	help
+@@ -1088,13 +1090,15 @@ config SHMEM
+ 	  which may be appropriate on small systems without swap.
+ 
+ config AIO
+-	bool "Enable AIO support" if EXPERT
++	bool "Enable AIO support"
+ 	default y
+ 	help
+ 	  This option enables POSIX asynchronous I/O which may by used
+           by some high performance threaded applications. Disabling
+           this option saves about 7k.
+ 
++endif # EXPERT menu
++
+ config EMBEDDED
+ 	bool "Embedded system"
+ 	select EXPERT
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-vfs-avoid-large-kmallocs-for-the-fdtable.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
+uml-fix-hppfs-build.patch
+init-kconfig-fix-expert-menu-list.patch
+drivers-leds-leds-pca9532c-add-gpio-capability.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+init-kconfig-use-if-endif-to-surround-the-expert-menu-kconfig-symbols.patch
+mutex-subsystem-synchro-test-module.patch
 mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
