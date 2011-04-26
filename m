@@ -1,56 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch removed from -mm tree
-Date: Tue, 26 Apr 2011 11:37:36 -0700
-Message-ID: <201104261832.p3QIWYJG011022@imap1.linux-foundation.org>
+Subject: [merged] hid-example-fix-some-build-issues.patch removed from -mm tree
+Date: Tue, 26 Apr 2011 11:38:56 -0700
+Message-ID: <201104261833.p3QIXtXZ011076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750756Ab1DZSct (ORCPT
+	by vger.kernel.org with ESMTP id S1750826Ab1DZSeD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 14:32:49 -0400
+	Tue, 26 Apr 2011 14:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dilinger@queued.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, alan@signal11.us, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/olpc_dcon/olpc_dcon_xo_1.c needs delay.h
+     hid-example: fix some build issues
 has been removed from the -mm tree.  Its filename was
-     drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh.patch
+     hid-example-fix-some-build-issues.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/olpc_dcon/olpc_dcon_xo_1.c needs delay.h
+Subject: hid-example: fix some build issues
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix build error, needs delay.h:
+samples/hid-example.o needs some Kconfig and Makefile additions in order
+to build.  It should use <linux/*.h> headers from the build tree, so use
+HEADERS_CHECK to require that those header files be present.
 
-drivers/staging/olpc_dcon/olpc_dcon_xo_1.c:168: error: implicit declaration of function 'udelay'
+Change the kconfig symbol from tristate to bool since userspace cannot be
+built as loadable modules.
+
+However, I don't understand why the userspace header files are not present
+as reported in Andrew's build log, since it builds OK on x86_64 without
+any of these changes.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Alan Ott <alan@signal11.us>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/olpc_dcon/olpc_dcon_xo_1.c |    1 +
- 1 file changed, 1 insertion(+)
+ samples/Kconfig         |    4 ++--
+ samples/hidraw/Makefile |    2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/olpc_dcon/olpc_dcon_xo_1.c~drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh drivers/staging/olpc_dcon/olpc_dcon_xo_1.c
---- a/drivers/staging/olpc_dcon/olpc_dcon_xo_1.c~drivers-staging-olpc_dcon-olpc_dcon_xo_1c-needs-delayh
-+++ a/drivers/staging/olpc_dcon/olpc_dcon_xo_1.c
-@@ -11,6 +11,7 @@
-  * License as published by the Free Software Foundation.
-  */
- #include <linux/cs5535.h>
-+#include <linux/delay.h>
- #include <linux/gpio.h>
- #include <linux/delay.h>
- #include <asm/olpc.h>
+diff -puN samples/Kconfig~hid-example-fix-some-build-issues samples/Kconfig
+--- a/samples/Kconfig~hid-example-fix-some-build-issues
++++ a/samples/Kconfig
+@@ -62,8 +62,8 @@ config SAMPLE_KDB
+ 	  command to the kdb shell.
+ 
+ config SAMPLE_HIDRAW
+-	tristate "Build simple hidraw example"
+-	depends on HIDRAW
++	bool "Build simple hidraw example"
++	depends on HIDRAW && HEADERS_CHECK
+ 	help
+ 	  Build an example of how to use hidraw from userspace.
+ 
+diff -puN samples/hidraw/Makefile~hid-example-fix-some-build-issues samples/hidraw/Makefile
+--- a/samples/hidraw/Makefile~hid-example-fix-some-build-issues
++++ a/samples/hidraw/Makefile
+@@ -6,3 +6,5 @@ hostprogs-y := hid-example
+ 
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
++
++HOSTCFLAGS_hid-example.o += -I$(objtree)/usr/include
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
