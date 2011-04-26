@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 25 Apr 2011 15:55:47 -0700
-Message-ID: <201104252255.p3PMtmfu016165@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 26 Apr 2011 11:37:05 -0700
+Message-ID: <201104261832.p3QIW3Za010934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751121Ab1DYWzu (ORCPT
+	by vger.kernel.org with ESMTP id S1750756Ab1DZScb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Apr 2011 18:55:50 -0400
+	Tue, 26 Apr 2011 14:32:31 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p3QIW4BZ000599
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2011 11:32:04 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, travis@sgi.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +38,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: else should follow close brace '}'
-#147: FILE: kernel/printk.c:206:
- 	}
-+	else
-
-total: 1 errors, 0 warnings, 141 lines checked
-
-./patches/printk-allocate-kernel-log-buffer-earlier-v2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ security/selinux/avc.c   |    4 ----
+ security/selinux/hooks.c |   11 -----------
+ 2 files changed, 15 deletions(-)
 
-diff -puN kernel/printk.c~printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes kernel/printk.c
---- a/kernel/printk.c~printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes
-+++ a/kernel/printk.c
-@@ -202,9 +202,9 @@ void __init setup_log_buf(int early)
- 		if (mem == MEMBLOCK_ERROR)
- 			return;
- 		new_log_buf = __va(mem);
--	}
--	else
-+	} else {
- 		new_log_buf = alloc_bootmem_nopanic(new_log_buf_len);
-+	}
+diff -puN security/selinux/avc.c~linux-next-git-rejects security/selinux/avc.c
+--- a/security/selinux/avc.c~linux-next-git-rejects
++++ a/security/selinux/avc.c
+@@ -531,11 +531,7 @@ int avc_audit(u32 ssid, u32 tsid,
+ 	 * during retry. However this is logically just as if the operation
+ 	 * happened a little later.
+ 	 */
+-<<<<<<< HEAD
+-	if ((a->type == LSM_AUDIT_DATA_FS) &&
+-=======
+ 	if ((a->type == LSM_AUDIT_DATA_INODE) &&
+->>>>>>> FETCH_HEAD
+ 	    (flags & IPERM_FLAG_RCU))
+ 		return -ECHILD;
  
- 	if (unlikely(!new_log_buf)) {
- 		pr_err("log_buf_len: %ld bytes not available\n",
+diff -puN security/selinux/hooks.c~linux-next-git-rejects security/selinux/hooks.c
+--- a/security/selinux/hooks.c~linux-next-git-rejects
++++ a/security/selinux/hooks.c
+@@ -1507,15 +1507,9 @@ static inline int dentry_has_perm(const 
+ 	struct inode *inode = dentry->d_inode;
+ 	struct common_audit_data ad;
+ 
+-<<<<<<< HEAD
+-	COMMON_AUDIT_DATA_INIT(&ad, FS);
+-	ad.u.fs.path.mnt = mnt;
+-	ad.u.fs.path.dentry = dentry;
+-=======
+ 	COMMON_AUDIT_DATA_INIT(&ad, PATH);
+ 	ad.u.path.mnt = mnt;
+ 	ad.u.path.dentry = dentry;
+->>>>>>> FETCH_HEAD
+ 	return inode_has_perm(cred, inode, av, &ad, 0);
+ }
+ 
+@@ -2661,13 +2655,8 @@ static int selinux_inode_permission(stru
+ 	if (!mask)
+ 		return 0;
+ 
+-<<<<<<< HEAD
+-	COMMON_AUDIT_DATA_INIT(&ad, FS);
+-	ad.u.fs.inode = inode;
+-=======
+ 	COMMON_AUDIT_DATA_INIT(&ad, INODE);
+ 	ad.u.inode = inode;
+->>>>>>> FETCH_HEAD
+ 
+ 	if (from_access)
+ 		ad.selinux_audit_data.auditdeny |= FILE__AUDIT_ACCESS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
