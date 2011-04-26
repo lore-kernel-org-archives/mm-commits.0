@@ -1,80 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] proc-put-check_mem_permission-before-__get_free_page-in-mem_read.patch removed from -mm tree
-Date: Tue, 26 Apr 2011 12:26:14 -0700
-Message-ID: <201104261926.p3QJQFPJ013564@imap1.linux-foundation.org>
+Subject: + readahead-readahead-page-allocations-are-ok-to-fail.patch added to -mm tree
+Date: Tue, 26 Apr 2011 12:49:16 -0700
+Message-ID: <201104261949.p3QJnG5H014791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41155 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751123Ab1DZT0y (ORCPT
+	by vger.kernel.org with ESMTP id S1756988Ab1DZTt5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Apr 2011 15:26:54 -0400
+	Tue, 26 Apr 2011 15:49:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bookjovi@gmail.com, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, wilsons@start.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fengguang.wu@intel.com, hidave.darkstar@gmail.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, penberg@kernel.org
 
 
 The patch titled
-     proc: put check_mem_permission before __get_free_page in mem_read
-has been removed from the -mm tree.  Its filename was
-     proc-put-check_mem_permission-before-__get_free_page-in-mem_read.patch
+     readahead: readahead page allocations are OK to fail
+has been added to the -mm tree.  Its filename is
+     readahead-readahead-page-allocations-are-ok-to-fail.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: put check_mem_permission before __get_free_page in mem_read
-From: Jovi Zhang <bookjovi@gmail.com>
+Subject: readahead: readahead page allocations are OK to fail
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-It would be better to put check_mem_permission() before __get_free_page()
-in mem_read(), to be same as mem_write().
+Pass __GFP_NORETRY|__GFP_NOWARN for readahead page allocations.
 
-Signed-off-by: Jovi Zhang <bookjovi@gmail.com>
+readahead page allocations are completely optional.  They are OK to fail
+and in particular shall not trigger OOM on themselves.
+
+Reported-by: Dave Young <hidave.darkstar@gmail.com>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Stephen Wilson <wilsons@start.ca>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ include/linux/pagemap.h |    6 ++++++
+ mm/readahead.c          |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-put-check_mem_permission-before-__get_free_page-in-mem_read fs/proc/base.c
---- a/fs/proc/base.c~proc-put-check_mem_permission-before-__get_free_page-in-mem_read
-+++ a/fs/proc/base.c
-@@ -831,23 +831,21 @@ static ssize_t mem_read(struct file * fi
- 	if (!task)
- 		goto out_no_task;
+diff -puN include/linux/pagemap.h~readahead-readahead-page-allocations-are-ok-to-fail include/linux/pagemap.h
+--- a/include/linux/pagemap.h~readahead-readahead-page-allocations-are-ok-to-fail
++++ a/include/linux/pagemap.h
+@@ -219,6 +219,12 @@ static inline struct page *page_cache_al
+ 	return __page_cache_alloc(mapping_gfp_mask(x)|__GFP_COLD);
+ }
  
--	ret = -ENOMEM;
--	page = (char *)__get_free_page(GFP_TEMPORARY);
--	if (!page)
--		goto out;
--
- 	mm = check_mem_permission(task);
- 	ret = PTR_ERR(mm);
- 	if (IS_ERR(mm))
--		goto out_free;
-+		goto out_task;
- 
- 	ret = -EIO;
-- 
- 	if (file->private_data != (void*)((long)current->self_exec_id))
--		goto out_put;
-+		goto out_mm;
++static inline struct page *page_cache_alloc_readahead(struct address_space *x)
++{
++	return __page_cache_alloc(mapping_gfp_mask(x) |
++				  __GFP_COLD | __GFP_NORETRY | __GFP_NOWARN);
++}
 +
-+	ret = -ENOMEM;
-+	page = (char *)__get_free_page(GFP_TEMPORARY);
-+	if (!page)
-+		goto out_mm;
+ typedef int filler_t(void *, struct page *);
  
- 	ret = 0;
-- 
- 	while (count > 0) {
- 		int this_len, retval;
+ extern struct page * find_get_page(struct address_space *mapping,
+diff -puN mm/readahead.c~readahead-readahead-page-allocations-are-ok-to-fail mm/readahead.c
+--- a/mm/readahead.c~readahead-readahead-page-allocations-are-ok-to-fail
++++ a/mm/readahead.c
+@@ -180,7 +180,7 @@ __do_page_cache_readahead(struct address
+ 		if (page)
+ 			continue;
  
-@@ -870,12 +868,10 @@ static ssize_t mem_read(struct file * fi
- 		count -= retval;
- 	}
- 	*ppos = src;
+-		page = page_cache_alloc_cold(mapping);
++		page = page_cache_alloc_readahead(mapping);
+ 		if (!page)
+ 			break;
+ 		page->index = page_offset;
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+writeback-pass-writeback_control-down-to-move_expired_inodes.patch
+writeback-introduce-writeback_controlinodes_cleaned.patch
+writeback-try-more-writeback-as-long-as-something-was-written.patch
+writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-refill-b_io-iff-empty.patch
+readahead-readahead-page-allocations-are-ok-to-fail.patch
+
