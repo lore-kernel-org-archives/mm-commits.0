@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch added to -mm tree
-Date: Wed, 27 Apr 2011 15:51:28 -0700
-Message-ID: <201104272327.p3RNRVmE010595@imap1.linux-foundation.org>
+Subject: + printk-allocate-kernel-log-buffer-earlier-v2-fix.patch added to -mm tree
+Date: Wed, 27 Apr 2011 15:52:45 -0700
+Message-ID: <201104272328.p3RNSmEi010654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757153Ab1D0X1v (ORCPT
+	by vger.kernel.org with ESMTP id S1753291Ab1D0Xee (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Apr 2011 19:27:51 -0400
+	Wed, 27 Apr 2011 19:34:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, xemul@openvz.org, yinghan@google.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com, yhlu.kernel@gmail.com
 
 
 The patch titled
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
+     printk-allocate-kernel-log-buffer-earlier-v2-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+     printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
+Subject: printk-allocate-kernel-log-buffer-earlier-v2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
+Fix CONFIG_PRINTK=n build
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ include/linux/printk.h |    7 +++++--
+ printk.c               |    0 
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
-+++ a/mm/vmscan.c
-@@ -2207,17 +2207,20 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.nodemask = NULL, /* we don't care the placement */
-+		.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
-+				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
-+	};
-+	struct shrink_control shrink = {
-+		.gfp_mask = sc.gfp_mask,
- 	};
+diff -puN arch/x86/kernel/setup.c~printk-allocate-kernel-log-buffer-earlier-v2-fix arch/x86/kernel/setup.c
+diff -puN include/linux/printk.h~printk-allocate-kernel-log-buffer-earlier-v2-fix include/linux/printk.h
+--- a/include/linux/printk.h~printk-allocate-kernel-log-buffer-earlier-v2-fix
++++ a/include/linux/printk.h
+@@ -91,8 +91,6 @@ int no_printk(const char *fmt, ...)
+ extern asmlinkage __attribute__ ((format (printf, 1, 2)))
+ void early_printk(const char *fmt, ...);
  
--	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
--			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
- 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
+-void __init setup_log_buf(int early);
+-
+ extern int printk_needs_cpu(int cpu);
+ extern void printk_tick(void);
  
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
- 					    sc.gfp_mask);
+@@ -117,6 +115,7 @@ extern int dmesg_restrict;
+ extern int kptr_restrict;
  
--	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-+	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
+ void log_buf_kexec_setup(void);
++void __init setup_log_buf(int early);
+ #else
+ static inline __attribute__ ((format (printf, 1, 0)))
+ int vprintk(const char *s, va_list args)
+@@ -141,6 +140,10 @@ static inline bool printk_timed_ratelimi
+ static inline void log_buf_kexec_setup(void)
+ {
+ }
++
++static inline void setup_log_buf(int early)
++{
++}
+ #endif
  
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 
-@@ -2800,7 +2803,10 @@ unsigned long shrink_all_memory(unsigned
- 		.swappiness = vm_swappiness,
- 		.order = 0,
- 	};
--	struct zonelist * zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
-+	struct shrink_control shrink = {
-+		.gfp_mask = sc.gfp_mask,
-+	};
-+	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 	struct task_struct *p = current;
- 	unsigned long nr_reclaimed;
- 
-@@ -2809,7 +2815,7 @@ unsigned long shrink_all_memory(unsigned
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-+	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
- 
- 	p->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
+ extern void dump_stack(void) __cold;
+diff -puN init/main.c~printk-allocate-kernel-log-buffer-earlier-v2-fix init/main.c
+diff -puN kernel/printk.c~printk-allocate-kernel-log-buffer-earlier-v2-fix kernel/printk.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
