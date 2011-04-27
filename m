@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch added to -mm tree
-Date: Wed, 27 Apr 2011 15:03:08 -0700
-Message-ID: <201104272239.p3RMdCh6007895@imap1.linux-foundation.org>
+Subject: + vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch added to -mm tree
+Date: Wed, 27 Apr 2011 15:20:53 -0700
+Message-ID: <201104272256.p3RMuuIG008858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757039Ab1D0Wjq (ORCPT
+	by vger.kernel.org with ESMTP id S1753291Ab1D0W5l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Apr 2011 18:39:46 -0400
+	Wed, 27 Apr 2011 18:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh
 
 
 The patch titled
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
+Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+fix build
 
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -50,26 +52,23 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/i915/i915_gem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix mm/memory-failure.c
---- a/mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
-+++ a/mm/memory-failure.c
-@@ -239,7 +239,12 @@ void shake_page(struct page *p, int acce
- 	if (access) {
- 		int nr;
- 		do {
--			nr = shrink_slab(1000, GFP_KERNEL, 1000);
-+			struct shrink_control shrink = {
-+				.gfp_mask = GFP_KERNEL,
-+				.nr_scanned = 1000,
-+			};
-+
-+			nr = shrink_slab(&shrink, 1000);
- 			if (page_count(p) == 1)
- 				break;
- 		} while (nr > 10);
+diff -puN drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -56,9 +56,7 @@ static int i915_gem_phys_pwrite(struct d
+ static void i915_gem_free_object_tail(struct drm_i915_gem_object *obj);
+ 
+ static int i915_gem_inactive_shrink(struct shrinker *shrinker,
+-				    int nr_to_scan,
+-				    gfp_t gfp_mask);
+-
++				    struct shrink_control *sc);
+ 
+ /* some bookkeeping */
+ static void i915_gem_info_add_obj(struct drm_i915_private *dev_priv,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +100,7 @@ mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
 writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
