@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-add-define-for-each-of-optimized-find-bitops.patch added to -mm tree
-Date: Fri, 29 Apr 2011 14:16:44 -0700
-Message-ID: <201104292116.p3TLGjhl017532@imap1.linux-foundation.org>
+Subject: + rtc-s3c-rtc-fixup-wake-support-for-rtc.patch added to -mm tree
+Date: Fri, 29 Apr 2011 14:22:08 -0700
+Message-ID: <201104292122.p3TLM8jg017866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751743Ab1D2VRm (ORCPT
+	by vger.kernel.org with ESMTP id S1751061Ab1D2VW3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Apr 2011 17:17:42 -0400
+	Fri, 29 Apr 2011 17:22:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de, geert@linux-m68k.org, gerg@uclinux.org, hans-christian.egtvedt@atmel.com, heiko.carstens@de.ibm.com, rmk+kernel@arm.linux.org.uk, schwidefsky@de.ibm.com
+Cc: ben-linux@fluff.org, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, stable@kernel.org
 
 
 The patch titled
-     arch: add #define for each of optimized find bitops
+     drivers/rtc/rtc-s3c.c: fixup wake support for rtc
 has been added to the -mm tree.  Its filename is
-     arch-add-define-for-each-of-optimized-find-bitops.patch
+     rtc-s3c-rtc-fixup-wake-support-for-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,270 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch: add #define for each of optimized find bitops
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: drivers/rtc/rtc-s3c.c: fixup wake support for rtc
+From: Ben Dooks <ben-linux@fluff.org>
 
-The style that we normally use in asm-generic is to test the macro itself
-for existence, so in asm-generic, do:
+The driver is not balancing set_irq and disable_irq_wake() calls, so
+ensure that it keeps track of whether the wake is enabled.
 
-	#ifndef find_next_zero_bit_le
-	extern unsigned long find_next_zero_bit_le(const void *addr,
-		unsigned long size, unsigned long offset);
-	#endif
+The fixes the following error on S3C6410 devices:
 
-and in the architectures, write
+WARNING: at kernel/irq/manage.c:382 set_irq_wake+0x84/0xec()
+Unbalanced IRQ 92 wake disable
 
-	static inline unsigned long find_next_zero_bit_le(const void *addr,
-		unsigned long size, unsigned long offset)
-	#define find_next_zero_bit_le find_next_zero_bit_le
-
-This adds the #define for each of the optimized find bitops in the
-architectures.
-
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/bitops.h     |    3 +++
- arch/avr32/include/asm/bitops.h   |   15 +++++++++++++++
- arch/m68k/include/asm/bitops_mm.h |    8 ++++++++
- arch/m68k/include/asm/bitops_no.h |    2 ++
- arch/s390/include/asm/bitops.h    |    8 ++++++++
- 5 files changed, 36 insertions(+)
+ drivers/rtc/rtc-s3c.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops arch/arm/include/asm/bitops.h
---- a/arch/arm/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops
-+++ a/arch/arm/include/asm/bitops.h
-@@ -326,16 +326,19 @@ static inline int find_first_zero_bit_le
- {
- 	return _find_first_zero_bit_le(p, size);
- }
-+#define find_first_zero_bit_le find_first_zero_bit_le
+diff -puN drivers/rtc/rtc-s3c.c~rtc-s3c-rtc-fixup-wake-support-for-rtc drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-s3c-rtc-fixup-wake-support-for-rtc
++++ a/drivers/rtc/rtc-s3c.c
+@@ -46,6 +46,7 @@ static struct clk *rtc_clk;
+ static void __iomem *s3c_rtc_base;
+ static int s3c_rtc_alarmno = NO_IRQ;
+ static int s3c_rtc_tickno  = NO_IRQ;
++static bool wake_en;
+ static enum s3c_cpu_type s3c_rtc_cpu_type;
  
- static inline int find_next_zero_bit_le(const void *p, int size, int offset)
- {
- 	return _find_next_zero_bit_le(p, size, offset);
- }
-+#define find_next_zero_bit_le find_next_zero_bit_le
- 
- static inline int find_next_bit_le(const void *p, int size, int offset)
- {
- 	return _find_next_bit_le(p, size, offset);
- }
-+#define find_next_bit_le find_next_bit_le
- 
- /*
-  * Ext2 is defined to use little-endian byte ordering.
-diff -puN arch/avr32/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops arch/avr32/include/asm/bitops.h
---- a/arch/avr32/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops
-+++ a/arch/avr32/include/asm/bitops.h
-@@ -270,14 +270,21 @@ static inline int __fls(unsigned long wo
- 
- unsigned long find_first_zero_bit(const unsigned long *addr,
- 				  unsigned long size);
-+#define find_first_zero_bit find_first_zero_bit
-+
- unsigned long find_next_zero_bit(const unsigned long *addr,
- 				 unsigned long size,
- 				 unsigned long offset);
-+#define find_next_zero_bit find_next_zero_bit
-+
- unsigned long find_first_bit(const unsigned long *addr,
- 			     unsigned long size);
-+#define find_first_bit find_first_bit
-+
- unsigned long find_next_bit(const unsigned long *addr,
- 				 unsigned long size,
- 				 unsigned long offset);
-+#define find_next_bit find_next_bit
- 
- /*
-  * ffs: find first bit set. This is defined the same way as
-@@ -299,6 +306,14 @@ static inline int ffs(unsigned long word
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
- 
-+extern unsigned long find_next_zero_bit_le(const void *addr,
-+		unsigned long size, unsigned long offset);
-+#define find_next_zero_bit_le find_next_zero_bit_le
-+
-+extern unsigned long find_next_bit_le(const void *addr,
-+		unsigned long size, unsigned long offset);
-+#define find_next_bit_le find_next_bit_le
-+
- #include <asm-generic/bitops/le.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- 
-diff -puN arch/m68k/include/asm/bitops_mm.h~arch-add-define-for-each-of-optimized-find-bitops arch/m68k/include/asm/bitops_mm.h
---- a/arch/m68k/include/asm/bitops_mm.h~arch-add-define-for-each-of-optimized-find-bitops
-+++ a/arch/m68k/include/asm/bitops_mm.h
-@@ -198,6 +198,7 @@ static inline int find_first_zero_bit(co
- out:
- 	return ((long)p - (long)vaddr - 4) * 8 + res;
- }
-+#define find_first_zero_bit find_first_zero_bit
- 
- static inline int find_next_zero_bit(const unsigned long *vaddr, int size,
- 				     int offset)
-@@ -223,6 +224,7 @@ static inline int find_next_zero_bit(con
- 	res = find_first_zero_bit(p, size - ((long)p - (long)vaddr) * 8);
- 	return offset + res;
- }
-+#define find_next_zero_bit find_next_zero_bit
- 
- static inline int find_first_bit(const unsigned long *vaddr, unsigned size)
- {
-@@ -245,6 +247,7 @@ static inline int find_first_bit(const u
- out:
- 	return ((long)p - (long)vaddr - 4) * 8 + res;
- }
-+#define find_first_bit find_first_bit
- 
- static inline int find_next_bit(const unsigned long *vaddr, int size,
- 				int offset)
-@@ -270,6 +273,7 @@ static inline int find_next_bit(const un
- 	res = find_first_bit(p, size - ((long)p - (long)vaddr) * 8);
- 	return offset + res;
- }
-+#define find_next_bit find_next_bit
- 
- /*
-  * ffz = Find First Zero in word. Undefined if no zero exists,
-@@ -384,6 +388,7 @@ static inline int find_first_zero_bit_le
- 			break;
- 	return (p - addr) * 32 + res;
- }
-+#define find_first_zero_bit_le find_first_zero_bit_le
- 
- static inline unsigned long find_next_zero_bit_le(const void *addr,
- 		unsigned long size, unsigned long offset)
-@@ -408,6 +413,7 @@ static inline unsigned long find_next_ze
- 	/* No zero yet, search remaining full bytes for a zero */
- 	return offset + find_first_zero_bit_le(p, size - offset);
- }
-+#define find_next_zero_bit_le find_next_zero_bit_le
- 
- static inline int find_first_bit_le(const void *vaddr, unsigned size)
- {
-@@ -429,6 +435,7 @@ static inline int find_first_bit_le(cons
- 			break;
- 	return (p - addr) * 32 + res;
- }
-+#define find_first_bit_le find_first_bit_le
- 
- static inline unsigned long find_next_bit_le(const void *addr,
- 		unsigned long size, unsigned long offset)
-@@ -453,6 +460,7 @@ static inline unsigned long find_next_bi
- 	/* No set bit yet, search remaining full bytes for a set bit */
- 	return offset + find_first_bit_le(p, size - offset);
- }
-+#define find_next_bit_le find_next_bit_le
- 
- /* Bitmap functions for the ext2 filesystem. */
- 
-diff -puN arch/m68k/include/asm/bitops_no.h~arch-add-define-for-each-of-optimized-find-bitops arch/m68k/include/asm/bitops_no.h
---- a/arch/m68k/include/asm/bitops_no.h~arch-add-define-for-each-of-optimized-find-bitops
-+++ a/arch/m68k/include/asm/bitops_no.h
-@@ -319,6 +319,7 @@ found_first:
- found_middle:
- 	return result + ffz(__swab32(tmp));
- }
-+#define find_next_zero_bit_le find_next_zero_bit_le
- 
- static inline unsigned long find_next_bit_le(const void *addr, unsigned
- 		long size, unsigned long offset)
-@@ -363,6 +364,7 @@ found_middle:
- found_middle_swap:
- 	return result + __ffs(__swab32(tmp));
- }
-+#define find_next_bit_le find_next_bit_le
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/s390/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops arch/s390/include/asm/bitops.h
---- a/arch/s390/include/asm/bitops.h~arch-add-define-for-each-of-optimized-find-bitops
-+++ a/arch/s390/include/asm/bitops.h
-@@ -621,6 +621,7 @@ static inline unsigned long find_first_z
- 	bits = __ffz_word(bytes*8, __load_ulong_be(addr, bytes));
- 	return (bits < size) ? bits : size;
- }
-+#define find_first_zero_bit find_first_zero_bit
- 
- /**
-  * find_first_bit - find the first set bit in a memory region
-@@ -641,6 +642,7 @@ static inline unsigned long find_first_b
- 	bits = __ffs_word(bytes*8, __load_ulong_be(addr, bytes));
- 	return (bits < size) ? bits : size;
- }
-+#define find_first_bit find_first_bit
- 
- /**
-  * find_next_zero_bit - find the first zero bit in a memory region
-@@ -677,6 +679,7 @@ static inline int find_next_zero_bit (co
+ static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
+@@ -562,8 +563,12 @@ static int s3c_rtc_suspend(struct platfo
  	}
- 	return offset + find_first_zero_bit(p, size);
- }
-+#define find_next_zero_bit find_next_zero_bit
+ 	s3c_rtc_enable(pdev, 0);
  
- /**
-  * find_next_bit - find the first set bit in a memory region
-@@ -713,6 +716,7 @@ static inline int find_next_bit (const u
+-	if (device_may_wakeup(&pdev->dev))
+-		enable_irq_wake(s3c_rtc_alarmno);
++	if (device_may_wakeup(&pdev->dev) && !wake_en) {
++		if (enable_irq_wake(s3c_rtc_alarmno) == 0)
++			wake_en = true;
++		else
++			dev_err(&pdev->dev, "enable_irq_wake failed\n");
++	}
+ 
+ 	return 0;
+ }
+@@ -579,8 +584,10 @@ static int s3c_rtc_resume(struct platfor
+ 		writew(tmp | ticnt_en_save, s3c_rtc_base + S3C2410_RTCCON);
  	}
- 	return offset + find_first_bit(p, size);
- }
-+#define find_next_bit find_next_bit
  
- /*
-  * Every architecture must define this function. It's the fastest
-@@ -787,6 +791,7 @@ static inline int find_first_zero_bit_le
- 	bits = __ffz_word(bytes*8, __load_ulong_le(vaddr, bytes));
- 	return (bits < size) ? bits : size;
- }
-+#define find_first_zero_bit_le find_first_zero_bit_le
+-	if (device_may_wakeup(&pdev->dev))
++	if (device_may_wakeup(&pdev->dev) && wake_en) {
+ 		disable_irq_wake(s3c_rtc_alarmno);
++		wake_en = false;
++	}
  
- static inline int find_next_zero_bit_le(void *vaddr, unsigned long size,
- 					  unsigned long offset)
-@@ -816,6 +821,7 @@ static inline int find_next_zero_bit_le(
-         }
- 	return offset + find_first_zero_bit_le(p, size);
+ 	return 0;
  }
-+#define find_next_zero_bit_le find_next_zero_bit_le
- 
- static inline unsigned long find_first_bit_le(void *vaddr, unsigned long size)
- {
-@@ -827,6 +833,7 @@ static inline unsigned long find_first_b
- 	bits = __ffs_word(bytes*8, __load_ulong_le(vaddr, bytes));
- 	return (bits < size) ? bits : size;
- }
-+#define find_first_bit_le find_first_bit_le
- 
- static inline int find_next_bit_le(void *vaddr, unsigned long size,
- 				     unsigned long offset)
-@@ -856,6 +863,7 @@ static inline int find_next_bit_le(void 
- 	}
- 	return offset + find_first_bit_le(p, size);
- }
-+#define find_next_bit_le find_next_bit_le
- 
- #define ext2_set_bit_atomic(lock, nr, addr)	\
- 	test_and_set_bit_le(nr, addr)
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
+origin.patch
+rtc-s3c-rtc-fixup-wake-support-for-rtc.patch
 linux-next.patch
-m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
-arch-add-define-for-each-of-optimized-find-bitops.patch
-bitops-add-ifndef-for-each-of-find-bitops.patch
-arch-remove-config_generic_find_next_bitbit_lelast_bit.patch
-arm-use-asm-generic-bitops-leh.patch
-s390-use-asm-generic-bitops-leh.patch
-m68knommu-use-generic-find_next_bit_le.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 
