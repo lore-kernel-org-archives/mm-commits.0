@@ -1,68 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-watchdogc-disable-nmi-perf-event-in-the-error-path-of-enabling-watchdog.patch removed from -mm tree
-Date: Fri, 29 Apr 2011 12:47:03 -0700
-Message-ID: <201104291941.p3TJfYkZ011459@imap1.linux-foundation.org>
+Subject: [merged] um-adjust-current_thread_info-for-newer-gcc-versions.patch removed from -mm tree
+Date: Fri, 29 Apr 2011 12:47:01 -0700
+Message-ID: <201104291941.p3TJfWOW011456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760869Ab1D2Tou (ORCPT
+	by vger.kernel.org with ESMTP id S1760869Ab1D2TpV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Apr 2011 15:44:50 -0400
+	Fri, 29 Apr 2011 15:45:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: richard@nod.at, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/watchdog.c: disable nmi perf event in the error path of enabling watchdog
+     um: adjust current_thread_info() for newer gcc versions
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-disable-nmi-perf-event-in-the-error-path-of-enabling-watchdog.patch
+     um-adjust-current_thread_info-for-newer-gcc-versions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/watchdog.c: disable nmi perf event in the error path of enabling watchdog
-From: Hillf Danton <dhillf@gmail.com>
+Subject: um: adjust current_thread_info() for newer gcc versions
+From: Richard Weinberger <richard@nod.at>
 
-In corner cases where softlockup watchdog is not setup successfully, the
-relevant nmi perf event for hardlockup watchdog could be disabled, then
-the status of the underlying hardware remains unchanged.
+In some cases gcc >= 4.5.2 will optimize away current_thread_info().  To
+prevent gcc from doing so the stack address has to be obtained via inline
+asm.
 
-Also, if the kthread doesn't start then the hrtimer won't run and the
-hardlockup detector will falsely fire.
-
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    5 ++++-
+ arch/um/include/asm/thread_info.h |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-disable-nmi-perf-event-in-the-error-path-of-enabling-watchdog kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-disable-nmi-perf-event-in-the-error-path-of-enabling-watchdog
-+++ a/kernel/watchdog.c
-@@ -430,9 +430,12 @@ static int watchdog_enable(int cpu)
- 		p = kthread_create(watchdog, (void *)(unsigned long)cpu, "watchdog/%d", cpu);
- 		if (IS_ERR(p)) {
- 			printk(KERN_ERR "softlockup watchdog for %i failed\n", cpu);
--			if (!err)
-+			if (!err) {
- 				/* if hardlockup hasn't already set this */
- 				err = PTR_ERR(p);
-+				/* and disable the perf event */
-+				watchdog_nmi_disable(cpu);
-+			}
- 			goto out;
- 		}
- 		kthread_bind(p, cpu);
+diff -puN arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-newer-gcc-versions arch/um/include/asm/thread_info.h
+--- a/arch/um/include/asm/thread_info.h~um-adjust-current_thread_info-for-newer-gcc-versions
++++ a/arch/um/include/asm/thread_info.h
+@@ -49,7 +49,10 @@ static inline struct thread_info *curren
+ {
+ 	struct thread_info *ti;
+ 	unsigned long mask = THREAD_SIZE - 1;
+-	ti = (struct thread_info *) (((unsigned long) &ti) & ~mask);
++	void *p;
++
++	asm volatile ("" : "=r" (p) : "0" (&ti));
++	ti = (struct thread_info *) (((unsigned long)p) & ~mask);
+ 	return ti;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-linux-next.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
 
