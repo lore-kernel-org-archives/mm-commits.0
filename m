@@ -1,553 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] bluetooth-fix-build-warnings-on-defconfigs.patch removed from -mm tree
-Date: Fri, 29 Apr 2011 12:33:26 -0700
-Message-ID: <201104291927.p3TJRvN0010784@imap1.linux-foundation.org>
+Subject: [wrecked] flex_array-avoid-divisions-when-accessing-elements.patch removed from -mm tree
+Date: Fri, 29 Apr 2011 12:37:03 -0700
+Message-ID: <201104291931.p3TJVYa1010924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754567Ab1D2T24 (ORCPT
+	by vger.kernel.org with ESMTP id S932544Ab1D2Tbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Apr 2011 15:28:56 -0400
+	Fri, 29 Apr 2011 15:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanlong.gao@gmail.com, grinberg@compulab.co.il, marcel@holtmann.org, plagnioj@jcrosoft.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: jesse@nicira.com, dave@linux.vnet.ibm.com, eparis@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: fix build warnings on defconfigs
+     flex_array: avoid divisions when accessing elements
 has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-build-warnings-on-defconfigs.patch
+     flex_array-avoid-divisions-when-accessing-elements.patch
 
-This patch was dropped because other changes were merged, which wrecked=
- this patch
+This patch was dropped because other changes were merged, which wrecked this patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: fix build warnings on defconfigs
-=46rom: Wanlong Gao <wanlong.gao@gmail.com>
+Subject: flex_array: avoid divisions when accessing elements
+From: Jesse Gross <jesse@nicira.com>
 
-Change the BT_L2CAP and BT_SCO defconfigs from 'm' to 'y',
-since BT_L2CAP and BT_SCO had changed to bool configs.
+On most architectures division is an expensive operation and accessing an
+element currently requires four of them.  This performance penalty
+effectively precludes flex arrays from being used on any kind of fast
+path.  However, two of these divisions can be handled at creation time and
+the others can be replaced by a reciprocal divide, completely avoiding
+real divisions on access.
 
-Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Jesse Gross <jesse@nicira.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/am200epdkit_defconfig     |    4 ++--
- arch/arm/configs/at572d940hfek_defconfig   |    2 +-
- arch/arm/configs/at91rm9200_defconfig      |    4 ++--
- arch/arm/configs/badge4_defconfig          |    2 +-
- arch/arm/configs/cm_x2xx_defconfig         |    4 ++--
- arch/arm/configs/cm_x300_defconfig         |    4 ++--
- arch/arm/configs/colibri_pxa270_defconfig  |    4 ++--
- arch/arm/configs/corgi_defconfig           |    4 ++--
- arch/arm/configs/davinci_all_defconfig     |    2 +-
- arch/arm/configs/em_x270_defconfig         |    4 ++--
- arch/arm/configs/magician_defconfig        |    4 ++--
- arch/arm/configs/mini2440_defconfig        |    4 ++--
- arch/arm/configs/nhk8815_defconfig         |    4 ++--
- arch/arm/configs/ns9xxx_defconfig          |    2 +-
- arch/arm/configs/omap2plus_defconfig       |    4 ++--
- arch/arm/configs/pxa3xx_defconfig          |    2 +-
- arch/arm/configs/s3c2410_defconfig         |    6 +++---
- arch/arm/configs/simpad_defconfig          |    4 ++--
- arch/arm/configs/spitz_defconfig           |    4 ++--
- arch/arm/configs/trizeps4_defconfig        |    4 ++--
- arch/arm/configs/viper_defconfig           |    2 +-
- arch/arm/configs/zeus_defconfig            |    4 ++--
- arch/avr32/configs/atngw100_mrmt_defconfig |    2 +-
- arch/mips/configs/lemote2f_defconfig       |    4 ++--
- arch/mips/configs/mtx1_defconfig           |    4 ++--
- arch/powerpc/configs/c2k_defconfig         |    4 ++--
- arch/powerpc/configs/pmac32_defconfig      |    4 ++--
- arch/powerpc/configs/ppc6xx_defconfig      |    4 ++--
- arch/powerpc/configs/ps3_defconfig         |    4 ++--
- 29 files changed, 52 insertions(+), 52 deletions(-)
+ include/linux/flex_array.h |    2 ++
+ lib/flex_array.c           |   21 ++++++++++++---------
+ 2 files changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/configs/am200epdkit_defconfig~bluetooth-fix-build-wa=
-rnings-on-defconfigs arch/arm/configs/am200epdkit_defconfig
---- a/arch/arm/configs/am200epdkit_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs
-+++ a/arch/arm/configs/am200epdkit_defconfig
-@@ -34,8 +34,8 @@ CONFIG_INET=3Dy
- # CONFIG_INET_DIAG is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/at572d940hfek_defconfig~bluetooth-fix-build-=
-warnings-on-defconfigs arch/arm/configs/at572d940hfek_defconfig
---- a/arch/arm/configs/at572d940hfek_defconfig~bluetooth-fix-build-warn=
-ings-on-defconfigs
-+++ a/arch/arm/configs/at572d940hfek_defconfig
-@@ -280,7 +280,7 @@ CONFIG_SDIO_UART=3Dm
- CONFIG_MMC_AT91=3Dm
- CONFIG_MMC_SPI=3Dm
- CONFIG_NEW_LEDS=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_GPIO=3Dm
- CONFIG_LEDS_TRIGGERS=3Dy
- CONFIG_LEDS_TRIGGER_TIMER=3Dm
-diff -puN arch/arm/configs/at91rm9200_defconfig~bluetooth-fix-build-war=
-nings-on-defconfigs arch/arm/configs/at91rm9200_defconfig
---- a/arch/arm/configs/at91rm9200_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs
-+++ a/arch/arm/configs/at91rm9200_defconfig
-@@ -75,8 +75,8 @@ CONFIG_IPV6_TUNNEL=3Dm
- CONFIG_BRIDGE=3Dm
- CONFIG_VLAN_8021Q=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/badge4_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs arch/arm/configs/badge4_defconfig
---- a/arch/arm/configs/badge4_defconfig~bluetooth-fix-build-warnings-on=
--defconfigs
-+++ a/arch/arm/configs/badge4_defconfig
-@@ -24,7 +24,7 @@ CONFIG_IRCOMM=3Dy
- CONFIG_IRDA_ULTRA=3Dy
- CONFIG_SA1100_FIR=3Dy
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
-+CONFIG_BT_L2CAP=3Dy
- CONFIG_BT_HCIUART=3Dm
- CONFIG_BT_HCIVHCI=3Dm
- # CONFIG_FW_LOADER is not set
-diff -puN arch/arm/configs/cm_x2xx_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/arm/configs/cm_x2xx_defconfig
---- a/arch/arm/configs/cm_x2xx_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/arm/configs/cm_x2xx_defconfig
-@@ -43,8 +43,8 @@ CONFIG_IP_PNP_BOOTP=3Dy
- # CONFIG_INET_DIAG is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_BNEP=3Dm
- CONFIG_BT_HIDP=3Dm
-diff -puN arch/arm/configs/cm_x300_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/arm/configs/cm_x300_defconfig
---- a/arch/arm/configs/cm_x300_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/arm/configs/cm_x300_defconfig
-@@ -40,8 +40,8 @@ CONFIG_IP_PNP_RARP=3Dy
- # CONFIG_INET_DIAG is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/colibri_pxa270_defconfig~bluetooth-fix-build=
--warnings-on-defconfigs arch/arm/configs/colibri_pxa270_defconfig
---- a/arch/arm/configs/colibri_pxa270_defconfig~bluetooth-fix-build-war=
-nings-on-defconfigs
-+++ a/arch/arm/configs/colibri_pxa270_defconfig
-@@ -45,8 +45,8 @@ CONFIG_IRDA_CACHE_LAST_LSAP=3Dy
- CONFIG_IRDA_FAST_RR=3Dy
- CONFIG_IRTTY_SIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/corgi_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs arch/arm/configs/corgi_defconfig
---- a/arch/arm/configs/corgi_defconfig~bluetooth-fix-build-warnings-on-=
-defconfigs
-+++ a/arch/arm/configs/corgi_defconfig
-@@ -69,8 +69,8 @@ CONFIG_IRNET=3Dm
- CONFIG_IRCOMM=3Dm
- CONFIG_PXA_FICP=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/davinci_all_defconfig~bluetooth-fix-build-wa=
-rnings-on-defconfigs arch/arm/configs/davinci_all_defconfig
---- a/arch/arm/configs/davinci_all_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs
-+++ a/arch/arm/configs/davinci_all_defconfig
-@@ -152,7 +152,7 @@ CONFIG_MMC=3Dm
- # CONFIG_MMC_BLOCK_BOUNCE is not set
- CONFIG_MMC_DAVINCI=3Dm
- CONFIG_NEW_LEDS=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_GPIO=3Dm
- CONFIG_LEDS_TRIGGERS=3Dy
- CONFIG_LEDS_TRIGGER_TIMER=3Dm
-diff -puN arch/arm/configs/em_x270_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/arm/configs/em_x270_defconfig
---- a/arch/arm/configs/em_x270_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/arm/configs/em_x270_defconfig
-@@ -38,8 +38,8 @@ CONFIG_IP_PNP_BOOTP=3Dy
- # CONFIG_INET_DIAG is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_BNEP=3Dm
- CONFIG_BT_HIDP=3Dm
-diff -puN arch/arm/configs/magician_defconfig~bluetooth-fix-build-warni=
-ngs-on-defconfigs arch/arm/configs/magician_defconfig
---- a/arch/arm/configs/magician_defconfig~bluetooth-fix-build-warnings-=
-on-defconfigs
-+++ a/arch/arm/configs/magician_defconfig
-@@ -48,8 +48,8 @@ CONFIG_IRDA_DEBUG=3Dy
- CONFIG_IRTTY_SIR=3Dm
- CONFIG_PXA_FICP=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/mini2440_defconfig~bluetooth-fix-build-warni=
-ngs-on-defconfigs arch/arm/configs/mini2440_defconfig
---- a/arch/arm/configs/mini2440_defconfig~bluetooth-fix-build-warnings-=
-on-defconfigs
-+++ a/arch/arm/configs/mini2440_defconfig
-@@ -56,8 +56,8 @@ CONFIG_VLAN_8021Q=3Dm
- CONFIG_VLAN_8021Q_GVRP=3Dy
- CONFIG_NET_PKTGEN=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/nhk8815_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/arm/configs/nhk8815_defconfig
---- a/arch/arm/configs/nhk8815_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/arm/configs/nhk8815_defconfig
-@@ -38,8 +38,8 @@ CONFIG_IP_MROUTE=3Dy
- # CONFIG_INET_LRO is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/ns9xxx_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs arch/arm/configs/ns9xxx_defconfig
---- a/arch/arm/configs/ns9xxx_defconfig~bluetooth-fix-build-warnings-on=
--defconfigs
-+++ a/arch/arm/configs/ns9xxx_defconfig
-@@ -38,7 +38,7 @@ CONFIG_I2C_GPIO=3Dm
- # CONFIG_VGA_CONSOLE is not set
- # CONFIG_USB_SUPPORT is not set
- CONFIG_NEW_LEDS=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_GPIO=3Dm
- CONFIG_LEDS_TRIGGERS=3Dy
- CONFIG_LEDS_TRIGGER_TIMER=3Dm
-diff -puN arch/arm/configs/omap2plus_defconfig~bluetooth-fix-build-warn=
-ings-on-defconfigs arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs
-+++ a/arch/arm/configs/omap2plus_defconfig
-@@ -89,8 +89,8 @@ CONFIG_IP_PNP_RARP=3Dy
- # CONFIG_IPV6 is not set
- CONFIG_NETFILTER=3Dy
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dy
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/pxa3xx_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs arch/arm/configs/pxa3xx_defconfig
---- a/arch/arm/configs/pxa3xx_defconfig~bluetooth-fix-build-warnings-on=
--defconfigs
-+++ a/arch/arm/configs/pxa3xx_defconfig
-@@ -99,7 +99,7 @@ CONFIG_LOGO=3Dy
- CONFIG_MMC=3Dy
- CONFIG_MMC_PXA=3Dy
- CONFIG_NEW_LEDS=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_GPIO=3Dm
- CONFIG_LEDS_DA903X=3Dm
- CONFIG_LEDS_TRIGGERS=3Dy
-diff -puN arch/arm/configs/s3c2410_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/arm/configs/s3c2410_defconfig
---- a/arch/arm/configs/s3c2410_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/arm/configs/s3c2410_defconfig
-@@ -177,8 +177,8 @@ CONFIG_IP6_NF_TARGET_REJECT=3Dm
- CONFIG_IP6_NF_MANGLE=3Dm
- CONFIG_IP6_NF_RAW=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-@@ -387,7 +387,7 @@ CONFIG_MMC_TEST=3Dm
- CONFIG_MMC_SDHCI=3Dm
- CONFIG_MMC_SPI=3Dm
- CONFIG_MMC_S3C=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_S3C24XX=3Dm
- CONFIG_LEDS_H1940=3Dm
- CONFIG_LEDS_PCA9532=3Dm
-diff -puN arch/arm/configs/simpad_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs arch/arm/configs/simpad_defconfig
---- a/arch/arm/configs/simpad_defconfig~bluetooth-fix-build-warnings-on=
--defconfigs
-+++ a/arch/arm/configs/simpad_defconfig
-@@ -33,8 +33,8 @@ CONFIG_IRCOMM=3Dm
- CONFIG_IRTTY_SIR=3Dm
- CONFIG_SA1100_FIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/spitz_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs arch/arm/configs/spitz_defconfig
---- a/arch/arm/configs/spitz_defconfig~bluetooth-fix-build-warnings-on-=
-defconfigs
-+++ a/arch/arm/configs/spitz_defconfig
-@@ -66,8 +66,8 @@ CONFIG_IRNET=3Dm
- CONFIG_IRCOMM=3Dm
- CONFIG_PXA_FICP=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/trizeps4_defconfig~bluetooth-fix-build-warni=
-ngs-on-defconfigs arch/arm/configs/trizeps4_defconfig
---- a/arch/arm/configs/trizeps4_defconfig~bluetooth-fix-build-warnings-=
-on-defconfigs
-+++ a/arch/arm/configs/trizeps4_defconfig
-@@ -49,8 +49,8 @@ CONFIG_IRDA_CACHE_LAST_LSAP=3Dy
- CONFIG_IRDA_FAST_RR=3Dy
- CONFIG_IRTTY_SIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/viper_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs arch/arm/configs/viper_defconfig
---- a/arch/arm/configs/viper_defconfig~bluetooth-fix-build-warnings-on-=
-defconfigs
-+++ a/arch/arm/configs/viper_defconfig
-@@ -37,7 +37,7 @@ CONFIG_SYN_COOKIES=3Dy
- # CONFIG_INET_LRO is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
-+CONFIG_BT_L2CAP=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/arm/configs/zeus_defconfig~bluetooth-fix-build-warnings-=
-on-defconfigs arch/arm/configs/zeus_defconfig
---- a/arch/arm/configs/zeus_defconfig~bluetooth-fix-build-warnings-on-d=
-efconfigs
-+++ a/arch/arm/configs/zeus_defconfig
-@@ -32,7 +32,7 @@ CONFIG_SYN_COOKIES=3Dy
- # CONFIG_INET_LRO is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
-+CONFIG_BT_L2CAP=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-@@ -150,7 +150,7 @@ CONFIG_MMC=3Dy
- # CONFIG_MMC_BLOCK_BOUNCE is not set
- CONFIG_MMC_PXA=3Dy
- CONFIG_NEW_LEDS=3Dy
--CONFIG_LEDS_CLASS=3Dm
-+CONFIG_LEDS_CLASS=3Dy
- CONFIG_LEDS_GPIO=3Dm
- CONFIG_LEDS_TRIGGERS=3Dy
- CONFIG_LEDS_TRIGGER_TIMER=3Dm
-diff -puN arch/avr32/configs/atngw100_mrmt_defconfig~bluetooth-fix-buil=
-d-warnings-on-defconfigs arch/avr32/configs/atngw100_mrmt_defconfig
---- a/arch/avr32/configs/atngw100_mrmt_defconfig~bluetooth-fix-build-wa=
-rnings-on-defconfigs
-+++ a/arch/avr32/configs/atngw100_mrmt_defconfig
-@@ -36,7 +36,7 @@ CONFIG_SYN_COOKIES=3Dy
- # CONFIG_INET_LRO is not set
- # CONFIG_IPV6 is not set
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
-+CONFIG_BT_L2CAP=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_HIDP=3Dm
-diff -puN arch/mips/configs/lemote2f_defconfig~bluetooth-fix-build-warn=
-ings-on-defconfigs arch/mips/configs/lemote2f_defconfig
---- a/arch/mips/configs/lemote2f_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs
-+++ a/arch/mips/configs/lemote2f_defconfig
-@@ -86,8 +86,8 @@ CONFIG_NET_SCHED=3Dy
- CONFIG_NET_EMATCH=3Dy
- CONFIG_NET_CLS_ACT=3Dy
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/mips/configs/mtx1_defconfig~bluetooth-fix-build-warnings=
--on-defconfigs arch/mips/configs/mtx1_defconfig
---- a/arch/mips/configs/mtx1_defconfig~bluetooth-fix-build-warnings-on-=
-defconfigs
-+++ a/arch/mips/configs/mtx1_defconfig
-@@ -225,8 +225,8 @@ CONFIG_TOSHIBA_FIR=3Dm
- CONFIG_VLSI_FIR=3Dm
- CONFIG_MCS_FIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/powerpc/configs/c2k_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/powerpc/configs/c2k_defconfig
---- a/arch/powerpc/configs/c2k_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/powerpc/configs/c2k_defconfig
-@@ -132,8 +132,8 @@ CONFIG_NET_CLS_RSVP=3Dm
- CONFIG_NET_CLS_RSVP6=3Dm
- CONFIG_NET_CLS_IND=3Dy
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/powerpc/configs/pmac32_defconfig~bluetooth-fix-build-war=
-nings-on-defconfigs arch/powerpc/configs/pmac32_defconfig
---- a/arch/powerpc/configs/pmac32_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs
-+++ a/arch/powerpc/configs/pmac32_defconfig
-@@ -112,8 +112,8 @@ CONFIG_IRDA_CACHE_LAST_LSAP=3Dy
- CONFIG_IRDA_FAST_RR=3Dy
- CONFIG_IRTTY_SIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/powerpc/configs/ppc6xx_defconfig~bluetooth-fix-build-war=
-nings-on-defconfigs arch/powerpc/configs/ppc6xx_defconfig
---- a/arch/powerpc/configs/ppc6xx_defconfig~bluetooth-fix-build-warning=
-s-on-defconfigs
-+++ a/arch/powerpc/configs/ppc6xx_defconfig
-@@ -351,8 +351,8 @@ CONFIG_VLSI_FIR=3Dm
- CONFIG_VIA_FIR=3Dm
- CONFIG_MCS_FIR=3Dm
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
-diff -puN arch/powerpc/configs/ps3_defconfig~bluetooth-fix-build-warnin=
-gs-on-defconfigs arch/powerpc/configs/ps3_defconfig
---- a/arch/powerpc/configs/ps3_defconfig~bluetooth-fix-build-warnings-o=
-n-defconfigs
-+++ a/arch/powerpc/configs/ps3_defconfig
-@@ -52,8 +52,8 @@ CONFIG_IP_PNP_DHCP=3Dy
- # CONFIG_INET_DIAG is not set
- CONFIG_IPV6=3Dy
- CONFIG_BT=3Dm
--CONFIG_BT_L2CAP=3Dm
--CONFIG_BT_SCO=3Dm
-+CONFIG_BT_L2CAP=3Dy
-+CONFIG_BT_SCO=3Dy
- CONFIG_BT_RFCOMM=3Dm
- CONFIG_BT_RFCOMM_TTY=3Dy
- CONFIG_BT_BNEP=3Dm
+diff -puN include/linux/flex_array.h~flex_array-avoid-divisions-when-accessing-elements include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-avoid-divisions-when-accessing-elements
++++ a/include/linux/flex_array.h
+@@ -21,6 +21,8 @@ struct flex_array {
+ 		struct {
+ 			int element_size;
+ 			int total_nr_elements;
++			int elems_per_part;
++			u32 reciprocal_elems;
+ 			struct flex_array_part *parts[];
+ 		};
+ 		/*
+diff -puN lib/flex_array.c~flex_array-avoid-divisions-when-accessing-elements lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-avoid-divisions-when-accessing-elements
++++ a/lib/flex_array.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/stddef.h>
+ #include <linux/module.h>
++#include <linux/reciprocal_div.h>
+ 
+ struct flex_array_part {
+ 	char elements[FLEX_ARRAY_PART_SIZE];
+@@ -88,8 +89,8 @@ struct flex_array *flex_array_alloc(int 
+ 					gfp_t flags)
+ {
+ 	struct flex_array *ret;
+-	int max_size = FLEX_ARRAY_NR_BASE_PTRS *
+-				FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
++	int elems_per_part = FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
++	int max_size = FLEX_ARRAY_NR_BASE_PTRS * elems_per_part;
+ 
+ 	/* max_size will end up 0 if element_size > PAGE_SIZE */
+ 	if (total > max_size)
+@@ -99,6 +100,8 @@ struct flex_array *flex_array_alloc(int 
+ 		return NULL;
+ 	ret->element_size = element_size;
+ 	ret->total_nr_elements = total;
++	ret->elems_per_part = elems_per_part;
++	ret->reciprocal_elems = reciprocal_value(elems_per_part);
+ 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
+ 		memset(&ret->parts[0], FLEX_ARRAY_FREE,
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
+@@ -109,7 +112,7 @@ EXPORT_SYMBOL(flex_array_alloc);
+ static int fa_element_to_part_nr(struct flex_array *fa,
+ 					unsigned int element_nr)
+ {
+-	return element_nr / FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
++	return reciprocal_divide(element_nr, fa->reciprocal_elems);
+ }
+ 
+ /**
+@@ -138,12 +141,12 @@ void flex_array_free(struct flex_array *
+ EXPORT_SYMBOL(flex_array_free);
+ 
+ static unsigned int index_inside_part(struct flex_array *fa,
+-					unsigned int element_nr)
++					unsigned int element_nr,
++					unsigned int part_nr)
+ {
+ 	unsigned int part_offset;
+ 
+-	part_offset = element_nr %
+-				FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
++	part_offset = element_nr - part_nr * fa->elems_per_part;
+ 	return part_offset * fa->element_size;
+ }
+ 
+@@ -196,7 +199,7 @@ int flex_array_put(struct flex_array *fa
+ 		if (!part)
+ 			return -ENOMEM;
+ 	}
+-	dst = &part->elements[index_inside_part(fa, element_nr)];
++	dst = &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ 	memcpy(dst, src, fa->element_size);
+ 	return 0;
+ }
+@@ -224,7 +227,7 @@ int flex_array_clear(struct flex_array *
+ 		if (!part)
+ 			return -EINVAL;
+ 	}
+-	dst = &part->elements[index_inside_part(fa, element_nr)];
++	dst = &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ 	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
+ 	return 0;
+ }
+@@ -293,7 +296,7 @@ void *flex_array_get(struct flex_array *
+ 		if (!part)
+ 			return NULL;
+ 	}
+-	return &part->elements[index_inside_part(fa, element_nr)];
++	return &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ }
+ EXPORT_SYMBOL(flex_array_get);
+ 
 _
 
-Patches currently in -mm which might be from wanlong.gao@gmail.com are
+Patches currently in -mm which might be from jesse@nicira.com are
 
 linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
