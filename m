@@ -1,92 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-check-if-pte-is-already-allocated-during-page-fault.patch removed from -mm tree
-Date: Fri, 29 Apr 2011 12:47:05 -0700
-Message-ID: <201104291941.p3TJfaNw011462__11965.952118817$1304106406$gmane$org@imap1.linux-foundation.org>
+Subject: [to-be-updated] arm-use-asm-generic-bitops-leh.patch removed from -mm tree
+Date: Fri, 29 Apr 2011 12:58:54 -0700
+Message-ID: <201104291958.p3TJwsw8012434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760905Ab1D2Tqb (ORCPT
+	by vger.kernel.org with ESMTP id S1755296Ab1D2T7c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Apr 2011 15:46:31 -0400
+	Fri, 29 Apr 2011 15:59:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aarcange@redhat.com, hannes@cmpxchg.org, minchan.kim@gmail.com, raziebe@gmail.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, heiko.carstens@de.ibm.com, rmk+kernel@arm.linux.org.uk, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: check if PTE is already allocated during page fault
+     arm: use asm-generic/bitops/le.h
 has been removed from the -mm tree.  Its filename was
-     mm-check-if-pte-is-already-allocated-during-page-fault.patch
+     arm-use-asm-generic-bitops-leh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: check if PTE is already allocated during page fault
-From: Mel Gorman <mgorman@suse.de>
+Subject: arm: use asm-generic/bitops/le.h
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-With transparent hugepage support, handle_mm_fault() has to be careful
-that a normal PMD has been established before handling a PTE fault.  To
-achieve this, it used __pte_alloc() directly instead of pte_alloc_map as
-pte_alloc_map is unsafe to run against a huge PMD.  pte_offset_map() is
-called once it is known the PMD is safe.
+The previous style change enables to use asm-generic/bitops/le.h on arm.
 
-pte_alloc_map() is smart enough to check if a PTE is already present
-before calling __pte_alloc but this check was lost.  As a consequence,
-PTEs may be allocated unnecessarily and the page table lock taken.  Thi
-useless PTE does get cleaned up but it's a performance hit which is
-visible in page_test from aim9.
-
-This patch simply re-adds the check normally done by pte_alloc_map to
-check if the PTE needs to be allocated before taking the page table lock. 
-The effect is noticable in page_test from aim9.
-
-AIM9
-                2.6.38-vanilla 2.6.38-checkptenone
-creat-clo      446.10 ( 0.00%)   424.47 (-5.10%)
-page_test       38.10 ( 0.00%)    42.04 ( 9.37%)
-brk_test        52.45 ( 0.00%)    51.57 (-1.71%)
-exec_test      382.00 ( 0.00%)   456.90 (16.39%)
-fork_test       60.11 ( 0.00%)    67.79 (11.34%)
-MMTests Statistics: duration
-Total Elapsed Time (seconds)                611.90    612.22
-
-(While this affects 2.6.38, it is a performance rather than a functional
-bug and normally outside the rules -stable.  While the big performance
-differences are to a microbench, the difference in fork and exec
-performance may be significant enough that -stable wants to consider the
-patch)
-
-Reported-by: Raz Ben Yehuda <raziebe@gmail.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@kernel.org>		[2.6.38.x]
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/include/asm/bitops.h |   43 +++-----------------------------
+ 1 file changed, 5 insertions(+), 38 deletions(-)
 
-diff -puN mm/memory.c~mm-check-if-pte-is-already-allocated-during-page-fault mm/memory.c
---- a/mm/memory.c~mm-check-if-pte-is-already-allocated-during-page-fault
-+++ a/mm/memory.c
-@@ -3396,7 +3396,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	 * run pte_offset_map on the pmd, if an huge pmd could
- 	 * materialize from under us from a different thread.
- 	 */
--	if (unlikely(__pte_alloc(mm, vma, pmd, address)))
-+	if (unlikely(pmd_none(*pmd)) && __pte_alloc(mm, vma, pmd, address))
- 		return VM_FAULT_OOM;
- 	/* if an huge pmd materialized from under us just retry later */
- 	if (unlikely(pmd_trans_huge(*pmd)))
+diff -puN arch/arm/include/asm/bitops.h~arm-use-asm-generic-bitops-leh arch/arm/include/asm/bitops.h
+--- a/arch/arm/include/asm/bitops.h~arm-use-asm-generic-bitops-leh
++++ a/arch/arm/include/asm/bitops.h
+@@ -203,8 +203,6 @@ extern int _find_next_bit_be(const unsig
+ #define find_first_bit(p,sz)		_find_first_bit_le(p,sz)
+ #define find_next_bit(p,sz,off)		_find_next_bit_le(p,sz,off)
+ 
+-#define WORD_BITOFF_TO_LE(x)		((x))
+-
+ #else
+ /*
+  * These are the big endian, atomic definitions.
+@@ -214,8 +212,6 @@ extern int _find_next_bit_be(const unsig
+ #define find_first_bit(p,sz)		_find_first_bit_be(p,sz)
+ #define find_next_bit(p,sz,off)		_find_next_bit_be(p,sz,off)
+ 
+-#define WORD_BITOFF_TO_LE(x)		((x) ^ 0x18)
+-
+ #endif
+ 
+ #if __LINUX_ARM_ARCH__ < 5
+@@ -287,40 +283,7 @@ static inline int fls(int x)
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/lock.h>
+ 
+-static inline void __set_bit_le(int nr, void *addr)
+-{
+-	__set_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline void __clear_bit_le(int nr, void *addr)
+-{
+-	__clear_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline int __test_and_set_bit_le(int nr, void *addr)
+-{
+-	return __test_and_set_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline int test_and_set_bit_le(int nr, void *addr)
+-{
+-	return test_and_set_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline int __test_and_clear_bit_le(int nr, void *addr)
+-{
+-	return __test_and_clear_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline int test_and_clear_bit_le(int nr, void *addr)
+-{
+-	return test_and_clear_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
+-
+-static inline int test_bit_le(int nr, const void *addr)
+-{
+-	return test_bit(WORD_BITOFF_TO_LE(nr), addr);
+-}
++#ifdef __ARMEB__
+ 
+ static inline int find_first_zero_bit_le(const void *p, unsigned size)
+ {
+@@ -340,6 +303,10 @@ static inline int find_next_bit_le(const
+ }
+ #define find_next_bit_le find_next_bit_le
+ 
++#endif
++
++#include <asm-generic/bitops/le.h>
++
+ /*
+  * Ext2 is defined to use little-endian byte ordering.
+  */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-origin.patch
+linux-next.patch
+s390-use-asm-generic-bitops-leh.patch
+m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
 
