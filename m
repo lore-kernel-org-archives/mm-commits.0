@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] arm-use-asm-generic-bitops-leh.patch removed from -mm tree
-Date: Fri, 29 Apr 2011 12:58:54 -0700
-Message-ID: <201104291958.p3TJwsw8012434@imap1.linux-foundation.org>
+Subject: [to-be-updated] bitops-add-ifndef-for-each-of-find-bitops.patch removed from -mm tree
+Date: Fri, 29 Apr 2011 12:58:49 -0700
+Message-ID: <201104291958.p3TJwnGG012428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755296Ab1D2T7c (ORCPT
+	by vger.kernel.org with ESMTP id S1755515Ab1D2T7c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 29 Apr 2011 15:59:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,22 +15,37 @@ To: akinobu.mita@gmail.com, arnd@arndb.de, gerg@uclinux.org, heiko.carstens@de.i
 
 
 The patch titled
-     arm: use asm-generic/bitops/le.h
+     bitops: add #ifndef for each of find bitops
 has been removed from the -mm tree.  Its filename was
-     arm-use-asm-generic-bitops-leh.patch
+     bitops-add-ifndef-for-each-of-find-bitops.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: use asm-generic/bitops/le.h
+Subject: bitops: add #ifndef for each of find bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The previous style change enables to use asm-generic/bitops/le.h on arm.
+The style that we normally use in asm-generic is to test the macro itself
+for existence, so in asm-generic, do:
 
+	#ifndef find_next_zero_bit_le
+	extern unsigned long find_next_zero_bit_le(const void *addr,
+		unsigned long size, unsigned long offset);
+	#endif
+
+and in the architectures, write
+
+	static inline unsigned long find_next_zero_bit_le(const void *addr,
+		unsigned long size, unsigned long offset)
+	#define find_next_zero_bit_le find_next_zero_bit_le
+
+This adds the #ifndef for each of the find bitops in the generic header
+and source files.
+
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -38,88 +53,187 @@ Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/bitops.h |   43 +++-----------------------------
- 1 file changed, 5 insertions(+), 38 deletions(-)
+ include/asm-generic/bitops/find.h |    4 ++++
+ include/asm-generic/bitops/le.h   |    7 +++++++
+ include/linux/bitops.h            |    2 ++
+ lib/find_last_bit.c               |    4 ++++
+ lib/find_next_bit.c               |   12 ++++++++++++
+ 5 files changed, 29 insertions(+)
 
-diff -puN arch/arm/include/asm/bitops.h~arm-use-asm-generic-bitops-leh arch/arm/include/asm/bitops.h
---- a/arch/arm/include/asm/bitops.h~arm-use-asm-generic-bitops-leh
-+++ a/arch/arm/include/asm/bitops.h
-@@ -203,8 +203,6 @@ extern int _find_next_bit_be(const unsig
- #define find_first_bit(p,sz)		_find_first_bit_le(p,sz)
- #define find_next_bit(p,sz,off)		_find_next_bit_le(p,sz,off)
+diff -puN include/asm-generic/bitops/find.h~bitops-add-ifndef-for-each-of-find-bitops include/asm-generic/bitops/find.h
+--- a/include/asm-generic/bitops/find.h~bitops-add-ifndef-for-each-of-find-bitops
++++ a/include/asm-generic/bitops/find.h
+@@ -1,6 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_FIND_H_
+ #define _ASM_GENERIC_BITOPS_FIND_H_
  
--#define WORD_BITOFF_TO_LE(x)		((x))
--
- #else
- /*
-  * These are the big endian, atomic definitions.
-@@ -214,8 +212,6 @@ extern int _find_next_bit_be(const unsig
- #define find_first_bit(p,sz)		_find_first_bit_be(p,sz)
- #define find_next_bit(p,sz,off)		_find_next_bit_be(p,sz,off)
++#ifndef find_next_bit
+ /**
+  * find_next_bit - find the next set bit in a memory region
+  * @addr: The address to base the search on
+@@ -9,7 +10,9 @@
+  */
+ extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
+ 		size, unsigned long offset);
++#endif
  
--#define WORD_BITOFF_TO_LE(x)		((x) ^ 0x18)
--
- #endif
++#ifndef find_next_zero_bit
+ /**
+  * find_next_zero_bit - find the next cleared bit in a memory region
+  * @addr: The address to base the search on
+@@ -18,6 +21,7 @@ extern unsigned long find_next_bit(const
+  */
+ extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
+ 		long size, unsigned long offset);
++#endif
  
- #if __LINUX_ARM_ARCH__ < 5
-@@ -287,40 +283,7 @@ static inline int fls(int x)
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
+ #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
  
--static inline void __set_bit_le(int nr, void *addr)
--{
--	__set_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline void __clear_bit_le(int nr, void *addr)
--{
--	__clear_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline int __test_and_set_bit_le(int nr, void *addr)
--{
--	return __test_and_set_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline int test_and_set_bit_le(int nr, void *addr)
--{
--	return test_and_set_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline int __test_and_clear_bit_le(int nr, void *addr)
--{
--	return __test_and_clear_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline int test_and_clear_bit_le(int nr, void *addr)
--{
--	return test_and_clear_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
--
--static inline int test_bit_le(int nr, const void *addr)
--{
--	return test_bit(WORD_BITOFF_TO_LE(nr), addr);
--}
-+#ifdef __ARMEB__
+diff -puN include/asm-generic/bitops/le.h~bitops-add-ifndef-for-each-of-find-bitops include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~bitops-add-ifndef-for-each-of-find-bitops
++++ a/include/asm-generic/bitops/le.h
+@@ -30,13 +30,20 @@ static inline unsigned long find_first_z
  
- static inline int find_first_zero_bit_le(const void *p, unsigned size)
- {
-@@ -340,6 +303,10 @@ static inline int find_next_bit_le(const
- }
- #define find_next_bit_le find_next_bit_le
+ #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
  
++#ifndef find_next_zero_bit_le
+ extern unsigned long find_next_zero_bit_le(const void *addr,
+ 		unsigned long size, unsigned long offset);
 +#endif
 +
-+#include <asm-generic/bitops/le.h>
-+
- /*
-  * Ext2 is defined to use little-endian byte ordering.
++#ifndef find_next_bit_le
+ extern unsigned long find_next_bit_le(const void *addr,
+ 		unsigned long size, unsigned long offset);
++#endif
+ 
++#ifndef find_first_zero_bit_le
+ #define find_first_zero_bit_le(addr, size) \
+ 	find_next_zero_bit_le((addr), (size), 0)
++#endif
+ 
+ #else
+ #error "Please fix <asm/byteorder.h>"
+diff -puN include/linux/bitops.h~bitops-add-ifndef-for-each-of-find-bitops include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-add-ifndef-for-each-of-find-bitops
++++ a/include/linux/bitops.h
+@@ -149,6 +149,7 @@ static inline unsigned long __ffs64(u64 
+ #ifdef __KERNEL__
+ 
+ #ifdef CONFIG_GENERIC_FIND_LAST_BIT
++#ifndef find_last_bit
+ /**
+  * find_last_bit - find the last set bit in a memory region
+  * @addr: The address to start the search at
+@@ -158,6 +159,7 @@ static inline unsigned long __ffs64(u64 
   */
+ extern unsigned long find_last_bit(const unsigned long *addr,
+ 				   unsigned long size);
++#endif
+ #endif /* CONFIG_GENERIC_FIND_LAST_BIT */
+ 
+ #endif /* __KERNEL__ */
+diff -puN lib/find_last_bit.c~bitops-add-ifndef-for-each-of-find-bitops lib/find_last_bit.c
+--- a/lib/find_last_bit.c~bitops-add-ifndef-for-each-of-find-bitops
++++ a/lib/find_last_bit.c
+@@ -15,6 +15,8 @@
+ #include <asm/types.h>
+ #include <asm/byteorder.h>
+ 
++#ifndef find_last_bit
++
+ unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
+ {
+ 	unsigned long words;
+@@ -43,3 +45,5 @@ found:
+ 	return size;
+ }
+ EXPORT_SYMBOL(find_last_bit);
++
++#endif
+diff -puN lib/find_next_bit.c~bitops-add-ifndef-for-each-of-find-bitops lib/find_next_bit.c
+--- a/lib/find_next_bit.c~bitops-add-ifndef-for-each-of-find-bitops
++++ a/lib/find_next_bit.c
+@@ -17,6 +17,7 @@
+ #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+ 
+ #ifdef CONFIG_GENERIC_FIND_NEXT_BIT
++#ifndef find_next_bit
+ /*
+  * Find the next set bit in a memory region.
+  */
+@@ -59,7 +60,9 @@ found_middle:
+ 	return result + __ffs(tmp);
+ }
+ EXPORT_SYMBOL(find_next_bit);
++#endif
+ 
++#ifndef find_next_zero_bit
+ /*
+  * This implementation of find_{first,next}_zero_bit was stolen from
+  * Linus' asm-alpha/bitops.h.
+@@ -103,9 +106,11 @@ found_middle:
+ 	return result + ffz(tmp);
+ }
+ EXPORT_SYMBOL(find_next_zero_bit);
++#endif
+ #endif /* CONFIG_GENERIC_FIND_NEXT_BIT */
+ 
+ #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
++#ifndef find_first_bit
+ /*
+  * Find the first set bit in a memory region.
+  */
+@@ -131,7 +136,9 @@ found:
+ 	return result + __ffs(tmp);
+ }
+ EXPORT_SYMBOL(find_first_bit);
++#endif
+ 
++#ifndef find_first_zero_bit
+ /*
+  * Find the first cleared bit in a memory region.
+  */
+@@ -157,6 +164,7 @@ found:
+ 	return result + ffz(tmp);
+ }
+ EXPORT_SYMBOL(find_first_zero_bit);
++#endif
+ #endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
+ 
+ #ifdef __BIG_ENDIAN
+@@ -186,6 +194,7 @@ static inline unsigned long ext2_swab(co
+ #endif
+ }
+ 
++#ifndef find_next_zero_bit_le
+ unsigned long find_next_zero_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+@@ -229,7 +238,9 @@ found_middle_swap:
+ 	return result + ffz(ext2_swab(tmp));
+ }
+ EXPORT_SYMBOL(find_next_zero_bit_le);
++#endif
+ 
++#ifndef find_next_bit_le
+ unsigned long find_next_bit_le(const void *addr, unsigned
+ 		long size, unsigned long offset)
+ {
+@@ -274,6 +285,7 @@ found_middle_swap:
+ 	return result + __ffs(ext2_swab(tmp));
+ }
+ EXPORT_SYMBOL(find_next_bit_le);
++#endif
+ 
+ #endif /* CONFIG_GENERIC_FIND_BIT_LE */
+ #endif /* __BIG_ENDIAN */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
+arch-remove-config_generic_find_next_bitbit_lelast_bit.patch
+arm-use-asm-generic-bitops-leh.patch
 s390-use-asm-generic-bitops-leh.patch
 m68knommu-fix-build-error-due-to-the-lack-of-find_next_bit_le.patch
 
