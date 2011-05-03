@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch added to -mm tree
-Date: Tue, 03 May 2011 14:41:25 -0700
-Message-ID: <201105032141.p43LfPTQ012050@imap1.linux-foundation.org>
+Subject: + writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch added to -mm tree
+Date: Tue, 03 May 2011 15:20:33 -0700
+Message-ID: <201105032220.p43MKYwr013890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755241Ab1ECVle (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 17:41:34 -0400
+	by vger.kernel.org with ESMTP id S1750924Ab1ECWVL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 18:21:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: fengguang.wu@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz
 
 
 The patch titled
-     mm-filter-unevictable-page-out-in-deactivate_page-fix-fix
+     writeback: update dirtied_when for synced inode to prevent livelock
 has been added to the -mm tree.  Its filename is
-     mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+     writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-filter-unevictable-page-out-in-deactivate_page-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: writeback: update dirtied_when for synced inode to prevent livelock
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-bah
+With the more aggressive "keep writeback as long as we wrote something"
+logic in wb_writeback(), the "use LONG_MAX .nr_to_write" trick in commit
+b9543dac5bbc ("writeback: avoid livelocking WB_SYNC_ALL writeback") is no
+longer enough to stop sync livelock.
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel<riel@redhat.com>
+The fix is to explicitly update .dirtied_when on synced inodes, so that
+they are no longer considered for writeback in the next round.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix-fix mm/swap.c
---- a/mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix-fix
-+++ a/mm/swap.c
-@@ -477,8 +477,8 @@ static void drain_cpu_pagevecs(int cpu)
- void deactivate_page(struct page *page)
- {
- 	/*
--	 * In a workload which with many unevictable page such as mprotect,
--	 * unevictable page deactivation for accelerating reclaim is pointless.
-+	 * In a workload with many unevictable page such as mprotect, unevictable
-+	 * page deactivation for accelerating reclaim is pointless.
- 	 */
- 	if (PageUnevictable(page))
- 		return;
+diff -puN fs/fs-writeback.c~writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock
++++ a/fs/fs-writeback.c
+@@ -431,6 +431,15 @@ writeback_single_inode(struct inode *ino
+ 				requeue_io(inode, wb);
+ 			} else {
+ 				/*
++				 * sync livelock prevention: each inode is
++				 * tagged and synced in one shot. If still
++				 * dirty, move it back to s_dirty with updated
++				 * dirty time to prevent syncing it again.
++				 */
++				if (wbc->sync_mode == WB_SYNC_ALL ||
++				    wbc->tagged_sync)
++					inode->dirtied_when = jiffies;
++				/*
+ 				 * Writeback blocked by something other than
+ 				 * congestion. Delay the inode for some time to
+ 				 * avoid spinning on the CPU (100% iowait)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-pass-writeback_control-down-to-move_expired_inodes.patch
+writeback-introduce-writeback_controlinodes_cleaned.patch
+writeback-try-more-writeback-as-long-as-something-was-written.patch
+writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
 writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+writeback-refill-b_io-iff-empty.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+writeback-elevate-queue_io-into-wb_writeback.patch
+writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage.patch
+writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch
+writeback-avoid-extra-sync-work-at-enqueue-time.patch
+readahead-readahead-page-allocations-are-ok-to-fail.patch
+readahead-return-early-when-readahead-is-disabled.patch
+readahead-reduce-unnecessary-mmap_miss-increases.patch
+readahead-trigger-mmap-sequential-readahead-on-pg_readahead.patch
 
