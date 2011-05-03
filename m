@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch added to -mm tree
-Date: Tue, 03 May 2011 13:57:44 -0700
-Message-ID: <201105032057.p43Kvj4C009848@imap1.linux-foundation.org>
+Subject: + writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch added to -mm tree
+Date: Tue, 03 May 2011 14:00:55 -0700
+Message-ID: <201105032100.p43L0t8V010052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755153Ab1ECU6c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 16:58:32 -0400
+	by vger.kernel.org with ESMTP id S1755234Ab1ECVBx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 17:01:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, davi
 
 
 The patch titled
-     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
+Subject: writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-add comment
+repair crappy comment while we're there
 
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -52,21 +52,29 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/block_dev.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix fs/block_dev.c
---- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
+diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix fs/block_dev.c
+--- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
 +++ a/fs/block_dev.c
-@@ -57,7 +57,7 @@ static void bdev_inode_switch_bdi(struct
+@@ -44,13 +44,12 @@ inline struct block_device *I_BDEV(struc
  {
- 	struct backing_dev_info *old = inode->i_data.backing_dev_info;
+ 	return &BDEV_I(inode)->bdev;
+ }
+-
+ EXPORT_SYMBOL(I_BDEV);
  
--	if (dst == old)
-+	if (dst == old)			/* deadlock avoidance */
- 		return;
- 	bdi_lock_two(&old->wb, &dst->wb);
- 	spin_lock(&inode->i_lock);
+ /*
+- * move the inode from it's current bdi to the a new bdi. if the inode is dirty
+- * we need to move it onto the dirty list of @dst so that the inode is always
+- * on the right list.
++ * Move the inode from its current bdi to a new bdi. If the inode is dirty we
++ * need to move it onto the dirty list of @dst so that the inode is always on the
++ * right list.
+  */
+ static void bdev_inode_switch_bdi(struct inode *inode,
+ 			struct backing_dev_info *dst)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +111,7 @@ vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
