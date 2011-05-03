@@ -1,38 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 02 May 2011 12:18:22 -0700
-Message-ID: <201105021912.p42JCPKn006686@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 03 May 2011 12:31:43 -0700
+Message-ID: <201105031925.p43JPcMp000620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805Ab1EBTM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 May 2011 15:12:56 -0400
+	by vger.kernel.org with ESMTP id S1754508Ab1ECT0H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 15:26:07 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p42JCQ0r016406
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p43JPc5n014310
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 2 May 2011 12:12:26 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 3 May 2011 12:25:38 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -111,7 +101,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
