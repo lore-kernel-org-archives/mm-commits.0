@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-filter-unevictable-page-out-in-deactivate_page-fix.patch added to -mm tree
-Date: Tue, 03 May 2011 14:33:51 -0700
-Message-ID: <201105032133.p43LXpqS011619@imap1.linux-foundation.org>
+Subject: + xtensa-mm-remove-pgtablec.patch added to -mm tree
+Date: Tue, 03 May 2011 14:39:14 -0700
+Message-ID: <201105032139.p43LdEHo011947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755133Ab1ECVeB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 17:34:01 -0400
+	by vger.kernel.org with ESMTP id S1752886Ab1ECVjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 17:39:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: sebastian@breakpoint.cc, chris@zankel.net, tglx@linutronix.de
 
 
 The patch titled
-     mm-filter-unevictable-page-out-in-deactivate_page-fix
+     xtensa/mm: remove pgtable.c
 has been added to the -mm tree.  Its filename is
-     mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+     xtensa-mm-remove-pgtablec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-filter-unevictable-page-out-in-deactivate_page-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xtensa/mm: remove pgtable.c
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 
-tidy up comment
+It is not referenced by any Makefile.  pte_alloc_one_kernel() and
+pte_alloc_one() is implemented in arch/xtensa/include/asm/pgalloc.h.
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel<riel@redhat.com>
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/xtensa/mm/pgtable.c |   72 -------------------------------------
+ 1 file changed, 72 deletions(-)
 
-diff -puN mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix mm/swap.c
---- a/mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix
-+++ a/mm/swap.c
-@@ -476,11 +476,9 @@ static void drain_cpu_pagevecs(int cpu)
-  */
- void deactivate_page(struct page *page)
- {
+diff -puN arch/xtensa/mm/pgtable.c~xtensa-mm-remove-pgtablec /dev/null
+--- a/arch/xtensa/mm/pgtable.c
++++ /dev/null
+@@ -1,72 +0,0 @@
+-/*
+- * arch/xtensa/mm/pgtable.c
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- *
+- * Copyright (C) 2001 - 2005 Tensilica Inc.
+- *
+- * Chris Zankel <chris@zankel.net>
+- */
 -
- 	/*
--	 * In workload which system has many unevictable page(ex, mprotect),
--	 * unevictable page deactivation for accelerating reclaim
--	 * is pointless.
-+	 * In a workload which with many unevictable page such as mprotect,
-+	 * unevictable page deactivation for accelerating reclaim is pointless.
- 	 */
- 	if (PageUnevictable(page))
- 		return;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+-#if (DCACHE_SIZE > PAGE_SIZE)
+-
+-pte_t* pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
+-{
+-	pte_t *pte = NULL, *p;
+-	int color = ADDR_COLOR(address);
+-	int i;
+-
+-	p = (pte_t*) __get_free_pages(GFP_KERNEL|__GFP_REPEAT, COLOR_ORDER);
+-
+-	if (likely(p)) {
+-		split_page(virt_to_page(p), COLOR_ORDER);
+-
+-		for (i = 0; i < COLOR_SIZE; i++) {
+-			if (ADDR_COLOR(p) == color)
+-				pte = p;
+-			else
+-				free_page(p);
+-			p += PTRS_PER_PTE;
+-		}
+-		clear_page(pte);
+-	}
+-	return pte;
+-}
+-
+-#ifdef PROFILING
+-
+-int mask;
+-int hit;
+-int flush;
+-
+-#endif
+-
+-struct page* pte_alloc_one(struct mm_struct *mm, unsigned long address)
+-{
+-	struct page *page = NULL, *p;
+-	int color = ADDR_COLOR(address);
+-
+-	p = alloc_pages(GFP_KERNEL | __GFP_REPEAT, PTE_ORDER);
+-
+-	if (likely(p)) {
+-		split_page(p, COLOR_ORDER);
+-
+-		for (i = 0; i < PAGE_ORDER; i++) {
+-			if (PADDR_COLOR(page_address(p)) == color)
+-				page = p;
+-			else
+-				__free_page(p);
+-			p++;
+-		}
+-		clear_highpage(page);
+-	}
+-
+-	return page;
+-}
+-
+-#endif
+-
+-
