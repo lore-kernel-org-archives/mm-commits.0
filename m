@@ -1,164 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 03 May 2011 12:31:43 -0700
-Message-ID: <201105031925.p43JPcMp000620@imap1.linux-foundation.org>
+Subject: + writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch added to -mm tree
+Date: Tue, 03 May 2011 13:56:54 -0700
+Message-ID: <201105032056.p43KutLC009820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754508Ab1ECT0H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 15:26:07 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p43JPc5n014310
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 3 May 2011 12:25:38 -0700
+	by vger.kernel.org with ESMTP id S1754974Ab1ECU6C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 16:58:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@linux.vnet.ibm.com, minchan.kim@gmail.com, npiggin@kernel.dk
 
 
 The patch titled
-     linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mmotm: fix hang at startup
+has been added to the -mm tree.  Its filename is
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmotm: fix hang at startup
+From: Hugh Dickins <hughd@google.com>
 
+Yesterday's mmotm hangs at startup, and with lockdep it reports:
+BUG: spinlock recursion on CPU#1, blkid/284 - with bdi_lock_two()
+called from bdev_inode_switch_bdi() in the backtrace.  It appears
+that this function is sometimes called with new the same as old.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mel Gorman <mel@linux.vnet.ibm.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-i801.c    |    3 ---
- drivers/i2c/busses/i2c-parport.c |    9 ---------
- include/linux/pci_ids.h          |    3 ---
- 3 files changed, 15 deletions(-)
+ fs/block_dev.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/i2c/busses/i2c-i801.c~linux-next-git-rejects drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c~linux-next-git-rejects
-+++ a/drivers/i2c/busses/i2c-i801.c
-@@ -142,10 +142,7 @@
- #define PCI_DEVICE_ID_INTEL_PATSBURG_SMBUS_IDF0	0x1d70
- #define PCI_DEVICE_ID_INTEL_PATSBURG_SMBUS_IDF1	0x1d71
- #define PCI_DEVICE_ID_INTEL_PATSBURG_SMBUS_IDF2	0x1d72
--<<<<<<< HEAD
--=======
- #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_SMBUS	0x1e22
-->>>>>>> FETCH_HEAD
- #define PCI_DEVICE_ID_INTEL_DH89XXCC_SMBUS	0x2330
- #define PCI_DEVICE_ID_INTEL_5_3400_SERIES_SMBUS	0x3b30
+diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix fs/block_dev.c
+--- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix
++++ a/fs/block_dev.c
+@@ -57,6 +57,8 @@ static void bdev_inode_switch_bdi(struct
+ {
+ 	struct backing_dev_info *old = inode->i_data.backing_dev_info;
  
-diff -puN drivers/i2c/busses/i2c-parport.c~linux-next-git-rejects drivers/i2c/busses/i2c-parport.c
---- a/drivers/i2c/busses/i2c-parport.c~linux-next-git-rejects
-+++ a/drivers/i2c/busses/i2c-parport.c
-@@ -2,11 +2,6 @@
-  * i2c-parport.c I2C bus over parallel port                                 *
-  * ------------------------------------------------------------------------ *
-    Copyright (C) 2003-2011 Jean Delvare <khali@linux-fr.org>
--<<<<<<< HEAD
--   
--=======
--
-->>>>>>> FETCH_HEAD
-    Based on older i2c-philips-par.c driver
-    Copyright (C) 1995-2000 Simon G. Vogl
-    With some changes from:
-@@ -238,11 +233,7 @@ static void i2c_parport_attach(struct pa
- 	mutex_lock(&adapter_list_lock);
- 	list_add_tail(&adapter->node, &adapter_list);
- 	mutex_unlock(&adapter_list_lock);
--<<<<<<< HEAD
--        return;
--=======
- 	return;
-->>>>>>> FETCH_HEAD
- 
- ERROR1:
- 	parport_release(adapter->pdev);
-diff -puN include/linux/pci_ids.h~linux-next-git-rejects include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~linux-next-git-rejects
-+++ a/include/linux/pci_ids.h
-@@ -2479,12 +2479,9 @@
- #define PCI_DEVICE_ID_INTEL_IOAT	0x1a38
- #define PCI_DEVICE_ID_INTEL_COUGARPOINT_LPC_MIN	0x1c41
- #define PCI_DEVICE_ID_INTEL_COUGARPOINT_LPC_MAX	0x1c5f
--<<<<<<< HEAD
--=======
- #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_SMBUS	0x1e22
- #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MIN	0x1e40
- #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MAX	0x1e5f
-->>>>>>> FETCH_HEAD
- #define PCI_DEVICE_ID_INTEL_PATSBURG_LPC_0	0x1d40
- #define PCI_DEVICE_ID_INTEL_PATSBURG_LPC_1	0x1d41
- #define PCI_DEVICE_ID_INTEL_DH89XXCC_LPC_MIN	0x2310
++	if (dst == old)
++		return;
+ 	bdi_lock_two(&old->wb, &dst->wb);
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_data.backing_dev_info = dst;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
+tmpfs-fix-race-between-umount-and-writepage.patch
+mmap-add-alignment-for-some-variables.patch
+mmap-avoid-unnecessary-anon_vma-lock.patch
+mmap-avoid-merging-cloned-vmas.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
 mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+prio_tree-debugging-patch.patch
 
