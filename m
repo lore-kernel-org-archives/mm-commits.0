@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch added to -mm tree
-Date: Tue, 03 May 2011 13:56:54 -0700
-Message-ID: <201105032056.p43KutLC009820@imap1.linux-foundation.org>
+Subject: + writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch added to -mm tree
+Date: Tue, 03 May 2011 13:57:44 -0700
+Message-ID: <201105032057.p43Kvj4C009848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754974Ab1ECU6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 16:58:02 -0400
+	by vger.kernel.org with ESMTP id S1755153Ab1ECU6c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2011 16:58:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@linux.vnet.ibm.com, minchan.kim@gmail.com, npiggin@kernel.dk
+Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, hughd@google.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@linux.vnet.ibm.com, minchan.kim@gmail.com, npiggin@kernel.dk
 
 
 The patch titled
-     mmotm: fix hang at startup
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
 has been added to the -mm tree.  Its filename is
-     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmotm: fix hang at startup
-From: Hugh Dickins <hughd@google.com>
+Subject: writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Yesterday's mmotm hangs at startup, and with lockdep it reports:
-BUG: spinlock recursion on CPU#1, blkid/284 - with bdi_lock_two()
-called from bdev_inode_switch_bdi() in the backtrace.  It appears
-that this function is sometimes called with new the same as old.
+add comment
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Mel Gorman <mel@linux.vnet.ibm.com>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mel Gorman <mel@linux.vnet.ibm.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix fs/block_dev.c
---- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix
+diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix fs/block_dev.c
+--- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
 +++ a/fs/block_dev.c
-@@ -57,6 +57,8 @@ static void bdev_inode_switch_bdi(struct
+@@ -57,7 +57,7 @@ static void bdev_inode_switch_bdi(struct
  {
  	struct backing_dev_info *old = inode->i_data.backing_dev_info;
  
-+	if (dst == old)
-+		return;
+-	if (dst == old)
++	if (dst == old)			/* deadlock avoidance */
+ 		return;
  	bdi_lock_two(&old->wb, &dst->wb);
  	spin_lock(&inode->i_lock);
- 	inode->i_data.backing_dev_info = dst;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-tmpfs-fix-race-between-umount-and-writepage.patch
-mmap-add-alignment-for-some-variables.patch
-mmap-avoid-unnecessary-anon_vma-lock.patch
-mmap-avoid-merging-cloned-vmas.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
-mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
 mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged.patch
-mn10300-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
-tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-prio_tree-debugging-patch.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
