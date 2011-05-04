@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-reclaim-memory-from-nodes-in-round-robin.patch added to -mm tree
-Date: Wed, 04 May 2011 14:02:40 -0700
-Message-ID: <201105042102.p44L2e7n013962@imap1.linux-foundation.org>
+Subject: + memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch added to -mm tree
+Date: Wed, 04 May 2011 14:05:25 -0700
+Message-ID: <201105042105.p44L5PnD014195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754366Ab1EDVDR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 17:03:17 -0400
+	by vger.kernel.org with ESMTP id S1752918Ab1EDVFf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 17:05:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     memcg: reclaim memory from nodes in round robin order
+     memcg-reclaim-memory-from-nodes-in-round-robin-fix
 has been added to the -mm tree.  Its filename is
-     memcg-reclaim-memory-from-nodes-in-round-robin.patch
+     memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,156 +33,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: reclaim memory from nodes in round robin order
-From: Ying Han <yinghan@google.com>
+Subject: memcg-reclaim-memory-from-nodes-in-round-robin-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Presently, memory cgroup's direct reclaim frees memory from the current
-node.  But this has some troubles.  In usual, when a set of threads works
-in cooperative way, they are tend to on the same node.  So, if they hit
-limits under memcg, it will reclaim memory from themselves, it may be
-active working set.
+comment editing
 
-For example, assume 2 node system which has Node 0 and Node 1 and a memcg
-which has 1G limit.  After some work, file cacne remains and and usages
-are
-
-   Node 0:  1M
-   Node 1:  998M.
-
-and run an application on Node 0, it will eats its foot before freeing
-unnecessary file caches.
-
-This patch adds round-robin for NUMA and adds equal pressure to each node.
- When using cpuset's spread memory feature, this will work very well.
-
-But yes, better algorithm is appreciated.
-
-Signed-off-by: Ying Han <yinghan@google.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- mm/memcontrol.c            |   25 +++++++++++++++++++++++++
- mm/vmscan.c                |   12 ++++++++++--
- 3 files changed, 36 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-reclaim-memory-from-nodes-in-round-robin include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-reclaim-memory-from-nodes-in-round-robin
-+++ a/include/linux/memcontrol.h
-@@ -108,6 +108,7 @@ extern void mem_cgroup_end_migration(str
-  */
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
- int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
-+int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru);
-diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin
+diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-fix
 +++ a/mm/memcontrol.c
-@@ -241,6 +241,7 @@ struct mem_cgroup {
- 	 * reclaimed from.
- 	 */
- 	int last_scanned_child;
-+	int last_scanned_node;
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
-@@ -1492,6 +1493,29 @@ mem_cgroup_select_victim(struct mem_cgro
+@@ -1493,15 +1493,15 @@ mem_cgroup_select_victim(struct mem_cgro
  }
  
  /*
-+ * Selecting a node where we start reclaim from. Because what we need is just
-+ * reducing usage counter, start from anywhere is O,K. When considering
-+ * memory reclaim from current node, there are pros. and cons.
-+ * Freeing memory from current node means freeing memory from a node which
-+ * we'll use or we've used. So, it may make LRU bad. And if several threads
-+ * hit limits, it will see a contention on a node. But freeing from remote
-+ * node mean more costs for memory reclaim because of memory latency.
-+ *
-+ * Now, we use round-robin. Better algorithm is welcomed.
-+ */
-+int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
-+{
-+	int node;
-+
-+	node = next_node(mem->last_scanned_node, node_states[N_HIGH_MEMORY]);
-+	if (node == MAX_NUMNODES)
-+		node = first_node(node_states[N_HIGH_MEMORY]);
-+
-+	mem->last_scanned_node = node;
-+	return node;
-+}
-+
-+/*
-  * Scan the hierarchy if needed to reclaim memory. We remember the last child
-  * we reclaimed from, so that we don't end up penalizing one child extensively
-  * based on its position in the children list.
-@@ -4708,6 +4732,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 		res_counter_init(&mem->memsw, NULL);
- 	}
- 	mem->last_scanned_child = 0;
-+	mem->last_scanned_node = MAX_NUMNODES;
- 	INIT_LIST_HEAD(&mem->oom_notify);
- 
- 	if (parent)
-diff -puN mm/vmscan.c~memcg-reclaim-memory-from-nodes-in-round-robin mm/vmscan.c
---- a/mm/vmscan.c~memcg-reclaim-memory-from-nodes-in-round-robin
-+++ a/mm/vmscan.c
-@@ -2216,6 +2216,7 @@ unsigned long try_to_free_mem_cgroup_pag
+- * Selecting a node where we start reclaim from. Because what we need is just
+- * reducing usage counter, start from anywhere is O,K. When considering
+- * memory reclaim from current node, there are pros. and cons.
+- * Freeing memory from current node means freeing memory from a node which
+- * we'll use or we've used. So, it may make LRU bad. And if several threads
+- * hit limits, it will see a contention on a node. But freeing from remote
+- * node mean more costs for memory reclaim because of memory latency.
++ * Select a node from whcih to start reclaim. Because what we need is just
++ * reducing the usage counter, starting from anywhere is OK. When considering
++ * memory reclaim from the current node there are pros and cons.
++ * Freeing memory from the current node means freeing memory from a node which
++ * we have used or will soon use, oo it may worsen LRU ordering.  And if several
++ * threads hit limits, it can cause contention on a node. But freeing from a
++ * remote node means higher costs for memory reclaim because of memory latency.
+  *
+- * Now, we use round-robin. Better algorithm is welcomed.
++ * Now, we use round-robin.  A better algorithm is welcomed.
+  */
+ int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
  {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
-+	int nid;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
-@@ -2224,7 +2225,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
--		.nodemask = NULL, /* we don't care the placement */
-+		.nodemask = NULL, /* we don't care about placement */
- 		.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
- 	};
-@@ -2232,7 +2233,14 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.gfp_mask = sc.gfp_mask,
- 	};
- 
--	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
-+	/*
-+	 * Unlike direct reclaim via allo_pages(), memcg's reclaim
-+	 * don't take care from where we get free resouce. So, the node where
-+	 * we need to start scan is not need to be current node.
-+	 */
-+	nid = mem_cgroup_select_victim_node(mem_cont);
-+
-+	zonelist = NODE_DATA(nid)->node_zonelists;
- 
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-check-pageunevictable-in-lru_deactivate_fn.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
-add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
