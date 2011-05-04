@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-remove-the-leds-h1940-driver.patch added to -mm tree
-Date: Wed, 04 May 2011 14:38:52 -0700
-Message-ID: <201105042138.p44Lcq1e015778@imap1.linux-foundation.org>
+Subject: + mm-delete-non-atomic-mm-counter-implementation.patch added to -mm tree
+Date: Wed, 04 May 2011 14:48:22 -0700
+Message-ID: <201105042148.p44LmMZX016277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753586Ab1EDVj2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 17:39:28 -0400
+	by vger.kernel.org with ESMTP id S1752378Ab1EDVs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 17:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anarsoul@gmail.com, arnaud.patard@rtp-net.org, ben-linux@fluff.org, rpurdie@rpsys.net
+Cc: matt.fleming@linux.intel.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     leds: remove the leds-h1940 driver
+     mm: delete non-atomic mm counter implementation
 has been added to the -mm tree.  Its filename is
-     leds-remove-the-leds-h1940-driver.patch
+     mm-delete-non-atomic-mm-counter-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,217 +33,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: remove the leds-h1940 driver
-From: Vasily Khoruzhick <anarsoul@gmail.com>
+Subject: mm: delete non-atomic mm counter implementation
+From: Matt Fleming <matt.fleming@linux.intel.com>
 
-The H1940 machine now uses leds-gpio and leds-h1940 has no users anymore. 
+The problem with having two different types of counters is that developers
+adding new code need to keep in mind whether it's safe to use both the
+atomic and non-atomic implementations.  For example, when adding new
+callers of the *_mm_counter() functions a developer needs to ensure that
+those paths are always executed with page_table_lock held, in case we're
+using the non-atomic implementation of mm counters.
 
-Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
-Cc: "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Hugh Dickins introduced the atomic mm counters in commit f412ac08c986
+("[PATCH] mm: fix rss and mmlist locking").  When asked why he left the
+non-atomic counters around he said,
+
+  | The only reason was to avoid adding costly atomic operations into a
+  | configuration that had no need for them there: the page_table_lock
+  | sufficed.
+  |
+  | Certainly it would be simpler just to delete the non-atomic variant.
+  |
+  | And I think it's fair to say that any configuration on which we're
+  | measuring performance to that degree (rather than "does it boot fast?"
+  | type measurements), would already be going the split ptlocks route.
+
+Removing the non-atomic counters eases the maintenance burden because
+developers no longer have to mindful of the two implementations when using
+*_mm_counter().
+
+Note that all architectures provide a means of atomically updating
+atomic_long_t variables, even if they have to revert to the generic
+spinlock implementation because they don't support 64-bit atomic
+instructions (see lib/atomic64.c).
+
+Signed-off-by: Matt Fleming <matt.fleming@linux.intel.com>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig      |    7 -
- drivers/leds/Makefile     |    1 
- drivers/leds/leds-h1940.c |  170 ------------------------------------
- 3 files changed, 178 deletions(-)
+ include/linux/mm.h       |   44 +++++--------------------------------
+ include/linux/mm_types.h |    9 ++-----
+ 2 files changed, 10 insertions(+), 43 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-remove-the-leds-h1940-driver drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-remove-the-leds-h1940-driver
-+++ a/drivers/leds/Kconfig
-@@ -107,13 +107,6 @@ config LEDS_WRAP
- 	help
- 	  This option enables support for the PCEngines WRAP programmable LEDs.
+diff -puN include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm.h
+--- a/include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation
++++ a/include/linux/mm.h
+@@ -1031,65 +1031,35 @@ int __get_user_pages_fast(unsigned long 
+ /*
+  * per-process(per-mm_struct) statistics.
+  */
+-#if defined(SPLIT_RSS_COUNTING)
+-/*
+- * The mm counters are not protected by its page_table_lock,
+- * so must be incremented atomically.
+- */
+ static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
+ {
+ 	atomic_long_set(&mm->rss_stat.count[member], value);
+ }
  
--config LEDS_H1940
--	tristate "LED Support for iPAQ H1940 device"
--	depends on LEDS_CLASS
--	depends on ARCH_H1940
--	help
--	  This option enables support for the LEDs on the h1940.
++#if defined(SPLIT_RSS_COUNTING)
+ unsigned long get_mm_counter(struct mm_struct *mm, int member);
 -
- config LEDS_COBALT_QUBE
- 	tristate "LED Support for the Cobalt Qube series front LED"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~leds-remove-the-leds-h1940-driver drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-remove-the-leds-h1940-driver
-+++ a/drivers/leds/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-am
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
- obj-$(CONFIG_LEDS_NET5501)		+= leds-net5501.o
- obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
--obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
- obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
- obj-$(CONFIG_LEDS_SUNFIRE)		+= leds-sunfire.o
-diff -puN drivers/leds/leds-h1940.c~leds-remove-the-leds-h1940-driver /dev/null
---- a/drivers/leds/leds-h1940.c
-+++ /dev/null
-@@ -1,170 +0,0 @@
+-static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
+-{
+-	atomic_long_add(value, &mm->rss_stat.count[member]);
+-}
+-
+-static inline void inc_mm_counter(struct mm_struct *mm, int member)
+-{
+-	atomic_long_inc(&mm->rss_stat.count[member]);
+-}
+-
+-static inline void dec_mm_counter(struct mm_struct *mm, int member)
+-{
+-	atomic_long_dec(&mm->rss_stat.count[member]);
+-}
+-
+-#else  /* !USE_SPLIT_PTLOCKS */
 -/*
-- * drivers/leds/leds-h1940.c
-- * Copyright (c) Arnaud Patard <arnaud.patard@rtp-net.org>
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file COPYING in the main directory of this archive for
-- * more details.
-- *
-- * H1940 leds driver
-- *
+- * The mm counters are protected by its page_table_lock,
+- * so can be incremented directly.
 - */
--
--#include <linux/module.h>
--#include <linux/platform_device.h>
--#include <linux/delay.h>
--#include <linux/string.h>
--#include <linux/ctype.h>
--#include <linux/leds.h>
--#include <linux/gpio.h>
--
--#include <mach/regs-gpio.h>
--#include <mach/hardware.h>
--#include <mach/h1940-latch.h>
--
--/*
-- * Green led.
-- */
--static void h1940_greenled_set(struct led_classdev *led_dev,
--			       enum led_brightness value)
+-static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
 -{
--	switch (value) {
--	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
--		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
--		break;
--	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_GREEN);
--		s3c2410_gpio_setpin(S3C2410_GPA7, 1);
--		break;
--	default:
--	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_GREEN, 0);
--		s3c2410_gpio_setpin(S3C2410_GPA7, 0);
--		break;
--	}
+-	mm->rss_stat.count[member] = value;
 -}
 -
--static struct led_classdev h1940_greenled = {
--	.name			= "h1940:green",
--	.brightness_set		= h1940_greenled_set,
--	.default_trigger	= "h1940-charger",
++#else
+ static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
+ {
+-	return mm->rss_stat.count[member];
++	return atomic_long_read(&mm->rss_stat.count[member]);
+ }
++#endif
+ 
+ static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
+ {
+-	mm->rss_stat.count[member] += value;
++	atomic_long_add(value, &mm->rss_stat.count[member]);
+ }
+ 
+ static inline void inc_mm_counter(struct mm_struct *mm, int member)
+ {
+-	mm->rss_stat.count[member]++;
++	atomic_long_inc(&mm->rss_stat.count[member]);
+ }
+ 
+ static inline void dec_mm_counter(struct mm_struct *mm, int member)
+ {
+-	mm->rss_stat.count[member]--;
++	atomic_long_dec(&mm->rss_stat.count[member]);
+ }
+ 
+-#endif /* !USE_SPLIT_PTLOCKS */
+-
+ static inline unsigned long get_mm_rss(struct mm_struct *mm)
+ {
+ 	return get_mm_counter(mm, MM_FILEPAGES) +
+diff -puN include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation
++++ a/include/linux/mm_types.h
+@@ -204,19 +204,16 @@ enum {
+ 
+ #if USE_SPLIT_PTLOCKS && defined(CONFIG_MMU)
+ #define SPLIT_RSS_COUNTING
+-struct mm_rss_stat {
+-	atomic_long_t count[NR_MM_COUNTERS];
 -};
--
--/*
-- * Red led.
-- */
--static void h1940_redled_set(struct led_classdev *led_dev,
--			     enum led_brightness value)
--{
--	switch (value) {
--	case LED_HALF:
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
--		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
--		break;
--	case LED_FULL:
--		h1940_latch_control(0, H1940_LATCH_LED_RED);
--		s3c2410_gpio_setpin(S3C2410_GPA1, 1);
--		break;
--	default:
--	case LED_OFF:
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		h1940_latch_control(H1940_LATCH_LED_RED, 0);
--		s3c2410_gpio_setpin(S3C2410_GPA1, 0);
--		break;
--	}
--}
--
--static struct led_classdev h1940_redled = {
--	.name			= "h1940:red",
--	.brightness_set		= h1940_redled_set,
--	.default_trigger	= "h1940-charger",
--};
--
--/*
-- * Blue led.
-- * (it can only be blue flashing led)
-- */
--static void h1940_blueled_set(struct led_classdev *led_dev,
--			      enum led_brightness value)
--{
--	if (value) {
--		/* flashing Blue */
--		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
--		s3c2410_gpio_setpin(S3C2410_GPA3, 1);
--	} else {
--		h1940_latch_control(H1940_LATCH_LED_FLASH, 0);
--		s3c2410_gpio_setpin(S3C2410_GPA3, 0);
--	}
--
--}
--
--static struct led_classdev h1940_blueled = {
--	.name			= "h1940:blue",
--	.brightness_set		= h1940_blueled_set,
--	.default_trigger	= "h1940-bluetooth",
--};
--
--static int __devinit h1940leds_probe(struct platform_device *pdev)
--{
--	int ret;
--
--	ret = led_classdev_register(&pdev->dev, &h1940_greenled);
--	if (ret)
--		goto err_green;
--
--	ret = led_classdev_register(&pdev->dev, &h1940_redled);
--	if (ret)
--		goto err_red;
--
--	ret = led_classdev_register(&pdev->dev, &h1940_blueled);
--	if (ret)
--		goto err_blue;
--
--	return 0;
--
--err_blue:
--	led_classdev_unregister(&h1940_redled);
--err_red:
--	led_classdev_unregister(&h1940_greenled);
--err_green:
--	return ret;
--}
--
--static int h1940leds_remove(struct platform_device *pdev)
--{
--	led_classdev_unregister(&h1940_greenled);
--	led_classdev_unregister(&h1940_redled);
--	led_classdev_unregister(&h1940_blueled);
--	return 0;
--}
--
--
--static struct platform_driver h1940leds_driver = {
--	.driver		= {
--		.name	= "h1940-leds",
--		.owner	= THIS_MODULE,
--	},
--	.probe		= h1940leds_probe,
--	.remove		= h1940leds_remove,
--};
--
--
--static int __init h1940leds_init(void)
--{
--	return platform_driver_register(&h1940leds_driver);
--}
--
--static void __exit h1940leds_exit(void)
--{
--	platform_driver_unregister(&h1940leds_driver);
--}
--
--module_init(h1940leds_init);
--module_exit(h1940leds_exit);
+ /* per-thread cached information, */
+ struct task_rss_stat {
+ 	int events;	/* for synchronization threshold */
+ 	int count[NR_MM_COUNTERS];
+ };
+-#else  /* !USE_SPLIT_PTLOCKS */
++#endif /* USE_SPLIT_PTLOCKS */
++
+ struct mm_rss_stat {
+-	unsigned long count[NR_MM_COUNTERS];
++	atomic_long_t count[NR_MM_COUNTERS];
+ };
+-#endif /* !USE_SPLIT_PTLOCKS */
+ 
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+_
+
+Patches currently in -mm which might be from matt.fleming@linux.intel.com are
+
+linux-next.patch
+mm-delete-non-atomic-mm-counter-implementation.patch
+
