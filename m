@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-mpol_mf_stats.patch added to -mm tree
-Date: Wed, 04 May 2011 16:10:35 -0700
-Message-ID: <201105042310.p44NAZBG020305@imap1.linux-foundation.org>
+Subject: + mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch added to -mm tree
+Date: Wed, 04 May 2011 16:10:41 -0700
+Message-ID: <201105042310.p44NAfbO020317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932100Ab1EDXKn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:10:43 -0400
+	by vger.kernel.org with ESMTP id S932098Ab1EDXKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google
 
 
 The patch titled
-     mm: remove MPOL_MF_STATS
+     mm: proc: move show_numa_map() to fs/proc/task_mmu.c
 has been added to the -mm tree.  Its filename is
-     mm-remove-mpol_mf_stats.patch
+     mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove MPOL_MF_STATS
+Subject: mm: proc: move show_numa_map() to fs/proc/task_mmu.c
 From: Stephen Wilson <wilsons@start.ca>
 
-Mapping statistics in a NUMA environment is now computed using the generic
-walk_page_range() logic.  Remove the old/equivalent functionality.
+Moving show_numa_map() from mempolicy.c to task_mmu.c solves several
+issues.
+
+  - Having the show() operation "miles away" from the corresponding
+    seq_file iteration operations is a maintenance burden.
+
+  - The need to export ad hoc info like struct proc_maps_private is
+    eliminated.
+
+  - The implementation of show_numa_map() can be improved in a simple
+    manner by cooperating with the other seq_file operations (start,
+    stop, etc) -- something that would be messy to do without this
+    change.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -49,62 +60,362 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |  170 ++++++++++++++++++++++++++++++++++++++++++-
+ mm/mempolicy.c     |  168 ------------------------------------------
+ 2 files changed, 168 insertions(+), 170 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-remove-mpol_mf_stats mm/mempolicy.c
---- a/mm/mempolicy.c~mm-remove-mpol_mf_stats
-+++ a/mm/mempolicy.c
-@@ -99,7 +99,6 @@
- /* Internal flags */
- #define MPOL_MF_DISCONTIG_OK (MPOL_MF_INTERNAL << 0)	/* Skip checks for continuous vmas */
- #define MPOL_MF_INVERT (MPOL_MF_INTERNAL << 1)		/* Invert check for nodemask */
--#define MPOL_MF_STATS (MPOL_MF_INTERNAL << 2)		/* Gather statistics */
+diff -puN fs/proc/task_mmu.c~mm-proc-move-show_numa_map-to-fs-proc-task_mmuc fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-move-show_numa_map-to-fs-proc-task_mmuc
++++ a/fs/proc/task_mmu.c
+@@ -856,8 +856,174 @@ const struct file_operations proc_pagema
+ #endif /* CONFIG_PROC_PAGE_MONITOR */
  
- static struct kmem_cache *policy_cache;
- static struct kmem_cache *sn_cache;
-@@ -492,9 +491,7 @@ static int check_pte_range(struct vm_are
- 		if (node_isset(nid, *nodes) == !!(flags & MPOL_MF_INVERT))
- 			continue;
+ #ifdef CONFIG_NUMA
+-extern int show_numa_map(struct seq_file *m, void *v);
  
--		if (flags & MPOL_MF_STATS)
--			gather_stats(page, private, pte_dirty(*pte));
--		else if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
-+		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
- 			migrate_page_add(page, private, flags);
- 		else
- 			break;
-@@ -2572,6 +2569,7 @@ static int gather_pte_stats(pte_t *pte, 
- 		unsigned long pte_size, struct mm_walk *walk)
- {
- 	struct page *page;
++struct numa_maps {
++	unsigned long pages;
++	unsigned long anon;
++	unsigned long active;
++	unsigned long writeback;
++	unsigned long mapcount_max;
++	unsigned long dirty;
++	unsigned long swapcache;
++	unsigned long node[MAX_NUMNODES];
++};
++
++static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty)
++{
++	int count = page_mapcount(page);
++
++	md->pages++;
++	if (pte_dirty || PageDirty(page))
++		md->dirty++;
++
++	if (PageSwapCache(page))
++		md->swapcache++;
++
++	if (PageActive(page) || PageUnevictable(page))
++		md->active++;
++
++	if (PageWriteback(page))
++		md->writeback++;
++
++	if (PageAnon(page))
++		md->anon++;
++
++	if (count > md->mapcount_max)
++		md->mapcount_max = count;
++
++	md->node[page_to_nid(page)]++;
++}
++
++static int gather_pte_stats(pte_t *pte, unsigned long addr,
++		unsigned long pte_size, struct mm_walk *walk)
++{
++	struct numa_maps *md;
++	struct page *page;
 +	int nid;
- 
- 	if (pte_none(*pte))
- 		return 0;
-@@ -2580,6 +2578,10 @@ static int gather_pte_stats(pte_t *pte, 
- 	if (!page)
- 		return 0;
- 
++
++	if (pte_none(*pte))
++		return 0;
++
++	page = pte_page(*pte);
++	if (!page)
++		return 0;
++
 +	nid = page_to_nid(page);
 +	if (!node_isset(nid, node_states[N_HIGH_MEMORY]))
 +		return 0;
 +
- 	gather_stats(page, walk->private, pte_dirty(*pte));
- 	return 0;
++	md = walk->private;
++	gather_stats(page, md, pte_dirty(*pte));
++	return 0;
++}
++
++#ifdef CONFIG_HUGETLB_PAGE
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	struct numa_maps *md;
++	struct page *page;
++
++	if (pte_none(*pte))
++		return 0;
++
++	page = pte_page(*pte);
++	if (!page)
++		return 0;
++
++	md = walk->private;
++	gather_stats(page, md, pte_dirty(*pte));
++	return 0;
++}
++
++#else
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	return 0;
++}
++#endif
++
++/*
++ * Display pages allocated per node and memory policy via /proc.
++ */
++static int show_numa_map(struct seq_file *m, void *v)
++{
++	struct proc_maps_private *priv = m->private;
++	struct vm_area_struct *vma = v;
++	struct numa_maps *md;
++	struct file *file = vma->vm_file;
++	struct mm_struct *mm = vma->vm_mm;
++	struct mm_walk walk = {};
++	struct mempolicy *pol;
++	int n;
++	char buffer[50];
++
++	if (!mm)
++		return 0;
++
++	md = kzalloc(sizeof(struct numa_maps), GFP_KERNEL);
++	if (!md)
++		return 0;
++
++	walk.hugetlb_entry = gather_hugetbl_stats;
++	walk.pte_entry = gather_pte_stats;
++	walk.private = md;
++	walk.mm = mm;
++
++	pol = get_vma_policy(priv->task, vma, vma->vm_start);
++	mpol_to_str(buffer, sizeof(buffer), pol, 0);
++	mpol_cond_put(pol);
++
++	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
++
++	if (file) {
++		seq_printf(m, " file=");
++		seq_path(m, &file->f_path, "\n\t= ");
++	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
++		seq_printf(m, " heap");
++	} else if (vma->vm_start <= mm->start_stack &&
++			vma->vm_end >= mm->start_stack) {
++		seq_printf(m, " stack");
++	}
++
++	walk_page_range(vma->vm_start, vma->vm_end, &walk);
++
++	if (!md->pages)
++		goto out;
++
++	if (md->anon)
++		seq_printf(m, " anon=%lu", md->anon);
++
++	if (md->dirty)
++		seq_printf(m, " dirty=%lu", md->dirty);
++
++	if (md->pages != md->anon && md->pages != md->dirty)
++		seq_printf(m, " mapped=%lu", md->pages);
++
++	if (md->mapcount_max > 1)
++		seq_printf(m, " mapmax=%lu", md->mapcount_max);
++
++	if (md->swapcache)
++		seq_printf(m, " swapcache=%lu", md->swapcache);
++
++	if (md->active < md->pages && !is_vm_hugetlb_page(vma))
++		seq_printf(m, " active=%lu", md->active);
++
++	if (md->writeback)
++		seq_printf(m, " writeback=%lu", md->writeback);
++
++	for_each_node_state(n, N_HIGH_MEMORY)
++		if (md->node[n])
++			seq_printf(m, " N%d=%lu", n, md->node[n]);
++out:
++	seq_putc(m, '\n');
++	kfree(md);
++
++	if (m->count < m->size)
++		m->version = (vma != priv->tail_vma) ? vma->vm_start : 0;
++	return 0;
++}
+ static const struct seq_operations proc_pid_numa_maps_op = {
+         .start  = m_start,
+         .next   = m_next,
+@@ -876,4 +1042,4 @@ const struct file_operations proc_numa_m
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release_private,
+ };
+-#endif
++#endif /* CONFIG_NUMA */
+diff -puN mm/mempolicy.c~mm-proc-move-show_numa_map-to-fs-proc-task_mmuc mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-proc-move-show_numa_map-to-fs-proc-task_mmuc
++++ a/mm/mempolicy.c
+@@ -2525,171 +2525,3 @@ int mpol_to_str(char *buffer, int maxlen
+ 	}
+ 	return p - buffer;
  }
-_
-
-Patches currently in -mm which might be from wilsons@start.ca are
-
-mm-export-get_vma_policy.patch
-mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
-mm-remove-mpol_mf_stats.patch
-mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
-mm-remove-check_huge_range.patch
-mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
-proc-make-struct-proc_maps_private-truly-private.patch
-proc-allocate-storage-for-numa_maps-statistics-once.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-
+-
+-struct numa_maps {
+-	unsigned long pages;
+-	unsigned long anon;
+-	unsigned long active;
+-	unsigned long writeback;
+-	unsigned long mapcount_max;
+-	unsigned long dirty;
+-	unsigned long swapcache;
+-	unsigned long node[MAX_NUMNODES];
+-};
+-
+-static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty)
+-{
+-	int count = page_mapcount(page);
+-
+-	md->pages++;
+-	if (pte_dirty || PageDirty(page))
+-		md->dirty++;
+-
+-	if (PageSwapCache(page))
+-		md->swapcache++;
+-
+-	if (PageActive(page) || PageUnevictable(page))
+-		md->active++;
+-
+-	if (PageWriteback(page))
+-		md->writeback++;
+-
+-	if (PageAnon(page))
+-		md->anon++;
+-
+-	if (count > md->mapcount_max)
+-		md->mapcount_max = count;
+-
+-	md->node[page_to_nid(page)]++;
+-}
+-
+-static int gather_pte_stats(pte_t *pte, unsigned long addr,
+-		unsigned long pte_size, struct mm_walk *walk)
+-{
+-	struct numa_maps *md;
+-	struct page *page;
+-	int nid;
+-
+-	if (pte_none(*pte))
+-		return 0;
+-
+-	page = pte_page(*pte);
+-	if (!page)
+-		return 0;
+-
+-	nid = page_to_nid(page);
+-	if (!node_isset(nid, node_states[N_HIGH_MEMORY]))
+-		return 0;
+-
+-	md = walk->private;
+-	gather_stats(page, md, pte_dirty(*pte));
+-	return 0;
+-}
+-
+-#ifdef CONFIG_HUGETLB_PAGE
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
+-		unsigned long addr, unsigned long end, struct mm_walk *walk)
+-{
+-	struct numa_maps *md;
+-	struct page *page;
+-
+-	if (pte_none(*pte))
+-		return 0;
+-
+-	page = pte_page(*pte);
+-	if (!page)
+-		return 0;
+-
+-	md = walk->private;
+-	gather_stats(page, md, pte_dirty(*pte));
+-	return 0;
+-}
+-
+-#else
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
+-		unsigned long addr, unsigned long end, struct mm_walk *walk)
+-{
+-	return 0;
+-}
+-#endif
+-
+-/*
+- * Display pages allocated per node and memory policy via /proc.
+- */
+-int show_numa_map(struct seq_file *m, void *v)
+-{
+-	struct proc_maps_private *priv = m->private;
+-	struct vm_area_struct *vma = v;
+-	struct numa_maps *md;
+-	struct file *file = vma->vm_file;
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct mm_walk walk = {};
+-	struct mempolicy *pol;
+-	int n;
+-	char buffer[50];
+-
+-	if (!mm)
+-		return 0;
+-
+-	md = kzalloc(sizeof(struct numa_maps), GFP_KERNEL);
+-	if (!md)
+-		return 0;
+-
+-	walk.hugetlb_entry = gather_hugetbl_stats;
+-	walk.pte_entry = gather_pte_stats;
+-	walk.private = md;
+-	walk.mm = mm;
+-
+-	pol = get_vma_policy(priv->task, vma, vma->vm_start);
+-	mpol_to_str(buffer, sizeof(buffer), pol, 0);
+-	mpol_cond_put(pol);
+-
+-	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
+-
+-	if (file) {
+-		seq_printf(m, " file=");
+-		seq_path(m, &file->f_path, "\n\t= ");
+-	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+-		seq_printf(m, " heap");
+-	} else if (vma->vm_start <= mm->start_stack &&
+-			vma->vm_end >= mm->start_stack) {
+-		seq_printf(m, " stack");
+-	}
+-
+-	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+-
+-	if (!md->pages)
+-		goto out;
+-
+-	if (md->anon)
+-		seq_printf(m," anon=%lu",md->anon);
+-
+-	if (md->dirty)
+-		seq_printf(m," dirty=%lu",md->dirty);
+-
+-	if (md->pages != md->anon && md->pages != md->dirty)
+-		seq_printf(m, " mapped=%lu", md->pages);
+-
+-	if (md->mapcount_max > 1)
+-		seq_printf(m, " mapmax=%lu", md->mapcount_max);
+-
+-	if (md->swapcache)
+-		seq_printf(m," swapcache=%lu", md->swapcache);
+-
+-	if (md->active < md->pages && !is_vm_hugetlb_page(vma))
+-		seq_printf(m," active=%lu", md->active);
+-
+-	if (md->writeback)
+-		seq_printf(m," writeback=%lu", md->writeback);
+-
+-	for_each_node_state(n, N_HIGH_MEMORY)
+-		if (md->node[n])
+-			seq_printf(m, " N%d=%lu", n, md->node[n]);
+-out:
+-	seq_putc(m, '\n');
+-	kfree(md);
