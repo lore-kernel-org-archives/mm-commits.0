@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch added to -mm tree
-Date: Wed, 04 May 2011 16:10:32 -0700
-Message-ID: <201105042310.p44NAXsT020301@imap1.linux-foundation.org>
+Subject: + mm-remove-mpol_mf_stats.patch added to -mm tree
+Date: Wed, 04 May 2011 16:10:35 -0700
+Message-ID: <201105042310.p44NAZBG020305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932098Ab1EDXKm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:10:42 -0400
+	by vger.kernel.org with ESMTP id S932100Ab1EDXKn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:10:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google
 
 
 The patch titled
-     mm: use walk_page_range() instead of custom page table walking code
+     mm: remove MPOL_MF_STATS
 has been added to the -mm tree.  Its filename is
-     mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+     mm-remove-mpol_mf_stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use walk_page_range() instead of custom page table walking code
+Subject: mm: remove MPOL_MF_STATS
 From: Stephen Wilson <wilsons@start.ca>
 
-In the specific case of show_numa_map(), the custom page table walking
-logic implemented in mempolicy.c does not provide any special service
-beyond that provided by walk_page_range().
-
-Also, converting show_numa_map() to use the generic routine decouples the
-function from mempolicy.c, allowing it to be moved out of the mm subsystem
-and into fs/proc.
+Mapping statistics in a NUMA environment is now computed using the generic
+walk_page_range() logic.  Remove the old/equivalent functionality.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -54,106 +49,50 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   53 ++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 46 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code
+diff -puN mm/mempolicy.c~mm-remove-mpol_mf_stats mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-mpol_mf_stats
 +++ a/mm/mempolicy.c
-@@ -2568,6 +2568,22 @@ static void gather_stats(struct page *pa
- 	md->node[page_to_nid(page)]++;
- }
+@@ -99,7 +99,6 @@
+ /* Internal flags */
+ #define MPOL_MF_DISCONTIG_OK (MPOL_MF_INTERNAL << 0)	/* Skip checks for continuous vmas */
+ #define MPOL_MF_INVERT (MPOL_MF_INTERNAL << 1)		/* Invert check for nodemask */
+-#define MPOL_MF_STATS (MPOL_MF_INTERNAL << 2)		/* Gather statistics */
  
-+static int gather_pte_stats(pte_t *pte, unsigned long addr,
-+		unsigned long pte_size, struct mm_walk *walk)
-+{
-+	struct page *page;
-+
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	page = pte_page(*pte);
-+	if (!page)
-+		return 0;
-+
-+	gather_stats(page, walk->private, pte_dirty(*pte));
-+	return 0;
-+}
-+
- #ifdef CONFIG_HUGETLB_PAGE
- static void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
-@@ -2597,12 +2613,35 @@ static void check_huge_range(struct vm_a
- 		gather_stats(page, md, pte_dirty(*ptep));
- 	}
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	struct page *page;
-+
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	page = pte_page(*pte);
-+	if (!page)
-+		return 0;
-+
-+	gather_stats(page, walk->private, pte_dirty(*pte));
-+	return 0;
-+}
-+
- #else
- static inline void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
- 		struct numa_maps *md)
+ static struct kmem_cache *policy_cache;
+ static struct kmem_cache *sn_cache;
+@@ -492,9 +491,7 @@ static int check_pte_range(struct vm_are
+ 		if (node_isset(nid, *nodes) == !!(flags & MPOL_MF_INVERT))
+ 			continue;
+ 
+-		if (flags & MPOL_MF_STATS)
+-			gather_stats(page, private, pte_dirty(*pte));
+-		else if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
++		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+ 			migrate_page_add(page, private, flags);
+ 		else
+ 			break;
+@@ -2572,6 +2569,7 @@ static int gather_pte_stats(pte_t *pte, 
+ 		unsigned long pte_size, struct mm_walk *walk)
  {
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	return 0;
-+}
- #endif
+ 	struct page *page;
++	int nid;
  
- /*
-@@ -2615,6 +2654,7 @@ int show_numa_map(struct seq_file *m, vo
- 	struct numa_maps *md;
- 	struct file *file = vma->vm_file;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct mm_walk walk = {};
- 	struct mempolicy *pol;
- 	int n;
- 	char buffer[50];
-@@ -2626,6 +2666,11 @@ int show_numa_map(struct seq_file *m, vo
- 	if (!md)
+ 	if (pte_none(*pte))
+ 		return 0;
+@@ -2580,6 +2578,10 @@ static int gather_pte_stats(pte_t *pte, 
+ 	if (!page)
  		return 0;
  
-+	walk.hugetlb_entry = gather_hugetbl_stats;
-+	walk.pte_entry = gather_pte_stats;
-+	walk.private = md;
-+	walk.mm = mm;
++	nid = page_to_nid(page);
++	if (!node_isset(nid, node_states[N_HIGH_MEMORY]))
++		return 0;
 +
- 	pol = get_vma_policy(priv->task, vma, vma->vm_start);
- 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
- 	mpol_cond_put(pol);
-@@ -2642,13 +2687,7 @@ int show_numa_map(struct seq_file *m, vo
- 		seq_printf(m, " stack");
- 	}
- 
--	if (is_vm_hugetlb_page(vma)) {
--		check_huge_range(vma, vma->vm_start, vma->vm_end, md);
--		seq_printf(m, " huge");
--	} else {
--		check_pgd_range(vma, vma->vm_start, vma->vm_end,
--			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
--	}
-+	walk_page_range(vma->vm_start, vma->vm_end, &walk);
- 
- 	if (!md->pages)
- 		goto out;
+ 	gather_stats(page, walk->private, pte_dirty(*pte));
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from wilsons@start.ca are
