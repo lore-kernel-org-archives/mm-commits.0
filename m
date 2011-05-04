@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + proc-make-struct-proc_maps_private-truly-private.patch added to -mm tree
-Date: Wed, 04 May 2011 16:10:43 -0700
-Message-ID: <201105042310.p44NAh8U020321@imap1.linux-foundation.org>
+Subject: + mm-remove-check_huge_range.patch added to -mm tree
+Date: Wed, 04 May 2011 16:10:39 -0700
+Message-ID: <201105042310.p44NAdgG020314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932098Ab1EDXKu (ORCPT
+	by vger.kernel.org with ESMTP id S932103Ab1EDXKu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:10:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google
 
 
 The patch titled
-     proc: make struct proc_maps_private truly private
+     mm: remove check_huge_range()
 has been added to the -mm tree.  Its filename is
-     proc-make-struct-proc_maps_private-truly-private.patch
+     mm-remove-check_huge_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: make struct proc_maps_private truly private
+Subject: mm: remove check_huge_range()
 From: Stephen Wilson <wilsons@start.ca>
 
-Now that mm/mempolicy.c is no longer implementing /proc/pid/numa_maps
-there is no need to export struct proc_maps_private to the world.  Move it
-to fs/proc/internal.h instead.
+This function has been superseded by gather_hugetbl_stats() and is no
+longer needed.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -50,36 +49,54 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h      |    8 ++++++++
- include/linux/proc_fs.h |    8 --------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |   35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff -puN fs/proc/internal.h~proc-make-struct-proc_maps_private-truly-private fs/proc/internal.h
---- a/fs/proc/internal.h~proc-make-struct-proc_maps_private-truly-private
-+++ a/fs/proc/internal.h
-@@ -119,3 +119,11 @@ struct inode *proc_get_inode(struct supe
-  */
- int proc_readdir(struct file *, void *, filldir_t);
- struct dentry *proc_lookup(struct inode *, struct dentry *, struct nameidata *);
-+
-+struct proc_maps_private {
-+	struct pid *pid;
-+	struct task_struct *task;
-+#ifdef CONFIG_MMU
-+	struct vm_area_struct *tail_vma;
-+#endif
-+};
-diff -puN include/linux/proc_fs.h~proc-make-struct-proc_maps_private-truly-private include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-make-struct-proc_maps_private-truly-private
-+++ a/include/linux/proc_fs.h
-@@ -286,12 +286,4 @@ static inline struct net *PDE_NET(struct
- 	return pde->parent->data;
+diff -puN mm/mempolicy.c~mm-remove-check_huge_range mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-check_huge_range
++++ a/mm/mempolicy.c
+@@ -2587,35 +2587,6 @@ static int gather_pte_stats(pte_t *pte, 
  }
  
--struct proc_maps_private {
--	struct pid *pid;
--	struct task_struct *task;
--#ifdef CONFIG_MMU
--	struct vm_area_struct *tail_vma;
--#endif
--};
+ #ifdef CONFIG_HUGETLB_PAGE
+-static void check_huge_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end,
+-		struct numa_maps *md)
+-{
+-	unsigned long addr;
+-	struct page *page;
+-	struct hstate *h = hstate_vma(vma);
+-	unsigned long sz = huge_page_size(h);
+-
+-	for (addr = start; addr < end; addr += sz) {
+-		pte_t *ptep = huge_pte_offset(vma->vm_mm,
+-						addr & huge_page_mask(h));
+-		pte_t pte;
+-
+-		if (!ptep)
+-			continue;
+-
+-		pte = *ptep;
+-		if (pte_none(pte))
+-			continue;
+-
+-		page = pte_page(pte);
+-		if (!page)
+-			continue;
+-
+-		gather_stats(page, md, pte_dirty(*ptep));
+-	}
+-}
+-
+ static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+@@ -2635,12 +2606,6 @@ static int gather_hugetbl_stats(pte_t *p
+ }
+ 
+ #else
+-static inline void check_huge_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end,
+-		struct numa_maps *md)
+-{
+-}
