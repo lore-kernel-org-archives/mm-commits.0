@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + task-comm-introduce-comm_lock-seqlock-to-protect-task-comm-access.patch added to -mm tree
-Date: Wed, 04 May 2011 16:37:12 -0700
-Message-ID: <201105042337.p44NbDxp021390@imap1.linux-foundation.org>
+Subject: [to-be-updated] task-comm-introduce-comm_lock-seqlock-to-protect-task-comm-access.patch removed from -mm tree
+Date: Wed, 04 May 2011 16:58:15 -0700
+Message-ID: <201105042358.p44NwFtv022315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754245Ab1EDXiG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:38:06 -0400
+	by vger.kernel.org with ESMTP id S1755987Ab1EDX64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:58:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: john.stultz@linaro.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, tglx@linutronix.de, tytso@mit.edu
+To: john.stultz@linaro.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
      task->comm: introduce comm_lock seqlock to protect task->comm access
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      task-comm-introduce-comm_lock-seqlock-to-protect-task-comm-access.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
