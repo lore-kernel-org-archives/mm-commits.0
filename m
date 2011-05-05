@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-add-cpumask_var_t-documentation.patch added to -mm tree
-Date: Thu, 05 May 2011 12:55:36 -0700
-Message-ID: <201105051955.p45Jtat7031761@imap1.linux-foundation.org>
+Subject: + mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix-2.patch added to -mm tree
+Date: Thu, 05 May 2011 14:09:35 -0700
+Message-ID: <201105052109.p45L9Zt4003062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752361Ab1EETzk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 15:55:40 -0400
+	by vger.kernel.org with ESMTP id S1751284Ab1EEVKW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 17:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, tfransosi@gmail.com
+Cc: minchan.kim@gmail.com, arve@android.com, dave@linux.vnet.ibm.com, john.stultz@linaro.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     cpumask: add cpumask_var_t documentation
+     Check end_pfn in pageblock_is_reserved
 has been added to the -mm tree.  Its filename is
-     cpumask-add-cpumask_var_t-documentation.patch
+     mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-=
+migrate_reserve-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,132 +29,157 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: cpumask: add cpumask_var_t documentation
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Check end_pfn in pageblock_is_reserved
+=46rom: Minchan Kim <minchan.kim@gmail.com>
 
-cpumask_var_t has one notable difference from cpumask_t.  Add the
-explanation.
+[mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migr=
+ate_reserve]
+added new function "pageblock_is_reserved". But it doesn't check end_pf=
+n of system
+so it meets following BUG in my system. This patch fixes it.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Thiago Farina <tfransosi@gmail.com>
+[    1.859574] type=3D2000 audit(1304330017.656:1): initialized
+[    1.884130] BUG: unable to handle kernel paging request at f77fe000
+[    1.890557] IP: [<c01dfe3f>] setup_per_zone_wmarks+0x17f/0x280
+[    1.896493] *pde =3D 013fb067 *pte =3D 00000000
+[    1.900921] Oops: 0000 [#1] SMP
+[    1.904309] last sysfs file:
+[    1.907324] Modules linked in:
+[    1.910482]
+[    1.912024] Pid: 1, comm: swapper Not tainted 2.6.39-rc5-mm1+ #49 SA=
+MSUNG ELECTRONICS CO.,LTD Samsung DeskT
+[    1.924756] EIP: 0060:[<c01dfe3f>] EFLAGS: 00010006 CPU: 0
+[    1.930282] EIP is at setup_per_zone_wmarks+0x17f/0x280
+[    1.935554] EAX: 00040080 EBX: 000403fe ECX: 00000000 EDX: f77fe000
+[    1.941859] ESI: 00110000 EDI: f77fcfc0 EBP: f5077f88 ESP: f5077f50
+[    1.948170]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+[    1.953613] Process swapper (pid: 1, ti=3Df5076000 task=3Df5078000 t=
+ask.ti=3Df5076000)
+[    1.961056] Stack:
+[    1.963116]  00000091 00000000 000003b5 00000286 c0803c80 c0803ca4 0=
+003709b 00000000
+[    1.971377]  006effe0 006effc0 00040000 00000000 f50783d8 00000001 f=
+5077f94 c0846e40
+[    1.979633]  00000000 f5077fc4 c0101125 00000000 000002c8 f50783d8 f=
+5077fb0 c01a8b44
+[    1.987890] Call Trace:
+[    1.990386]  [<c0846e40>] init_per_zone_wmark_min+0x39/0x7c
+[    1.996001]  [<c0101125>] do_one_initcall+0x35/0x170
+[    2.001014]  [<c01a8b44>] ? irq_to_desc+0x14/0x20
+[    2.005758]  [<c0846e07>] ? memmap_init_zone+0xca/0xca
+[    2.010941]  [<c080c2bc>] kernel_init+0xbd/0x153
+[    2.015606]  [<c080c1ff>] ? parse_early_options+0x25/0x25
+[    2.021047]  [<c05e7542>] kernel_thread_helper+0x6/0x10
+[    2.026318] Code: 76 33 8b 4d ec 39 c3 8b 15 80 62 e0 c0 8d 3c 0e 8d=
+ 3c 3a 76 67 8b 0f 80 e5 04 75 19 8b 4d
+[    2.049095] EIP: [<c01dfe3f>] setup_per_zone_wmarks+0x17f/0x280 SS:E=
+SP 0068:f5077f50
+[    2.056996] CR2: 00000000f77fe000
+[    2.060362] ---[ end trace 82bc55f036371117 ]---
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Arve Hj=F8nnev=E5g <arve@android.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/page_alloc.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cpumask.h~cpumask-add-cpumask_var_t-documentation include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-add-cpumask_var_t-documentation
-+++ a/include/linux/cpumask.h
-@@ -617,6 +617,20 @@ static inline size_t cpumask_size(void)
-  *	  ... use 'tmpmask' like a normal struct cpumask * ...
-  *
-  *	free_cpumask_var(tmpmask);
-+ *
-+ *
-+ * However, one notable exception is there. alloc_cpumask_var() allocates
-+ * only nr_cpumask_bits bits (in the other hand, real cpumask_t always has
-+ * NR_CPUS bits). Therefore you don't have to dereference cpumask_var_t.
-+ *
-+ *	cpumask_var_t tmpmask;
-+ *	if (!alloc_cpumask_var(&tmpmask, GFP_KERNEL))
-+ *		return -ENOMEM;
-+ *
-+ *	var = *tmpmask;
-+ *
-+ * This code makes NR_CPUS length memcopy and brings to a memory corruption.
-+ * cpumask_copy() provide safe copy functionality.
+diff -puN mm/page_alloc.c~mm-check-if-any-page-in-a-pageblock-is-reserv=
+ed-before-marking-it-migrate_reserve-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-check-if-any-page-in-a-pageblock-is-reserved-b=
+efore-marking-it-migrate_reserve-fix-2
++++ a/mm/page_alloc.c
+@@ -3344,14 +3344,14 @@ static inline unsigned long wait_table_b
+ /*
+  * Check if a pageblock contains reserved pages
   */
- #ifdef CONFIG_CPUMASK_OFFSTACK
- typedef struct cpumask *cpumask_var_t;
+-static int pageblock_is_reserved(unsigned long start_pfn)
++static int pageblock_is_reserved(unsigned long start_pfn, unsigned lon=
+g end_pfn)
+ {
+-	unsigned long end_pfn =3D start_pfn + pageblock_nr_pages;
+ 	unsigned long pfn;
+=20
+-	for (pfn =3D start_pfn; pfn < end_pfn; pfn++)
++	for (pfn =3D start_pfn; pfn < end_pfn; pfn++) {
+ 		if (!pfn_valid_within(pfn) || PageReserved(pfn_to_page(pfn)))
+ 			return 1;
++	}
+ 	return 0;
+ }
+=20
+@@ -3364,7 +3364,7 @@ static int pageblock_is_reserved(unsigne
+  */
+ static void setup_zone_migrate_reserve(struct zone *zone)
+ {
+-	unsigned long start_pfn, pfn, end_pfn;
++	unsigned long start_pfn, pfn, end_pfn, block_end_pfn;
+ 	struct page *page;
+ 	unsigned long block_migratetype;
+ 	int reserve;
+@@ -3394,7 +3394,8 @@ static void setup_zone_migrate_reserve(s
+ 			continue;
+=20
+ 		/* Blocks with reserved pages will never free, skip them. */
+-		if (pageblock_is_reserved(pfn))
++		block_end_pfn =3D min(pfn + pageblock_nr_pages, end_pfn);
++		if (pageblock_is_reserved(pfn, block_end_pfn))
+ 			continue;
+=20
+ 		block_migratetype =3D get_pageblock_migratetype(page);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 mm-check-pageunevictable-in-lru_deactivate_fn.patch
 linux-next.patch
-slab-use-numa_no_node.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-increase-reclaim_distance-to-30.patch
 mm-introduce-wait_on_page_locked_killable.patch
 x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-shoul=
+d-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.pat=
+ch
 oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
 oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
-tile-replace-mm-cpu_vm_mask-with-mm_cpumask.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
-mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
-mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patc=
+h
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.=
+patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-=
+fix.patch
+writeback-elevate-queue_io-into-wb_writeback.patch
+mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migra=
+te_reserve-fix-2.patch
 readahead-readahead-page-allocations-are-ok-to-fail.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patc=
+h
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.pa=
+tch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 mm-filter-unevictable-page-out-in-deactivate_page.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
-mm-export-get_vma_policy.patch
-mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
-mm-remove-mpol_mf_stats.patch
-mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
-mm-remove-check_huge_range.patch
-mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
-proc-make-struct-proc_maps_private-truly-private.patch
-proc-allocate-storage-for-numa_maps-statistics-once.patch
 mm-batch-activate_page-to-reduce-lock-contention.patch
-alpha-replace-with-new-cpumask-apis.patch
-m32r-convert-cpumask-api.patch
-m32r-fix-spin_lock_irqsave-misuse.patch
-m32r-remove-redundant-declaration.patch
-mn10300-convert-old-cpumask-api-into-new-one.patch
-cris-convert-old-cpumask-api-into-new-one.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-sparse-define-dummy-build_bug_on-definition-for-sparse.patch
-sparse-define-__must_be_array-for-__checker__.patch
-sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
 memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
@@ -158,17 +187,9 @@ memcg-add-stats-to-monitor-soft_limit-reclaim.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
 add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
