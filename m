@@ -1,64 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] task-comm-timerstats-protect-task-comm-access-by-using-get_task_comm.patch removed from -mm tree
-Date: Wed, 04 May 2011 16:58:17 -0700
-Message-ID: <201105042358.p44NwHY6022318@imap1.linux-foundation.org>
+Subject: [merged] maintainers-roman-zippel-has-been-mia-for-several-years.patch removed from -mm tree
+Date: Thu, 05 May 2011 12:10:03 -0700
+Message-ID: <201105051903.p45J3eNC029049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755987Ab1EDX7Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2011 19:59:16 -0400
+	by vger.kernel.org with ESMTP id S1751571Ab1EETEG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 15:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.stultz@linaro.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task->comm: timerstats: protect task->comm access by using get_task_comm()
+     MAINTAINERS: Roman Zippel has been MIA for several years.
 has been removed from the -mm tree.  Its filename was
-     task-comm-timerstats-protect-task-comm-access-by-using-get_task_comm.patch
+     maintainers-roman-zippel-has-been-mia-for-several-years.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task->comm: timerstats: protect task->comm access by using get_task_comm()
-From: John Stultz <john.stultz@linaro.org>
+Subject: MAINTAINERS: Roman Zippel has been MIA for several years.
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Convert the timerstats code to use get_task_comm() for protected comm
-access.
+Hence make AFFS and HFS orphans, and remove him as an m68k maintainer.
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/timer.c~task-comm-timerstats-protect-task-comm-access-by-using-get_task_comm kernel/timer.c
---- a/kernel/timer.c~task-comm-timerstats-protect-task-comm-access-by-using-get_task_comm
-+++ a/kernel/timer.c
-@@ -379,7 +379,7 @@ void __timer_stats_timer_set_start_info(
- 		return;
+diff -puN MAINTAINERS~maintainers-roman-zippel-has-been-mia-for-several-years MAINTAINERS
+--- a/MAINTAINERS~maintainers-roman-zippel-has-been-mia-for-several-years
++++ a/MAINTAINERS
+@@ -405,8 +405,8 @@ S:	Maintained
+ F:	sound/oss/aedsp16.c
  
- 	timer->start_site = addr;
--	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
-+	get_task_comm(timer->start_comm, current);
- 	timer->start_pid = current->pid;
- }
+ AFFS FILE SYSTEM
+-M:	Roman Zippel <zippel@linux-m68k.org>
+-S:	Maintained
++L:	linux-fsdevel@vger.kernel.org
++S:	Orphan
+ F:	Documentation/filesystems/affs.txt
+ F:	fs/affs/
  
+@@ -2961,8 +2961,8 @@ F:	drivers/block/cciss*
+ F:	include/linux/cciss_ioctl.h
+ 
+ HFS FILESYSTEM
+-M:	Roman Zippel <zippel@linux-m68k.org>
+-S:	Maintained
++L:	linux-fsdevel@vger.kernel.org
++S:	Orphan
+ F:	Documentation/filesystems/hfs.txt
+ F:	fs/hfs/
+ 
+@@ -4016,7 +4016,6 @@ F:	arch/m32r/
+ 
+ M68K ARCHITECTURE
+ M:	Geert Uytterhoeven <geert@linux-m68k.org>
+-M:	Roman Zippel <zippel@linux-m68k.org>
+ L:	linux-m68k@lists.linux-m68k.org
+ W:	http://www.linux-m68k.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/geert/linux-m68k.git
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix.patch
-task-comm-ext4-protect-task-comm-access-by-using-get_task_comm.patch
-drivers-rtc-rtc-pcf50633c-dont-request-update-irq.patch
+linux-next.patch
+fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
+mm-nommu-sort-mm-mmap-list-properly.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-nommu-dont-scan-the-vma-list-when-deleting.patch
+mm-nommu-find-vma-using-the-sorted-vma-list.patch
+mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
+mm-nommu-fix-a-potential-memory-leak-in-do_mmap_private.patch
+mm-nommu-fix-a-compile-warning-in-do_mmap_pgoff.patch
+arch-add-define-for-each-of-optimized-find-bitops.patch
 
