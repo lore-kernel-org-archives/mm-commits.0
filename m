@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch added to -mm tree
-Date: Thu, 05 May 2011 17:02:55 -0700
-Message-ID: <201105060002.p4602t8R010991@imap1.linux-foundation.org>
+Subject: + fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch added to -mm tree
+Date: Fri, 06 May 2011 12:31:02 -0700
+Message-ID: <201105061931.p46JV3xN032090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754358Ab1EFADk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 20:03:40 -0400
+	by vger.kernel.org with ESMTP id S1753237Ab1EFTbG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 15:31:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, vzapolskiy@gmail.com, w.sang@pengutronix.de
+Cc: olaf@aepfle.de, adobriyan@gmail.com
 
 
 The patch titled
-     drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix
+     fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+     fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
+From: Olaf Hering <olaf@aepfle.de>
 
-maintain the code comments
+The balloon driver in a Xen guest frees guest pages and marks them as
+mmio.  When the kernel crashes and the crash kernel attempts to read the
+oldmem via /proc/vmcore a read from ballooned pages will generate 100%
+load in dom0 because Xen asks qemu-dm for the page content.  Since the
+reads come in as 8byte requests each ballooned page is tried 512 times.
 
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Vladimir Zapolskiy <vzapolskiy@gmail.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+With this change a hook can be registered which checks wether the given
+pfn is really ram.  The hook has to return a value > 0 for ram pages, a
+value < 0 on error (because the hypercall is not known) and 0 for non-ram
+pages.
+
+This will reduce the time to read /proc/vmcore.  Without this change a
+512M guest with 128M crashkernel region needs 200 seconds to read it, with
+this change it takes just 2 seconds.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rtc.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/vmcore.c           |   52 ++++++++++++++++++++++++++++++++---
+ include/linux/crash_dump.h |    5 +++
+ 2 files changed, 54 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rtc.h~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix include/linux/rtc.h
---- a/include/linux/rtc.h~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix
-+++ a/include/linux/rtc.h
-@@ -92,10 +92,10 @@ struct rtc_pll_info {
- #define RTC_PLL_SET	_IOW('p', 0x12, struct rtc_pll_info)  /* Set PLL correction */
+diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
++++ a/fs/proc/vmcore.c
+@@ -35,6 +35,46 @@ static u64 vmcore_size;
  
- /* interrupt flags */
--#define RTC_IRQF 0x80 /* any of the following is active */
--#define RTC_PF 0x40
--#define RTC_AF 0x20
--#define RTC_UF 0x10
-+#define RTC_IRQF 0x80	/* Any of the following is active */
-+#define RTC_PF 0x40	/* Periodic interrupt */
-+#define RTC_AF 0x20	/* Alarm interrupt */
-+#define RTC_UF 0x10	/* Update interrupt for 1Hz RTC */
+ static struct proc_dir_entry *proc_vmcore = NULL;
  
- #ifdef __KERNEL__
++/*
++ * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
++ * The called function has to take care of module refcounting.
++ */
++static int (*oldmem_pfn_is_ram)(unsigned long pfn);
++
++int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn))
++{
++	if (oldmem_pfn_is_ram)
++		return -EBUSY;
++	oldmem_pfn_is_ram = fn;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(register_oldmem_pfn_is_ram);
++
++void unregister_oldmem_pfn_is_ram(void)
++{
++	oldmem_pfn_is_ram = NULL;
++	wmb();
++}
++EXPORT_SYMBOL_GPL(unregister_oldmem_pfn_is_ram);
++
++static int pfn_is_ram(unsigned long pfn)
++{
++	int (*fn)(unsigned long pfn);
++	/* pfn is ram unless fn() checks pagetype */
++	int ret = 1;
++
++	/*
++	 * Ask hypervisor if the pfn is really ram.
++	 * A ballooned page contains no data and reading from such a page
++	 * will cause high load in the hypervisor.
++	 */
++	fn = oldmem_pfn_is_ram;
++	if (fn)
++		ret = fn(pfn);
++
++	return ret;
++}
++
+ /* Reads a page from the oldmem device from given offset. */
+ static ssize_t read_from_oldmem(char *buf, size_t count,
+ 				u64 *ppos, int userbuf)
+@@ -55,9 +95,15 @@ static ssize_t read_from_oldmem(char *bu
+ 		else
+ 			nr_bytes = count;
  
+-		tmp = copy_oldmem_page(pfn, buf, nr_bytes, offset, userbuf);
+-		if (tmp < 0)
+-			return tmp;
++		/* If pfn is not ram, return zeros for sparse dump files */
++		if (pfn_is_ram(pfn) == 0)
++			memset(buf, 0, nr_bytes);
++		else {
++			tmp = copy_oldmem_page(pfn, buf, nr_bytes,
++						offset, userbuf);
++			if (tmp < 0)
++				return tmp;
++		}
+ 		*ppos += nr_bytes;
+ 		count -= nr_bytes;
+ 		buf += nr_bytes;
+diff -puN include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
++++ a/include/linux/crash_dump.h
+@@ -66,6 +66,11 @@ static inline void vmcore_unusable(void)
+ 	if (is_kdump_kernel())
+ 		elfcorehdr_addr = ELFCORE_ADDR_ERR;
+ }
++
++#define HAVE_OLDMEM_PFN_IS_RAM 1
++extern int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn));
++extern void unregister_oldmem_pfn_is_ram(void);
++
+ #else /* !CONFIG_CRASH_DUMP */
+ static inline int is_kdump_kernel(void) { return 0; }
+ #endif /* CONFIG_CRASH_DUMP */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch
 
