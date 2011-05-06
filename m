@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 06 May 2011 14:46:19 -0700
-Message-ID: <201105062146.p46LkJhp006121@imap1.linux-foundation.org>
+Subject: + ptrace-fix-signal-wait_chldexit-usage-in-task_clear_group_stop_trapping.patch added to -mm tree
+Date: Fri, 06 May 2011 14:48:31 -0700
+Message-ID: <201105062148.p46LmWqw006253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211Ab1EFVqu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 17:46:50 -0400
+	by vger.kernel.org with ESMTP id S1752328Ab1EFVtI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 17:49:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lliubbo@gmail.com
+Cc: tj@kernel.org, oleg@redhat.com
 
 
 The patch titled
-     nommu-add-page-alignment-to-mmap-checkpatch-fixes
+     ptrace: fix signal->wait_chldexit usage in task_clear_group_stop_trapping()
 has been added to the -mm tree.  Its filename is
-     nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+     ptrace-fix-signal-wait_chldexit-usage-in-task_clear_group_stop_trapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu-add-page-alignment-to-mmap-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ptrace: fix signal->wait_chldexit usage in task_clear_group_stop_trapping()
+From: Tejun Heo <tj@kernel.org>
 
-ERROR: do not use assignment in if condition
-#110: FILE: mm/nommu.c:1644:
-+	if ((len = PAGE_ALIGN(len)) == 0)
+GROUP_STOP_TRAPPING waiting mechanism piggybacks on signal->wait_chldexit
+which is primarily used to implement waiting for wait(2) and friends. 
+When do_wait() waits on signal->wait_chldexit, it uses a custom wake up
+callback, child_wait_callback(), which expects the child task which is
+waking up the parent to be passed in as @key to filter out spurious
+wakeups.
 
-total: 1 errors, 0 warnings, 89 lines checked
+task_clear_group_stop_trapping() used __wake_up_sync() which uses NULL
+@key causing the following oops if the parent was doing do_wait().
 
-./patches/nommu-add-page-alignment-to-mmap.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+  BUG: unable to handle kernel NULL pointer dereference at 00000000000002d8
+  IP: [<ffffffff810499f9>] child_wait_callback+0x29/0x80
+  PGD 1d899067 PUD 1e418067 PMD 0
+  Oops: 0000 [#1] PREEMPT SMP
+  last sysfs file: /sys/devices/pci0000:00/0000:00:03.0/local_cpus
+  CPU 2
+  Modules linked in:
 
-Please run checkpatch prior to sending patches
+  Pid: 4498, comm: test-continued Not tainted 2.6.39-rc6-work+ #32 Bochs Bochs
+  RIP: 0010:[<ffffffff810499f9>]  [<ffffffff810499f9>] child_wait_callback+0x29/0x80
+  RSP: 0000:ffff88001b889bf8  EFLAGS: 00010046
+  RAX: 0000000000000000 RBX: ffff88001fab3af8 RCX: 0000000000000000
+  RDX: 0000000000000001 RSI: 0000000000000002 RDI: ffff88001d91df20
+  RBP: ffff88001b889c08 R08: 0000000000000000 R09: 0000000000000000
+  R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000000
+  R13: ffff88001fb70550 R14: 0000000000000000 R15: 0000000000000001
+  FS:  00007f26ccae4700(0000) GS:ffff88001fd00000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+  CR2: 00000000000002d8 CR3: 000000001b8ac000 CR4: 00000000000006e0
+  DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+  DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+  Process test-continued (pid: 4498, threadinfo ffff88001b888000, task ffff88001fb88000)
+  Stack:
+   ffff88001b889c18 ffff88001fb70538 ffff88001b889c58 ffffffff810312f9
+   0000000000000001 0000000200000001 ffff88001b889c58 ffff88001fb70518
+   0000000000000002 0000000000000082 0000000000000001 0000000000000000
+  Call Trace:
+   [<ffffffff810312f9>] __wake_up_common+0x59/0x90
+   [<ffffffff81035263>] __wake_up_sync_key+0x53/0x80
+   [<ffffffff810352a0>] __wake_up_sync+0x10/0x20
+   [<ffffffff8105a984>] task_clear_jobctl_trapping+0x44/0x50
+   [<ffffffff8105bcbc>] ptrace_stop+0x7c/0x290
+   [<ffffffff8105c20a>] do_signal_stop+0x28a/0x2d0
+   [<ffffffff8105d27f>] get_signal_to_deliver+0x14f/0x5a0
+   [<ffffffff81002175>] do_signal+0x75/0x7b0
+   [<ffffffff8100292d>] do_notify_resume+0x5d/0x70
+   [<ffffffff8182e36a>] retint_signal+0x46/0x8c
+  Code: 00 00 55 48 89 e5 53 48 83 ec 08 0f 1f 44 00 00 8b 47 d8 83 f8 03 74 3a 85 c0 49 89 c8 75 23 89 c0 48 8b 5f e0 4c 8d 0c 40 31 c0 <4b> 39 9c c8 d8 02 00 00 74 1d 48 83 c4 08 5b c9 c3 66 0f 1f 44
 
-Cc: Bob Liu <lliubbo@gmail.com>
+Fix it by using __wake_up_sync_key() and passing in the child as @key.
+
+I still think it's a mistake to piggyback on wait_chldexit for this. 
+Given the relative low frequency of ptrace use, we would be much better
+off leaving already complex wait_chldexit alone and using bit waitqueue.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/signal.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes mm/nommu.c
---- a/mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes
-+++ a/mm/nommu.c
-@@ -1641,7 +1641,8 @@ int do_munmap(struct mm_struct *mm, unsi
+diff -puN kernel/signal.c~ptrace-fix-signal-wait_chldexit-usage-in-task_clear_group_stop_trapping kernel/signal.c
+--- a/kernel/signal.c~ptrace-fix-signal-wait_chldexit-usage-in-task_clear_group_stop_trapping
++++ a/kernel/signal.c
+@@ -238,8 +238,8 @@ static void task_clear_group_stop_trappi
+ {
+ 	if (unlikely(task->group_stop & GROUP_STOP_TRAPPING)) {
+ 		task->group_stop &= ~GROUP_STOP_TRAPPING;
+-		__wake_up_sync(&task->parent->signal->wait_chldexit,
+-			       TASK_UNINTERRUPTIBLE, 1);
++		__wake_up_sync_key(&task->parent->signal->wait_chldexit,
++				   TASK_UNINTERRUPTIBLE, 1, task);
+ 	}
+ }
  
- 	kenter(",%lx,%zx", start, len);
- 
--	if ((len = PAGE_ALIGN(len)) == 0)
-+	len = PAGE_ALIGN(len);
-+	if (len == 0)
- 		return -EINVAL;
- 
- 	end = start + len;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
+origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+ptrace-fix-signal-wait_chldexit-usage-in-task_clear_group_stop_trapping.patch
+percpu_counter-change-return-value-and-add-comments.patch
+signal-introduce-retarget_shared_pending.patch
+signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch
+signal-retarget_shared_pending-optimize-while_each_thread-loop.patch
+signal-sigprocmask-narrow-the-scope-of-siglock.patch
+signal-sigprocmask-should-do-retarget_shared_pending.patch
+x86-signal-handle_signal-should-use-set_current_blocked.patch
+x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
+signal-cleanup-sys_rt_sigprocmask.patch
 scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
 scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
