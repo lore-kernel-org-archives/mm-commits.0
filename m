@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch added to -mm tree
-Date: Fri, 06 May 2011 13:33:16 -0700
-Message-ID: <201105062033.p46KXGqF002413@imap1.linux-foundation.org>
+Subject: + drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch added to -mm tree
+Date: Fri, 06 May 2011 13:49:28 -0700
+Message-ID: <201105062049.p46KnSqu003120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756613Ab1EFUee (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 16:34:34 -0400
+	by vger.kernel.org with ESMTP id S932451Ab1EFUts (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 16:49:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, yinghan@google.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, aghayal@codeaurora.org, lars@metafoo.de, mcuos.com@gmail.com
 
 
 The patch titled
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
+     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
+Subject: drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
+tiny cleanups
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Anirudh Ghayal <aghayal@codeaurora.org>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-pm8xxx.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
-+++ a/mm/memcontrol.c
-@@ -3852,6 +3852,8 @@ struct {
- 	{"swap", "total_swap"},
- 	{"soft_kswapd_steal", "total_soft_steal"},
- 	{"soft_kswapd_scan", "total_soft_scan"},
-+	{"soft_direct_steal", "total_soft_direct_steal"},
-+	{"soft_direct_scan", "total_soft_direct_scan"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
+diff -puN drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix drivers/rtc/rtc-pm8xxx.c
+--- a/drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
++++ a/drivers/rtc/rtc-pm8xxx.c
+@@ -15,7 +15,7 @@
+ #include <linux/rtc.h>
+ #include <linux/pm.h>
+ #include <linux/slab.h>
+-#include<linux/spinlock.h>
++#include <linux/spinlock.h>
+ 
+ #include <linux/mfd/pm8xxx/core.h>
+ #include <linux/mfd/pm8xxx/rtc.h>
+@@ -207,8 +207,7 @@ pm8xxx_rtc_read_time(struct device *dev,
+ 		}
+ 	}
+ 
+-	secs = value[0] | (value[1] << 8) | (value[2] << 16) \
+-						| (value[3] << 24);
++	secs = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+ 
+ 	rtc_time_to_tm(secs, tm);
+ 
+@@ -302,8 +301,7 @@ pm8xxx_rtc_read_alarm(struct device *dev
+ 		return rc;
+ 	}
+ 
+-	secs = value[0] | (value[1] << 8) | (value[2] << 16) | \
+-						 (value[3] << 24);
++	secs = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+ 
+ 	rtc_time_to_tm(secs, &alarm->time);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,6 +138,7 @@ drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
 rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
 rtc-driver-for-pt7c4338-chip-fix.patch
 drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 documentation-accounting-getdelaysc-handle-sendto-failures.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
