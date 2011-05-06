@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-add-page-alignment-to-mmap.patch added to -mm tree
-Date: Fri, 06 May 2011 14:45:05 -0700
-Message-ID: <201105062145.p46Lj5pA006084@imap1.linux-foundation.org>
+Subject: + nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 06 May 2011 14:46:19 -0700
+Message-ID: <201105062146.p46LkJhp006121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752194Ab1EFVpt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 17:45:49 -0400
+	by vger.kernel.org with ESMTP id S1752211Ab1EFVqu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 17:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, lliubbo@gmail.com
 
 
 The patch titled
-     nommu: add page alignment to mmap
+     nommu-add-page-alignment-to-mmap-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     nommu-add-page-alignment-to-mmap.patch
+     nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: add page alignment to mmap
-From: Bob Liu <lliubbo@gmail.com>
+Subject: nommu-add-page-alignment-to-mmap-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently on nommu arch mmap(),mremap() and munmap() doesn't do
-page_align() which isn't consist with mmu arch and cause some issues.
+ERROR: do not use assignment in if condition
+#110: FILE: mm/nommu.c:1644:
++	if ((len = PAGE_ALIGN(len)) == 0)
 
-First, some drivers' mmap() function depends on vma->vm_end - vma->start
-is page aligned which is true on mmu arch but not on nommu.  eg: uvc
-camera driver.
+total: 1 errors, 0 warnings, 89 lines checked
 
-Second munmap() may return -EINVAL[split file] error in cases when end is
-not page aligned(passed into from userspace) but vma->vm_end is aligned
-dure to split or driver's mmap() ops.
+./patches/nommu-add-page-alignment-to-mmap.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Add page alignment to fix those issues.
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ mm/nommu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~nommu-add-page-alignment-to-mmap mm/nommu.c
---- a/mm/nommu.c~nommu-add-page-alignment-to-mmap
+diff -puN mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes mm/nommu.c
+--- a/mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes
 +++ a/mm/nommu.c
-@@ -1124,7 +1124,7 @@ static int do_mmap_private(struct vm_are
- 			   unsigned long capabilities)
- {
- 	struct page *pages;
--	unsigned long total, point, n, rlen;
-+	unsigned long total, point, n;
- 	void *base;
- 	int ret, order;
- 
-@@ -1148,13 +1148,12 @@ static int do_mmap_private(struct vm_are
- 		 * make a private copy of the data and map that instead */
- 	}
- 
--	rlen = PAGE_ALIGN(len);
- 
- 	/* allocate some memory to hold the mapping
- 	 * - note that this may not return a page-aligned address if the object
- 	 *   we're allocating is smaller than a page
- 	 */
--	order = get_order(rlen);
-+	order = get_order(len);
- 	kdebug("alloc order %d for %lx", order, len);
- 
- 	pages = alloc_pages(GFP_KERNEL, order);
-@@ -1164,7 +1163,7 @@ static int do_mmap_private(struct vm_are
- 	total = 1 << order;
- 	atomic_long_add(total, &mmap_pages_allocated);
- 
--	point = rlen >> PAGE_SHIFT;
-+	point = len >> PAGE_SHIFT;
- 
- 	/* we allocated a power-of-2 sized page set, so we may want to trim off
- 	 * the excess */
-@@ -1186,7 +1185,7 @@ static int do_mmap_private(struct vm_are
- 	base = page_address(pages);
- 	region->vm_flags = vma->vm_flags |= VM_MAPPED_COPY;
- 	region->vm_start = (unsigned long) base;
--	region->vm_end   = region->vm_start + rlen;
-+	region->vm_end   = region->vm_start + len;
- 	region->vm_top   = region->vm_start + (total << PAGE_SHIFT);
- 
- 	vma->vm_start = region->vm_start;
-@@ -1202,15 +1201,15 @@ static int do_mmap_private(struct vm_are
- 
- 		old_fs = get_fs();
- 		set_fs(KERNEL_DS);
--		ret = vma->vm_file->f_op->read(vma->vm_file, base, rlen, &fpos);
-+		ret = vma->vm_file->f_op->read(vma->vm_file, base, len, &fpos);
- 		set_fs(old_fs);
- 
- 		if (ret < 0)
- 			goto error_free;
- 
- 		/* clear the last little bit */
--		if (ret < rlen)
--			memset(base + ret, 0, rlen - ret);
-+		if (ret < len)
-+			memset(base + ret, 0, len - ret);
- 
- 	}
- 
-@@ -1260,6 +1259,7 @@ unsigned long do_mmap_pgoff(struct file 
- 
- 	/* we ignore the address hint */
- 	addr = 0;
-+	len = PAGE_ALIGN(len);
- 
- 	/* we've determined that we can make the mapping, now translate what we
- 	 * now know into VMA flags */
-@@ -1636,14 +1636,16 @@ static int shrink_vma(struct mm_struct *
- int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
- {
- 	struct vm_area_struct *vma;
--	unsigned long end = start + len;
-+	unsigned long end;
- 	int ret;
+@@ -1641,7 +1641,8 @@ int do_munmap(struct mm_struct *mm, unsi
  
  	kenter(",%lx,%zx", start, len);
  
--	if (len == 0)
-+	if ((len = PAGE_ALIGN(len)) == 0)
+-	if ((len = PAGE_ALIGN(len)) == 0)
++	len = PAGE_ALIGN(len);
++	if (len == 0)
  		return -EINVAL;
  
-+	end = start + len;
-+
- 	/* find the first potentially overlapping VMA */
- 	vma = find_vma(mm, start);
- 	if (!vma) {
-@@ -1763,6 +1765,8 @@ unsigned long do_mremap(unsigned long ad
- 	struct vm_area_struct *vma;
- 
- 	/* insanity checks first */
-+	old_len = PAGE_ALIGN(old_len);
-+	new_len = PAGE_ALIGN(new_len);
- 	if (old_len == 0 || new_len == 0)
- 		return (unsigned long) -EINVAL;
- 
+ 	end = start + len;
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nommu-add-page-alignment-to-mmap.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
