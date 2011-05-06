@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch added to -mm tree
-Date: Fri, 06 May 2011 13:30:59 -0700
-Message-ID: <201105062031.p46KV0DH002288@imap1.linux-foundation.org>
+Subject: + memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch added to -mm tree
+Date: Fri, 06 May 2011 13:33:16 -0700
+Message-ID: <201105062033.p46KXGqF002413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756570Ab1EFUb6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 16:31:58 -0400
+	by vger.kernel.org with ESMTP id S1756613Ab1EFUee (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2011 16:34:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
+     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
 has been added to the -mm tree.  Its filename is
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
+Subject: memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -47,20 +47,18 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
+diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2
 +++ a/mm/memcontrol.c
-@@ -3850,8 +3850,8 @@ struct {
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
+@@ -3852,6 +3852,8 @@ struct {
  	{"swap", "total_swap"},
--	{"soft_steal", "total_soft_steal"},
--	{"soft_scan", "total_soft_scan"},
-+	{"soft_kswapd_steal", "total_soft_steal"},
-+	{"soft_kswapd_scan", "total_soft_scan"},
+ 	{"soft_kswapd_steal", "total_soft_steal"},
+ 	{"soft_kswapd_scan", "total_soft_scan"},
++	{"soft_direct_steal", "total_soft_direct_steal"},
++	{"soft_direct_scan", "total_soft_direct_scan"},
  	{"inactive_anon", "total_inactive_anon"},
  	{"active_anon", "total_active_anon"},
  	{"inactive_file", "total_inactive_file"},
@@ -125,6 +123,7 @@ drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
 documentation-accounting-getdelaysc-handle-sendto-failures.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
