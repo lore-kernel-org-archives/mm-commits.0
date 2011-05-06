@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iosched-remove-redundant-sprintf.patch added to -mm tree
-Date: Thu, 05 May 2011 16:01:10 -0700
-Message-ID: <201105052301.p45N1Adb008338@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch added to -mm tree
+Date: Thu, 05 May 2011 17:02:53 -0700
+Message-ID: <201105060002.p4602rqQ010988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754107Ab1EEXBP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 19:01:15 -0400
+	by vger.kernel.org with ESMTP id S1754331Ab1EFADf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2011 20:03:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kees.cook@canonical.com, axboe@kernel.dk
+Cc: w.sang@pengutronix.de, alessandro.zummo@towertech.it, vzapolskiy@gmail.com
 
 
 The patch titled
-     iosched: remove redundant sprintf
+     drivers/rtc/rtc-mxc.c: remove defines already included in rtc.h
 has been added to the -mm tree.  Its filename is
-     iosched-remove-redundant-sprintf.patch
+     drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iosched: remove redundant sprintf
-From: Kees Cook <kees.cook@canonical.com>
+Subject: drivers/rtc/rtc-mxc.c: remove defines already included in rtc.h
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-After the anticipatory scheduler was dropped, there was no need to
-special-case the request_module string.  As such, drop the redundant
-sprintf and stack variable.
-
-Signed-off-by: Kees Cook <kees.cook@canonical.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/elevator.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/rtc/rtc-mxc.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN block/elevator.c~iosched-remove-redundant-sprintf block/elevator.c
---- a/block/elevator.c~iosched-remove-redundant-sprintf
-+++ a/block/elevator.c
-@@ -155,13 +155,8 @@ static struct elevator_type *elevator_ge
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch
++++ a/drivers/rtc/rtc-mxc.c
+@@ -55,12 +55,6 @@ static const u32 PIE_BIT_DEF[MAX_PIE_NUM
+ 	{ MAX_PIE_FREQ,	RTC_SAM7_BIT },
+ };
  
- 	e = elevator_find(name);
- 	if (!e) {
--		char elv[ELV_NAME_MAX + strlen("-iosched")];
--
- 		spin_unlock(&elv_list_lock);
--
--		snprintf(elv, sizeof(elv), "%s-iosched", name);
+-/* Those are the bits from a classic RTC we want to mimic */
+-#define RTC_IRQF	0x80	/* any of the following 3 is active */
+-#define RTC_PF		0x40	/* Periodic interrupt */
+-#define RTC_AF		0x20	/* Alarm interrupt */
+-#define RTC_UF		0x10	/* Update interrupt for 1Hz RTC */
