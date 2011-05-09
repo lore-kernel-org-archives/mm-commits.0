@@ -1,55 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-rawc-remove-call-to-kobject_put.patch removed from -mm tree
-Date: Mon, 09 May 2011 12:33:01 -0700
-Message-ID: <201105091926.p49JQ11n012716@imap1.linux-foundation.org>
+Subject: [folded] mm-make-expand_downwards-symmetrical-with-expand_upwards-v3.patch removed from -mm tree
+Date: Mon, 09 May 2011 13:01:29 -0700
+Message-ID: <201105092001.p49K1UuK014636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753617Ab1EIT0G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:26:06 -0400
+	by vger.kernel.org with ESMTP id S1754316Ab1EIUBf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 16:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/raw.c: remove call to kobject_put().
+     mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
 has been removed from the -mm tree.  Its filename was
-     drivers-char-rawc-remove-call-to-kobject_put.patch
+     mm-make-expand_downwards-symmetrical-with-expand_upwards-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/raw.c: remove call to kobject_put().
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
+From: Michal Hocko <mhocko@suse.cz>
 
-If cdev_add() fails, there is no justification for subsequently
-calling kobject_put().
+fix compilation error on ia64
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/raw.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/mm/fault.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/raw.c~drivers-char-rawc-remove-call-to-kobject_put drivers/char/raw.c
---- a/drivers/char/raw.c~drivers-char-rawc-remove-call-to-kobject_put
-+++ a/drivers/char/raw.c
-@@ -319,7 +319,6 @@ static int __init raw_init(void)
- 	cdev_init(&raw_cdev, &raw_fops);
- 	ret = cdev_add(&raw_cdev, dev, MAX_RAW_MINORS);
- 	if (ret) {
--		kobject_put(&raw_cdev.kobj);
- 		goto error_region;
+diff -puN arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v3 arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v3
++++ a/arch/ia64/mm/fault.c
+@@ -197,7 +197,7 @@ ia64_do_page_fault (unsigned long addres
+ 		 */
+ 		if (address > vma->vm_end + PAGE_SIZE - sizeof(long))
+ 			goto bad_area;
+-		if (expand_upwards(vma, address))
++		if (expand_stack_upwards(vma, address))
+ 			goto bad_area;
  	}
- 
+ 	goto good_area;
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-linux-next.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+mm-make-expand_downwards-symmetrical-to-expand_upwards.patch
+memsw-remove-noswapaccount-kernel-parameter.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
