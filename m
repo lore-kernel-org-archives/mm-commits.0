@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-alloc_pages_exact_nid.patch added to -mm tree
-Date: Mon, 09 May 2011 16:30:29 -0700
-Message-ID: <201105092330.p49NUT9B025956@imap1.linux-foundation.org>
+Subject: + memcg-allocate-memory-cgroup-structures-in-local-nodes.patch added to -mm tree
+Date: Mon, 09 May 2011 16:30:44 -0700
+Message-ID: <201105092330.p49NUiBH025981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755760Ab1EIXbW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 19:31:22 -0400
+	by vger.kernel.org with ESMTP id S1755765Ab1EIXb2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 19:31:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, balbir@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
+Cc: ak@linux.intel.com, balbir@in.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     mm: add alloc_pages_exact_nid()
+     memcg: allocate memory cgroup structures in local nodes
 has been added to the -mm tree.  Its filename is
-     mm-add-alloc_pages_exact_nid.patch
+     memcg-allocate-memory-cgroup-structures-in-local-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add alloc_pages_exact_nid()
+Subject: memcg: allocate memory cgroup structures in local nodes
 From: Andi Kleen <ak@linux.intel.com>
 
-Add a alloc_pages_exact_nid() that allocates on a specific node.
+dde79e005a769 ("page_cgroup: reduce allocation overhead for page_cgroup
+array for CONFIG_SPARSEMEM") added a regression that the memory cgroup
+data structures all end up in node 0 because the first attempt at
+allocating them would not pass in a node hint.  Since the initialization
+runs on CPU #0 it would all end up node 0.  This is a problem on large
+memory systems, where node 0 would lose a lot of memory.
 
-The naming is quite broken, but fixing that would need a larger renaming
-action.
+Change the alloc_pages_exact() to alloc_pages_exact_nid().  This will
+still fall back to other nodes if not enough memory is available.
+
+[RED-PEN: right now it would fall back first before trying
+vmalloc_node. Probably not the best strategy ... But I left it like
+that for now.]
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Reported-by: Doug Nelson
 Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +
- mm/page_alloc.c     |   48 +++++++++++++++++++++++++++++++-----------
- 2 files changed, 38 insertions(+), 12 deletions(-)
+ mm/page_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-alloc_pages_exact_nid
-+++ a/include/linux/gfp.h
-@@ -353,6 +353,8 @@ extern unsigned long get_zeroed_page(gfp
+diff -puN mm/page_cgroup.c~memcg-allocate-memory-cgroup-structures-in-local-nodes mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-allocate-memory-cgroup-structures-in-local-nodes
++++ a/mm/page_cgroup.c
+@@ -134,7 +134,7 @@ static void *__init_refok alloc_page_cgr
+ {
+ 	void *addr = NULL;
  
- void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
- void free_pages_exact(void *virt, size_t size);
-+/* This is different from alloc_pages_exact_node !!! */
-+void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
+-	addr = alloc_pages_exact(size, GFP_KERNEL | __GFP_NOWARN);
++	addr = alloc_pages_exact_nid(nid, size, GFP_KERNEL | __GFP_NOWARN);
+ 	if (addr)
+ 		return addr;
  
- #define __get_free_page(gfp_mask) \
- 		__get_free_pages((gfp_mask), 0)
-diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid
-+++ a/mm/page_alloc.c
-@@ -2317,6 +2317,21 @@ void free_pages(unsigned long addr, unsi
- 
- EXPORT_SYMBOL(free_pages);
- 
-+static void *make_alloc_exact(unsigned long addr, unsigned order, size_t size)
-+{
-+	if (addr) {
-+		unsigned long alloc_end = addr + (PAGE_SIZE << order);
-+		unsigned long used = addr + PAGE_ALIGN(size);
-+
-+		split_page(virt_to_page((void *)addr), order);
-+		while (used < alloc_end) {
-+			free_page(used);
-+			used += PAGE_SIZE;
-+		}
-+	}
-+	return (void *)addr;	
-+}
-+
- /**
-  * alloc_pages_exact - allocate an exact number physically-contiguous pages.
-  * @size: the number of bytes to allocate
-@@ -2336,22 +2351,31 @@ void *alloc_pages_exact(size_t size, gfp
- 	unsigned long addr;
- 
- 	addr = __get_free_pages(gfp_mask, order);
--	if (addr) {
--		unsigned long alloc_end = addr + (PAGE_SIZE << order);
--		unsigned long used = addr + PAGE_ALIGN(size);
--
--		split_page(virt_to_page((void *)addr), order);
--		while (used < alloc_end) {
--			free_page(used);
--			used += PAGE_SIZE;
--		}
--	}
--
--	return (void *)addr;
-+	return make_alloc_exact(addr, order, size);
- }
- EXPORT_SYMBOL(alloc_pages_exact);
- 
- /**
-+ * alloc_pages_exact_nid - allocate an exact number physically-contiguous pages on node.
-+ * @size: the number of bytes to allocate
-+ * @gfp_mask: GFP flags for the allocation
-+ *
-+ * Like alloc_pages_exact, but try to allocate on node nid first
-+ * before falling back.
-+ * Note this is not alloc_pages_exact_node() which allocates
-+ * on a specific node, but is not exact.
-+ */
-+void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
-+{
-+	unsigned order = get_order(size);
-+	struct page *p = alloc_pages_node(nid, gfp_mask, order);
-+	if (!p)
-+		return NULL;
-+	return make_alloc_exact((unsigned long)page_address(p), order, size);
-+}
-+EXPORT_SYMBOL(alloc_pages_exact_nid);
-+
-+/**
-  * free_pages_exact - release memory allocated via alloc_pages_exact()
-  * @virt: the value returned by alloc_pages_exact.
-  * @size: size of allocation, same value as passed to alloc_pages_exact().
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
