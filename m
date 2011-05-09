@@ -1,39 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] signal-sigprocmask-narrow-the-scope-of-siglock.patch removed from -mm tree
-Date: Mon, 09 May 2011 12:17:09 -0700
-Message-ID: <201105091910.p49JA93V011863@imap1.linux-foundation.org>
+Subject: [to-be-updated] x86-signal-handle_signal-should-use-set_current_blocked.patch removed from -mm tree
+Date: Mon, 09 May 2011 12:17:12 -0700
+Message-ID: <201105091910.p49JACP1011869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974Ab1EITLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:11:07 -0400
+	by vger.kernel.org with ESMTP id S1754062Ab1EITLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyoushchenko@mvista.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal: sigprocmask: narrow the scope of ->siglock
+     x86: signal: handle_signal() should use set_current_blocked()
 has been removed from the -mm tree.  Its filename was
-     signal-sigprocmask-narrow-the-scope-of-siglock.patch
+     x86-signal-handle_signal-should-use-set_current_blocked.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal: sigprocmask: narrow the scope of ->siglock
+Subject: x86: signal: handle_signal() should use set_current_blocked()
 From: Oleg Nesterov <oleg@redhat.com>
 
-No functional changes, preparation to simplify the review of the next change.
+This is ugly, but if sigprocmask() needs retarget_shared_pending() then
+handle signal should follow this logic.  In theory it is newer correct to
+add the new signals to current->blocked, the signal handler can sleep/etc
+so we should notify other threads in case we block the pending signal and
+nobody else has TIF_SIGPENDING.
 
-1. We can read current->block lockless, nobody else can ever change this mask.
-
-2. Calculate the resulting sigset_t outside of ->siglock into the temporary
-   variable, then take ->siglock and change ->blocked.
-
-Also, kill the stale comment about BKL.
+Of course, this change doesn't make signals faster :/
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
@@ -45,69 +44,36 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ arch/x86/kernel/signal.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-siglock kernel/signal.c
---- a/kernel/signal.c~signal-sigprocmask-narrow-the-scope-of-siglock
-+++ a/kernel/signal.c
-@@ -2299,12 +2299,6 @@ long do_no_restart_syscall(struct restar
- }
- 
- /*
-- * We don't need to get the kernel lock - this is all local to this
-- * particular thread.. (and that's good, because this is _heavily_
-- * used by various programs)
-- */
--
--/*
-  * This is also useful for kernel threads that want to temporarily
-  * (or permanently) block certain signals.
-  *
-@@ -2314,30 +2308,33 @@ long do_no_restart_syscall(struct restar
-  */
- int sigprocmask(int how, sigset_t *set, sigset_t *oldset)
+diff -puN arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked arch/x86/kernel/signal.c
+--- a/arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked
++++ a/arch/x86/kernel/signal.c
+@@ -682,6 +682,7 @@ static int
+ handle_signal(unsigned long sig, siginfo_t *info, struct k_sigaction *ka,
+ 	      sigset_t *oldset, struct pt_regs *regs)
  {
--	int error;
-+	struct task_struct *tsk = current;
-+	sigset_t newset;
++	sigset_t blocked;
+ 	int ret;
+ 
+ 	/* Are we from a system call? */
+@@ -741,12 +742,10 @@ handle_signal(unsigned long sig, siginfo
+ 	 */
+ 	regs->flags &= ~X86_EFLAGS_TF;
  
 -	spin_lock_irq(&current->sighand->siglock);
-+	/* Lockless, only current can change ->blocked, never from irq */
- 	if (oldset)
--		*oldset = current->blocked;
-+		*oldset = tsk->blocked;
- 
--	error = 0;
- 	switch (how) {
- 	case SIG_BLOCK:
--		sigorsets(&current->blocked, &current->blocked, set);
-+		sigorsets(&newset, &tsk->blocked, set);
- 		break;
- 	case SIG_UNBLOCK:
--		signandsets(&current->blocked, &current->blocked, set);
-+		signandsets(&newset, &tsk->blocked, set);
- 		break;
- 	case SIG_SETMASK:
--		current->blocked = *set;
-+		newset = *set;
- 		break;
- 	default:
--		error = -EINVAL;
-+		return -EINVAL;
- 	}
-+
-+	spin_lock_irq(&tsk->sighand->siglock);
-+	tsk->blocked = newset;
- 	recalc_sigpending();
+-	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked, sig);
+-	recalc_sigpending();
 -	spin_unlock_irq(&current->sighand->siglock);
-+	spin_unlock_irq(&tsk->sighand->siglock);
++		sigaddset(&blocked, sig);
++	set_current_blocked(&blocked);
  
--	return error;
-+	return 0;
- }
- 
- /**
+ 	tracehook_signal_handler(sig, info, ka, regs,
+ 				 test_thread_flag(TIF_SINGLESTEP));
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -123,8 +89,6 @@ blackfin-convert-to-asm-generic-ptraceh.patch
 x86-convert-to-asm-generic-ptraceh.patch
 sh-convert-to-asm-generic-ptraceh.patch
 kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
-signal-sigprocmask-should-do-retarget_shared_pending.patch
-x86-signal-handle_signal-should-use-set_current_blocked.patch
 x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
 signal-cleanup-sys_rt_sigprocmask.patch
 fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
