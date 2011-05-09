@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] x86-signal-handle_signal-should-use-set_current_blocked.patch removed from -mm tree
-Date: Mon, 09 May 2011 12:17:12 -0700
-Message-ID: <201105091910.p49JACP1011869@imap1.linux-foundation.org>
+Subject: [to-be-updated] signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch removed from -mm tree
+Date: Mon, 09 May 2011 12:17:04 -0700
+Message-ID: <201105091910.p49JA4jZ011855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754062Ab1EITLJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754058Ab1EITLJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,25 +14,29 @@ To: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyous
 
 
 The patch titled
-     x86: signal: handle_signal() should use set_current_blocked()
+     signal: retarget_shared_pending: consider shared/unblocked signals only
 has been removed from the -mm tree.  Its filename was
-     x86-signal-handle_signal-should-use-set_current_blocked.patch
+     signal-retarget_shared_pending-consider-shared-unblocked-signals-only.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: signal: handle_signal() should use set_current_blocked()
+Subject: signal: retarget_shared_pending: consider shared/unblocked signals only
 From: Oleg Nesterov <oleg@redhat.com>
 
-This is ugly, but if sigprocmask() needs retarget_shared_pending() then
-handle signal should follow this logic.  In theory it is newer correct to
-add the new signals to current->blocked, the signal handler can sleep/etc
-so we should notify other threads in case we block the pending signal and
-nobody else has TIF_SIGPENDING.
+exit_signals() checks signal_pending() before retarget_shared_pending()
+but this is suboptimal.  We can avoid the while_each_thread() loop in case
+when there are no shared signals visible to us.
 
-Of course, this change doesn't make signals faster :/
+Add the "shared_pending.signal & ~blocked" check.  We don't use
+tsk->blocked directly but pass ~blocked as an argument, this is needed for
+the next patch.
+
+Note: we can optimize this more.  while_each_thread(t) can check
+t->blocked into account and stop after every pending signal has the new
+target, see the next patch.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
@@ -44,36 +48,48 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ kernel/signal.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked arch/x86/kernel/signal.c
---- a/arch/x86/kernel/signal.c~x86-signal-handle_signal-should-use-set_current_blocked
-+++ a/arch/x86/kernel/signal.c
-@@ -682,6 +682,7 @@ static int
- handle_signal(unsigned long sig, siginfo_t *info, struct k_sigaction *ka,
- 	      sigset_t *oldset, struct pt_regs *regs)
+diff -puN kernel/signal.c~signal-retarget_shared_pending-consider-shared-unblocked-signals-only kernel/signal.c
+--- a/kernel/signal.c~signal-retarget_shared_pending-consider-shared-unblocked-signals-only
++++ a/kernel/signal.c
+@@ -2203,10 +2203,15 @@ relock:
+  * group-wide signal. Another thread should be notified now to take
+  * the signal since we will not.
+  */
+-static void retarget_shared_pending(struct task_struct *tsk)
++static void retarget_shared_pending(struct task_struct *tsk, sigset_t *set)
  {
-+	sigset_t blocked;
- 	int ret;
++	sigset_t shared_pending;
+ 	struct task_struct *t;
  
- 	/* Are we from a system call? */
-@@ -741,12 +742,10 @@ handle_signal(unsigned long sig, siginfo
- 	 */
- 	regs->flags &= ~X86_EFLAGS_TF;
++	sigandsets(&shared_pending, &tsk->signal->shared_pending.signal, set);
++	if (sigisemptyset(&shared_pending))
++		return;
++
+ 	t = tsk;
+ 	while_each_thread(tsk, t) {
+ 		if (!signal_pending(t) && !(t->flags & PF_EXITING))
+@@ -2217,6 +2222,7 @@ static void retarget_shared_pending(stru
+ void exit_signals(struct task_struct *tsk)
+ {
+ 	int group_stop = 0;
++	sigset_t set;
  
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
-+	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
- 	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+		sigaddset(&blocked, sig);
-+	set_current_blocked(&blocked);
+ 	if (thread_group_empty(tsk) || signal_group_exit(tsk->signal)) {
+ 		tsk->flags |= PF_EXITING;
+@@ -2232,7 +2238,9 @@ void exit_signals(struct task_struct *ts
+ 	if (!signal_pending(tsk))
+ 		goto out;
  
- 	tracehook_signal_handler(sig, info, ka, regs,
- 				 test_thread_flag(TIF_SINGLESTEP));
+-	retarget_shared_pending(tsk);
++	set = tsk->blocked;
++	signotset(&set);
++	retarget_shared_pending(tsk, &set);
+ 
+ 	if (unlikely(tsk->group_stop & GROUP_STOP_PENDING) &&
+ 	    task_participate_group_stop(tsk))
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -89,6 +105,10 @@ blackfin-convert-to-asm-generic-ptraceh.patch
 x86-convert-to-asm-generic-ptraceh.patch
 sh-convert-to-asm-generic-ptraceh.patch
 kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
+signal-retarget_shared_pending-optimize-while_each_thread-loop.patch
+signal-sigprocmask-narrow-the-scope-of-siglock.patch
+signal-sigprocmask-should-do-retarget_shared_pending.patch
+x86-signal-handle_signal-should-use-set_current_blocked.patch
 x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
 signal-cleanup-sys_rt_sigprocmask.patch
 fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
