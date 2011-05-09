@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + memcg-allocate-memory-cgroup-structures-in-local-nodes.patch added to -mm tree
-Date: Mon, 09 May 2011 16:30:44 -0700
-Message-ID: <201105092330.p49NUiBH025981@imap1.linux-foundation.org>
+Date: Mon, 09 May 2011 16:32:18 -0700
+Message-ID: <201105092332.p49NWINF026013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755765Ab1EIXb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 19:31:28 -0400
+	by vger.kernel.org with ESMTP id S1752112Ab1EIXc6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 19:32:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, balbir@in.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com
+Cc: ak@linux.intel.com, balbir@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
@@ -53,10 +53,11 @@ that for now.]
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Reported-by: Doug Nelson
 Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
