@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch removed from -mm tree
-Date: Mon, 09 May 2011 13:07:32 -0700
-Message-ID: <201105092007.p49K7W2n014926@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-export-get_vma_policy.patch removed from -mm tree
+Date: Mon, 09 May 2011 13:07:29 -0700
+Message-ID: <201105092007.p49K7TSr014922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751726Ab1EIUHk (ORCPT
+	by vger.kernel.org with ESMTP id S1754345Ab1EIUHk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 16:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,25 +14,77 @@ To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google
 
 
 The patch titled
-     mm: use walk_page_range() instead of custom page table walking code
+     mm: export get_vma_policy()
 has been removed from the -mm tree.  Its filename was
-     mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+     mm-export-get_vma_policy.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use walk_page_range() instead of custom page table walking code
+Subject: mm: export get_vma_policy()
 From: Stephen Wilson <wilsons@start.ca>
 
-In the specific case of show_numa_map(), the custom page table walking
-logic implemented in mempolicy.c does not provide any special service
-beyond that provided by walk_page_range().
+Recently a concern was raised[1] that performing an allocation while
+holding a reference on a tasks mm could lead to a stalemate in the oom
+killer.  The concern was specific to the goings-on in /proc.  Hugh Dickins
+stated the issue thusly:
 
-Also, converting show_numa_map() to use the generic routine decouples the
-function from mempolicy.c, allowing it to be moved out of the mm subsystem
-and into fs/proc.
+    ...imagine what happens if the system is out of memory, and the mm
+    we're looking at is selected for killing by the OOM killer: while we
+    wait in __get_free_page for more memory, no memory is freed from the
+    selected mm because it cannot reach exit_mmap while we hold that
+    reference.
+
+The primary goal of this series is to eliminate repeated allocation/free
+cycles currently happening in show_numa_maps() while we hold a reference
+to an mm.
+
+The strategy is to perform the allocation once when /proc/pid/numa_maps is
+opened, before a reference on the target tasks mm is taken.
+
+Unfortunately, show_numa_maps() is implemented in mm/mempolicy.c while the
+primary procfs implementation lives in fs/proc/task_mmu.c.  This makes
+clean cooperation between show_numa_maps() and the other seq_file
+operations (start(), stop(), etc) difficult.
+
+
+Patches 1-5 convert show_numa_maps() to use the generic walk_page_range()
+functionality instead of the mempolicy.c specific page table walking
+logic.  Also, get_vma_policy() is exported.  This makes the
+show_numa_maps() implementation independent of mempolicy.c.  
+
+Patch 6 moves show_numa_maps() and supporting routines over to
+fs/proc/task_mmu.c.
+
+Finally, patches 7 and 8 provide minor cleanup and eliminates the
+troublesome allocation.
+
+ 
+Please note that moving show_numa_maps() into fs/proc/task_mmu.c
+essentially reverts 1a75a6c825 ("Fold numa_maps into mempolicies.c") and
+48fce3429d ("mempolicies: unexport get_vma_policy()").  Also, please see
+the discussion at [2].  My main justifications for moving the code back
+into task_mmu.c is:
+
+  - Having the show() operation "miles away" from the corresponding
+    seq_file iteration operations is a maintenance burden. 
+    
+  - The need to export ad hoc info like struct proc_maps_private is
+    eliminated.
+
+
+This patch:
+
+In commit 48fce3429df84a ("mempolicies: unexport get_vma_policy()")
+get_vma_policy() was marked static as all clients were local to
+mempolicy.c.
+
+However, the decision to generate /proc/pid/numa_maps in the numa memory
+policy code and outside the procfs subsystem introduces an artificial
+interdependency between the two systems.  Exporting get_vma_policy() once
+again is the first step to clean up this interdependency.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -44,110 +96,40 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   53 ++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 46 insertions(+), 7 deletions(-)
+ include/linux/mempolicy.h |    3 +++
+ mm/mempolicy.c            |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code
+diff -puN include/linux/mempolicy.h~mm-export-get_vma_policy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-export-get_vma_policy
++++ a/include/linux/mempolicy.h
+@@ -199,6 +199,9 @@ void mpol_free_shared_policy(struct shar
+ struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
+ 					    unsigned long idx);
+ 
++struct mempolicy *get_vma_policy(struct task_struct *tsk,
++		struct vm_area_struct *vma, unsigned long addr);
++
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+ extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
+diff -puN mm/mempolicy.c~mm-export-get_vma_policy mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-export-get_vma_policy
 +++ a/mm/mempolicy.c
-@@ -2568,6 +2568,22 @@ static void gather_stats(struct page *pa
- 	md->node[page_to_nid(page)]++;
- }
- 
-+static int gather_pte_stats(pte_t *pte, unsigned long addr,
-+		unsigned long pte_size, struct mm_walk *walk)
-+{
-+	struct page *page;
-+
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	page = pte_page(*pte);
-+	if (!page)
-+		return 0;
-+
-+	gather_stats(page, walk->private, pte_dirty(*pte));
-+	return 0;
-+}
-+
- #ifdef CONFIG_HUGETLB_PAGE
- static void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
-@@ -2597,12 +2613,35 @@ static void check_huge_range(struct vm_a
- 		gather_stats(page, md, pte_dirty(*ptep));
- 	}
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	struct page *page;
-+
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	page = pte_page(*pte);
-+	if (!page)
-+		return 0;
-+
-+	gather_stats(page, walk->private, pte_dirty(*pte));
-+	return 0;
-+}
-+
- #else
- static inline void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
- 		struct numa_maps *md)
+@@ -1489,7 +1489,7 @@ asmlinkage long compat_sys_mbind(compat_
+  * freeing by another task.  It is the caller's responsibility to free the
+  * extra reference for shared policies.
+  */
+-static struct mempolicy *get_vma_policy(struct task_struct *task,
++struct mempolicy *get_vma_policy(struct task_struct *task,
+ 		struct vm_area_struct *vma, unsigned long addr)
  {
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	return 0;
-+}
- #endif
- 
- /*
-@@ -2615,6 +2654,7 @@ int show_numa_map(struct seq_file *m, vo
- 	struct numa_maps *md;
- 	struct file *file = vma->vm_file;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct mm_walk walk = {};
- 	struct mempolicy *pol;
- 	int n;
- 	char buffer[50];
-@@ -2626,6 +2666,11 @@ int show_numa_map(struct seq_file *m, vo
- 	if (!md)
- 		return 0;
- 
-+	walk.hugetlb_entry = gather_hugetbl_stats;
-+	walk.pte_entry = gather_pte_stats;
-+	walk.private = md;
-+	walk.mm = mm;
-+
- 	pol = get_vma_policy(priv->task, vma, vma->vm_start);
- 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
- 	mpol_cond_put(pol);
-@@ -2642,13 +2687,7 @@ int show_numa_map(struct seq_file *m, vo
- 		seq_printf(m, " stack");
- 	}
- 
--	if (is_vm_hugetlb_page(vma)) {
--		check_huge_range(vma, vma->vm_start, vma->vm_end, md);
--		seq_printf(m, " huge");
--	} else {
--		check_pgd_range(vma, vma->vm_start, vma->vm_end,
--			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
--	}
-+	walk_page_range(vma->vm_start, vma->vm_end, &walk);
- 
- 	if (!md->pages)
- 		goto out;
+ 	struct mempolicy *pol = task->mempolicy;
 _
 
 Patches currently in -mm which might be from wilsons@start.ca are
 
+mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
 mm-remove-mpol_mf_stats.patch
 mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
 mm-remove-check_huge_range.patch
