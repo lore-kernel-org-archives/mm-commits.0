@@ -1,173 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch added to -mm tree
-Date: Mon, 09 May 2011 13:03:24 -0700
-Message-ID: <201105092003.p49K3P7x014768@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch removed from -mm tree
+Date: Mon, 09 May 2011 13:07:32 -0700
+Message-ID: <201105092007.p49K7W2n014926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754550Ab1EIUDb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 16:03:31 -0400
+	by vger.kernel.org with ESMTP id S1751726Ab1EIUHk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 16:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, James.Bottomley@HansenPartnership.com, hughd@google.com, tony.luck@intel.com
+To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-has been added to the -mm tree.  Its filename is
-     mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch
+     mm: use walk_page_range() instead of custom page table walking code
+has been removed from the -mm tree.  Its filename was
+     mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: use walk_page_range() instead of custom page table walking code
+From: Stephen Wilson <wilsons@start.ca>
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+In the specific case of show_numa_map(), the custom page table walking
+logic implemented in mempolicy.c does not provide any special service
+beyond that provided by walk_page_range().
+
+Also, converting show_numa_map() to use the generic routine decouples the
+function from mempolicy.c, allowing it to be moved out of the mm subsystem
+and into fs/proc.
+
+Signed-off-by: Stephen Wilson <wilsons@start.ca>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/fault.c |    2 +-
- fs/exec.c            |    2 +-
- include/linux/mm.h   |    7 +++----
- mm/memory.c          |    4 ++--
- mm/mmap.c            |    8 ++++----
- 5 files changed, 11 insertions(+), 12 deletions(-)
+ mm/mempolicy.c |   53 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 46 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4 arch/ia64/mm/fault.c
---- a/arch/ia64/mm/fault.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-+++ a/arch/ia64/mm/fault.c
-@@ -197,7 +197,7 @@ ia64_do_page_fault (unsigned long addres
- 		 */
- 		if (address > vma->vm_end + PAGE_SIZE - sizeof(long))
- 			goto bad_area;
--		if (expand_stack_upwards(vma, address))
-+		if (expand_upwards(vma, address))
- 			goto bad_area;
- 	}
- 	goto good_area;
-diff -puN fs/exec.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4 fs/exec.c
---- a/fs/exec.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-+++ a/fs/exec.c
-@@ -194,7 +194,7 @@ struct page *get_arg_page(struct linux_b
+diff -puN mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code
++++ a/mm/mempolicy.c
+@@ -2568,6 +2568,22 @@ static void gather_stats(struct page *pa
+ 	md->node[page_to_nid(page)]++;
+ }
  
- #ifdef CONFIG_STACK_GROWSUP
- 	if (write) {
--		ret = expand_stack_downwards(bprm->vma, pos);
-+		ret = expand_downwards(bprm->vma, pos);
- 		if (ret < 0)
- 			return NULL;
++static int gather_pte_stats(pte_t *pte, unsigned long addr,
++		unsigned long pte_size, struct mm_walk *walk)
++{
++	struct page *page;
++
++	if (pte_none(*pte))
++		return 0;
++
++	page = pte_page(*pte);
++	if (!page)
++		return 0;
++
++	gather_stats(page, walk->private, pte_dirty(*pte));
++	return 0;
++}
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ static void check_huge_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end,
+@@ -2597,12 +2613,35 @@ static void check_huge_range(struct vm_a
+ 		gather_stats(page, md, pte_dirty(*ptep));
  	}
-diff -puN include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4 include/linux/mm.h
---- a/include/linux/mm.h~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-+++ a/include/linux/mm.h
-@@ -1501,13 +1501,12 @@ unsigned long ra_submit(struct file_ra_s
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
- 
- /* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
--extern int expand_stack_downwards(struct vm_area_struct *vma,
-+extern int expand_downwards(struct vm_area_struct *vma,
- 		unsigned long address);
- #if VM_GROWSUP
--extern int expand_stack_upwards(struct vm_area_struct *vma,
--		unsigned long address);
-+extern int expand_upwards(struct vm_area_struct *vma, unsigned long address);
+ }
++
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	struct page *page;
++
++	if (pte_none(*pte))
++		return 0;
++
++	page = pte_page(*pte);
++	if (!page)
++		return 0;
++
++	gather_stats(page, walk->private, pte_dirty(*pte));
++	return 0;
++}
++
  #else
--  #define expand_stack_upwards(vma, address) do { } while (0)
-+  #define expand_upwards(vma, address) do { } while (0)
+ static inline void check_huge_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end,
+ 		struct numa_maps *md)
+ {
+ }
++
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	return 0;
++}
  #endif
  
- /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
-diff -puN mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4 mm/memory.c
---- a/mm/memory.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-+++ a/mm/memory.c
-@@ -2968,7 +2968,7 @@ static inline int check_stack_guard_page
- 		if (prev && prev->vm_end == address)
- 			return prev->vm_flags & VM_GROWSDOWN ? 0 : -ENOMEM;
- 
--		expand_stack_downwards(vma, address - PAGE_SIZE);
-+		expand_downwards(vma, address - PAGE_SIZE);
- 	}
- 	if ((vma->vm_flags & VM_GROWSUP) && address + PAGE_SIZE == vma->vm_end) {
- 		struct vm_area_struct *next = vma->vm_next;
-@@ -2977,7 +2977,7 @@ static inline int check_stack_guard_page
- 		if (next && next->vm_start == address + PAGE_SIZE)
- 			return next->vm_flags & VM_GROWSUP ? 0 : -ENOMEM;
- 
--		expand_stack_upwards(vma, address + PAGE_SIZE);
-+		expand_upwards(vma, address + PAGE_SIZE);
- 	}
- 	return 0;
- }
-diff -puN mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4 mm/mmap.c
---- a/mm/mmap.c~mm-make-expand_downwards-symmetrical-with-expand_upwards-v4
-+++ a/mm/mmap.c
-@@ -1721,7 +1721,7 @@ static int acct_stack_growth(struct vm_a
-  * PA-RISC uses this for its stack; IA64 for its Register Backing Store.
-  * vma is the last one with address > vma->vm_end.  Have to extend vma.
-  */
--int expand_stack_upwards(struct vm_area_struct *vma, unsigned long address)
-+int expand_upwards(struct vm_area_struct *vma, unsigned long address)
- {
- 	int error;
- 
-@@ -1772,7 +1772,7 @@ int expand_stack_upwards(struct vm_area_
  /*
-  * vma is the first one with address < vma->vm_start.  Have to extend vma.
-  */
--int expand_stack_downwards(struct vm_area_struct *vma,
-+int expand_downwards(struct vm_area_struct *vma,
- 				   unsigned long address)
- {
- 	int error;
-@@ -1822,7 +1822,7 @@ int expand_stack_downwards(struct vm_are
- #ifdef CONFIG_STACK_GROWSUP
- int expand_stack(struct vm_area_struct *vma, unsigned long address)
- {
--	return expand_stack_upwards(vma, address);
-+	return expand_upwards(vma, address);
- }
+@@ -2615,6 +2654,7 @@ int show_numa_map(struct seq_file *m, vo
+ 	struct numa_maps *md;
+ 	struct file *file = vma->vm_file;
+ 	struct mm_struct *mm = vma->vm_mm;
++	struct mm_walk walk = {};
+ 	struct mempolicy *pol;
+ 	int n;
+ 	char buffer[50];
+@@ -2626,6 +2666,11 @@ int show_numa_map(struct seq_file *m, vo
+ 	if (!md)
+ 		return 0;
  
- struct vm_area_struct *
-@@ -1844,7 +1844,7 @@ find_extend_vma(struct mm_struct *mm, un
- #else
- int expand_stack(struct vm_area_struct *vma, unsigned long address)
- {
--	return expand_stack_downwards(vma, address);
-+	return expand_downwards(vma, address);
- }
++	walk.hugetlb_entry = gather_hugetbl_stats;
++	walk.pte_entry = gather_pte_stats;
++	walk.private = md;
++	walk.mm = mm;
++
+ 	pol = get_vma_policy(priv->task, vma, vma->vm_start);
+ 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
+ 	mpol_cond_put(pol);
+@@ -2642,13 +2687,7 @@ int show_numa_map(struct seq_file *m, vo
+ 		seq_printf(m, " stack");
+ 	}
  
- struct vm_area_struct *
+-	if (is_vm_hugetlb_page(vma)) {
+-		check_huge_range(vma, vma->vm_start, vma->vm_end, md);
+-		seq_printf(m, " huge");
+-	} else {
+-		check_pgd_range(vma, vma->vm_start, vma->vm_end,
+-			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
+-	}
++	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ 
+ 	if (!md->pages)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from wilsons@start.ca are
 
-mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
-mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch
-memsw-remove-noswapaccount-kernel-parameter.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
-memcg-mark-init_section_page_cgroup-properly.patch
-memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
-memcg-move-page-freeing-code-out-of-lock.patch
-maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+mm-remove-mpol_mf_stats.patch
+mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
+mm-remove-check_huge_range.patch
+mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
+proc-make-struct-proc_maps_private-truly-private.patch
+proc-allocate-storage-for-numa_maps-statistics-once.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
 
