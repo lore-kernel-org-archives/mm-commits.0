@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] signal-cleanup-sys_rt_sigprocmask.patch removed from -mm tree
-Date: Mon, 09 May 2011 12:17:17 -0700
-Message-ID: <201105091910.p49JAHf3011875@imap1.linux-foundation.org>
+Subject: [to-be-updated] signal-retarget_shared_pending-optimize-while_each_thread-loop.patch removed from -mm tree
+Date: Mon, 09 May 2011 12:17:06 -0700
+Message-ID: <201105091910.p49JA62Z011858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754067Ab1EITLP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:11:15 -0400
+	by vger.kernel.org with ESMTP id S1753974Ab1EITLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, hpa@zytor.com, matt@console-pimps.org, mingo@elte.hu, nyoushchenko@mvista.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal: cleanup sys_rt_sigprocmask()
+     signal: retarget_shared_pending: optimize while_each_thread() loop
 has been removed from the -mm tree.  Its filename was
-     signal-cleanup-sys_rt_sigprocmask.patch
+     signal-retarget_shared_pending-optimize-while_each_thread-loop.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal: cleanup sys_rt_sigprocmask()
+Subject: signal: retarget_shared_pending: optimize while_each_thread() loop
 From: Oleg Nesterov <oleg@redhat.com>
 
-sys_rt_sigprocmask() looks unnecessarily complicated, simplify it.  We can
-just read current->blocked lockless unconditionally before anything else
-and then copy-to-user it if needed.  At worst we copy 4 words on mips.
+retarget_shared_pending() blindly does recalc_sigpending_and_wake() for
+every sub-thread, this is suboptimal.  We can check t->blocked and stop
+looping once every bit in shared_pending has the new target.
 
-We could copy-to-user the old mask first and simplify the code even more,
-but the patch tries to keep the current behaviour: we change
-current->block even if copy_to_user(oset) fails.
+Note: we do not take task_is_stopped_or_traced(t) into account, we are not
+trying to speed up the signal delivery or to avoid the unnecessary (but
+harmless) signal_wake_up(0) in this unlikely case.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
@@ -44,70 +44,33 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   40 +++++++++++++++++-----------------------
- 1 file changed, 17 insertions(+), 23 deletions(-)
+ kernel/signal.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signal-cleanup-sys_rt_sigprocmask kernel/signal.c
---- a/kernel/signal.c~signal-cleanup-sys_rt_sigprocmask
+diff -puN kernel/signal.c~signal-retarget_shared_pending-optimize-while_each_thread-loop kernel/signal.c
+--- a/kernel/signal.c~signal-retarget_shared_pending-optimize-while_each_thread-loop
 +++ a/kernel/signal.c
-@@ -2355,40 +2355,34 @@ int sigprocmask(int how, sigset_t *set, 
-  *  @oset: previous value of signal mask if non-null
-  *  @sigsetsize: size of sigset_t type
-  */
--SYSCALL_DEFINE4(rt_sigprocmask, int, how, sigset_t __user *, set,
-+SYSCALL_DEFINE4(rt_sigprocmask, int, how, sigset_t __user *, nset,
- 		sigset_t __user *, oset, size_t, sigsetsize)
- {
--	int error = -EINVAL;
- 	sigset_t old_set, new_set;
-+	int error;
+@@ -2214,8 +2214,18 @@ static void retarget_shared_pending(stru
  
--	/* XXX: Don't preclude handling different sized sigset_t's.  */
-+	/* Don't preclude handling different sized sigset_t's. */
- 	if (sigsetsize != sizeof(sigset_t))
--		goto out;
-+		return -EINVAL;
- 
--	if (set) {
--		error = -EFAULT;
--		if (copy_from_user(&new_set, set, sizeof(*set)))
--			goto out;
-+	old_set = current->blocked;
+ 	t = tsk;
+ 	while_each_thread(tsk, t) {
+-		if (!signal_pending(t) && !(t->flags & PF_EXITING))
+-			recalc_sigpending_and_wake(t);
++		if ((t->flags & PF_EXITING))
++			continue;
++		if (!has_pending_signals(&shared_pending, &t->blocked))
++			continue;
 +
-+	if (nset) {
-+		if (copy_from_user(&new_set, nset, sizeof(sigset_t)))
-+			return -EFAULT;
- 		sigdelsetmask(&new_set, sigmask(SIGKILL)|sigmask(SIGSTOP));
- 
--		error = sigprocmask(how, &new_set, &old_set);
-+		error = sigprocmask(how, &new_set, NULL);
- 		if (error)
--			goto out;
--		if (oset)
--			goto set_old;
--	} else if (oset) {
--		spin_lock_irq(&current->sighand->siglock);
--		old_set = current->blocked;
--		spin_unlock_irq(&current->sighand->siglock);
-+			return error;
-+	}
- 
--	set_old:
--		error = -EFAULT;
--		if (copy_to_user(oset, &old_set, sizeof(*oset)))
--			goto out;
-+	if (oset) {
-+		if (copy_to_user(oset, &old_set, sizeof(sigset_t)))
-+			return -EFAULT;
++		sigandsets(&shared_pending, &shared_pending, &t->blocked);
++
++		if (!signal_pending(t))
++			signal_wake_up(t, 0);
++
++		if (sigisemptyset(&shared_pending))
++			break;
  	}
--	error = 0;
--out:
--	return error;
-+
-+	return 0;
  }
  
- long do_sigpending(void __user *set, unsigned long sigsetsize)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -123,5 +86,10 @@ blackfin-convert-to-asm-generic-ptraceh.patch
 x86-convert-to-asm-generic-ptraceh.patch
 sh-convert-to-asm-generic-ptraceh.patch
 kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
+signal-sigprocmask-narrow-the-scope-of-siglock.patch
+signal-sigprocmask-should-do-retarget_shared_pending.patch
+x86-signal-handle_signal-should-use-set_current_blocked.patch
+x86-signal-sys_rt_sigreturn-should-use-set_current_blocked.patch
+signal-cleanup-sys_rt_sigprocmask.patch
 fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
