@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch added to -mm tree
-Date: Mon, 09 May 2011 15:57:50 -0700
-Message-ID: <201105092257.p49MvoM4024065@imap1.linux-foundation.org>
+Subject: + memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch added to -mm tree
+Date: Mon, 09 May 2011 15:57:53 -0700
+Message-ID: <201105092257.p49MvroN024069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753308Ab1EIW6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 18:58:01 -0400
+	by vger.kernel.org with ESMTP id S1753308Ab1EIW6I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 18:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: yinghai@kernel.org, hpa@zytor.com, lucas.demarchi@profusion.mobi, mingo@elte
 
 
 The patch titled
-     memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
+     memblock/nobootmem: remove unneeded code from alloc_bootmem_node_high()
 has been added to the -mm tree.  Its filename is
-     memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
+     memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
+Subject: memblock/nobootmem: remove unneeded code from alloc_bootmem_node_high()
 From: Yinghai Lu <yinghai@kernel.org>
 
-The bootmem wrapper with memblock supports top-down now, so we do not need
-to set the low limit to __pa(MAX_DMA_ADDRESS).
-
-The logic should be: good to allocate above __pa(MAX_DMA_ADDRESS), but it
-is ok if we can not find memory above 16M on system that has a small
-amount of RAM.
+The bootmem wrapper with memblock supports top-down now, so we no longer
+need this trick.
 
 Signed-off-by: Yinghai LU <yinghai@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -52,63 +48,36 @@ Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ mm/nobootmem.c |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit include/linux/bootmem.h
---- a/include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit
-+++ a/include/linux/bootmem.h
-@@ -99,24 +99,31 @@ extern void *__alloc_bootmem_low_node(pg
- 				      unsigned long align,
- 				      unsigned long goal);
- 
-+#ifdef CONFIG_NO_BOOTMEM
-+/* We are using top down, so it is safe to use 0 here */
-+#define BOOTMEM_LOW_LIMIT 0
-+#else
-+#define BOOTMEM_LOW_LIMIT __pa(MAX_DMA_ADDRESS)
-+#endif
-+
- #define alloc_bootmem(x) \
--	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_align(x, align) \
--	__alloc_bootmem(x, align, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, align, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_nopanic(x) \
--	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages(x) \
--	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_nopanic(x) \
--	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_nopanic(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_node(pgdat, x) \
--	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_node_nopanic(pgdat, x) \
--	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_node(pgdat, x) \
--	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_node_nopanic(pgdat, x) \
--	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- 
- #define alloc_bootmem_low(x) \
- 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
-_
-
-Patches currently in -mm which might be from yinghai@kernel.org are
-
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
-linux-next.patch
-memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
-memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch
-memblock-add-error-return-when-config_have_memblock-is-not-set.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+diff -puN mm/nobootmem.c~memblock-nobootmem-remove-code-for-alloc_bootmem_node_high mm/nobootmem.c
+--- a/mm/nobootmem.c~memblock-nobootmem-remove-code-for-alloc_bootmem_node_high
++++ a/mm/nobootmem.c
+@@ -307,30 +307,7 @@ void * __init __alloc_bootmem_node(pg_da
+ void * __init __alloc_bootmem_node_high(pg_data_t *pgdat, unsigned long size,
+ 				   unsigned long align, unsigned long goal)
+ {
+-#ifdef MAX_DMA32_PFN
+-	unsigned long end_pfn;
+-
+-	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+-
+-	/* update goal according ...MAX_DMA32_PFN */
+-	end_pfn = pgdat->node_start_pfn + pgdat->node_spanned_pages;
+-
+-	if (end_pfn > MAX_DMA32_PFN + (128 >> (20 - PAGE_SHIFT)) &&
+-	    (goal >> PAGE_SHIFT) < MAX_DMA32_PFN) {
+-		void *ptr;
+-		unsigned long new_goal;
+-
+-		new_goal = MAX_DMA32_PFN << PAGE_SHIFT;
+-		ptr =  __alloc_memory_core_early(pgdat->node_id, size, align,
+-						 new_goal, -1ULL);
+-		if (ptr)
+-			return ptr;
+-	}
+-#endif
+-
+ 	return __alloc_bootmem_node(pgdat, size, align, goal);
