@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch added to -mm tree
-Date: Mon, 09 May 2011 15:57:53 -0700
-Message-ID: <201105092257.p49MvroN024069@imap1.linux-foundation.org>
+Subject: + mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 09 May 2011 16:30:34 -0700
+Message-ID: <201105092330.p49NUYgr025959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51518 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753308Ab1EIW6I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 18:58:08 -0400
+	by vger.kernel.org with ESMTP id S1755129Ab1EIXbD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 19:31:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, hpa@zytor.com, lucas.demarchi@profusion.mobi, mingo@elte.hu, olaf@aepfle.de, tj@kernel.org
+Cc: akpm@linux-foundation.org, ak@linux.intel.com
 
 
 The patch titled
-     memblock/nobootmem: remove unneeded code from alloc_bootmem_node_high()
+     mm-add-alloc_pages_exact_nid-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch
+     mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock/nobootmem: remove unneeded code from alloc_bootmem_node_high()
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: mm-add-alloc_pages_exact_nid-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The bootmem wrapper with memblock supports top-down now, so we no longer
-need this trick.
+ERROR: trailing whitespace
+#53: FILE: mm/page_alloc.c:2332:
++^Ireturn (void *)addr;^I$
 
-Signed-off-by: Yinghai LU <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+total: 1 errors, 0 warnings, 72 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-add-alloc_pages_exact_nid.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nobootmem.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nobootmem.c~memblock-nobootmem-remove-code-for-alloc_bootmem_node_high mm/nobootmem.c
---- a/mm/nobootmem.c~memblock-nobootmem-remove-code-for-alloc_bootmem_node_high
-+++ a/mm/nobootmem.c
-@@ -307,30 +307,7 @@ void * __init __alloc_bootmem_node(pg_da
- void * __init __alloc_bootmem_node_high(pg_data_t *pgdat, unsigned long size,
- 				   unsigned long align, unsigned long goal)
- {
--#ifdef MAX_DMA32_PFN
--	unsigned long end_pfn;
--
--	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
--
--	/* update goal according ...MAX_DMA32_PFN */
--	end_pfn = pgdat->node_start_pfn + pgdat->node_spanned_pages;
--
--	if (end_pfn > MAX_DMA32_PFN + (128 >> (20 - PAGE_SHIFT)) &&
--	    (goal >> PAGE_SHIFT) < MAX_DMA32_PFN) {
--		void *ptr;
--		unsigned long new_goal;
--
--		new_goal = MAX_DMA32_PFN << PAGE_SHIFT;
--		ptr =  __alloc_memory_core_early(pgdat->node_id, size, align,
--						 new_goal, -1ULL);
--		if (ptr)
--			return ptr;
--	}
--#endif
--
- 	return __alloc_bootmem_node(pgdat, size, align, goal);
+diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid-checkpatch-fixes include/linux/gfp.h
+diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes
++++ a/mm/page_alloc.c
+@@ -2329,7 +2329,7 @@ static void *make_alloc_exact(unsigned l
+ 			used += PAGE_SIZE;
+ 		}
+ 	}
+-	return (void *)addr;	
++	return (void *)addr;
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
+mm-add-alloc_pages_exact_nid-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-provide-helper-to-register-leds-gpio-devices-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
