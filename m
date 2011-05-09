@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-provide-helper-to-register-leds-gpio-devices-fix.patch added to -mm tree
-Date: Mon, 09 May 2011 15:05:45 -0700
-Message-ID: <201105092205.p49M5jPI021261@imap1.linux-foundation.org>
+Subject: + lib-consolidate-debug_stack_usage-option.patch added to -mm tree
+Date: Mon, 09 May 2011 15:22:31 -0700
+Message-ID: <201105092222.p49MMVX8022282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932281Ab1EIWGt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 18:06:49 -0400
+	by vger.kernel.org with ESMTP id S1752455Ab1EIWYH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2011 18:24:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fabio.estevam@freescale.com, hartleys@visionengravers.com, richard.purdie@linuxfoundation.org, rmk@arm.linux.org.uk, s.hauer@pengutronix.de, u.kleine-koenig@pengutronix.de
+Cc: sboyd@codeaurora.org, benh@kernel.crashing.org, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, richard@nod.at, rmk@arm.linux.org.uk, takata@linux-m32r.org, tglx@linutronix.de, vapier@gentoo.org
 
 
 The patch titled
-     leds-provide-helper-to-register-leds-gpio-devices-fix
+     lib: consolidate DEBUG_STACK_USAGE option
 has been added to the -mm tree.  Its filename is
-     leds-provide-helper-to-register-leds-gpio-devices-fix.patch
+     lib-consolidate-debug_stack_usage-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,158 +25,305 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-provide-helper-to-register-leds-gpio-devices-fix
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: consolidate DEBUG_STACK_USAGE option
+From: Stephen Boyd <sboyd@codeaurora.org>
 
-s/CONFIG_LED_REGISTER_GPIO/CONFIG_LEDS_REGISTER_GPIO/
+Most arches define CONFIG_DEBUG_STACK_USAGE exactly the same way.  Move it
+to lib/Kconfig.debug so each arch doesn't have to define it.  This
+obviously makes the option generic, but that's fine because the config is
+already used in generic code.
 
-Cc: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
+It's not obvious to me that sysrq-P actually does anything caution by
+keeping the most inclusive wording.
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Richard Weinberger <richard@nod.at>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Uwe Kleine-K=F6nig  <u.kleine-koenig@pengutronix.de>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig        |    2 +-
- drivers/leds/led-register.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/Kconfig.debug       |    7 -------
+ arch/blackfin/Kconfig.debug  |    9 ---------
+ arch/m32r/Kconfig.debug      |    9 ---------
+ arch/mips/Kconfig.debug      |    9 ---------
+ arch/powerpc/Kconfig.debug   |    9 ---------
+ arch/score/Kconfig.debug     |    9 ---------
+ arch/sh/Kconfig.debug        |    9 ---------
+ arch/sparc/Kconfig.debug     |    9 ---------
+ arch/tile/Kconfig.debug      |    9 ---------
+ arch/um/Kconfig.debug        |    9 ---------
+ arch/unicore32/Kconfig.debug |    7 -------
+ arch/x86/Kconfig.debug       |    9 ---------
+ lib/Kconfig.debug            |    9 +++++++++
+ 13 files changed, 9 insertions(+), 104 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpi=
-o-devices-fix drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpio-de=
-vices-fix
-+++ a/drivers/leds/Kconfig
-@@ -14,7 +14,7 @@ config LEDS_CLASS
- 	  This option enables the led sysfs class in /sys/class/leds.  You'll
- 	  need this to do anything useful with LEDs.  If unsure, say N.
-=20
--config LED_REGISTER_GPIO
-+config LEDS_REGISTER_GPIO
+diff -puN arch/arm/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/arm/Kconfig.debug
+--- a/arch/arm/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/arm/Kconfig.debug
+@@ -63,13 +63,6 @@ config DEBUG_USER
+ 	      8 - SIGSEGV faults
+ 	     16 - SIGBUS faults
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T output.
+-
+ # These options are only for real kernel hackers who want to get their hands dirty.
+ config DEBUG_LL
+ 	bool "Kernel low-level debugging functions"
+diff -puN arch/blackfin/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/blackfin/Kconfig.debug
+--- a/arch/blackfin/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/blackfin/Kconfig.debug
+@@ -9,15 +9,6 @@ config DEBUG_STACKOVERFLOW
+ 	  This option will cause messages to be printed if free stack space
+ 	  drops below a certain limit.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config DEBUG_VERBOSE
+ 	bool "Verbose fault messages"
+ 	default y
+diff -puN arch/m32r/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/m32r/Kconfig.debug
+--- a/arch/m32r/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/m32r/Kconfig.debug
+@@ -9,15 +9,6 @@ config DEBUG_STACKOVERFLOW
+ 	  This option will cause messages to be printed if free stack space
+ 	  drops below a certain limit.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config DEBUG_PAGEALLOC
+ 	bool "Debug page memory allocations"
+ 	depends on DEBUG_KERNEL && BROKEN
+diff -puN arch/mips/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/mips/Kconfig.debug
+--- a/arch/mips/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/mips/Kconfig.debug
+@@ -76,15 +76,6 @@ config DEBUG_STACKOVERFLOW
+ 	  provides another way to check stack overflow happened on kernel mode
+ 	  stack usually caused by nested interruption.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config SMTC_IDLE_HOOK_DEBUG
+ 	bool "Enable additional debug checks before going into CPU idle loop"
+ 	depends on DEBUG_KERNEL && MIPS_MT_SMTC
+diff -puN arch/powerpc/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/powerpc/Kconfig.debug
+--- a/arch/powerpc/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/powerpc/Kconfig.debug
+@@ -35,15 +35,6 @@ config DEBUG_STACKOVERFLOW
+ 	  This option will cause messages to be printed if free stack space
+ 	  drops below a certain limit.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config HCALL_STATS
+ 	bool "Hypervisor call instrumentation"
+ 	depends on PPC_PSERIES && DEBUG_FS && TRACEPOINTS
+diff -puN arch/score/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/score/Kconfig.debug
+--- a/arch/score/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/score/Kconfig.debug
+@@ -16,15 +16,6 @@ config CMDLINE
+ 	  other cases you can specify kernel args so that you don't have
+ 	  to set them up in board prom initialization routines.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config RUNTIME_DEBUG
+ 	bool "Enable run-time debugging"
+ 	depends on DEBUG_KERNEL
+diff -puN arch/sh/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/sh/Kconfig.debug
+--- a/arch/sh/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/sh/Kconfig.debug
+@@ -28,15 +28,6 @@ config STACK_DEBUG
+ 	  every function call and will therefore incur a major
+ 	  performance hit. Most users should say N.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config 4KSTACKS
+ 	bool "Use 4Kb for kernel stacks instead of 8Kb"
+ 	depends on DEBUG_KERNEL && (MMU || BROKEN) && !PAGE_SIZE_64KB
+diff -puN arch/sparc/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/sparc/Kconfig.debug
+--- a/arch/sparc/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/sparc/Kconfig.debug
+@@ -6,15 +6,6 @@ config TRACE_IRQFLAGS_SUPPORT
+ 
+ source "lib/Kconfig.debug"
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config DEBUG_DCFLUSH
+ 	bool "D-cache flush debugging"
+ 	depends on SPARC64 && DEBUG_KERNEL
+diff -puN arch/tile/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/tile/Kconfig.debug
+--- a/arch/tile/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/tile/Kconfig.debug
+@@ -21,15 +21,6 @@ config DEBUG_STACKOVERFLOW
+ 	  This option will cause messages to be printed if free stack space
+ 	  drops below a certain limit.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config DEBUG_EXTRA_FLAGS
+ 	string "Additional compiler arguments when building with '-g'"
+ 	depends on DEBUG_INFO
+diff -puN arch/um/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/um/Kconfig.debug
+--- a/arch/um/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/um/Kconfig.debug
+@@ -28,13 +28,4 @@ config GCOV
+ 	  If you're involved in UML kernel development and want to use gcov,
+ 	  say Y.  If you're unsure, say N.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	default N
+-	help
+-	  Track the maximum kernel stack usage - this will look at each
+-	  kernel stack at process exit and log it if it's the deepest
+-	  stack seen so far.
+-
+-	  This option will slow down process creation and destruction somewhat.
+ endmenu
+diff -puN arch/unicore32/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/unicore32/Kconfig.debug
+--- a/arch/unicore32/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/unicore32/Kconfig.debug
+@@ -27,13 +27,6 @@ config EARLY_PRINTK
+ 	  with klogd/syslogd or the X server. You should normally N here,
+ 	  unless you want to debug such a crash.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Enable stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	help
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T output.
+-
+ # These options are only for real kernel hackers who want to get their hands dirty.
+ config DEBUG_LL
+ 	bool "Kernel low-level debugging functions"
+diff -puN arch/x86/Kconfig.debug~lib-consolidate-debug_stack_usage-option arch/x86/Kconfig.debug
+--- a/arch/x86/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/arch/x86/Kconfig.debug
+@@ -66,15 +66,6 @@ config DEBUG_STACKOVERFLOW
+ 	  This option will cause messages to be printed if free stack space
+ 	  drops below a certain limit.
+ 
+-config DEBUG_STACK_USAGE
+-	bool "Stack utilization instrumentation"
+-	depends on DEBUG_KERNEL
+-	---help---
+-	  Enables the display of the minimum amount of free stack which each
+-	  task has ever had available in the sysrq-T and sysrq-P debug output.
+-
+-	  This option will slow down process creation somewhat.
+-
+ config X86_PTDUMP
+ 	bool "Export kernel pagetable layout to userspace via debugfs"
+ 	depends on DEBUG_KERNEL
+diff -puN lib/Kconfig.debug~lib-consolidate-debug_stack_usage-option lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-consolidate-debug_stack_usage-option
++++ a/lib/Kconfig.debug
+@@ -670,6 +670,15 @@ config STACKTRACE
  	bool
- 	help
- 	  This option provides the function gpio_led_register_device.
-diff -puN drivers/leds/led-register.c~leds-provide-helper-to-register-l=
-eds-gpio-devices-fix drivers/leds/led-register.c
---- a/drivers/leds/led-register.c~leds-provide-helper-to-register-leds-=
-gpio-devices-fix
-+++ a/drivers/leds/led-register.c
-@@ -11,7 +11,7 @@
- #include <linux/slab.h>
- #include <linux/leds.h>
-=20
--#if defined(CONFIG_LED_REGISTER_GPIO)
-+#if defined(CONFIG_LEDS_REGISTER_GPIO)
- struct platform_device *__init gpio_led_register_device(
- 		int id, const struct gpio_led_platform_data *pdata)
- {
+ 	depends on STACKTRACE_SUPPORT
+ 
++config DEBUG_STACK_USAGE
++	bool "Stack utilization instrumentation"
++	depends on DEBUG_KERNEL
++	help
++	  Enables the display of the minimum amount of free stack which each
++	  task has ever had available in the sysrq-T and sysrq-P debug output.
++
++	  This option will slow down process creation somewhat.
++
+ config DEBUG_KOBJECT
+ 	bool "kobject debugging"
+ 	depends on DEBUG_KERNEL
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-f=
-ix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.=
-patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.=
-patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-=
-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patc=
-h
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.pa=
-tch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-fail=
-ure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-fail=
-ure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-f=
-ix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-ini=
-tialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oop=
-s-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+msm-timer-migrate-to-timer-based-__delay.patch
+lib-consolidate-debug_per_cpu_maps.patch
+lib-consolidate-debug_stack_usage-option.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
