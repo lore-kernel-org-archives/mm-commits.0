@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tracing-add-missing-gfp-flags-to-tracing.patch added to -mm tree
-Date: Tue, 10 May 2011 14:54:53 -0700
-Message-ID: <201105102154.p4ALsr45024262@imap1.linux-foundation.org>
+Subject: + fuse-fix-oops-in-revalidate-when-called-with-null-nameidata.patch added to -mm tree
+Date: Tue, 10 May 2011 14:57:49 -0700
+Message-ID: <201105102157.p4ALvnIA024389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800Ab1EJVzA (ORCPT
+	by vger.kernel.org with ESMTP id S1752887Ab1EJV6X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 17:55:00 -0400
+	Tue, 10 May 2011 17:58:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aarcange@redhat.com
+Cc: mszeredi@suse.cz, baryluk@smp.if.uj.edu.pl, tyhicks@linux.vnet.ibm.com
 
 
 The patch titled
-     mm: tracing: add missing GFP flags to tracing
+     fuse: fix oops in revalidate when called with NULL nameidata
 has been added to the -mm tree.  Its filename is
-     mm-tracing-add-missing-gfp-flags-to-tracing.patch
+     fuse-fix-oops-in-revalidate-when-called-with-null-nameidata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: tracing: add missing GFP flags to tracing
-From: Mel Gorman <mgorman@suse.de>
+Subject: fuse: fix oops in revalidate when called with NULL nameidata
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-include/linux/gfp.h and include/trace/events/gfpflags.h are out of sync. 
-When tracing is enabled, certain flags are not recognised and the text
-output is less useful as a result.  Add the missing flags.
+Some cases (e.g.  ecryptfs) can call ->dentry_revalidate with NULL
+nameidata.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Tyler Hicks pointed out that this bug was introduced by commit e7c0a16786
+"fuse: make fuse_dentry_revalidate() RCU aware"
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=34732
+
+Reported-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/gfpflags.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/fuse/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/gfpflags.h~mm-tracing-add-missing-gfp-flags-to-tracing include/trace/events/gfpflags.h
---- a/include/trace/events/gfpflags.h~mm-tracing-add-missing-gfp-flags-to-tracing
-+++ a/include/trace/events/gfpflags.h
-@@ -10,6 +10,7 @@
-  */
- #define show_gfp_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
-+	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
- 	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"}, \
- 	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
- 	{(unsigned long)GFP_USER,		"GFP_USER"},		\
-@@ -32,6 +33,9 @@
- 	{(unsigned long)__GFP_HARDWALL,		"GFP_HARDWALL"},	\
- 	{(unsigned long)__GFP_THISNODE,		"GFP_THISNODE"},	\
- 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
--	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"}		\
-+	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
-+	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
-+	{(unsigned long)__GFP_NO_KSWAPD,	"GFP_NO_KSWAPD"},	\
-+	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
- 	) : "GFP_NOWAIT"
+diff -puN fs/fuse/dir.c~fuse-fix-oops-in-revalidate-when-called-with-null-nameidata fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-oops-in-revalidate-when-called-with-null-nameidata
++++ a/fs/fuse/dir.c
+@@ -174,7 +174,7 @@ static int fuse_dentry_revalidate(struct
+ 		if (!inode)
+ 			return 0;
  
+-		if (nd->flags & LOOKUP_RCU)
++		if (nd && (nd->flags & LOOKUP_RCU))
+ 			return -ECHILD;
+ 
+ 		fc = get_fuse_conn(inode);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-mm-tracing-add-missing-gfp-flags-to-tracing.patch
+fuse-fix-oops-in-revalidate-when-called-with-null-nameidata.patch
 
