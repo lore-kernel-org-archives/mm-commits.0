@@ -1,101 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] tmpfs-fix-race-between-umount-and-writepage.patch removed from -mm tree
-Date: Tue, 10 May 2011 14:07:11 -0700
-Message-ID: <201105102107.p4AL7CGU021868@imap1.linux-foundation.org>
+Subject: + tmpfs-fix-race-between-umount-and-writepage.patch added to -mm tree
+Date: Tue, 10 May 2011 14:13:10 -0700
+Message-ID: <201105102113.p4ALDAKJ022172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401Ab1EJVHW (ORCPT
+	by vger.kernel.org with ESMTP id S1750761Ab1EJVNP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 17:07:22 -0400
+	Tue, 10 May 2011 17:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, hughd@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, khlebnikov@openvz.org, stable@kernel.org
 
 
 The patch titled
      tmpfs: fix race between umount and writepage
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      tmpfs-fix-race-between-umount-and-writepage.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: tmpfs: fix race between umount and writepage
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+From: Hugh Dickins <hughd@google.com>
 
-The bug is easily reproduced by this script:
+Konstanin Khlebnikov reports that a dangerous race between umount and
+shmem_writepage can be reproduced by this script:
 
 for i in {1..300} ; do
 	mkdir $i
 	while true ; do
 		mount -t tmpfs none $i
-		dd if=/dev/zero of=$i/test bs=1M count=$(($RANDOM % 100)) status=noxfer
+		dd if=/dev/zero of=$i/test bs=1M count=$(($RANDOM % 100))
 		umount $i
 	done &
 done
 
-At 6xCPU node with 8Gb RAM. Kernel is very unstable after this accident. =)
-Kernel with this patch is working fine for at least an hour.
+on a 6xCPU node with 8Gb RAM: kernel very unstable after this accident. =)
 
 Kernel log:
 
-[  584.544461] VFS: Busy inodes after unmount of tmpfs. Self-destruct in 5 seconds.  Have a nice day...
-[  585.409221] ------------[ cut here ]------------
-[  585.409268] WARNING: at lib/list_debug.c:53 __list_del_entry+0x8d/0x98()
-[  585.409331] Hardware name: System Product Name
-[  585.409372] list_del corruption. prev->next should be ffff880222fdaac8, but was           (null)
-[  585.409928] Modules linked in: [last unloaded: scsi_wait_scan]
-[  585.410279] Pid: 11222, comm: mount.tmpfs Not tainted 2.6.39-rc2+ #4
-[  585.410540] Call Trace:
-[  585.410819]  [<ffffffff8103b710>] warn_slowpath_common+0x80/0x98
-[  585.411113]  [<ffffffff8103b7bc>] warn_slowpath_fmt+0x41/0x43
-[  585.411377]  [<ffffffff81227145>] __list_del_entry+0x8d/0x98
-[  585.411649]  [<ffffffff810f68af>] evict+0x50/0x113
-[  585.411919]  [<ffffffff810f6ce6>] iput+0x138/0x141
-...
-[  585.416428] ---[ end trace 39cf2c656ee772fe ]---
-[  585.416690] BUG: unable to handle kernel paging request at ffffffffffffffff
-[  585.417001] IP: [<ffffffff810b946a>] shmem_free_blocks+0x18/0x4c
-[  585.417001] PGD 1805067 PUD 1806067 PMD 0
-[  585.417001] Oops: 0000 [#1] SMP
-[  585.417839] last sysfs file: /sys/kernel/kexec_crash_size
-[  585.418156] CPU 1
-[  585.418156] Modules linked in: [last unloaded: scsi_wait_scan]
-[  585.418851]
-[  585.418851] Pid: 10422, comm: dd Tainted: G        W   2.6.39-rc2+ #4 System manufacturer System Product Name/Crosshair IV Formula
-[  585.419541] RIP: 0010:[<ffffffff810b946a>]  [<ffffffff810b946a>] shmem_free_blocks+0x18/0x4c
-[  585.419857] RSP: 0018:ffff880163e9f4b8  EFLAGS: 00010206
-[  585.419857] RAX: ffff88021b513400 RBX: ffff880222fdaa40 RCX: 0000000000000020
-[  585.419857] RDX: ffffffffffffffe0 RSI: 000000000000000e RDI: ffffffffffffffff
-[  585.419857] RBP: ffff880163e9f4c8 R08: ffffea000653b090 R09: 0000000000014df0
-[  585.419857] R10: 0000000000000028 R11: 000000000000002a R12: 000000000000000e
-[  585.419857] R13: 000000000003cc76 R14: ffff880222fda970 R15: ffff880202b5d588
-[  585.419857] FS:  00007f1c5b0cb700(0000) GS:ffff88024fc40000(0000) knlGS:0000000000000000
-[  585.419857] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  585.419857] CR2: ffffffffffffffff CR3: 0000000187431000 CR4: 00000000000006e0
-[  585.419857] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  585.419857] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[  585.419857] Process dd (pid: 10422, threadinfo ffff880163e9e000, task ffff880098f65700)
-[  585.419857] Stack:
-[  585.419857]  ffff880222fdaa40 000000000000000e ffff880163e9f4e8 ffffffff810bac88
-[  585.419857]  ffff880222fdaa40 ffffea000653b068 ffff880163e9f538 ffffffff810bc216
-[  585.419857]  0000000000000000 ffff880163e9f548 0000000000000000 ffffea000653b068
-[  585.419857] Call Trace:
-[  585.419857]  [<ffffffff810bac88>] shmem_recalc_inode+0x61/0x66
-[  585.419857]  [<ffffffff810bc216>] shmem_writepage+0xba/0x1dc
-[  585.419857]  [<ffffffff810b6f4a>] pageout+0x13c/0x24c
-[  585.419857]  [<ffffffff810b7479>] shrink_page_list+0x28e/0x4be
-[  585.419857]  [<ffffffff810b78c8>] shrink_inactive_list+0x21f/0x382
-...
+VFS: Busy inodes after unmount of tmpfs.
+               Self-destruct in 5 seconds.  Have a nice day...
 
-
+WARNING: at lib/list_debug.c:53 __list_del_entry+0x8d/0x98()
+list_del corruption. prev->next should be ffff880222fdaac8, but was (null)
+Pid: 11222, comm: mount.tmpfs Not tainted 2.6.39-rc2+ #4
+Call Trace:
+ warn_slowpath_common+0x80/0x98
+ warn_slowpath_fmt+0x41/0x43
+ __list_del_entry+0x8d/0x98
+ evict+0x50/0x113
+ iput+0x138/0x141
+...
+BUG: unable to handle kernel paging request at ffffffffffffffff
+IP: shmem_free_blocks+0x18/0x4c
+Pid: 10422, comm: dd Tainted: G        W   2.6.39-rc2+ #4
+Call Trace:
+ shmem_recalc_inode+0x61/0x66
+ shmem_writepage+0xba/0x1dc
+ pageout+0x13c/0x24c
+ shrink_page_list+0x28e/0x4be
+ shrink_inactive_list+0x21f/0x382
+...
 
 shmem_writepage() calls igrab() on the inode for the page which came from
-page reclaim to add it later into shmem_swaplist for swap-unuse operation.
+page reclaim, to add it later into shmem_swaplist for swapoff operation.
 
 This igrab() can race with super-block deactivating process:
 
@@ -111,32 +94,76 @@ shmem_writepage()		kill_litter_super()
 				 if (!list_empty(&sb->s_inodes))
 					printk("VFS: Busy inodes after...
 
-This igrap-iput pair was added in commit 1b1b32f2c6f ("tmpfs: fix
-shmem_swaplist races") based on an incorrect assumptions:
+This igrap-iput pair was added in commit 1b1b32f2c6f6 "tmpfs: fix
+shmem_swaplist races" based on incorrect assumptions: igrab() protects the
+inode from concurrent eviction by deletion, but it does nothing to protect
+it from concurrent unmounting, which goes ahead despite the raised
+i_count.
 
-: Ah, I'd never suspected it, but shmem_writepage's swaplist manipulation
-: is unsafe: though still hold page lock, which would hold off inode
-: deletion if the page were i pagecache, it doesn't hold off once it's in
-: swapcache (free_swap_and_cache doesn't wait on locked pages).  Hmm: we
-: could put the the inode on swaplist earlier, but then shmem_unuse_inode
-: could never prune unswapped inodes.
+So this use of igrab() was wrong all along, but the race made much worse
+in 2.6.37 when commit 63997e98a3be "split invalidate_inodes()" replaced
+two attempts at invalidate_inodes() by a single evict_inodes().
 
-The attached locked page actually protects the inode from deletion because
-truncate_inode_pages_range() will sleep on this, so an igrab is not
-required.  This patch actually revert last hunk from that commit.
+Konstantin posted a plausible patch, raising sb->s_active too: I'm unsure
+whether it was correct or not; but burnt once by igrab(), I am sure that
+we don't want to rely more deeply upon externals here.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Hugh Dickins <hughd@google.com>
+Fix it by adding the inode to shmem_swaplist earlier, while the page lock
+on page in page cache still secures the inode against eviction, without
+artifically raising i_count.  It was originally added later because
+shmem_unuse_inode() is liable to remove an inode from the list while it's
+unswapped; but we can guard against that by taking spinlock before
+dropping mutex.
+
+Reported-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Tested-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ mm/shmem.c |   31 ++++++++++++++++++++-----------
+ 1 file changed, 20 insertions(+), 11 deletions(-)
 
 diff -puN mm/shmem.c~tmpfs-fix-race-between-umount-and-writepage mm/shmem.c
 --- a/mm/shmem.c~tmpfs-fix-race-between-umount-and-writepage
 +++ a/mm/shmem.c
-@@ -1084,21 +1084,16 @@ static int shmem_writepage(struct page *
+@@ -1039,6 +1039,7 @@ static int shmem_writepage(struct page *
+ 	struct address_space *mapping;
+ 	unsigned long index;
+ 	struct inode *inode;
++	bool unlock_mutex = false;
+ 
+ 	BUG_ON(!PageLocked(page));
+ 	mapping = page->mapping;
+@@ -1064,7 +1065,26 @@ static int shmem_writepage(struct page *
+ 	else
+ 		swap.val = 0;
+ 
++	/*
++	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
++	 * if it's not already there.  Do it now because we cannot take
++	 * mutex while holding spinlock, and must do so before the page
++	 * is moved to swap cache, when its pagelock no longer protects
++	 * the inode from eviction.  But don't unlock the mutex until
++	 * we've taken the spinlock, because shmem_unuse_inode() will
++	 * prune a !swapped inode from the swaplist under both locks.
++	 */
++	if (swap.val && list_empty(&info->swaplist)) {
++		mutex_lock(&shmem_swaplist_mutex);
++		/* move instead of add in case we're racing */
++		list_move_tail(&info->swaplist, &shmem_swaplist);
++		unlock_mutex = true;
++	}
++
+ 	spin_lock(&info->lock);
++	if (unlock_mutex)
++		mutex_unlock(&shmem_swaplist_mutex);
++
+ 	if (index >= info->next_index) {
+ 		BUG_ON(!(info->flags & SHMEM_TRUNCATE));
+ 		goto unlock;
+@@ -1084,21 +1104,10 @@ static int shmem_writepage(struct page *
  		delete_from_page_cache(page);
  		shmem_swp_set(info, entry, swap.val);
  		shmem_swp_unmap(entry);
@@ -145,29 +172,76 @@ diff -puN mm/shmem.c~tmpfs-fix-race-between-umount-and-writepage mm/shmem.c
 -		else
 -			inode = NULL;
  		spin_unlock(&info->lock);
--		swap_shmem_alloc(swap);
--		BUG_ON(page_mapped(page));
--		swap_writepage(page, wbc);
+ 		swap_shmem_alloc(swap);
+ 		BUG_ON(page_mapped(page));
+ 		swap_writepage(page, wbc);
 -		if (inode) {
-+		if (list_empty(&info->swaplist)) {
- 			mutex_lock(&shmem_swaplist_mutex);
- 			/* move instead of add in case we're racing */
- 			list_move_tail(&info->swaplist, &shmem_swaplist);
- 			mutex_unlock(&shmem_swaplist_mutex);
+-			mutex_lock(&shmem_swaplist_mutex);
+-			/* move instead of add in case we're racing */
+-			list_move_tail(&info->swaplist, &shmem_swaplist);
+-			mutex_unlock(&shmem_swaplist_mutex);
 -			iput(inode);
- 		}
-+		swap_shmem_alloc(swap);
-+		BUG_ON(page_mapped(page));
-+		swap_writepage(page, wbc);
+-		}
  		return 0;
  	}
  
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 linux-next.patch
-mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
-mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
-mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+tmpfs-fix-race-between-umount-and-writepage.patch
+tmpfs-fix-race-between-umount-and-swapoff.patch
+tmpfs-fix-spurious-enospc-when-racing-with-unswap.patch
+mmap-add-alignment-for-some-variables.patch
+mmap-avoid-unnecessary-anon_vma-lock.patch
+mmap-avoid-merging-cloned-vmas.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-delete-non-atomic-mm-counter-implementation.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+mn10300-convert-old-cpumask-api-into-new-one.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+prio_tree-debugging-patch.patch
 
