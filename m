@@ -1,420 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rtc-rtc-driver-for-da9052-pmic.patch removed from -mm tree
-Date: Tue, 10 May 2011 15:41:09 -0700
-Message-ID: <201105102241.p4AMf9qI026656@imap1.linux-foundation.org>
+Subject: + memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch added to -mm tree
+Date: Tue, 10 May 2011 16:09:55 -0700
+Message-ID: <201105102309.p4AN9trx028022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194Ab1EJWmB (ORCPT
+	by vger.kernel.org with ESMTP id S1752163Ab1EJXKe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 18:42:01 -0400
+	Tue, 10 May 2011 19:10:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Ashish.Jangam@kpitcummins.com, a.zummo@towertech.it, dchen@diasemi.com, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     rtc: rtc driver for DA9052 PMIC
-has been removed from the -mm tree.  Its filename was
-     rtc-rtc-driver-for-da9052-pmic.patch
+     memcg-reclaim-memory-from-nodes-in-round-robin-fix-2
+has been added to the -mm tree.  Its filename is
+     memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc driver for DA9052 PMIC
-From: Ashish Jangam <Ashish.Jangam@kpitcummins.com>
+Subject: memcg-reclaim-memory-from-nodes-in-round-robin-fix-2
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-RTC Driver for Dialog Semiconductor DA9052 PMICs.
+next_scan_node_update is the time when scan_nodes nodemask should be
+updated.  Then, time_after() is correct.  Otherwise, next-scan_node_update
+is intialized to be 0 and time_before() returns always true, scan_nodes
+never be updated.
 
-Signed-off-by: D. Chen <dchen@diasemi.com>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    7 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-da9052.c |  341 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 349 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rtc-driver-for-da9052-pmic drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rtc-driver-for-da9052-pmic
-+++ a/drivers/rtc/Kconfig
-@@ -508,6 +508,13 @@ config RTC_DRV_VRTC
- 	style programming interface is mostly conserved, but any
- 	updates are done via IPC calls to the system controller FW.
+diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-fix-2
++++ a/mm/memcontrol.c
+@@ -1517,7 +1517,7 @@ static void mem_cgroup_may_update_nodema
+ {
+ 	int nid;
  
-+config RTC_DRV_DA9052
-+	tristate "Dialog DA9052 RTC"
-+	depends on PMIC_DA9052
-+	help
-+	  Say y here to support the RTC driver for
-+	  Dialog Semiconductor DA9052 PMIC.
-+
- config RTC_DRV_DS1216
- 	tristate "Dallas DS1216"
- 	depends on SNI_RM
-diff -puN drivers/rtc/Makefile~rtc-rtc-driver-for-da9052-pmic drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-rtc-driver-for-da9052-pmic
-+++ a/drivers/rtc/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_RTC_DRV_BQ32K)	+= rtc-bq32k
- obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
-+obj-$(CONFIG_RTC_DRV_DA9052)		+= rtc-da9052.o
- obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
- obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
- obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
-diff -puN /dev/null drivers/rtc/rtc-da9052.c
---- /dev/null
-+++ a/drivers/rtc/rtc-da9052.c
-@@ -0,0 +1,341 @@
-+/*
-+ * Real time clock driver for DA9052
-+ *
-+ * Copyright(c) 2009 Dialog Semiconductor Ltd.
-+ *
-+ * Author: Dajun Chen <dajun.chen@diasemi.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+
-+#include <linux/mfd/da9052/da9052.h>
-+#include <linux/mfd/da9052/reg.h>
-+
-+#define rtc_err(da9052, fmt, ...) \
-+		dev_err(da9052->dev, "%s: " fmt, __func__, ##__VA_ARGS__)
-+
-+struct da9052_rtc {
-+	struct rtc_device *rtc;
-+	struct da9052 *da9052;
-+	int irq;
-+};
-+
-+static int da9052_rtc_enable_alarm(struct da9052 *da9052, bool enable)
-+{
-+	int ret = 0;
-+	if (enable) {
-+		ret = da9052_set_bits(da9052, DA9052_ALARM_Y_REG,
-+					DA9052_ALARM_Y_ALARM_ON);
-+		if (ret != 0)
-+			rtc_err(da9052, "Failed to enable ALM: %d\n", ret);
-+	} else {
-+		ret = da9052_clear_bits(da9052, DA9052_ALARM_Y_REG,
-+					DA9052_ALARM_Y_ALARM_ON);
-+		if (ret != 0)
-+			rtc_err(da9052, "Write error: %d\n",
-+					ret);
-+	}
-+	return ret;
-+}
-+
-+static irqreturn_t da9052_rtc_irq(int irq, void *data)
-+{
-+	struct da9052_rtc *rtc = data;
-+	int ret = 0;
-+
-+	ret = da9052_reg_read(rtc->da9052, DA9052_ALARM_MI_REG);
-+	if (ret < 0) {
-+		rtc_err(rtc->da9052, "Read error: %d\n",
-+					ret);
-+		return IRQ_NONE;
-+	}
-+	if (ret & DA9052_ALARMMI_ALARMTYPE)
-+		da9052_rtc_enable_alarm(rtc->da9052, 0);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int da9052_read_alarm(struct da9052 *da9052, struct rtc_time *rtc_tm)
-+{
-+
-+	int ret = 0;
-+	uint8_t v[5] = {0, 0, 0, 0, 0};
-+	ret = da9052_group_read(da9052, DA9052_ALARM_MI_REG, 5, v);
-+	if (ret != 0) {
-+		rtc_err(da9052, "Failed to group read ALM: %d\n", ret);
-+		return ret;
-+	}
-+
-+	rtc_tm->tm_year = v[4] & DA9052_RTC_YEAR;
-+	rtc_tm->tm_mon  = v[3] & DA9052_RTC_MONTH;
-+	rtc_tm->tm_mday = v[2] & DA9052_RTC_DAY;
-+	rtc_tm->tm_hour = v[1] & DA9052_RTC_HOUR;
-+	rtc_tm->tm_min  = v[0] & DA9052_RTC_MIN;
-+
-+	ret = rtc_valid_tm(rtc_tm);
-+	if (ret != 0)
-+		return ret;
-+
-+	rtc_tm->tm_year += 100;
-+	rtc_tm->tm_mon -= 1;
-+
-+	return ret;
-+}
-+
-+static int da9052_set_alarm(struct da9052 *da9052, struct rtc_time *rtc_tm)
-+{
-+	int ret = 0;
-+	uint8_t v[3] = {0, 0, 0};
-+
-+	rtc_tm->tm_sec = 0;
-+	rtc_tm->tm_year -= 100;
-+	rtc_tm->tm_mon += 1;
-+
-+	ret = rtc_valid_tm(rtc_tm);
-+	if (ret)
-+		return ret;
-+
-+	ret = da9052_reg_update(da9052, DA9052_ALARM_MI_REG,
-+				DA9052_RTC_MIN, rtc_tm->tm_min);
-+	if (ret != 0) {
-+		rtc_err(da9052, "Failed to write ALRM MIN: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = da9052_reg_update(da9052, DA9052_ALARM_Y_REG,
-+				DA9052_RTC_YEAR, rtc_tm->tm_year);
-+	if (ret != 0) {
-+		rtc_err(da9052, "Failed to write ALRM YEAR: %d\n", ret);
-+		return ret;
-+	}
-+
-+	v[0] = rtc_tm->tm_hour;
-+	v[1] = rtc_tm->tm_mday;
-+	v[2] = rtc_tm->tm_mon;
-+
-+	return da9052_group_write(da9052, DA9052_ALARM_H_REG, 3, v);
-+}
-+
-+static int da9052_rtc_get_alarm_status(struct da9052 *da9052)
-+{
-+	int ret = 0;
-+	ret = da9052_reg_read(da9052, DA9052_ALARM_Y_REG);
-+	if (ret < 0) {
-+		rtc_err(da9052, "Failed to read ALM: %d\n", ret);
-+		return ret;
-+	}
-+	ret &= DA9052_ALARM_Y_ALARM_ON;
-+	return (ret > 0) ? 1 : 0;
-+}
-+
-+static int da9052_rtc_read_time
-+			(struct device *dev, struct rtc_time *rtc_tm)
-+{
-+	struct da9052_rtc *rtc = dev_get_drvdata(dev);
-+	uint8_t v[6] = {0, 0, 0, 0, 0, 0};
-+	int ret;
-+
-+	ret = da9052_group_read(rtc->da9052, DA9052_COUNT_S_REG, 6, v);
-+	if (ret != 0) {
-+		rtc_err(rtc->da9052, "Failed to read RTC time : %d\n",
-+					ret);
-+		return ret;
-+	}
-+
-+	rtc_tm->tm_year = v[5] & DA9052_RTC_YEAR;
-+	rtc_tm->tm_mon  = v[4] & DA9052_RTC_MONTH;
-+	rtc_tm->tm_mday = v[3] & DA9052_RTC_DAY;
-+	rtc_tm->tm_hour = v[2] & DA9052_RTC_HOUR;
-+	rtc_tm->tm_min  = v[1] & DA9052_RTC_MIN;
-+	rtc_tm->tm_sec  = v[0] & DA9052_RTC_SEC;
-+
-+	ret = rtc_valid_tm(rtc_tm);
-+	if (ret != 0) {
-+		rtc_err(rtc->da9052, "rtc_valid_tm failed: %d\n",
-+					ret);
-+		return ret;
-+	}
-+
-+	rtc_tm->tm_year += 100;
-+	rtc_tm->tm_mon -= 1;
-+
-+	return 0;
-+}
-+
-+
-+static int da9052_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	int ret;
-+	struct da9052_rtc *rtc;
-+	uint8_t v[6] = {0, 0, 0, 0, 0, 0};
-+
-+	rtc = dev_get_drvdata(dev);
-+
-+	tm->tm_year -= 100;
-+	tm->tm_mon += 1;
-+
-+	ret = rtc_valid_tm(tm);
-+	if (ret != 0)
-+		return ret;
-+
-+	v[0] = tm->tm_sec;
-+	v[1] = tm->tm_min;
-+	v[2] = tm->tm_hour;
-+	v[3] = tm->tm_mday;
-+	v[4] = tm->tm_mon;
-+	v[5] = tm->tm_year;
-+	return da9052_group_write(rtc->da9052, DA9052_COUNT_S_REG, 6, v);
-+}
-+
-+static int da9052_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	int ret = 0;
-+	struct rtc_time *tm = &alrm->time;
-+	struct da9052_rtc *rtc = dev_get_drvdata(dev);
-+
-+	ret = da9052_read_alarm(rtc->da9052, tm);
-+
-+	if (ret)
-+		return ret;
-+
-+	alrm->enabled = da9052_rtc_get_alarm_status(rtc->da9052);
-+
-+	return 0;
-+}
-+
-+static int da9052_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	int ret = 0;
-+	struct rtc_time *tm = &alrm->time;
-+	struct da9052_rtc *rtc = dev_get_drvdata(dev);
-+
-+	ret = da9052_set_alarm(rtc->da9052, tm);
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = da9052_rtc_enable_alarm(rtc->da9052, 1);
-+
-+	return ret;
-+}
-+
-+static int da9052_rtc_update_irq_enable(struct device *dev,
-+		unsigned int enabled)
-+{
-+	struct da9052_rtc *rtc = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		return da9052_set_bits(rtc->da9052, DA9052_ALARM_Y_REG,
-+					DA9052_ALARM_Y_TICK_ON);
-+	else
-+		return da9052_clear_bits(rtc->da9052, DA9052_ALARM_Y_REG,
-+					 DA9052_ALARM_Y_TICK_ON);
-+}
-+
-+static int da9052_rtc_alarm_irq_enable(struct device *dev,
-+			unsigned int enabled)
-+{
-+	struct da9052_rtc *rtc = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		return da9052_rtc_enable_alarm(rtc->da9052, enabled);
-+	else
-+		return da9052_rtc_enable_alarm(rtc->da9052, enabled);
-+}
-+
-+static const struct rtc_class_ops da9052_rtc_ops = {
-+	.read_time	= da9052_rtc_read_time,
-+	.set_time	= da9052_rtc_set_time,
-+	.read_alarm	= da9052_rtc_read_alarm,
-+	.set_alarm	= da9052_rtc_set_alarm,
-+	.update_irq_enable = da9052_rtc_update_irq_enable,
-+	.alarm_irq_enable = da9052_rtc_alarm_irq_enable,
-+};
-+
-+static int __devinit da9052_rtc_probe(struct platform_device *pdev)
-+{
-+	struct da9052_rtc *rtc;
-+	int ret = 0;
-+
-+	rtc = kzalloc(sizeof(struct da9052_rtc), GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
-+
-+	rtc->da9052 = dev_get_drvdata(pdev->dev.parent);
-+	rtc->irq = platform_get_irq_byname(pdev, "ALM");
-+
-+	ret = request_threaded_irq(rtc->da9052->irq_base + rtc->irq,
-+				NULL, da9052_rtc_irq,
-+				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-+				"ALM", rtc);
-+	if (ret != 0) {
-+		rtc_err(rtc->da9052, "irq registration failed: %d\n",
-+					ret);
-+		goto err_mem;
-+	}
-+
-+	da9052_set_bits(rtc->da9052, DA9052_ALARM_Y_REG,
-+			DA9052_ALARM_Y_TICK_ON);
-+
-+	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+				       &da9052_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc)) {
-+		ret = PTR_ERR(rtc->rtc);
-+		goto err_free_irq;
-+	}
-+
-+	platform_set_drvdata(pdev, rtc);
-+
-+	return 0;
-+
-+err_free_irq:
-+	free_irq(rtc->da9052->irq_base + rtc->irq, NULL);
-+err_mem:
-+	kfree(rtc);
-+	return ret;
-+}
-+
-+static int __devexit da9052_rtc_remove(struct platform_device *pdev)
-+{
-+	struct da9052_rtc *rtc = pdev->dev.platform_data;
-+
-+	rtc_device_unregister(rtc->rtc);
-+	free_irq(rtc->da9052->irq_base + rtc->irq, NULL);
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver da9052_rtc_driver = {
-+	.driver = {
-+			.name		= "da9052-rtc",
-+			.owner	= THIS_MODULE,
-+	},
-+	.probe	= da9052_rtc_probe,
-+	.remove	= __devexit_p(da9052_rtc_remove),
-+};
-+
-+static int __init da9052_rtc_init(void)
-+{
-+	return platform_driver_register(&da9052_rtc_driver);
-+}
-+module_init(da9052_rtc_init);
-+
-+static void __exit da9052_rtc_exit(void)
-+{
-+	platform_driver_unregister(&da9052_rtc_driver);
-+}
-+module_exit(da9052_rtc_exit);
-+
-+MODULE_AUTHOR("Dialog Semiconductor Ltd <dchen@diasemi.com>");
-+MODULE_DESCRIPTION("RTC driver for Dialog DA9052 PMIC");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:da9052-rtc");
+-	if (time_before(mem->next_scan_node_update, jiffies))
++	if (time_after(mem->next_scan_node_update, jiffies))
+ 		return;
+ 
+ 	mem->next_scan_node_update = jiffies + 10*HZ;
 _
 
-Patches currently in -mm which might be from Ashish.Jangam@kpitcummins.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
+mm-delete-non-atomic-mm-counter-implementation.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
+memcg-fix-get_scan_count-for-small-targets.patch
 
