@@ -1,188 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 10 May 2011 12:51:42 -0700
-Message-ID: <201105101944.p4AJiXgk017458@imap1.linux-foundation.org>
+Subject: [obsolete] tmpfs-fix-race-between-umount-and-writepage.patch removed from -mm tree
+Date: Tue, 10 May 2011 14:07:11 -0700
+Message-ID: <201105102107.p4AL7CGU021868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750792Ab1EJTpX (ORCPT
+	by vger.kernel.org with ESMTP id S1751401Ab1EJVHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 15:45:23 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4AJiXWe005141
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 10 May 2011 12:44:33 -0700
+	Tue, 10 May 2011 17:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     tmpfs: fix race between umount and writepage
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     tmpfs-fix-race-between-umount-and-writepage.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tmpfs: fix race between umount and writepage
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
+The bug is easily reproduced by this script:
+
+for i in {1..300} ; do
+	mkdir $i
+	while true ; do
+		mount -t tmpfs none $i
+		dd if=/dev/zero of=$i/test bs=1M count=$(($RANDOM % 100)) status=noxfer
+		umount $i
+	done &
+done
+
+At 6xCPU node with 8Gb RAM. Kernel is very unstable after this accident. =)
+Kernel with this patch is working fine for at least an hour.
+
+Kernel log:
+
+[  584.544461] VFS: Busy inodes after unmount of tmpfs. Self-destruct in 5 seconds.  Have a nice day...
+[  585.409221] ------------[ cut here ]------------
+[  585.409268] WARNING: at lib/list_debug.c:53 __list_del_entry+0x8d/0x98()
+[  585.409331] Hardware name: System Product Name
+[  585.409372] list_del corruption. prev->next should be ffff880222fdaac8, but was           (null)
+[  585.409928] Modules linked in: [last unloaded: scsi_wait_scan]
+[  585.410279] Pid: 11222, comm: mount.tmpfs Not tainted 2.6.39-rc2+ #4
+[  585.410540] Call Trace:
+[  585.410819]  [<ffffffff8103b710>] warn_slowpath_common+0x80/0x98
+[  585.411113]  [<ffffffff8103b7bc>] warn_slowpath_fmt+0x41/0x43
+[  585.411377]  [<ffffffff81227145>] __list_del_entry+0x8d/0x98
+[  585.411649]  [<ffffffff810f68af>] evict+0x50/0x113
+[  585.411919]  [<ffffffff810f6ce6>] iput+0x138/0x141
+...
+[  585.416428] ---[ end trace 39cf2c656ee772fe ]---
+[  585.416690] BUG: unable to handle kernel paging request at ffffffffffffffff
+[  585.417001] IP: [<ffffffff810b946a>] shmem_free_blocks+0x18/0x4c
+[  585.417001] PGD 1805067 PUD 1806067 PMD 0
+[  585.417001] Oops: 0000 [#1] SMP
+[  585.417839] last sysfs file: /sys/kernel/kexec_crash_size
+[  585.418156] CPU 1
+[  585.418156] Modules linked in: [last unloaded: scsi_wait_scan]
+[  585.418851]
+[  585.418851] Pid: 10422, comm: dd Tainted: G        W   2.6.39-rc2+ #4 System manufacturer System Product Name/Crosshair IV Formula
+[  585.419541] RIP: 0010:[<ffffffff810b946a>]  [<ffffffff810b946a>] shmem_free_blocks+0x18/0x4c
+[  585.419857] RSP: 0018:ffff880163e9f4b8  EFLAGS: 00010206
+[  585.419857] RAX: ffff88021b513400 RBX: ffff880222fdaa40 RCX: 0000000000000020
+[  585.419857] RDX: ffffffffffffffe0 RSI: 000000000000000e RDI: ffffffffffffffff
+[  585.419857] RBP: ffff880163e9f4c8 R08: ffffea000653b090 R09: 0000000000014df0
+[  585.419857] R10: 0000000000000028 R11: 000000000000002a R12: 000000000000000e
+[  585.419857] R13: 000000000003cc76 R14: ffff880222fda970 R15: ffff880202b5d588
+[  585.419857] FS:  00007f1c5b0cb700(0000) GS:ffff88024fc40000(0000) knlGS:0000000000000000
+[  585.419857] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  585.419857] CR2: ffffffffffffffff CR3: 0000000187431000 CR4: 00000000000006e0
+[  585.419857] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  585.419857] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  585.419857] Process dd (pid: 10422, threadinfo ffff880163e9e000, task ffff880098f65700)
+[  585.419857] Stack:
+[  585.419857]  ffff880222fdaa40 000000000000000e ffff880163e9f4e8 ffffffff810bac88
+[  585.419857]  ffff880222fdaa40 ffffea000653b068 ffff880163e9f538 ffffffff810bc216
+[  585.419857]  0000000000000000 ffff880163e9f548 0000000000000000 ffffea000653b068
+[  585.419857] Call Trace:
+[  585.419857]  [<ffffffff810bac88>] shmem_recalc_inode+0x61/0x66
+[  585.419857]  [<ffffffff810bc216>] shmem_writepage+0xba/0x1dc
+[  585.419857]  [<ffffffff810b6f4a>] pageout+0x13c/0x24c
+[  585.419857]  [<ffffffff810b7479>] shrink_page_list+0x28e/0x4be
+[  585.419857]  [<ffffffff810b78c8>] shrink_inactive_list+0x21f/0x382
+...
+
+
+
+shmem_writepage() calls igrab() on the inode for the page which came from
+page reclaim to add it later into shmem_swaplist for swap-unuse operation.
+
+This igrab() can race with super-block deactivating process:
+
+shrink_inactive_list()		deactivate_super()
+pageout()			tmpfs_fs_type->kill_sb()
+shmem_writepage()		kill_litter_super()
+				generic_shutdown_super()
+				 evict_inodes()
+ igrab()
+				  atomic_read(&inode->i_count)
+				   skip-inode
+ iput()
+				 if (!list_empty(&sb->s_inodes))
+					printk("VFS: Busy inodes after...
+
+This igrap-iput pair was added in commit 1b1b32f2c6f ("tmpfs: fix
+shmem_swaplist races") based on an incorrect assumptions:
+
+: Ah, I'd never suspected it, but shmem_writepage's swaplist manipulation
+: is unsafe: though still hold page lock, which would hold off inode
+: deletion if the page were i pagecache, it doesn't hold off once it's in
+: swapcache (free_swap_and_cache doesn't wait on locked pages).  Hmm: we
+: could put the the inode on swaplist earlier, but then shmem_unuse_inode
+: could never prune unswapped inodes.
+
+The attached locked page actually protects the inode from deletion because
+truncate_inode_pages_range() will sleep on this, so an igrab is not
+required.  This patch actually revert last hunk from that commit.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/eeepc-laptop.c |   13 -------------
- drivers/platform/x86/sony-laptop.c  |   11 -----------
- 2 files changed, 24 deletions(-)
+ mm/shmem.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -609,11 +609,7 @@ static void eeepc_rfkill_hotplug(struct 
- 		bus = port->subordinate;
- 
- 		if (!bus) {
--<<<<<<< HEAD
--			pr_warning("Unable to find PCI bus?\n");
--=======
- 			pr_warn("Unable to find PCI bus 1?\n");
-->>>>>>> FETCH_HEAD
- 			goto out_unlock;
+diff -puN mm/shmem.c~tmpfs-fix-race-between-umount-and-writepage mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-race-between-umount-and-writepage
++++ a/mm/shmem.c
+@@ -1084,21 +1084,16 @@ static int shmem_writepage(struct page *
+ 		delete_from_page_cache(page);
+ 		shmem_swp_set(info, entry, swap.val);
+ 		shmem_swp_unmap(entry);
+-		if (list_empty(&info->swaplist))
+-			inode = igrab(inode);
+-		else
+-			inode = NULL;
+ 		spin_unlock(&info->lock);
+-		swap_shmem_alloc(swap);
+-		BUG_ON(page_mapped(page));
+-		swap_writepage(page, wbc);
+-		if (inode) {
++		if (list_empty(&info->swaplist)) {
+ 			mutex_lock(&shmem_swaplist_mutex);
+ 			/* move instead of add in case we're racing */
+ 			list_move_tail(&info->swaplist, &shmem_swaplist);
+ 			mutex_unlock(&shmem_swaplist_mutex);
+-			iput(inode);
  		}
++		swap_shmem_alloc(swap);
++		BUG_ON(page_mapped(page));
++		swap_writepage(page, wbc);
+ 		return 0;
+ 	}
  
-@@ -695,16 +691,7 @@ static int eeepc_register_rfkill_notifie
- 						     eeepc_rfkill_notify,
- 						     eeepc);
- 		if (ACPI_FAILURE(status))
--<<<<<<< HEAD
--			pr_warning("Failed to register notify on %s\n", node);
--		/*
--		 * Refresh pci hotplug in case the rfkill state was
--		 * changed during setup.
--		 */
--		eeepc_rfkill_hotplug(eeepc, handle);
--=======
- 			pr_warn("Failed to register notify on %s\n", node);
-->>>>>>> FETCH_HEAD
- 	} else
- 		return -ENODEV;
- 
-diff -puN drivers/platform/x86/sony-laptop.c~linux-next-git-rejects drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~linux-next-git-rejects
-+++ a/drivers/platform/x86/sony-laptop.c
-@@ -978,13 +978,8 @@ static int sony_nc_update_status_ng(stru
- 	struct sony_backlight_props *sdev =
- 		(struct sony_backlight_props *)bl_get_data(bd);
- 
--<<<<<<< HEAD
--	value = bd->props.brightness + sdev->offset;
--	if (sony_call_snc_handle(sdev->handle, 0x0100 | (value << 16), &result))
--=======
- 	value = bd->props.brightness;
- 	if (sony_call_snc_handle(*handle, 0x0100 | (value << 16), &result))
-->>>>>>> FETCH_HEAD
- 		return -EIO;
- 
- 	return value;
-@@ -1665,15 +1660,9 @@ static void sony_nc_backlight_setup(void
- 						      &sony_bl_props,
- 						      ops, &props);
- 
--<<<<<<< HEAD
--	if (IS_ERR(sony_bl_props.dev)) {
--		pr_warn(DRV_PFX "unable to register backlight device\n");
--		sony_bl_props.dev = NULL;
--=======
- 	if (IS_ERR(sony_backlight_device)) {
- 		pr_warn("unable to register backlight device\n");
- 		sony_backlight_device = NULL;
-->>>>>>> FETCH_HEAD
- 	} else
- 		sony_bl_props.dev->props.brightness =
- 			ops->get_brightness(sony_bl_props.dev);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
-mm-add-alloc_pages_exact_nid-fix.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-usb-misc-usbtestc-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
 
