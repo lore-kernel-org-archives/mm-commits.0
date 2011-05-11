@@ -1,74 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 May 2011 15:11:53 -0700
-Message-ID: <201105112211.p4BMBrVM028784@imap1.linux-foundation.org>
+Subject: [folded] mm-add-alloc_pages_exact_nid-fix.patch removed from -mm tree
+Date: Wed, 11 May 2011 15:11:56 -0700
+Message-ID: <201105112211.p4BMBuvB028791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651Ab1EKWMX (ORCPT
+	by vger.kernel.org with ESMTP id S1755651Ab1EKWMt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 18:12:23 -0400
+	Wed, 11 May 2011 18:12:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, balbir@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.
 
 
 The patch titled
-     mm-add-alloc_pages_exact_nid-checkpatch-fixes
+     mm-add-alloc_pages_exact_nid-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
+     mm-add-alloc_pages_exact_nid-fix.patch
 
 This patch was dropped because it was folded into mm-add-alloc_pages_exact_nid.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-alloc_pages_exact_nid-checkpatch-fixes
+Subject: mm-add-alloc_pages_exact_nid-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#53: FILE: mm/page_alloc.c:2332:
-+^Ireturn (void *)addr;^I$
-
-total: 1 errors, 0 warnings, 72 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-add-alloc_pages_exact_nid.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+tweak comment
 
 Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid-checkpatch-fixes include/linux/gfp.h
-diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes
+diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid-fix include/linux/gfp.h
+diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid-fix
 +++ a/mm/page_alloc.c
-@@ -2329,7 +2329,7 @@ static void *make_alloc_exact(unsigned l
- 			used += PAGE_SIZE;
- 		}
- 	}
--	return (void *)addr;	
-+	return (void *)addr;
- }
+@@ -2356,14 +2356,15 @@ void *alloc_pages_exact(size_t size, gfp
+ EXPORT_SYMBOL(alloc_pages_exact);
  
  /**
+- * alloc_pages_exact_nid - allocate an exact number physically-contiguous pages on node.
++ * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
++ *			   pages on a node.
+  * @size: the number of bytes to allocate
+  * @gfp_mask: GFP flags for the allocation
+  *
+- * Like alloc_pages_exact, but try to allocate on node nid first
+- * before falling back.
+- * Note this is not alloc_pages_exact_node() which allocates
+- * on a specific node, but is not exact.
++ * Like alloc_pages_exact(), but try to allocate on node nid first before falling
++ * back.
++ * Note this is not alloc_pages_exact_node() which allocates on a specific node,
++ * but is not exact.
+  */
+ void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
 mm-add-alloc_pages_exact_nid.patch
-mm-add-alloc_pages_exact_nid-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
