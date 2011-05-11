@@ -1,7 +1,7 @@
 From: akpm@linux-foundation.org
-Subject: + leds-provide-helper-to-register-leds-gpio-devices-v4.patch added to -mm tree
-Date: Wed, 11 May 2011 00:25:13 -0700
-Message-ID: <201105110718.p4B7I0kS018135@imap1.linux-foundation.org>
+Subject: [folded] leds-provide-helper-to-register-leds-gpio-devices-fix.patch removed from -mm tree
+Date: Wed, 11 May 2011 00:13:43 -0700
+Message-ID: <201105110706.p4B76Uei017734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
@@ -9,223 +9,165 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752976Ab1EKPi2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752988Ab1EKPi3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 11:38:28 -0400
+	Wed, 11 May 2011 11:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, fabio.estevam@freescale.com, hartleys@visionengravers.com, richard.purdie@linuxfoundation.org, rmk@arm.linux.org.uk, s.hauer@pengutronix.de
+To: akpm@linux-foundation.org, fabio.estevam@freescale.com, hartleys@visionengravers.com, richard.purdie@linuxfoundation.org, rmk@arm.linux.org.uk, s.hauer@pengutronix.de, u.kleine-koenig
 
 
 The patch titled
-     leds-provide-helper-to-register-leds-gpio-devices-v4
-has been added to the -mm tree.  Its filename is
-     leds-provide-helper-to-register-leds-gpio-devices-v4.patch
+     leds-provide-helper-to-register-leds-gpio-devices-fix
+has been removed from the -mm tree.  Its filename was
+     leds-provide-helper-to-register-leds-gpio-devices-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into leds-provide-helper-t=
+o-register-leds-gpio-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: leds-provide-helper-to-register-leds-gpio-devices-v4
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: leds-provide-helper-to-register-leds-gpio-devices-fix
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-- new commit log
-- improved documentation and moved it to .c file
-- used obj-$(CONFIG..) and renamed source file
-- provide an example usage (in a seperate patch)
+s/CONFIG_LED_REGISTER_GPIO/CONFIG_LEDS_REGISTER_GPIO/
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Cc: Fabio Estevam <fabio.estevam@freescale.com>
 Cc: H Hartley Sweeten <hartleys@visionengravers.com>
 Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Uwe Kleine-K=F6nig  <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig              |    4 ++
- drivers/leds/Makefile             |    2 -
- drivers/leds/led-register.c       |   33 ----------------------
- drivers/leds/leds-gpio-register.c |   42 ++++++++++++++++++++++++++++
- include/linux/leds.h              |   10 ------
- 5 files changed, 46 insertions(+), 45 deletions(-)
+ drivers/leds/Kconfig        |    2 +-
+ drivers/leds/led-register.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpi=
-o-devices-v4 drivers/leds/Kconfig
+o-devices-fix drivers/leds/Kconfig
 --- a/drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpio-de=
-vices-v4
+vices-fix
 +++ a/drivers/leds/Kconfig
-@@ -14,10 +14,12 @@ config LEDS_CLASS
+@@ -14,7 +14,7 @@ config LEDS_CLASS
  	  This option enables the led sysfs class in /sys/class/leds.  You'll
  	  need this to do anything useful with LEDs.  If unsure, say N.
 =20
--config LEDS_REGISTER_GPIO
-+config LEDS_GPIO_REGISTER
+-config LED_REGISTER_GPIO
++config LEDS_REGISTER_GPIO
  	bool
  	help
  	  This option provides the function gpio_led_register_device.
-+	  As this function is used by arch code it must not be compiled as a
-+	  module.
-=20
- if NEW_LEDS
-=20
-diff -puN drivers/leds/Makefile~leds-provide-helper-to-register-leds-gp=
-io-devices-v4 drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-provide-helper-to-register-leds-gpio-d=
-evices-v4
-+++ a/drivers/leds/Makefile
-@@ -3,7 +3,6 @@
- obj-$(CONFIG_NEW_LEDS)			+=3D led-core.o
- obj-$(CONFIG_LEDS_CLASS)		+=3D led-class.o
- obj-$(CONFIG_LEDS_TRIGGERS)		+=3D led-triggers.o
--obj-y					+=3D led-register.o
-=20
- # LED Platform Drivers
- obj-$(CONFIG_LEDS_88PM860X)		+=3D leds-88pm860x.o
-@@ -21,6 +20,7 @@ obj-$(CONFIG_LEDS_COBALT_QUBE)		+=3D leds-
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+=3D leds-cobalt-raq.o
- obj-$(CONFIG_LEDS_SUNFIRE)		+=3D leds-sunfire.o
- obj-$(CONFIG_LEDS_PCA9532)		+=3D leds-pca9532.o
-+obj-$(CONFIG_LEDS_GPIO_REGISTER)	+=3D leds-gpio-register.o
- obj-$(CONFIG_LEDS_GPIO)			+=3D leds-gpio.o
- obj-$(CONFIG_LEDS_LP3944)		+=3D leds-lp3944.o
- obj-$(CONFIG_LEDS_LP5521)		+=3D leds-lp5521.o
 diff -puN drivers/leds/led-register.c~leds-provide-helper-to-register-l=
-eds-gpio-devices-v4 /dev/null
---- a/drivers/leds/led-register.c
-+++ /dev/null
-@@ -1,33 +0,0 @@
--/*
-- * Copyright (C) 2011 Pengutronix
-- * Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modif=
-y it under
-- * the terms of the GNU General Public License version 2 as published =
-by the
-- * Free Software Foundation.
-- */
--#include <linux/err.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/leds.h>
--
--#if defined(CONFIG_LEDS_REGISTER_GPIO)
--struct platform_device *__init gpio_led_register_device(
--		int id, const struct gpio_led_platform_data *pdata)
--{
--	struct platform_device *ret;
--	struct gpio_led_platform_data _pdata =3D *pdata;
--
--	_pdata.leds =3D kmemdup(pdata->leds,
--			pdata->num_leds * sizeof(*pdata->leds), GFP_KERNEL);
--	if (!_pdata.leds)
--		return ERR_PTR(-ENOMEM);
--
--	ret =3D platform_device_register_resndata(NULL, "leds-gpio", id,
--			NULL, 0, &_pdata, sizeof(_pdata));
--	if (IS_ERR(ret))
--		kfree(_pdata.leds);
--
--	return ret;
--}
--#endif
-diff -puN /dev/null drivers/leds/leds-gpio-register.c
---- /dev/null
-+++ a/drivers/leds/leds-gpio-register.c
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (C) 2011 Pengutronix
-+ * Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y it under
-+ * the terms of the GNU General Public License version 2 as published =
-by the
-+ * Free Software Foundation.
-+ */
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/leds.h>
-+
-+/**
-+ * gpio_led_register_device - register a gpio-led device
-+ * @pdata: the platform data used for the new device
-+ *
-+ * Makes a copy of pdata and pdata->leds and registers a new leds-gpio=
- device
-+ * with the result. This allows to have pdata and pdata-leds in .init.=
-rodata
-+ * and so saves some bytes compared to a static struct platform_device=
- with
-+ * static platform data.
-+ *
-+ * Returns the registered device or an error pointer.
-+ */
-+struct platform_device *__init gpio_led_register_device(
-+		int id, const struct gpio_led_platform_data *pdata)
-+{
-+	struct platform_device *ret;
-+	struct gpio_led_platform_data _pdata =3D *pdata;
-+
-+	_pdata.leds =3D kmemdup(pdata->leds,
-+			pdata->num_leds * sizeof(*pdata->leds), GFP_KERNEL);
-+	if (!_pdata.leds)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret =3D platform_device_register_resndata(NULL, "leds-gpio", id,
-+			NULL, 0, &_pdata, sizeof(_pdata));
-+	if (IS_ERR(ret))
-+		kfree(_pdata.leds);
-+
-+	return ret;
-+}
-diff -puN include/linux/leds.h~leds-provide-helper-to-register-leds-gpi=
-o-devices-v4 include/linux/leds.h
---- a/include/linux/leds.h~leds-provide-helper-to-register-leds-gpio-de=
-vices-v4
-+++ a/include/linux/leds.h
-@@ -207,16 +207,6 @@ struct gpio_led_platform_data {
- 					unsigned long *delay_off);
- };
+eds-gpio-devices-fix drivers/leds/led-register.c
+--- a/drivers/leds/led-register.c~leds-provide-helper-to-register-leds-=
+gpio-devices-fix
++++ a/drivers/leds/led-register.c
+@@ -11,7 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/leds.h>
 =20
--/**
-- * gpio_led_register_device - register a gpio-led device
-- * @pdata: the platform data used for the new device
-- *
-- * Use this function instead of platform_device_add()ing a static stru=
-ct
-- * platform_device.
-- *
-- * Note: as pdata and pdata->leds is copied these usually can and shou=
-ld be
-- * __initdata.
-- */
- struct platform_device *gpio_led_register_device(
- 		int id, const struct gpio_led_platform_data *pdata);
-=20
+-#if defined(CONFIG_LED_REGISTER_GPIO)
++#if defined(CONFIG_LEDS_REGISTER_GPIO)
+ struct platform_device *__init gpio_led_register_device(
+ 		int id, const struct gpio_led_platform_data *pdata)
+ {
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
+mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
+mm-add-alloc_pages_exact_nid-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-provide-helper-to-register-leds-gpio-devices-v4.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-f=
+ix.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-usb-misc-usbtestc-fix-warning.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.=
+patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.=
+patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-=
+fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patc=
+h
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.pa=
+tch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-fail=
+ure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-fail=
+ure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-f=
+ix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-ini=
+tialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oop=
+s-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
