@@ -1,95 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-remove-acpi_sleep=s4_nonvs.patch removed from -mm tree
-Date: Wed, 11 May 2011 12:07:58 -0700
-Message-ID: <201105111900.p4BJ0edB018872@imap1.linux-foundation.org>
+Subject: [merged] fuse-fix-oops-in-revalidate-when-called-with-null-nameidata.patch removed from -mm tree
+Date: Wed, 11 May 2011 12:07:55 -0700
+Message-ID: <201105111900.p4BJ0bCF018868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840Ab1EKTBb (ORCPT
+	by vger.kernel.org with ESMTP id S1750840Ab1EKTBl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 15:01:31 -0400
+	Wed, 11 May 2011 15:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, len.brown@intel.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, baryluk@smp.if.uj.edu.pl, tyhicks@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: remove acpi_sleep=s4_nonvs
+     fuse: fix oops in revalidate when called with NULL nameidata
 has been removed from the -mm tree.  Its filename was
-     acpi-remove-acpi_sleep=s4_nonvs.patch
+     fuse-fix-oops-in-revalidate-when-called-with-null-nameidata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove acpi_sleep=s4_nonvs
-From: Amerigo Wang <amwang@redhat.com>
+Subject: fuse: fix oops in revalidate when called with NULL nameidata
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-acpi_sleep=s4_nonvs is superseded by acpi_sleep=nonvs.
+Some cases (e.g.  ecryptfs) can call ->dentry_revalidate with NULL
+nameidata.
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Tyler Hicks pointed out that this bug was introduced by commit e7c0a16786
+"fuse: make fuse_dentry_revalidate() RCU aware"
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=34732
+
+Reported-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 --------
- Documentation/kernel-parameters.txt        |    2 +-
- arch/x86/kernel/acpi/sleep.c               |    5 -----
- 3 files changed, 1 insertion(+), 14 deletions(-)
+ fs/fuse/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~acpi-remove-acpi_sleep=s4_nonvs Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~acpi-remove-acpi_sleep=s4_nonvs
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -439,14 +439,6 @@ Who:	Thomas Gleixner <tglx@linutronix.de
+diff -puN fs/fuse/dir.c~fuse-fix-oops-in-revalidate-when-called-with-null-nameidata fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-oops-in-revalidate-when-called-with-null-nameidata
++++ a/fs/fuse/dir.c
+@@ -174,7 +174,7 @@ static int fuse_dentry_revalidate(struct
+ 		if (!inode)
+ 			return 0;
  
- ----------------------------
+-		if (nd->flags & LOOKUP_RCU)
++		if (nd && (nd->flags & LOOKUP_RCU))
+ 			return -ECHILD;
  
--What:	The acpi_sleep=s4_nonvs command line option
--When:	2.6.37
--Files:	arch/x86/kernel/acpi/sleep.c
--Why:	superseded by acpi_sleep=nonvs
--Who:	Rafael J. Wysocki <rjw@sisk.pl>
--
------------------------------
--
- What: 	PCI DMA unmap state API
- When:	August 2012
- Why:	PCI DMA unmap state API (include/linux/pci-dma.h) was replaced
-diff -puN Documentation/kernel-parameters.txt~acpi-remove-acpi_sleep=s4_nonvs Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-remove-acpi_sleep=s4_nonvs
-+++ a/Documentation/kernel-parameters.txt
-@@ -245,7 +245,7 @@ bytes respectively. Such letter suffixes
- 
- 	acpi_sleep=	[HW,ACPI] Sleep options
- 			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
--				  old_ordering, s4_nonvs, sci_force_enable }
-+				  old_ordering, nonvs, sci_force_enable }
- 			See Documentation/power/video.txt for information on
- 			s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
-diff -puN arch/x86/kernel/acpi/sleep.c~acpi-remove-acpi_sleep=s4_nonvs arch/x86/kernel/acpi/sleep.c
---- a/arch/x86/kernel/acpi/sleep.c~acpi-remove-acpi_sleep=s4_nonvs
-+++ a/arch/x86/kernel/acpi/sleep.c
-@@ -112,11 +112,6 @@ static int __init acpi_sleep_setup(char 
- #ifdef CONFIG_HIBERNATION
- 		if (strncmp(str, "s4_nohwsig", 10) == 0)
- 			acpi_no_s4_hw_signature();
--		if (strncmp(str, "s4_nonvs", 8) == 0) {
--			pr_warning("ACPI: acpi_sleep=s4_nonvs is deprecated, "
--					"please use acpi_sleep=nonvs instead");
--			acpi_nvs_nosave();
--		}
- #endif
- 		if (strncmp(str, "nonvs", 5) == 0)
- 			acpi_nvs_nosave();
+ 		fc = get_fuse_conn(inode);
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 linux-next.patch
-fscache-remove-dead-code-under-config_workqueue_debugfs.patch
 
