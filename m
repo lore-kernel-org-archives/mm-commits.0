@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-per-node-vmstat-show-proper-vmstats-fix-2.patch added to -mm tree
-Date: Tue, 10 May 2011 16:17:31 -0700
-Message-ID: <201105102317.p4ANHVBH028339@imap1.linux-foundation.org>
+Subject: + pci-dmar-update-dmar-units-devices-list-during-hotplug.patch added to -mm tree
+Date: Tue, 10 May 2011 17:06:36 -0700
+Message-ID: <201105110006.p4B06aGR030813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752142Ab1EJXSB (ORCPT
+	by vger.kernel.org with ESMTP id S1752703Ab1EKAHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 19:18:01 -0400
+	Tue, 10 May 2011 20:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, mrubin@google.com, rdunlap@xenotime.net
+Cc: yinghai@kernel.org, dan.j.williams@intel.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, vinod.koul@intel.com
 
 
 The patch titled
-     vmstat: fix build error when SYSFS=y and PROC_FS=n
+     pci, dmar: update dmar units devices list during hotplug
 has been added to the -mm tree.  Its filename is
-     mm-per-node-vmstat-show-proper-vmstats-fix-2.patch
+     pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,401 +34,326 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: fix build error when SYSFS=y and PROC_FS=n
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: pci, dmar: update dmar units devices list during hotplug
+From: Yinghai Lu <yinghai@kernel.org>
 
-Randy Dunlap pointed out node.c makes build error when PROC_FS=n.  Because
-node.c#node_read_vmstat() uses vmstat_text and it depend on PROC_FS.
+When do pci remove/rescan on system that have more iommus, got
 
-Thus, this patch change it to depend both SYSFS and PROC_FS.
+[  894.089745] Set context mapping for c4:00.0
+[  894.110890] mpt2sas3: Allocated physical memory: size(4293 kB)
+[  894.112556] mpt2sas3: Current Controller Queue Depth(1883), Max Controller Queue Depth(2144)
+[  894.127278] mpt2sas3: Scatter Gather Elements per IO(128)
+[  894.361295] DRHD: handling fault status reg 2
+[  894.364053] DMAR:[DMA Read] Request device [c4:00.0] fault addr fffbe000
+[  894.364056] DMAR:[fault reason 02] Present bit in context entry is cl
 
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+it turns out when remove/rescan, pci dev will be freed and will get
+another new dev.  but drhd units still keep old one...  so
+dmar_find_matched_drhd_unit will return wrong drhd and iommu for the
+device that is not on first iommu.
+
+So need to update devices in drhd_units during pci remove/rescan.
+
+Could save domain/bus/device/function aside in the list and according that
+info restore new dev to drhd_units later.  Then
+dmar_find_matched_drdh_unit and device_to_iommu could return right drhd
+and iommu.
+
+Add remove_dev_from_drhd/restore_dev_to_drhd functions to do the real
+work.  call them in device ADD_DEVICE and UNBOUND_DRIVER
+
+Need to do the samething to atsr.  (expose dmar_atsr_units and add
+atsru->segment)
+
+After patch, will right iommu for the new dev and will not get DMAR error
+any more.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |  261 +++++++++++++++++++++++++-------------------------
- 1 file changed, 132 insertions(+), 129 deletions(-)
+ drivers/pci/dmar.c        |    7 -
+ drivers/pci/intel-iommu.c |  177 ++++++++++++++++++++++++++++++++++--
+ include/linux/dmar.h      |    5 +
+ 3 files changed, 180 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmstat.c~mm-per-node-vmstat-show-proper-vmstats-fix-2 mm/vmstat.c
---- a/mm/vmstat.c~mm-per-node-vmstat-show-proper-vmstats-fix-2
-+++ a/mm/vmstat.c
-@@ -659,6 +659,138 @@ static void walk_zones_in_node(struct se
+diff -puN drivers/pci/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/drivers/pci/dmar.c
+@@ -263,7 +263,7 @@ rmrr_parse_dev(struct dmar_rmrr_unit *rm
+ 	return ret;
  }
- #endif
  
-+#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
-+#ifdef CONFIG_ZONE_DMA
-+#define TEXT_FOR_DMA(xx) xx "_dma",
-+#else
-+#define TEXT_FOR_DMA(xx)
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA32
-+#define TEXT_FOR_DMA32(xx) xx "_dma32",
-+#else
-+#define TEXT_FOR_DMA32(xx)
-+#endif
-+
-+#ifdef CONFIG_HIGHMEM
-+#define TEXT_FOR_HIGHMEM(xx) xx "_high",
-+#else
-+#define TEXT_FOR_HIGHMEM(xx)
-+#endif
-+
-+#define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
-+					TEXT_FOR_HIGHMEM(xx) xx "_movable",
-+
-+const char * const vmstat_text[] = {
-+	/* Zoned VM counters */
-+	"nr_free_pages",
-+	"nr_inactive_anon",
-+	"nr_active_anon",
-+	"nr_inactive_file",
-+	"nr_active_file",
-+	"nr_unevictable",
-+	"nr_mlock",
-+	"nr_anon_pages",
-+	"nr_mapped",
-+	"nr_file_pages",
-+	"nr_dirty",
-+	"nr_writeback",
-+	"nr_slab_reclaimable",
-+	"nr_slab_unreclaimable",
-+	"nr_page_table_pages",
-+	"nr_kernel_stack",
-+	"nr_unstable",
-+	"nr_bounce",
-+	"nr_vmscan_write",
-+	"nr_writeback_temp",
-+	"nr_isolated_anon",
-+	"nr_isolated_file",
-+	"nr_shmem",
-+	"nr_dirtied",
-+	"nr_written",
-+
-+#ifdef CONFIG_NUMA
-+	"numa_hit",
-+	"numa_miss",
-+	"numa_foreign",
-+	"numa_interleave",
-+	"numa_local",
-+	"numa_other",
-+#endif
-+	"nr_anon_transparent_hugepages",
-+	"nr_dirty_threshold",
-+	"nr_dirty_background_threshold",
-+
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+	"pgpgin",
-+	"pgpgout",
-+	"pswpin",
-+	"pswpout",
-+
-+	TEXTS_FOR_ZONES("pgalloc")
-+
-+	"pgfree",
-+	"pgactivate",
-+	"pgdeactivate",
-+
-+	"pgfault",
-+	"pgmajfault",
-+
-+	TEXTS_FOR_ZONES("pgrefill")
-+	TEXTS_FOR_ZONES("pgsteal")
-+	TEXTS_FOR_ZONES("pgscan_kswapd")
-+	TEXTS_FOR_ZONES("pgscan_direct")
-+
-+#ifdef CONFIG_NUMA
-+	"zone_reclaim_failed",
-+#endif
-+	"pginodesteal",
-+	"slabs_scanned",
-+	"kswapd_steal",
-+	"kswapd_inodesteal",
-+	"kswapd_low_wmark_hit_quickly",
-+	"kswapd_high_wmark_hit_quickly",
-+	"kswapd_skip_congestion_wait",
-+	"pageoutrun",
-+	"allocstall",
-+
-+	"pgrotated",
-+
-+#ifdef CONFIG_COMPACTION
-+	"compact_blocks_moved",
-+	"compact_pages_moved",
-+	"compact_pagemigrate_failed",
-+	"compact_stall",
-+	"compact_fail",
-+	"compact_success",
-+#endif
-+
-+#ifdef CONFIG_HUGETLB_PAGE
-+	"htlb_buddy_alloc_success",
-+	"htlb_buddy_alloc_fail",
-+#endif
-+	"unevictable_pgs_culled",
-+	"unevictable_pgs_scanned",
-+	"unevictable_pgs_rescued",
-+	"unevictable_pgs_mlocked",
-+	"unevictable_pgs_munlocked",
-+	"unevictable_pgs_cleared",
-+	"unevictable_pgs_stranded",
-+	"unevictable_pgs_mlockfreed",
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	"thp_fault_alloc",
-+	"thp_fault_fallback",
-+	"thp_collapse_alloc",
-+	"thp_collapse_alloc_failed",
-+	"thp_split",
-+#endif
-+
-+#endif /* CONFIG_VM_EVENTS_COUNTERS */
+-static LIST_HEAD(dmar_atsr_units);
++LIST_HEAD(dmar_atsr_units);
+ 
+ static int __init dmar_parse_one_atsr(struct acpi_dmar_header *hdr)
+ {
+@@ -277,6 +277,7 @@ static int __init dmar_parse_one_atsr(st
+ 
+ 	atsru->hdr = hdr;
+ 	atsru->include_all = atsr->flags & 0x1;
++	atsru->segment = atsr->segment;
+ 
+ 	list_add(&atsru->list, &dmar_atsr_units);
+ 
+@@ -308,14 +309,12 @@ int dmar_find_matched_atsr_unit(struct p
+ {
+ 	int i;
+ 	struct pci_bus *bus;
+-	struct acpi_dmar_atsr *atsr;
+ 	struct dmar_atsr_unit *atsru;
+ 
+ 	dev = pci_physfn(dev);
+ 
+ 	list_for_each_entry(atsru, &dmar_atsr_units, list) {
+-		atsr = container_of(atsru->hdr, struct acpi_dmar_atsr, header);
+-		if (atsr->segment == pci_domain_nr(dev->bus))
++		if (atsru->segment == pci_domain_nr(dev->bus))
+ 			goto found;
+ 	}
+ 
+diff -puN drivers/pci/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/drivers/pci/intel-iommu.c
+@@ -591,6 +591,157 @@ static struct intel_iommu *device_to_iom
+ 	return NULL;
+ }
+ 
++#ifdef CONFIG_HOTPLUG
++struct dev_dmaru {
++	struct list_head list;
++	void *dmaru;
++	int index;
++	int segment;
++	unsigned char bus;
++	unsigned int devfn;
 +};
-+#endif /* CONFIG_PROC_FS || CONFIG_SYSFS */
 +
++static int
++save_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
++		 void *dmaru, int index, struct list_head *lh)
++{
++	struct dev_dmaru *m;
 +
- #ifdef CONFIG_PROC_FS
- static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
- 						struct zone *zone)
-@@ -831,135 +963,6 @@ static const struct file_operations page
- 	.release	= seq_release,
++	m = kzalloc(sizeof(*m), GFP_KERNEL);
++	if (!m)
++		return -ENOMEM;
++
++	m->segment = segment;
++	m->bus     = bus;
++	m->devfn   = devfn;
++	m->dmaru   = dmaru;
++	m->index   = index;
++
++	list_add(&m->list, lh);
++
++	return 0;
++}
++
++static void
++*get_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
++		int *index, struct list_head *lh)
++{
++	struct dev_dmaru *m;
++	void *dmaru = NULL;
++
++	list_for_each_entry(m, lh, list) {
++		if (m->segment == segment &&
++		    m->bus == bus && m->devfn == devfn) {
++			*index = m->index;
++			dmaru  = m->dmaru;
++			list_del(&m->list);
++			kfree(m);
++			break;
++		}
++	}
++
++	return dmaru;
++}
++
++static LIST_HEAD(saved_dev_drhd_list);
++
++static void remove_dev_from_drhd(struct pci_dev *dev)
++{
++	struct dmar_drhd_unit *drhd = NULL;
++	int segment = pci_domain_nr(dev->bus);
++	int i;
++
++	for_each_drhd_unit(drhd) {
++		if (drhd->ignored)
++			continue;
++		if (segment != drhd->segment)
++			continue;
++
++		for (i = 0; i < drhd->devices_cnt; i++) {
++			if (drhd->devices[i] == dev) {
++				/* save it at first if it is in drhd */
++				save_dev_dmaru(segment, dev->bus->number,
++						dev->devfn, drhd, i,
++						&saved_dev_drhd_list);
++				/* always remove it */
++				drhd->devices[i] = NULL;
++				return;
++			}
++		}
++	}
++}
++
++static void restore_dev_to_drhd(struct pci_dev *dev)
++{
++	struct dmar_drhd_unit *drhd = NULL;
++	int i;
++
++	/* find the stored drhd */
++	drhd = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
++				 dev->devfn, &i, &saved_dev_drhd_list);
++	/* restore that into drhd */
++	if (drhd)
++		drhd->devices[i] = dev;
++}
++#else
++static void remove_dev_from_drhd(struct pci_dev *dev)
++{
++}
++
++static void restore_dev_to_drhd(struct pci_dev *dev)
++{
++}
++#endif
++
++#if defined(CONFIG_DMAR) && defined(CONFIG_HOTPLUG)
++static LIST_HEAD(saved_dev_atsr_list);
++
++static void remove_dev_from_atsr(struct pci_dev *dev)
++{
++	struct dmar_atsr_unit *atsr = NULL;
++	int segment = pci_domain_nr(dev->bus);
++	int i;
++
++	for_each_atsr_unit(atsr) {
++		if (segment != atsr->segment)
++			continue;
++
++		for (i = 0; i < atsr->devices_cnt; i++) {
++			if (atsr->devices[i] == dev) {
++				/* save it at first if it is in drhd */
++				save_dev_dmaru(segment, dev->bus->number,
++						dev->devfn, atsr, i,
++						&saved_dev_atsr_list);
++				/* always remove it */
++				atsr->devices[i] = NULL;
++				return;
++			}
++		}
++	}
++}
++
++static void restore_dev_to_atsr(struct pci_dev *dev)
++{
++	struct dmar_atsr_unit *atsr = NULL;
++	int i;
++
++	/* find the stored atsr */
++	atsr = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
++				 dev->devfn, &i, &saved_dev_atsr_list);
++	/* restore that into atsr */
++	if (atsr)
++		atsr->devices[i] = dev;
++}
++#else
++static void remove_dev_from_atsr(struct pci_dev *dev)
++{
++}
++
++static void restore_dev_to_atsr(struct pci_dev *dev)
++{
++}
++#endif
++
+ static void domain_flush_cache(struct dmar_domain *domain,
+ 			       void *addr, int size)
+ {
+@@ -3244,20 +3395,36 @@ static int device_notifier(struct notifi
+ 	struct pci_dev *pdev = to_pci_dev(dev);
+ 	struct dmar_domain *domain;
+ 
+-	if (iommu_no_mapping(dev))
++	if (unlikely(dev->bus != &pci_bus_type))
+ 		return 0;
+ 
+-	domain = find_domain(pdev);
+-	if (!domain)
+-		return 0;
++	switch (action) {
++	case BUS_NOTIFY_UNBOUND_DRIVER:
++		if (iommu_no_mapping(dev))
++			goto out;
++
++		if (iommu_pass_through)
++			goto out;
++
++		domain = find_domain(pdev);
++		if (!domain)
++			goto out;
+ 
+-	if (action == BUS_NOTIFY_UNBOUND_DRIVER && !iommu_pass_through) {
+ 		domain_remove_one_dev_info(domain, pdev);
+ 
+ 		if (!(domain->flags & DOMAIN_FLAG_VIRTUAL_MACHINE) &&
+ 		    !(domain->flags & DOMAIN_FLAG_STATIC_IDENTITY) &&
+ 		    list_empty(&domain->devices))
+ 			domain_exit(domain);
++out:
++		remove_dev_from_drhd(pdev);
++		remove_dev_from_atsr(pdev);
++
++		break;
++	case BUS_NOTIFY_ADD_DEVICE:
++		restore_dev_to_drhd(pdev);
++		restore_dev_to_atsr(pdev);
++		break;
+ 	}
+ 
+ 	return 0;
+diff -puN include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug include/linux/dmar.h
+--- a/include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/include/linux/dmar.h
+@@ -219,14 +219,19 @@ struct dmar_rmrr_unit {
+ #define for_each_rmrr_units(rmrr) \
+ 	list_for_each_entry(rmrr, &dmar_rmrr_units, list)
+ 
++extern struct list_head dmar_atsr_units;
+ struct dmar_atsr_unit {
+ 	struct list_head list;		/* list of ATSR units */
+ 	struct acpi_dmar_header *hdr;	/* ACPI header */
+ 	struct pci_dev **devices;	/* target devices */
+ 	int devices_cnt;		/* target device count */
++	u16	segment;		/* PCI domain		*/
+ 	u8 include_all:1;		/* include all ports */
  };
  
--#ifdef CONFIG_ZONE_DMA
--#define TEXT_FOR_DMA(xx) xx "_dma",
--#else
--#define TEXT_FOR_DMA(xx)
--#endif
--
--#ifdef CONFIG_ZONE_DMA32
--#define TEXT_FOR_DMA32(xx) xx "_dma32",
--#else
--#define TEXT_FOR_DMA32(xx)
--#endif
--
--#ifdef CONFIG_HIGHMEM
--#define TEXT_FOR_HIGHMEM(xx) xx "_high",
--#else
--#define TEXT_FOR_HIGHMEM(xx)
--#endif
--
--#define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
--					TEXT_FOR_HIGHMEM(xx) xx "_movable",
--
--const char * const vmstat_text[] = {
--	/* Zoned VM counters */
--	"nr_free_pages",
--	"nr_inactive_anon",
--	"nr_active_anon",
--	"nr_inactive_file",
--	"nr_active_file",
--	"nr_unevictable",
--	"nr_mlock",
--	"nr_anon_pages",
--	"nr_mapped",
--	"nr_file_pages",
--	"nr_dirty",
--	"nr_writeback",
--	"nr_slab_reclaimable",
--	"nr_slab_unreclaimable",
--	"nr_page_table_pages",
--	"nr_kernel_stack",
--	"nr_unstable",
--	"nr_bounce",
--	"nr_vmscan_write",
--	"nr_writeback_temp",
--	"nr_isolated_anon",
--	"nr_isolated_file",
--	"nr_shmem",
--	"nr_dirtied",
--	"nr_written",
--
--#ifdef CONFIG_NUMA
--	"numa_hit",
--	"numa_miss",
--	"numa_foreign",
--	"numa_interleave",
--	"numa_local",
--	"numa_other",
--#endif
--	"nr_anon_transparent_hugepages",
--	"nr_dirty_threshold",
--	"nr_dirty_background_threshold",
--
--#ifdef CONFIG_VM_EVENT_COUNTERS
--	"pgpgin",
--	"pgpgout",
--	"pswpin",
--	"pswpout",
--
--	TEXTS_FOR_ZONES("pgalloc")
--
--	"pgfree",
--	"pgactivate",
--	"pgdeactivate",
--
--	"pgfault",
--	"pgmajfault",
--
--	TEXTS_FOR_ZONES("pgrefill")
--	TEXTS_FOR_ZONES("pgsteal")
--	TEXTS_FOR_ZONES("pgscan_kswapd")
--	TEXTS_FOR_ZONES("pgscan_direct")
--
--#ifdef CONFIG_NUMA
--	"zone_reclaim_failed",
--#endif
--	"pginodesteal",
--	"slabs_scanned",
--	"kswapd_steal",
--	"kswapd_inodesteal",
--	"kswapd_low_wmark_hit_quickly",
--	"kswapd_high_wmark_hit_quickly",
--	"kswapd_skip_congestion_wait",
--	"pageoutrun",
--	"allocstall",
--
--	"pgrotated",
--
--#ifdef CONFIG_COMPACTION
--	"compact_blocks_moved",
--	"compact_pages_moved",
--	"compact_pagemigrate_failed",
--	"compact_stall",
--	"compact_fail",
--	"compact_success",
--#endif
--
--#ifdef CONFIG_HUGETLB_PAGE
--	"htlb_buddy_alloc_success",
--	"htlb_buddy_alloc_fail",
--#endif
--	"unevictable_pgs_culled",
--	"unevictable_pgs_scanned",
--	"unevictable_pgs_rescued",
--	"unevictable_pgs_mlocked",
--	"unevictable_pgs_munlocked",
--	"unevictable_pgs_cleared",
--	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	"thp_fault_alloc",
--	"thp_fault_fallback",
--	"thp_collapse_alloc",
--	"thp_collapse_alloc_failed",
--	"thp_split",
--#endif
--
--#endif /* CONFIG_VM_EVENTS_COUNTERS */
--};
--
- static void zoneinfo_show_print(struct seq_file *m, pg_data_t *pgdat,
- 							struct zone *zone)
- {
++#define for_each_atsr_unit(atsr) \
++	list_for_each_entry(atsr, &dmar_atsr_units, list)
++
+ extern int intel_iommu_init(void);
+ #else /* !CONFIG_DMAR: */
+ static inline int intel_iommu_init(void) { return -ENODEV; }
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-mm-check-pageunevictable-in-lru_deactivate_fn.patch
+mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
+mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
 linux-next.patch
-mm-add-alloc_pages_exact_nid.patch
-mm-add-alloc_pages_exact_nid-fix.patch
-memcg-allocate-memory-cgroup-structures-in-local-nodes.patch
-slab-use-numa_no_node.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix-2.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
-mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
-mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix-2.patch
-readahead-readahead-page-allocations-are-ok-to-fail.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-alpha-replace-with-new-cpumask-apis.patch
-m32r-convert-cpumask-api.patch
-m32r-fix-spin_lock_irqsave-misuse.patch
-m32r-remove-redundant-declaration.patch
-mn10300-convert-old-cpumask-api-into-new-one.patch
-cris-convert-old-cpumask-api-into-new-one.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-sparse-define-dummy-build_bug_on-definition-for-sparse.patch
-sparse-define-__must_be_array-for-__checker__.patch
-sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
-getdelays-show-average-cpu-io-swap-reclaim-delays.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
+pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
+memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
+memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch
+memblock-add-error-return-when-config_have_memblock-is-not-set.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
