@@ -1,151 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-add-alloc_pages_exact_nid-fix.patch removed from -mm tree
-Date: Wed, 11 May 2011 15:11:56 -0700
-Message-ID: <201105112211.p4BMBuvB028791@imap1.linux-foundation.org>
+Subject: + mm-fix-rss-zap_pte_range-accounting-fix.patch added to -mm tree
+Date: Wed, 11 May 2011 15:19:46 -0700
+Message-ID: <201105112219.p4BMJk5N029865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651Ab1EKWMt (ORCPT
+	by vger.kernel.org with ESMTP id S1756734Ab1EKWTz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 18:12:49 -0400
+	Wed, 11 May 2011 18:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, balbir@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.
+To: mm-commits@vger.kernel.org
+Cc: a.p.zijlstra@chello.nl, Valdis.Kletnieks@vt.edu
 
 
 The patch titled
-     mm-add-alloc_pages_exact_nid-fix
-has been removed from the -mm tree.  Its filename was
-     mm-add-alloc_pages_exact_nid-fix.patch
+     mm-fix-rss-zap_pte_range-accounting-fix
+has been added to the -mm tree.  Its filename is
+     mm-fix-rss-zap_pte_range-accounting-fix.patch
 
-This patch was dropped because it was folded into mm-add-alloc_pages_exact_nid.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-alloc_pages_exact_nid-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-rss-zap_pte_range-accounting-fix
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-tweak comment
+Since we update the RSS counters when breaking out of the loop and release
+the PTE lock, we should start with fresh deltas when we restart the gather
+loop.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid-fix include/linux/gfp.h
-diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid-fix
-+++ a/mm/page_alloc.c
-@@ -2356,14 +2356,15 @@ void *alloc_pages_exact(size_t size, gfp
- EXPORT_SYMBOL(alloc_pages_exact);
+diff -puN mm/memory.c~mm-fix-rss-zap_pte_range-accounting-fix mm/memory.c
+--- a/mm/memory.c~mm-fix-rss-zap_pte_range-accounting-fix
++++ a/mm/memory.c
+@@ -994,8 +994,8 @@ static unsigned long zap_pte_range(struc
+ 	spinlock_t *ptl;
+ 	int rss[NR_MM_COUNTERS];
  
- /**
-- * alloc_pages_exact_nid - allocate an exact number physically-contiguous pages on node.
-+ * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
-+ *			   pages on a node.
-  * @size: the number of bytes to allocate
-  * @gfp_mask: GFP flags for the allocation
-  *
-- * Like alloc_pages_exact, but try to allocate on node nid first
-- * before falling back.
-- * Note this is not alloc_pages_exact_node() which allocates
-- * on a specific node, but is not exact.
-+ * Like alloc_pages_exact(), but try to allocate on node nid first before falling
-+ * back.
-+ * Note this is not alloc_pages_exact_node() which allocates on a specific node,
-+ * but is not exact.
-  */
- void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
- {
+-	init_rss_vec(rss);
+ again:
++	init_rss_vec(rss);
+ 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 	arch_enter_lazy_mmu_mode();
+ 	do {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
-mm-add-alloc_pages_exact_nid.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+net-convert-%p-usage-to-%pk.patch
+mm-mmu_gather-rework.patch
 mm-mmu_gather-rework-fix.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+mm-fix-rss-zap_pte_range-accounting-fix.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
 mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-tmpfs-implement-xattr-support-for-the-entire-security-namespace-update-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 
