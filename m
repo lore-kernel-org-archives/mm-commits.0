@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dmar-update-dmar-units-devices-list-during-hotplug.patch added to -mm tree
-Date: Tue, 10 May 2011 17:06:36 -0700
-Message-ID: <201105110006.p4B06aGR030813@imap1.linux-foundation.org>
+Subject: + dma-debug-print-information-about-leaked-entry.patch added to -mm tree
+Date: Tue, 10 May 2011 17:13:26 -0700
+Message-ID: <201105110013.p4B0DQWO031209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752703Ab1EKAHW (ORCPT
+	by vger.kernel.org with ESMTP id S1751746Ab1EKANc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 May 2011 20:07:22 -0400
+	Tue, 10 May 2011 20:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, dan.j.williams@intel.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, vinod.koul@intel.com
+Cc: sgruszka@redhat.com, joerg.roedel@amd.com
 
 
 The patch titled
-     pci, dmar: update dmar units devices list during hotplug
+     dma-debug: print information about leaked entry
 has been added to the -mm tree.  Its filename is
-     pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
+     dma-debug-print-information-about-leaked-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,326 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci, dmar: update dmar units devices list during hotplug
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: dma-debug: print information about leaked entry
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-When do pci remove/rescan on system that have more iommus, got
+When a driver leaks a dma mapping, print additional information about one
+of the leaked entries to help investigation.  The patch should be useful
+for debugging drivers, which map many different class of buffers.
 
-[  894.089745] Set context mapping for c4:00.0
-[  894.110890] mpt2sas3: Allocated physical memory: size(4293 kB)
-[  894.112556] mpt2sas3: Current Controller Queue Depth(1883), Max Controller Queue Depth(2144)
-[  894.127278] mpt2sas3: Scatter Gather Elements per IO(128)
-[  894.361295] DRHD: handling fault status reg 2
-[  894.364053] DMAR:[DMA Read] Request device [c4:00.0] fault addr fffbe000
-[  894.364056] DMAR:[fault reason 02] Present bit in context entry is cl
-
-it turns out when remove/rescan, pci dev will be freed and will get
-another new dev.  but drhd units still keep old one...  so
-dmar_find_matched_drhd_unit will return wrong drhd and iommu for the
-device that is not on first iommu.
-
-So need to update devices in drhd_units during pci remove/rescan.
-
-Could save domain/bus/device/function aside in the list and according that
-info restore new dev to drhd_units later.  Then
-dmar_find_matched_drdh_unit and device_to_iommu could return right drhd
-and iommu.
-
-Add remove_dev_from_drhd/restore_dev_to_drhd functions to do the real
-work.  call them in device ADD_DEVICE and UNBOUND_DRIVER
-
-Need to do the samething to atsr.  (expose dmar_atsr_units and add
-atsru->segment)
-
-After patch, will right iommu for the new dev and will not get DMAR error
-any more.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c        |    7 -
- drivers/pci/intel-iommu.c |  177 ++++++++++++++++++++++++++++++++++--
- include/linux/dmar.h      |    5 +
- 3 files changed, 180 insertions(+), 9 deletions(-)
+ lib/dma-debug.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pci/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
-+++ a/drivers/pci/dmar.c
-@@ -263,7 +263,7 @@ rmrr_parse_dev(struct dmar_rmrr_unit *rm
- 	return ret;
+diff -puN lib/dma-debug.c~dma-debug-print-information-about-leaked-entry lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-print-information-about-leaked-entry
++++ a/lib/dma-debug.c
+@@ -649,7 +649,7 @@ out_err:
+ 	return -ENOMEM;
  }
  
--static LIST_HEAD(dmar_atsr_units);
-+LIST_HEAD(dmar_atsr_units);
- 
- static int __init dmar_parse_one_atsr(struct acpi_dmar_header *hdr)
+-static int device_dma_allocations(struct device *dev)
++static int device_dma_allocations(struct device *dev, struct dma_debug_entry **out_entry)
  {
-@@ -277,6 +277,7 @@ static int __init dmar_parse_one_atsr(st
- 
- 	atsru->hdr = hdr;
- 	atsru->include_all = atsr->flags & 0x1;
-+	atsru->segment = atsr->segment;
- 
- 	list_add(&atsru->list, &dmar_atsr_units);
- 
-@@ -308,14 +309,12 @@ int dmar_find_matched_atsr_unit(struct p
- {
- 	int i;
- 	struct pci_bus *bus;
--	struct acpi_dmar_atsr *atsr;
- 	struct dmar_atsr_unit *atsru;
- 
- 	dev = pci_physfn(dev);
- 
- 	list_for_each_entry(atsru, &dmar_atsr_units, list) {
--		atsr = container_of(atsru->hdr, struct acpi_dmar_atsr, header);
--		if (atsr->segment == pci_domain_nr(dev->bus))
-+		if (atsru->segment == pci_domain_nr(dev->bus))
- 			goto found;
- 	}
- 
-diff -puN drivers/pci/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
-+++ a/drivers/pci/intel-iommu.c
-@@ -591,6 +591,157 @@ static struct intel_iommu *device_to_iom
- 	return NULL;
- }
- 
-+#ifdef CONFIG_HOTPLUG
-+struct dev_dmaru {
-+	struct list_head list;
-+	void *dmaru;
-+	int index;
-+	int segment;
-+	unsigned char bus;
-+	unsigned int devfn;
-+};
-+
-+static int
-+save_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
-+		 void *dmaru, int index, struct list_head *lh)
-+{
-+	struct dev_dmaru *m;
-+
-+	m = kzalloc(sizeof(*m), GFP_KERNEL);
-+	if (!m)
-+		return -ENOMEM;
-+
-+	m->segment = segment;
-+	m->bus     = bus;
-+	m->devfn   = devfn;
-+	m->dmaru   = dmaru;
-+	m->index   = index;
-+
-+	list_add(&m->list, lh);
-+
-+	return 0;
-+}
-+
-+static void
-+*get_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
-+		int *index, struct list_head *lh)
-+{
-+	struct dev_dmaru *m;
-+	void *dmaru = NULL;
-+
-+	list_for_each_entry(m, lh, list) {
-+		if (m->segment == segment &&
-+		    m->bus == bus && m->devfn == devfn) {
-+			*index = m->index;
-+			dmaru  = m->dmaru;
-+			list_del(&m->list);
-+			kfree(m);
-+			break;
-+		}
-+	}
-+
-+	return dmaru;
-+}
-+
-+static LIST_HEAD(saved_dev_drhd_list);
-+
-+static void remove_dev_from_drhd(struct pci_dev *dev)
-+{
-+	struct dmar_drhd_unit *drhd = NULL;
-+	int segment = pci_domain_nr(dev->bus);
-+	int i;
-+
-+	for_each_drhd_unit(drhd) {
-+		if (drhd->ignored)
-+			continue;
-+		if (segment != drhd->segment)
-+			continue;
-+
-+		for (i = 0; i < drhd->devices_cnt; i++) {
-+			if (drhd->devices[i] == dev) {
-+				/* save it at first if it is in drhd */
-+				save_dev_dmaru(segment, dev->bus->number,
-+						dev->devfn, drhd, i,
-+						&saved_dev_drhd_list);
-+				/* always remove it */
-+				drhd->devices[i] = NULL;
-+				return;
+ 	struct dma_debug_entry *entry;
+ 	unsigned long flags;
+@@ -660,8 +660,10 @@ static int device_dma_allocations(struct
+ 	for (i = 0; i < HASH_SIZE; ++i) {
+ 		spin_lock(&dma_entry_hash[i].lock);
+ 		list_for_each_entry(entry, &dma_entry_hash[i].list, list) {
+-			if (entry->dev == dev)
++			if (entry->dev == dev) {
+ 				count += 1;
++				*out_entry = entry;
 +			}
-+		}
-+	}
-+}
-+
-+static void restore_dev_to_drhd(struct pci_dev *dev)
-+{
-+	struct dmar_drhd_unit *drhd = NULL;
-+	int i;
-+
-+	/* find the stored drhd */
-+	drhd = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
-+				 dev->devfn, &i, &saved_dev_drhd_list);
-+	/* restore that into drhd */
-+	if (drhd)
-+		drhd->devices[i] = dev;
-+}
-+#else
-+static void remove_dev_from_drhd(struct pci_dev *dev)
-+{
-+}
-+
-+static void restore_dev_to_drhd(struct pci_dev *dev)
-+{
-+}
-+#endif
-+
-+#if defined(CONFIG_DMAR) && defined(CONFIG_HOTPLUG)
-+static LIST_HEAD(saved_dev_atsr_list);
-+
-+static void remove_dev_from_atsr(struct pci_dev *dev)
-+{
-+	struct dmar_atsr_unit *atsr = NULL;
-+	int segment = pci_domain_nr(dev->bus);
-+	int i;
-+
-+	for_each_atsr_unit(atsr) {
-+		if (segment != atsr->segment)
-+			continue;
-+
-+		for (i = 0; i < atsr->devices_cnt; i++) {
-+			if (atsr->devices[i] == dev) {
-+				/* save it at first if it is in drhd */
-+				save_dev_dmaru(segment, dev->bus->number,
-+						dev->devfn, atsr, i,
-+						&saved_dev_atsr_list);
-+				/* always remove it */
-+				atsr->devices[i] = NULL;
-+				return;
-+			}
-+		}
-+	}
-+}
-+
-+static void restore_dev_to_atsr(struct pci_dev *dev)
-+{
-+	struct dmar_atsr_unit *atsr = NULL;
-+	int i;
-+
-+	/* find the stored atsr */
-+	atsr = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
-+				 dev->devfn, &i, &saved_dev_atsr_list);
-+	/* restore that into atsr */
-+	if (atsr)
-+		atsr->devices[i] = dev;
-+}
-+#else
-+static void remove_dev_from_atsr(struct pci_dev *dev)
-+{
-+}
-+
-+static void restore_dev_to_atsr(struct pci_dev *dev)
-+{
-+}
-+#endif
-+
- static void domain_flush_cache(struct dmar_domain *domain,
- 			       void *addr, int size)
- {
-@@ -3244,20 +3395,36 @@ static int device_notifier(struct notifi
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	struct dmar_domain *domain;
- 
--	if (iommu_no_mapping(dev))
-+	if (unlikely(dev->bus != &pci_bus_type))
- 		return 0;
- 
--	domain = find_domain(pdev);
--	if (!domain)
--		return 0;
-+	switch (action) {
-+	case BUS_NOTIFY_UNBOUND_DRIVER:
-+		if (iommu_no_mapping(dev))
-+			goto out;
-+
-+		if (iommu_pass_through)
-+			goto out;
-+
-+		domain = find_domain(pdev);
-+		if (!domain)
-+			goto out;
- 
--	if (action == BUS_NOTIFY_UNBOUND_DRIVER && !iommu_pass_through) {
- 		domain_remove_one_dev_info(domain, pdev);
- 
- 		if (!(domain->flags & DOMAIN_FLAG_VIRTUAL_MACHINE) &&
- 		    !(domain->flags & DOMAIN_FLAG_STATIC_IDENTITY) &&
- 		    list_empty(&domain->devices))
- 			domain_exit(domain);
-+out:
-+		remove_dev_from_drhd(pdev);
-+		remove_dev_from_atsr(pdev);
-+
-+		break;
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		restore_dev_to_drhd(pdev);
-+		restore_dev_to_atsr(pdev);
-+		break;
+ 		}
+ 		spin_unlock(&dma_entry_hash[i].lock);
  	}
+@@ -674,6 +676,7 @@ static int device_dma_allocations(struct
+ static int dma_debug_device_change(struct notifier_block *nb, unsigned long action, void *data)
+ {
+ 	struct device *dev = data;
++	struct dma_debug_entry *uninitialized_var(entry);
+ 	int count;
  
- 	return 0;
-diff -puN include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug include/linux/dmar.h
---- a/include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug
-+++ a/include/linux/dmar.h
-@@ -219,14 +219,19 @@ struct dmar_rmrr_unit {
- #define for_each_rmrr_units(rmrr) \
- 	list_for_each_entry(rmrr, &dmar_rmrr_units, list)
+ 	if (global_disable)
+@@ -681,12 +684,17 @@ static int dma_debug_device_change(struc
  
-+extern struct list_head dmar_atsr_units;
- struct dmar_atsr_unit {
- 	struct list_head list;		/* list of ATSR units */
- 	struct acpi_dmar_header *hdr;	/* ACPI header */
- 	struct pci_dev **devices;	/* target devices */
- 	int devices_cnt;		/* target device count */
-+	u16	segment;		/* PCI domain		*/
- 	u8 include_all:1;		/* include all ports */
- };
- 
-+#define for_each_atsr_unit(atsr) \
-+	list_for_each_entry(atsr, &dmar_atsr_units, list)
-+
- extern int intel_iommu_init(void);
- #else /* !CONFIG_DMAR: */
- static inline int intel_iommu_init(void) { return -ENODEV; }
+ 	switch (action) {
+ 	case BUS_NOTIFY_UNBOUND_DRIVER:
+-		count = device_dma_allocations(dev);
++		count = device_dma_allocations(dev, &entry);
+ 		if (count == 0)
+ 			break;
+-		err_printk(dev, NULL, "DMA-API: device driver has pending "
++		err_printk(dev, entry, "DMA-API: device driver has pending "
+ 				"DMA allocations while released from device "
+-				"[count=%d]\n", count);
++				"[count=%d]\n"
++				"One of leaked entries details: "
++				"[device address=0x%016llx] [size=%llu bytes] "
++				"[mapped with %s] [mapped as %s]\n",
++			count, entry->dev_addr, entry->size,
++			dir2name[entry->direction], type2name[entry->type]);
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
 linux-next.patch
-pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
-memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
-memblock-nobootmem-remove-code-for-alloc_bootmem_node_high.patch
-memblock-add-error-return-when-config_have_memblock-is-not-set.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+dma-debug-print-information-about-leaked-entry.patch
 
