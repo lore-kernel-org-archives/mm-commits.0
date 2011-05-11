@@ -1,60 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch removed from -mm tree
-Date: Wed, 11 May 2011 15:11:23 -0700
-Message-ID: <201105112211.p4BMBOcO028771@imap1.linux-foundation.org>
+Subject: [folded] mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 May 2011 15:11:53 -0700
+Message-ID: <201105112211.p4BMBrVM028784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651Ab1EKWLz (ORCPT
+	by vger.kernel.org with ESMTP id S1755651Ab1EKWMX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 18:11:55 -0400
+	Wed, 11 May 2011 18:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix
+     mm-add-alloc_pages_exact_nid-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix.patch
+     mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
+This patch was dropped because it was folded into mm-add-alloc_pages_exact_nid.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix
+Subject: mm-add-alloc_pages_exact_nid-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-less mess
+ERROR: trailing whitespace
+#53: FILE: mm/page_alloc.c:2332:
++^Ireturn (void *)addr;^I$
 
-Cc: Yinghai Lu <yinghai@kernel.org>
+total: 1 errors, 0 warnings, 72 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-add-alloc_pages_exact_nid.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-alloc_bootmem_node_nopanic-on-really-needed-path-fix
+diff -puN include/linux/gfp.h~mm-add-alloc_pages_exact_nid-checkpatch-fixes include/linux/gfp.h
+diff -puN mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-alloc_pages_exact_nid-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -4141,7 +4141,8 @@ static void __init setup_usemap(struct p
- 	unsigned long usemapsize = usemap_size(zonesize);
- 	zone->pageblock_flags = NULL;
- 	if (usemapsize)
--		zone->pageblock_flags = alloc_bootmem_node_nopanic(pgdat, usemapsize);
-+		zone->pageblock_flags = alloc_bootmem_node_nopanic(pgdat,
-+								   usemapsize);
+@@ -2329,7 +2329,7 @@ static void *make_alloc_exact(unsigned l
+ 			used += PAGE_SIZE;
+ 		}
+ 	}
+-	return (void *)addr;	
++	return (void *)addr;
  }
- #else
- static inline void setup_usemap(struct pglist_data *pgdat,
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
-mm-add-alloc_pages_exact_nid-checkpatch-fixes.patch
+mm-add-alloc_pages_exact_nid.patch
 mm-add-alloc_pages_exact_nid-fix.patch
 linux-next.patch
 next-remove-localversion.patch
