@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-use-get_task_comm-for-%e-filename-format.patch added to -mm tree
-Date: Thu, 12 May 2011 12:30:38 -0700
-Message-ID: <201105121930.p4CJUfcq028508@imap1.linux-foundation.org>
+Subject: + coredump-use-task-comm-instead-of-unknown.patch added to -mm tree
+Date: Thu, 12 May 2011 12:30:44 -0700
+Message-ID: <201105121930.p4CJUiaA028518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755421Ab1ELTkw (ORCPT
+	by vger.kernel.org with ESMTP id S1756975Ab1ELTkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 May 2011 15:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jslaby@suse.cz, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, john.stultz@l
 
 
 The patch titled
-     coredump: use get_task_comm() for %e filename format
+     coredump: use task comm instead of (unknown)
 has been added to the -mm tree.  Its filename is
-     coredump-use-get_task_comm-for-%e-filename-format.patch
+     coredump-use-task-comm-instead-of-unknown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: use get_task_comm() for %e filename format
+Subject: coredump: use task comm instead of (unknown)
 From: Jiri Slaby <jslaby@suse.cz>
 
-We currently access current->comm directly.  As we have
-prctl(PR_SET_NAME), we need the access be protected by task_lock.  This is
-exactly what get_task_comm does, so use it.
+If we don't know the file corresponding to the binary (i.e.  exe_file is
+unknown), use "task->comm (path unknown)" instead of simple "(unknown)" as
+suggested by ak.
 
-I'm not 100% convinced prctl(PR_SET_NAME) may be called at the time of
-core dump, but the locking won't hurt.  Note that siglock is not held in
-format_corename.
+The fallback is the same as %e except it will append "(path unknown)".
 
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -55,24 +53,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/exec.c |    7 +++++--
  1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~coredump-use-get_task_comm-for-%e-filename-format fs/exec.c
---- a/fs/exec.c~coredump-use-get_task_comm-for-%e-filename-format
+diff -puN fs/exec.c~coredump-use-task-comm-instead-of-unknown fs/exec.c
+--- a/fs/exec.c~coredump-use-task-comm-instead-of-unknown
 +++ a/fs/exec.c
-@@ -1650,9 +1650,12 @@ static int format_corename(struct core_n
- 				up_read(&uts_sem);
- 				break;
- 			/* executable */
--			case 'e':
--				err = cn_printf(cn, "%s", current->comm);
-+			case 'e': {
-+				char comm[TASK_COMM_LEN];
-+				err = cn_printf(cn, "%s",
-+						get_task_comm(comm, current));
- 				break;
-+			}
- 			case 'E':
- 				err = cn_print_exe_file(cn);
- 				break;
+@@ -1554,8 +1554,11 @@ static int cn_print_exe_file(struct core
+ 	int ret;
+ 
+ 	exe_file = get_mm_exe_file(current->mm);
+-	if (!exe_file)
+-		return cn_printf(cn, "(unknown)");
++	if (!exe_file) {
++		char comm[TASK_COMM_LEN];
++		return cn_printf(cn, "%s (path unknown)", get_task_comm(comm,
++					current));
++	}
+ 
+ 	pathbuf = kmalloc(PATH_MAX, GFP_TEMPORARY);
+ 	if (!pathbuf) {
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
