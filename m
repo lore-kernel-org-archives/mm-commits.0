@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-bcma-host_pcic-needs-slabh.patch added to -mm tree
-Date: Thu, 12 May 2011 14:54:15 -0700
-Message-ID: <201105122230.p4CMUf4U006499@imap1.linux-foundation.org>
+Subject: + drivers-tty-serial-pch_uartc-needs-slabh.patch added to -mm tree
+Date: Thu, 12 May 2011 15:07:45 -0700
+Message-ID: <201105122244.p4CMiB3W007191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59566 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752679Ab1ELWa5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752871Ab1ELWow (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 18:30:57 -0400
+	Thu, 12 May 2011 18:44:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, zajec5@gmail.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     drivers/bcma/host_pci.c needs slab.h
+     drivers/tty/serial/pch_uart.c needs slab.h
 has been added to the -mm tree.  Its filename is
-     drivers-bcma-host_pcic-needs-slabh.patch
+     drivers-tty-serial-pch_uartc-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/bcma/host_pci.c needs slab.h
+Subject: drivers/tty/serial/pch_uart.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha allmodconfig:
 
-drivers/bcma/host_pci.c: In function 'bcma_host_pci_probe':
-drivers/bcma/host_pci.c:102: error: implicit declaration of function 'kzalloc'  drivers/bcma/host_pci.c:102: warning: assignment makes pointer from integer without a cast
+drivers/tty/serial/pch_uart.c: In function 'dma_handle_tx':
+drivers/tty/serial/pch_uart.c:873: error: implicit declaration of function 'kzalloc'
+drivers/tty/serial/pch_uart.c:873: warning: assignment makes pointer from integer without a cast
+drivers/tty/serial/pch_uart.c: In function 'pch_uart_init_port':
+drivers/tty/serial/pch_uart.c:1403: warning: assignment makes pointer from integer without a cast
 
-Cc: <zajec5@gmail.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bcma/host_pci.c |    1 +
+ drivers/tty/serial/pch_uart.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/bcma/host_pci.c~drivers-bcma-host_pcic-needs-slabh drivers/bcma/host_pci.c
---- a/drivers/bcma/host_pci.c~drivers-bcma-host_pcic-needs-slabh
-+++ a/drivers/bcma/host_pci.c
-@@ -6,6 +6,7 @@
+diff -puN drivers/tty/serial/pch_uart.c~drivers-tty-serial-pch_uartc-needs-slabh drivers/tty/serial/pch_uart.c
+--- a/drivers/tty/serial/pch_uart.c~drivers-tty-serial-pch_uartc-needs-slabh
++++ a/drivers/tty/serial/pch_uart.c
+@@ -15,6 +15,7 @@
+  *Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
   */
- 
- #include "bcma_private.h"
+ #include <linux/serial_reg.h>
 +#include <linux/slab.h>
- #include <linux/bcma/bcma.h>
+ #include <linux/module.h>
  #include <linux/pci.h>
- 
+ #include <linux/serial_core.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +87,7 @@ drivers-message-fusion-mptsasc-fix-warning.patch
 osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
 drivers-scsi-osstc-fix-warning.patch
 drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
 slab-use-numa_no_node.patch
 mm.patch
 mm-nommu-sort-mm-mmap-list-properly-fix.patch
@@ -143,5 +147,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-drivers-bcma-host_pcic-needs-slabh.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
 
