@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier.patch added to -mm tree
-Date: Thu, 12 May 2011 12:33:31 -0700
-Message-ID: <201105121933.p4CJXVSF028809@imap1.linux-foundation.org>
+Subject: + coredump-escape-in-hostname-and-comm.patch added to -mm tree
+Date: Thu, 12 May 2011 12:30:46 -0700
+Message-ID: <201105121930.p4CJUkvc028529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756975Ab1ELTeU (ORCPT
+	by vger.kernel.org with ESMTP id S1754971Ab1ELTkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 15:34:20 -0400
+	Thu, 12 May 2011 15:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, dougthompson@xmission.com, mchehab@infradead.org, paulmck@linux.vnet.ibm.com
+Cc: jslaby@suse.cz, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, john.stultz@linaro.org
 
 
 The patch titled
-     edac,rcu: use synchronize_rcu() instead of call_rcu()+rcu_barrier()
+     coredump: escape / in hostname and comm
 has been added to the -mm tree.  Its filename is
-     edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier.patch
+     coredump-escape-in-hostname-and-comm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,172 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac,rcu: use synchronize_rcu() instead of call_rcu()+rcu_barrier()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: coredump: escape / in hostname and comm
+From: Jiri Slaby <jslaby@suse.cz>
 
-synchronize_rcu() does the stuff as needed.
+Change every occurence of / in comm and hostname to !.  If the process
+changes its name to contain /, the core is not dumped (if the directory
+tree doesn't exist like that).  The same with hostname being something
+like myhost/3.  Fix this behaviour by using the escape loop used in %E. 
+(We extract it to a separate function.)
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Now both with comm == myprocess/1 and hostname == myhost/1, the core is
+dumped like (kernel.core_pattern='core.%p.%e.%h):
+core.2349.myprocess!1.myhost!1
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h   |   12 ------------
- drivers/edac/edac_device.c |   24 ++++++------------------
- drivers/edac/edac_mc.c     |   16 ++++++----------
- drivers/edac/edac_pci.c    |   21 ++++++---------------
- 4 files changed, 18 insertions(+), 55 deletions(-)
+ fs/exec.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN drivers/edac/edac_core.h~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
-+++ a/drivers/edac/edac_core.h
-@@ -421,10 +421,6 @@ struct mem_ctl_info {
- 	u32 ce_count;		/* Total Correctable Errors for this MC */
- 	unsigned long start_time;	/* mci load start time (in jiffies) */
- 
--	/* this stuff is for safe removal of mc devices from global list while
--	 * NMI handlers may be traversing list
--	 */
--	struct rcu_head rcu;
- 	struct completion complete;
- 
- 	/* edac sysfs device control */
-@@ -620,10 +616,6 @@ struct edac_device_ctl_info {
- 
- 	unsigned long start_time;	/* edac_device load start time (jiffies) */
- 
--	/* these are for safe removal of mc devices from global list while
--	 * NMI handlers may be traversing list
--	 */
--	struct rcu_head rcu;
- 	struct completion removal_complete;
- 
- 	/* sysfs top name under 'edac' directory
-@@ -722,10 +714,6 @@ struct edac_pci_ctl_info {
- 
- 	unsigned long start_time;	/* edac_pci load start time (jiffies) */
- 
--	/* these are for safe removal of devices from global list while
--	 * NMI handlers may be traversing list
--	 */
--	struct rcu_head rcu;
- 	struct completion complete;
- 
- 	/* sysfs top name under 'edac' directory
-diff -puN drivers/edac/edac_device.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
-+++ a/drivers/edac/edac_device.c
-@@ -346,30 +346,18 @@ fail1:
+diff -puN fs/exec.c~coredump-escape-in-hostname-and-comm fs/exec.c
+--- a/fs/exec.c~coredump-escape-in-hostname-and-comm
++++ a/fs/exec.c
+@@ -1547,10 +1547,17 @@ expand_fail:
+ 	return ret;
  }
  
- /*
-- * complete_edac_device_list_del
-- *
-- *	callback function when reference count is zero
-- */
--static void complete_edac_device_list_del(struct rcu_head *head)
--{
--	struct edac_device_ctl_info *edac_dev;
--
--	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
--	INIT_LIST_HEAD(&edac_dev->link);
--}
--
--/*
-  * del_edac_device_from_global_list
-- *
-- *	remove the RCU, setup for a callback call,
-- *	then wait for the callback to occur
-  */
- static void del_edac_device_from_global_list(struct edac_device_ctl_info
- 						*edac_device)
- {
- 	list_del_rcu(&edac_device->link);
--	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
--	rcu_barrier();
++static void cn_escape(char *str)
++{
++	for (; *str; str++)
++		if (*str == '/')
++			*str = '!';
++}
 +
-+	/* these are for safe removal of devices from global list while
-+	 * NMI handlers may be traversing list
-+	 */
-+	synchronize_rcu();
-+	INIT_LIST_HEAD(&edac_device->link);
- }
- 
- /*
-diff -puN drivers/edac/edac_mc.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
-+++ a/drivers/edac/edac_mc.c
-@@ -447,20 +447,16 @@ fail1:
- 	return 1;
- }
- 
--static void complete_mc_list_del(struct rcu_head *head)
--{
--	struct mem_ctl_info *mci;
--
--	mci = container_of(head, struct mem_ctl_info, rcu);
--	INIT_LIST_HEAD(&mci->link);
--}
--
- static void del_mc_from_global_list(struct mem_ctl_info *mci)
+ static int cn_print_exe_file(struct core_name *cn)
  {
- 	atomic_dec(&edac_handlers);
- 	list_del_rcu(&mci->link);
--	call_rcu(&mci->rcu, complete_mc_list_del);
--	rcu_barrier();
-+
-+	/* these are for safe removal of devices from global list while
-+	 * NMI handlers may be traversing list
-+	 */
-+	synchronize_rcu();
-+	INIT_LIST_HEAD(&mci->link);
- }
+ 	struct file *exe_file;
+-	char *pathbuf, *path, *p;
++	char *pathbuf, *path;
+ 	int ret;
  
- /**
-diff -puN drivers/edac/edac_pci.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
-+++ a/drivers/edac/edac_pci.c
-@@ -164,19 +164,6 @@ fail1:
- }
+ 	exe_file = get_mm_exe_file(current->mm);
+@@ -1572,9 +1579,7 @@ static int cn_print_exe_file(struct core
+ 		goto free_buf;
+ 	}
  
- /*
-- * complete_edac_pci_list_del
-- *
-- *	RCU completion callback to indicate item is deleted
-- */
--static void complete_edac_pci_list_del(struct rcu_head *head)
--{
--	struct edac_pci_ctl_info *pci;
--
--	pci = container_of(head, struct edac_pci_ctl_info, rcu);
--	INIT_LIST_HEAD(&pci->link);
--}
--
--/*
-  * del_edac_pci_from_global_list
-  *
-  *	remove the PCI control struct from the global list
-@@ -184,8 +171,12 @@ static void complete_edac_pci_list_del(s
- static void del_edac_pci_from_global_list(struct edac_pci_ctl_info *pci)
- {
- 	list_del_rcu(&pci->link);
--	call_rcu(&pci->rcu, complete_edac_pci_list_del);
--	rcu_barrier();
-+
-+	/* these are for safe removal of devices from global list while
-+	 * NMI handlers may be traversing list
-+	 */
-+	synchronize_rcu();
-+	INIT_LIST_HEAD(&pci->link);
- }
+-	for (p = path; *p; p++)
+-		if (*p == '/')
+-			*p = '!';
++	cn_escape(path);
  
- #if 0
+ 	ret = cn_printf(cn, "%s", path);
+ 
+@@ -1646,17 +1651,20 @@ static int format_corename(struct core_n
+ 				break;
+ 			}
+ 			/* hostname */
+-			case 'h':
++			case 'h': {
++				char *namestart = cn->corename + cn->used;
+ 				down_read(&uts_sem);
+ 				err = cn_printf(cn, "%s",
+ 					      utsname()->nodename);
+ 				up_read(&uts_sem);
++				cn_escape(namestart);
+ 				break;
++			}
+ 			/* executable */
+ 			case 'e': {
+ 				char comm[TASK_COMM_LEN];
+-				err = cn_printf(cn, "%s",
+-						get_task_comm(comm, current));
++				cn_escape(get_task_comm(comm, current));
++				err = cn_printf(cn, "%s", comm);
+ 				break;
+ 			}
+ 			case 'E':
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 linux-next.patch
-edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mm-extract-exe_file-handling-from-procfs.patch
+coredump-add-support-for-exe_file-in-core-name.patch
+coredump-use-get_task_comm-for-%e-filename-format.patch
+coredump-use-task-comm-instead-of-unknown.patch
+coredump-escape-in-hostname-and-comm.patch
 
