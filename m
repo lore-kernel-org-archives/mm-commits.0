@@ -1,67 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 12 May 2011 11:49:31 -0700
-Message-ID: <201105121842.p4CIg4RB025619@imap1.linux-foundation.org>
+Subject: [obsolete] drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch removed from -mm tree
+Date: Thu, 12 May 2011 11:50:07 -0700
+Message-ID: <201105121842.p4CIgeHd025639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899Ab1ELSmF (ORCPT
+	by vger.kernel.org with ESMTP id S1756125Ab1ELSo1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 14:42:05 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4CIg4Up005980
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 12 May 2011 11:42:04 -0700
+	Thu, 12 May 2011 14:44:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, dirk.brandewie@gmail.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers/i2c/busses/i2c-designware-core.c needs delay.h
+has been removed from the -mm tree.  Its filename was
+     drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/i2c/busses/i2c-designware-core.c needs delay.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
+x86_64 allmodconfig:
+
+drivers/i2c/busses/i2c-designware-core.c: In function 'i2c_dw_wait_bus_not_busy':
+drivers/i2c/busses/i2c-designware-core.c:321: error: implicit declaration of function 'mdelay'
+make[3]: *** [drivers/i2c/busses/i2c-designware-core.o] Error 1
+
+Cc: Dirk Brandewie <dirk.brandewie@gmail.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl4030-power.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/i2c/busses/i2c-designware-core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mfd/twl4030-power.c~linux-next-git-rejects drivers/mfd/twl4030-power.c
---- a/drivers/mfd/twl4030-power.c~linux-next-git-rejects
-+++ a/drivers/mfd/twl4030-power.c
-@@ -448,11 +448,7 @@ static int __init load_twl4030_script(st
- 			goto out;
- 	}
- 	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
--<<<<<<< HEAD
--		if (order)
--=======
- 		if (!order)
-->>>>>>> FETCH_HEAD
- 			pr_warning("TWL4030: Bad order of scripts (sleep "\
- 					"script before wakeup) Leads to boot"\
- 					"failure on some boards\n");
+diff -puN drivers/i2c/busses/i2c-designware-core.c~drivers-i2c-busses-i2c-designware-corec-needs-delayh drivers/i2c/busses/i2c-designware-core.c
+--- a/drivers/i2c/busses/i2c-designware-core.c~drivers-i2c-busses-i2c-designware-corec-needs-delayh
++++ a/drivers/i2c/busses/i2c-designware-core.c
+@@ -29,6 +29,7 @@
+ #include <linux/clk.h>
+ #include <linux/errno.h>
+ #include <linux/err.h>
++#include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +63,6 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
 fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
