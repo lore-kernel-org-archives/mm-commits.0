@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-configfs-examples-crash-fix-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 12 May 2011 12:54:04 -0700
-Message-ID: <201105121954.p4CJs5TC029845@imap1.linux-foundation.org>
+Subject: + drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch added to -mm tree
+Date: Thu, 12 May 2011 12:45:31 -0700
+Message-ID: <201105122021.p4CKLwQA031431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757868Ab1ELTym (ORCPT
+	by vger.kernel.org with ESMTP id S1757573Ab1ELUWd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 15:54:42 -0400
+	Thu, 12 May 2011 16:22:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jslaby@suse.cz
+Cc: akpm@linux-foundation.org, anton@samba.org, gregkh@suse.de
 
 
 The patch titled
-     documentation-configfs-examples-crash-fix-checkpatch-fixes
+     drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
 has been added to the -mm tree.  Its filename is
-     documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+     drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation-configfs-examples-crash-fix-checkpatch-fixes
+Subject: drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#24: FILE: Documentation/filesystems/configfs/configfs_example_explicit.c:467:
-+	for (i--; i >= 0; i--) {
- 		configfs_unregister_subsystem(example_subsys[i]);
- 	}
+drivers/base/memory.c: In function 'memory_block_change_state':
+drivers/base/memory.c:281: warning: unused variable 'i'
 
-WARNING: braces {} are not necessary for single statement blocks
-#36: FILE: Documentation/filesystems/configfs/configfs_example_macros.c:430:
-+	for (i--; i >= 0; i--) {
- 		configfs_unregister_subsystem(example_subsys[i]);
- 	}
+less beer, more testing
 
-total: 0 errors, 2 warnings, 16 lines checked
-
-./patches/documentation-configfs-examples-crash-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/configfs/configfs_example_explicit.c |    6 ++----
- Documentation/filesystems/configfs/configfs_example_macros.c   |    6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/configfs/configfs_example_explicit.c~documentation-configfs-examples-crash-fix-checkpatch-fixes Documentation/filesystems/configfs/configfs_example_explicit.c
---- a/Documentation/filesystems/configfs/configfs_example_explicit.c~documentation-configfs-examples-crash-fix-checkpatch-fixes
-+++ a/Documentation/filesystems/configfs/configfs_example_explicit.c
-@@ -464,9 +464,8 @@ static int __init configfs_example_init(
- 	return 0;
- 
- out_unregister:
--	for (i--; i >= 0; i--) {
-+	for (i--; i >= 0; i--)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- 
- 	return ret;
- }
-@@ -475,9 +474,8 @@ static void __exit configfs_example_exit
+diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section
++++ a/drivers/base/memory.c
+@@ -278,7 +278,7 @@ memory_block_action(unsigned long phys_i
+ static int memory_block_change_state(struct memory_block *mem,
+ 		unsigned long to_state, unsigned long from_state_req)
  {
- 	int i;
+-	int i, ret = 0;
++	int ret = 0;
  
--	for (i = 0; example_subsys[i]; i++) {
-+	for (i = 0; example_subsys[i]; i++)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- }
+ 	mutex_lock(&mem->state_mutex);
  
- module_init(configfs_example_init);
-diff -puN Documentation/filesystems/configfs/configfs_example_macros.c~documentation-configfs-examples-crash-fix-checkpatch-fixes Documentation/filesystems/configfs/configfs_example_macros.c
---- a/Documentation/filesystems/configfs/configfs_example_macros.c~documentation-configfs-examples-crash-fix-checkpatch-fixes
-+++ a/Documentation/filesystems/configfs/configfs_example_macros.c
-@@ -427,9 +427,8 @@ static int __init configfs_example_init(
- 	return 0;
- 
- out_unregister:
--	for (i--; i >= 0; i--) {
-+	for (i--; i >= 0; i--)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- 
- 	return ret;
- }
-@@ -438,9 +437,8 @@ static void __exit configfs_example_exit
- {
- 	int i;
- 
--	for (i = 0; example_subsys[i]; i++) {
-+	for (i = 0; example_subsys[i]; i++)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- }
- 
- module_init(configfs_example_init);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +74,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-provide-helper-to-register-leds-gpio-devices.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
