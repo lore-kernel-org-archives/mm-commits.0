@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-use-task-comm-instead-of-unknown.patch added to -mm tree
-Date: Thu, 12 May 2011 12:30:44 -0700
-Message-ID: <201105121930.p4CJUiaA028518@imap1.linux-foundation.org>
+Subject: + seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch added to -mm tree
+Date: Thu, 12 May 2011 12:42:06 -0700
+Message-ID: <201105121942.p4CJg6RF029226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756975Ab1ELTkw (ORCPT
+	by vger.kernel.org with ESMTP id S1754971Ab1ELTmn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 15:40:52 -0400
+	Thu, 12 May 2011 15:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, john.stultz@linaro.org
+Cc: miltonm@bga.com, andi@firstfloor.org, anton@samba.org, benh@kernel.crashing.org, dhowells@redhat.com, eric.dumazet@gmail.com, mingo@elte.hu, npiggin@kernel.dk, paulmck@us.ibm.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     coredump: use task comm instead of (unknown)
+     seqlock: don't smp_rmb in seqlock reader spin loop
 has been added to the -mm tree.  Its filename is
-     coredump-use-task-comm-instead-of-unknown.patch
+     seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: use task comm instead of (unknown)
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: seqlock: don't smp_rmb in seqlock reader spin loop
+From: Milton Miller <miltonm@bga.com>
 
-If we don't know the file corresponding to the binary (i.e.  exe_file is
-unknown), use "task->comm (path unknown)" instead of simple "(unknown)" as
-suggested by ak.
+Move the smp_rmb after cpu_relax loop in read_seqlock and add ACCESS_ONCE
+to make sure the test and return are consistent.
 
-The fallback is the same as %e except it will append "(path unknown)".
+A multi-threaded core in the lab didn't like the update from 2.6.35 to
+2.6.36, to the point it would hang during boot when multiple threads were
+active.  Bisection showed af5ab277ded04bd9bc6b048c5a2f0e7d70ef0867
+("clockevents: Remove the per cpu tick skew") as the culprit and it is
+supported with stack traces showing xtime_lock waits including
+tick_do_update_jiffies64 and/or update_vsyscall.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Experimentation showed the combination of cpu_relax and smp_rmb was
+significantly slowing the progress of other threads sharing the core, and
+this patch is effective in avoiding the hang.
+
+A theory is the rmb is affecting the whole core while the cpu_relax is
+causing a resource rebalance flush, together they cause an interfernce
+cadance that is unbroken when the seqlock reader has interrupts disabled.
+
+At first I was confused why the refactor in
+3c22cd5709e8143444a6d08682a87f4c57902df3 ("kernel: optimise seqlock")
+didn't affect this patch application, but after some study that affected
+seqcount not seqlock.  The new seqcount was not factored back into the
+seqlock.  I defer that the future.
+
+While the removal of the timer interrupt offset created contention for the
+xtime lock while a cpu does the additonal work to update the system clock,
+the seqlock implementation with the tight rmb spin loop goes back much
+further, and is just waiting for the right trigger.
+
+Signed-off-by: Milton Miller <miltonm@bga.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: John Stultz <john.stultz@linaro.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/seqlock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~coredump-use-task-comm-instead-of-unknown fs/exec.c
---- a/fs/exec.c~coredump-use-task-comm-instead-of-unknown
-+++ a/fs/exec.c
-@@ -1554,8 +1554,11 @@ static int cn_print_exe_file(struct core
- 	int ret;
+diff -puN include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop include/linux/seqlock.h
+--- a/include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop
++++ a/include/linux/seqlock.h
+@@ -88,12 +88,12 @@ static __always_inline unsigned read_seq
+ 	unsigned ret;
  
- 	exe_file = get_mm_exe_file(current->mm);
--	if (!exe_file)
--		return cn_printf(cn, "(unknown)");
-+	if (!exe_file) {
-+		char comm[TASK_COMM_LEN];
-+		return cn_printf(cn, "%s (path unknown)", get_task_comm(comm,
-+					current));
-+	}
+ repeat:
+-	ret = sl->sequence;
+-	smp_rmb();
++	ret = ACCESS_ONCE(sl->sequence);
+ 	if (unlikely(ret & 1)) {
+ 		cpu_relax();
+ 		goto repeat;
+ 	}
++	smp_rmb();
  
- 	pathbuf = kmalloc(PATH_MAX, GFP_TEMPORARY);
- 	if (!pathbuf) {
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from miltonm@bga.com are
 
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-mm-extract-exe_file-handling-from-procfs.patch
-coredump-add-support-for-exe_file-in-core-name.patch
-coredump-use-get_task_comm-for-%e-filename-format.patch
-coredump-use-task-comm-instead-of-unknown.patch
-coredump-escape-in-hostname-and-comm.patch
+seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch
 
