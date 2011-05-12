@@ -1,147 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch added to -mm tree
-Date: Thu, 12 May 2011 12:45:31 -0700
-Message-ID: <201105122021.p4CKLwQA031431@imap1.linux-foundation.org>
+Subject: [wrecked] msm-timer-migrate-to-timer-based-__delay.patch removed from -mm tree
+Date: Thu, 12 May 2011 13:08:41 -0700
+Message-ID: <201105122045.p4CKj9Z8000328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757573Ab1ELUWd (ORCPT
+	by vger.kernel.org with ESMTP id S1758559Ab1ELUpn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 16:22:33 -0400
+	Thu, 12 May 2011 16:45:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anton@samba.org, gregkh@suse.de
+To: sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
-has been added to the -mm tree.  Its filename is
-     drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
+     msm: timer: migrate to timer based __delay()
+has been removed from the -mm tree.  Its filename was
+     msm-timer-migrate-to-timer-based-__delay.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: msm: timer: migrate to timer based __delay()
+From: Stephen Boyd <sboyd@codeaurora.org>
 
-drivers/base/memory.c: In function 'memory_block_change_state':
-drivers/base/memory.c:281: warning: unused variable 'i'
+We have to provide a dummy set_mode for the DGT since we don't want it to
+ever turn off.
 
-less beer, more testing
-
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-msm/include/mach/timex.h |    1 +
+ arch/arm/mach-msm/timer.c              |   16 +++++++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section drivers/base/memory.c
---- a/drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section
-+++ a/drivers/base/memory.c
-@@ -278,7 +278,7 @@ memory_block_action(unsigned long phys_i
- static int memory_block_change_state(struct memory_block *mem,
- 		unsigned long to_state, unsigned long from_state_req)
+diff -puN arch/arm/mach-msm/include/mach/timex.h~msm-timer-migrate-to-timer-based-__delay arch/arm/mach-msm/include/mach/timex.h
+--- a/arch/arm/mach-msm/include/mach/timex.h~msm-timer-migrate-to-timer-based-__delay
++++ a/arch/arm/mach-msm/include/mach/timex.h
+@@ -17,5 +17,6 @@
+ #define __ASM_ARCH_MSM_TIMEX_H
+ 
+ #define CLOCK_TICK_RATE		1000000
++#define ARCH_HAS_READ_CURRENT_TIMER
+ 
+ #endif
+diff -puN arch/arm/mach-msm/timer.c~msm-timer-migrate-to-timer-based-__delay arch/arm/mach-msm/timer.c
+--- a/arch/arm/mach-msm/timer.c~msm-timer-migrate-to-timer-based-__delay
++++ a/arch/arm/mach-msm/timer.c
+@@ -116,6 +116,12 @@ static struct msm_clock *clockevent_to_c
+ #endif
+ }
+ 
++int read_current_timer(unsigned long *timer_val)
++{
++	*timer_val = readl(MSM_DGT_BASE + TIMER_COUNT_VAL);
++	return 0;
++}
++
+ static int msm_timer_set_next_event(unsigned long cycles,
+ 				    struct clock_event_device *evt)
  {
--	int i, ret = 0;
-+	int ret = 0;
+@@ -146,6 +152,12 @@ static void msm_timer_set_mode(enum cloc
+ 	}
+ }
  
- 	mutex_lock(&mem->state_mutex);
++static void msm_timer_set_mode_nop(enum clock_event_mode mode,
++				struct clock_event_device *evt)
++{
++	/* The timer is always ticking so do nothing */
++}
++
+ static struct msm_clock msm_clocks[] = {
+ 	[MSM_CLOCK_GPT] = {
+ 		.clockevent = {
+@@ -179,7 +191,7 @@ static struct msm_clock msm_clocks[] = {
+ 			.shift          = 32 + MSM_DGT_SHIFT,
+ 			.rating         = 300,
+ 			.set_next_event = msm_timer_set_next_event,
+-			.set_mode       = msm_timer_set_mode,
++			.set_mode       = msm_timer_set_mode_nop,
+ 		},
+ 		.clocksource = {
+ 			.name           = "dg_timer",
+@@ -260,6 +272,8 @@ static void __init msm_timer_init(void)
  
+ 		clockevents_register_device(ce);
+ 	}
++	writel(TIMER_ENABLE_EN, MSM_DGT_BASE + TIMER_ENABLE);
++	set_delay_fn(read_current_timer_delay_loop);
+ }
+ 
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fix-block-remove-extra-discard_alignment-from-hd_struct.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+lib-consolidate-debug_per_cpu_maps.patch
+lib-consolidate-debug_stack_usage-option.patch
 
