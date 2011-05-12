@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fix-block-remove-extra-discard_alignment-from-hd_struct.patch added to -mm tree
-Date: Wed, 11 May 2011 16:34:14 -0700
-Message-ID: <201105120010.p4C0Aevq003001@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 12 May 2011 11:49:31 -0700
+Message-ID: <201105121842.p4CIg4RB025619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752718Ab1ELALQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750899Ab1ELSmF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 May 2011 20:11:16 -0400
+	Thu, 12 May 2011 14:42:05 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4CIg4Up005980
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 12 May 2011 11:42:04 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, boyu.mt@taobao.com, jaxboe@fusionio.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fix "block: Remove extra discard_alignment from hd_struct"
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fix-block-remove-extra-discard_alignment-from-hd_struct.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +38,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "block: Remove extra discard_alignment from hd_struct"
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tao Ma <boyu.mt@taobao.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/mfd/twl4030-power.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/partitions/check.c~fix-block-remove-extra-discard_alignment-from-hd_struct fs/partitions/check.c
---- a/fs/partitions/check.c~fix-block-remove-extra-discard_alignment-from-hd_struct
-+++ a/fs/partitions/check.c
-@@ -258,9 +258,8 @@ ssize_t part_discard_alignment_show(stru
- 	struct gendisk *disk = dev_to_disk(dev);
- 
- 	return sprintf(buf, "%u\n",
--		       (unsigned long long)queue_limit_discard_alignment(
--							&disk->queue->limits,
--							p->start_sect));
-+			queue_limit_discard_alignment(&disk->queue->limits,
-+						      p->start_sect));
- }
- 
- ssize_t part_stat_show(struct device *dev,
+diff -puN drivers/mfd/twl4030-power.c~linux-next-git-rejects drivers/mfd/twl4030-power.c
+--- a/drivers/mfd/twl4030-power.c~linux-next-git-rejects
++++ a/drivers/mfd/twl4030-power.c
+@@ -448,11 +448,7 @@ static int __init load_twl4030_script(st
+ 			goto out;
+ 	}
+ 	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+-<<<<<<< HEAD
+-		if (order)
+-=======
+ 		if (!order)
+->>>>>>> FETCH_HEAD
+ 			pr_warning("TWL4030: Bad order of scripts (sleep "\
+ 					"script before wakeup) Leads to boot"\
+ 					"failure on some boards\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-use-alloc_bootmem_node_nopanic-on-really-needed-path.patch
-mm-add-alloc_pages_exact_nid.patch
+origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-i2c-busses-i2c-designware-corec-needs-delayh.patch
+fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-provide-helper-to-register-leds-gpio-devices.patch
@@ -140,5 +143,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 
