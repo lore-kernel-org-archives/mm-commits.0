@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch added to -mm tree
-Date: Thu, 12 May 2011 12:48:01 -0700
-Message-ID: <201105121948.p4CJm1Tl029496@imap1.linux-foundation.org>
+Subject: + x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch added to -mm tree
+Date: Thu, 12 May 2011 12:48:42 -0700
+Message-ID: <201105121948.p4CJmgwu029586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754971Ab1ELTsP (ORCPT
+	by vger.kernel.org with ESMTP id S1754971Ab1ELTss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 May 2011 15:48:15 -0400
+	Thu, 12 May 2011 15:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, lethal@linux-sh.org
+Cc: richard@nod.at
 
 
 The patch titled
-     sh: remove warning and warning_symbol from struct stacktrace_ops
+     x86: remove warning and warning_symbol from struct stacktrace_ops
 has been added to the -mm tree.  Its filename is
-     sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
+     x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: remove warning and warning_symbol from struct stacktrace_ops
+Subject: x86: remove warning and warning_symbol from struct stacktrace_ops
 From: Richard Weinberger <richard@nod.at>
 
 Both warning and warning_symbol are nowhere used.  Let's get rid of them.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/stacktrace.h |    3 ---
- arch/sh/kernel/dumpstack.c       |   15 ---------------
- arch/sh/kernel/perf_callchain.c  |   12 ------------
- arch/sh/kernel/stacktrace.c      |   13 -------------
- arch/sh/oprofile/backtrace.c     |   13 -------------
- 5 files changed, 56 deletions(-)
+ arch/x86/include/asm/stacktrace.h |    3 ---
+ arch/x86/kernel/cpu/perf_event.c  |   13 -------------
+ arch/x86/kernel/dumpstack.c       |   16 ----------------
+ arch/x86/kernel/stacktrace.c      |   13 -------------
+ arch/x86/oprofile/backtrace.c     |   13 -------------
+ 5 files changed, 58 deletions(-)
 
-diff -puN arch/sh/include/asm/stacktrace.h~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/sh/include/asm/stacktrace.h
---- a/arch/sh/include/asm/stacktrace.h~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/sh/include/asm/stacktrace.h
-@@ -10,9 +10,6 @@
+diff -puN arch/x86/include/asm/stacktrace.h~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/include/asm/stacktrace.h
+--- a/arch/x86/include/asm/stacktrace.h~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
++++ a/arch/x86/include/asm/stacktrace.h
+@@ -37,9 +37,6 @@ print_context_stack_bp(struct thread_inf
  /* Generic stack tracer with callbacks */
  
  struct stacktrace_ops {
@@ -64,13 +63,44 @@ diff -puN arch/sh/include/asm/stacktrace.h~sh-remove-warning-and-warning_symbol-
  	void (*address)(void *data, unsigned long address, int reliable);
  	/* On negative return stop dumping */
  	int (*stack)(void *data, char *name);
-diff -puN arch/sh/kernel/dumpstack.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/sh/kernel/dumpstack.c
---- a/arch/sh/kernel/dumpstack.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/sh/kernel/dumpstack.c
-@@ -69,19 +69,6 @@ stack_reader_dump(struct task_struct *ta
- 	}
+diff -puN arch/x86/kernel/cpu/perf_event.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/cpu/perf_event.c
+--- a/arch/x86/kernel/cpu/perf_event.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
++++ a/arch/x86/kernel/cpu/perf_event.c
+@@ -1773,17 +1773,6 @@ static struct pmu pmu = {
+  * callchain support
+  */
+ 
+-static void
+-backtrace_warning_symbol(void *data, char *msg, unsigned long symbol)
+-{
+-	/* Ignore warnings */
+-}
+-
+-static void backtrace_warning(void *data, char *msg)
+-{
+-	/* Ignore warnings */
+-}
+-
+ static int backtrace_stack(void *data, char *name)
+ {
+ 	return 0;
+@@ -1797,8 +1786,6 @@ static void backtrace_address(void *data
  }
  
+ static const struct stacktrace_ops backtrace_ops = {
+-	.warning		= backtrace_warning,
+-	.warning_symbol		= backtrace_warning_symbol,
+ 	.stack			= backtrace_stack,
+ 	.address		= backtrace_address,
+ 	.walk_stack		= print_context_stack_bp,
+diff -puN arch/x86/kernel/dumpstack.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/dumpstack.c
+--- a/arch/x86/kernel/dumpstack.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
++++ a/arch/x86/kernel/dumpstack.c
+@@ -135,20 +135,6 @@ print_context_stack_bp(struct thread_inf
+ }
+ EXPORT_SYMBOL_GPL(print_context_stack_bp);
+ 
+-
 -static void
 -print_trace_warning_symbol(void *data, char *msg, unsigned long symbol)
 -{
@@ -87,49 +117,20 @@ diff -puN arch/sh/kernel/dumpstack.c~sh-remove-warning-and-warning_symbol-from-s
  static int print_trace_stack(void *data, char *name)
  {
  	printk("%s <%s> ", (char *)data, name);
-@@ -98,8 +85,6 @@ static void print_trace_address(void *da
+@@ -166,8 +152,6 @@ static void print_trace_address(void *da
  }
  
  static const struct stacktrace_ops print_trace_ops = {
--	.warning = print_trace_warning,
--	.warning_symbol = print_trace_warning_symbol,
- 	.stack = print_trace_stack,
- 	.address = print_trace_address,
- };
-diff -puN arch/sh/kernel/perf_callchain.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/sh/kernel/perf_callchain.c
---- a/arch/sh/kernel/perf_callchain.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/sh/kernel/perf_callchain.c
-@@ -14,16 +14,6 @@
- #include <asm/unwinder.h>
- #include <asm/ptrace.h>
- 
--
--static void callchain_warning(void *data, char *msg)
--{
--}
--
--static void
--callchain_warning_symbol(void *data, char *msg, unsigned long symbol)
--{
--}
--
- static int callchain_stack(void *data, char *name)
- {
- 	return 0;
-@@ -38,8 +28,6 @@ static void callchain_address(void *data
- }
- 
- static const struct stacktrace_ops callchain_ops = {
--	.warning	= callchain_warning,
--	.warning_symbol	= callchain_warning_symbol,
- 	.stack		= callchain_stack,
- 	.address	= callchain_address,
- };
-diff -puN arch/sh/kernel/stacktrace.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/sh/kernel/stacktrace.c
---- a/arch/sh/kernel/stacktrace.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/sh/kernel/stacktrace.c
-@@ -17,15 +17,6 @@
- #include <asm/ptrace.h>
+-	.warning		= print_trace_warning,
+-	.warning_symbol		= print_trace_warning_symbol,
+ 	.stack			= print_trace_stack,
+ 	.address		= print_trace_address,
+ 	.walk_stack		= print_context_stack,
+diff -puN arch/x86/kernel/stacktrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/stacktrace.c
+--- a/arch/x86/kernel/stacktrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
++++ a/arch/x86/kernel/stacktrace.c
+@@ -9,15 +9,6 @@
+ #include <linux/uaccess.h>
  #include <asm/stacktrace.h>
  
 -static void save_stack_warning(void *data, char *msg)
@@ -144,30 +145,29 @@ diff -puN arch/sh/kernel/stacktrace.c~sh-remove-warning-and-warning_symbol-from-
  static int save_stack_stack(void *data, char *name)
  {
  	return 0;
-@@ -51,8 +42,6 @@ static void save_stack_address(void *dat
+@@ -53,16 +44,12 @@ save_stack_address_nosched(void *data, u
  }
  
  static const struct stacktrace_ops save_stack_ops = {
--	.warning = save_stack_warning,
--	.warning_symbol = save_stack_warning_symbol,
- 	.stack = save_stack_stack,
- 	.address = save_stack_address,
+-	.warning	= save_stack_warning,
+-	.warning_symbol	= save_stack_warning_symbol,
+ 	.stack		= save_stack_stack,
+ 	.address	= save_stack_address,
+ 	.walk_stack	= print_context_stack,
  };
-@@ -88,8 +77,6 @@ save_stack_address_nosched(void *data, u
- }
  
  static const struct stacktrace_ops save_stack_ops_nosched = {
--	.warning = save_stack_warning,
--	.warning_symbol = save_stack_warning_symbol,
- 	.stack = save_stack_stack,
- 	.address = save_stack_address_nosched,
- };
-diff -puN arch/sh/oprofile/backtrace.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/sh/oprofile/backtrace.c
---- a/arch/sh/oprofile/backtrace.c~sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/sh/oprofile/backtrace.c
-@@ -23,17 +23,6 @@
- #include <asm/sections.h>
+-	.warning	= save_stack_warning,
+-	.warning_symbol	= save_stack_warning_symbol,
+ 	.stack		= save_stack_stack,
+ 	.address	= save_stack_address_nosched,
+ 	.walk_stack	= print_context_stack,
+diff -puN arch/x86/oprofile/backtrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/oprofile/backtrace.c
+--- a/arch/x86/oprofile/backtrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
++++ a/arch/x86/oprofile/backtrace.c
+@@ -16,17 +16,6 @@
  #include <asm/stacktrace.h>
+ #include <linux/compat.h>
  
 -static void backtrace_warning_symbol(void *data, char *msg,
 -				     unsigned long symbol)
@@ -183,19 +183,20 @@ diff -puN arch/sh/oprofile/backtrace.c~sh-remove-warning-and-warning_symbol-from
  static int backtrace_stack(void *data, char *name)
  {
  	/* Yes, we want all stacks */
-@@ -49,8 +38,6 @@ static void backtrace_address(void *data
+@@ -42,8 +31,6 @@ static void backtrace_address(void *data
  }
  
  static struct stacktrace_ops backtrace_ops = {
--	.warning = backtrace_warning,
--	.warning_symbol = backtrace_warning_symbol,
- 	.stack = backtrace_stack,
- 	.address = backtrace_address,
- };
+-	.warning	= backtrace_warning,
+-	.warning_symbol	= backtrace_warning_symbol,
+ 	.stack		= backtrace_stack,
+ 	.address	= backtrace_address,
+ 	.walk_stack	= print_context_stack,
 _
 
 Patches currently in -mm which might be from richard@nod.at are
 
+x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
 mm-mmu_gather-rework.patch
 powerpc-mmu_gather-rework.patch
 sparc-mmu_gather-rework.patch
@@ -217,5 +218,4 @@ mm-convert-anon_vma-lock-to-a-mutex.patch
 mm-optimize-page_lock_anon_vma-fast-path.patch
 sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
 lib-consolidate-debug_stack_usage-option.patch
-x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
 
