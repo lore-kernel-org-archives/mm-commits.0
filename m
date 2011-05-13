@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-zone-congestion-fix.patch added to -mm tree
-Date: Thu, 12 May 2011 23:25:44 -0700
-Message-ID: <201105130618.p4D6ICrp030291@imap1.linux-foundation.org>
+Subject: + memcg-fix-zone-congestion.patch added to -mm tree
+Date: Thu, 12 May 2011 23:25:42 -0700
+Message-ID: <201105130618.p4D6IAfb030287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659Ab1EMGS1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751659Ab1EMGS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 May 2011 02:18:27 -0400
+	Fri, 13 May 2011 02:18:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, jweiner@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     memcg-fix-zone-congestion-fix
+     memcg: fix zone congestion
 has been added to the -mm tree.  Its filename is
-     memcg-fix-zone-congestion-fix.patch
+     memcg-fix-zone-congestion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-zone-congestion-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix zone congestion
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-small code cleanup
+ZONE_CONGESTED should be a state of global memory reclaim.  If not, a busy
+memcg sets this and give unnecessary throttoling in wait_iff_congested()
+against memory recalim in other contexts.  This makes system performance
+bad.
 
-Cc: Balbir Singh <balbir@in.ibm.com>
+I'll think about "memcg is congested!" flag is required or not, later. 
+But this fix is required first.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Ying Han <yinghan@google.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-fix-zone-congestion-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-fix-zone-congestion-fix
+diff -puN mm/vmscan.c~memcg-fix-zone-congestion mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-zone-congestion
 +++ a/mm/vmscan.c
-@@ -937,8 +937,7 @@ keep_lumpy:
+@@ -937,7 +937,8 @@ keep_lumpy:
  	 * back off and wait for congestion to clear because further reclaim
  	 * will encounter the same problem
  	 */
--	if (scanning_global_lru(sc) &&
--	    nr_dirty == nr_congested && nr_dirty != 0)
-+	if (scanning_global_lru(sc) && nr_dirty == nr_congested && nr_dirty)
+-	if (nr_dirty == nr_congested && nr_dirty != 0)
++	if (scanning_global_lru(sc) &&
++	    nr_dirty == nr_congested && nr_dirty != 0)
  		zone_set_flag(zone, ZONE_CONGESTED);
  
  	free_page_list(&free_pages);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
+memcg-fix-zone-congestion.patch
 memcg-fix-zone-congestion-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fix-block-remove-extra-discard_alignment-from-hd_struct.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch
+mm-increase-reclaim_distance-to-30.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
+mm-delete-non-atomic-mm-counter-implementation.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
+memcg-fix-get_scan_count-for-small-targets.patch
 
