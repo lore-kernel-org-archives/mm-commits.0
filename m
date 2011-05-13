@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.patch added to -mm tree
-Date: Fri, 13 May 2011 10:53:32 -0700
-Message-ID: <201105131745.p4DHjug6029944@imap1.linux-foundation.org>
+Subject: + um-fix-uml_lib_path.patch added to -mm tree
+Date: Fri, 13 May 2011 10:55:23 -0700
+Message-ID: <201105131747.p4DHllQH030015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753603Ab1EMRq3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753890Ab1EMRsX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 May 2011 13:46:29 -0400
+	Fri, 13 May 2011 13:48:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, szabolcs.gyurko@tlt.hu
+Cc: richard@nod.at
 
 
 The patch titled
-     w1: fix w1_ds2408.c printk formats
+     um: fix UML_LIB_PATH
 has been added to the -mm tree.  Its filename is
-     w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.p=
-atch
+     um-fix-uml_lib_path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,98 +26,97 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: fix w1_ds2408.c printk formats
-=46rom: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: um: fix UML_LIB_PATH
+From: Richard Weinberger <richard@nod.at>
 
-=46ix printk format warnings (on i386):
-(in w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch)
+UML_LIB_PATH is hardcoded to /usr/lib/uml/, on 64bit systems UML_LIB_PATH
+needs to be /usr/lib64/uml/.
 
-drivers/w1/slaves/w1_ds2408.c:79: warning: format '%lu' expects type 'l=
-ong unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:92: warning: format '%lu' expects type 'l=
-ong unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:106: warning: format '%lu' expects type '=
-long unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:120: warning: format '%lu' expects type '=
-long unsigned int', but argument 7 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
-Cc: Matt Reimer <mreimer@vpop.net>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2408.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/um/drivers/xterm.c     |    2 +-
+ arch/um/include/shared/os.h |    6 ++++++
+ arch/um/os-Linux/main.c     |    2 +-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-chann=
-el-addressable-switch-support-fix drivers/w1/slaves/w1_ds2408.c
---- a/drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-channel-a=
-ddressable-switch-support-fix
-+++ a/drivers/w1/slaves/w1_ds2408.c
-@@ -77,7 +77,7 @@ static ssize_t w1_f29_read_state(
- 	char *buf, loff_t off, size_t count)
+diff -puN arch/um/drivers/xterm.c~um-fix-uml_lib_path arch/um/drivers/xterm.c
+--- a/arch/um/drivers/xterm.c~um-fix-uml_lib_path
++++ a/arch/um/drivers/xterm.c
+@@ -90,7 +90,7 @@ static int xterm_open(int input, int out
+ 	int pid, fd, new, err;
+ 	char title[256], file[] = "/tmp/xterm-pipeXXXXXX";
+ 	char *argv[] = { terminal_emulator, title_switch, title, exec_switch,
+-			 "/usr/lib/uml/port-helper", "-uml-socket",
++			 OS_LIB_PATH "/uml/port-helper", "-uml-socket",
+ 			 file, NULL };
+ 
+ 	if (access(argv[4], X_OK) < 0)
+diff -puN arch/um/include/shared/os.h~um-fix-uml_lib_path arch/um/include/shared/os.h
+--- a/arch/um/include/shared/os.h~um-fix-uml_lib_path
++++ a/arch/um/include/shared/os.h
+@@ -29,6 +29,12 @@
+ #define OS_ACC_R_OK    4       /* Test for read permission.  */
+ #define OS_ACC_RW_OK   (OS_ACC_W_OK | OS_ACC_R_OK) /* Test for RW permission */
+ 
++#ifdef CONFIG_64BIT
++#define OS_LIB_PATH	"/usr/lib64/"
++#else
++#define OS_LIB_PATH	"/usr/lib/"
++#endif
++
+ /*
+  * types taken from stat_file() in hostfs_user.c
+  * (if they are wrong here, they are wrong there...).
+diff -puN arch/um/os-Linux/main.c~um-fix-uml_lib_path arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~um-fix-uml_lib_path
++++ a/arch/um/os-Linux/main.c
+@@ -78,7 +78,7 @@ static void install_fatal_handler(int si
+ 	}
+ }
+ 
+-#define UML_LIB_PATH	":/usr/lib/uml"
++#define UML_LIB_PATH	":" OS_LIB_PATH "/uml"
+ 
+ static void setup_env_path(void)
  {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -90,7 +90,7 @@ static ssize_t w1_f29_read_output(
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -104,7 +104,7 @@ static ssize_t w1_f29_read_activity(
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -118,7 +118,7 @@ static ssize_t w1_f29_read_cond_search_m
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com ar=
-e
+Patches currently in -mm which might be from richard@nod.at are
 
-linux-next.patch
-drivers-leds-leds-pca9532c-add-gpio-capability.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
+um-fix-uml_lib_path.patch
+um-fix-abort.patch
+um-remove-sighup-handler.patch
+um-os_dump_core-cleanup.patch
+lib-consolidate-debug_stack_usage-option.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
