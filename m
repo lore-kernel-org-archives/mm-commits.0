@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + um-fix-abort.patch added to -mm tree
-Date: Fri, 13 May 2011 10:55:24 -0700
-Message-ID: <201105131747.p4DHlmRj030018@imap1.linux-foundation.org>
+Subject: + um-remove-sighup-handler.patch added to -mm tree
+Date: Fri, 13 May 2011 10:55:25 -0700
+Message-ID: <201105131747.p4DHlnfA030021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753890Ab1EMRsZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753890Ab1EMRs0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 May 2011 13:48:25 -0400
+	Fri, 13 May 2011 13:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: richard@nod.at
 
 
 The patch titled
-     um: fix abort
+     um: remove SIGHUP handler
 has been added to the -mm tree.  Its filename is
-     um-fix-abort.patch
+     um-remove-sighup-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: fix abort
+Subject: um: remove SIGHUP handler
 From: Richard Weinberger <richard@nod.at>
 
-os_dump_core() uses abort() to terminate UML in case of an fatal error.
-
-glibc's abort() calls raise(SIGABRT) which makes use of tgkill(). 
-tgkill() has no effect within UML's kernel threads because they are not
-pthreads.  As fallback abort() executes an invalid instruction to
-terminate the process.  Therefore UML gets killed by SIGSEGV and leaves a
-ugly log entry in the host's kernel ring buffer.
-
-To get rid of this we use our own abort routine.
+The UML kernel ignores SIGHUP anyway.  This handler is in vain.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/util.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ arch/um/os-Linux/main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/um/os-Linux/util.c~um-fix-abort arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~um-fix-abort
-+++ a/arch/um/os-Linux/util.c
-@@ -5,6 +5,7 @@
+diff -puN arch/um/os-Linux/main.c~um-remove-sighup-handler arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~um-remove-sighup-handler
++++ a/arch/um/os-Linux/main.c
+@@ -142,7 +142,6 @@ int __init main(int argc, char **argv, c
+ 	 */
+ 	install_fatal_handler(SIGINT);
+ 	install_fatal_handler(SIGTERM);
+-	install_fatal_handler(SIGHUP);
  
- #include <stdio.h>
- #include <stdlib.h>
-+#include <unistd.h>
- #include <errno.h>
- #include <signal.h>
- #include <string.h>
-@@ -75,6 +76,26 @@ void setup_hostinfo(char *buf, int len)
- 		 host.release, host.version, host.machine);
- }
+ 	scan_elf_aux(envp);
  
-+/*
-+ * We cannot use glibc's abort(). It makes use of tgkill() which
-+ * has no effect within UML's kernel threads.
-+ * After that glibc would execute an invalid instruction to kill
-+ * the calling process and UML crashes with SIGSEGV.
-+ */
-+static inline void __attribute__ ((noreturn)) uml_abort(void)
-+{
-+	sigset_t sig;
-+
-+	fflush(NULL);
-+
-+	if (!sigemptyset(&sig) && !sigaddset(&sig, SIGABRT))
-+		sigprocmask(SIG_UNBLOCK, &sig, 0);
-+
-+	for (;;)
-+		if (kill(getpid(), SIGABRT) < 0)
-+			exit(127);
-+}
-+
- void os_dump_core(void)
- {
- 	int pid;
-@@ -116,5 +137,5 @@ void os_dump_core(void)
- 	while ((pid = waitpid(-1, NULL, WNOHANG | __WALL)) > 0)
- 		os_kill_ptraced_process(pid, 0);
- 
--	abort();
-+	uml_abort();
- }
 _
 
 Patches currently in -mm which might be from richard@nod.at are
