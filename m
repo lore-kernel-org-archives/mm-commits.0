@@ -1,101 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gen_initramfs_listsh-convert-to-a-bin-sh-script.patch removed from -mm tree
-Date: Mon, 16 May 2011 12:37:09 -0700
-Message-ID: <201105161936.p4GJasUb014250@imap1.linux-foundation.org>
+Subject: [merged] seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch removed from -mm tree
+Date: Mon, 16 May 2011 12:37:00 -0700
+Message-ID: <201105161936.p4GJakK4014237__9084.21016433767$1305574674$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754276Ab1EPThG (ORCPT
+	by vger.kernel.org with ESMTP id S1754146Ab1EPThm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 May 2011 15:37:06 -0400
+	Mon, 16 May 2011 15:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamey@minilop.net, josh@joshtriplett.org, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: miltonm@bga.com, andi@firstfloor.org, anton@samba.org, benh@kernel.crashing.org, dhowells@redhat.com, eric.dumazet@gmail.com, mingo@elte.hu, npiggin@kernel.dk, paulmck@us.ibm.com, sta
 
 
 The patch titled
-     scripts/gen_initramfs_list.sh: convert to a /bin/sh script
+     seqlock: don't smp_rmb in seqlock reader spin loop
 has been removed from the -mm tree.  Its filename was
-     scripts-gen_initramfs_listsh-convert-to-a-bin-sh-script.patch
+     seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/gen_initramfs_list.sh: convert to a /bin/sh script
-From: Jamey Sharp <jamey@minilop.net>
+Subject: seqlock: don't smp_rmb in seqlock reader spin loop
+From: Milton Miller <miltonm@bga.com>
 
-Replace bashisms with POSIX-compatible shell scripting.
+Move the smp_rmb after cpu_relax loop in read_seqlock and add ACCESS_ONCE
+to make sure the test and return are consistent.
 
-Notably, de-duplicate '/' using a sed command from elsewhere in the same
-script rather than "${name//\/\///}".
+A multi-threaded core in the lab didn't like the update from 2.6.35 to
+2.6.36, to the point it would hang during boot when multiple threads were
+active.  Bisection showed af5ab277ded04bd9bc6b048c5a2f0e7d70ef0867
+("clockevents: Remove the per cpu tick skew") as the culprit and it is
+supported with stack traces showing xtime_lock waits including
+tick_do_update_jiffies64 and/or update_vsyscall.
 
-Commit by Jamey Sharp and Josh Triplett.
+Experimentation showed the combination of cpu_relax and smp_rmb was
+significantly slowing the progress of other threads sharing the core, and
+this patch is effective in avoiding the hang.
 
-Signed-off-by: Jamey Sharp <jamey@minilop.net>
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Michal Marek <mmarek@suse.cz>
+A theory is the rmb is affecting the whole core while the cpu_relax is
+causing a resource rebalance flush, together they cause an interfernce
+cadance that is unbroken when the seqlock reader has interrupts disabled.
+
+At first I was confused why the refactor in
+3c22cd5709e8143444a6d08682a87f4c57902df3 ("kernel: optimise seqlock")
+didn't affect this patch application, but after some study that affected
+seqcount not seqlock.  The new seqcount was not factored back into the
+seqlock.  I defer that the future.
+
+While the removal of the timer interrupt offset created contention for the
+xtime lock while a cpu does the additonal work to update the system clock,
+the seqlock implementation with the tight rmb spin loop goes back much
+further, and is just waiting for the right trigger.
+
+Signed-off-by: Milton Miller <miltonm@bga.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/seqlock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gen_initramfs_list.sh~scripts-gen_initramfs_listsh-convert-to-a-bin-sh-script scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~scripts-gen_initramfs_listsh-convert-to-a-bin-sh-script
-+++ a/scripts/gen_initramfs_list.sh
-@@ -1,4 +1,4 @@
--#!/bin/bash
-+#!/bin/sh
- # Copyright (C) Martin Schlemmer <azarah@nosferatu.za.org>
- # Copyright (C) 2006 Sam Ravnborg <sam@ravnborg.org>
- #
-@@ -105,9 +105,9 @@ list_parse() {
- # for links, devices etc the format differs. See gen_init_cpio for details
- parse() {
- 	local location="$1"
--	local name="${location/${srcdir}//}"
-+	local name="/${location#${srcdir}}"
- 	# change '//' into '/'
--	name="${name//\/\///}"
-+	name=$(echo "$name" | sed -e 's://*:/:g')
- 	local mode="$2"
- 	local uid="$3"
- 	local gid="$4"
-@@ -117,8 +117,8 @@ parse() {
- 	[ "$root_gid" = "squash" ] && gid=0 || [ "$gid" -eq "$root_gid" ] && gid=0
- 	local str="${mode} ${uid} ${gid}"
+diff -puN include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop include/linux/seqlock.h
+--- a/include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop
++++ a/include/linux/seqlock.h
+@@ -88,12 +88,12 @@ static __always_inline unsigned read_seq
+ 	unsigned ret;
  
--	[ "${ftype}" == "invalid" ] && return 0
--	[ "${location}" == "${srcdir}" ] && return 0
-+	[ "${ftype}" = "invalid" ] && return 0
-+	[ "${location}" = "${srcdir}" ] && return 0
+ repeat:
+-	ret = sl->sequence;
+-	smp_rmb();
++	ret = ACCESS_ONCE(sl->sequence);
+ 	if (unlikely(ret & 1)) {
+ 		cpu_relax();
+ 		goto repeat;
+ 	}
++	smp_rmb();
  
- 	case "${ftype}" in
- 		"file")
-@@ -192,7 +192,7 @@ input_file() {
- 	if [ -f "$1" ]; then
- 		${dep_list}header "$1"
- 		is_cpio="$(echo "$1" | sed 's/^.*\.cpio\(\..*\)\?/cpio/')"
--		if [ $2 -eq 0 -a ${is_cpio} == "cpio" ]; then
-+		if [ $2 -eq 0 -a ${is_cpio} = "cpio" ]; then
- 			cpio_file=$1
- 			echo "$1" | grep -q '^.*\.cpio\..*' && is_cpio_compressed="compressed"
- 			[ ! -z ${dep_list} ] && echo "$1"
-@@ -204,7 +204,7 @@ input_file() {
- 		else
- 		        echo "$1 \\"
- 			cat "$1" | while read type dir file perm ; do
--				if [ "$type" == "file" ]; then
-+				if [ "$type" = "file" ]; then
- 					echo "$file \\";
- 				fi
- 			done
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jamey@minilop.net are
+Patches currently in -mm which might be from miltonm@bga.com are
 
 linux-next.patch
 
