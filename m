@@ -1,138 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch removed from -mm tree
-Date: Mon, 16 May 2011 12:37:07 -0700
-Message-ID: <201105161936.p4GJaqCd014247@imap1.linux-foundation.org>
+Subject: [merged] dma-debug-print-information-about-leaked-entry.patch removed from -mm tree
+Date: Mon, 16 May 2011 12:37:12 -0700
+Message-ID: <201105161936.p4GJav5Y014258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754146Ab1EPTg7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754276Ab1EPThB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 May 2011 15:36:59 -0400
+	Mon, 16 May 2011 15:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anton@samba.org, gregkh@suse.de, mm-commits@vger.kernel.org
+To: sgruszka@redhat.com, joerg.roedel@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
+     dma-debug: print information about leaked entry
 has been removed from the -mm tree.  Its filename was
-     drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
+     dma-debug-print-information-about-leaked-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-debug: print information about leaked entry
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-drivers/base/memory.c: In function 'memory_block_change_state':
-drivers/base/memory.c:281: warning: unused variable 'i'
+When a driver leaks a dma mapping, print additional information about one
+of the leaked entries to help investigation.  The patch should be useful
+for debugging drivers, which map many different class of buffers.
 
-less beer, more testing
-
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/dma-debug.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section drivers/base/memory.c
---- a/drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section
-+++ a/drivers/base/memory.c
-@@ -278,7 +278,7 @@ memory_block_action(unsigned long phys_i
- static int memory_block_change_state(struct memory_block *mem,
- 		unsigned long to_state, unsigned long from_state_req)
+diff -puN lib/dma-debug.c~dma-debug-print-information-about-leaked-entry lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-print-information-about-leaked-entry
++++ a/lib/dma-debug.c
+@@ -649,7 +649,7 @@ out_err:
+ 	return -ENOMEM;
+ }
+ 
+-static int device_dma_allocations(struct device *dev)
++static int device_dma_allocations(struct device *dev, struct dma_debug_entry **out_entry)
  {
--	int i, ret = 0;
-+	int ret = 0;
+ 	struct dma_debug_entry *entry;
+ 	unsigned long flags;
+@@ -660,8 +660,10 @@ static int device_dma_allocations(struct
+ 	for (i = 0; i < HASH_SIZE; ++i) {
+ 		spin_lock(&dma_entry_hash[i].lock);
+ 		list_for_each_entry(entry, &dma_entry_hash[i].list, list) {
+-			if (entry->dev == dev)
++			if (entry->dev == dev) {
+ 				count += 1;
++				*out_entry = entry;
++			}
+ 		}
+ 		spin_unlock(&dma_entry_hash[i].lock);
+ 	}
+@@ -674,6 +676,7 @@ static int device_dma_allocations(struct
+ static int dma_debug_device_change(struct notifier_block *nb, unsigned long action, void *data)
+ {
+ 	struct device *dev = data;
++	struct dma_debug_entry *uninitialized_var(entry);
+ 	int count;
  
- 	mutex_lock(&mem->state_mutex);
+ 	if (global_disable)
+@@ -681,12 +684,17 @@ static int dma_debug_device_change(struc
  
+ 	switch (action) {
+ 	case BUS_NOTIFY_UNBOUND_DRIVER:
+-		count = device_dma_allocations(dev);
++		count = device_dma_allocations(dev, &entry);
+ 		if (count == 0)
+ 			break;
+-		err_printk(dev, NULL, "DMA-API: device driver has pending "
++		err_printk(dev, entry, "DMA-API: device driver has pending "
+ 				"DMA allocations while released from device "
+-				"[count=%d]\n", count);
++				"[count=%d]\n"
++				"One of leaked entries details: "
++				"[device address=0x%016llx] [size=%llu bytes] "
++				"[mapped with %s] [mapped as %s]\n",
++			count, entry->dev_addr, entry->size,
++			dir2name[entry->direction], type2name[entry->type]);
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
 origin.patch
-memcg-fix-zone-congestion-fix.patch
-memcg-fix-zone-congestion-fix-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
