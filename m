@@ -1,99 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch removed from -mm tree
-Date: Mon, 16 May 2011 12:37:00 -0700
-Message-ID: <201105161936.p4GJakK4014237__9084.21016433767$1305574674$gmane$org@imap1.linux-foundation.org>
+Subject: + mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep.patch added to -mm tree
+Date: Mon, 16 May 2011 14:17:29 -0700
+Message-ID: <201105162117.p4GLHTeH019569__12531.1308693655$1305580720$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754146Ab1EPThm (ORCPT
+	by vger.kernel.org with ESMTP id S1755973Ab1EPVSO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 May 2011 15:37:42 -0400
+	Mon, 16 May 2011 17:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miltonm@bga.com, andi@firstfloor.org, anton@samba.org, benh@kernel.crashing.org, dhowells@redhat.com, eric.dumazet@gmail.com, mingo@elte.hu, npiggin@kernel.dk, paulmck@us.ibm.com, sta
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, James.Bottomley@HansenPartnership.com, chris.mason@oracle.com, cl@linux.com, colin.king@canonical.com, jack@suse.cz, minchan.kim@gmail.com, penberg@kernel.org, raghu.prabhu13@gmail.com, riel@redhat.com, stable@kernel.org
 
 
 The patch titled
-     seqlock: don't smp_rmb in seqlock reader spin loop
-has been removed from the -mm tree.  Its filename was
-     seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop.patch
+     mm: vmscan: if kswapd has been running too long, allow it to sleep
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seqlock: don't smp_rmb in seqlock reader spin loop
-From: Milton Miller <miltonm@bga.com>
+Subject: mm: vmscan: if kswapd has been running too long, allow it to sleep
+From: Mel Gorman <mgorman@suse.de>
 
-Move the smp_rmb after cpu_relax loop in read_seqlock and add ACCESS_ONCE
-to make sure the test and return are consistent.
+Under constant allocation pressure, kswapd can be in the situation where
+sleeping_prematurely() will always return true even if kswapd has been
+running a long time.  Check if kswapd needs to be scheduled.
 
-A multi-threaded core in the lab didn't like the update from 2.6.35 to
-2.6.36, to the point it would hang during boot when multiple threads were
-active.  Bisection showed af5ab277ded04bd9bc6b048c5a2f0e7d70ef0867
-("clockevents: Remove the per cpu tick skew") as the culprit and it is
-supported with stack traces showing xtime_lock waits including
-tick_do_update_jiffies64 and/or update_vsyscall.
-
-Experimentation showed the combination of cpu_relax and smp_rmb was
-significantly slowing the progress of other threads sharing the core, and
-this patch is effective in avoiding the hang.
-
-A theory is the rmb is affecting the whole core while the cpu_relax is
-causing a resource rebalance flush, together they cause an interfernce
-cadance that is unbroken when the seqlock reader has interrupts disabled.
-
-At first I was confused why the refactor in
-3c22cd5709e8143444a6d08682a87f4c57902df3 ("kernel: optimise seqlock")
-didn't affect this patch application, but after some study that affected
-seqcount not seqlock.  The new seqcount was not factored back into the
-seqlock.  I defer that the future.
-
-While the removal of the timer interrupt offset created contention for the
-xtime lock while a cpu does the additonal work to update the system clock,
-the seqlock implementation with the tight rmb spin loop goes back much
-further, and is just waiting for the right trigger.
-
-Signed-off-by: Milton Miller <miltonm@bga.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Colin King <colin.king@canonical.com>
+Cc: Raghavendra D Prabhu <raghu.prabhu13@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: <stable@kernel.org>		[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seqlock.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop include/linux/seqlock.h
---- a/include/linux/seqlock.h~seqlock-dont-smp_rmb-in-seqlock-reader-spin-loop
-+++ a/include/linux/seqlock.h
-@@ -88,12 +88,12 @@ static __always_inline unsigned read_seq
- 	unsigned ret;
+diff -puN mm/vmscan.c~mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep
++++ a/mm/vmscan.c
+@@ -2251,6 +2251,10 @@ static bool sleeping_prematurely(pg_data
+ 	unsigned long balanced = 0;
+ 	bool all_zones_ok = true;
  
- repeat:
--	ret = sl->sequence;
--	smp_rmb();
-+	ret = ACCESS_ONCE(sl->sequence);
- 	if (unlikely(ret & 1)) {
- 		cpu_relax();
- 		goto repeat;
- 	}
-+	smp_rmb();
- 
- 	return ret;
- }
++	/* If kswapd has been running too long, just sleep */
++	if (need_resched())
++		return false;
++
+ 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
+ 	if (remaining)
+ 		return true;
 _
 
-Patches currently in -mm which might be from miltonm@bga.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-linux-next.patch
+origin.patch
+mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely.patch
+mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep.patch
 
