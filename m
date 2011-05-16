@@ -1,215 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch removed from -mm tree
-Date: Mon, 16 May 2011 12:37:05 -0700
-Message-ID: <201105161936.p4GJaoFE014244@imap1.linux-foundation.org>
+Subject: [merged] drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch removed from -mm tree
+Date: Mon, 16 May 2011 12:37:07 -0700
+Message-ID: <201105161936.p4GJaqCd014247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752280Ab1EPTg7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754146Ab1EPTg7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 May 2011 15:36:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anton@samba.org, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: remove warning and warning_symbol from struct stacktrace_ops
+     drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
 has been removed from the -mm tree.  Its filename was
-     x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
+     drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: remove warning and warning_symbol from struct stacktrace_ops
-From: Richard Weinberger <richard@nod.at>
+Subject: drivers/base/memory.c: fix warning due to "memory hotplug: Speed up add/remove when blocks are larger than PAGES_PER_SECTION"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Both warning and warning_symbol are nowhere used.  Let's get rid of them.
+drivers/base/memory.c: In function 'memory_block_change_state':
+drivers/base/memory.c:281: warning: unused variable 'i'
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+less beer, more testing
+
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/stacktrace.h |    3 ---
- arch/x86/kernel/cpu/perf_event.c  |   13 -------------
- arch/x86/kernel/dumpstack.c       |   16 ----------------
- arch/x86/kernel/stacktrace.c      |   13 -------------
- arch/x86/oprofile/backtrace.c     |   13 -------------
- 5 files changed, 58 deletions(-)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/stacktrace.h~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/include/asm/stacktrace.h
---- a/arch/x86/include/asm/stacktrace.h~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/x86/include/asm/stacktrace.h
-@@ -37,9 +37,6 @@ print_context_stack_bp(struct thread_inf
- /* Generic stack tracer with callbacks */
- 
- struct stacktrace_ops {
--	void (*warning)(void *data, char *msg);
--	/* msg must contain %s for the symbol */
--	void (*warning_symbol)(void *data, char *msg, unsigned long symbol);
- 	void (*address)(void *data, unsigned long address, int reliable);
- 	/* On negative return stop dumping */
- 	int (*stack)(void *data, char *name);
-diff -puN arch/x86/kernel/cpu/perf_event.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/cpu/perf_event.c
---- a/arch/x86/kernel/cpu/perf_event.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/x86/kernel/cpu/perf_event.c
-@@ -1773,17 +1773,6 @@ static struct pmu pmu = {
-  * callchain support
-  */
- 
--static void
--backtrace_warning_symbol(void *data, char *msg, unsigned long symbol)
--{
--	/* Ignore warnings */
--}
--
--static void backtrace_warning(void *data, char *msg)
--{
--	/* Ignore warnings */
--}
--
- static int backtrace_stack(void *data, char *name)
+diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section
++++ a/drivers/base/memory.c
+@@ -278,7 +278,7 @@ memory_block_action(unsigned long phys_i
+ static int memory_block_change_state(struct memory_block *mem,
+ 		unsigned long to_state, unsigned long from_state_req)
  {
- 	return 0;
-@@ -1797,8 +1786,6 @@ static void backtrace_address(void *data
- }
+-	int i, ret = 0;
++	int ret = 0;
  
- static const struct stacktrace_ops backtrace_ops = {
--	.warning		= backtrace_warning,
--	.warning_symbol		= backtrace_warning_symbol,
- 	.stack			= backtrace_stack,
- 	.address		= backtrace_address,
- 	.walk_stack		= print_context_stack_bp,
-diff -puN arch/x86/kernel/dumpstack.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -135,20 +135,6 @@ print_context_stack_bp(struct thread_inf
- }
- EXPORT_SYMBOL_GPL(print_context_stack_bp);
+ 	mutex_lock(&mem->state_mutex);
  
--
--static void
--print_trace_warning_symbol(void *data, char *msg, unsigned long symbol)
--{
--	printk(data);
--	print_symbol(msg, symbol);
--	printk("\n");
--}
--
--static void print_trace_warning(void *data, char *msg)
--{
--	printk("%s%s\n", (char *)data, msg);
--}
--
- static int print_trace_stack(void *data, char *name)
- {
- 	printk("%s <%s> ", (char *)data, name);
-@@ -166,8 +152,6 @@ static void print_trace_address(void *da
- }
- 
- static const struct stacktrace_ops print_trace_ops = {
--	.warning		= print_trace_warning,
--	.warning_symbol		= print_trace_warning_symbol,
- 	.stack			= print_trace_stack,
- 	.address		= print_trace_address,
- 	.walk_stack		= print_context_stack,
-diff -puN arch/x86/kernel/stacktrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/kernel/stacktrace.c
---- a/arch/x86/kernel/stacktrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/x86/kernel/stacktrace.c
-@@ -9,15 +9,6 @@
- #include <linux/uaccess.h>
- #include <asm/stacktrace.h>
- 
--static void save_stack_warning(void *data, char *msg)
--{
--}
--
--static void
--save_stack_warning_symbol(void *data, char *msg, unsigned long symbol)
--{
--}
--
- static int save_stack_stack(void *data, char *name)
- {
- 	return 0;
-@@ -53,16 +44,12 @@ save_stack_address_nosched(void *data, u
- }
- 
- static const struct stacktrace_ops save_stack_ops = {
--	.warning	= save_stack_warning,
--	.warning_symbol	= save_stack_warning_symbol,
- 	.stack		= save_stack_stack,
- 	.address	= save_stack_address,
- 	.walk_stack	= print_context_stack,
- };
- 
- static const struct stacktrace_ops save_stack_ops_nosched = {
--	.warning	= save_stack_warning,
--	.warning_symbol	= save_stack_warning_symbol,
- 	.stack		= save_stack_stack,
- 	.address	= save_stack_address_nosched,
- 	.walk_stack	= print_context_stack,
-diff -puN arch/x86/oprofile/backtrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops arch/x86/oprofile/backtrace.c
---- a/arch/x86/oprofile/backtrace.c~x86-remove-warning-and-warning_symbol-from-struct-stacktrace_ops
-+++ a/arch/x86/oprofile/backtrace.c
-@@ -16,17 +16,6 @@
- #include <asm/stacktrace.h>
- #include <linux/compat.h>
- 
--static void backtrace_warning_symbol(void *data, char *msg,
--				     unsigned long symbol)
--{
--	/* Ignore warnings */
--}
--
--static void backtrace_warning(void *data, char *msg)
--{
--	/* Ignore warnings */
--}
--
- static int backtrace_stack(void *data, char *name)
- {
- 	/* Yes, we want all stacks */
-@@ -42,8 +31,6 @@ static void backtrace_address(void *data
- }
- 
- static struct stacktrace_ops backtrace_ops = {
--	.warning	= backtrace_warning,
--	.warning_symbol	= backtrace_warning_symbol,
- 	.stack		= backtrace_stack,
- 	.address	= backtrace_address,
- 	.walk_stack	= print_context_stack,
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-um-fix-abort.patch
+origin.patch
+memcg-fix-zone-congestion-fix.patch
+memcg-fix-zone-congestion-fix-fix.patch
 linux-next.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
-sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
-um-os_dump_core-cleanup.patch
-um-fix-uml_lib_path.patch
-um-remove-sighup-handler.patch
-lib-consolidate-debug_stack_usage-option.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
