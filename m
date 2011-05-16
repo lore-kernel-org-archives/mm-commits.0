@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 16 May 2011 12:35:04 -0700
-Message-ID: <201105161934.p4GJYoxs014069@imap1.linux-foundation.org>
+Subject: [merged] fix-block-remove-extra-discard_alignment-from-hd_struct.patch removed from -mm tree
+Date: Mon, 16 May 2011 12:36:56 -0700
+Message-ID: <201105161936.p4GJagdG014230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753606Ab1EPTew (ORCPT
+	by vger.kernel.org with ESMTP id S1752280Ab1EPTgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 May 2011 15:34:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4GJYpKA006680
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 16 May 2011 12:34:51 -0700
+	Mon, 16 May 2011 15:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, boyu.mt@taobao.com, jaxboe@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     fix "block: Remove extra discard_alignment from hd_struct"
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: fix "block: Remove extra discard_alignment from hd_struct"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Tao Ma <boyu.mt@taobao.com>
+Cc: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl4030-power.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/partitions/check.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mfd/twl4030-power.c~linux-next-git-rejects drivers/mfd/twl4030-power.c
---- a/drivers/mfd/twl4030-power.c~linux-next-git-rejects
-+++ a/drivers/mfd/twl4030-power.c
-@@ -448,11 +448,7 @@ static int __init load_twl4030_script(st
- 			goto out;
- 	}
- 	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
--<<<<<<< HEAD
--		if (order)
--=======
- 		if (!order)
-->>>>>>> FETCH_HEAD
- 			pr_warning("TWL4030: Bad order of scripts (sleep "\
- 					"script before wakeup) Leads to boot"\
- 					"failure on some boards\n");
+diff -puN fs/partitions/check.c~fix-block-remove-extra-discard_alignment-from-hd_struct fs/partitions/check.c
+--- a/fs/partitions/check.c~fix-block-remove-extra-discard_alignment-from-hd_struct
++++ a/fs/partitions/check.c
+@@ -258,9 +258,8 @@ ssize_t part_discard_alignment_show(stru
+ 	struct gendisk *disk = dev_to_disk(dev);
+ 
+ 	return sprintf(buf, "%u\n",
+-		       (unsigned long long)queue_limit_discard_alignment(
+-							&disk->queue->limits,
+-							p->start_sect));
++			queue_limit_discard_alignment(&disk->queue->limits,
++						      p->start_sect));
+ }
+ 
+ ssize_t part_stat_show(struct device *dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,9 +61,7 @@ linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-fix-block-remove-extra-discard_alignment-from-hd_struct.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-base-memoryc-fix-warning-due-to-memory-hotplug-speed-up-add-remove-when-blocks-are-larger-than-pages_per_section.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 leds-provide-helper-to-register-leds-gpio-devices.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
