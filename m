@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-zone-congestion-fix.patch removed from -mm tree
-Date: Tue, 17 May 2011 15:43:16 -0700
-Message-ID: <201105172243.p4HMhHhV026555@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-zone-congestion-fix-fix.patch removed from -mm tree
+Date: Tue, 17 May 2011 15:43:19 -0700
+Message-ID: <201105172243.p4HMhJFF026558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932458Ab1EQWoC (ORCPT
+	by vger.kernel.org with ESMTP id S932477Ab1EQWoC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 May 2011 18:44:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,17 @@ To: akpm@linux-foundation.org, balbir@in.ibm.com, jweiner@redhat.com, kamezawa.h
 
 
 The patch titled
-     memcg-fix-zone-congestion-fix
+     memcg-fix-zone-congestion-fix-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-zone-congestion-fix.patch
+     memcg-fix-zone-congestion-fix-fix.patch
 
 This patch was dropped because it was folded into memcg-fix-zone-congestion.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-zone-congestion-fix
+Subject: memcg-fix-zone-congestion-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-small code cleanup
 
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -39,19 +37,18 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-fix-zone-congestion-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-fix-zone-congestion-fix
+diff -puN mm/vmscan.c~memcg-fix-zone-congestion-fix-fix mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-zone-congestion-fix-fix
 +++ a/mm/vmscan.c
-@@ -937,8 +937,7 @@ keep_lumpy:
+@@ -937,7 +937,7 @@ keep_lumpy:
  	 * back off and wait for congestion to clear because further reclaim
  	 * will encounter the same problem
  	 */
--	if (scanning_global_lru(sc) &&
--	    nr_dirty == nr_congested && nr_dirty != 0)
-+	if (scanning_global_lru(sc) && nr_dirty == nr_congested && nr_dirty)
+-	if (scanning_global_lru(sc) && nr_dirty == nr_congested && nr_dirty)
++	if (nr_dirty && nr_dirty == nr_congested && scanning_global_lru(sc))
  		zone_set_flag(zone, ZONE_CONGESTED);
  
  	free_page_list(&free_pages);
@@ -61,7 +58,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 memcg-fix-zone-congestion.patch
-memcg-fix-zone-congestion-fix-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
