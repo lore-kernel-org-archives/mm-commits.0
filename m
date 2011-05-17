@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-the-pagefault-count-into-memcg-stats-shmem-fix.patch added to -mm tree
-Date: Tue, 17 May 2011 12:33:34 -0700
-Message-ID: <201105171933.p4HJXZYa016800@imap1.linux-foundation.org>
+Subject: + mm-remove-last-trace-of-shmem_get_unmapped_area.patch added to -mm tree
+Date: Tue, 17 May 2011 12:34:07 -0700
+Message-ID: <201105171934.p4HJY7n4016880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932105Ab1EQTd6 (ORCPT
+	by vger.kernel.org with ESMTP id S932106Ab1EQTeZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 May 2011 15:33:58 -0400
+	Tue, 17 May 2011 15:34:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, yinghan@google.com
+Cc: hughd@google.com
 
 
 The patch titled
-     add the pagefault count into memcg stats: shmem fix
+     mm: remove last trace of shmem_get_unmapped_area
 has been added to the -mm tree.  Its filename is
-     add-the-pagefault-count-into-memcg-stats-shmem-fix.patch
+     mm-remove-last-trace-of-shmem_get_unmapped_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add the pagefault count into memcg stats: shmem fix
+Subject: mm: remove last trace of shmem_get_unmapped_area
 From: Hugh Dickins <hughd@google.com>
 
-mem_cgroup_count_vm_event() should update the PGMAJFAULT count for the
-target mm, not for current mm (but of course they're usually the same).
-
-We don't know the target mm in shmem_getpage(), so do it at the outer
-level in shmem_fault(); and it's easier to follow if we move the
-count_vm_event(PGMAJFAULT) there too.
-
-Hah, it was using __count_vm_event() before, sneaking that update into the
-unpreemptible section under info->lock: well, it comes to the same on x86
-at least, and I still think it's best to keep these together.
+Remove noMMU declaration of shmem_get_unmapped_area() from mm.h: it fell
+out of use in 2.6.21 and ceased to exist in 2.6.29.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/mm.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix mm/shmem.c
---- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix
-+++ a/mm/shmem.c
-@@ -1304,14 +1304,10 @@ repeat:
- 		swappage = lookup_swap_cache(swap);
- 		if (!swappage) {
- 			shmem_swp_unmap(entry);
-+			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type && !(*type & VM_FAULT_MAJOR)) {
--				__count_vm_event(PGMAJFAULT);
--				mem_cgroup_count_vm_event(current->mm,
--							  PGMAJFAULT);
-+			if (type)
- 				*type |= VM_FAULT_MAJOR;
--			}
--			spin_unlock(&info->lock);
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
-@@ -1550,7 +1546,10 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
-+	if (ret & VM_FAULT_MAJOR) {
-+		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+	}
- 	return ret | VM_FAULT_LOCKED;
- }
+diff -puN include/linux/mm.h~mm-remove-last-trace-of-shmem_get_unmapped_area include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-last-trace-of-shmem_get_unmapped_area
++++ a/include/linux/mm.h
+@@ -873,14 +873,6 @@ int shmem_lock(struct file *file, int lo
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long long vm_flags);
+ int shmem_zero_setup(struct vm_area_struct *);
  
+-#ifndef CONFIG_MMU
+-extern unsigned long shmem_get_unmapped_area(struct file *file,
+-					     unsigned long addr,
+-					     unsigned long len,
+-					     unsigned long pgoff,
+-					     unsigned long flags);
+-#endif
+-
+ extern int can_do_mlock(void);
+ extern int user_shm_lock(size_t, struct user_struct *);
+ extern void user_shm_unlock(size_t, struct user_struct *);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -140,6 +117,7 @@ vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 mm-delete-non-atomic-mm-counter-implementation.patch
 tmpfs-implement-generic-xattr-support.patch
+mm-remove-last-trace-of-shmem_get_unmapped_area.patch
 mm-batch-activate_page-to-reduce-lock-contention.patch
 mn10300-convert-old-cpumask-api-into-new-one.patch
 memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
