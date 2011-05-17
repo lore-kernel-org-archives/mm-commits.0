@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-implement-generic-xattr-support.patch added to -mm tree
-Date: Mon, 16 May 2011 17:13:10 -0700
-Message-ID: <201105170013.p4H0DANJ028520@imap1.linux-foundation.org>
+Subject: + add-the-pagefault-count-into-memcg-stats-shmem-fix.patch added to -mm tree
+Date: Tue, 17 May 2011 12:33:34 -0700
+Message-ID: <201105171933.p4HJXZYa016800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756794Ab1EQAOJ (ORCPT
+	by vger.kernel.org with ESMTP id S932105Ab1EQTd6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 May 2011 20:14:09 -0400
+	Tue, 17 May 2011 15:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, hughd@google.com, jordipujolp@gmail.com, kyle@mcmartin.ca, mszeredi@suse.cz, serge.hallyn@ubuntu.com
+Cc: hughd@google.com, yinghan@google.com
 
 
 The patch titled
-     tmpfs: implement generic xattr support
+     add the pagefault count into memcg stats: shmem fix
 has been added to the -mm tree.  Its filename is
-     tmpfs-implement-generic-xattr-support.patch
+     add-the-pagefault-count-into-memcg-stats-shmem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,550 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: implement generic xattr support
-From: Eric Paris <eparis@redhat.com>
+Subject: add the pagefault count into memcg stats: shmem fix
+From: Hugh Dickins <hughd@google.com>
 
-Implement generic xattrs for tmpfs filesystems.  The Feodra project, while
-trying to replace suid apps with file capabilities, realized that tmpfs,
-which is used on the build systems, does not support file capabilities and
-thus cannot be used to build packages which use file capabilities.  Xattrs
-are also needed for overlayfs.
+mem_cgroup_count_vm_event() should update the PGMAJFAULT count for the
+target mm, not for current mm (but of course they're usually the same).
 
-The xattr interface is a bit odd.  If a filesystem does not implement any
-{get,set,list}xattr functions the VFS will call into some random LSM hooks
-and the running LSM can then implement some method for handling xattrs. 
-SELinux for example provides a method to support security.selinux but no
-other security.* xattrs.
+We don't know the target mm in shmem_getpage(), so do it at the outer
+level in shmem_fault(); and it's easier to follow if we move the
+count_vm_event(PGMAJFAULT) there too.
 
-As it stands today when one enables CONFIG_TMPFS_POSIX_ACL tmpfs will have
-xattr handler routines specifically to handle acls.  Because of this tmpfs
-would loose the VFS/LSM helpers to support the running LSM.  To make up
-for that tmpfs had stub functions that did nothing but call into the LSM
-hooks which implement the helpers.
+Hah, it was using __count_vm_event() before, sneaking that update into the
+unpreemptible section under info->lock: well, it comes to the same on x86
+at least, and I still think it's best to keep these together.
 
-This new patch does not use the LSM fallback functions and instead just
-implements a native get/set/list xattr feature for the full security.* and
-trusted.* namespace like a normal filesystem.  This means that tmpfs can
-now support both security.selinux and security.capability, which was not
-previously possible.
-
-The basic implementation is that I attach a:
-
-struct shmem_xattr {
-	struct list_head list; /* anchored by shmem_inode_info->xattr_list */
-	char *name;
-	size_t size;
-	char value[0];
-};
-
-Into the struct shmem_inode_info for each xattr that is set.  This
-implementation could easily support the user.* namespace as well, except
-some care needs to be taken to prevent large amounts of unswappable memory
-being allocated for unprivileged users.
-
-[mszeredi@suse.cz: new config option, suport trusted.*, support symlinks]
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Serge Hallyn <serge.hallyn@ubuntu.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Acked-by: Hugh Dickins <hughd@google.com>
-Tested-by: Jordi Pujol <jordipujolp@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig               |   18 +-
- include/linux/shmem_fs.h |    8 
- mm/shmem.c               |  320 ++++++++++++++++++++++++++++++-------
- 3 files changed, 290 insertions(+), 56 deletions(-)
+ mm/shmem.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/Kconfig~tmpfs-implement-generic-xattr-support fs/Kconfig
---- a/fs/Kconfig~tmpfs-implement-generic-xattr-support
-+++ a/fs/Kconfig
-@@ -121,9 +121,25 @@ config TMPFS
- 
- 	  See <file:Documentation/filesystems/tmpfs.txt> for details.
- 
-+config TMPFS_XATTR
-+	bool "Tmpfs extended attributes"
-+	depends on TMPFS
-+	default n
-+	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
-+
-+	  Currently this enables support for the trusted.* and
-+	  security.* namespaces.
-+
-+	  If unsure, say N.
-+
-+	  You need this for POSIX ACL support on tmpfs.
-+
- config TMPFS_POSIX_ACL
- 	bool "Tmpfs POSIX Access Control Lists"
--	depends on TMPFS
-+	depends on TMPFS_XATTR
- 	select GENERIC_ACL
- 	help
- 	  POSIX Access Control Lists (ACLs) support permissions for users and
-diff -puN include/linux/shmem_fs.h~tmpfs-implement-generic-xattr-support include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~tmpfs-implement-generic-xattr-support
-+++ a/include/linux/shmem_fs.h
-@@ -9,6 +9,8 @@
- 
- #define SHMEM_NR_DIRECT 16
- 
-+#define SHMEM_SYMLINK_INLINE_LEN (SHMEM_NR_DIRECT * sizeof(swp_entry_t))
-+
- struct shmem_inode_info {
- 	spinlock_t		lock;
- 	unsigned long		flags;
-@@ -17,8 +19,12 @@ struct shmem_inode_info {
- 	unsigned long		next_index;	/* highest alloced index + 1 */
- 	struct shared_policy	policy;		/* NUMA memory alloc policy */
- 	struct page		*i_indirect;	/* top indirect blocks page */
--	swp_entry_t		i_direct[SHMEM_NR_DIRECT]; /* first blocks */
-+	union {
-+		swp_entry_t	i_direct[SHMEM_NR_DIRECT]; /* first blocks */
-+		char		inline_symlink[SHMEM_SYMLINK_INLINE_LEN];
-+	};
- 	struct list_head	swaplist;	/* chain of maybes on swap */
-+	struct list_head	xattr_list;	/* list of shmem_xattr */
- 	struct inode		vfs_inode;
- };
- 
-diff -puN mm/shmem.c~tmpfs-implement-generic-xattr-support mm/shmem.c
---- a/mm/shmem.c~tmpfs-implement-generic-xattr-support
+diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix mm/shmem.c
+--- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix
 +++ a/mm/shmem.c
-@@ -99,6 +99,13 @@ static struct vfsmount *shm_mnt;
- /* Pretend that each entry is of this size in directory's i_size */
- #define BOGO_DIRENT_SIZE 20
- 
-+struct shmem_xattr {
-+	struct list_head list;	/* anchored by shmem_inode_info->xattr_list */
-+	char *name;		/* xattr name */
-+	size_t size;
-+	char value[0];
-+};
-+
- /* Flag allocation requirements to shmem_getpage and shmem_swp_alloc */
- enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
-@@ -822,6 +829,7 @@ static int shmem_notify_change(struct de
- static void shmem_evict_inode(struct inode *inode)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_xattr *xattr, *nxattr;
- 
- 	if (inode->i_mapping->a_ops == &shmem_aops) {
- 		truncate_inode_pages(inode->i_mapping, 0);
-@@ -834,6 +842,11 @@ static void shmem_evict_inode(struct ino
- 			mutex_unlock(&shmem_swaplist_mutex);
- 		}
- 	}
-+
-+	list_for_each_entry_safe(xattr, nxattr, &info->xattr_list, list) {
-+		kfree(xattr->name);
-+		kfree(xattr);
-+	}
- 	BUG_ON(inode->i_blocks);
- 	shmem_free_inode(inode->i_sb);
- 	end_writeback(inode);
-@@ -1614,6 +1627,7 @@ static struct inode *shmem_get_inode(str
- 		spin_lock_init(&info->lock);
- 		info->flags = vm_flags & VM_NORESERVE;
- 		INIT_LIST_HEAD(&info->swaplist);
-+		INIT_LIST_HEAD(&info->xattr_list);
- 		cache_no_acl(inode);
- 
- 		switch (mode & S_IFMT) {
-@@ -2013,9 +2027,9 @@ static int shmem_symlink(struct inode *d
- 
- 	info = SHMEM_I(inode);
- 	inode->i_size = len-1;
--	if (len <= (char *)inode - (char *)info) {
-+	if (len <= SHMEM_SYMLINK_INLINE_LEN) {
- 		/* do it inline */
--		memcpy(info, symname, len);
-+		memcpy(info->inline_symlink, symname, len);
- 		inode->i_op = &shmem_symlink_inline_operations;
- 	} else {
- 		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
-@@ -2041,7 +2055,7 @@ static int shmem_symlink(struct inode *d
- 
- static void *shmem_follow_link_inline(struct dentry *dentry, struct nameidata *nd)
- {
--	nd_set_link(nd, (char *)SHMEM_I(dentry->d_inode));
-+	nd_set_link(nd, SHMEM_I(dentry->d_inode)->inline_symlink);
- 	return NULL;
- }
- 
-@@ -2065,63 +2079,253 @@ static void shmem_put_link(struct dentry
- 	}
- }
- 
--static const struct inode_operations shmem_symlink_inline_operations = {
--	.readlink	= generic_readlink,
--	.follow_link	= shmem_follow_link_inline,
--};
+@@ -1304,14 +1304,10 @@ repeat:
+ 		swappage = lookup_swap_cache(swap);
+ 		if (!swappage) {
+ 			shmem_swp_unmap(entry);
++			spin_unlock(&info->lock);
+ 			/* here we actually do the io */
+-			if (type && !(*type & VM_FAULT_MAJOR)) {
+-				__count_vm_event(PGMAJFAULT);
+-				mem_cgroup_count_vm_event(current->mm,
+-							  PGMAJFAULT);
++			if (type)
+ 				*type |= VM_FAULT_MAJOR;
+-			}
+-			spin_unlock(&info->lock);
+ 			swappage = shmem_swapin(swap, gfp, info, idx);
+ 			if (!swappage) {
+ 				spin_lock(&info->lock);
+@@ -1550,7 +1546,10 @@ static int shmem_fault(struct vm_area_st
+ 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
 -
--static const struct inode_operations shmem_symlink_inode_operations = {
--	.readlink	= generic_readlink,
--	.follow_link	= shmem_follow_link,
--	.put_link	= shmem_put_link,
--};
--
--#ifdef CONFIG_TMPFS_POSIX_ACL
-+#ifdef CONFIG_TMPFS_XATTR
- /*
-- * Superblocks without xattr inode operations will get security.* xattr
-- * support from the VFS "for free". As soon as we have any other xattrs
-+ * Superblocks without xattr inode operations may get some security.* xattr
-+ * support from the LSM "for free". As soon as we have any other xattrs
-  * like ACLs, we also need to implement the security.* handlers at
-  * filesystem level, though.
-  */
- 
--static size_t shmem_xattr_security_list(struct dentry *dentry, char *list,
--					size_t list_len, const char *name,
--					size_t name_len, int handler_flags)
-+static int shmem_xattr_get(struct dentry *dentry, const char *name,
-+			   void *buffer, size_t size)
- {
--	return security_inode_listsecurity(dentry->d_inode, list, list_len);
--}
-+	struct shmem_inode_info *info;
-+	struct shmem_xattr *xattr;
-+	int ret = -ENODATA;
- 
--static int shmem_xattr_security_get(struct dentry *dentry, const char *name,
--		void *buffer, size_t size, int handler_flags)
--{
--	if (strcmp(name, "") == 0)
--		return -EINVAL;
--	return xattr_getsecurity(dentry->d_inode, name, buffer, size);
-+	info = SHMEM_I(dentry->d_inode);
-+
-+	spin_lock(&info->lock);
-+	list_for_each_entry(xattr, &info->xattr_list, list) {
-+		if (strcmp(name, xattr->name))
-+			continue;
-+
-+		ret = xattr->size;
-+		if (buffer) {
-+			if (size < xattr->size)
-+				ret = -ERANGE;
-+			else
-+				memcpy(buffer, xattr->value, xattr->size);
-+		}
-+		break;
++	if (ret & VM_FAULT_MAJOR) {
++		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
 +	}
-+	spin_unlock(&info->lock);
-+	return ret;
+ 	return ret | VM_FAULT_LOCKED;
  }
  
--static int shmem_xattr_security_set(struct dentry *dentry, const char *name,
--		const void *value, size_t size, int flags, int handler_flags)
-+static int shmem_xattr_set(struct dentry *dentry, const char *name,
-+			   const void *value, size_t size, int flags)
- {
--	if (strcmp(name, "") == 0)
--		return -EINVAL;
--	return security_inode_setsecurity(dentry->d_inode, name, value,
--					  size, flags);
-+	struct inode *inode = dentry->d_inode;
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_xattr *xattr;
-+	struct shmem_xattr *new_xattr = NULL;
-+	size_t len;
-+	int err = 0;
-+
-+	/* value == NULL means remove */
-+	if (value) {
-+		/* wrap around? */
-+		len = sizeof(*new_xattr) + size;
-+		if (len <= sizeof(*new_xattr))
-+			return -ENOMEM;
-+
-+		new_xattr = kmalloc(len, GFP_KERNEL);
-+		if (!new_xattr)
-+			return -ENOMEM;
-+
-+		new_xattr->name = kstrdup(name, GFP_KERNEL);
-+		if (!new_xattr->name) {
-+			kfree(new_xattr);
-+			return -ENOMEM;
-+		}
-+
-+		new_xattr->size = size;
-+		memcpy(new_xattr->value, value, size);
-+	}
-+
-+	spin_lock(&info->lock);
-+	list_for_each_entry(xattr, &info->xattr_list, list) {
-+		if (!strcmp(name, xattr->name)) {
-+			if (flags & XATTR_CREATE) {
-+				xattr = new_xattr;
-+				err = -EEXIST;
-+			} else if (new_xattr) {
-+				list_replace(&xattr->list, &new_xattr->list);
-+			} else {
-+				list_del(&xattr->list);
-+			}
-+			goto out;
-+		}
-+	}
-+	if (flags & XATTR_REPLACE) {
-+		xattr = new_xattr;
-+		err = -ENODATA;
-+	} else {
-+		list_add(&new_xattr->list, &info->xattr_list);
-+		xattr = NULL;
-+	}
-+out:
-+	spin_unlock(&info->lock);
-+	if (xattr)
-+		kfree(xattr->name);
-+	kfree(xattr);
-+	return err;
- }
- 
--static const struct xattr_handler shmem_xattr_security_handler = {
--	.prefix = XATTR_SECURITY_PREFIX,
--	.list   = shmem_xattr_security_list,
--	.get    = shmem_xattr_security_get,
--	.set    = shmem_xattr_security_set,
--};
- 
- static const struct xattr_handler *shmem_xattr_handlers[] = {
-+#ifdef CONFIG_TMPFS_POSIX_ACL
- 	&generic_acl_access_handler,
- 	&generic_acl_default_handler,
--	&shmem_xattr_security_handler,
-+#endif
- 	NULL
- };
-+
-+static int shmem_xattr_validate(const char *name)
-+{
-+	struct { const char *prefix; size_t len; } arr[] = {
-+		{ XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN },
-+		{ XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN }
-+	};
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(arr); i++) {
-+		size_t preflen = arr[i].len;
-+		if (strncmp(name, arr[i].prefix, preflen) == 0) {
-+			if (!name[preflen])
-+				return -EINVAL;
-+			return 0;
-+		}
-+	}
-+	return -EOPNOTSUPP;
-+}
-+
-+static ssize_t shmem_getxattr(struct dentry *dentry, const char *name,
-+			      void *buffer, size_t size)
-+{
-+	int err;
-+
-+	/*
-+	 * If this is a request for a synthetic attribute in the system.*
-+	 * namespace use the generic infrastructure to resolve a handler
-+	 * for it via sb->s_xattr.
-+	 */
-+	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
-+		return generic_getxattr(dentry, name, buffer, size);
-+
-+	err = shmem_xattr_validate(name);
-+	if (err)
-+		return err;
-+
-+	return shmem_xattr_get(dentry, name, buffer, size);
-+}
-+
-+static int shmem_setxattr(struct dentry *dentry, const char *name,
-+			  const void *value, size_t size, int flags)
-+{
-+	int err;
-+
-+	/*
-+	 * If this is a request for a synthetic attribute in the system.*
-+	 * namespace use the generic infrastructure to resolve a handler
-+	 * for it via sb->s_xattr.
-+	 */
-+	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
-+		return generic_setxattr(dentry, name, value, size, flags);
-+
-+	err = shmem_xattr_validate(name);
-+	if (err)
-+		return err;
-+
-+	if (size == 0)
-+		value = "";  /* empty EA, do not remove */
-+
-+	return shmem_xattr_set(dentry, name, value, size, flags);
-+
-+}
-+
-+static int shmem_removexattr(struct dentry *dentry, const char *name)
-+{
-+	int err;
-+
-+	/*
-+	 * If this is a request for a synthetic attribute in the system.*
-+	 * namespace use the generic infrastructure to resolve a handler
-+	 * for it via sb->s_xattr.
-+	 */
-+	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
-+		return generic_removexattr(dentry, name);
-+
-+	err = shmem_xattr_validate(name);
-+	if (err)
-+		return err;
-+
-+	return shmem_xattr_set(dentry, name, NULL, 0, XATTR_REPLACE);
-+}
-+
-+static bool xattr_is_trusted(const char *name)
-+{
-+	return !strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN);
-+}
-+
-+static ssize_t shmem_listxattr(struct dentry *dentry, char *buffer, size_t size)
-+{
-+	bool trusted = capable(CAP_SYS_ADMIN);
-+	struct shmem_xattr *xattr;
-+	struct shmem_inode_info *info;
-+	size_t used = 0;
-+
-+	info = SHMEM_I(dentry->d_inode);
-+
-+	spin_lock(&info->lock);
-+	list_for_each_entry(xattr, &info->xattr_list, list) {
-+		size_t len;
-+
-+		/* skip "trusted." attributes for unprivileged callers */
-+		if (!trusted && xattr_is_trusted(xattr->name))
-+			continue;
-+
-+		len = strlen(xattr->name) + 1;
-+		used += len;
-+		if (buffer) {
-+			if (size < used) {
-+				used = -ERANGE;
-+				break;
-+			}
-+			memcpy(buffer, xattr->name, len);
-+			buffer += len;
-+		}
-+	}
-+	spin_unlock(&info->lock);
-+
-+	return used;
-+}
-+#endif /* CONFIG_TMPFS_XATTR */
-+
-+static const struct inode_operations shmem_symlink_inline_operations = {
-+	.readlink	= generic_readlink,
-+	.follow_link	= shmem_follow_link_inline,
-+#ifdef CONFIG_TMPFS_XATTR
-+	.setxattr	= shmem_setxattr,
-+	.getxattr	= shmem_getxattr,
-+	.listxattr	= shmem_listxattr,
-+	.removexattr	= shmem_removexattr,
-+#endif
-+};
-+
-+static const struct inode_operations shmem_symlink_inode_operations = {
-+	.readlink	= generic_readlink,
-+	.follow_link	= shmem_follow_link,
-+	.put_link	= shmem_put_link,
-+#ifdef CONFIG_TMPFS_XATTR
-+	.setxattr	= shmem_setxattr,
-+	.getxattr	= shmem_getxattr,
-+	.listxattr	= shmem_listxattr,
-+	.removexattr	= shmem_removexattr,
- #endif
-+};
- 
- static struct dentry *shmem_get_parent(struct dentry *child)
- {
-@@ -2401,8 +2605,10 @@ int shmem_fill_super(struct super_block 
- 	sb->s_magic = TMPFS_MAGIC;
- 	sb->s_op = &shmem_ops;
- 	sb->s_time_gran = 1;
--#ifdef CONFIG_TMPFS_POSIX_ACL
-+#ifdef CONFIG_TMPFS_XATTR
- 	sb->s_xattr = shmem_xattr_handlers;
-+#endif
-+#ifdef CONFIG_TMPFS_POSIX_ACL
- 	sb->s_flags |= MS_POSIXACL;
- #endif
- 
-@@ -2500,11 +2706,13 @@ static const struct file_operations shme
- static const struct inode_operations shmem_inode_operations = {
- 	.setattr	= shmem_notify_change,
- 	.truncate_range	= shmem_truncate_range,
-+#ifdef CONFIG_TMPFS_XATTR
-+	.setxattr	= shmem_setxattr,
-+	.getxattr	= shmem_getxattr,
-+	.listxattr	= shmem_listxattr,
-+	.removexattr	= shmem_removexattr,
-+#endif
- #ifdef CONFIG_TMPFS_POSIX_ACL
--	.setxattr	= generic_setxattr,
--	.getxattr	= generic_getxattr,
--	.listxattr	= generic_listxattr,
--	.removexattr	= generic_removexattr,
- 	.check_acl	= generic_check_acl,
- #endif
- 
-@@ -2522,23 +2730,27 @@ static const struct inode_operations shm
- 	.mknod		= shmem_mknod,
- 	.rename		= shmem_rename,
- #endif
-+#ifdef CONFIG_TMPFS_XATTR
-+	.setxattr	= shmem_setxattr,
-+	.getxattr	= shmem_getxattr,
-+	.listxattr	= shmem_listxattr,
-+	.removexattr	= shmem_removexattr,
-+#endif
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	.setattr	= shmem_notify_change,
--	.setxattr	= generic_setxattr,
--	.getxattr	= generic_getxattr,
--	.listxattr	= generic_listxattr,
--	.removexattr	= generic_removexattr,
- 	.check_acl	= generic_check_acl,
- #endif
- };
- 
- static const struct inode_operations shmem_special_inode_operations = {
-+#ifdef CONFIG_TMPFS_XATTR
-+	.setxattr	= shmem_setxattr,
-+	.getxattr	= shmem_getxattr,
-+	.listxattr	= shmem_listxattr,
-+	.removexattr	= shmem_removexattr,
-+#endif
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	.setattr	= shmem_notify_change,
--	.setxattr	= generic_setxattr,
--	.getxattr	= generic_getxattr,
--	.listxattr	= generic_listxattr,
--	.removexattr	= generic_removexattr,
- 	.check_acl	= generic_check_acl,
- #endif
- };
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 linux-next.patch
-audit-always-follow-va_copy-with-va_end.patch
+mmap-add-alignment-for-some-variables.patch
+mmap-avoid-unnecessary-anon_vma-lock.patch
+mmap-avoid-merging-cloned-vmas.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
+mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-delete-non-atomic-mm-counter-implementation.patch
 tmpfs-implement-generic-xattr-support.patch
-xattrh-expose-string-defines-to-userspace.patch
-flex_array-avoid-divisions-when-accessing-elements.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+mn10300-convert-old-cpumask-api-into-new-one.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+add-the-pagefault-count-into-memcg-stats-shmem-fix.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+prio_tree-debugging-patch.patch
 
