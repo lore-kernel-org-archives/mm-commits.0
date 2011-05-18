@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch added to -mm tree
-Date: Wed, 18 May 2011 14:23:07 -0700
-Message-ID: <201105182123.p4ILN7f1024504@imap1.linux-foundation.org>
+Subject: + mm-export-get_vma_policy.patch added to -mm tree
+Date: Wed, 18 May 2011 14:37:12 -0700
+Message-ID: <201105182137.p4ILbC50025410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35944 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755145Ab1ERVYi (ORCPT
+	by vger.kernel.org with ESMTP id S1755902Ab1ERVhY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 17:24:38 -0400
+	Wed, 18 May 2011 17:37:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, andi@firstfloor.org, jbarnes@virtuousgeek.org
+Cc: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com
 
 
 The patch titled
-     drivers/firmware/dmi_scan.c: make dmi_name_in_vendors more focused
+     mm: export get_vma_policy()
 has been added to the -mm tree.  Its filename is
-     drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
+     mm-export-get_vma_policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/firmware/dmi_scan.c: make dmi_name_in_vendors more focused
-From: Jean Delvare <khali@linux-fr.org>
+Subject: mm: export get_vma_policy()
+From: Stephen Wilson <wilsons@start.ca>
 
-The current implementation of dmi_name_in_vendors() is an invitation to
-lazy coding and false positives [1].  Searching for a string in 8 know
-what you're looking for, so you should know where to look.  strstr isn't
-fast, especially when it fails, so we should avoid calling it when it just
-can't succeed.
+In commit 48fce3429d ("mempolicies: unexport get_vma_policy()")
+get_vma_policy() was marked static as all clients were local to
+mempolicy.c.
 
-Looking at the current users of the function, it seems clear to me that
-they are looking for a system or board vendor name, so let's limit
-dmi_name_in_vendors to these two DMI fields.  This much better matches the
-function name, BTW.
+However, the decision to generate /proc/pid/numa_maps in the numa memory
+policy code and outside the procfs subsystem introduces an artificial
+interdependency between the two systems.  Exporting get_vma_policy() once
+again is the first step to clean up this interdependency.
 
-[1] We currently have code looking for short names in DMI data, such
-as "IBM", "ASUS" or "Acer". I let you guess what will happen the day
-other vendors ship products named, for example, "SCHREIBMEISTER",
-"PEGASUS" or "Acerola".
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Stephen Wilson <wilsons@start.ca>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/mempolicy.h |    3 +++
+ mm/mempolicy.c            |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused
-+++ a/drivers/firmware/dmi_scan.c
-@@ -585,14 +585,12 @@ int dmi_name_in_serial(const char *str)
- }
+diff -puN include/linux/mempolicy.h~mm-export-get_vma_policy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-export-get_vma_policy
++++ a/include/linux/mempolicy.h
+@@ -199,6 +199,9 @@ void mpol_free_shared_policy(struct shar
+ struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
+ 					    unsigned long idx);
  
- /**
-- *	dmi_name_in_vendors - Check if string is anywhere in the DMI vendor information.
-+ *	dmi_name_in_vendors - Check if string is in the DMI system or board vendor name
-  *	@str: 	Case sensitive Name
++struct mempolicy *get_vma_policy(struct task_struct *tsk,
++		struct vm_area_struct *vma, unsigned long addr);
++
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+ extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
+diff -puN mm/mempolicy.c~mm-export-get_vma_policy mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-export-get_vma_policy
++++ a/mm/mempolicy.c
+@@ -1489,7 +1489,7 @@ asmlinkage long compat_sys_mbind(compat_
+  * freeing by another task.  It is the caller's responsibility to free the
+  * extra reference for shared policies.
   */
- int dmi_name_in_vendors(const char *str)
+-static struct mempolicy *get_vma_policy(struct task_struct *task,
++struct mempolicy *get_vma_policy(struct task_struct *task,
+ 		struct vm_area_struct *vma, unsigned long addr)
  {
--	static int fields[] = { DMI_BIOS_VENDOR, DMI_BIOS_VERSION, DMI_SYS_VENDOR,
--				DMI_PRODUCT_NAME, DMI_PRODUCT_VERSION, DMI_BOARD_VENDOR,
--				DMI_BOARD_NAME, DMI_BOARD_VERSION, DMI_NONE };
-+	static int fields[] = { DMI_SYS_VENDOR, DMI_BOARD_VENDOR, DMI_NONE };
- 	int i;
- 	for (i = 0; fields[i] != DMI_NONE; i++) {
- 		int f = fields[i];
+ 	struct mempolicy *pol = task->mempolicy;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from wilsons@start.ca are
 
-linux-next.patch
-pci-dont-use-dmi_name_in_vendors-in-quirk.patch
-drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
+mm-export-get_vma_policy.patch
+mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+mm-remove-mpol_mf_stats.patch
+mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
+mm-remove-check_huge_range.patch
+mm-declare-mpol_to_str-when-config_tmpfs=n.patch
+mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
+proc-make-struct-proc_maps_private-truly-private.patch
+proc-allocate-storage-for-numa_maps-statistics-once.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
 
