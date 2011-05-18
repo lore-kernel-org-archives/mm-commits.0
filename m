@@ -1,66 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-remove-unused-token-argument-from-apply_to_page_range-callback.patch removed from -mm tree
-Date: Wed, 18 May 2011 14:37:34 -0700
-Message-ID: <201105182137.p4ILbYXW025447@imap1.linux-foundation.org>
+Subject: [to-be-updated] ioremap-use-apply_to_page_range_batch-for-ioremap_page_range.patch removed from -mm tree
+Date: Wed, 18 May 2011 14:37:40 -0700
+Message-ID: <201105182137.p4ILbeVp025453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755605Ab1ERVhn (ORCPT
+	by vger.kernel.org with ESMTP id S1755876Ab1ERVhp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 17:37:43 -0400
+	Wed, 18 May 2011 17:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy.fitzhardinge@citrix.com, hugh.dickins@tiscali.co.uk, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove unused "token" argument from apply_to_page_range callback.
+     ioremap: use apply_to_page_range_batch() for ioremap_page_range()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-token-argument-from-apply_to_page_range-callback.patch
+     ioremap-use-apply_to_page_range_batch-for-ioremap_page_range.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove unused "token" argument from apply_to_page_range callback.
+Subject: ioremap: use apply_to_page_range_batch() for ioremap_page_range()
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-
-We've had apply_to_page_range() for a while, which is a general way to
-apply a function to ptes across a range of addresses - including
-allocating any missing parts of the pagetable as needed.  This logic is
-replicated in a number of places throughout the kernel, but it hasn't been
-widely replaced by this function, partly because of concerns about the
-overhead of calling the function once per pte.
-
-This series adds apply_to_page_range_batch() (and reimplements
-apply_to_page_range() in terms of it), which calls the pte operation
-function once per pte page, moving the inner loop into the callback
-function.
-
-apply_to_page_range(_batch) also calls its callback with lazy mmu updates
-enabled, which allows batching of the operations in environments where
-this is beneficial (ie, virtualization).  The only caveat this introduces
-is callbacks can't expect to immediately see the effects of the pte
-updates in memory.
-
-Since this is effectively identical to the code in lib/ioremap.c and
-mm/vmalloc.c (twice!), I replace their open-coded variants.  I'm sure
-there are others places in the kernel which could do with this (I only
-stumbled over ioremap by accident).
-
-I also add a minor optimisation to vunmap_page_range() to use a plain
-pte_clear() rather than the more expensive and unnecessary
-ptep_get_and_clear().
-
-
-This patch:
-
-The `token' argument is basically the struct page of the pte_t * passed
-into the callback.  But there's no need to pass that, since it can be
-fairly easily derived from the pte_t * itself if needed (and no current
-users need to do that anyway).
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -68,93 +33,121 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/grant-table.c |    6 ++----
- arch/x86/xen/mmu.c         |    3 +--
- include/linux/mm.h         |    3 +--
- mm/memory.c                |    2 +-
- mm/vmalloc.c               |    2 +-
- 5 files changed, 6 insertions(+), 10 deletions(-)
+ lib/ioremap.c |   85 ++++++++++++------------------------------------
+ 1 file changed, 22 insertions(+), 63 deletions(-)
 
-diff -puN arch/x86/xen/grant-table.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback arch/x86/xen/grant-table.c
---- a/arch/x86/xen/grant-table.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
-+++ a/arch/x86/xen/grant-table.c
-@@ -44,8 +44,7 @@
- 
+diff -puN lib/ioremap.c~ioremap-use-apply_to_page_range_batch-for-ioremap_page_range lib/ioremap.c
+--- a/lib/ioremap.c~ioremap-use-apply_to_page_range_batch-for-ioremap_page_range
++++ a/lib/ioremap.c
+@@ -13,81 +13,40 @@
+ #include <asm/cacheflush.h>
  #include <asm/pgtable.h>
  
--static int map_pte_fn(pte_t *pte, struct page *pmd_page,
--		      unsigned long addr, void *data)
-+static int map_pte_fn(pte_t *pte, unsigned long addr, void *data)
+-static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++struct ioremap_data
  {
- 	unsigned long **frames = (unsigned long **)data;
+-	pte_t *pte;
++	phys_addr_t phys_addr;
++	pgprot_t prot;
++};
++
++static int ioremap_pte_range(pte_t *pte, unsigned count,
++			     unsigned long addr, void *v)
++{
++	struct ioremap_data *data = v;
+ 	u64 pfn;
  
-@@ -54,8 +53,7 @@ static int map_pte_fn(pte_t *pte, struct
+-	pfn = phys_addr >> PAGE_SHIFT;
+-	pte = pte_alloc_kernel(pmd, addr);
+-	if (!pte)
+-		return -ENOMEM;
+-	do {
+-		BUG_ON(!pte_none(*pte));
+-		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+-		pfn++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return 0;
+-}
++	pfn = data->phys_addr >> PAGE_SHIFT;
++	data->phys_addr += count * PAGE_SIZE;
+ 
+-static inline int ioremap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
++	while (count--) {
++		BUG_ON(!pte_none(*pte));
+ 
+-	phys_addr -= addr;
+-	pmd = pmd_alloc(&init_mm, pud, addr);
+-	if (!pmd)
+-		return -ENOMEM;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (ioremap_pte_range(pmd, addr, next, phys_addr + addr, prot))
+-			return -ENOMEM;
+-	} while (pmd++, addr = next, addr != end);
+-	return 0;
+-}
++		set_pte_at(&init_mm, addr, pte++, pfn_pte(pfn++, data->prot));
+ 
+-static inline int ioremap_pud_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++		addr += PAGE_SIZE;
++	}
+ 
+-	phys_addr -= addr;
+-	pud = pud_alloc(&init_mm, pgd, addr);
+-	if (!pud)
+-		return -ENOMEM;
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (ioremap_pmd_range(pud, addr, next, phys_addr + addr, prot))
+-			return -ENOMEM;
+-	} while (pud++, addr = next, addr != end);
  	return 0;
  }
  
--static int unmap_pte_fn(pte_t *pte, struct page *pmd_page,
--			unsigned long addr, void *data)
-+static int unmap_pte_fn(pte_t *pte, unsigned long addr, void *data)
+-int ioremap_page_range(unsigned long addr,
+-		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++int ioremap_page_range(unsigned long addr, unsigned long end,
++		       phys_addr_t phys_addr, pgprot_t prot)
  {
+-	pgd_t *pgd;
+-	unsigned long start;
+-	unsigned long next;
+-	int err;
+-
+-	BUG_ON(addr >= end);
+-
+-	start = addr;
+-	phys_addr -= addr;
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = ioremap_pud_range(pgd, addr, next, phys_addr+addr, prot);
+-		if (err)
+-			break;
+-	} while (pgd++, addr = next, addr != end);
++	struct ioremap_data data = { .phys_addr = phys_addr, .prot = prot };
++	int err = apply_to_page_range_batch(&init_mm, addr, end - addr,
++					    ioremap_pte_range, &data);
  
- 	set_pte_at(&init_mm, addr, pte, __pte(0));
-diff -puN arch/x86/xen/mmu.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
-+++ a/arch/x86/xen/mmu.c
-@@ -2365,8 +2365,7 @@ struct remap_data {
- 	struct mmu_update *mmu_update;
- };
+-	flush_cache_vmap(start, end);
++	flush_cache_vmap(addr, end);
  
--static int remap_area_mfn_pte_fn(pte_t *ptep, pgtable_t token,
--				 unsigned long addr, void *data)
-+static int remap_area_mfn_pte_fn(pte_t *ptep, unsigned long addr, void *data)
- {
- 	struct remap_data *rmd = data;
- 	pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
-diff -puN include/linux/mm.h~mm-remove-unused-token-argument-from-apply_to_page_range-callback include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-unused-token-argument-from-apply_to_page_range-callback
-+++ a/include/linux/mm.h
-@@ -1563,8 +1563,7 @@ struct page *follow_page(struct vm_area_
- #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
- #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
- 
--typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
--			void *data);
-+typedef int (*pte_fn_t)(pte_t *pte, unsigned long addr, void *data);
- extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
- 			       unsigned long size, pte_fn_t fn, void *data);
- 
-diff -puN mm/memory.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback mm/memory.c
---- a/mm/memory.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
-+++ a/mm/memory.c
-@@ -2267,7 +2267,7 @@ static int apply_to_pte_range(struct mm_
- 	token = pmd_pgtable(*pmd);
- 
- 	do {
--		err = fn(pte++, token, addr, data);
-+		err = fn(pte++, addr, data);
- 		if (err)
- 			break;
- 	} while (addr += PAGE_SIZE, addr != end);
-diff -puN mm/vmalloc.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback mm/vmalloc.c
---- a/mm/vmalloc.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
-+++ a/mm/vmalloc.c
-@@ -2116,7 +2116,7 @@ void  __attribute__((weak)) vmalloc_sync
+ 	return err;
  }
- 
- 
--static int f(pte_t *pte, pgtable_t table, unsigned long addr, void *data)
-+static int f(pte_t *pte, unsigned long addr, void *data)
- {
- 	/* apply_to_page_range() does all the hard work. */
- 	return 0;
 _
 
 Patches currently in -mm which might be from jeremy.fitzhardinge@citrix.com are
 
 linux-next.patch
-mm-add-apply_to_page_range_batch.patch
-ioremap-use-apply_to_page_range_batch-for-ioremap_page_range.patch
 vmalloc-use-plain-pte_clear-for-unmaps.patch
 vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range.patch
 vmalloc-use-apply_to_page_range_batch-for-vmap_page_range_noflush.patch
