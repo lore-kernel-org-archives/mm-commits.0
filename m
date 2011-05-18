@@ -1,84 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-zone-congestion.patch removed from -mm tree
-Date: Wed, 18 May 2011 11:27:42 -0700
-Message-ID: <201105181827.p4IIRAbv015169@imap1.linux-foundation.org>
+Subject: [merged] um-fix-abort.patch removed from -mm tree
+Date: Wed, 18 May 2011 11:27:45 -0700
+Message-ID: <201105181827.p4IIRDo6015175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933386Ab1ERS1p (ORCPT
+	by vger.kernel.org with ESMTP id S933461Ab1ERSdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 14:27:45 -0400
+	Wed, 18 May 2011 14:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, jweiner@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
+To: richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix zone congestion
+     um: fix abort
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-zone-congestion.patch
+     um-fix-abort.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix zone congestion
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: um: fix abort
+From: Richard Weinberger <richard@nod.at>
 
-ZONE_CONGESTED should be a state of global memory reclaim.  If not, a busy
-memcg sets this and give unnecessary throttoling in wait_iff_congested()
-against memory recalim in other contexts.  This makes system performance
-bad.
+os_dump_core() uses abort() to terminate UML in case of an fatal error.
 
-I'll think about "memcg is congested!" flag is required or not, later. 
-But this fix is required first.
+glibc's abort() calls raise(SIGABRT) which makes use of tgkill(). 
+tgkill() has no effect within UML's kernel threads because they are not
+pthreads.  As fallback abort() executes an invalid instruction to
+terminate the process.  Therefore UML gets killed by SIGSEGV and leaves a
+ugly log entry in the host's kernel ring buffer.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Ying Han <yinghan@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+To get rid of this we use our own abort routine.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/os-Linux/util.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-fix-zone-congestion mm/vmscan.c
---- a/mm/vmscan.c~memcg-fix-zone-congestion
-+++ a/mm/vmscan.c
-@@ -937,7 +937,7 @@ keep_lumpy:
- 	 * back off and wait for congestion to clear because further reclaim
- 	 * will encounter the same problem
- 	 */
--	if (nr_dirty == nr_congested && nr_dirty != 0)
-+	if (nr_dirty && nr_dirty == nr_congested && scanning_global_lru(sc))
- 		zone_set_flag(zone, ZONE_CONGESTED);
+diff -puN arch/um/os-Linux/util.c~um-fix-abort arch/um/os-Linux/util.c
+--- a/arch/um/os-Linux/util.c~um-fix-abort
++++ a/arch/um/os-Linux/util.c
+@@ -5,6 +5,7 @@
  
- 	free_page_list(&free_pages);
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <unistd.h>
+ #include <errno.h>
+ #include <signal.h>
+ #include <string.h>
+@@ -75,6 +76,26 @@ void setup_hostinfo(char *buf, int len)
+ 		 host.release, host.version, host.machine);
+ }
+ 
++/*
++ * We cannot use glibc's abort(). It makes use of tgkill() which
++ * has no effect within UML's kernel threads.
++ * After that glibc would execute an invalid instruction to kill
++ * the calling process and UML crashes with SIGSEGV.
++ */
++static inline void __attribute__ ((noreturn)) uml_abort(void)
++{
++	sigset_t sig;
++
++	fflush(NULL);
++
++	if (!sigemptyset(&sig) && !sigaddset(&sig, SIGABRT))
++		sigprocmask(SIG_UNBLOCK, &sig, 0);
++
++	for (;;)
++		if (kill(getpid(), SIGABRT) < 0)
++			exit(127);
++}
++
+ void os_dump_core(void)
+ {
+ 	int pid;
+@@ -116,5 +137,5 @@ void os_dump_core(void)
+ 	while ((pid = waitpid(-1, NULL, WNOHANG | __WALL)) > 0)
+ 		os_kill_ptraced_process(pid, 0);
+ 
+-	abort();
++	uml_abort();
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-mm-remove-unused-zone_idx-variable-from-set_migratetype_isolate.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
+linux-next.patch
 mm-mmu_gather-rework.patch
 powerpc-mmu_gather-rework.patch
 sparc-mmu_gather-rework.patch
@@ -98,35 +114,9 @@ mm-improve-page_lock_anon_vma-comment.patch
 mm-use-refcounts-for-page_lock_anon_vma.patch
 mm-convert-anon_vma-lock-to-a-mutex.patch
 mm-optimize-page_lock_anon_vma-fast-path.patch
-mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
-mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
-mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
-mm-delete-non-atomic-mm-counter-implementation.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
-memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-3.patch
-add-the-pagefault-count-into-memcg-stats.patch
-add-the-pagefault-count-into-memcg-stats-fix.patch
-memcg-remove-pointless-next_mz-nullification-in-mem_cgroup_soft_limit_reclaim.patch
-memcg-mark-init_section_page_cgroup-properly.patch
-memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
-memcg-move-page-freeing-code-out-of-lock.patch
-maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
+sh-remove-warning-and-warning_symbol-from-struct-stacktrace_ops.patch
+um-os_dump_core-cleanup.patch
+um-fix-uml_lib_path.patch
+um-remove-sighup-handler.patch
+lib-consolidate-debug_stack_usage-option.patch
 
