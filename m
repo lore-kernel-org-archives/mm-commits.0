@@ -1,70 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc_fs-add-stub-for-proc_mkdir_mode.patch removed from -mm tree
-Date: Wed, 18 May 2011 11:27:47 -0700
-Message-ID: <201105181827.p4IIRFL6015183@imap1.linux-foundation.org>
+Subject: + mm-hugepages-can-cause-negative-commitlimit.patch added to -mm tree
+Date: Wed, 18 May 2011 12:03:56 -0700
+Message-ID: <201105181903.p4IJ3veL017283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55349 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933388Ab1ERSey (ORCPT
+	by vger.kernel.org with ESMTP id S933500Ab1ERTEd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 14:34:54 -0400
+	Wed, 18 May 2011 15:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, adobriyan@gmail.com, linville@tuxdriver.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rja@sgi.com, aarcange@redhat.com, cl@linux.com, stable@kernel.org
 
 
 The patch titled
-     procfs: add stub for proc_mkdir_mode()
-has been removed from the -mm tree.  Its filename was
-     proc_fs-add-stub-for-proc_mkdir_mode.patch
+     mm: hugepages can cause negative commitlimit
+has been added to the -mm tree.  Its filename is
+     mm-hugepages-can-cause-negative-commitlimit.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: add stub for proc_mkdir_mode()
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: hugepages can cause negative commitlimit
+From: Russ Anderson <rja@sgi.com>
 
-Provide a stub for proc_mkdir_mode() when CONFIG_PROC_FS is not
-enabled, just like the stub for proc_mkdir().
+If the total size of hugepages allocated on a system is over half of the
+total memory size, commitlimit becomes a negative number.
 
-Fixes this linux-next build error:
-drivers/net/wireless/airo.c:4504: error: implicit declaration of function 'proc_mkdir_mode'
+What happens in fs/proc/meminfo.c is this calculation:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+        allowed = ((totalram_pages - hugetlb_total_pages())
+                * sysctl_overcommit_ratio / 100) + total_swap_pages;
+
+The problem is that hugetlb_total_pages() is larger than totalram_pages
+resulting in a negative number.  Since allowed is an unsigned long the
+negative shows up as a big number.
+
+A similar calculation occurs in __vm_enough_memory() in mm/mmap.c.
+
+A symptom of this problem is that /proc/meminfo prints a very large
+CommitLimit number.
+
+CommitLimit:    737869762947802600 kB
+
+To reproduce the problem reserve over half of memory as hugepages.  For
+example "default_hugepagesz=1G hugepagesz=1G hugepages=64 Then look at
+/proc/meminfo "CommitLimit:" to see if it is too big.
+
+The fix is to not subtract hugetlb_total_pages().  When hugepages are
+allocated totalram_pages is decremented so there is no need to subtract
+out hugetlb_total_pages() a second time.
+
+Example of "CommitLimit:" being too big.
+
+uv1-sys:~ # cat /proc/meminfo
+MemTotal:       32395508 kB
+MemFree:        32029276 kB
+Buffers:            8656 kB
+Cached:            89548 kB
+SwapCached:            0 kB
+Active:            55336 kB
+Inactive:          73916 kB
+Active(anon):      31220 kB
+Inactive(anon):       36 kB
+Active(file):      24116 kB
+Inactive(file):    73880 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB
+Dirty:              1692 kB
+Writeback:             0 kB
+AnonPages:         31132 kB
+Mapped:            15668 kB
+Shmem:               152 kB
+Slab:              70256 kB
+SReclaimable:      17148 kB
+SUnreclaim:        53108 kB
+KernelStack:        6536 kB
+PageTables:         3704 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    737869762947802600 kB
+Committed_AS:     394044 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      713960 kB
+VmallocChunk:   34325764204 kB
+HardwareCorrupted:     0 kB
+HugePages_Total:      32
+HugePages_Free:       32
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:    1048576 kB
+DirectMap4k:       16384 kB
+DirectMap2M:     2064384 kB
+DirectMap1G:    65011712 kB
+
+Reported-by: Russ Anderson <rja@sgi.com>
+Signed-off-by: Russ Anderson <rja@sgi.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: <stable@kernel.org>		[2.6.39+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proc_fs.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/meminfo.c |    2 +-
+ mm/mmap.c         |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/proc_fs.h~proc_fs-add-stub-for-proc_mkdir_mode include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc_fs-add-stub-for-proc_mkdir_mode
-+++ a/include/linux/proc_fs.h
-@@ -208,6 +208,8 @@ static inline struct proc_dir_entry *pro
- 		struct proc_dir_entry *parent,const char *dest) {return NULL;}
- static inline struct proc_dir_entry *proc_mkdir(const char *name,
- 	struct proc_dir_entry *parent) {return NULL;}
-+static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
-+	mode_t mode, struct proc_dir_entry *parent) { return NULL; }
+diff -puN fs/proc/meminfo.c~mm-hugepages-can-cause-negative-commitlimit fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-hugepages-can-cause-negative-commitlimit
++++ a/fs/proc/meminfo.c
+@@ -36,7 +36,7 @@ static int meminfo_proc_show(struct seq_
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+ 	committed = percpu_counter_read_positive(&vm_committed_as);
+-	allowed = ((totalram_pages - hugetlb_total_pages())
++	allowed = (totalram_pages
+ 		* sysctl_overcommit_ratio / 100) + total_swap_pages;
  
- static inline struct proc_dir_entry *create_proc_read_entry(const char *name,
- 	mode_t mode, struct proc_dir_entry *base, 
+ 	cached = global_page_state(NR_FILE_PAGES) -
+diff -puN mm/mmap.c~mm-hugepages-can-cause-negative-commitlimit mm/mmap.c
+--- a/mm/mmap.c~mm-hugepages-can-cause-negative-commitlimit
++++ a/mm/mmap.c
+@@ -167,8 +167,7 @@ int __vm_enough_memory(struct mm_struct 
+ 		goto error;
+ 	}
+ 
+-	allowed = (totalram_pages - hugetlb_total_pages())
+-	       	* sysctl_overcommit_ratio / 100;
++	allowed = totalram_pages * sysctl_overcommit_ratio / 100;
+ 	/*
+ 	 * Leave the last 3% for root
+ 	 */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rja@sgi.com are
 
-origin.patch
 linux-next.patch
-drivers-leds-leds-pca9532c-add-gpio-capability.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+mm-hugepages-can-cause-negative-commitlimit.patch
 
