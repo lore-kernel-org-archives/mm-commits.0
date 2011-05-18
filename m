@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-hook-up-gpiolib-support.patch added to -mm tree
-Date: Wed, 18 May 2011 14:12:03 -0700
-Message-ID: <201105182112.p4ILC35u023956@imap1.linux-foundation.org>
+Subject: + drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch added to -mm tree
+Date: Wed, 18 May 2011 14:23:07 -0700
+Message-ID: <201105182123.p4ILN7f1024504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754559Ab1ERVMY (ORCPT
+	by vger.kernel.org with ESMTP id S1755145Ab1ERVYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 17:12:24 -0400
+	Wed, 18 May 2011 17:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: khali@linux-fr.org, andi@firstfloor.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     alpha: hook up gpiolib support
+     drivers/firmware/dmi_scan.c: make dmi_name_in_vendors more focused
 has been added to the -mm tree.  Its filename is
-     alpha-hook-up-gpiolib-support.patch
+     drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: hook up gpiolib support
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: drivers/firmware/dmi_scan.c: make dmi_name_in_vendors more focused
+From: Jean Delvare <khali@linux-fr.org>
 
-Allow people to use gpiolib on Alpha if they want to, mostly for build
-coverage.  The header is a stright copy of that for Microblaze, which in
-turn was taken from PowerPC.
+The current implementation of dmi_name_in_vendors() is an invitation to
+lazy coding and false positives [1].  Searching for a string in 8 know
+what you're looking for, so you should know where to look.  strstr isn't
+fast, especially when it fails, so we should avoid calling it when it just
+can't succeed.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Looking at the current users of the function, it seems clear to me that
+they are looking for a system or board vendor name, so let's limit
+dmi_name_in_vendors to these two DMI fields.  This much better matches the
+function name, BTW.
+
+[1] We currently have code looking for short names in DMI data, such
+as "IBM", "ASUS" or "Acer". I let you guess what will happen the day
+other vendors ship products named, for example, "SCHREIBMEISTER",
+"PEGASUS" or "Acerola".
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig            |    1 
- arch/alpha/include/asm/gpio.h |   55 ++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
+ drivers/firmware/dmi_scan.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/Kconfig~alpha-hook-up-gpiolib-support arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-hook-up-gpiolib-support
-+++ a/arch/alpha/Kconfig
-@@ -12,6 +12,7 @@ config ALPHA
- 	select GENERIC_IRQ_PROBE
- 	select AUTO_IRQ_AFFINITY if SMP
- 	select GENERIC_IRQ_SHOW
-+	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
- 	  marketed by the Digital Equipment Corporation of blessed memory,
-diff -puN /dev/null arch/alpha/include/asm/gpio.h
---- /dev/null
-+++ a/arch/alpha/include/asm/gpio.h
-@@ -0,0 +1,55 @@
-+/*
-+ * Generic GPIO API implementation for Alpha.
-+ *
-+ * A stright copy of that for PowerPC which was:
-+ *
-+ * Copyright (c) 2007-2008  MontaVista Software, Inc.
-+ *
-+ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_ALPHA_GPIO_H
-+#define _ASM_ALPHA_GPIO_H
-+
-+#include <linux/errno.h>
-+#include <asm-generic/gpio.h>
-+
-+#ifdef CONFIG_GPIOLIB
-+
-+/*
-+ * We don't (yet) implement inlined/rapid versions for on-chip gpios.
-+ * Just call gpiolib.
-+ */
-+static inline int gpio_get_value(unsigned int gpio)
-+{
-+	return __gpio_get_value(gpio);
-+}
-+
-+static inline void gpio_set_value(unsigned int gpio, int value)
-+{
-+	__gpio_set_value(gpio, value);
-+}
-+
-+static inline int gpio_cansleep(unsigned int gpio)
-+{
-+	return __gpio_cansleep(gpio);
-+}
-+
-+static inline int gpio_to_irq(unsigned int gpio)
-+{
-+	return __gpio_to_irq(gpio);
-+}
-+
-+static inline int irq_to_gpio(unsigned int irq)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif /* CONFIG_GPIOLIB */
-+
-+#endif /* _ASM_ALPHA_GPIO_H */
+diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused
++++ a/drivers/firmware/dmi_scan.c
+@@ -585,14 +585,12 @@ int dmi_name_in_serial(const char *str)
+ }
+ 
+ /**
+- *	dmi_name_in_vendors - Check if string is anywhere in the DMI vendor information.
++ *	dmi_name_in_vendors - Check if string is in the DMI system or board vendor name
+  *	@str: 	Case sensitive Name
+  */
+ int dmi_name_in_vendors(const char *str)
+ {
+-	static int fields[] = { DMI_BIOS_VENDOR, DMI_BIOS_VERSION, DMI_SYS_VENDOR,
+-				DMI_PRODUCT_NAME, DMI_PRODUCT_VERSION, DMI_BOARD_VENDOR,
+-				DMI_BOARD_NAME, DMI_BOARD_VERSION, DMI_NONE };
++	static int fields[] = { DMI_SYS_VENDOR, DMI_BOARD_VENDOR, DMI_NONE };
+ 	int i;
+ 	for (i = 0; fields[i] != DMI_NONE; i++) {
+ 		int f = fields[i];
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-origin.patch
 linux-next.patch
-alpha-hook-up-gpiolib-support.patch
+pci-dont-use-dmi_name_in_vendors-in-quirk.patch
+drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
 
