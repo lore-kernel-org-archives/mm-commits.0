@@ -1,41 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-add-apply_to_page_range_batch.patch removed from -mm tree
-Date: Wed, 18 May 2011 14:37:38 -0700
-Message-ID: <201105182137.p4ILbcDQ025450@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-remove-unused-token-argument-from-apply_to_page_range-callback.patch removed from -mm tree
+Date: Wed, 18 May 2011 14:37:34 -0700
+Message-ID: <201105182137.p4ILbYXW025447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755825Ab1ERVho (ORCPT
+	by vger.kernel.org with ESMTP id S1755605Ab1ERVhn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 17:37:44 -0400
+	Wed, 18 May 2011 17:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy.fitzhardinge@citrix.com, hugh.dickins@tiscali.co.uk, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add apply_to_page_range_batch()
+     mm: remove unused "token" argument from apply_to_page_range callback.
 has been removed from the -mm tree.  Its filename was
-     mm-add-apply_to_page_range_batch.patch
+     mm-remove-unused-token-argument-from-apply_to_page_range-callback.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add apply_to_page_range_batch()
+Subject: mm: remove unused "token" argument from apply_to_page_range callback.
 From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 
-apply_to_page_range() calls its callback function once for each pte, which
-is pretty inefficient since it will almost always be operating on a batch
-of adjacent ptes.  apply_to_page_range_batch() calls its callback with
-both a pte_t * and a count, so it can operate on multiple ptes at once.
+We've had apply_to_page_range() for a while, which is a general way to
+apply a function to ptes across a range of addresses - including
+allocating any missing parts of the pagetable as needed.  This logic is
+replicated in a number of places throughout the kernel, but it hasn't been
+widely replaced by this function, partly because of concerns about the
+overhead of calling the function once per pte.
 
-The callback is expected to handle all its ptes, or return an error.  For
-both apply_to_page_range and apply_to_page_range_batch, it is up to the
-caller to work out how much progress was made if either fails with an
-error.
+This series adds apply_to_page_range_batch() (and reimplements
+apply_to_page_range() in terms of it), which calls the pte operation
+function once per pte page, moving the inner loop into the callback
+function.
+
+apply_to_page_range(_batch) also calls its callback with lazy mmu updates
+enabled, which allows batching of the operations in environments where
+this is beneficial (ie, virtualization).  The only caveat this introduces
+is callbacks can't expect to immediately see the effects of the pte
+updates in memory.
+
+Since this is effectively identical to the code in lib/ioremap.c and
+mm/vmalloc.c (twice!), I replace their open-coded variants.  I'm sure
+there are others places in the kernel which could do with this (I only
+stumbled over ioremap by accident).
+
+I also add a minor optimisation to vunmap_page_range() to use a plain
+pte_clear() rather than the more expensive and unnecessary
+ptep_get_and_clear().
+
+
+This patch:
+
+The `token' argument is basically the struct page of the pte_t * passed
+into the callback.  But there's no need to pass that, since it can be
+fairly easily derived from the pte_t * itself if needed (and no current
+users need to do that anyway).
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -43,137 +68,92 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++++
- mm/memory.c        |   57 ++++++++++++++++++++++++++++++-------------
- 2 files changed, 47 insertions(+), 16 deletions(-)
+ arch/x86/xen/grant-table.c |    6 ++----
+ arch/x86/xen/mmu.c         |    3 +--
+ include/linux/mm.h         |    3 +--
+ mm/memory.c                |    2 +-
+ mm/vmalloc.c               |    2 +-
+ 5 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-apply_to_page_range_batch include/linux/mm.h
---- a/include/linux/mm.h~mm-add-apply_to_page_range_batch
+diff -puN arch/x86/xen/grant-table.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback arch/x86/xen/grant-table.c
+--- a/arch/x86/xen/grant-table.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
++++ a/arch/x86/xen/grant-table.c
+@@ -44,8 +44,7 @@
+ 
+ #include <asm/pgtable.h>
+ 
+-static int map_pte_fn(pte_t *pte, struct page *pmd_page,
+-		      unsigned long addr, void *data)
++static int map_pte_fn(pte_t *pte, unsigned long addr, void *data)
+ {
+ 	unsigned long **frames = (unsigned long **)data;
+ 
+@@ -54,8 +53,7 @@ static int map_pte_fn(pte_t *pte, struct
+ 	return 0;
+ }
+ 
+-static int unmap_pte_fn(pte_t *pte, struct page *pmd_page,
+-			unsigned long addr, void *data)
++static int unmap_pte_fn(pte_t *pte, unsigned long addr, void *data)
+ {
+ 
+ 	set_pte_at(&init_mm, addr, pte, __pte(0));
+diff -puN arch/x86/xen/mmu.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
++++ a/arch/x86/xen/mmu.c
+@@ -2365,8 +2365,7 @@ struct remap_data {
+ 	struct mmu_update *mmu_update;
+ };
+ 
+-static int remap_area_mfn_pte_fn(pte_t *ptep, pgtable_t token,
+-				 unsigned long addr, void *data)
++static int remap_area_mfn_pte_fn(pte_t *ptep, unsigned long addr, void *data)
+ {
+ 	struct remap_data *rmd = data;
+ 	pte_t pte = pte_mkspecial(pfn_pte(rmd->mfn++, rmd->prot));
+diff -puN include/linux/mm.h~mm-remove-unused-token-argument-from-apply_to_page_range-callback include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-unused-token-argument-from-apply_to_page_range-callback
 +++ a/include/linux/mm.h
-@@ -1567,6 +1567,12 @@ typedef int (*pte_fn_t)(pte_t *pte, unsi
+@@ -1563,8 +1563,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
+ #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
+ 
+-typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+-			void *data);
++typedef int (*pte_fn_t)(pte_t *pte, unsigned long addr, void *data);
  extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
  			       unsigned long size, pte_fn_t fn, void *data);
  
-+typedef int (*pte_batch_fn_t)(pte_t *pte, unsigned count,
-+			      unsigned long addr, void *data);
-+extern int apply_to_page_range_batch(struct mm_struct *mm,
-+				     unsigned long address, unsigned long size,
-+				     pte_batch_fn_t fn, void *data);
-+
- #ifdef CONFIG_PROC_FS
- void vm_stat_account(struct mm_struct *mm, unsigned long long vm_flags,
- 		     struct file *file, long pages);
-diff -puN mm/memory.c~mm-add-apply_to_page_range_batch mm/memory.c
---- a/mm/memory.c~mm-add-apply_to_page_range_batch
+diff -puN mm/memory.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback mm/memory.c
+--- a/mm/memory.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
 +++ a/mm/memory.c
-@@ -2247,11 +2247,10 @@ EXPORT_SYMBOL(remap_pfn_range);
+@@ -2267,7 +2267,7 @@ static int apply_to_pte_range(struct mm_
+ 	token = pmd_pgtable(*pmd);
  
- static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data)
-+				     pte_batch_fn_t fn, void *data)
- {
- 	pte_t *pte;
- 	int err;
--	pgtable_t token;
- 	spinlock_t *uninitialized_var(ptl);
- 
- 	pte = (mm == &init_mm) ?
-@@ -2263,25 +2262,17 @@ static int apply_to_pte_range(struct mm_
- 	BUG_ON(pmd_huge(*pmd));
- 
- 	arch_enter_lazy_mmu_mode();
--
--	token = pmd_pgtable(*pmd);
--
--	do {
--		err = fn(pte++, addr, data);
--		if (err)
--			break;
--	} while (addr += PAGE_SIZE, addr != end);
--
-+	err = fn(pte, (end - addr) / PAGE_SIZE, addr, data);
- 	arch_leave_lazy_mmu_mode();
- 
- 	if (mm != &init_mm)
--		pte_unmap_unlock(pte-1, ptl);
-+		pte_unmap_unlock(pte, ptl);
- 	return err;
+ 	do {
+-		err = fn(pte++, token, addr, data);
++		err = fn(pte++, addr, data);
+ 		if (err)
+ 			break;
+ 	} while (addr += PAGE_SIZE, addr != end);
+diff -puN mm/vmalloc.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-remove-unused-token-argument-from-apply_to_page_range-callback
++++ a/mm/vmalloc.c
+@@ -2116,7 +2116,7 @@ void  __attribute__((weak)) vmalloc_sync
  }
  
- static int apply_to_pmd_range(struct mm_struct *mm, pud_t *pud,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data)
-+				     pte_batch_fn_t fn, void *data)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -2303,7 +2294,7 @@ static int apply_to_pmd_range(struct mm_
  
- static int apply_to_pud_range(struct mm_struct *mm, pgd_t *pgd,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data)
-+				     pte_batch_fn_t fn, void *data)
+-static int f(pte_t *pte, pgtable_t table, unsigned long addr, void *data)
++static int f(pte_t *pte, unsigned long addr, void *data)
  {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -2325,8 +2316,9 @@ static int apply_to_pud_range(struct mm_
-  * Scan a region of virtual memory, filling in page tables as necessary
-  * and calling a provided function on each leaf page table.
-  */
--int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
--			unsigned long size, pte_fn_t fn, void *data)
-+int apply_to_page_range_batch(struct mm_struct *mm,
-+			      unsigned long addr, unsigned long size,
-+			      pte_batch_fn_t fn, void *data)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
-@@ -2344,6 +2336,39 @@ int apply_to_page_range(struct mm_struct
- 
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(apply_to_page_range_batch);
-+
-+struct pte_single_fn
-+{
-+	pte_fn_t fn;
-+	void *data;
-+};
-+
-+static int apply_pte_batch(pte_t *pte, unsigned count,
-+			   unsigned long addr, void *data)
-+{
-+	struct pte_single_fn *single = data;
-+	int err = 0;
-+
-+	while (count--) {
-+		err = single->fn(pte, addr, single->data);
-+		if (err)
-+			break;
-+
-+		addr += PAGE_SIZE;
-+		pte++;
-+	}
-+
-+	return err;
-+}
-+
-+int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
-+			unsigned long size, pte_fn_t fn, void *data)
-+{
-+	struct pte_single_fn single = { .fn = fn, .data = data };
-+	return apply_to_page_range_batch(mm, addr, size,
-+					 apply_pte_batch, &single);
-+}
- EXPORT_SYMBOL_GPL(apply_to_page_range);
- 
- /*
+ 	/* apply_to_page_range() does all the hard work. */
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jeremy.fitzhardinge@citrix.com are
 
 linux-next.patch
+mm-add-apply_to_page_range_batch.patch
 ioremap-use-apply_to_page_range_batch-for-ioremap_page_range.patch
 vmalloc-use-plain-pte_clear-for-unmaps.patch
 vmalloc-use-apply_to_page_range_batch-for-vunmap_page_range.patch
