@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-check_huge_range.patch added to -mm tree
-Date: Wed, 18 May 2011 14:37:21 -0700
-Message-ID: <201105182137.p4ILbL4j025427@imap1.linux-foundation.org>
+Subject: + mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch added to -mm tree
+Date: Wed, 18 May 2011 14:37:19 -0700
+Message-ID: <201105182137.p4ILbKJ3025419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755453Ab1ERVh3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755367Ab1ERVh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 17:37:29 -0400
+	Wed, 18 May 2011 17:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google
 
 
 The patch titled
-     mm: remove check_huge_range()
+     mm: make gather_stats() type-safe and remove forward declaration
 has been added to the -mm tree.  Its filename is
-     mm-remove-check_huge_range.patch
+     mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove check_huge_range()
+Subject: mm: make gather_stats() type-safe and remove forward declaration
 From: Stephen Wilson <wilsons@start.ca>
 
-This function has been superseded by gather_hugetbl_stats() and is no
-longer needed.
+Improve the prototype of gather_stats() to take a struct numa_maps as
+argument instead of a generic void *.  Update all callers to make the
+required type explicit.
+
+Since gather_stats() is not needed before its definition and is scheduled
+to be moved out of mempolicy.c the declaration is removed as well.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -50,54 +54,62 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   35 -----------------------------------
- 1 file changed, 35 deletions(-)
+ mm/mempolicy.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-remove-check_huge_range mm/mempolicy.c
---- a/mm/mempolicy.c~mm-remove-check_huge_range
+diff -puN mm/mempolicy.c~mm-make-gather_stats-type-safe-and-remove-forward-declaration mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-make-gather_stats-type-safe-and-remove-forward-declaration
 +++ a/mm/mempolicy.c
-@@ -2600,35 +2600,6 @@ static int gather_pte_stats(pmd_t *pmd, 
- }
+@@ -456,7 +456,6 @@ static const struct mempolicy_operations
+ 	},
+ };
  
- #ifdef CONFIG_HUGETLB_PAGE
--static void check_huge_range(struct vm_area_struct *vma,
--		unsigned long start, unsigned long end,
--		struct numa_maps *md)
--{
--	unsigned long addr;
--	struct page *page;
--	struct hstate *h = hstate_vma(vma);
--	unsigned long sz = huge_page_size(h);
--
--	for (addr = start; addr < end; addr += sz) {
--		pte_t *ptep = huge_pte_offset(vma->vm_mm,
--						addr & huge_page_mask(h));
--		pte_t pte;
--
--		if (!ptep)
--			continue;
--
--		pte = *ptep;
--		if (pte_none(pte))
--			continue;
--
--		page = pte_page(pte);
--		if (!page)
--			continue;
--
--		gather_stats(page, md, pte_dirty(*ptep));
--	}
--}
--
+-static void gather_stats(struct page *, void *, int pte_dirty);
+ static void migrate_page_add(struct page *page, struct list_head *pagelist,
+ 				unsigned long flags);
+ 
+@@ -2539,9 +2538,8 @@ struct numa_maps {
+ 	unsigned long node[MAX_NUMNODES];
+ };
+ 
+-static void gather_stats(struct page *page, void *private, int pte_dirty)
++static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty)
+ {
+-	struct numa_maps *md = private;
+ 	int count = page_mapcount(page);
+ 
+ 	md->pages++;
+@@ -2634,6 +2632,7 @@ static void check_huge_range(struct vm_a
  static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
  		unsigned long addr, unsigned long end, struct mm_walk *walk)
  {
-@@ -2648,12 +2619,6 @@ static int gather_hugetbl_stats(pte_t *p
++	struct numa_maps *md;
+ 	struct page *page;
+ 
+ 	if (pte_none(*pte))
+@@ -2643,7 +2642,8 @@ static int gather_hugetbl_stats(pte_t *p
+ 	if (!page)
+ 		return 0;
+ 
+-	gather_stats(page, walk->private, pte_dirty(*pte));
++	md = walk->private;
++	gather_stats(page, md, pte_dirty(*pte));
+ 	return 0;
  }
  
- #else
--static inline void check_huge_range(struct vm_area_struct *vma,
--		unsigned long start, unsigned long end,
--		struct numa_maps *md)
--{
--}
+_
+
+Patches currently in -mm which might be from wilsons@start.ca are
+
+mm-export-get_vma_policy.patch
+mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+mm-remove-mpol_mf_stats.patch
+mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
+mm-remove-check_huge_range.patch
+mm-declare-mpol_to_str-when-config_tmpfs=n.patch
+mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
+proc-make-struct-proc_maps_private-truly-private.patch
+proc-allocate-storage-for-numa_maps-statistics-once.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+
