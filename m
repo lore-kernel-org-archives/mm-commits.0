@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-add-missing-sys_ni-entries-for-ipc-compatc-functions.patch added to -mm tree
-Date: Wed, 18 May 2011 13:31:25 -0700
-Message-ID: <201105182031.p4IKVP7D021715@imap1.linux-foundation.org>
+Subject: + pci-dont-use-dmi_name_in_vendors-in-quirk.patch added to -mm tree
+Date: Wed, 18 May 2011 13:49:07 -0700
+Message-ID: <201105182049.p4IKn7Eg022623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752675Ab1ERUbx (ORCPT
+	by vger.kernel.org with ESMTP id S1753907Ab1ERUun (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 16:31:53 -0400
+	Wed, 18 May 2011 16:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cernekee@gmail.com, ralf@linux-mips.org
+Cc: khali@linux-fr.org, andi@firstfloor.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     ipc: add missing sys_ni entries for ipc/compat.c functions
+     pci: don't use dmi_name_in_vendors() in quirk
 has been added to the -mm tree.  Its filename is
-     ipc-add-missing-sys_ni-entries-for-ipc-compatc-functions.patch
+     pci-dont-use-dmi_name_in_vendors-in-quirk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: add missing sys_ni entries for ipc/compat.c functions
-From: Kevin Cernekee <cernekee@gmail.com>
+Subject: pci: don't use dmi_name_in_vendors() in quirk
+From: Jean Delvare <khali@linux-fr.org>
 
-When building with:
+Don't use the costly dmi_name_in_vendors() when we know the string we are
+looking for can only be in the DMI board name field.  This is more robust
+and, more importantly, much faster.
 
-CONFIG_64BIT=y
-CONFIG_MIPS32_COMPAT=y
-CONFIG_COMPAT=y
-CONFIG_MIPS32_O32=y
-CONFIG_MIPS32_N32=y
-CONFIG_SYSVIPC is not set
-(and implicitly: CONFIG_SYSVIPC_COMPAT is not set)
-
-the final link fails with unresolved symbols for:
-
-compat_sys_semctl, compat_sys_msgsnd, compat_sys_msgrcv,
-compat_sys_shmctl, compat_sys_msgctl, compat_sys_semtimedop
-
-The fix is to add cond_syscall declarations for all syscalls in
-ipc/compat.c
-
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/pci/quirks.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys_ni.c~ipc-add-missing-sys_ni-entries-for-ipc-compatc-functions kernel/sys_ni.c
---- a/kernel/sys_ni.c~ipc-add-missing-sys_ni-entries-for-ipc-compatc-functions
-+++ a/kernel/sys_ni.c
-@@ -71,15 +71,22 @@ cond_syscall(compat_sys_epoll_pwait);
- cond_syscall(sys_semget);
- cond_syscall(sys_semop);
- cond_syscall(sys_semtimedop);
-+cond_syscall(compat_sys_semtimedop);
- cond_syscall(sys_semctl);
-+cond_syscall(compat_sys_semctl);
- cond_syscall(sys_msgget);
- cond_syscall(sys_msgsnd);
-+cond_syscall(compat_sys_msgsnd);
- cond_syscall(sys_msgrcv);
-+cond_syscall(compat_sys_msgrcv);
- cond_syscall(sys_msgctl);
-+cond_syscall(compat_sys_msgctl);
- cond_syscall(sys_shmget);
- cond_syscall(sys_shmat);
-+cond_syscall(compat_sys_shmat);
- cond_syscall(sys_shmdt);
- cond_syscall(sys_shmctl);
-+cond_syscall(compat_sys_shmctl);
- cond_syscall(sys_mq_open);
- cond_syscall(sys_mq_unlink);
- cond_syscall(sys_mq_timedsend);
+diff -puN drivers/pci/quirks.c~pci-dont-use-dmi_name_in_vendors-in-quirk drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-dont-use-dmi_name_in_vendors-in-quirk
++++ a/drivers/pci/quirks.c
+@@ -2349,8 +2349,11 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_A
+  */
+ static void __devinit nvenet_msi_disable(struct pci_dev *dev)
+ {
+-	if (dmi_name_in_vendors("P5N32-SLI PREMIUM") ||
+-	    dmi_name_in_vendors("P5N32-E SLI")) {
++	const char *board_name = dmi_get_system_info(DMI_BOARD_NAME);
++
++	if (board_name &&
++	    (strstr(board_name, "P5N32-SLI PREMIUM") ||
++	     strstr(board_name, "P5N32-E SLI"))) {
+ 		dev_info(&dev->dev,
+ 			 "Disabling msi for MCP55 NIC on P5N32-SLI\n");
+ 		dev->no_msi = 1;
 _
 
-Patches currently in -mm which might be from cernekee@gmail.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 linux-next.patch
-ipc-add-missing-sys_ni-entries-for-ipc-compatc-functions.patch
+pci-dont-use-dmi_name_in_vendors-in-quirk.patch
 
