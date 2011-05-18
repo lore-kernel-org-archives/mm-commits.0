@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-lm3530c-add-regulator.patch added to -mm tree
-Date: Wed, 18 May 2011 16:18:21 -0700
-Message-ID: <201105182318.p4INIL1P030843@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 18 May 2011 16:18:50 -0700
+Message-ID: <201105182318.p4INIoqE030857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755978Ab1ERXSg (ORCPT
+	by vger.kernel.org with ESMTP id S1755659Ab1ERXSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 19:18:36 -0400
+	Wed, 18 May 2011 19:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shreshthakumar.sahu@stericsson.com, lee.jones@linaro.org, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, shreshthakumar.sahu@stericsson.com
 
 
 The patch titled
-     drivers/leds/leds-lm3530.c: add regulator
+     drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-lm3530c-add-regulator.patch
+     drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,175 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lm3530.c: add regulator
-From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Subject: drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+ERROR: trailing whitespace
+#68: FILE: drivers/leds/leds-lm3530.c:212:
++^I$
+
+total: 1 errors, 0 warnings, 141 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/drivers-leds-leds-lm3530c-add-regulator.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   75 ++++++++++++++++++++++++++++++-----
- 1 file changed, 66 insertions(+), 9 deletions(-)
+ drivers/leds/leds-lm3530.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator
+diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes
 +++ a/drivers/leds/leds-lm3530.c
-@@ -17,6 +17,7 @@
- #include <linux/input.h>
- #include <linux/led-lm3530.h>
- #include <linux/types.h>
-+#include <linux/regulator/consumer.h>
- 
- #define LM3530_LED_DEV "lcd-backlight"
- #define LM3530_NAME "lm3530-led"
-@@ -96,12 +97,18 @@ static struct lm3530_mode_map mode_map[]
-  * @client: i2c client
-  * @pdata: LM3530 platform data
-  * @mode: mode of operation - manual, ALS, PWM
-+ * @regulator: regulator
-+ * @brighness: previous brightness value
-+ * @enable: regulator is enabled
-  */
- struct lm3530_data {
- 	struct led_classdev led_dev;
- 	struct i2c_client *client;
- 	struct lm3530_platform_data *pdata;
- 	enum lm3530_mode mode;
-+	struct regulator *regulator;
-+	enum led_brightness brightness;
-+	bool enable;
- };
- 
- static const u8 lm3530_reg[LM3530_REG_MAX] = {
-@@ -172,7 +179,10 @@ static int lm3530_init_registers(struct 
- 	brt_ramp = (pltfm->brt_ramp_fall << LM3530_BRT_RAMP_FALL_SHIFT) |
- 			(pltfm->brt_ramp_rise << LM3530_BRT_RAMP_RISE_SHIFT);
- 
--	brightness = pltfm->brt_val;
-+	if (drvdata->brightness)
-+		brightness = drvdata->brightness;
-+	else
-+		brightness = drvdata->brightness = pltfm->brt_val;
- 
- 	reg_val[0] = gen_config;	/* LM3530_GEN_CONFIG */
- 	reg_val[1] = als_config;	/* LM3530_ALS_CONFIG */
-@@ -190,6 +200,16 @@ static int lm3530_init_registers(struct 
- 	reg_val[13] = LM3530_DEF_ZT_3;	/* LM3530_ALS_Z3T_REG */
- 	reg_val[14] = LM3530_DEF_ZT_4;	/* LM3530_ALS_Z4T_REG */
- 
-+	if (!drvdata->enable) {
-+		ret = regulator_enable(drvdata->regulator);
-+		if (ret) {
-+			dev_err(&drvdata->client->dev,
-+					"Enable regulator failed\n");
-+			return ret;
-+		}
-+		drvdata->enable = true;
-+	}
-+	
+@@ -209,7 +209,7 @@ static int lm3530_init_registers(struct 
+ 		}
+ 		drvdata->enable = true;
+ 	}
+-	
++
  	for (i = 0; i < LM3530_REG_MAX; i++) {
  		ret = i2c_smbus_write_byte_data(client,
  				lm3530_reg[i], reg_val[i]);
-@@ -210,12 +230,31 @@ static void lm3530_brightness_set(struct
- 	switch (drvdata->mode) {
- 	case LM3530_BL_MODE_MANUAL:
- 
-+		if (!drvdata->enable) {
-+			err = lm3530_init_registers(drvdata);
-+			if (err) {
-+				dev_err(&drvdata->client->dev,
-+					"Register Init failed: %d\n", err);
-+				break;
-+			}
-+		}
-+
- 		/* set the brightness in brightness control register*/
- 		err = i2c_smbus_write_byte_data(drvdata->client,
- 				LM3530_BRT_CTRL_REG, brt_val / 2);
- 		if (err)
- 			dev_err(&drvdata->client->dev,
- 				"Unable to set brightness: %d\n", err);
-+		else
-+			drvdata->brightness = brt_val / 2;
-+
-+		if (brt_val == 0) {
-+			err = regulator_disable(drvdata->regulator);
-+			if (err)
-+				dev_err(&drvdata->client->dev,
-+					"Disable regulator failed\n");
-+			drvdata->enable = false;
-+		}
- 		break;
- 	case LM3530_BL_MODE_ALS:
- 		break;
-@@ -297,20 +336,31 @@ static int __devinit lm3530_probe(struct
- 	drvdata->mode = pdata->mode;
- 	drvdata->client = client;
- 	drvdata->pdata = pdata;
-+	drvdata->brightness = LED_OFF;
-+	drvdata->enable = false;
- 	drvdata->led_dev.name = LM3530_LED_DEV;
- 	drvdata->led_dev.brightness_set = lm3530_brightness_set;
- 
- 	i2c_set_clientdata(client, drvdata);
- 
--	err = lm3530_init_registers(drvdata);
--	if (err < 0) {
--		dev_err(&client->dev, "Register Init failed: %d\n", err);
--		err = -ENODEV;
--		goto err_reg_init;
-+	drvdata->regulator = regulator_get(&client->dev, "vin");
-+	if (IS_ERR(drvdata->regulator)) {
-+		dev_err(&client->dev, "regulator get failed\n");
-+		err = PTR_ERR(drvdata->regulator);
-+		drvdata->regulator = NULL;
-+		goto err_regulator_get;
-+	}
-+
-+	if (drvdata->pdata->brt_val) {
-+		err = lm3530_init_registers(drvdata);
-+		if (err < 0) {
-+			dev_err(&client->dev,
-+				"Register Init failed: %d\n", err);
-+			err = -ENODEV;
-+			goto err_reg_init;
-+		}
- 	}
--
--	err = led_classdev_register((struct device *)
--				      &client->dev, &drvdata->led_dev);
-+	err = led_classdev_register(&client->dev, &drvdata->led_dev);
- 	if (err < 0) {
- 		dev_err(&client->dev, "Register led class failed: %d\n", err);
- 		err = -ENODEV;
-@@ -330,6 +380,9 @@ err_create_file:
- 	led_classdev_unregister(&drvdata->led_dev);
- err_class_register:
- err_reg_init:
-+	regulator_put(drvdata->regulator);
-+err_regulator_get:
-+	i2c_set_clientdata(client, NULL);
- 	kfree(drvdata);
- err_out:
- 	return err;
-@@ -340,6 +393,10 @@ static int __devexit lm3530_remove(struc
- 	struct lm3530_data *drvdata = i2c_get_clientdata(client);
- 
- 	device_remove_file(drvdata->led_dev.dev, &dev_attr_mode);
-+
-+	if (drvdata->enable)
-+		regulator_disable(drvdata->regulator);
-+	regulator_put(drvdata->regulator);
- 	led_classdev_unregister(&drvdata->led_dev);
- 	kfree(drvdata);
- 	return 0;
 _
 
-Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-leds-leds-lm3530c-add-regulator.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+add-the-pagefault-count-into-memcg-stats-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
