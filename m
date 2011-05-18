@@ -1,63 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-zone-congestion-fix-fix.patch removed from -mm tree
-Date: Tue, 17 May 2011 15:43:19 -0700
-Message-ID: <201105172243.p4HMhJFF026558@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 18 May 2011 11:24:51 -0700
+Message-ID: <201105181824.p4IIOJuR014956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932477Ab1EQWoC (ORCPT
+	by vger.kernel.org with ESMTP id S932709Ab1ERSZH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 May 2011 18:44:02 -0400
+	Wed, 18 May 2011 14:25:07 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4IIOJT7001920
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 18 May 2011 11:24:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.co
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memcg-fix-zone-congestion-fix-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-fix-zone-congestion-fix-fix.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into memcg-fix-zone-congestion.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-zone-congestion-fix-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/paride/pcd.c |    3 ---
+ drivers/cdrom/viocd.c      |    4 ----
+ 2 files changed, 7 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-fix-zone-congestion-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-fix-zone-congestion-fix-fix
-+++ a/mm/vmscan.c
-@@ -937,7 +937,7 @@ keep_lumpy:
- 	 * back off and wait for congestion to clear because further reclaim
- 	 * will encounter the same problem
- 	 */
--	if (scanning_global_lru(sc) && nr_dirty == nr_congested && nr_dirty)
-+	if (nr_dirty && nr_dirty == nr_congested && scanning_global_lru(sc))
- 		zone_set_flag(zone, ZONE_CONGESTED);
+diff -puN drivers/block/paride/pcd.c~linux-next-git-rejects drivers/block/paride/pcd.c
+--- a/drivers/block/paride/pcd.c~linux-next-git-rejects
++++ a/drivers/block/paride/pcd.c
+@@ -320,11 +320,8 @@ static void pcd_init_units(void)
+ 		disk->first_minor = unit;
+ 		strcpy(disk->disk_name, cd->name);	/* umm... */
+ 		disk->fops = &pcd_bdops;
+-<<<<<<< HEAD
+-=======
+ 		disk->flags = GENHD_FL_BLOCK_EVENTS_ON_EXCL_WRITE;
+ 		disk->events = DISK_EVENT_MEDIA_CHANGE;
+->>>>>>> FETCH_HEAD
+ 	}
+ }
  
- 	free_page_list(&free_pages);
+diff -puN drivers/cdrom/viocd.c~linux-next-git-rejects drivers/cdrom/viocd.c
+--- a/drivers/cdrom/viocd.c~linux-next-git-rejects
++++ a/drivers/cdrom/viocd.c
+@@ -625,13 +625,9 @@ static int viocd_probe(struct vio_dev *v
+ 	blk_queue_max_hw_sectors(q, 4096 / 512);
+ 	gendisk->queue = q;
+ 	gendisk->fops = &viocd_fops;
+-<<<<<<< HEAD
+-	gendisk->flags = GENHD_FL_CD|GENHD_FL_REMOVABLE;
+-=======
+ 	gendisk->flags = GENHD_FL_CD | GENHD_FL_REMOVABLE |
+ 			 GENHD_FL_BLOCK_EVENTS_ON_EXCL_WRITE;
+ 	gendisk->events = DISK_EVENT_MEDIA_CHANGE;
+->>>>>>> FETCH_HEAD
+ 	set_capacity(gendisk, 0);
+ 	gendisk->private_data = d;
+ 	d->viocd_disk = gendisk;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-fix-zone-congestion.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
@@ -134,4 +161,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+linux-next-git-rejects.patch
 
