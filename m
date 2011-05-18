@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-leds-pca9532-add-support-pca9530-pca9531-and-pca9533.patch added to -mm tree
-Date: Wed, 18 May 2011 16:11:24 -0700
-Message-ID: <201105182311.p4INBOSq030477@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-lm3530c-add-regulator.patch added to -mm tree
+Date: Wed, 18 May 2011 16:18:21 -0700
+Message-ID: <201105182318.p4INIL1P030843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754769Ab1ERXLz (ORCPT
+	by vger.kernel.org with ESMTP id S1755978Ab1ERXSg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 May 2011 19:11:55 -0400
+	Wed, 18 May 2011 19:18:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: j.weitzel@phytec.de, grant.likely@secretlab.ca, hsweeten@visionengravers.com, j.kilb@phytec.de, joachim.eastwood@jotron.com, rpurdie@rpsys.net, w.sang@pengutronix.de
+Cc: shreshthakumar.sahu@stericsson.com, lee.jones@linaro.org, rpurdie@rpsys.net
 
 
 The patch titled
-     drivers/leds/leds-pca9532.c: add support pca9530, pca9531 and pca9533
+     drivers/leds/leds-lm3530.c: add regulator
 has been added to the -mm tree.  Its filename is
-     leds-leds-pca9532-add-support-pca9530-pca9531-and-pca9533.patch
+     drivers-leds-leds-lm3530c-add-regulator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,239 +34,175 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-pca9532.c: add support pca9530, pca9531 and pca9533
-From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: drivers/leds/leds-lm3530.c: add regulator
+From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
 
-The pca953x family are only different in number of leds and register
-layout Adding chipinfo to use driver with whole pca953x family Rename
-driver to pca953x, but left files and platformflags named pca9532.
-
-Tested with pca9530 and pca9533
-
-Tested-by: Juergen Kilb <j.kilb@phytec.de>
-Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
-Acked-by: Joachim Eastwood <joachim.eastwood@jotron.com>
-Tested-by: Joachim Eastwood <joachim.eastwood@jotron.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
+Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca9532.c |   84 +++++++++++++++++++++++++---------
- 1 file changed, 62 insertions(+), 22 deletions(-)
+ drivers/leds/leds-lm3530.c |   75 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 66 insertions(+), 9 deletions(-)
 
-diff -puN drivers/leds/leds-pca9532.c~leds-leds-pca9532-add-support-pca9530-pca9531-and-pca9533 drivers/leds/leds-pca9532.c
---- a/drivers/leds/leds-pca9532.c~leds-leds-pca9532-add-support-pca9530-pca9531-and-pca9533
-+++ a/drivers/leds/leds-pca9532.c
-@@ -1,13 +1,14 @@
- /*
-  * pca9532.c - 16-bit Led dimmer
-  *
-+ * Copyright (C) 2011 Jan Weitzel
-  * Copyright (C) 2008 Riku Voipio
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; version 2 of the License.
-  *
-- * Datasheet: http://www.nxp.com/acrobat/datasheets/PCA9532_3.pdf
-+ * Datasheet: http://www.nxp.com/documents/data_sheet/PCA9532.pdf
-  *
+diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-regulator
++++ a/drivers/leds/leds-lm3530.c
+@@ -17,6 +17,7 @@
+ #include <linux/input.h>
+ #include <linux/led-lm3530.h>
+ #include <linux/types.h>
++#include <linux/regulator/consumer.h>
+ 
+ #define LM3530_LED_DEV "lcd-backlight"
+ #define LM3530_NAME "lm3530-led"
+@@ -96,12 +97,18 @@ static struct lm3530_mode_map mode_map[]
+  * @client: i2c client
+  * @pdata: LM3530 platform data
+  * @mode: mode of operation - manual, ALS, PWM
++ * @regulator: regulator
++ * @brighness: previous brightness value
++ * @enable: regulator is enabled
   */
- 
-@@ -21,15 +22,20 @@
- #include <linux/leds-pca9532.h>
- #include <linux/gpio.h>
- 
--#define PCA9532_REG_INPUT(i) ((i)/8)
--#define PCA9532_REG_PSC(i) (0x2+(i)*2)
--#define PCA9532_REG_PWM(i) (0x3+(i)*2)
--#define PCA9532_REG_LS0  0x6
--#define LED_REG(led) ((led>>2)+PCA9532_REG_LS0)
--#define LED_NUM(led) (led & 0x3)
-+/* m =  num_leds*/
-+#define PCA9532_REG_INPUT(i)	((i) >> 3)
-+#define PCA9532_REG_OFFSET(m)	((m) >> 4)
-+#define PCA9532_REG_PSC(m, i)	(PCA9532_REG_OFFSET(m) + 0x1 + (i) * 2)
-+#define PCA9532_REG_PWM(m, i)	(PCA9532_REG_OFFSET(m) + 0x2 + (i) * 2)
-+#define LED_REG(m, led)		(PCA9532_REG_OFFSET(m) + 0x5 + (led >> 2))
-+#define LED_NUM(led)		(led & 0x3)
- 
- #define ldev_to_led(c)       container_of(c, struct pca9532_led, ldev)
- 
-+struct pca9532_chip_info {
-+	u8	num_leds;
-+};
-+
- struct pca9532_data {
+ struct lm3530_data {
+ 	struct led_classdev led_dev;
  	struct i2c_client *client;
- 	struct pca9532_led leds[16];
-@@ -39,6 +45,7 @@ struct pca9532_data {
- #ifdef CONFIG_LEDS_PCA9532_GPIO
- 	struct gpio_chip gpio;
- #endif
-+	const struct pca9532_chip_info *chip_info;
- 	u8 pwm[2];
- 	u8 psc[2];
- };
-@@ -47,16 +54,41 @@ static int pca9532_probe(struct i2c_clie
- 	const struct i2c_device_id *id);
- static int pca9532_remove(struct i2c_client *client);
- 
-+enum {
-+	pca9530,
-+	pca9531,
-+	pca9532,
-+	pca9533,
-+};
-+
- static const struct i2c_device_id pca9532_id[] = {
--	{ "pca9532", 0 },
-+	{ "pca9530", pca9530 },
-+	{ "pca9531", pca9531 },
-+	{ "pca9532", pca9532 },
-+	{ "pca9533", pca9533 },
- 	{ }
+ 	struct lm3530_platform_data *pdata;
+ 	enum lm3530_mode mode;
++	struct regulator *regulator;
++	enum led_brightness brightness;
++	bool enable;
  };
  
- MODULE_DEVICE_TABLE(i2c, pca9532_id);
+ static const u8 lm3530_reg[LM3530_REG_MAX] = {
+@@ -172,7 +179,10 @@ static int lm3530_init_registers(struct 
+ 	brt_ramp = (pltfm->brt_ramp_fall << LM3530_BRT_RAMP_FALL_SHIFT) |
+ 			(pltfm->brt_ramp_rise << LM3530_BRT_RAMP_RISE_SHIFT);
  
-+static const struct pca9532_chip_info pca9532_chip_info_tbl[] = {
-+	[pca9530] = {
-+		.num_leds = 2,
-+	},
-+	[pca9531] = {
-+		.num_leds = 8,
-+	},
-+	[pca9532] = {
-+		.num_leds = 16,
-+	},
-+	[pca9533] = {
-+		.num_leds = 4,
-+	},
-+};
+-	brightness = pltfm->brt_val;
++	if (drvdata->brightness)
++		brightness = drvdata->brightness;
++	else
++		brightness = drvdata->brightness = pltfm->brt_val;
+ 
+ 	reg_val[0] = gen_config;	/* LM3530_GEN_CONFIG */
+ 	reg_val[1] = als_config;	/* LM3530_ALS_CONFIG */
+@@ -190,6 +200,16 @@ static int lm3530_init_registers(struct 
+ 	reg_val[13] = LM3530_DEF_ZT_3;	/* LM3530_ALS_Z3T_REG */
+ 	reg_val[14] = LM3530_DEF_ZT_4;	/* LM3530_ALS_Z4T_REG */
+ 
++	if (!drvdata->enable) {
++		ret = regulator_enable(drvdata->regulator);
++		if (ret) {
++			dev_err(&drvdata->client->dev,
++					"Enable regulator failed\n");
++			return ret;
++		}
++		drvdata->enable = true;
++	}
++	
+ 	for (i = 0; i < LM3530_REG_MAX; i++) {
+ 		ret = i2c_smbus_write_byte_data(client,
+ 				lm3530_reg[i], reg_val[i]);
+@@ -210,12 +230,31 @@ static void lm3530_brightness_set(struct
+ 	switch (drvdata->mode) {
+ 	case LM3530_BL_MODE_MANUAL:
+ 
++		if (!drvdata->enable) {
++			err = lm3530_init_registers(drvdata);
++			if (err) {
++				dev_err(&drvdata->client->dev,
++					"Register Init failed: %d\n", err);
++				break;
++			}
++		}
 +
- static struct i2c_driver pca9532_driver = {
- 	.driver = {
--		.name = "pca9532",
-+		.name = "pca953x",
- 	},
- 	.probe = pca9532_probe,
- 	.remove = pca9532_remove,
-@@ -73,7 +105,7 @@ static int pca9532_calcpwm(struct i2c_cl
- {
- 	int a = 0, b = 0, i = 0;
- 	struct pca9532_data *data = i2c_get_clientdata(client);
--	for (i = 0; i < 16; i++) {
-+	for (i = 0; i < data->chip_info->num_leds; i++) {
- 		if (data->leds[i].type == PCA9532_TYPE_LED &&
- 			data->leds[i].state == PCA9532_PWM0+pwm) {
- 				a++;
-@@ -97,10 +129,12 @@ static int pca9532_calcpwm(struct i2c_cl
- static int pca9532_setpwm(struct i2c_client *client, int pwm)
- {
- 	struct pca9532_data *data = i2c_get_clientdata(client);
-+	u8 maxleds = data->chip_info->num_leds;
+ 		/* set the brightness in brightness control register*/
+ 		err = i2c_smbus_write_byte_data(drvdata->client,
+ 				LM3530_BRT_CTRL_REG, brt_val / 2);
+ 		if (err)
+ 			dev_err(&drvdata->client->dev,
+ 				"Unable to set brightness: %d\n", err);
++		else
++			drvdata->brightness = brt_val / 2;
 +
- 	mutex_lock(&data->update_lock);
--	i2c_smbus_write_byte_data(client, PCA9532_REG_PWM(pwm),
-+	i2c_smbus_write_byte_data(client, PCA9532_REG_PWM(maxleds, pwm),
- 		data->pwm[pwm]);
--	i2c_smbus_write_byte_data(client, PCA9532_REG_PSC(pwm),
-+	i2c_smbus_write_byte_data(client, PCA9532_REG_PSC(maxleds, pwm),
- 		data->psc[pwm]);
- 	mutex_unlock(&data->update_lock);
- 	return 0;
-@@ -111,15 +145,16 @@ static void pca9532_setled(struct pca953
- {
- 	struct i2c_client *client = led->client;
- 	struct pca9532_data *data = i2c_get_clientdata(client);
-+	u8 maxleds = data->chip_info->num_leds;
- 	char reg;
++		if (brt_val == 0) {
++			err = regulator_disable(drvdata->regulator);
++			if (err)
++				dev_err(&drvdata->client->dev,
++					"Disable regulator failed\n");
++			drvdata->enable = false;
++		}
+ 		break;
+ 	case LM3530_BL_MODE_ALS:
+ 		break;
+@@ -297,20 +336,31 @@ static int __devinit lm3530_probe(struct
+ 	drvdata->mode = pdata->mode;
+ 	drvdata->client = client;
+ 	drvdata->pdata = pdata;
++	drvdata->brightness = LED_OFF;
++	drvdata->enable = false;
+ 	drvdata->led_dev.name = LM3530_LED_DEV;
+ 	drvdata->led_dev.brightness_set = lm3530_brightness_set;
  
- 	mutex_lock(&data->update_lock);
--	reg = i2c_smbus_read_byte_data(client, LED_REG(led->id));
-+	reg = i2c_smbus_read_byte_data(client, LED_REG(maxleds, led->id));
- 	/* zero led bits */
- 	reg = reg & ~(0x3<<LED_NUM(led->id)*2);
- 	/* set the new value */
- 	reg = reg | (led->state << LED_NUM(led->id)*2);
--	i2c_smbus_write_byte_data(client, LED_REG(led->id), reg);
-+	i2c_smbus_write_byte_data(client, LED_REG(maxleds, led->id), reg);
- 	mutex_unlock(&data->update_lock);
- }
+ 	i2c_set_clientdata(client, drvdata);
  
-@@ -188,10 +223,12 @@ static int pca9532_event(struct input_de
- 
- static void pca9532_input_work(struct work_struct *work)
- {
--	struct pca9532_data *data;
--	data = container_of(work, struct pca9532_data, work);
-+	struct pca9532_data *data =
-+		container_of(work, struct pca9532_data, work);
-+	u8 maxleds = data->chip_info->num_leds;
+-	err = lm3530_init_registers(drvdata);
+-	if (err < 0) {
+-		dev_err(&client->dev, "Register Init failed: %d\n", err);
+-		err = -ENODEV;
+-		goto err_reg_init;
++	drvdata->regulator = regulator_get(&client->dev, "vin");
++	if (IS_ERR(drvdata->regulator)) {
++		dev_err(&client->dev, "regulator get failed\n");
++		err = PTR_ERR(drvdata->regulator);
++		drvdata->regulator = NULL;
++		goto err_regulator_get;
++	}
 +
- 	mutex_lock(&data->update_lock);
--	i2c_smbus_write_byte_data(data->client, PCA9532_REG_PWM(1),
-+	i2c_smbus_write_byte_data(data->client, PCA9532_REG_PWM(maxleds, 1),
- 		data->pwm[1]);
- 	mutex_unlock(&data->update_lock);
- }
-@@ -301,17 +338,18 @@ static int pca9532_configure(struct i2c_
- {
- 	int i, err = 0;
- 	int gpios = 0;
-+	u8 maxleds = data->chip_info->num_leds;
- 
- 	for (i = 0; i < 2; i++)	{
- 		data->pwm[i] = pdata->pwm[i];
- 		data->psc[i] = pdata->psc[i];
--		i2c_smbus_write_byte_data(client, PCA9532_REG_PWM(i),
-+		i2c_smbus_write_byte_data(client, PCA9532_REG_PWM(maxleds, i),
- 			data->pwm[i]);
--		i2c_smbus_write_byte_data(client, PCA9532_REG_PSC(i),
-+		i2c_smbus_write_byte_data(client, PCA9532_REG_PSC(maxleds, i),
- 			data->psc[i]);
++	if (drvdata->pdata->brt_val) {
++		err = lm3530_init_registers(drvdata);
++		if (err < 0) {
++			dev_err(&client->dev,
++				"Register Init failed: %d\n", err);
++			err = -ENODEV;
++			goto err_reg_init;
++		}
  	}
+-
+-	err = led_classdev_register((struct device *)
+-				      &client->dev, &drvdata->led_dev);
++	err = led_classdev_register(&client->dev, &drvdata->led_dev);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "Register led class failed: %d\n", err);
+ 		err = -ENODEV;
+@@ -330,6 +380,9 @@ err_create_file:
+ 	led_classdev_unregister(&drvdata->led_dev);
+ err_class_register:
+ err_reg_init:
++	regulator_put(drvdata->regulator);
++err_regulator_get:
++	i2c_set_clientdata(client, NULL);
+ 	kfree(drvdata);
+ err_out:
+ 	return err;
+@@ -340,6 +393,10 @@ static int __devexit lm3530_remove(struc
+ 	struct lm3530_data *drvdata = i2c_get_clientdata(client);
  
--	for (i = 0; i < 16; i++) {
-+	for (i = 0; i < data->chip_info->num_leds; i++) {
- 		struct pca9532_led *led = &data->leds[i];
- 		struct pca9532_led *pled = &pdata->leds[i];
- 		led->client = client;
-@@ -382,7 +420,7 @@ static int pca9532_configure(struct i2c_
- 		data->gpio.request = pca9532_gpio_request_pin;
- 		data->gpio.can_sleep = 1;
- 		data->gpio.base = pdata->gpio_base;
--		data->gpio.ngpio = 16;
-+		data->gpio.ngpio = data->chip_info->num_leds;
- 		data->gpio.dev = &client->dev;
- 		data->gpio.owner = THIS_MODULE;
- 
-@@ -424,6 +462,8 @@ static int pca9532_probe(struct i2c_clie
- 	if (!data)
- 		return -ENOMEM;
- 
-+	data->chip_info = &pca9532_chip_info_tbl[id->driver_data];
+ 	device_remove_file(drvdata->led_dev.dev, &dev_attr_mode);
 +
- 	dev_info(&client->dev, "setting platform data\n");
- 	i2c_set_clientdata(client, data);
- 	data->client = client;
-@@ -441,7 +481,7 @@ static int pca9532_remove(struct i2c_cli
- 	struct pca9532_data *data = i2c_get_clientdata(client);
- 	int err;
- 
--	err = pca9532_destroy_devices(data, 16);
-+	err = pca9532_destroy_devices(data, data->chip_info->num_leds);
- 	if (err)
- 		return err;
- 
++	if (drvdata->enable)
++		regulator_disable(drvdata->regulator);
++	regulator_put(drvdata->regulator);
+ 	led_classdev_unregister(&drvdata->led_dev);
+ 	kfree(drvdata);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from j.weitzel@phytec.de are
+Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
 
-drivers-leds-leds-pca9532c-add-gpio-capability.patch
-leds-leds-pca9532-add-support-pca9530-pca9531-and-pca9533.patch
+origin.patch
+drivers-leds-leds-lm3530c-add-regulator.patch
 
