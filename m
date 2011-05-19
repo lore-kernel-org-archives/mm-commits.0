@@ -1,304 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] add-the-pagefault-count-into-memcg-stats.patch removed from -mm tree
-Date: Thu, 19 May 2011 16:07:14 -0700
-Message-ID: <201105192307.p4JN7EmF001580@imap1.linux-foundation.org>
+Subject: [withdrawn] memcg-add-stats-to-monitor-soft_limit-reclaim.patch removed from -mm tree
+Date: Thu, 19 May 2011 16:07:10 -0700
+Message-ID: <201105192307.p4JN7Abg001577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932323Ab1ESXHu (ORCPT
+	by vger.kernel.org with ESMTP id S932323Ab1ESXIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 May 2011 19:07:50 -0400
+	Thu, 19 May 2011 19:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, balbir@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm
+To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.c
 
 
 The patch titled
-     memcg: add the pagefault count into memcg stats
+     memcg: add stats to monitor soft_limit reclaim
 has been removed from the -mm tree.  Its filename was
-     add-the-pagefault-count-into-memcg-stats.patch
+     memcg-add-stats-to-monitor-soft_limit-reclaim.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add the pagefault count into memcg stats
+Subject: memcg: add stats to monitor soft_limit reclaim
 From: Ying Han <yinghan@google.com>
 
-Two new stats in per-memcg memory.stat which tracks the number of page
-faults and number of major page faults.
+Extend the soft_limit reclaim stats to both global background reclaim and
+global direct reclaim.
 
-"pgfault"
-"pgmajfault"
+The following stats are renamed and added:
 
-They are different from "pgpgin"/"pgpgout" stat which count number of
-pages charged/discharged to the cgroup and have no meaning of reading/
-writing page to disk.
+$cat /dev/cgroup/memory/A/memory.stat
+soft_kswapd_steal 1053626
+soft_kswapd_scan 1053693
+soft_direct_steal 1481810
+soft_direct_scan 1481996
 
-It is valuable to track the two stats for both measuring application's
-performance as well as the efficiency of the kernel page reclaim path. 
-Counting pagefaults per process is useful, but we also need the aggregated
-value since processes are monitored and controlled in cgroup basis in
-memcg.
-
-Functional test: check the total number of pgfault/pgmajfault of all
-memcgs and compare with global vmstat value:
-
-$ cat /proc/vmstat | grep fault
-pgfault 1070751
-pgmajfault 553
-
-$ cat /dev/cgroup/memory.stat | grep fault
-pgfault 1071138
-pgmajfault 553
-total_pgfault 1071142
-total_pgmajfault 553
-
-$ cat /dev/cgroup/A/memory.stat | grep fault
-pgfault 199
-pgmajfault 0
-total_pgfault 199
-total_pgmajfault 0
-
-Performance test: run page fault test(pft) wit 16 thread on faulting in
-15G anon pages in 16G container.  There is no regression noticed on the
-"flt/cpu/s"
-
-Sample output from pft:
-TAG pft:anon-sys-default:
-  Gb  Thr CLine   User     System     Wall    flt/cpu/s fault/wsec
-  15   16   1     0.67s   233.41s    14.76s   16798.546 266356.260
-
-+-------------------------------------------------------------------------+
-    N           Min           Max        Median           Avg        Stddev
-x  10     16682.962     17344.027     16913.524     16928.812      166.5362
-+  10     16695.568     16923.896     16820.604     16824.652     84.816568
-No difference proven at 95.0% confidence
-
-[akpm@linux-foundation.org: fix build]
-[hughd@google.com: shmem fix]
 Signed-off-by: Ying Han <yinghan@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/mmap.c            |    2 +
- include/linux/memcontrol.h |    7 +++++
- mm/filemap.c               |    1 
- mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++++
- mm/memory.c                |    2 +
- mm/shmem.c                 |   11 ++++----
- 6 files changed, 65 insertions(+), 5 deletions(-)
+ Documentation/cgroups/memory.txt |   12 ++++++
+ include/linux/memcontrol.h       |    1 
+ mm/memcontrol.c                  |   57 +++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats fs/ncpfs/mmap.c
---- a/fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/fs/ncpfs/mmap.c
-@@ -16,6 +16,7 @@
- #include <linux/mman.h>
- #include <linux/string.h>
- #include <linux/fcntl.h>
-+#include <linux/memcontrol.h>
- 
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -92,6 +93,7 @@ static int ncp_file_mmap_fault(struct vm
- 	 * -- wli
- 	 */
- 	count_vm_event(PGMAJFAULT);
-+	mem_cgroup_count_vm_event(area->vm_mm, PGMAJFAULT);
- 	return VM_FAULT_MAJOR;
- }
- 
-diff -puN include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats
+diff -puN Documentation/cgroups/memory.txt~memcg-add-stats-to-monitor-soft_limit-reclaim Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-add-stats-to-monitor-soft_limit-reclaim
++++ a/Documentation/cgroups/memory.txt
+@@ -387,6 +387,14 @@ mapped_file	- # of bytes of mapped file 
+ pgpgin		- # of pages paged in (equivalent to # of charging events).
+ pgpgout		- # of pages paged out (equivalent to # of uncharging events).
+ swap		- # of bytes of swap usage
++soft_kswapd_steal- # of pages reclaimed in global hierarchical reclaim from
++		background reclaim
++soft_kswapd_scan - # of pages scanned in global hierarchical reclaim from
++		background reclaim
++soft_direct_steal- # of pages reclaimed in global hierarchical reclaim from
++		direct reclaim
++soft_direct_scan- # of pages scanned in global hierarchical reclaim from
++		direct reclaim
+ inactive_anon	- # of bytes of anonymous memory and swap cache memory on
+ 		LRU list.
+ active_anon	- # of bytes of anonymous and swap cache memory on active
+@@ -408,6 +416,10 @@ total_mapped_file	- sum of all children'
+ total_pgpgin		- sum of all children's "pgpgin"
+ total_pgpgout		- sum of all children's "pgpgout"
+ total_swap		- sum of all children's "swap"
++total_soft_kswapd_steal	- sum of all children's "soft_kswapd_steal"
++total_soft_kswapd_scan	- sum of all children's "soft_kswapd_scan"
++total_soft_direct_steal	- sum of all children's "soft_direct_steal"
++total_soft_direct_scan	- sum of all children's "soft_direct_scan"
+ total_inactive_anon	- sum of all children's "inactive_anon"
+ total_active_anon	- sum of all children's "active_anon"
+ total_inactive_file	- sum of all children's "inactive_file"
+diff -puN include/linux/memcontrol.h~memcg-add-stats-to-monitor-soft_limit-reclaim include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-stats-to-monitor-soft_limit-reclaim
 +++ a/include/linux/memcontrol.h
-@@ -20,6 +20,8 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
- #include <linux/cgroup.h>
-+#include <linux/vm_event_item.h>
-+
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
-@@ -147,6 +149,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 						unsigned long *total_scanned);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
- 
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
+@@ -115,7 +115,6 @@ struct zone_reclaim_stat*
+ mem_cgroup_get_reclaim_stat_from_page(struct page *page);
+ extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
+ 					struct task_struct *p);
+-
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
  #endif
-@@ -355,6 +358,10 @@ static inline void mem_cgroup_split_huge
- {
- }
- 
-+static inline
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
-+{
-+}
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
-diff -puN mm/filemap.c~add-the-pagefault-count-into-memcg-stats mm/filemap.c
---- a/mm/filemap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/filemap.c
-@@ -1661,6 +1661,7 @@ int filemap_fault(struct vm_area_struct 
- 		/* No page in the page cache at all */
- 		do_sync_mmap_readahead(vma, ra, file, offset);
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 		ret = VM_FAULT_MAJOR;
- retry_find:
- 		page = find_get_page(mapping, offset);
-diff -puN mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats mm/memcontrol.c
---- a/mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats
+diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim
 +++ a/mm/memcontrol.c
-@@ -94,6 +94,8 @@ enum mem_cgroup_events_index {
+@@ -94,6 +94,14 @@ enum mem_cgroup_events_index {
  	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
  	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
  	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
-+	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
-+	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
- 	MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL, /* # of pages reclaimed from */
- 					/* soft reclaim in background reclaim */
- 	MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN, /* # of pages scanned from */
-@@ -593,6 +595,16 @@ static void mem_cgroup_swap_statistics(s
- 	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
- }
- 
-+void mem_cgroup_pgfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGFAULT], val);
-+}
-+
-+void mem_cgroup_pgmajfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT], val);
-+}
-+
- static unsigned long mem_cgroup_read_events(struct mem_cgroup *mem,
- 					    enum mem_cgroup_events_index idx)
- {
-@@ -847,6 +859,33 @@ static inline bool mem_cgroup_is_root(st
- 	return (mem == root_mem_cgroup);
- }
- 
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
-+{
-+	struct mem_cgroup *mem;
-+
-+	if (!mm)
-+		return;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	if (unlikely(!mem))
-+		goto out;
-+
-+	switch (idx) {
-+	case PGMAJFAULT:
-+		mem_cgroup_pgmajfault(mem, 1);
-+		break;
-+	case PGFAULT:
-+		mem_cgroup_pgfault(mem, 1);
-+		break;
-+	default:
-+		BUG();
-+	}
-+out:
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(mem_cgroup_count_vm_event);
-+
++	MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL, /* # of pages reclaimed from */
++					/* soft reclaim in background reclaim */
++	MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN, /* # of pages scanned from */
++					/* soft reclaim in background reclaim */
++	MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL, /* # of pages reclaimed from */
++					/* soft reclaim in direct reclaim */
++	MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN, /* # of pages scanned from */
++					/* soft reclaim in direct reclaim */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
  /*
-  * Following LRU functions are allowed to be used without PCG_LOCK.
-  * Operations are called by routine of global LRU independently from memcg.
-@@ -3824,6 +3863,8 @@ enum {
+@@ -624,6 +632,32 @@ static void mem_cgroup_charge_statistics
+ 	preempt_enable();
+ }
+ 
++static void mem_cgroup_soft_steal(struct mem_cgroup *mem, bool is_kswapd,
++				  int val)
++{
++	if (is_kswapd)
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL],
++									val);
++	else
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL],
++									val);
++}
++
++static void mem_cgroup_soft_scan(struct mem_cgroup *mem, bool is_kswapd,
++				 int val)
++{
++	if (is_kswapd)
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN],
++									val);
++	else
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN],
++									val);
++}
++
+ static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
+ 					enum lru_list idx)
+ {
+@@ -1442,6 +1476,7 @@ static int mem_cgroup_hierarchical_recla
+ 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
+ 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
+ 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
++	bool is_kswapd = false;
+ 	unsigned long excess;
+ 	unsigned long nr_scanned;
+ 
+@@ -1451,6 +1486,9 @@ static int mem_cgroup_hierarchical_recla
+ 	if (root_mem->memsw_is_minimum)
+ 		noswap = true;
+ 
++	if (current_is_kswapd())
++		is_kswapd = true;
++
+ 	while (1) {
+ 		victim = mem_cgroup_select_victim(root_mem);
+ 		if (victim == root_mem) {
+@@ -1491,6 +1529,8 @@ static int mem_cgroup_hierarchical_recla
+ 				noswap, get_swappiness(victim), zone,
+ 				&nr_scanned);
+ 			*total_scanned += nr_scanned;
++			mem_cgroup_soft_steal(victim, is_kswapd, ret);
++			mem_cgroup_soft_scan(victim, is_kswapd, nr_scanned);
+ 		} else
+ 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
+ 						noswap, get_swappiness(victim));
+@@ -3326,6 +3366,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 						&nr_scanned);
+ 		nr_reclaimed += reclaimed;
+ 		*total_scanned += nr_scanned;
++
+ 		spin_lock(&mctz->lock);
+ 
+ 		/*
+@@ -3783,6 +3824,10 @@ enum {
  	MCS_PGPGIN,
  	MCS_PGPGOUT,
  	MCS_SWAP,
-+	MCS_PGFAULT,
-+	MCS_PGMAJFAULT,
- 	MCS_SOFT_KSWAPD_STEAL,
- 	MCS_SOFT_KSWAPD_SCAN,
- 	MCS_SOFT_DIRECT_STEAL,
-@@ -3850,6 +3891,8 @@ struct {
++	MCS_SOFT_KSWAPD_STEAL,
++	MCS_SOFT_KSWAPD_SCAN,
++	MCS_SOFT_DIRECT_STEAL,
++	MCS_SOFT_DIRECT_SCAN,
+ 	MCS_INACTIVE_ANON,
+ 	MCS_ACTIVE_ANON,
+ 	MCS_INACTIVE_FILE,
+@@ -3805,6 +3850,10 @@ struct {
  	{"pgpgin", "total_pgpgin"},
  	{"pgpgout", "total_pgpgout"},
  	{"swap", "total_swap"},
-+	{"pgfault", "total_pgfault"},
-+	{"pgmajfault", "total_pgmajfault"},
- 	{"soft_kswapd_steal", "total_soft_kswapd_steal"},
- 	{"soft_kswapd_scan", "total_soft_kswapd_scan"},
- 	{"soft_direct_steal", "total_soft_direct_steal"},
-@@ -3890,6 +3933,10 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 	s->stat[MCS_SOFT_DIRECT_STEAL] += val;
- 	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN);
- 	s->stat[MCS_SOFT_DIRECT_SCAN] += val;
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGFAULT);
-+	s->stat[MCS_PGFAULT] += val;
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGMAJFAULT);
-+	s->stat[MCS_PGMAJFAULT] += val;
++	{"soft_kswapd_steal", "total_soft_kswapd_steal"},
++	{"soft_kswapd_scan", "total_soft_kswapd_scan"},
++	{"soft_direct_steal", "total_soft_direct_steal"},
++	{"soft_direct_scan", "total_soft_direct_scan"},
+ 	{"inactive_anon", "total_inactive_anon"},
+ 	{"active_anon", "total_active_anon"},
+ 	{"inactive_file", "total_inactive_file"},
+@@ -3833,6 +3882,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
+ 	}
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL);
++	s->stat[MCS_SOFT_KSWAPD_STEAL] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN);
++	s->stat[MCS_SOFT_KSWAPD_SCAN] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL);
++	s->stat[MCS_SOFT_DIRECT_STEAL] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN);
++	s->stat[MCS_SOFT_DIRECT_SCAN] += val;
  
  	/* per zone stat */
  	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
-diff -puN mm/memory.c~add-the-pagefault-count-into-memcg-stats mm/memory.c
---- a/mm/memory.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/memory.c
-@@ -2874,6 +2874,7 @@ static int do_swap_page(struct mm_struct
- 		/* Had to read the page from swap area: Major fault */
- 		ret = VM_FAULT_MAJOR;
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(mm, PGMAJFAULT);
- 	} else if (PageHWPoison(page)) {
- 		/*
- 		 * hwpoisoned dirty swapcache pages are kept for killing
-@@ -3413,6 +3414,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	__set_current_state(TASK_RUNNING);
- 
- 	count_vm_event(PGFAULT);
-+	mem_cgroup_count_vm_event(mm, PGFAULT);
- 
- 	/* do counter updates before entering really critical section. */
- 	check_sync_rss_stat(current);
-diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats mm/shmem.c
---- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/shmem.c
-@@ -1304,12 +1304,10 @@ repeat:
- 		swappage = lookup_swap_cache(swap);
- 		if (!swappage) {
- 			shmem_swp_unmap(entry);
-+			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type && !(*type & VM_FAULT_MAJOR)) {
--				__count_vm_event(PGMAJFAULT);
-+			if (type)
- 				*type |= VM_FAULT_MAJOR;
--			}
--			spin_unlock(&info->lock);
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
-@@ -1548,7 +1546,10 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
-+	if (ret & VM_FAULT_MAJOR) {
-+		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+	}
- 	return ret | VM_FAULT_LOCKED;
- }
- 
 _
 
 Patches currently in -mm which might be from yinghan@google.com are
@@ -312,6 +230,7 @@ vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
 memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+add-the-pagefault-count-into-memcg-stats.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
