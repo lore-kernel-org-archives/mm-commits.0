@@ -1,141 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch removed from -mm tree
-Date: Thu, 19 May 2011 16:04:53 -0700
-Message-ID: <201105192304.p4JN4r78001474@imap1.linux-foundation.org>
+Subject: [folded] memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch removed from -mm tree
+Date: Thu, 19 May 2011 16:04:49 -0700
+Message-ID: <201105192304.p4JN4nDY001465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932336Ab1ESXGE (ORCPT
+	by vger.kernel.org with ESMTP id S932323Ab1ESXGD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 May 2011 19:06:04 -0400
+	Thu, 19 May 2011 19:06:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@r
+To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.c
 
 
 The patch titled
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
+     memcg-add-stats-to-monitor-soft_limit-reclaim-v2
 has been removed from the -mm tree.  Its filename was
-     memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
+     memcg-add-stats-to-monitor-soft_limit-reclaim-v2.patch
 
 This patch was dropped because it was folded into memcg-add-stats-to-monitor-soft_limit-reclaim.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-add-stats-to-monitor-soft_limit-reclaim-v2
+From: Ying Han <yinghan@google.com>
 
+Extend the soft_limit reclaim stats to both global background reclaim and
+global direct reclaim.
+
+The following stats are renamed and added:
+
+$cat /dev/cgroup/memory/A/memory.stat
+soft_kswapd_steal 1053626
+soft_kswapd_scan 1053693
+soft_direct_steal 1481810
+soft_direct_scan 1481996
+
+changelog v2..v1:
+1. rename the stats on soft_kswapd/direct_steal/scan.
+2. fix the documentation to match the stat name.
+
+Signed-off-by: Ying Han <yinghan@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/cgroups/memory.txt |   16 +++++--
+ mm/memcontrol.c                  |   64 +++++++++++++++++++++--------
+ 2 files changed, 59 insertions(+), 21 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix
+diff -puN Documentation/cgroups/memory.txt~memcg-add-stats-to-monitor-soft_limit-reclaim-v2 Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-add-stats-to-monitor-soft_limit-reclaim-v2
++++ a/Documentation/cgroups/memory.txt
+@@ -387,8 +387,14 @@ mapped_file	- # of bytes of mapped file 
+ pgpgin		- # of pages paged in (equivalent to # of charging events).
+ pgpgout		- # of pages paged out (equivalent to # of uncharging events).
+ swap		- # of bytes of swap usage
+-soft_steal	- # of pages reclaimed from global hierarchical reclaim
+-soft_scan	- # of pages scanned from global hierarchical reclaim
++soft_kswapd_steal- # of pages reclaimed in global hierarchical reclaim from
++		background reclaim
++soft_kswapd_scan - # of pages scanned in global hierarchical reclaim from
++		background reclaim
++soft_direct_steal- # of pages reclaimed in global hierarchical reclaim from
++		direct reclaim
++soft_direct_scan- # of pages scanned in global hierarchical reclaim from
++		direct reclaim
+ inactive_anon	- # of bytes of anonymous memory and swap cache memory on
+ 		LRU list.
+ active_anon	- # of bytes of anonymous and swap cache memory on active
+@@ -410,8 +416,10 @@ total_mapped_file	- sum of all children'
+ total_pgpgin		- sum of all children's "pgpgin"
+ total_pgpgout		- sum of all children's "pgpgout"
+ total_swap		- sum of all children's "swap"
+-total_soft_steal	- sum of all children's "soft_steal"
+-total_soft_scan		- sum of all children's "soft_scan"
++total_soft_kswapd_steal	- sum of all children's "soft_kswapd_steal"
++total_soft_kswapd_scan	- sum of all children's "soft_kswapd_scan"
++total_soft_direct_steal	- sum of all children's "soft_direct_steal"
++total_soft_direct_scan	- sum of all children's "soft_direct_scan"
+ total_inactive_anon	- sum of all children's "inactive_anon"
+ total_active_anon	- sum of all children's "active_anon"
+ total_inactive_file	- sum of all children's "inactive_file"
+diff -puN mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-stats-to-monitor-soft_limit-reclaim-v2
 +++ a/mm/memcontrol.c
-@@ -3850,8 +3850,8 @@ struct {
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
- 	{"swap", "total_swap"},
--	{"soft_steal", "total_soft_steal"},
--	{"soft_scan", "total_soft_scan"},
-+	{"soft_kswapd_steal", "total_soft_steal"},
-+	{"soft_kswapd_scan", "total_soft_scan"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
+@@ -94,10 +94,14 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
+ 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
+ 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+-	MEM_CGROUP_EVENTS_SOFT_STEAL,	/* # of pages reclaimed from */
+-					/* soft reclaim               */
+-	MEM_CGROUP_EVENTS_SOFT_SCAN,	/* # of pages scanned from */
+-					/* soft reclaim               */
++	MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL, /* # of pages reclaimed from */
++					/* soft reclaim in background reclaim */
++	MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN, /* # of pages scanned from */
++					/* soft reclaim in background reclaim */
++	MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL, /* # of pages reclaimed from */
++					/* soft reclaim in direct reclaim */
++	MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN, /* # of pages scanned from */
++					/* soft reclaim in direct reclaim */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
+ /*
+@@ -628,14 +632,30 @@ static void mem_cgroup_charge_statistics
+ 	preempt_enable();
+ }
+ 
+-static void mem_cgroup_soft_steal(struct mem_cgroup *mem, int val)
++static void mem_cgroup_soft_steal(struct mem_cgroup *mem, bool is_kswapd,
++				  int val)
+ {
+-	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_SOFT_STEAL], val);
++	if (is_kswapd)
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL],
++									val);
++	else
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL],
++									val);
+ }
+ 
+-static void mem_cgroup_soft_scan(struct mem_cgroup *mem, int val)
+-{
+-	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_SOFT_SCAN], val);
++static void mem_cgroup_soft_scan(struct mem_cgroup *mem, bool is_kswapd,
++				 int val)
++{
++	if (is_kswapd)
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN],
++									val);
++	else
++		this_cpu_add(
++			mem->stat->events[MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN],
++									val);
+ }
+ 
+ static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
+@@ -1456,6 +1476,7 @@ static int mem_cgroup_hierarchical_recla
+ 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
+ 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
+ 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
++	bool is_kswapd = false;
+ 	unsigned long excess;
+ 	unsigned long nr_scanned;
+ 
+@@ -1465,6 +1486,9 @@ static int mem_cgroup_hierarchical_recla
+ 	if (root_mem->memsw_is_minimum)
+ 		noswap = true;
+ 
++	if (current_is_kswapd())
++		is_kswapd = true;
++
+ 	while (1) {
+ 		victim = mem_cgroup_select_victim(root_mem);
+ 		if (victim == root_mem) {
+@@ -1505,8 +1529,8 @@ static int mem_cgroup_hierarchical_recla
+ 				noswap, get_swappiness(victim), zone,
+ 				&nr_scanned);
+ 			*total_scanned += nr_scanned;
+-			mem_cgroup_soft_steal(victim, ret);
+-			mem_cgroup_soft_scan(victim, nr_scanned);
++			mem_cgroup_soft_steal(victim, is_kswapd, ret);
++			mem_cgroup_soft_scan(victim, is_kswapd, nr_scanned);
+ 		} else
+ 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
+ 						noswap, get_swappiness(victim));
+@@ -3800,8 +3824,10 @@ enum {
+ 	MCS_PGPGIN,
+ 	MCS_PGPGOUT,
+ 	MCS_SWAP,
+-	MCS_SOFT_STEAL,
+-	MCS_SOFT_SCAN,
++	MCS_SOFT_KSWAPD_STEAL,
++	MCS_SOFT_KSWAPD_SCAN,
++	MCS_SOFT_DIRECT_STEAL,
++	MCS_SOFT_DIRECT_SCAN,
+ 	MCS_INACTIVE_ANON,
+ 	MCS_ACTIVE_ANON,
+ 	MCS_INACTIVE_FILE,
+@@ -3854,10 +3880,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
+ 	}
+-	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_STEAL);
+-	s->stat[MCS_SOFT_STEAL] += val;
+-	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_SCAN);
+-	s->stat[MCS_SOFT_SCAN] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_KSWAPD_STEAL);
++	s->stat[MCS_SOFT_KSWAPD_STEAL] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_KSWAPD_SCAN);
++	s->stat[MCS_SOFT_KSWAPD_SCAN] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_DIRECT_STEAL);
++	s->stat[MCS_SOFT_DIRECT_STEAL] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_SOFT_DIRECT_SCAN);
++	s->stat[MCS_SOFT_DIRECT_SCAN] += val;
+ 
+ 	/* per zone stat */
+ 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghan@google.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
-backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix.patch
 memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-2.patch
+memcg-add-stats-to-monitor-soft_limit-reclaim-v2-fix-3.patch
+add-the-pagefault-count-into-memcg-stats.patch
 add-the-pagefault-count-into-memcg-stats-fix.patch
+add-the-pagefault-count-into-memcg-stats-shmem-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
+memcg-fix-get_scan_count-for-small-targets.patch
+memcg-remove-unused-retry-signal-from-reclaim.patch
 
