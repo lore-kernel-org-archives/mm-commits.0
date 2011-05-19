@@ -1,149 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [folded] add-the-pagefault-count-into-memcg-stats-shmem-fix.patch removed from -mm tree
-Date: Thu, 19 May 2011 16:05:40 -0700
-Message-ID: <201105192305.p4JN5fVF001529@imap1.linux-foundation.org>
+Subject: [folded] add-the-pagefault-count-into-memcg-stats-fix.patch removed from -mm tree
+Date: Thu, 19 May 2011 16:05:32 -0700
+Message-ID: <201105192305.p4JN5Xjm001525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932336Ab1ESXGP (ORCPT
+	by vger.kernel.org with ESMTP id S932323Ab1ESXGZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 May 2011 19:06:15 -0400
+	Thu, 19 May 2011 19:06:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@googl
 
 
 The patch titled
-     add the pagefault count into memcg stats: shmem fix
+     add-the-pagefault-count-into-memcg-stats-fix
 has been removed from the -mm tree.  Its filename was
-     add-the-pagefault-count-into-memcg-stats-shmem-fix.patch
+     add-the-pagefault-count-into-memcg-stats-fix.patch
 
 This patch was dropped because it was folded into add-the-pagefault-count-into-memcg-stats.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add the pagefault count into memcg stats: shmem fix
-From: Hugh Dickins <hughd@google.com>
+Subject: add-the-pagefault-count-into-memcg-stats-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-mem_cgroup_count_vm_event() should update the PGMAJFAULT count for the
-target mm, not for current mm (but of course they're usually the same).
+fix build
 
-We don't know the target mm in shmem_getpage(), so do it at the outer
-level in shmem_fault(); and it's easier to follow if we move the
-count_vm_event(PGMAJFAULT) there too.
+In file included from include/linux/swap.h:8,
+                 from include/linux/suspend.h:4,
+                 from arch/x86/kernel/asm-offsets.c:12:
+include/linux/memcontrol.h:361: error: parameter 2 ('idx') has incomplete type
 
-Hah, it was using __count_vm_event() before, sneaking that update into the
-unpreemptible section under info->lock: well, it comes to the same on x86
-at least, and I still think it's best to keep these together.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix mm/shmem.c
---- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats-shmem-fix
-+++ a/mm/shmem.c
-@@ -1304,14 +1304,10 @@ repeat:
- 		swappage = lookup_swap_cache(swap);
- 		if (!swappage) {
- 			shmem_swp_unmap(entry);
-+			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type && !(*type & VM_FAULT_MAJOR)) {
--				__count_vm_event(PGMAJFAULT);
--				mem_cgroup_count_vm_event(current->mm,
--							  PGMAJFAULT);
-+			if (type)
- 				*type |= VM_FAULT_MAJOR;
--			}
--			spin_unlock(&info->lock);
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
-@@ -1550,7 +1546,10 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
-+	if (ret & VM_FAULT_MAJOR) {
-+		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+	}
- 	return ret | VM_FAULT_LOCKED;
- }
+diff -puN include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats-fix
++++ a/include/linux/memcontrol.h
+@@ -20,11 +20,12 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
+ #include <linux/cgroup.h>
++#include <linux/vm_event_item.h>
++
+ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
+ struct mm_struct;
+-enum vm_event_item;
  
+ /* Stats that can be updated by kernel. */
+ enum mem_cgroup_page_stat_item {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mmap-add-alignment-for-some-variables.patch
-mmap-avoid-unnecessary-anon_vma-lock.patch
-mmap-avoid-merging-cloned-vmas.patch
-mm-convert-vma-vm_flags-to-64-bit.patch
-mm-add-__nocast-attribute-to-vm_flags.patch
-fremap-convert-vm_flags-to-unsigned-long-long.patch
-procfs-convert-vm_flags-to-unsigned-long-long.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-vmalloc-remove-guard-page-from-between-vmap-blocks.patch
-mm-make-expand_downwards-symmetrical-with-expand_upwards.patch
-mm-make-expand_downwards-symmetrical-with-expand_upwards-v4.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
 mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-delete-non-atomic-mm-counter-implementation.patch
-tmpfs-implement-generic-xattr-support.patch
-mm-remove-last-trace-of-shmem_get_unmapped_area.patch
-mm-export-get_vma_policy.patch
-mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
-mm-remove-mpol_mf_stats.patch
-mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
-mm-remove-check_huge_range.patch
-mm-declare-mpol_to_str-when-config_tmpfs=n.patch
-mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
-proc-make-struct-proc_maps_private-truly-private.patch
-proc-allocate-storage-for-numa_maps-statistics-once.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
-mn10300-convert-old-cpumask-api-into-new-one.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
 add-the-pagefault-count-into-memcg-stats.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-prio_tree-debugging-patch.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
