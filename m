@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + x86-remove-32-bit-versions-of-readq-writeq.patch added to -mm tree
-Date: Fri, 20 May 2011 15:03:56 -0700
-Message-ID: <201105202203.p4KM3uRr000783@imap1.linux-foundation.org>
+Date: Fri, 20 May 2011 15:05:31 -0700
+Message-ID: <201105202205.p4KM5VGL000874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754813Ab1ETWF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756806Ab1ETWGz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 May 2011 18:05:26 -0400
+	Fri, 20 May 2011 18:06:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@purestorage.com, James.Bottomley@HansenPartnership.com, Kashyap.Desai@lsi.com, h.mitake@gmail.com, hpa@zytor.com, juhlenko@akamai.com, lenb@kernel.org, mingo@elte.hu, mjg@redhat.com, ravi.anand@qlogic.com, tglx@linutronix.de, vikas.chaudhary@qlogic.com
+Cc: roland@purestorage.com, James.Bottomley@parallels.com, Kashyap.Desai@lsi.com, h.mitake@gmail.com, hpa@zytor.com, juhlenko@akamai.com, lenb@kernel.org, mingo@elte.hu, mjg@redhat.com, ravi.anand@qlogic.com, tglx@linutronix.de, vikas.chaudhary@qlogic.com
 
 
 The patch titled
@@ -55,15 +55,15 @@ no other accesses occur in between the two halves of the access).
 Build tested on 32- and 64-bit x86 allmodconfig.
 
 Link: http://lkml.kernel.org/r/x86-32-writeq-is-broken@mdm.bga.com
-Cc: Hitoshi Mitake <h.mitake@gmail.com>
+Acked-by: Hitoshi Mitake <h.mitake@gmail.com>
 Cc: Kashyap Desai <Kashyap.Desai@lsi.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Ravi Anand <ravi.anand@qlogic.com>
 Cc: Vikas Chaudhary <vikas.chaudhary@qlogic.com>
 Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Jason Uhlenkott <juhlenko@akamai.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: James Bottomley <James.Bottomley@parallels.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Roland Dreier <roland@purestorage.com>
