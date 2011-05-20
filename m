@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-implement-swap-token-priority-aging.patch added to -mm tree
-Date: Fri, 20 May 2011 12:30:18 -0700
-Message-ID: <201105201930.p4KJUI2R026163@imap1.linux-foundation.org>
+Subject: + vmscanmemcg-memcg-aware-swap-token.patch added to -mm tree
+Date: Fri, 20 May 2011 12:30:14 -0700
+Message-ID: <201105201930.p4KJUF3a026157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934207Ab1ETTaz (ORCPT
+	by vger.kernel.org with ESMTP id S935718Ab1ETTav (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 May 2011 15:30:55 -0400
+	Fri, 20 May 2011 15:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.
 
 
 The patch titled
-     vmscan: implement swap token priority aging
+     vmscan,memcg: memcg aware swap token
 has been added to the -mm tree.  Its filename is
-     vmscan-implement-swap-token-priority-aging.patch
+     vmscanmemcg-memcg-aware-swap-token.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,257 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: implement swap token priority aging
+Subject: vmscan,memcg: memcg aware swap token
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-While testing for memcg aware swap token, I observed a swap token was
-often grabbed an intermittent running process (eg init, auditd) and they
-never release a token.
+Currently, memcg reclaim can disable swap token even if the swap token mm
+doesn't belong in its memory cgroup.  It's slightly risky.  If an admin
+creates very small mem-cgroup and silly guy runs contentious heavy memory
+pressure workload, every tasks are going to lose swap token and then
+system may become unresponsive.  That's bad.
 
-Why?
-
-Some processes (eg init, auditd, audispd) wake up when a process exiting. 
-And swap token can be get first page-in process when a process exiting
-makes no swap token owner.  Thus such above intermittent running process
-often get a token.
-
-And currently, swap token priority is only decreased at page fault path. 
-Then, if the process sleep immediately after to grab swap token, the swap
-token priority never be decreased.  That's obviously undesirable.
-
-This patch implement very poor (and lightweight) priority aging.  It only
-be affect to the above corner case and doesn't change swap tendency
-workload performance (eg multi process qsbench load)
+This patch adds 'memcg' parameter into disable_swap_token().  and if the
+parameter doesn't match swap token, VM doesn't disable it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Rik van Riel<riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   20 +++++++++++++-------
- mm/thrash.c                   |   11 ++++++++++-
- 2 files changed, 23 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    6 ++
+ include/linux/swap.h       |    8 ---
+ mm/memcontrol.c            |   16 +++----
+ mm/thrash.c                |   73 +++++++++++++++++++++++++----------
+ mm/vmscan.c                |    4 -
+ 5 files changed, 71 insertions(+), 36 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~vmscan-implement-swap-token-priority-aging include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~vmscan-implement-swap-token-priority-aging
-+++ a/include/trace/events/vmscan.h
-@@ -366,9 +366,10 @@ DEFINE_EVENT_CONDITION(put_swap_token_te
+diff -puN include/linux/memcontrol.h~vmscanmemcg-memcg-aware-swap-token include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~vmscanmemcg-memcg-aware-swap-token
++++ a/include/linux/memcontrol.h
+@@ -82,6 +82,7 @@ int task_in_mem_cgroup(struct task_struc
  
- TRACE_EVENT_CONDITION(update_swap_token_priority,
- 	TP_PROTO(struct mm_struct *mm,
--		 unsigned int old_prio),
-+		 unsigned int old_prio,
-+		 struct mm_struct *swap_token_mm),
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
++extern struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm);
  
--	TP_ARGS(mm, old_prio),
-+	TP_ARGS(mm, old_prio, swap_token_mm),
+ static inline
+ int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
+@@ -243,6 +244,11 @@ static inline struct mem_cgroup *try_get
+ 	return NULL;
+ }
  
- 	TP_CONDITION(mm->token_priority != old_prio),
- 
-@@ -376,16 +377,21 @@ TRACE_EVENT_CONDITION(update_swap_token_
- 		__field(struct mm_struct*, mm)
- 		__field(unsigned int, old_prio)
- 		__field(unsigned int, new_prio)
-+		__field(struct mm_struct*, swap_token_mm)
-+		__field(unsigned int, swap_token_prio)
- 	),
- 
- 	TP_fast_assign(
--		__entry->mm = mm;
--		__entry->old_prio = old_prio;
--		__entry->new_prio = mm->token_priority;
-+		__entry->mm		= mm;
-+		__entry->old_prio	= old_prio;
-+		__entry->new_prio	= mm->token_priority;
-+		__entry->swap_token_mm	= swap_token_mm;
-+		__entry->swap_token_prio = swap_token_mm ? swap_token_mm->token_priority : 0;
- 	),
- 
--	TP_printk("mm=%p old_prio=%u new_prio=%u",
--		  __entry->mm, __entry->old_prio, __entry->new_prio)
-+	TP_printk("mm=%p old_prio=%u new_prio=%u swap_token_mm=%p token_prio=%u",
-+		  __entry->mm, __entry->old_prio, __entry->new_prio,
-+		  __entry->swap_token_mm, __entry->swap_token_prio)
- );
- 
- #endif /* _TRACE_VMSCAN_H */
-diff -puN mm/thrash.c~vmscan-implement-swap-token-priority-aging mm/thrash.c
---- a/mm/thrash.c~vmscan-implement-swap-token-priority-aging
-+++ a/mm/thrash.c
-@@ -25,10 +25,13 @@
- 
- #include <trace/events/vmscan.h>
- 
-+#define TOKEN_AGING_INTERVAL	(0xFF)
++static inline struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
++{
++	return NULL;
++}
 +
+ static inline int mm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
+ {
+ 	return 1;
+diff -puN include/linux/swap.h~vmscanmemcg-memcg-aware-swap-token include/linux/swap.h
+--- a/include/linux/swap.h~vmscanmemcg-memcg-aware-swap-token
++++ a/include/linux/swap.h
+@@ -358,6 +358,7 @@ struct backing_dev_info;
+ extern struct mm_struct *swap_token_mm;
+ extern void grab_swap_token(struct mm_struct *);
+ extern void __put_swap_token(struct mm_struct *);
++extern void disable_swap_token(struct mem_cgroup *memcg);
+ 
+ static inline int has_swap_token(struct mm_struct *mm)
+ {
+@@ -370,11 +371,6 @@ static inline void put_swap_token(struct
+ 		__put_swap_token(mm);
+ }
+ 
+-static inline void disable_swap_token(void)
+-{
+-	put_swap_token(swap_token_mm);
+-}
+-
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ extern void
+ mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
+@@ -500,7 +496,7 @@ static inline int has_swap_token(struct 
+ 	return 0;
+ }
+ 
+-static inline void disable_swap_token(void)
++static inline void disable_swap_token(struct mem_cgroup *memcg)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~vmscanmemcg-memcg-aware-swap-token mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscanmemcg-memcg-aware-swap-token
++++ a/mm/memcontrol.c
+@@ -723,7 +723,7 @@ struct mem_cgroup *mem_cgroup_from_task(
+ 				struct mem_cgroup, css);
+ }
+ 
+-static struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
++struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
+ {
+ 	struct mem_cgroup *mem = NULL;
+ 
+@@ -5212,18 +5212,16 @@ static void mem_cgroup_move_task(struct 
+ 				struct cgroup *old_cont,
+ 				struct task_struct *p)
+ {
+-	struct mm_struct *mm;
++	struct mm_struct *mm = get_task_mm(p);
+ 
+-	if (!mc.to)
+-		/* no need to move charge */
+-		return;
+-
+-	mm = get_task_mm(p);
+ 	if (mm) {
+-		mem_cgroup_move_charge(mm);
++		if (mc.to)
++			mem_cgroup_move_charge(mm);
++		put_swap_token(mm);
+ 		mmput(mm);
+ 	}
+-	mem_cgroup_clear_mc();
++	if (mc.to)
++		mem_cgroup_clear_mc();
+ }
+ #else	/* !CONFIG_MMU */
+ static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
+diff -puN mm/thrash.c~vmscanmemcg-memcg-aware-swap-token mm/thrash.c
+--- a/mm/thrash.c~vmscanmemcg-memcg-aware-swap-token
++++ a/mm/thrash.c
+@@ -21,14 +21,17 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/swap.h>
++#include <linux/memcontrol.h>
+ 
  static DEFINE_SPINLOCK(swap_token_lock);
  struct mm_struct *swap_token_mm;
- struct mem_cgroup *swap_token_memcg;
++struct mem_cgroup *swap_token_memcg;
  static unsigned int global_faults;
-+static unsigned int last_aging;
  
  void grab_swap_token(struct mm_struct *mm)
  {
-@@ -47,6 +50,11 @@ void grab_swap_token(struct mm_struct *m
- 	if (!swap_token_mm)
- 		goto replace_token;
+ 	int current_interval;
++	struct mem_cgroup *memcg;
  
-+	if ((global_faults - last_aging) > TOKEN_AGING_INTERVAL) {
-+		swap_token_mm->token_priority /= 2;
-+		last_aging = global_faults;
-+	}
+ 	global_faults++;
+ 
+@@ -38,40 +41,72 @@ void grab_swap_token(struct mm_struct *m
+ 		return;
+ 
+ 	/* First come first served */
+-	if (swap_token_mm == NULL) {
+-		mm->token_priority = mm->token_priority + 2;
+-		swap_token_mm = mm;
++	if (!swap_token_mm)
++		goto replace_token;
 +
- 	if (mm == swap_token_mm) {
- 		mm->token_priority += 2;
- 		goto update_priority;
-@@ -64,7 +72,7 @@ void grab_swap_token(struct mm_struct *m
- 		goto replace_token;
++	if (mm == swap_token_mm) {
++		mm->token_priority += 2;
+ 		goto out;
+ 	}
  
- update_priority:
--	trace_update_swap_token_priority(mm, old_prio);
-+	trace_update_swap_token_priority(mm, old_prio, swap_token_mm);
+-	if (mm != swap_token_mm) {
+-		if (current_interval < mm->last_interval)
+-			mm->token_priority++;
+-		else {
+-			if (likely(mm->token_priority > 0))
+-				mm->token_priority--;
+-		}
+-		/* Check if we deserve the token */
+-		if (mm->token_priority > swap_token_mm->token_priority) {
+-			mm->token_priority += 2;
+-			swap_token_mm = mm;
+-		}
+-	} else {
+-		/* Token holder came in again! */
+-		mm->token_priority += 2;
++	if (current_interval < mm->last_interval)
++		mm->token_priority++;
++	else {
++		if (likely(mm->token_priority > 0))
++			mm->token_priority--;
+ 	}
  
++	/* Check if we deserve the token */
++	if (mm->token_priority > swap_token_mm->token_priority)
++		goto replace_token;
++
  out:
  	mm->faultstamp = global_faults;
-@@ -80,6 +88,7 @@ replace_token:
- 	trace_replace_swap_token(swap_token_mm, mm);
- 	swap_token_mm = mm;
- 	swap_token_memcg = memcg;
-+	last_aging = global_faults;
- 	goto out;
+ 	mm->last_interval = current_interval;
+ 	spin_unlock(&swap_token_lock);
++	return;
++
++replace_token:
++	mm->token_priority += 2;
++	memcg = try_get_mem_cgroup_from_mm(mm);
++	if (memcg)
++		css_put(mem_cgroup_css(memcg));
++	swap_token_mm = mm;
++	swap_token_memcg = memcg;
++	goto out;
  }
  
+ /* Called on process exit. */
+ void __put_swap_token(struct mm_struct *mm)
+ {
+ 	spin_lock(&swap_token_lock);
+-	if (likely(mm == swap_token_mm))
++	if (likely(mm == swap_token_mm)) {
+ 		swap_token_mm = NULL;
++		swap_token_memcg = NULL;
++	}
+ 	spin_unlock(&swap_token_lock);
+ }
++
++static bool match_memcg(struct mem_cgroup *a, struct mem_cgroup *b)
++{
++	if (!a)
++		return true;
++	if (!b)
++		return true;
++	if (a == b)
++		return true;
++	return false;
++}
++
++void disable_swap_token(struct mem_cgroup *memcg)
++{
++	/* memcg reclaim don't disable unrelated mm token. */
++	if (match_memcg(memcg, swap_token_memcg)) {
++		spin_lock(&swap_token_lock);
++		if (match_memcg(memcg, swap_token_memcg)) {
++			swap_token_mm = NULL;
++			swap_token_memcg = NULL;
++		}
++		spin_unlock(&swap_token_lock);
++	}
++}
+diff -puN mm/vmscan.c~vmscanmemcg-memcg-aware-swap-token mm/vmscan.c
+--- a/mm/vmscan.c~vmscanmemcg-memcg-aware-swap-token
++++ a/mm/vmscan.c
+@@ -2075,7 +2075,7 @@ static unsigned long do_try_to_free_page
+ 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
+ 		sc->nr_scanned = 0;
+ 		if (!priority)
+-			disable_swap_token();
++			disable_swap_token(sc->mem_cgroup);
+ 		total_scanned += shrink_zones(priority, zonelist, sc);
+ 		/*
+ 		 * Don't shrink slabs when reclaiming memory from
+@@ -2405,7 +2405,7 @@ loop_again:
+ 
+ 		/* The swap token gets in the way of swapout... */
+ 		if (!priority)
+-			disable_swap_token();
++			disable_swap_token(NULL);
+ 
+ 		all_zones_ok = 1;
+ 		balanced = 0;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
