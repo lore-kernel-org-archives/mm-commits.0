@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch added to -mm tree
-Date: Fri, 20 May 2011 15:23:41 -0700
-Message-ID: <201105202223.p4KMNfNf001743@imap1.linux-foundation.org>
+Subject: + checkpatch-suggest-using-min_t-or-max_t.patch added to -mm tree
+Date: Fri, 20 May 2011 15:24:57 -0700
+Message-ID: <201105202224.p4KMOvDa001783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754134Ab1ETWXv (ORCPT
+	by vger.kernel.org with ESMTP id S1751646Ab1ETWZC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 May 2011 18:23:51 -0400
+	Fri, 20 May 2011 18:25:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: abarry@cray.com, mgorman@suse.de, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org
+Cc: joe@perches.com, akpm@linux-foundation.org, apw@canonical.com
 
 
 The patch titled
-     mm/page_alloc.c: prevent unending loop in __alloc_pages_slowpath()
+     checkpatch: suggest using min_t() or max_t()
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch
+     checkpatch-suggest-using-min_t-or-max_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: prevent unending loop in __alloc_pages_slowpath()
-From: Andrew Barry <abarry@cray.com>
+Subject: checkpatch: suggest using min_t() or max_t()
+From: Joe Perches <joe@perches.com>
 
-I believe I found a problem in __alloc_pages_slowpath, which allows a
-process to get stuck endlessly looping, even when lots of memory is
-available.
+A common issue with min() or max() is using a cast on one or both of the
+arguments when using min_t/max_t could be better.
 
-Running an I/O and memory intensive stress-test I see a 0-order page
-allocation with __GFP_IO and __GFP_WAIT, running on a system with very
-little free memory.  Right about the same time that the stress-test gets
-killed by the OOM-killer, the utility trying to allocate memory gets stuck
-in __alloc_pages_slowpath even though most of the systems memory was freed
-by the oom-kill of the stress-test.
+Add cast detection to uses of min/max and suggest an appropriate use of
+min_t or max_t instead.
 
-The utility ends up looping from the rebalance label down through the
-wait_iff_congested continiously.  Because order=0,
-__alloc_pages_direct_compact skips the call to get_page_from_freelist. 
-Because all of the reclaimable memory on the system has already been
-reclaimed, __alloc_pages_direct_reclaim skips the call to
-get_page_from_freelist.  Since there is no __GFP_FS flag, the block with
-__alloc_pages_may_oom is skipped.  The loop hits the wait_iff_congested,
-then jumps back to rebalance without ever trying to
-get_page_from_freelist.  This loop repeats infinitely.
-
-The test case is pretty pathological.  Running a mix of I/O stress-tests
-that do a lot of fork() and consume all of the system memory, I can pretty
-reliably hit this on 600 nodes, in about 12 hours.  32GB/node.
-
-Signed-off-by: Andrew Barry <abarry@cray.com>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Rik van Riel<riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@kernel.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath
-+++ a/mm/page_alloc.c
-@@ -2106,6 +2106,7 @@ restart:
- 		first_zones_zonelist(zonelist, high_zoneidx, NULL,
- 					&preferred_zone);
+diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t
++++ a/scripts/checkpatch.pl
+@@ -268,6 +268,20 @@ sub build_types {
+ }
+ build_types();
  
-+rebalance:
- 	/* This is the last chance, in general, before the goto nopage. */
- 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
- 			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
-@@ -2113,7 +2114,6 @@ restart:
- 	if (page)
- 		goto got_pg;
++our $match_balanced_parentheses = qr/(\((?:[^\(\)]++|(?-1))*\))/;
++
++our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
++our $LvalOrFunc	= qr{($Lval)\s*($match_balanced_parentheses{0,1})\s*};
++
++sub deparenthesize {
++	my ($string) = @_;
++	return "" if (!defined($string));
++	$string =~ s@^\s*\(\s*@@g;
++	$string =~ s@\s*\)\s*$@@g;
++	$string =~ s@\s+@ @g;
++	return $string;
++}
++
+ $chk_signoff = 0 if ($file);
  
--rebalance:
- 	/* Allocate without watermarks if the context allows */
- 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
- 		page = __alloc_pages_high_priority(gfp_mask, order,
+ my @dep_includes = ();
+@@ -2285,6 +2299,27 @@ sub process {
+ 			}
+ 		}
+ 
++# typecasts on min/max could be min_t/max_t
++		if ($line =~ /^\+.*\b(min|max)\s*\($Typecast{0,1}($LvalOrFunc)\s*,\s*$Typecast{0,1}($LvalOrFunc)\s*\)/) {
++			if (defined $2 || defined $7) {
++				my $call = $1;
++				my $cast1 = deparenthesize($2);
++				my $arg1 = $3;
++				my $cast2 = deparenthesize($7);
++				my $arg2 = $8;
++				my $cast;
++
++				if ($cast1 ne "" && $cast2 ne "") {
++					$cast = "$cast1 or $cast2";
++				} elsif ($cast1 ne "") {
++					$cast = $cast1;
++				} else {
++					$cast = $cast2;
++				}
++				WARN("$call() should probably be ${call}_t($cast, $arg1, $arg2)\n" . $herecurr);
++			}
++		}
++
+ # Need a space before open parenthesis after if, while etc
+ 		if ($line=~/\b(if|while|for|switch)\(/) {
+ 			ERROR("space required before the open parenthesis '('\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from abarry@cray.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch
+origin.patch
+linux-next.patch
+maintainers-orphan-dmfe-move-tobias-ringstrom-to-credits.patch
+checkpatch-add-check-for-line-continuations-in-quoted-strings.patch
+checkpatch-add-foo_level-and-module_bar-to-80-column-exceptions.patch
+checkpatch-fix-defect-in-printkkern_level-80-column-exceptions.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
 
