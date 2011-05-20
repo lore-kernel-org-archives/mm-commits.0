@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch added to -mm tree
-Date: Fri, 20 May 2011 13:12:50 -0700
-Message-ID: <201105202012.p4KKCoA4028027@imap1.linux-foundation.org>
+Subject: + memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch added to -mm tree
+Date: Fri, 20 May 2011 13:13:49 -0700
+Message-ID: <201105202013.p4KKDnm5028130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757050Ab1ETUNC (ORCPT
+	by vger.kernel.org with ESMTP id S935756Ab1ETUOK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 May 2011 16:13:02 -0400
+	Fri, 20 May 2011 16:14:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: yinghan@google.com, balbir@in.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
+     memcg: rename mem_cgroup_zone_nr_pages() to mem_cgroup_zone_nr_lru_pages()
 has been added to the -mm tree.  Its filename is
-     memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
+     memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
+Subject: memcg: rename mem_cgroup_zone_nr_pages() to mem_cgroup_zone_nr_lru_pages()
 From: Ying Han <yinghan@google.com>
 
-The value for counter base should be initialized. If not,
-this returns wrong value.
+The caller of the function has been renamed to zone_nr_lru_pages(), and
+this is just fixing up in the memcg code.  The current name is easily to
+be mis-read as zone's total number of pages.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   10 +++++-----
+ mm/memcontrol.c            |    6 +++---
+ mm/vmscan.c                |    2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
-+++ a/mm/memcontrol.c
-@@ -633,7 +633,7 @@ static unsigned long
- mem_cgroup_get_zonestat_node(struct mem_cgroup *mem, int nid, enum lru_list idx)
- {
- 	struct mem_cgroup_per_zone *mz;
--	u64 total;
-+	u64 total = 0;
- 	int zid;
+diff -puN include/linux/memcontrol.h~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages
++++ a/include/linux/memcontrol.h
+@@ -108,9 +108,9 @@ extern void mem_cgroup_end_migration(str
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
+ int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
+ int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+-unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+-				       struct zone *zone,
+-				       enum lru_list lru);
++unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
++						struct zone *zone,
++						enum lru_list lru);
+ struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
+ 						      struct zone *zone);
+ struct zone_reclaim_stat*
+@@ -310,8 +310,8 @@ mem_cgroup_inactive_file_is_low(struct m
+ }
  
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ static inline unsigned long
+-mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
+-			 enum lru_list lru)
++mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, struct zone *zone,
++			     enum lru_list lru)
+ {
+ 	return 0;
+ }
+diff -puN mm/memcontrol.c~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages
++++ a/mm/memcontrol.c
+@@ -1078,9 +1078,9 @@ int mem_cgroup_inactive_file_is_low(stru
+ 	return (active > inactive);
+ }
+ 
+-unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+-				       struct zone *zone,
+-				       enum lru_list lru)
++unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
++						struct zone *zone,
++						enum lru_list lru)
+ {
+ 	int nid = zone_to_nid(zone);
+ 	int zid = zone_idx(zone);
+diff -puN mm/vmscan.c~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages
++++ a/mm/vmscan.c
+@@ -172,7 +172,7 @@ static unsigned long zone_nr_lru_pages(s
+ 				struct scan_control *sc, enum lru_list lru)
+ {
+ 	if (!scanning_global_lru(sc))
+-		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
++		return mem_cgroup_zone_nr_lru_pages(sc->mem_cgroup, zone, lru);
+ 
+ 	return zone_page_state(zone, NR_LRU_BASE + lru);
+ }
 _
 
 Patches currently in -mm which might be from yinghan@google.com are
@@ -82,4 +130,5 @@ memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
 memcg-fix-get_scan_count-for-small-targets.patch
 memcg-remove-unused-retry-signal-from-reclaim.patch
+memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
 
