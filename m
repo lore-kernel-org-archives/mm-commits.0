@@ -1,66 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch removed from -mm tree
-Date: Mon, 23 May 2011 15:19:53 -0700
-Message-ID: <201105232219.p4NMJrZh015645@imap1.linux-foundation.org>
+Subject: [folded] osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 23 May 2011 15:28:10 -0700
+Message-ID: <201105232228.p4NMSAwn016034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934118Ab1EWWUO (ORCPT
+	by vger.kernel.org with ESMTP id S1757659Ab1EWW2N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 18:20:14 -0400
+	Mon, 23 May 2011 18:28:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lethal@linux-sh.org, michael.hennerich@analog.com, rpurdie@rpsys.net, tailai.ly@taobao.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
+     osst-wrong-index-used-in-inner-loop-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+     osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+This patch was dropped because it was folded into osst-wrong-index-used-in-inner-loop.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
+Subject: osst-wrong-index-used-in-inner-loop-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-don't override strict_strtoul() return value
+ERROR: spaces required around that '=' (ctx:VxV)
+#25: FILE: drivers/scsi/osst.c:4706:
++				for (j=0; j < ST_NBR_PARTITIONS; j++) {
+ 				      ^
 
-Cc: Liu Yuan <tailai.ly@taobao.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+total: 1 errors, 0 warnings, 11 lines checked
+
+./patches/osst-wrong-index-used-in-inner-loop.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/scsi/osst.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -211,9 +211,11 @@ static ssize_t adp5520_bl_daylight_max_s
- 			const char *buf, size_t count)
- {
- 	struct adp5520_bl *data = dev_get_drvdata(dev);
-+	int ret;
- 
--	if (strict_strtoul(buf, 10, &data->cached_daylight_max) < 0)
--		return -EINVAL;
-+	ret = strict_strtoul(buf, 10, &data->cached_daylight_max);
-+	if (ret < 0)
-+		return ret;
- 
- 	return adp5520_store(dev, buf, count, ADP5520_DAYLIGHT_MAX);
- }
+diff -puN drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~osst-wrong-index-used-in-inner-loop-checkpatch-fixes
++++ a/drivers/scsi/osst.c
+@@ -4703,7 +4703,7 @@ static int __os_scsi_tape_open(struct in
+ 				if (STp->can_partitions)
+ 					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
+ 				int j;
+-				for (j=0; j < ST_NBR_PARTITIONS; j++) {
++				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
+ 					STps = &(STp->ps[j]);
+ 					STps->rw = ST_IDLE;
+ 					STps->eof = ST_NOEOF;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+backlight-add-backlight-type-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
@@ -69,10 +74,8 @@ drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 mtd-convert-to-seq_file-interface.patch
-backlight-add-backlight-type-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
 drivers-tty-serial-pch_uartc-needs-slabh.patch
-osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+osst-wrong-index-used-in-inner-loop.patch
 drivers-scsi-osstc-fix-warning.patch
 drbd-fix-warning.patch
 drivers-bcma-host_pcic-needs-slabh.patch
