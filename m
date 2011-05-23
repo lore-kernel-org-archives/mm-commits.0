@@ -1,53 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-add-backlight-type-fix-fix.patch removed from -mm tree
-Date: Mon, 23 May 2011 15:18:14 -0700
-Message-ID: <201105232218.p4NMIEh7015586@imap1.linux-foundation.org>
+Subject: [folded] drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch removed from -mm tree
+Date: Mon, 23 May 2011 15:19:53 -0700
+Message-ID: <201105232219.p4NMJrZh015645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934232Ab1EWWSh (ORCPT
+	by vger.kernel.org with ESMTP id S934118Ab1EWWUO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 18:18:37 -0400
+	Mon, 23 May 2011 18:20:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, michael.hennerich@analog.com, mjg@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lethal@linux-sh.org, michael.hennerich@analog.com, rpurdie@rpsys.net, tailai.ly@taobao.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight-add-backlight-type-fix-fix
+     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-add-backlight-type-fix-fix.patch
+     drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
 
-This patch was dropped because it was folded into backlight-add-backlight-type-fix.patch
+This patch was dropped because it was folded into drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-add-backlight-type-fix-fix
+Subject: drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Matthew Garrett <mjg@redhat.com>
+don't override strict_strtoul() return value
+
+Cc: Liu Yuan <tailai.ly@taobao.com>
 Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/adp5520_bl.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-add-backlight-type-fix-fix drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-add-backlight-type-fix-fix
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -795,7 +795,7 @@ static int __devinit adp8870_probe(struc
- 	mutex_init(&data->lock);
+diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix drivers/video/backlight/adp5520_bl.c
+--- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix
++++ a/drivers/video/backlight/adp5520_bl.c
+@@ -211,9 +211,11 @@ static ssize_t adp5520_bl_daylight_max_s
+ 			const char *buf, size_t count)
+ {
+ 	struct adp5520_bl *data = dev_get_drvdata(dev);
++	int ret;
  
- 	memset(&props, 0, sizeof(props));
--	props.type = BACKLIGHT_PLATFORM;
-+	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = props.brightness = ADP8870_MAX_BRIGHTNESS;
- 	bl = backlight_device_register(dev_driver_string(&client->dev),
- 			&client->dev, data, &adp8870_bl_ops, &props);
+-	if (strict_strtoul(buf, 10, &data->cached_daylight_max) < 0)
+-		return -EINVAL;
++	ret = strict_strtoul(buf, 10, &data->cached_daylight_max);
++	if (ret < 0)
++		return ret;
+ 
+ 	return adp5520_store(dev, buf, count, ADP5520_DAYLIGHT_MAX);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +70,7 @@ arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 mtd-convert-to-seq_file-interface.patch
 backlight-add-backlight-type-fix.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
 drivers-tty-serial-pch_uartc-needs-slabh.patch
 osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
 drivers-scsi-osstc-fix-warning.patch
