@@ -1,67 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-dont-use-dmi_name_in_vendors-in-quirk.patch removed from -mm tree
-Date: Mon, 23 May 2011 12:14:10 -0700
-Message-ID: <201105231912.p4NJCrRW005804@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep.patch removed from -mm tree
+Date: Mon, 23 May 2011 12:56:29 -0700
+Message-ID: <201105231956.p4NJuUie008528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757126Ab1EWTOb (ORCPT
+	by vger.kernel.org with ESMTP id S933290Ab1EWT4t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 15:14:31 -0400
+	Mon, 23 May 2011 15:56:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, andi@firstfloor.org, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, James.Bottomley@HansenPartnership.com, chris.mason@oracle.com, cl@linux.com, colin.king@canonical.com, jack@suse.cz, minchan.kim@gmail.com, penberg@kernel.org, raghu.
 
 
 The patch titled
-     pci: don't use dmi_name_in_vendors() in quirk
+     mm: vmscan: if kswapd has been running too long, allow it to sleep
 has been removed from the -mm tree.  Its filename was
-     pci-dont-use-dmi_name_in_vendors-in-quirk.patch
+     mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: don't use dmi_name_in_vendors() in quirk
-From: Jean Delvare <khali@linux-fr.org>
+Subject: mm: vmscan: if kswapd has been running too long, allow it to sleep
+From: Mel Gorman <mgorman@suse.de>
 
-Don't use the costly dmi_name_in_vendors() when we know the string we are
-looking for can only be in the DMI board name field.  This is more robust
-and, more importantly, much faster.
+Under constant allocation pressure, kswapd can be in the situation where
+sleeping_prematurely() will always return true even if kswapd has been
+running a long time.  Check if kswapd needs to be scheduled.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Colin King <colin.king@canonical.com>
+Cc: Raghavendra D Prabhu <raghu.prabhu13@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: <stable@kernel.org>		[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/pci/quirks.c~pci-dont-use-dmi_name_in_vendors-in-quirk drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-dont-use-dmi_name_in_vendors-in-quirk
-+++ a/drivers/pci/quirks.c
-@@ -2349,8 +2349,11 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_A
-  */
- static void __devinit nvenet_msi_disable(struct pci_dev *dev)
- {
--	if (dmi_name_in_vendors("P5N32-SLI PREMIUM") ||
--	    dmi_name_in_vendors("P5N32-E SLI")) {
-+	const char *board_name = dmi_get_system_info(DMI_BOARD_NAME);
+diff -puN mm/vmscan.c~mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-if-kswapd-has-been-running-too-long-allow-it-to-sleep
++++ a/mm/vmscan.c
+@@ -2251,6 +2251,10 @@ static bool sleeping_prematurely(pg_data
+ 	unsigned long balanced = 0;
+ 	bool all_zones_ok = true;
+ 
++	/* If kswapd has been running too long, just sleep */
++	if (need_resched())
++		return false;
 +
-+	if (board_name &&
-+	    (strstr(board_name, "P5N32-SLI PREMIUM") ||
-+	     strstr(board_name, "P5N32-E SLI"))) {
- 		dev_info(&dev->dev,
- 			 "Disabling msi for MCP55 NIC on P5N32-SLI\n");
- 		dev->no_msi = 1;
+ 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
+ 	if (remaining)
+ 		return true;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-origin.patch
-linux-next.patch
-drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
+mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely.patch
+mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch
+memcg-remove-unused-retry-signal-from-reclaim.patch
 
