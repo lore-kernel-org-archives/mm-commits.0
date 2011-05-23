@@ -1,73 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mtd-convert-to-seq_file-interface-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 23 May 2011 15:10:57 -0700
-Message-ID: <201105232210.p4NMAvWQ015138@imap1.linux-foundation.org>
+Subject: [folded] backlight-add-backlight-type-fix-fix.patch removed from -mm tree
+Date: Mon, 23 May 2011 15:18:14 -0700
+Message-ID: <201105232218.p4NMIEh7015586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753285Ab1EWWLn (ORCPT
+	by vger.kernel.org with ESMTP id S934232Ab1EWWSh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 18:11:43 -0400
+	Mon, 23 May 2011 18:18:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, cbouatmailru@gmail.com, dwmw2@infradead.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, michael.hennerich@analog.com, mjg@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd-convert-to-seq_file-interface-checkpatch-fixes
+     backlight-add-backlight-type-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
+     backlight-add-backlight-type-fix-fix.patch
 
-This patch was dropped because it was folded into mtd-convert-to-seq_file-interface.patch
+This patch was dropped because it was folded into backlight-add-backlight-type-fix.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-convert-to-seq_file-interface-checkpatch-fixes
+Subject: backlight-add-backlight-type-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#71: FILE: drivers/mtd/mtdcore.c:672:
-+        return 0;$
-
-WARNING: please, no spaces at the start of a line
-#71: FILE: drivers/mtd/mtdcore.c:672:
-+        return 0;$
-
-total: 1 errors, 1 warnings, 77 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mtd-convert-to-seq_file-interface.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
 Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |    2 +-
+ drivers/video/backlight/adp8870_bl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface-checkpatch-fixes drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface-checkpatch-fixes
-+++ a/drivers/mtd/mtdcore.c
-@@ -669,7 +669,7 @@ static int mtd_proc_show(struct seq_file
- 			   mtd->erasesize, mtd->name);
-         }
- 	mutex_unlock(&mtd_table_mutex);
--        return 0;
-+	return 0;
- }
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-add-backlight-type-fix-fix drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-add-backlight-type-fix-fix
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -795,7 +795,7 @@ static int __devinit adp8870_probe(struc
+ 	mutex_init(&data->lock);
  
- static int mtd_proc_open(struct inode *inode, struct file *file)
+ 	memset(&props, 0, sizeof(props));
+-	props.type = BACKLIGHT_PLATFORM;
++	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = props.brightness = ADP8870_MAX_BRIGHTNESS;
+ 	bl = backlight_device_register(dev_driver_string(&client->dev),
+ 			&client->dev, data, &adp8870_bl_ops, &props);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +62,6 @@ arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
 mtd-convert-to-seq_file-interface.patch
 backlight-add-backlight-type-fix.patch
-backlight-add-backlight-type-fix-fix.patch
 drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
 drivers-tty-serial-pch_uartc-needs-slabh.patch
 osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
