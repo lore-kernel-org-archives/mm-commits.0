@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-correctly-check-if-reclaimer-should-schedule-during-shrink_slab.patch added to -mm tree
-Date: Mon, 23 May 2011 13:00:00 -0700
-Message-ID: <201105232000.p4NK00DI008698@imap1.linux-foundation.org>
+Subject: + bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch added to -mm tree
+Date: Mon, 23 May 2011 15:07:16 -0700
+Message-ID: <201105232207.p4NM7GKj014943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933645Ab1EWUAZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755000Ab1EWWHb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 16:00:25 -0400
+	Mon, 23 May 2011 18:07:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, James.Bottomley@HansenPartnership.com, chris.mason@oracle.com, cl@linux.com, colin.king@canonical.com, fengguang.wu@intel.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.de, penberg@kernel.org, raghu.prabhu13@gmail.com, riel@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, lee.schermerhorn@hp.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com
 
 
 The patch titled
-     mm: vmscan: correctly check if reclaimer should schedule during shrink_slab
+     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-correctly-check-if-reclaimer-should-schedule-during-shrink_slab.patch
+     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: correctly check if reclaimer should schedule during shrink_slab
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It has been reported on some laptops that kswapd is consuming large
-amounts of CPU and not being scheduled when SLUB is enabled during large
-amounts of file copying.  It is expected that this is due to kswapd
-missing every cond_resched() point because;
+make __bitmap_parselist() static
 
-shrink_page_list() calls cond_resched() if inactive pages were isolated
-        which in turn may not happen if all_unreclaimable is set in
-        shrink_zones(). If for whatver reason, all_unreclaimable is
-        set on all zones, we can miss calling cond_resched().
-
-balance_pgdat() only calls cond_resched if the zones are not
-        balanced. For a high-order allocation that is balanced, it
-        checks order-0 again. During that window, order-0 might have
-        become unbalanced so it loops again for order-0 and returns
-        that it was reclaiming for order-0 to kswapd(). It can then
-        find that a caller has rewoken kswapd for a high-order and
-        re-enters balance_pgdat() without ever calling cond_resched().
-
-shrink_slab only calls cond_resched() if we are reclaiming slab
-	pages. If there are a large number of direct reclaimers, the
-	shrinker_rwsem can be contended and prevent kswapd calling
-	cond_resched().
-
-This patch modifies the shrink_slab() case.  If the semaphore is
-contended, the caller will still check cond_resched().  After each
-successful call into a shrinker, the check for cond_resched() remains in
-case one shrinker is particularly slow.
-
-[mgorman@suse.de: Preserve call to cond_resched after each call into shrinker]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Colin King <colin.king@canonical.com>
-Cc: Raghavendra D Prabhu <raghu.prabhu13@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: <stable@kernel.org>		[2.6.38+]
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ lib/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-correctly-check-if-reclaimer-should-schedule-during-shrink_slab mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-correctly-check-if-reclaimer-should-schedule-during-shrink_slab
-+++ a/mm/vmscan.c
-@@ -231,8 +231,11 @@ unsigned long shrink_slab(unsigned long 
- 	if (scanned == 0)
- 		scanned = SWAP_CLUSTER_MAX;
- 
--	if (!down_read_trylock(&shrinker_rwsem))
--		return 1;	/* Assume we'll be able to shrink next time */
-+	if (!down_read_trylock(&shrinker_rwsem)) {
-+		/* Assume we'll be able to shrink next time */
-+		ret = 1;
-+		goto out;
-+	}
- 
- 	list_for_each_entry(shrinker, &shrinker_list, list) {
- 		unsigned long long delta;
-@@ -283,6 +286,8 @@ unsigned long shrink_slab(unsigned long 
- 		shrinker->nr += total_scan;
- 	}
- 	up_read(&shrinker_rwsem);
-+out:
-+	cond_resched();
- 	return ret;
- }
- 
+diff -puN lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
++++ a/lib/bitmap.c
+@@ -590,7 +590,7 @@ EXPORT_SYMBOL(bitmap_scnlistprintf);
+  *    %-EINVAL: invalid character in string
+  *    %-ERANGE: bit number specified too large for mask
+  */
+-int __bitmap_parselist(const char *buf, unsigned int buflen,
++static int __bitmap_parselist(const char *buf, unsigned int buflen,
+ 		int is_user, unsigned long *maskp,
+ 		int nmaskbits)
+ {
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely.patch
-mm-vmscan-correctly-check-if-reclaimer-should-schedule-during-shrink_slab.patch
+origin.patch
 linux-next.patch
-mm-introduce-wait_on_page_locked_killable.patch
-x86mm-make-pagefault-killable.patch
-mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
-mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
-oom-replace-pf_oom_origin-with-toggling-oom_score_adj-update.patch
-mm-thp-optimize-memcg-charge-in-khugepaged.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
+backlight-add-backlight-type-fix.patch
+backlight-add-backlight-type-fix-fix.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
+osst-wrong-index-used-in-inner-loop-checkpatch-fixes.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-writeback-elevate-queue_io-into-wb_writeback.patch
-mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve-fix-2.patch
-readahead-readahead-page-allocations-are-ok-to-fail.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-3.patch
-mm-filter-unevictable-page-out-in-deactivate_page.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch
-mm-batch-activate_page-to-reduce-lock-contention.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
-memcg-add-memorynumastat-api-for-numa-statistics.patch
-memcg-add-memorynumastat-api-for-numa-statistics-v5.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
