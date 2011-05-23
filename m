@@ -1,67 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch added to -mm tree
-Date: Mon, 23 May 2011 15:07:16 -0700
-Message-ID: <201105232207.p4NM7GKj014943@imap1.linux-foundation.org>
+Subject: [folded] mtd-convert-to-seq_file-interface-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 23 May 2011 15:10:57 -0700
+Message-ID: <201105232210.p4NMAvWQ015138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755000Ab1EWWHb (ORCPT
+	by vger.kernel.org with ESMTP id S1753285Ab1EWWLn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 18:07:31 -0400
+	Mon, 23 May 2011 18:11:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andy.shevchenko@gmail.com, lee.schermerhorn@hp.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com
+To: akpm@linux-foundation.org, adobriyan@gmail.com, cbouatmailru@gmail.com, dwmw2@infradead.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
-has been added to the -mm tree.  Its filename is
-     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
+     mtd-convert-to-seq_file-interface-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mtd-convert-to-seq_file-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
+Subject: mtd-convert-to-seq_file-interface-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make __bitmap_parselist() static
+ERROR: code indent should use tabs where possible
+#71: FILE: drivers/mtd/mtdcore.c:672:
++        return 0;$
 
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+WARNING: please, no spaces at the start of a line
+#71: FILE: drivers/mtd/mtdcore.c:672:
++        return 0;$
+
+total: 1 errors, 1 warnings, 77 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mtd-convert-to-seq_file-interface.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 +-
+ drivers/mtd/mtdcore.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix lib/bitmap.c
---- a/lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
-+++ a/lib/bitmap.c
-@@ -590,7 +590,7 @@ EXPORT_SYMBOL(bitmap_scnlistprintf);
-  *    %-EINVAL: invalid character in string
-  *    %-ERANGE: bit number specified too large for mask
-  */
--int __bitmap_parselist(const char *buf, unsigned int buflen,
-+static int __bitmap_parselist(const char *buf, unsigned int buflen,
- 		int is_user, unsigned long *maskp,
- 		int nmaskbits)
- {
+diff -puN drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface-checkpatch-fixes drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface-checkpatch-fixes
++++ a/drivers/mtd/mtdcore.c
+@@ -669,7 +669,7 @@ static int mtd_proc_show(struct seq_file
+ 			   mtd->erasesize, mtd->name);
+         }
+ 	mutex_unlock(&mtd_table_mutex);
+-        return 0;
++	return 0;
+ }
+ 
+ static int mtd_proc_open(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,11 +80,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
-bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
-drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-mtd-convert-to-seq_file-interface-checkpatch-fixes.patch
+mtd-convert-to-seq_file-interface.patch
 backlight-add-backlight-type-fix.patch
 backlight-add-backlight-type-fix-fix.patch
 drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value-fix.patch
@@ -111,10 +113,14 @@ nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
 printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
 printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
 lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
 percpu_counter-change-return-value-and-add-comments-fix.patch
 compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
