@@ -1,99 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:57:17 -0700
-Message-ID: <201105242357.p4ONvHjm023937@imap1.linux-foundation.org>
+Subject: [folded] vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:58:15 -0700
+Message-ID: <201105242358.p4ONwFrZ024057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757467Ab1EXX5p (ORCPT
+	by vger.kernel.org with ESMTP id S933192Ab1EXX6S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:57:45 -0400
+	Tue, 24 May 2011 19:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gm
+To: kosaki.motohiro@jp.fujitsu.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4
 has been removed from the -mm tree.  Its filename was
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4.patch
 
-This patch was dropped because it was folded into vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+This patch was dropped because it was folded into vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rik van Riel <riel@redhat.com>
+Oops. I'm sorry. This patch forgot one correction. please apply
+following incremental patch.
+
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/sunrpc/auth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix mm/memory-failure.c
---- a/mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
-+++ a/mm/memory-failure.c
-@@ -239,7 +239,12 @@ void shake_page(struct page *p, int acce
- 	if (access) {
- 		int nr;
- 		do {
--			nr = shrink_slab(1000, GFP_KERNEL, 1000);
-+			struct shrink_control shrink = {
-+				.gfp_mask = GFP_KERNEL,
-+				.nr_scanned = 1000,
-+			};
-+
-+			nr = shrink_slab(&shrink, 1000);
- 			if (page_count(p) == 1)
- 				break;
- 		} while (nr > 10);
+diff -puN net/sunrpc/auth.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4 net/sunrpc/auth.c
+--- a/net/sunrpc/auth.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4
++++ a/net/sunrpc/auth.c
+@@ -330,7 +330,7 @@ rpcauth_cache_shrinker(struct shrinker *
+ {
+ 	LIST_HEAD(free);
+ 	int res;
+-	int nr_to_scan = sc->nr_slab_to_reclaim;
++	int nr_to_scan = sc->nr_to_scan;
+ 	gfp_t gfp_mask = sc->gfp_mask;
+ 
+ 	if ((gfp_mask & GFP_KERNEL) != GFP_KERNEL)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
-mm-nommu-sort-mm-mmap-list-properly.patch
 mm-per-node-vmstat-show-proper-vmstats.patch
+mm-introduce-wait_on_page_locked_killable.patch
+x86mm-make-pagefault-killable.patch
+mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+mm-mem-hotplug-recalculate-lowmem_reserve-when-memory-hotplug-occur.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-convert-vma-vm_flags-to-64-bit.patch
+mm-add-__nocast-attribute-to-vm_flags.patch
+fremap-convert-vm_flags-to-unsigned-long-long.patch
+procfs-convert-vm_flags-to-unsigned-long-long.patch
+oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
 mm-mmu_gather-rework.patch
-mm-uninline-large-generic-tlbh-functions.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mem-hotplug-call-isolate_lru_page-with-elevated-refcount.patch
+mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
+mm-strictly-require-elevated-page-refcount-in-isolate_lru_page.patch
+mm-check-if-any-page-in-a-pageblock-is-reserved-before-marking-it-migrate_reserve.patch
+readahead-readahead-page-allocations-are-ok-to-fail.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-alpha-hook-up-gpiolib-support-fix.patch
+mm-fail-gfp_dma-allocations-when-zone_dma-is-not-configured.patch
+mm-export-get_vma_policy.patch
+mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+mm-remove-mpol_mf_stats.patch
+mm-make-gather_stats-type-safe-and-remove-forward-declaration.patch
+mm-remove-check_huge_range.patch
+mm-declare-mpol_to_str-when-config_tmpfs=n.patch
+mm-proc-move-show_numa_map-to-fs-proc-task_mmuc.patch
+proc-make-struct-proc_maps_private-truly-private.patch
+proc-allocate-storage-for-numa_maps-statistics-once.patch
+mm-batch-activate_page-to-reduce-lock-contention.patch
+alpha-replace-with-new-cpumask-apis.patch
+mn10300-convert-old-cpumask-api-into-new-one.patch
+cris-convert-old-cpumask-api-into-new-one.patch
 cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-gpio-vx855_gpioc-needs-slabh.patch
-drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
+sparse-define-dummy-build_bug_on-definition-for-sparse.patch
+sparse-define-__must_be_array-for-__checker__.patch
+sparse-undef-__compiletime_warningerror-if-__checker__-is-defined.patch
 
