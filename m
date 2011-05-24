@@ -1,88 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-cacheflushh-flush-icache-when-copying-to-user-pages.patch added to -mm tree
-Date: Mon, 23 May 2011 19:09:01 -0700
-Message-ID: <201105240207.p4O27evR025786@imap1.linux-foundation.org>
+Subject: [to-be-updated] posix-timers-rcu-conversion.patch removed from -mm tree
+Date: Tue, 24 May 2011 01:51:00 -0700
+Message-ID: <201105240849.p4O8nb8K010344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758094Ab1EXCHr (ORCPT
+	by vger.kernel.org with ESMTP id S1754777Ab1EXIuC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 May 2011 22:07:47 -0400
+	Tue, 24 May 2011 04:50:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, arnd@arndb.de
+To: eric.dumazet@gmail.com, avi@redhat.com, ben@iagu.net, johnstul@us.ibm.com, paulmck@linux.vnet.ibm.com, richard.cochran@omicron.at, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic/cacheflush.h: flush icache when copying to user pages
-has been added to the -mm tree.  Its filename is
-     asm-generic-cacheflushh-flush-icache-when-copying-to-user-pages.patch
+     posix-timers: RCU conversion
+has been removed from the -mm tree.  Its filename was
+     posix-timers-rcu-conversion.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/cacheflush.h: flush icache when copying to user pages
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: posix-timers: RCU conversion
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-The copy_to_user_page() function is supposed to flush the icache on the
-memory that was written, but the current asm-generic version lacks that
-logic.  While normally it isn't a big deal as the asm-generic version of
-icache flushing is a stub, it is a deal for ports that want to use the
-asm-generic version as a baseline and then overlay its own specific parts
-(like icache flushing).
+Ben Nagy reported a scalability problem with KVM/QEMU that hit very hard a
+single spinlock (idr_lock) in posix-timers code, on its 48 core machine.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Even on a 16 cpu machine (2x4x2), a single test can show 98% of cpu time
+used in ticket_spin_lock, from lock_timer
+
+Ref: http://www.spinics.net/lists/kvm/msg51526.html
+
+Switching to RCU is quite easy, IDR being already RCU ready.
+
+idr_lock should be locked only for an insert/delete, not a lookup.
+
+Benchmark on a 2x4x2 machine, 16 processes calling timer_gettime().
+
+Before :
+
+real    1m18.669s
+user    0m1.346s
+sys     1m17.180s
+
+After :
+
+real    0m3.296s
+user    0m1.366s
+sys     0m1.926s
+
+Reported-by: Ben Nagy <ben@iagu.net>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Tested-by: Ben Nagy <ben@iagu.net>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Richard Cochran <richard.cochran@omicron.at>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/cacheflush.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/posix-timers.h |    1 +
+ kernel/posix-timers.c        |   25 ++++++++++++++-----------
+ 2 files changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN include/asm-generic/cacheflush.h~asm-generic-cacheflushh-flush-icache-when-copying-to-user-pages include/asm-generic/cacheflush.h
---- a/include/asm-generic/cacheflush.h~asm-generic-cacheflushh-flush-icache-when-copying-to-user-pages
-+++ a/include/asm-generic/cacheflush.h
-@@ -24,7 +24,10 @@
- #define flush_cache_vunmap(start, end)		do { } while (0)
+diff -puN include/linux/posix-timers.h~posix-timers-rcu-conversion include/linux/posix-timers.h
+--- a/include/linux/posix-timers.h~posix-timers-rcu-conversion
++++ a/include/linux/posix-timers.h
+@@ -83,6 +83,7 @@ struct k_itimer {
+ 		} mmtimer;
+ 		struct alarm alarmtimer;
+ 	} it;
++	struct rcu_head rcu;
+ };
  
- #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
--	memcpy(dst, src, len)
-+	do { \
-+		memcpy(dst, src, len); \
-+		flush_icache_user_range(vma, page, vaddr, len); \
-+	} while (0)
- #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
- 	memcpy(dst, src, len)
+ struct k_clock {
+diff -puN kernel/posix-timers.c~posix-timers-rcu-conversion kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-rcu-conversion
++++ a/kernel/posix-timers.c
+@@ -491,6 +491,13 @@ static struct k_itimer * alloc_posix_tim
+ 	return tmr;
+ }
  
++static void k_itimer_rcu_free(struct rcu_head *head)
++{
++	struct k_itimer *tmr = container_of(head, struct k_itimer, rcu);
++
++	kmem_cache_free(posix_timers_cache, tmr);
++}
++
+ #define IT_ID_SET	1
+ #define IT_ID_NOT_SET	0
+ static void release_posix_timer(struct k_itimer *tmr, int it_id_set)
+@@ -503,7 +510,7 @@ static void release_posix_timer(struct k
+ 	}
+ 	put_pid(tmr->it_pid);
+ 	sigqueue_free(tmr->sigq);
+-	kmem_cache_free(posix_timers_cache, tmr);
++	call_rcu(&tmr->rcu, k_itimer_rcu_free);
+ }
+ 
+ static struct k_clock *clockid_to_kclock(const clockid_t id)
+@@ -631,22 +638,18 @@ out:
+ static struct k_itimer *__lock_timer(timer_t timer_id, unsigned long *flags)
+ {
+ 	struct k_itimer *timr;
+-	/*
+-	 * Watch out here.  We do a irqsave on the idr_lock and pass the
+-	 * flags part over to the timer lock.  Must not let interrupts in
+-	 * while we are moving the lock.
+-	 */
+-	spin_lock_irqsave(&idr_lock, *flags);
++
++	rcu_read_lock();
+ 	timr = idr_find(&posix_timers_id, (int)timer_id);
+ 	if (timr) {
+-		spin_lock(&timr->it_lock);
++		spin_lock_irqsave(&timr->it_lock, *flags);
+ 		if (timr->it_signal == current->signal) {
+-			spin_unlock(&idr_lock);
++			rcu_read_unlock();
+ 			return timr;
+ 		}
+-		spin_unlock(&timr->it_lock);
++		spin_unlock_irqrestore(&timr->it_lock, *flags);
+ 	}
+-	spin_unlock_irqrestore(&idr_lock, *flags);
++	rcu_read_unlock();
+ 
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
 origin.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-backlight-add-backlight-type-fix.patch
 linux-next.patch
-mtd-convert-to-seq_file-interface.patch
-net-irda-convert-bfin_sir-to-common-blackfin-uart-header.patch
-asm-generic-cacheflushh-flush-icache-when-copying-to-user-pages.patch
-lib-consolidate-debug_stack_usage-option.patch
-asm-generic-ptraceh-start-a-common-low-level-ptrace-helper.patch
-blackfin-convert-to-asm-generic-ptraceh.patch
-x86-convert-to-asm-generic-ptraceh.patch
-sh-convert-to-asm-generic-ptraceh.patch
-kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
-proc-constify-status-array.patch
+net-convert-%p-usage-to-%pk.patch
+percpu_counter-change-return-value-and-add-comments.patch
 
