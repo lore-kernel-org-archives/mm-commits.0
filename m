@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:57:21 -0700
-Message-ID: <201105242357.p4ONvLjo023944@imap1.linux-foundation.org>
+Subject: [folded] vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:57:17 -0700
+Message-ID: <201105242357.p4ONvHjm023937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757467Ab1EXX5h (ORCPT
+	by vger.kernel.org with ESMTP id S1757467Ab1EXX5p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:57:37 -0400
+	Tue, 24 May 2011 19:57:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gm
 
 
 The patch titled
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
+     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+     vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 
 This patch was dropped because it was folded into vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
+Subject: vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
@@ -40,57 +40,26 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2
-+++ a/mm/vmscan.c
-@@ -2207,17 +2207,20 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.nodemask = NULL, /* we don't care the placement */
-+		.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
-+				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
-+	};
-+	struct shrink_control shrink = {
-+		.gfp_mask = sc.gfp_mask,
- 	};
- 
--	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
--			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
- 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
- 
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
- 					    sc.gfp_mask);
- 
--	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-+	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
- 
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 
-@@ -2800,7 +2803,10 @@ unsigned long shrink_all_memory(unsigned
- 		.swappiness = vm_swappiness,
- 		.order = 0,
- 	};
--	struct zonelist * zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
-+	struct shrink_control shrink = {
-+		.gfp_mask = sc.gfp_mask,
-+	};
-+	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 	struct task_struct *p = current;
- 	unsigned long nr_reclaimed;
- 
-@@ -2809,7 +2815,7 @@ unsigned long shrink_all_memory(unsigned
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-+	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
- 
- 	p->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
+diff -puN mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix
++++ a/mm/memory-failure.c
+@@ -239,7 +239,12 @@ void shake_page(struct page *p, int acce
+ 	if (access) {
+ 		int nr;
+ 		do {
+-			nr = shrink_slab(1000, GFP_KERNEL, 1000);
++			struct shrink_control shrink = {
++				.gfp_mask = GFP_KERNEL,
++				.nr_scanned = 1000,
++			};
++
++			nr = shrink_slab(&shrink, 1000);
+ 			if (page_count(p) == 1)
+ 				break;
+ 		} while (nr > 10);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +73,7 @@ mm-mmu_gather-rework.patch
 mm-uninline-large-generic-tlbh-functions.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
