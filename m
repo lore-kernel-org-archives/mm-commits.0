@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + um-add-earlyprintk-support.patch added to -mm tree
-Date: Tue, 24 May 2011 12:34:50 -0700
-Message-ID: <201105241934.p4OJYoum010612@imap1.linux-foundation.org>
+Subject: + um-print-info-about-fatal-segfaults.patch added to -mm tree
+Date: Tue, 24 May 2011 12:34:55 -0700
+Message-ID: <201105241934.p4OJYtpM010623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932953Ab1EXTe6 (ORCPT
+	by vger.kernel.org with ESMTP id S932953Ab1EXTfC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 15:34:58 -0400
+	Tue, 24 May 2011 15:35:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: richard@nod.at
 
 
 The patch titled
-     um: add earlyprintk support
+     um: print info about fatal segfaults
 has been added to the -mm tree.  Its filename is
-     um-add-earlyprintk-support.patch
+     um-print-info-about-fatal-segfaults.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: add earlyprintk support
+Subject: um: print info about fatal segfaults
 From: Richard Weinberger <richard@nod.at>
 
-User Mode Linux can also benefit from earlyprintk.  UML's earlyprintk
-writes kernel messages directly to stdout.
+Print a short info about fatal segfaults like other archs do.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.debug         |   10 +++++++++
- arch/um/include/shared/os.h   |    1 
- arch/um/kernel/Makefile       |    1 
- arch/um/kernel/early_printk.c |   33 ++++++++++++++++++++++++++++++++
- arch/um/os-Linux/util.c       |    5 ++++
- 5 files changed, 50 insertions(+)
+ arch/um/kernel/trap.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN arch/um/Kconfig.debug~um-add-earlyprintk-support arch/um/Kconfig.debug
---- a/arch/um/Kconfig.debug~um-add-earlyprintk-support
-+++ a/arch/um/Kconfig.debug
-@@ -37,4 +37,14 @@ config DEBUG_STACK_USAGE
- 	  stack seen so far.
- 
- 	  This option will slow down process creation and destruction somewhat.
-+
-+config EARLY_PRINTK
-+	bool "Early printk"
-+	default y
-+	---help---
-+	  Write kernel log output directly to stdout.
-+
-+	  This is useful for kernel debugging when your machine crashes very
-+	  early before the console code is initialized.
-+
- endmenu
-diff -puN arch/um/include/shared/os.h~um-add-earlyprintk-support arch/um/include/shared/os.h
---- a/arch/um/include/shared/os.h~um-add-earlyprintk-support
-+++ a/arch/um/include/shared/os.h
-@@ -245,6 +245,7 @@ extern int raw(int fd);
- extern void setup_machinename(char *machine_out);
- extern void setup_hostinfo(char *buf, int len);
- extern void os_dump_core(void) __attribute__ ((noreturn));
-+extern void um_early_printk(const char *s, unsigned int n);
- 
- /* time.c */
- extern void idle_sleep(unsigned long long nsecs);
-diff -puN arch/um/kernel/Makefile~um-add-earlyprintk-support arch/um/kernel/Makefile
---- a/arch/um/kernel/Makefile~um-add-earlyprintk-support
-+++ a/arch/um/kernel/Makefile
-@@ -17,6 +17,7 @@ obj-y = config.o exec.o exitcode.o init_
- obj-$(CONFIG_BLK_DEV_INITRD) += initrd.o
- obj-$(CONFIG_GPROF)	+= gprof_syms.o
- obj-$(CONFIG_GCOV)	+= gmon_syms.o
-+obj-$(CONFIG_EARLY_PRINTK) += early_printk.o
- 
- USER_OBJS := config.o
- 
-diff -puN /dev/null arch/um/kernel/early_printk.c
---- /dev/null
-+++ a/arch/um/kernel/early_printk.c
-@@ -0,0 +1,33 @@
-+/*
-+ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/console.h>
-+#include <linux/init.h>
-+#include "os.h"
-+
-+static void early_console_write(struct console *con, const char *s, unsigned int n)
-+{
-+	um_early_printk(s, n);
-+}
-+
-+static struct console early_console = {
-+	.name = "earlycon",
-+	.write = early_console_write,
-+	.flags = CON_BOOT,
-+	.index = -1,
-+};
-+
-+static int __init setup_early_printk(char *buf)
-+{
-+	register_console(&early_console);
-+
-+	return 0;
-+}
-+
-+early_param("earlyprintk", setup_early_printk);
-diff -puN arch/um/os-Linux/util.c~um-add-earlyprintk-support arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~um-add-earlyprintk-support
-+++ a/arch/um/os-Linux/util.c
-@@ -131,3 +131,8 @@ void os_dump_core(void)
- 	remove_umid_dir();
- 	uml_abort();
+diff -puN arch/um/kernel/trap.c~um-print-info-about-fatal-segfaults arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~um-print-info-about-fatal-segfaults
++++ a/arch/um/kernel/trap.c
+@@ -113,6 +113,27 @@ out_of_memory:
+ 	return 0;
  }
-+
-+void um_early_printk(const char *s, unsigned int n)
+ 
++static void show_segv_info(struct uml_pt_regs *regs)
 +{
-+	printf("%.*s", n, s);
++	struct task_struct *tsk = current;
++	struct faultinfo *fi = UPT_FAULTINFO(regs);
++
++	if (!unhandled_signal(tsk, SIGSEGV))
++		return;
++
++	if (!printk_ratelimit())
++		return;
++
++	printk("%s%s[%d]: segfault at %lx ip %p sp %p error %x",
++		task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
++		tsk->comm, task_pid_nr(tsk), FAULT_ADDRESS(*fi),
++		(void *)UPT_IP(regs), (void *)UPT_SP(regs),
++		fi->error_code);
++
++	print_vma_addr(KERN_CONT " in ", UPT_IP(regs));
++	printk(KERN_CONT "\n");
 +}
++
+ static void bad_segv(struct faultinfo fi, unsigned long ip)
+ {
+ 	struct siginfo si;
+@@ -141,6 +162,7 @@ void segv_handler(int sig, struct uml_pt
+ 	struct faultinfo * fi = UPT_FAULTINFO(regs);
+ 
+ 	if (UPT_IS_USER(regs) && !SEGV_IS_FIXABLE(fi)) {
++		show_segv_info(regs);
+ 		bad_segv(*fi, UPT_IP(regs));
+ 		return;
+ 	}
+@@ -202,6 +224,8 @@ unsigned long segv(struct faultinfo fi, 
+ 		      address, ip);
+ 	}
+ 
++	show_segv_info(regs);
++
+ 	if (err == -EACCES) {
+ 		si.si_signo = SIGBUS;
+ 		si.si_errno = 0;
 _
 
 Patches currently in -mm which might be from richard@nod.at are
