@@ -1,86 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-ml_ioh_gpioc-needs-slabh.patch added to -mm tree
-Date: Tue, 24 May 2011 16:03:44 -0700
-Message-ID: <201105242340.p4ONeReN023155@imap1.linux-foundation.org>
+Subject: [folded] mm-nommu-sort-mm-mmap-list-properly-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:51:38 -0700
+Message-ID: <201105242351.p4ONpc50023596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753016Ab1EXXka (ORCPT
+	by vger.kernel.org with ESMTP id S932094Ab1EXXwE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:40:30 -0400
+	Tue, 24 May 2011 19:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca
+To: akpm@linux-foundation.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org, namhyung@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpio/ml_ioh_gpio.c needs slab.h
-has been added to the -mm tree.  Its filename is
-     drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
+     mm-nommu-sort-mm-mmap-list-properly-fix
+has been removed from the -mm tree.  Its filename was
+     mm-nommu-sort-mm-mmap-list-properly-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-nommu-sort-mm-mmap-list-properly.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/ml_ioh_gpio.c needs slab.h
+Subject: mm-nommu-sort-mm-mmap-list-properly-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha allmodconfig:
+avoid duplicating __vma_link_list().
 
-drivers/gpio/ml_ioh_gpio.c: In function 'ioh_gpio_probe':
-drivers/gpio/ml_ioh_gpio.c:205: error: implicit declaration of function 'kzalloc'
-drivers/gpio/ml_ioh_gpio.c:205: warning: assignment makes pointer from integer without a cast
-
-also fix this:
-
-drivers/gpio/ml_ioh_gpio.c:145: warning: 'ioh_gpio_save_reg_conf' defined but not used
-drivers/gpio/ml_ioh_gpio.c:154: warning: 'ioh_gpio_restore_reg_conf' defined but not used
-
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/ml_ioh_gpio.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/internal.h |    4 ++++
+ mm/mmap.c     |   23 -----------------------
+ mm/nommu.c    |   24 ------------------------
+ mm/util.c     |   24 ++++++++++++++++++++++++
+ 4 files changed, 28 insertions(+), 47 deletions(-)
 
-diff -puN drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh drivers/gpio/ml_ioh_gpio.c
---- a/drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh
-+++ a/drivers/gpio/ml_ioh_gpio.c
-@@ -15,6 +15,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-  */
- #include <linux/kernel.h>
-+#include <linux/slab.h>
- #include <linux/pci.h>
- #include <linux/gpio.h>
- 
-@@ -138,6 +139,7 @@ static int ioh_gpio_direction_input(stru
- 	return 0;
+diff -puN mm/internal.h~mm-nommu-sort-mm-mmap-list-properly-fix mm/internal.h
+--- a/mm/internal.h~mm-nommu-sort-mm-mmap-list-properly-fix
++++ a/mm/internal.h
+@@ -66,6 +66,10 @@ static inline unsigned long page_order(s
+ 	return page_private(page);
  }
  
-+#ifdef CONFIG_PM
++/* mm/util.c */
++void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct rb_node *rb_parent);
++
+ #ifdef CONFIG_MMU
+ extern long mlock_vma_pages_range(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+diff -puN mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/mmap.c
+--- a/mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly-fix
++++ a/mm/mmap.c
+@@ -398,29 +398,6 @@ find_vma_prepare(struct mm_struct *mm, u
+ 	return vma;
+ }
+ 
+-static inline void
+-__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
+-		struct vm_area_struct *prev, struct rb_node *rb_parent)
+-{
+-	struct vm_area_struct *next;
+-
+-	vma->vm_prev = prev;
+-	if (prev) {
+-		next = prev->vm_next;
+-		prev->vm_next = vma;
+-	} else {
+-		mm->mmap = vma;
+-		if (rb_parent)
+-			next = rb_entry(rb_parent,
+-					struct vm_area_struct, vm_rb);
+-		else
+-			next = NULL;
+-	}
+-	vma->vm_next = next;
+-	if (next)
+-		next->vm_prev = vma;
+-}
+-
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+diff -puN mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly-fix
++++ a/mm/nommu.c
+@@ -672,30 +672,6 @@ static void protect_vma(struct vm_area_s
+ #endif
+ }
+ 
+-/* borrowed from mm/mmap.c */
+-static inline void
+-__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
+-		struct vm_area_struct *prev, struct rb_node *rb_parent)
+-{
+-	struct vm_area_struct *next;
+-
+-	vma->vm_prev = prev;
+-	if (prev) {
+-		next = prev->vm_next;
+-		prev->vm_next = vma;
+-	} else {
+-		mm->mmap = vma;
+-		if (rb_parent)
+-			next = rb_entry(rb_parent,
+-					struct vm_area_struct, vm_rb);
+-		else
+-			next = NULL;
+-	}
+-	vma->vm_next = next;
+-	if (next)
+-		next->vm_prev = vma;
+-}
+-
  /*
-  * Save register configuration and disable interrupts.
-  */
-@@ -157,6 +159,7 @@ static void ioh_gpio_restore_reg_conf(st
- 	/* to store contents of PM register */
- 	iowrite32(chip->ioh_gpio_reg.pm_reg, &chip->reg->regs[chip->ch].pm);
- }
-+#endif
+  * add a VMA into a process's mm_struct in the appropriate place in the list
+  * and tree and add to the address space's page tree also if not an anonymous
+diff -puN mm/util.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/util.c
+--- a/mm/util.c~mm-nommu-sort-mm-mmap-list-properly-fix
++++ a/mm/util.c
+@@ -6,6 +6,8 @@
+ #include <linux/sched.h>
+ #include <asm/uaccess.h>
  
- static void ioh_gpio_setup(struct ioh_gpio *chip, int num_port)
++#include "internal.h"
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/kmem.h>
+ 
+@@ -215,6 +217,28 @@ char *strndup_user(const char __user *s,
+ }
+ EXPORT_SYMBOL(strndup_user);
+ 
++void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct rb_node *rb_parent)
++{
++	struct vm_area_struct *next;
++
++	vma->vm_prev = prev;
++	if (prev) {
++		next = prev->vm_next;
++		prev->vm_next = vma;
++	} else {
++		mm->mmap = vma;
++		if (rb_parent)
++			next = rb_entry(rb_parent,
++					struct vm_area_struct, vm_rb);
++		else
++			next = NULL;
++	}
++	vma->vm_next = next;
++	if (next)
++		next->vm_prev = vma;
++}
++
+ #if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
+ void arch_pick_mmap_layout(struct mm_struct *mm)
  {
 _
 
@@ -88,7 +171,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-nommu-sort-mm-mmap-list-properly.patch
 mm-per-node-vmstat-show-proper-vmstats-fix.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
 mm-mmu_gather-rework-fix.patch
@@ -119,4 +202,5 @@ percpu_counter-change-return-value-and-add-comments-fix.patch
 fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
 drivers-gpio-vx855_gpioc-needs-slabh.patch
 drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
 
