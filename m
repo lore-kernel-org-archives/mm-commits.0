@@ -1,63 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:55:27 -0700
-Message-ID: <201105242355.p4ONtRKC023876@imap1.linux-foundation.org>
+Subject: [folded] mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:55:24 -0700
+Message-ID: <201105242355.p4ONtOw0023873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754245Ab1EXXza (ORCPT
+	by vger.kernel.org with ESMTP id S1752863Ab1EXXzj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:55:30 -0400
+	Tue, 24 May 2011 19:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmetcalf@tilera.com, dhowells@redhat.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
+     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix
 has been removed from the -mm tree.  Its filename was
-     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
 
 This patch was dropped because it was folded into mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
+Subject: mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo* bar" should be "foo *bar"
-#67: FILE: include/linux/mm_types.h:323:
-+static inline cpumask_t* mm_cpumask(struct mm_struct *mm)
+arch/x86/kernel/tboot.c:113: error: unknown field 'cpu_vm_mask' specified in initializer
+arch/x86/kernel/tboot.c:113: error: incompatible types when initializing type 'long unsigned int' using type 'cpumask_t'
 
-total: 1 errors, 0 warnings, 120 lines checked
+Correct?
 
-./patches/mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/tboot.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
-+++ a/include/linux/mm_types.h
-@@ -320,7 +320,7 @@ struct mm_struct {
+diff -puN arch/x86/kernel/tboot.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix arch/x86/kernel/tboot.c
+--- a/arch/x86/kernel/tboot.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix
++++ a/arch/x86/kernel/tboot.c
+@@ -110,7 +110,6 @@ static struct mm_struct tboot_mm = {
+ 	.mmap_sem       = __RWSEM_INITIALIZER(init_mm.mmap_sem),
+ 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
+ 	.mmlist         = LIST_HEAD_INIT(init_mm.mmlist),
+-	.cpu_vm_mask    = CPU_MASK_ALL,
  };
  
- /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
--static inline cpumask_t* mm_cpumask(struct mm_struct *mm)
-+static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
- {
- 	return mm->cpu_vm_mask_var;
- }
+ static inline void switch_to_tboot_pt(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +66,7 @@ mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 mm-mmu_gather-rework.patch
 mm-uninline-large-generic-tlbh-functions.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
