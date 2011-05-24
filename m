@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 24 May 2011 12:25:26 -0700
-Message-ID: <201105241925.p4OJPQRL010163@imap1.linux-foundation.org>
+Subject: + um-add-earlyprintk-support.patch added to -mm tree
+Date: Tue, 24 May 2011 12:34:50 -0700
+Message-ID: <201105241934.p4OJYoum010612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932154Ab1EXTZ3 (ORCPT
+	by vger.kernel.org with ESMTP id S932953Ab1EXTe6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 15:25:29 -0400
+	Tue, 24 May 2011 15:34:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david@fries.net
+Cc: richard@nod.at
 
 
 The patch titled
-     rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
+     um: add earlyprintk support
 has been added to the -mm tree.  Its filename is
-     rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
+     um-add-earlyprintk-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: um: add earlyprintk support
+From: Richard Weinberger <richard@nod.at>
 
-ERROR: space required before the open parenthesis '('
-#29: FILE: net/bluetooth/rfcomm/core.c:1962:
-+			if(n->prev != p)
+User Mode Linux can also benefit from earlyprintk.  UML's earlyprintk
+writes kernel messages directly to stdout.
 
-total: 1 errors, 0 warnings, 12 lines checked
-
-./patches/rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Fries <david@fries.net>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Kconfig.debug         |   10 +++++++++
+ arch/um/include/shared/os.h   |    1 
+ arch/um/kernel/Makefile       |    1 
+ arch/um/kernel/early_printk.c |   33 ++++++++++++++++++++++++++++++++
+ arch/um/os-Linux/util.c       |    5 ++++
+ 5 files changed, 50 insertions(+)
 
-diff -puN net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes net/bluetooth/rfcomm/core.c
---- a/net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
-+++ a/net/bluetooth/rfcomm/core.c
-@@ -1959,7 +1959,7 @@ static inline void rfcomm_process_sessio
- 			 * in which case s is now dangling.  Check if it
- 			 * has been removed.
- 			 */
--			if(n->prev != p)
-+			if (n->prev != p)
- 				continue;
- 			break;
- 		}
+diff -puN arch/um/Kconfig.debug~um-add-earlyprintk-support arch/um/Kconfig.debug
+--- a/arch/um/Kconfig.debug~um-add-earlyprintk-support
++++ a/arch/um/Kconfig.debug
+@@ -37,4 +37,14 @@ config DEBUG_STACK_USAGE
+ 	  stack seen so far.
+ 
+ 	  This option will slow down process creation and destruction somewhat.
++
++config EARLY_PRINTK
++	bool "Early printk"
++	default y
++	---help---
++	  Write kernel log output directly to stdout.
++
++	  This is useful for kernel debugging when your machine crashes very
++	  early before the console code is initialized.
++
+ endmenu
+diff -puN arch/um/include/shared/os.h~um-add-earlyprintk-support arch/um/include/shared/os.h
+--- a/arch/um/include/shared/os.h~um-add-earlyprintk-support
++++ a/arch/um/include/shared/os.h
+@@ -245,6 +245,7 @@ extern int raw(int fd);
+ extern void setup_machinename(char *machine_out);
+ extern void setup_hostinfo(char *buf, int len);
+ extern void os_dump_core(void) __attribute__ ((noreturn));
++extern void um_early_printk(const char *s, unsigned int n);
+ 
+ /* time.c */
+ extern void idle_sleep(unsigned long long nsecs);
+diff -puN arch/um/kernel/Makefile~um-add-earlyprintk-support arch/um/kernel/Makefile
+--- a/arch/um/kernel/Makefile~um-add-earlyprintk-support
++++ a/arch/um/kernel/Makefile
+@@ -17,6 +17,7 @@ obj-y = config.o exec.o exitcode.o init_
+ obj-$(CONFIG_BLK_DEV_INITRD) += initrd.o
+ obj-$(CONFIG_GPROF)	+= gprof_syms.o
+ obj-$(CONFIG_GCOV)	+= gmon_syms.o
++obj-$(CONFIG_EARLY_PRINTK) += early_printk.o
+ 
+ USER_OBJS := config.o
+ 
+diff -puN /dev/null arch/um/kernel/early_printk.c
+--- /dev/null
++++ a/arch/um/kernel/early_printk.c
+@@ -0,0 +1,33 @@
++/*
++ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/console.h>
++#include <linux/init.h>
++#include "os.h"
++
++static void early_console_write(struct console *con, const char *s, unsigned int n)
++{
++	um_early_printk(s, n);
++}
++
++static struct console early_console = {
++	.name = "earlycon",
++	.write = early_console_write,
++	.flags = CON_BOOT,
++	.index = -1,
++};
++
++static int __init setup_early_printk(char *buf)
++{
++	register_console(&early_console);
++
++	return 0;
++}
++
++early_param("earlyprintk", setup_early_printk);
+diff -puN arch/um/os-Linux/util.c~um-add-earlyprintk-support arch/um/os-Linux/util.c
+--- a/arch/um/os-Linux/util.c~um-add-earlyprintk-support
++++ a/arch/um/os-Linux/util.c
+@@ -131,3 +131,8 @@ void os_dump_core(void)
+ 	remove_umid_dir();
+ 	uml_abort();
+ }
++
++void um_early_printk(const char *s, unsigned int n)
++{
++	printf("%.*s", n, s);
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-mtd-convert-to-seq_file-interface.patch
-rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
-osst-wrong-index-used-in-inner-loop.patch
-drivers-scsi-osstc-fix-warning.patch
-drbd-fix-warning.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-nommu-sort-mm-mmap-list-properly-fix.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
-mm-mmu_gather-rework-fix.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
-bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
-printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
-printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
-drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
-percpu_counter-change-return-value-and-add-comments-fix.patch
-checkpatch-suggest-using-min_t-or-max_t.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-mmu_gather-rework.patch
+powerpc-mmu_gather-rework.patch
+sparc-mmu_gather-rework.patch
+s390-mmu_gather-rework.patch
+arm-mmu_gather-rework.patch
+sh-mmu_gather-rework.patch
+ia64-mmu_gather-rework.patch
+um-mmu_gather-rework.patch
+mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
+mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
+mm-extended-batches-for-generic-mmu_gather.patch
+lockdep-mutex-provide-mutex_lock_nest_lock.patch
+mm-remove-i_mmap_lock-lockbreak.patch
+mm-convert-i_mmap_lock-to-a-mutex.patch
+mm-revert-page_lock_anon_vma-lock-annotation.patch
+mm-improve-page_lock_anon_vma-comment.patch
+mm-use-refcounts-for-page_lock_anon_vma.patch
+mm-convert-anon_vma-lock-to-a-mutex.patch
+mm-optimize-page_lock_anon_vma-fast-path.patch
+um-os_dump_core-cleanup.patch
+um-fix-uml_lib_path.patch
+um-remove-sighup-handler.patch
+um-add-earlyprintk-support.patch
+um-add-ucast-ethernet-transport.patch
+um-print-info-about-fatal-segfaults.patch
+um-include-linux-prefetchh.patch
+um-fix-crash-while-os_dump_core.patch
+remove-unused-proc_change_penalty-constant.patch
+lib-consolidate-debug_stack_usage-option.patch
 
