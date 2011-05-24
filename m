@@ -1,170 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-nommu-sort-mm-mmap-list-properly-fix.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:51:38 -0700
-Message-ID: <201105242351.p4ONpc50023596@imap1.linux-foundation.org>
+Subject: [folded] mm-per-node-vmstat-show-proper-vmstats-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:52:11 -0700
+Message-ID: <201105242352.p4ONqCmj023619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932094Ab1EXXwE (ORCPT
+	by vger.kernel.org with ESMTP id S932094Ab1EXXwS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:52:04 -0400
+	Tue, 24 May 2011 19:52:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org, namhyung@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mrubin@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-nommu-sort-mm-mmap-list-properly-fix
+     mm-per-node-vmstat-show-proper-vmstats-fix
 has been removed from the -mm tree.  Its filename was
-     mm-nommu-sort-mm-mmap-list-properly-fix.patch
+     mm-per-node-vmstat-show-proper-vmstats-fix.patch
 
-This patch was dropped because it was folded into mm-nommu-sort-mm-mmap-list-properly.patch
+This patch was dropped because it was folded into mm-per-node-vmstat-show-proper-vmstats.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-nommu-sort-mm-mmap-list-properly-fix
+Subject: mm-per-node-vmstat-show-proper-vmstats-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-avoid duplicating __vma_link_list().
+no externs in .c files!
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michael Rubin <mrubin@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    4 ++++
- mm/mmap.c     |   23 -----------------------
- mm/nommu.c    |   24 ------------------------
- mm/util.c     |   24 ++++++++++++++++++++++++
- 4 files changed, 28 insertions(+), 47 deletions(-)
+ drivers/base/node.c    |    3 +--
+ include/linux/vmstat.h |    4 +++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/internal.h~mm-nommu-sort-mm-mmap-list-properly-fix mm/internal.h
---- a/mm/internal.h~mm-nommu-sort-mm-mmap-list-properly-fix
-+++ a/mm/internal.h
-@@ -66,6 +66,10 @@ static inline unsigned long page_order(s
- 	return page_private(page);
+diff -puN drivers/base/node.c~mm-per-node-vmstat-show-proper-vmstats-fix drivers/base/node.c
+--- a/drivers/base/node.c~mm-per-node-vmstat-show-proper-vmstats-fix
++++ a/drivers/base/node.c
+@@ -7,6 +7,7 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/memory.h>
++#include <linux/vmstat.h>
+ #include <linux/node.h>
+ #include <linux/hugetlb.h>
+ #include <linux/compaction.h>
+@@ -175,8 +176,6 @@ static ssize_t node_read_numastat(struct
  }
+ static SYSDEV_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
  
-+/* mm/util.c */
-+void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
-+		struct vm_area_struct *prev, struct rb_node *rb_parent);
-+
- #ifdef CONFIG_MMU
- extern long mlock_vma_pages_range(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end);
-diff -puN mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/mmap.c
---- a/mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly-fix
-+++ a/mm/mmap.c
-@@ -398,29 +398,6 @@ find_vma_prepare(struct mm_struct *mm, u
- 	return vma;
- }
- 
--static inline void
--__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
--		struct vm_area_struct *prev, struct rb_node *rb_parent)
--{
--	struct vm_area_struct *next;
+-extern const char * const vmstat_text[];
 -
--	vma->vm_prev = prev;
--	if (prev) {
--		next = prev->vm_next;
--		prev->vm_next = vma;
--	} else {
--		mm->mmap = vma;
--		if (rb_parent)
--			next = rb_entry(rb_parent,
--					struct vm_area_struct, vm_rb);
--		else
--			next = NULL;
--	}
--	vma->vm_next = next;
--	if (next)
--		next->vm_prev = vma;
--}
--
- void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
- 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ static ssize_t node_read_vmstat(struct sys_device *dev,
+ 				struct sysdev_attribute *attr, char *buf)
  {
-diff -puN mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/nommu.c
---- a/mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly-fix
-+++ a/mm/nommu.c
-@@ -672,30 +672,6 @@ static void protect_vma(struct vm_area_s
- #endif
- }
+diff -puN include/linux/vmstat.h~mm-per-node-vmstat-show-proper-vmstats-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-per-node-vmstat-show-proper-vmstats-fix
++++ a/include/linux/vmstat.h
+@@ -313,6 +313,8 @@ static inline void __dec_zone_page_state
+ #define set_pgdat_percpu_threshold(pgdat, callback) { }
  
--/* borrowed from mm/mmap.c */
--static inline void
--__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
--		struct vm_area_struct *prev, struct rb_node *rb_parent)
--{
--	struct vm_area_struct *next;
--
--	vma->vm_prev = prev;
--	if (prev) {
--		next = prev->vm_next;
--		prev->vm_next = vma;
--	} else {
--		mm->mmap = vma;
--		if (rb_parent)
--			next = rb_entry(rb_parent,
--					struct vm_area_struct, vm_rb);
--		else
--			next = NULL;
--	}
--	vma->vm_next = next;
--	if (next)
--		next->vm_prev = vma;
--}
--
- /*
-  * add a VMA into a process's mm_struct in the appropriate place in the list
-  * and tree and add to the address space's page tree also if not an anonymous
-diff -puN mm/util.c~mm-nommu-sort-mm-mmap-list-properly-fix mm/util.c
---- a/mm/util.c~mm-nommu-sort-mm-mmap-list-properly-fix
-+++ a/mm/util.c
-@@ -6,6 +6,8 @@
- #include <linux/sched.h>
- #include <asm/uaccess.h>
- 
-+#include "internal.h"
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+-#endif
++#endif		/* CONFIG_SMP */
 +
- #define CREATE_TRACE_POINTS
- #include <trace/events/kmem.h>
++extern const char * const vmstat_text[];
  
-@@ -215,6 +217,28 @@ char *strndup_user(const char __user *s,
- }
- EXPORT_SYMBOL(strndup_user);
- 
-+void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
-+		struct vm_area_struct *prev, struct rb_node *rb_parent)
-+{
-+	struct vm_area_struct *next;
-+
-+	vma->vm_prev = prev;
-+	if (prev) {
-+		next = prev->vm_next;
-+		prev->vm_next = vma;
-+	} else {
-+		mm->mmap = vma;
-+		if (rb_parent)
-+			next = rb_entry(rb_parent,
-+					struct vm_area_struct, vm_rb);
-+		else
-+			next = NULL;
-+	}
-+	vma->vm_next = next;
-+	if (next)
-+		next->vm_prev = vma;
-+}
-+
- #if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
- void arch_pick_mmap_layout(struct mm_struct *mm)
- {
+ #endif /* _LINUX_VMSTAT_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -172,7 +79,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
 mm-nommu-sort-mm-mmap-list-properly.patch
-mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
 mm-mmu_gather-rework-fix.patch
 mm-uninline-large-generic-tlbh-functions.patch
