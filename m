@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:58:05 -0700
-Message-ID: <201105242358.p4ONw57J023974@imap1.linux-foundation.org>
+Subject: [folded] mm-filter-unevictable-page-out-in-deactivate_page-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:59:50 -0700
+Message-ID: <201105242359.p4ONxoW5024091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933654Ab1EXX6i (ORCPT
+	by vger.kernel.org with ESMTP id S933774Ab1EXX7z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:58:38 -0400
+	Tue, 24 May 2011 19:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gm
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
+     mm-filter-unevictable-page-out-in-deactivate_page-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+     mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
 
-This patch was dropped because it was folded into vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+This patch was dropped because it was folded into mm-filter-unevictable-page-out-in-deactivate_page.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
+Subject: mm-filter-unevictable-page-out-in-deactivate_page-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix build
+tidy up comment
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
+Cc: Rik van Riel<riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/swap.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix drivers/gpu/drm/i915/i915_gem.c
---- a/drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
-+++ a/drivers/gpu/drm/i915/i915_gem.c
-@@ -56,9 +56,7 @@ static int i915_gem_phys_pwrite(struct d
- static void i915_gem_free_object_tail(struct drm_i915_gem_object *obj);
- 
- static int i915_gem_inactive_shrink(struct shrinker *shrinker,
--				    int nr_to_scan,
--				    gfp_t gfp_mask);
+diff -puN mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix mm/swap.c
+--- a/mm/swap.c~mm-filter-unevictable-page-out-in-deactivate_page-fix
++++ a/mm/swap.c
+@@ -476,11 +476,9 @@ static void drain_cpu_pagevecs(int cpu)
+  */
+ void deactivate_page(struct page *page)
+ {
 -
-+				    struct shrink_control *sc);
- 
- /* some bookkeeping */
- static void i915_gem_info_add_obj(struct drm_i915_private *dev_priv,
+ 	/*
+-	 * In workload which system has many unevictable page(ex, mprotect),
+-	 * unevictable page deactivation for accelerating reclaim
+-	 * is pointless.
++	 * In a workload which with many unevictable page such as mprotect,
++	 * unevictable page deactivation for accelerating reclaim is pointless.
+ 	 */
+ 	if (PageUnevictable(page))
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,10 +68,7 @@ mm-mmu_gather-rework.patch
 mm-uninline-large-generic-tlbh-functions.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix-fix.patch
-mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
 nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
 alpha-hook-up-gpiolib-support-fix.patch
