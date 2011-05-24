@@ -1,55 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:54:53 -0700
-Message-ID: <201105242354.p4ONssYJ023836@imap1.linux-foundation.org>
+Subject: [folded] mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:55:27 -0700
+Message-ID: <201105242355.p4ONtRKC023876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932911Ab1EXXy4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754245Ab1EXXza (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:54:56 -0400
+	Tue, 24 May 2011 19:55:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-thp-optimize-memcg-charge-in-khugepaged-fix
+     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-thp-optimize-memcg-charge-in-khugepaged.patch
+This patch was dropped because it was folded into mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-thp-optimize-memcg-charge-in-khugepaged-fix
+Subject: mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+ERROR: "foo* bar" should be "foo *bar"
+#67: FILE: include/linux/mm_types.h:323:
++static inline cpumask_t* mm_cpumask(struct mm_struct *mm)
+
+total: 1 errors, 0 warnings, 120 lines checked
+
+./patches/mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/mm_types.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-thp-optimize-memcg-charge-in-khugepaged-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-optimize-memcg-charge-in-khugepaged-fix
-+++ a/mm/huge_memory.c
-@@ -1788,7 +1788,11 @@ static void collapse_huge_page(struct mm
- 	 */
- 	new_page = alloc_hugepage_vma(khugepaged_defrag(), vma, address,
- 				      node, __GFP_OTHER_NODE);
--	/* after allocating the hugepage upgrade to mmap_sem write mode */
-+
-+	/*
-+	 * After allocating the hugepage, release the mmap_sem read lock in
-+	 * preparation for taking it in write mode.
-+	 */
- 	up_read(&mm->mmap_sem);
- 	if (unlikely(!new_page)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+diff -puN include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes
++++ a/include/linux/mm_types.h
+@@ -320,7 +320,7 @@ struct mm_struct {
+ };
+ 
+ /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
+-static inline cpumask_t* mm_cpumask(struct mm_struct *mm)
++static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
+ {
+ 	return mm->cpu_vm_mask_var;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,9 +69,7 @@ mm-per-node-vmstat-show-proper-vmstats.patch
 mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
 mm-mmu_gather-rework.patch
 mm-uninline-large-generic-tlbh-functions.patch
-mm-thp-optimize-memcg-charge-in-khugepaged.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
