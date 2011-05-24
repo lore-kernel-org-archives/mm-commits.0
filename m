@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-hook-up-gpiolib-support-fix.patch added to -mm tree
-Date: Tue, 24 May 2011 15:48:39 -0700
-Message-ID: <201105242325.p4ONPM57022498@imap1.linux-foundation.org>
+Subject: + drivers-gpio-vx855_gpioc-needs-slabh.patch added to -mm tree
+Date: Tue, 24 May 2011 15:55:55 -0700
+Message-ID: <201105242332.p4ONWcHe022757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323Ab1EXXZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757531Ab1EXXck (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:25:56 -0400
+	Tue, 24 May 2011 19:32:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca
 
 
 The patch titled
-     alpha-hook-up-gpiolib-support-fix
+     drivers/gpio/vx855_gpio.c needs slab.h
 has been added to the -mm tree.  Its filename is
-     alpha-hook-up-gpiolib-support-fix.patch
+     drivers-gpio-vx855_gpioc-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-hook-up-gpiolib-support-fix
+Subject: drivers/gpio/vx855_gpio.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-define GENERIC_GPIO
+alpha allmodconfig:
+
+drivers/gpio/vx855_gpio.c: In function 'vx855gpio_probe':
+drivers/gpio/vx855_gpio.c:233: error: implicit declaration of function 'kzalloc'
+drivers/gpio/vx855_gpio.c:233: warning: assignment makes pointer from integer without a cast
 
 Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- alpha/include/asm/gpio.h |    0 
- arch/alpha/Kconfig       |    3 +++
- 2 files changed, 3 insertions(+)
+ drivers/gpio/vx855_gpio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix
-+++ a/arch/alpha/Kconfig
-@@ -52,6 +52,9 @@ config GENERIC_CALIBRATE_DELAY
- config GENERIC_CMOS_UPDATE
-         def_bool y
- 
-+config GENERIC_GPIO
-+	def_bool y
-+
- config ZONE_DMA
- 	bool
- 	default y
-diff -puN arch/alpha/include/asm/gpio.h~alpha-hook-up-gpiolib-support-fix arch/alpha/include/asm/gpio.h
+diff -puN drivers/gpio/vx855_gpio.c~drivers-gpio-vx855_gpioc-needs-slabh drivers/gpio/vx855_gpio.c
+--- a/drivers/gpio/vx855_gpio.c~drivers-gpio-vx855_gpioc-needs-slabh
++++ a/drivers/gpio/vx855_gpio.c
+@@ -26,6 +26,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/gpio.h>
++#include <linux/slab.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,4 +97,5 @@ lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
 percpu_counter-change-return-value-and-add-comments-fix.patch
 checkpatch-suggest-using-min_t-or-max_t.patch
 fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-gpio-vx855_gpioc-needs-slabh.patch
 
