@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-vx855_gpioc-needs-slabh.patch added to -mm tree
-Date: Tue, 24 May 2011 15:55:55 -0700
-Message-ID: <201105242332.p4ONWcHe022757@imap1.linux-foundation.org>
+Subject: + drivers-gpio-ml_ioh_gpioc-needs-slabh.patch added to -mm tree
+Date: Tue, 24 May 2011 16:03:44 -0700
+Message-ID: <201105242340.p4ONeReN023155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757531Ab1EXXck (ORCPT
+	by vger.kernel.org with ESMTP id S1753016Ab1EXXka (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:32:40 -0400
+	Tue, 24 May 2011 19:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca
 
 
 The patch titled
-     drivers/gpio/vx855_gpio.c needs slab.h
+     drivers/gpio/ml_ioh_gpio.c needs slab.h
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-vx855_gpioc-needs-slabh.patch
+     drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/vx855_gpio.c needs slab.h
+Subject: drivers/gpio/ml_ioh_gpio.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha allmodconfig:
 
-drivers/gpio/vx855_gpio.c: In function 'vx855gpio_probe':
-drivers/gpio/vx855_gpio.c:233: error: implicit declaration of function 'kzalloc'
-drivers/gpio/vx855_gpio.c:233: warning: assignment makes pointer from integer without a cast
+drivers/gpio/ml_ioh_gpio.c: In function 'ioh_gpio_probe':
+drivers/gpio/ml_ioh_gpio.c:205: error: implicit declaration of function 'kzalloc'
+drivers/gpio/ml_ioh_gpio.c:205: warning: assignment makes pointer from integer without a cast
+
+also fix this:
+
+drivers/gpio/ml_ioh_gpio.c:145: warning: 'ioh_gpio_save_reg_conf' defined but not used
+drivers/gpio/ml_ioh_gpio.c:154: warning: 'ioh_gpio_restore_reg_conf' defined but not used
 
 Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/vx855_gpio.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpio/ml_ioh_gpio.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/gpio/vx855_gpio.c~drivers-gpio-vx855_gpioc-needs-slabh drivers/gpio/vx855_gpio.c
---- a/drivers/gpio/vx855_gpio.c~drivers-gpio-vx855_gpioc-needs-slabh
-+++ a/drivers/gpio/vx855_gpio.c
-@@ -26,6 +26,7 @@
+diff -puN drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh drivers/gpio/ml_ioh_gpio.c
+--- a/drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh
++++ a/drivers/gpio/ml_ioh_gpio.c
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+  */
  #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/gpio.h>
 +#include <linux/slab.h>
- #include <linux/device.h>
- #include <linux/platform_device.h>
  #include <linux/pci.h>
+ #include <linux/gpio.h>
+ 
+@@ -138,6 +139,7 @@ static int ioh_gpio_direction_input(stru
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
+ /*
+  * Save register configuration and disable interrupts.
+  */
+@@ -157,6 +159,7 @@ static void ioh_gpio_restore_reg_conf(st
+ 	/* to store contents of PM register */
+ 	iowrite32(chip->ioh_gpio_reg.pm_reg, &chip->reg->regs[chip->ch].pm);
+ }
++#endif
+ 
+ static void ioh_gpio_setup(struct ioh_gpio *chip, int num_port)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +116,7 @@ drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
 leds-provide-helper-to-register-leds-gpio-devices.patch
 lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
 percpu_counter-change-return-value-and-add-comments-fix.patch
-checkpatch-suggest-using-min_t-or-max_t.patch
 fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
 drivers-gpio-vx855_gpioc-needs-slabh.patch
+drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
 
