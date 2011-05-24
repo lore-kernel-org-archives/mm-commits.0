@@ -1,36 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch removed from -mm tree
-Date: Tue, 24 May 2011 16:58:08 -0700
-Message-ID: <201105242358.p4ONw8iD023980@imap1.linux-foundation.org>
+Subject: [folded] vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 16:58:05 -0700
+Message-ID: <201105242358.p4ONw57J023974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933653Ab1EXX6h (ORCPT
+	by vger.kernel.org with ESMTP id S933654Ab1EXX6i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 19:58:37 -0400
+	Tue, 24 May 2011 19:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gm
 
 
 The patch titled
-     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 
 This patch was dropped because it was folded into vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2
+Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix warning
-
-mm/vmscan.c: In function 'shrink_slab':
-mm/vmscan.c:230: warning: unused variable 'gfp_mask'
+fix build
 
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -45,20 +42,23 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/gpu/drm/i915/i915_gem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2
-+++ a/mm/vmscan.c
-@@ -227,7 +227,6 @@ unsigned long shrink_slab(struct shrink_
- 	struct shrinker *shrinker;
- 	unsigned long ret = 0;
- 	unsigned long scanned = shrink->nr_scanned;
--	gfp_t gfp_mask = shrink->gfp_mask;
+diff -puN drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -56,9 +56,7 @@ static int i915_gem_phys_pwrite(struct d
+ static void i915_gem_free_object_tail(struct drm_i915_gem_object *obj);
  
- 	if (scanned == 0)
- 		scanned = SWAP_CLUSTER_MAX;
+ static int i915_gem_inactive_shrink(struct shrinker *shrinker,
+-				    int nr_to_scan,
+-				    gfp_t gfp_mask);
+-
++				    struct shrink_control *sc);
+ 
+ /* some bookkeeping */
+ static void i915_gem_info_add_obj(struct drm_i915_private *dev_priv,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +72,7 @@ mm-mmu_gather-rework.patch
 mm-uninline-large-generic-tlbh-functions.patch
 mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix-fix.patch
 mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
