@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + add-the-pagefault-count-into-memcg-stats.patch added to -mm tree
-Date: Tue, 24 May 2011 11:09:45 -0700
-Message-ID: <201105241808.p4OI8ISH005881@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 24 May 2011 11:53:11 -0700
+Message-ID: <201105241851.p4OIpiK3008287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753298Ab1EXSIr (ORCPT
+	by vger.kernel.org with ESMTP id S1751010Ab1EXSwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 14:08:47 -0400
+	Tue, 24 May 2011 14:52:15 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4OIpi6X022406
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 24 May 2011 11:51:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghan@google.com, balbir@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memcg: add the pagefault count into memcg stats
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     add-the-pagefault-count-into-memcg-stats.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,304 +38,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add the pagefault count into memcg stats
-From: Ying Han <yinghan@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Two new stats in per-memcg memory.stat which tracks the number of page
-faults and number of major page faults.
-
-"pgfault"
-"pgmajfault"
-
-They are different from "pgpgin"/"pgpgout" stat which count number of
-pages charged/discharged to the cgroup and have no meaning of reading/
-writing page to disk.
-
-It is valuable to track the two stats for both measuring application's
-performance as well as the efficiency of the kernel page reclaim path. 
-Counting pagefaults per process is useful, but we also need the aggregated
-value since processes are monitored and controlled in cgroup basis in
-memcg.
-
-Functional test: check the total number of pgfault/pgmajfault of all
-memcgs and compare with global vmstat value:
-
-$ cat /proc/vmstat | grep fault
-pgfault 1070751
-pgmajfault 553
-
-$ cat /dev/cgroup/memory.stat | grep fault
-pgfault 1071138
-pgmajfault 553
-total_pgfault 1071142
-total_pgmajfault 553
-
-$ cat /dev/cgroup/A/memory.stat | grep fault
-pgfault 199
-pgmajfault 0
-total_pgfault 199
-total_pgmajfault 0
-
-Performance test: run page fault test(pft) wit 16 thread on faulting in
-15G anon pages in 16G container.  There is no regression noticed on the
-"flt/cpu/s"
-
-Sample output from pft:
-TAG pft:anon-sys-default:
-  Gb  Thr CLine   User     System     Wall    flt/cpu/s fault/wsec
-  15   16   1     0.67s   233.41s    14.76s   16798.546 266356.260
-
-+-------------------------------------------------------------------------+
-    N           Min           Max        Median           Avg        Stddev
-x  10     16682.962     17344.027     16913.524     16928.812      166.5362
-+  10     16695.568     16923.896     16820.604     16824.652     84.816568
-No difference proven at 95.0% confidence
-
-[akpm@linux-foundation.org: fix build]
-[hughd@google.com: shmem fix]
-Signed-off-by: Ying Han <yinghan@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/mmap.c            |    2 +
- include/linux/memcontrol.h |    7 +++++
- mm/filemap.c               |    1 
- mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++++
- mm/memory.c                |    2 +
- mm/shmem.c                 |   11 ++++----
- 6 files changed, 65 insertions(+), 5 deletions(-)
+ include/linux/pci_ids.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats fs/ncpfs/mmap.c
---- a/fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/fs/ncpfs/mmap.c
-@@ -16,6 +16,7 @@
- #include <linux/mman.h>
- #include <linux/string.h>
- #include <linux/fcntl.h>
-+#include <linux/memcontrol.h>
- 
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -92,6 +93,7 @@ static int ncp_file_mmap_fault(struct vm
- 	 * -- wli
- 	 */
- 	count_vm_event(PGMAJFAULT);
-+	mem_cgroup_count_vm_event(area->vm_mm, PGMAJFAULT);
- 	return VM_FAULT_MAJOR;
- }
- 
-diff -puN include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats
-+++ a/include/linux/memcontrol.h
-@@ -20,6 +20,8 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
- #include <linux/cgroup.h>
-+#include <linux/vm_event_item.h>
-+
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
-@@ -150,6 +152,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 						unsigned long *total_scanned);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
- 
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
- #endif
-@@ -363,6 +366,10 @@ static inline void mem_cgroup_split_huge
- {
- }
- 
-+static inline
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
-+{
-+}
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
-diff -puN mm/filemap.c~add-the-pagefault-count-into-memcg-stats mm/filemap.c
---- a/mm/filemap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/filemap.c
-@@ -1661,6 +1661,7 @@ int filemap_fault(struct vm_area_struct 
- 		/* No page in the page cache at all */
- 		do_sync_mmap_readahead(vma, ra, file, offset);
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 		ret = VM_FAULT_MAJOR;
- retry_find:
- 		page = find_get_page(mapping, offset);
-diff -puN mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats mm/memcontrol.c
---- a/mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/memcontrol.c
-@@ -94,6 +94,8 @@ enum mem_cgroup_events_index {
- 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
- 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
- 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
-+	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
-+	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
- 	MEM_CGROUP_EVENTS_NSTATS,
- };
- /*
-@@ -590,6 +592,16 @@ static void mem_cgroup_swap_statistics(s
- 	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
- }
- 
-+void mem_cgroup_pgfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGFAULT], val);
-+}
-+
-+void mem_cgroup_pgmajfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT], val);
-+}
-+
- static unsigned long mem_cgroup_read_events(struct mem_cgroup *mem,
- 					    enum mem_cgroup_events_index idx)
- {
-@@ -827,6 +839,33 @@ static inline bool mem_cgroup_is_root(st
- 	return (mem == root_mem_cgroup);
- }
- 
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
-+{
-+	struct mem_cgroup *mem;
-+
-+	if (!mm)
-+		return;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	if (unlikely(!mem))
-+		goto out;
-+
-+	switch (idx) {
-+	case PGMAJFAULT:
-+		mem_cgroup_pgmajfault(mem, 1);
-+		break;
-+	case PGFAULT:
-+		mem_cgroup_pgfault(mem, 1);
-+		break;
-+	default:
-+		BUG();
-+	}
-+out:
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(mem_cgroup_count_vm_event);
-+
- /*
-  * Following LRU functions are allowed to be used without PCG_LOCK.
-  * Operations are called by routine of global LRU independently from memcg.
-@@ -3958,6 +3997,8 @@ enum {
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
- 	MCS_SWAP,
-+	MCS_PGFAULT,
-+	MCS_PGMAJFAULT,
- 	MCS_INACTIVE_ANON,
- 	MCS_ACTIVE_ANON,
- 	MCS_INACTIVE_FILE,
-@@ -3980,6 +4021,8 @@ struct {
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
- 	{"swap", "total_swap"},
-+	{"pgfault", "total_pgfault"},
-+	{"pgmajfault", "total_pgmajfault"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
-@@ -4008,6 +4051,10 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
- 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGFAULT);
-+	s->stat[MCS_PGFAULT] += val;
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGMAJFAULT);
-+	s->stat[MCS_PGMAJFAULT] += val;
- 
- 	/* per zone stat */
- 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
-diff -puN mm/memory.c~add-the-pagefault-count-into-memcg-stats mm/memory.c
---- a/mm/memory.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/memory.c
-@@ -2874,6 +2874,7 @@ static int do_swap_page(struct mm_struct
- 		/* Had to read the page from swap area: Major fault */
- 		ret = VM_FAULT_MAJOR;
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(mm, PGMAJFAULT);
- 	} else if (PageHWPoison(page)) {
- 		/*
- 		 * hwpoisoned dirty swapcache pages are kept for killing
-@@ -3413,6 +3414,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	__set_current_state(TASK_RUNNING);
- 
- 	count_vm_event(PGFAULT);
-+	mem_cgroup_count_vm_event(mm, PGFAULT);
- 
- 	/* do counter updates before entering really critical section. */
- 	check_sync_rss_stat(current);
-diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats mm/shmem.c
---- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/shmem.c
-@@ -1305,12 +1305,10 @@ repeat:
- 		swappage = lookup_swap_cache(swap);
- 		if (!swappage) {
- 			shmem_swp_unmap(entry);
-+			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type && !(*type & VM_FAULT_MAJOR)) {
--				__count_vm_event(PGMAJFAULT);
-+			if (type)
- 				*type |= VM_FAULT_MAJOR;
--			}
--			spin_unlock(&info->lock);
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
-@@ -1549,7 +1547,10 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
-+	if (ret & VM_FAULT_MAJOR) {
-+		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+	}
- 	return ret | VM_FAULT_LOCKED;
- }
- 
+diff -puN include/linux/pci_ids.h~linux-next-git-rejects include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~linux-next-git-rejects
++++ a/include/linux/pci_ids.h
+@@ -2481,16 +2481,11 @@
+ #define PCI_DEVICE_ID_INTEL_IOAT	0x1a38
+ #define PCI_DEVICE_ID_INTEL_COUGARPOINT_LPC_MIN	0x1c41
+ #define PCI_DEVICE_ID_INTEL_COUGARPOINT_LPC_MAX	0x1c5f
+-<<<<<<< HEAD
+-=======
+ #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_SMBUS	0x1e22
+ #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MIN	0x1e40
+ #define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MAX	0x1e5f
+->>>>>>> FETCH_HEAD
+ #define PCI_DEVICE_ID_INTEL_PATSBURG_LPC_0	0x1d40
+ #define PCI_DEVICE_ID_INTEL_PATSBURG_LPC_1	0x1d41
+-#define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MIN	0x1e40
+-#define PCI_DEVICE_ID_INTEL_PANTHERPOINT_LPC_MAX	0x1e5f
+ #define PCI_DEVICE_ID_INTEL_DH89XXCC_LPC_MIN	0x2310
+ #define PCI_DEVICE_ID_INTEL_DH89XXCC_LPC_MAX	0x231f
+ #define PCI_DEVICE_ID_INTEL_82801AA_0	0x2410
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-change-shrink_slab-interfaces-by-passing-shrink_control.patch
+origin.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+backlight-add-backlight-type-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+mtd-convert-to-seq_file-interface.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
+osst-wrong-index-used-in-inner-loop.patch
+drivers-scsi-osstc-fix-warning.patch
+drbd-fix-warning.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
 vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-3.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+compat-fixes-to-allow-working-with-tile-arch-checkpatch-fixes.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
 mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
 memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
-memcg-add-memorynumastat-api-for-numa-statistics.patch
-memcg-add-memorynumastat-api-for-numa-statistics-v5.patch
 add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
