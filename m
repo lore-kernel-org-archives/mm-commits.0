@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-include-linux-prefetchh.patch added to -mm tree
-Date: Tue, 24 May 2011 12:34:57 -0700
-Message-ID: <201105241934.p4OJYvq2010626@imap1.linux-foundation.org>
+Subject: + vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch added to -mm tree
+Date: Tue, 24 May 2011 13:47:21 -0700
+Message-ID: <201105242124.p4OLO59V016274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756154Ab1EXTfF (ORCPT
+	by vger.kernel.org with ESMTP id S1753197Ab1EXVYk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 15:35:05 -0400
+	Tue, 24 May 2011 17:24:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, yinghan@google.com
 
 
 The patch titled
-     um: include linux/prefetch.h
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix
 has been added to the -mm tree.  Its filename is
-     um-include-linux-prefetchh.patch
+     vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: include linux/prefetch.h
-From: Richard Weinberger <richard@nod.at>
+Subject: vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix build failures on UML.
+fs/xfs/quota/xfs_qm.c: In function 'xfs_qm_shake':
+fs/xfs/quota/xfs_qm.c:2015: warning: unused variable 'nr_to_scan'
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/processor-generic.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/xfs/quota/xfs_qm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/um/include/asm/processor-generic.h~um-include-linux-prefetchh arch/um/include/asm/processor-generic.h
---- a/arch/um/include/asm/processor-generic.h~um-include-linux-prefetchh
-+++ a/arch/um/include/asm/processor-generic.h
-@@ -14,6 +14,8 @@ struct task_struct;
- #include "registers.h"
- #include "sysdep/archsetjmp.h"
+diff -puN fs/xfs/quota/xfs_qm.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix fs/xfs/quota/xfs_qm.c
+--- a/fs/xfs/quota/xfs_qm.c~vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix
++++ a/fs/xfs/quota/xfs_qm.c
+@@ -2012,7 +2012,6 @@ xfs_qm_shake(
+ 	struct shrink_control *sc)
+ {
+ 	int	ndqused, nfree, n;
+-	int nr_to_scan = sc->nr_to_scan;
+ 	gfp_t gfp_mask = sc->gfp_mask;
  
-+#include <linux/prefetch.h>
-+
- struct mm_struct;
- 
- struct thread_struct {
+ 	if (!kmem_shake_allow(gfp_mask))
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-mmu_gather-rework.patch
-powerpc-mmu_gather-rework.patch
-sparc-mmu_gather-rework.patch
-s390-mmu_gather-rework.patch
-arm-mmu_gather-rework.patch
-sh-mmu_gather-rework.patch
-ia64-mmu_gather-rework.patch
-um-mmu_gather-rework.patch
-mm-now-that-all-old-mmu_gather-code-is-gone-remove-the-storage.patch
-mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
-mm-extended-batches-for-generic-mmu_gather.patch
-lockdep-mutex-provide-mutex_lock_nest_lock.patch
-mm-remove-i_mmap_lock-lockbreak.patch
-mm-convert-i_mmap_lock-to-a-mutex.patch
-mm-revert-page_lock_anon_vma-lock-annotation.patch
-mm-improve-page_lock_anon_vma-comment.patch
-mm-use-refcounts-for-page_lock_anon_vma.patch
-mm-convert-anon_vma-lock-to-a-mutex.patch
-mm-optimize-page_lock_anon_vma-fast-path.patch
-um-os_dump_core-cleanup.patch
-um-fix-uml_lib_path.patch
-um-remove-sighup-handler.patch
-um-add-earlyprintk-support.patch
-um-add-ucast-ethernet-transport.patch
-um-print-info-about-fatal-segfaults.patch
-um-include-linux-prefetchh.patch
-um-fix-crash-while-os_dump_core.patch
-remove-unused-proc_change_penalty-constant.patch
-lib-consolidate-debug_stack_usage-option.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+mm-nommu-sort-mm-mmap-list-properly-fix.patch
+mm-per-node-vmstat-show-proper-vmstats-fix.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur-fix.patch
+mm-mmu_gather-rework-fix.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-thp-optimize-memcg-charge-in-khugepaged-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-fix.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t-checkpatch-fixes.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix.patch
+vmscan-change-shrink_slab-interfaces-by-passing-shrink_control-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-2.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct-fix-4-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix.patch
+mm-filter-unevictable-page-out-in-deactivate_page-fix-fix.patch
+nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
+printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
+printk-allocate-kernel-log-buffer-earlier-v2-fix.patch
+drivers-leds-leds-lm3530c-add-regulator-checkpatch-fixes.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation-fix.patch
+percpu_counter-change-return-value-and-add-comments-fix.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
 
