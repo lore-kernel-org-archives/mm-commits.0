@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + um-fix-crash-while-os_dump_core.patch added to -mm tree
-Date: Tue, 24 May 2011 12:34:59 -0700
-Message-ID: <201105241934.p4OJYxlE010629@imap1.linux-foundation.org>
+Subject: + um-include-linux-prefetchh.patch added to -mm tree
+Date: Tue, 24 May 2011 12:34:57 -0700
+Message-ID: <201105241934.p4OJYvq2010626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932980Ab1EXTfH (ORCPT
+	by vger.kernel.org with ESMTP id S1756154Ab1EXTfF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 15:35:07 -0400
+	Tue, 24 May 2011 15:35:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: richard@nod.at
 
 
 The patch titled
-     um: fix crash while os_dump_core()
+     um: include linux/prefetch.h
 has been added to the -mm tree.  Its filename is
-     um-fix-crash-while-os_dump_core.patch
+     um-include-linux-prefetchh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: fix crash while os_dump_core()
+Subject: um: include linux/prefetch.h
 From: Richard Weinberger <richard@nod.at>
 
-os_dump_core() emits SIGTERM to terminate all UML processes.  Kernel
-threads have to exit on SIGTERM instead of calling last_ditch_exit(). 
-Multiple calls to last_ditch_exit() can cause a crash.
+Fix build failures on UML.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/process.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/include/asm/processor-generic.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/um/os-Linux/process.c~um-fix-crash-while-os_dump_core arch/um/os-Linux/process.c
---- a/arch/um/os-Linux/process.c~um-fix-crash-while-os_dump_core
-+++ a/arch/um/os-Linux/process.c
-@@ -253,6 +253,7 @@ void init_new_thread_signals(void)
- 		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH, SIGALRM,
- 		    SIGVTALRM, -1);
- 	signal(SIGWINCH, SIG_IGN);
-+	signal(SIGTERM, SIG_DFL);
- }
+diff -puN arch/um/include/asm/processor-generic.h~um-include-linux-prefetchh arch/um/include/asm/processor-generic.h
+--- a/arch/um/include/asm/processor-generic.h~um-include-linux-prefetchh
++++ a/arch/um/include/asm/processor-generic.h
+@@ -14,6 +14,8 @@ struct task_struct;
+ #include "registers.h"
+ #include "sysdep/archsetjmp.h"
  
- int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr)
++#include <linux/prefetch.h>
++
+ struct mm_struct;
+ 
+ struct thread_struct {
 _
 
 Patches currently in -mm which might be from richard@nod.at are
