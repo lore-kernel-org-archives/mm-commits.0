@@ -1,63 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-profilec-use-vzalloc-instead-of-vmallocmemset.patch removed from -mm tree
-Date: Tue, 24 May 2011 11:55:23 -0700
-Message-ID: <201105241853.p4OIruKQ008433@imap1.linux-foundation.org>
+Subject: + rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch added to -mm tree
+Date: Tue, 24 May 2011 12:19:23 -0700
+Message-ID: <201105241919.p4OJJOAV009853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752563Ab1EXTDh (ORCPT
+	by vger.kernel.org with ESMTP id S1756092Ab1EXTUJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 15:03:37 -0400
+	Tue, 24 May 2011 15:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rakib.mullick@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: david@fries.net, David@fries.net, linville@tuxdriver.com, marcel@holtmann.org, padovan@profusion.mobi
 
 
 The patch titled
-     kernel/profile.c: use vzalloc instead of vmalloc+memset
-has been removed from the -mm tree.  Its filename was
-     kernel-profilec-use-vzalloc-instead-of-vmallocmemset.patch
+     rfcomm/core.c: avoid dangling pointer, check session exists
+has been added to the -mm tree.  Its filename is
+     rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/profile.c: use vzalloc instead of vmalloc+memset
-From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: rfcomm/core.c: avoid dangling pointer, check session exists
+From: David Fries <david@fries.net>
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+rfcomm_process_sessions is calling rfcomm_process_rx, but in this case the
+session is closed and freed leaving a dangling pointer that blows up when
+rfcomm_process_rx returns and rfcomm_process_dlcs is called with the now
+dangling session pointer.  Check to see if the entry is still in the list.
+
+Signed-off-by: David Fries <David@Fries.net>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "Gustavo F. Padovan" <padovan@profusion.mobi>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/profile.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/bluetooth/rfcomm/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/profile.c~kernel-profilec-use-vzalloc-instead-of-vmallocmemset kernel/profile.c
---- a/kernel/profile.c~kernel-profilec-use-vzalloc-instead-of-vmallocmemset
-+++ a/kernel/profile.c
-@@ -126,11 +126,9 @@ int __ref profile_init(void)
- 	if (prof_buffer)
- 		return 0;
+diff -puN net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists
++++ a/net/bluetooth/rfcomm/core.c
+@@ -1955,6 +1955,12 @@ static inline void rfcomm_process_sessio
  
--	prof_buffer = vmalloc(buffer_bytes);
--	if (prof_buffer) {
--		memset(prof_buffer, 0, buffer_bytes);
-+	prof_buffer = vzalloc(buffer_bytes);
-+	if (prof_buffer)
- 		return 0;
--	}
+ 		default:
+ 			rfcomm_process_rx(s);
++			/* The current session can be closed as part of rx
++			 * in which case s is now dangling.  Check if it
++			 * has been removed.
++			 */
++			if(n->prev != p)
++				continue;
+ 			break;
+ 		}
  
- 	free_cpumask_var(prof_cpu_mask);
- 	return -ENOMEM;
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-drivers-char-mspecc-use-kvzalloc-to-allocate-memory.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch
 
