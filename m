@@ -1,282 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-extended-batches-for-generic-mmu_gather.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:28:41 -0700
-Message-ID: <201105252027.p4PKR44J014547@imap1.linux-foundation.org>
+Subject: [merged] mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:29:21 -0700
+Message-ID: <201105252027.p4PKRi7F014604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755103Ab1EYU2T (ORCPT
+	by vger.kernel.org with ESMTP id S932190Ab1EYU2Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:28:19 -0400
+	Wed, 25 May 2011 16:28:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd@google.com, jdike@addtoit.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lethal@linu
+To: khlebnikov@openvz.org, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: extended batches for generic mmu_gather
+     mem-hwpoison: fix page refcount around isolate_lru_page()
 has been removed from the -mm tree.  Its filename was
-     mm-extended-batches-for-generic-mmu_gather.patch
+     mem-hwpoison-fix-page-refcount-around-isolate_lru_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: extended batches for generic mmu_gather
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mem-hwpoison: fix page refcount around isolate_lru_page()
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Instead of using a single batch (the small on-stack, or an allocated
-page), try and extend the batch every time it runs out and only flush once
-either the extend fails or we're done.
+Drop first page reference only after calling isolate_lru_page() to keep
+page stable reference while isolating.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Requested-by: Nick Piggin <npiggin@kernel.dk>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |  129 +++++++++++++++++++++++-------------
- mm/memory.c               |    2 
- 2 files changed, 84 insertions(+), 47 deletions(-)
+ mm/memory-failure.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/tlb.h~mm-extended-batches-for-generic-mmu_gather include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-extended-batches-for-generic-mmu_gather
-+++ a/include/asm-generic/tlb.h
-@@ -19,16 +19,6 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- 
--/*
-- * For UP we don't need to worry about TLB flush
-- * and page free order so much..
-- */
--#ifdef CONFIG_SMP
--  #define tlb_fast_mode(tlb) ((tlb)->nr == ~0U)
--#else
--  #define tlb_fast_mode(tlb) 1
--#endif
+diff -puN mm/memory-failure.c~mem-hwpoison-fix-page-refcount-around-isolate_lru_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mem-hwpoison-fix-page-refcount-around-isolate_lru_page
++++ a/mm/memory-failure.c
+@@ -1440,16 +1440,12 @@ int soft_offline_page(struct page *page,
+ 	 */
+ 	ret = invalidate_inode_page(page);
+ 	unlock_page(page);
 -
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- /*
-  * Semi RCU freeing of the page directories.
-@@ -78,6 +68,16 @@ extern void tlb_remove_table(struct mmu_
-  */
- #define MMU_GATHER_BUNDLE	8
+ 	/*
+-	 * Drop count because page migration doesn't like raised
+-	 * counts. The page could get re-allocated, but if it becomes
+-	 * LRU the isolation will just fail.
+ 	 * RED-PEN would be better to keep it isolated here, but we
+ 	 * would need to fix isolation locking first.
+ 	 */
+-	put_page(page);
+ 	if (ret == 1) {
++		put_page(page);
+ 		ret = 0;
+ 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
+ 		goto done;
+@@ -1461,6 +1457,11 @@ int soft_offline_page(struct page *page,
+ 	 * handles a large number of cases for us.
+ 	 */
+ 	ret = isolate_lru_page(page);
++	/*
++	 * Drop page reference which is came from get_any_page()
++	 * successful isolate_lru_page() already took another one.
++	 */
++	put_page(page);
+ 	if (!ret) {
+ 		LIST_HEAD(pagelist);
  
-+struct mmu_gather_batch {
-+	struct mmu_gather_batch	*next;
-+	unsigned int		nr;
-+	unsigned int		max;
-+	struct page		*pages[0];
-+};
-+
-+#define MAX_GATHER_BATCH	\
-+	((PAGE_SIZE - sizeof(struct mmu_gather_batch)) / sizeof(void *))
-+
- /* struct mmu_gather is an opaque type used by the mm code for passing around
-  * any data needed by arch specific code for tlb_remove_page.
-  */
-@@ -86,22 +86,48 @@ struct mmu_gather {
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- 	struct mmu_table_batch	*batch;
- #endif
--	unsigned int		nr;	/* set to ~0U means fast mode */
--	unsigned int		max;	/* nr < max */
--	unsigned int		need_flush;/* Really unmapped some ptes? */
--	unsigned int		fullmm; /* non-zero means full mm flush */
--	struct page		**pages;
--	struct page		*local[MMU_GATHER_BUNDLE];
-+	unsigned int		need_flush : 1,	/* Did free PTEs */
-+				fast_mode  : 1; /* No batching   */
-+
-+	unsigned int		fullmm;
-+
-+	struct mmu_gather_batch *active;
-+	struct mmu_gather_batch	local;
-+	struct page		*__pages[MMU_GATHER_BUNDLE];
- };
- 
--static inline void __tlb_alloc_page(struct mmu_gather *tlb)
-+/*
-+ * For UP we don't need to worry about TLB flush
-+ * and page free order so much..
-+ */
-+#ifdef CONFIG_SMP
-+  #define tlb_fast_mode(tlb) (tlb->fast_mode)
-+#else
-+  #define tlb_fast_mode(tlb) 1
-+#endif
-+
-+static inline int tlb_next_batch(struct mmu_gather *tlb)
- {
--	unsigned long addr = __get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-+	struct mmu_gather_batch *batch;
- 
--	if (addr) {
--		tlb->pages = (void *)addr;
--		tlb->max = PAGE_SIZE / sizeof(struct page *);
-+	batch = tlb->active;
-+	if (batch->next) {
-+		tlb->active = batch->next;
-+		return 1;
- 	}
-+
-+	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-+	if (!batch)
-+		return 0;
-+
-+	batch->next = NULL;
-+	batch->nr   = 0;
-+	batch->max  = MAX_GATHER_BATCH;
-+
-+	tlb->active->next = batch;
-+	tlb->active = batch;
-+
-+	return 1;
- }
- 
- /* tlb_gather_mmu
-@@ -114,16 +140,13 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
- {
- 	tlb->mm = mm;
- 
--	tlb->max = ARRAY_SIZE(tlb->local);
--	tlb->pages = tlb->local;
--
--	if (num_online_cpus() > 1) {
--		tlb->nr = 0;
--		__tlb_alloc_page(tlb);
--	} else /* Use fast mode if only one CPU is online */
--		tlb->nr = ~0U;
--
--	tlb->fullmm = fullmm;
-+	tlb->fullmm     = fullmm;
-+	tlb->need_flush = 0;
-+	tlb->fast_mode  = (num_possible_cpus() == 1);
-+	tlb->local.next = NULL;
-+	tlb->local.nr   = 0;
-+	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
-+	tlb->active     = &tlb->local;
- 
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- 	tlb->batch = NULL;
-@@ -133,6 +156,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
- static inline void
- tlb_flush_mmu(struct mmu_gather *tlb)
- {
-+	struct mmu_gather_batch *batch;
-+
- 	if (!tlb->need_flush)
- 		return;
- 	tlb->need_flush = 0;
-@@ -140,17 +165,15 @@ tlb_flush_mmu(struct mmu_gather *tlb)
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- 	tlb_table_flush(tlb);
- #endif
--	if (!tlb_fast_mode(tlb)) {
--		free_pages_and_swap_cache(tlb->pages, tlb->nr);
--		tlb->nr = 0;
--		/*
--		 * If we are using the local on-stack array of pages for MMU
--		 * gather, try allocating an off-stack array again as we have
--		 * recently freed pages.
--		 */
--		if (tlb->pages == tlb->local)
--			__tlb_alloc_page(tlb);
-+
-+	if (tlb_fast_mode(tlb))
-+		return;
-+
-+	for (batch = &tlb->local; batch; batch = batch->next) {
-+		free_pages_and_swap_cache(batch->pages, batch->nr);
-+		batch->nr = 0;
- 	}
-+	tlb->active = &tlb->local;
- }
- 
- /* tlb_finish_mmu
-@@ -160,13 +183,18 @@ tlb_flush_mmu(struct mmu_gather *tlb)
- static inline void
- tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
- {
-+	struct mmu_gather_batch *batch, *next;
-+
- 	tlb_flush_mmu(tlb);
- 
- 	/* keep the page table cache within bounds */
- 	check_pgt_cache();
- 
--	if (tlb->pages != tlb->local)
--		free_pages((unsigned long)tlb->pages, 0);
-+	for (batch = tlb->local.next; batch; batch = next) {
-+		next = batch->next;
-+		free_pages((unsigned long)batch, 0);
-+	}
-+	tlb->local.next = NULL;
- }
- 
- /* __tlb_remove_page
-@@ -177,15 +205,24 @@ tlb_finish_mmu(struct mmu_gather *tlb, u
-  */
- static inline int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
-+	struct mmu_gather_batch *batch;
-+
- 	tlb->need_flush = 1;
-+
- 	if (tlb_fast_mode(tlb)) {
- 		free_page_and_swap_cache(page);
- 		return 1; /* avoid calling tlb_flush_mmu() */
- 	}
--	tlb->pages[tlb->nr++] = page;
--	VM_BUG_ON(tlb->nr > tlb->max);
- 
--	return tlb->max - tlb->nr;
-+	batch = tlb->active;
-+	batch->pages[batch->nr++] = page;
-+	VM_BUG_ON(batch->nr > batch->max);
-+	if (batch->nr == batch->max) {
-+		if (!tlb_next_batch(tlb))
-+			return 0;
-+	}
-+
-+	return batch->max - batch->nr;
- }
- 
- /* tlb_remove_page
-diff -puN mm/memory.c~mm-extended-batches-for-generic-mmu_gather mm/memory.c
---- a/mm/memory.c~mm-extended-batches-for-generic-mmu_gather
-+++ a/mm/memory.c
-@@ -994,8 +994,8 @@ static unsigned long zap_pte_range(struc
- 	spinlock_t *ptl;
- 	int rss[NR_MM_COUNTERS];
- 
--	init_rss_vec(rss);
- again:
-+	init_rss_vec(rss);
- 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	arch_enter_lazy_mmu_mode();
- 	do {
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
-linux-next.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 
