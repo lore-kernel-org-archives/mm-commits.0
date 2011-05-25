@@ -1,160 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nommu-add-page-alignment-to-mmap.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:39 -0700
-Message-ID: <201105252029.p4PKT3Ls014811@imap1.linux-foundation.org>
+Subject: [merged] printk-allocate-kernel-log-buffer-earlier-v2.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:31:42 -0700
+Message-ID: <201105252030.p4PKU6S2014934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932667Ab1EYUtU (ORCPT
+	by vger.kernel.org with ESMTP id S932580Ab1EYUtT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:20 -0400
+	Wed, 25 May 2011 16:49:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: travis@sgi.com, hpa@zytor.com, steiner@sgi.com, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: add page alignment to mmap
+     printk: allocate kernel log buffer earlier
 has been removed from the -mm tree.  Its filename was
-     nommu-add-page-alignment-to-mmap.patch
+     printk-allocate-kernel-log-buffer-earlier-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: add page alignment to mmap
-From: Bob Liu <lliubbo@gmail.com>
+Subject: printk: allocate kernel log buffer earlier
+From: Mike Travis <travis@sgi.com>
 
-Currently on nommu arch mmap(),mremap() and munmap() doesn't do
-page_align() which isn't consist with mmu arch and cause some issues.
+On larger systems, because of the numerous ACPI, Bootmem and EFI messages,
+the static log buffer overflows before the larger one specified by the
+log_buf_len param is allocated.  Minimize the overflow by allocating the
+new log buffer as soon as possible.
 
-First, some drivers' mmap() function depends on vma->vm_end - vma->start
-is page aligned which is true on mmu arch but not on nommu.  eg: uvc
-camera driver.
-
-Second munmap() may return -EINVAL[split file] error in cases when end is
-not page aligned(passed into from userspace) but vma->vm_end is aligned
-dure to split or driver's mmap() ops.
-
-Add page alignment to fix those issues.
+On kernels without memblock, a later call to setup_log_buf from
+kernel/init.c is the fallback.
 
 [akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+[akpm@linux-foundation.org: fix CONFIG_PRINTK=n build]
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ arch/x86/kernel/setup.c |    2 
+ include/linux/printk.h  |    7 +++
+ init/main.c             |    1 
+ kernel/printk.c         |   87 +++++++++++++++++++++++++-------------
+ 4 files changed, 68 insertions(+), 29 deletions(-)
 
-diff -puN mm/nommu.c~nommu-add-page-alignment-to-mmap mm/nommu.c
---- a/mm/nommu.c~nommu-add-page-alignment-to-mmap
-+++ a/mm/nommu.c
-@@ -1124,7 +1124,7 @@ static int do_mmap_private(struct vm_are
- 			   unsigned long capabilities)
- {
- 	struct page *pages;
--	unsigned long total, point, n, rlen;
-+	unsigned long total, point, n;
- 	void *base;
- 	int ret, order;
+diff -puN arch/x86/kernel/setup.c~printk-allocate-kernel-log-buffer-earlier-v2 arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~printk-allocate-kernel-log-buffer-earlier-v2
++++ a/arch/x86/kernel/setup.c
+@@ -946,6 +946,8 @@ void __init setup_arch(char **cmdline_p)
+ 	if (init_ohci1394_dma_early)
+ 		init_ohci1394_dma_on_all_controllers();
+ #endif
++	/* Allocate bigger log buffer */
++	setup_log_buf(1);
  
-@@ -1148,13 +1148,12 @@ static int do_mmap_private(struct vm_are
- 		 * make a private copy of the data and map that instead */
- 	}
+ 	reserve_initrd();
  
--	rlen = PAGE_ALIGN(len);
+diff -puN include/linux/printk.h~printk-allocate-kernel-log-buffer-earlier-v2 include/linux/printk.h
+--- a/include/linux/printk.h~printk-allocate-kernel-log-buffer-earlier-v2
++++ a/include/linux/printk.h
+@@ -1,6 +1,8 @@
+ #ifndef __KERNEL_PRINTK__
+ #define __KERNEL_PRINTK__
  
- 	/* allocate some memory to hold the mapping
- 	 * - note that this may not return a page-aligned address if the object
- 	 *   we're allocating is smaller than a page
- 	 */
--	order = get_order(rlen);
-+	order = get_order(len);
- 	kdebug("alloc order %d for %lx", order, len);
- 
- 	pages = alloc_pages(GFP_KERNEL, order);
-@@ -1164,7 +1163,7 @@ static int do_mmap_private(struct vm_are
- 	total = 1 << order;
- 	atomic_long_add(total, &mmap_pages_allocated);
- 
--	point = rlen >> PAGE_SHIFT;
-+	point = len >> PAGE_SHIFT;
- 
- 	/* we allocated a power-of-2 sized page set, so we may want to trim off
- 	 * the excess */
-@@ -1186,7 +1185,7 @@ static int do_mmap_private(struct vm_are
- 	base = page_address(pages);
- 	region->vm_flags = vma->vm_flags |= VM_MAPPED_COPY;
- 	region->vm_start = (unsigned long) base;
--	region->vm_end   = region->vm_start + rlen;
-+	region->vm_end   = region->vm_start + len;
- 	region->vm_top   = region->vm_start + (total << PAGE_SHIFT);
- 
- 	vma->vm_start = region->vm_start;
-@@ -1202,15 +1201,15 @@ static int do_mmap_private(struct vm_are
- 
- 		old_fs = get_fs();
- 		set_fs(KERNEL_DS);
--		ret = vma->vm_file->f_op->read(vma->vm_file, base, rlen, &fpos);
-+		ret = vma->vm_file->f_op->read(vma->vm_file, base, len, &fpos);
- 		set_fs(old_fs);
- 
- 		if (ret < 0)
- 			goto error_free;
- 
- 		/* clear the last little bit */
--		if (ret < rlen)
--			memset(base + ret, 0, rlen - ret);
-+		if (ret < len)
-+			memset(base + ret, 0, len - ret);
- 
- 	}
- 
-@@ -1260,6 +1259,7 @@ unsigned long do_mmap_pgoff(struct file 
- 
- 	/* we ignore the address hint */
- 	addr = 0;
-+	len = PAGE_ALIGN(len);
- 
- 	/* we've determined that we can make the mapping, now translate what we
- 	 * now know into VMA flags */
-@@ -1636,14 +1636,17 @@ static int shrink_vma(struct mm_struct *
- int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
- {
- 	struct vm_area_struct *vma;
--	unsigned long end = start + len;
-+	unsigned long end;
- 	int ret;
- 
- 	kenter(",%lx,%zx", start, len);
- 
-+	len = PAGE_ALIGN(len);
- 	if (len == 0)
- 		return -EINVAL;
- 
-+	end = start + len;
++#include <linux/init.h>
 +
- 	/* find the first potentially overlapping VMA */
- 	vma = find_vma(mm, start);
- 	if (!vma) {
-@@ -1763,6 +1766,8 @@ unsigned long do_mremap(unsigned long ad
- 	struct vm_area_struct *vma;
+ extern const char linux_banner[];
+ extern const char linux_proc_banner[];
  
- 	/* insanity checks first */
-+	old_len = PAGE_ALIGN(old_len);
-+	new_len = PAGE_ALIGN(new_len);
- 	if (old_len == 0 || new_len == 0)
- 		return (unsigned long) -EINVAL;
+@@ -113,6 +115,7 @@ extern int dmesg_restrict;
+ extern int kptr_restrict;
+ 
+ void log_buf_kexec_setup(void);
++void __init setup_log_buf(int early);
+ #else
+ static inline __attribute__ ((format (printf, 1, 0)))
+ int vprintk(const char *s, va_list args)
+@@ -137,6 +140,10 @@ static inline bool printk_timed_ratelimi
+ static inline void log_buf_kexec_setup(void)
+ {
+ }
++
++static inline void setup_log_buf(int early)
++{
++}
+ #endif
+ 
+ extern void dump_stack(void) __cold;
+diff -puN init/main.c~printk-allocate-kernel-log-buffer-earlier-v2 init/main.c
+--- a/init/main.c~printk-allocate-kernel-log-buffer-earlier-v2
++++ a/init/main.c
+@@ -504,6 +504,7 @@ asmlinkage void __init start_kernel(void
+ 	 * These use large bootmem allocations and must precede
+ 	 * kmem_cache_init()
+ 	 */
++	setup_log_buf(0);
+ 	pidhash_init();
+ 	vfs_caches_init_early();
+ 	sort_main_extable();
+diff -puN kernel/printk.c~printk-allocate-kernel-log-buffer-earlier-v2 kernel/printk.c
+--- a/kernel/printk.c~printk-allocate-kernel-log-buffer-earlier-v2
++++ a/kernel/printk.c
+@@ -31,6 +31,7 @@
+ #include <linux/smp.h>
+ #include <linux/security.h>
+ #include <linux/bootmem.h>
++#include <linux/memblock.h>
+ #include <linux/syscalls.h>
+ #include <linux/kexec.h>
+ #include <linux/kdb.h>
+@@ -167,46 +168,74 @@ void log_buf_kexec_setup(void)
+ }
+ #endif
+ 
++/* requested log_buf_len from kernel cmdline */
++static unsigned long __initdata new_log_buf_len;
++
++/* save requested log_buf_len since it's too early to process it */
+ static int __init log_buf_len_setup(char *str)
+ {
+ 	unsigned size = memparse(str, &str);
+-	unsigned long flags;
+ 
+ 	if (size)
+ 		size = roundup_pow_of_two(size);
+-	if (size > log_buf_len) {
+-		unsigned start, dest_idx, offset;
+-		char *new_log_buf;
+-
+-		new_log_buf = alloc_bootmem(size);
+-		if (!new_log_buf) {
+-			printk(KERN_WARNING "log_buf_len: allocation failed\n");
+-			goto out;
+-		}
++	if (size > log_buf_len)
++		new_log_buf_len = size;
+ 
+-		spin_lock_irqsave(&logbuf_lock, flags);
+-		log_buf_len = size;
+-		log_buf = new_log_buf;
++	return 0;
++}
++early_param("log_buf_len", log_buf_len_setup);
+ 
+-		offset = start = min(con_start, log_start);
+-		dest_idx = 0;
+-		while (start != log_end) {
+-			log_buf[dest_idx] = __log_buf[start & (__LOG_BUF_LEN - 1)];
+-			start++;
+-			dest_idx++;
+-		}
+-		log_start -= offset;
+-		con_start -= offset;
+-		log_end -= offset;
+-		spin_unlock_irqrestore(&logbuf_lock, flags);
++void __init setup_log_buf(int early)
++{
++	unsigned long flags;
++	unsigned start, dest_idx, offset;
++	char *new_log_buf;
++	int free;
++
++	if (!new_log_buf_len)
++		return;
++
++	if (early) {
++		unsigned long mem;
+ 
+-		printk(KERN_NOTICE "log_buf_len: %d\n", log_buf_len);
++		mem = memblock_alloc(new_log_buf_len, PAGE_SIZE);
++		if (mem == MEMBLOCK_ERROR)
++			return;
++		new_log_buf = __va(mem);
++	} else {
++		new_log_buf = alloc_bootmem_nopanic(new_log_buf_len);
+ 	}
+-out:
+-	return 1;
+-}
+ 
+-__setup("log_buf_len=", log_buf_len_setup);
++	if (unlikely(!new_log_buf)) {
++		pr_err("log_buf_len: %ld bytes not available\n",
++			new_log_buf_len);
++		return;
++	}
++
++	spin_lock_irqsave(&logbuf_lock, flags);
++	log_buf_len = new_log_buf_len;
++	log_buf = new_log_buf;
++	new_log_buf_len = 0;
++	free = __LOG_BUF_LEN - log_end;
++
++	offset = start = min(con_start, log_start);
++	dest_idx = 0;
++	while (start != log_end) {
++		unsigned log_idx_mask = start & (__LOG_BUF_LEN - 1);
++
++		log_buf[dest_idx] = __log_buf[log_idx_mask];
++		start++;
++		dest_idx++;
++	}
++	log_start -= offset;
++	con_start -= offset;
++	log_end -= offset;
++	spin_unlock_irqrestore(&logbuf_lock, flags);
++
++	pr_info("log_buf_len: %d\n", log_buf_len);
++	pr_info("early log buf free: %d(%d%%)\n",
++		free, (free * 100) / __LOG_BUF_LEN);
++}
+ 
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
  
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
 
