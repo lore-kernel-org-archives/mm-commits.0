@@ -1,254 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-convert-anon_vma-lock-to-a-mutex.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:29:02 -0700
-Message-ID: <201105252027.p4PKRPHv014574@imap1.linux-foundation.org>
+Subject: + drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch added to -mm tree
+Date: Wed, 25 May 2011 15:31:38 -0700
+Message-ID: <201105252308.p4PN8NG7023340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762Ab1EYUyl (ORCPT
+	by vger.kernel.org with ESMTP id S1753272Ab1EYXIg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:54:41 -0400
+	Wed, 25 May 2011 19:08:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd@google.com, jdike@addtoit.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lethal@linu
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, agust@denx.de, lethal@linux-sh.org
 
 
 The patch titled
-     mm: convert anon_vma->lock to a mutex
-has been removed from the -mm tree.  Its filename was
-     mm-convert-anon_vma-lock-to-a-mutex.patch
+     drivers/video/mb862xx/mb862xx-i2c.c needs delay.h
+has been added to the -mm tree.  Its filename is
+     drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: convert anon_vma->lock to a mutex
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: drivers/video/mb862xx/mb862xx-i2c.c needs delay.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Straightforward conversion of anon_vma->lock to a mutex.
+x86_64 allmodconfig:
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+drivers/video/mb862xx/mb862xx-i2c.c: In function 'mb862xx_i2c_wait_event':
+drivers/video/mb862xx/mb862xx-i2c.c:25: error: implicit declaration of function 'udelay'
+
 Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Anatolij Gustschin <agust@denx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h      |    8 ++------
- include/linux/mmu_notifier.h |    2 +-
- include/linux/rmap.h         |   14 +++++++-------
- mm/huge_memory.c             |    4 ++--
- mm/mmap.c                    |   10 +++++-----
- mm/rmap.c                    |    8 ++++----
- 6 files changed, 21 insertions(+), 25 deletions(-)
+ drivers/video/mb862xx/mb862xx-i2c.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/huge_mm.h~mm-convert-anon_vma-lock-to-a-mutex include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/include/linux/huge_mm.h
-@@ -92,12 +92,8 @@ extern void __split_huge_page_pmd(struct
- #define wait_split_huge_page(__anon_vma, __pmd)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		spin_unlock_wait(&(__anon_vma)->root->lock);		\
--		/*							\
--		 * spin_unlock_wait() is just a loop in C and so the	\
--		 * CPU can reorder anything around it.			\
--		 */							\
--		smp_mb();						\
-+		anon_vma_lock(__anon_vma);				\
-+		anon_vma_unlock(__anon_vma);				\
- 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
- 		       pmd_trans_huge(*____pmd));			\
- 	} while (0)
-diff -puN include/linux/mmu_notifier.h~mm-convert-anon_vma-lock-to-a-mutex include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/include/linux/mmu_notifier.h
-@@ -150,7 +150,7 @@ struct mmu_notifier_ops {
-  * Therefore notifier chains can only be traversed when either
-  *
-  * 1. mmap_sem is held.
-- * 2. One of the reverse map locks is held (i_mmap_mutex or anon_vma->lock).
-+ * 2. One of the reverse map locks is held (i_mmap_mutex or anon_vma->mutex).
-  * 3. No other concurrent thread can access the list (release)
-  */
- struct mmu_notifier {
-diff -puN include/linux/rmap.h~mm-convert-anon_vma-lock-to-a-mutex include/linux/rmap.h
---- a/include/linux/rmap.h~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/include/linux/rmap.h
-@@ -7,7 +7,7 @@
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
--#include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/memcontrol.h>
+diff -puN drivers/video/mb862xx/mb862xx-i2c.c~drivers-video-mb862xx-mb862xx-i2cc-needs-delayh drivers/video/mb862xx/mb862xx-i2c.c
+--- a/drivers/video/mb862xx/mb862xx-i2c.c~drivers-video-mb862xx-mb862xx-i2cc-needs-delayh
++++ a/drivers/video/mb862xx/mb862xx-i2c.c
+@@ -12,6 +12,7 @@
+ #include <linux/fb.h>
+ #include <linux/i2c.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
  
- /*
-@@ -26,7 +26,7 @@
-  */
- struct anon_vma {
- 	struct anon_vma *root;	/* Root of this anon_vma tree */
--	spinlock_t lock;	/* Serialize access to vma list */
-+	struct mutex mutex;	/* Serialize access to vma list */
- 	/*
- 	 * The refcount is taken on an anon_vma when there is no
- 	 * guarantee that the vma of page tables will exist for
-@@ -64,7 +64,7 @@ struct anon_vma_chain {
- 	struct vm_area_struct *vma;
- 	struct anon_vma *anon_vma;
- 	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
--	struct list_head same_anon_vma;	/* locked by anon_vma->lock */
-+	struct list_head same_anon_vma;	/* locked by anon_vma->mutex */
- };
- 
- #ifdef CONFIG_MMU
-@@ -93,24 +93,24 @@ static inline void vma_lock_anon_vma(str
- {
- 	struct anon_vma *anon_vma = vma->anon_vma;
- 	if (anon_vma)
--		spin_lock(&anon_vma->root->lock);
-+		mutex_lock(&anon_vma->root->mutex);
- }
- 
- static inline void vma_unlock_anon_vma(struct vm_area_struct *vma)
- {
- 	struct anon_vma *anon_vma = vma->anon_vma;
- 	if (anon_vma)
--		spin_unlock(&anon_vma->root->lock);
-+		mutex_unlock(&anon_vma->root->mutex);
- }
- 
- static inline void anon_vma_lock(struct anon_vma *anon_vma)
- {
--	spin_lock(&anon_vma->root->lock);
-+	mutex_lock(&anon_vma->root->mutex);
- }
- 
- static inline void anon_vma_unlock(struct anon_vma *anon_vma)
- {
--	spin_unlock(&anon_vma->root->lock);
-+	mutex_unlock(&anon_vma->root->mutex);
- }
- 
- /*
-diff -puN mm/huge_memory.c~mm-convert-anon_vma-lock-to-a-mutex mm/huge_memory.c
---- a/mm/huge_memory.c~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/mm/huge_memory.c
-@@ -1139,7 +1139,7 @@ static int __split_huge_page_splitting(s
- 		 * We can't temporarily set the pmd to null in order
- 		 * to split it, the pmd must remain marked huge at all
- 		 * times or the VM won't take the pmd_trans_huge paths
--		 * and it won't wait on the anon_vma->root->lock to
-+		 * and it won't wait on the anon_vma->root->mutex to
- 		 * serialize against split_huge_page*.
- 		 */
- 		pmdp_splitting_flush_notify(vma, address, pmd);
-@@ -1333,7 +1333,7 @@ static int __split_huge_page_map(struct 
- 	return ret;
- }
- 
--/* must be called with anon_vma->root->lock hold */
-+/* must be called with anon_vma->root->mutex hold */
- static void __split_huge_page(struct page *page,
- 			      struct anon_vma *anon_vma)
- {
-diff -puN mm/mmap.c~mm-convert-anon_vma-lock-to-a-mutex mm/mmap.c
---- a/mm/mmap.c~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/mm/mmap.c
-@@ -2503,15 +2503,15 @@ static void vm_lock_anon_vma(struct mm_s
- 		 * The LSB of head.next can't change from under us
- 		 * because we hold the mm_all_locks_mutex.
- 		 */
--		spin_lock_nest_lock(&anon_vma->root->lock, &mm->mmap_sem);
-+		mutex_lock_nest_lock(&anon_vma->root->mutex, &mm->mmap_sem);
- 		/*
- 		 * We can safely modify head.next after taking the
--		 * anon_vma->root->lock. If some other vma in this mm shares
-+		 * anon_vma->root->mutex. If some other vma in this mm shares
- 		 * the same anon_vma we won't take it again.
- 		 *
- 		 * No need of atomic instructions here, head.next
- 		 * can't change from under us thanks to the
--		 * anon_vma->root->lock.
-+		 * anon_vma->root->mutex.
- 		 */
- 		if (__test_and_set_bit(0, (unsigned long *)
- 				       &anon_vma->root->head.next))
-@@ -2560,7 +2560,7 @@ static void vm_lock_mapping(struct mm_st
-  * vma in this mm is backed by the same anon_vma or address_space.
-  *
-  * We can take all the locks in random order because the VM code
-- * taking i_mmap_mutex or anon_vma->lock outside the mmap_sem never
-+ * taking i_mmap_mutex or anon_vma->mutex outside the mmap_sem never
-  * takes more than one of them in a row. Secondly we're protected
-  * against a concurrent mm_take_all_locks() by the mm_all_locks_mutex.
-  *
-@@ -2616,7 +2616,7 @@ static void vm_unlock_anon_vma(struct an
- 		 *
- 		 * No need of atomic instructions here, head.next
- 		 * can't change from under us until we release the
--		 * anon_vma->root->lock.
-+		 * anon_vma->root->mutex.
- 		 */
- 		if (!__test_and_clear_bit(0, (unsigned long *)
- 					  &anon_vma->root->head.next))
-diff -puN mm/rmap.c~mm-convert-anon_vma-lock-to-a-mutex mm/rmap.c
---- a/mm/rmap.c~mm-convert-anon_vma-lock-to-a-mutex
-+++ a/mm/rmap.c
-@@ -25,7 +25,7 @@
-  *   mm->mmap_sem
-  *     page->flags PG_locked (lock_page)
-  *       mapping->i_mmap_mutex
-- *         anon_vma->lock
-+ *         anon_vma->mutex
-  *           mm->page_table_lock or pte_lock
-  *             zone->lru_lock (in mark_page_accessed, isolate_lru_page)
-  *             swap_lock (in swap_duplicate, swap_info_get)
-@@ -40,7 +40,7 @@
-  *
-  * (code doesn't rely on that order so it could be switched around)
-  * ->tasklist_lock
-- *   anon_vma->lock      (memory_failure, collect_procs_anon)
-+ *   anon_vma->mutex      (memory_failure, collect_procs_anon)
-  *     pte map lock
-  */
- 
-@@ -307,7 +307,7 @@ static void anon_vma_ctor(void *data)
- {
- 	struct anon_vma *anon_vma = data;
- 
--	spin_lock_init(&anon_vma->lock);
-+	mutex_init(&anon_vma->mutex);
- 	atomic_set(&anon_vma->refcount, 0);
- 	INIT_LIST_HEAD(&anon_vma->head);
- }
-@@ -1146,7 +1146,7 @@ out_mlock:
- 	/*
- 	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
- 	 * unstable result and race. Plus, We can't wait here because
--	 * we now hold anon_vma->lock or mapping->i_mmap_mutex.
-+	 * we now hold anon_vma->mutex or mapping->i_mmap_mutex.
- 	 * if trylock failed, the page remain in evictable lru and later
- 	 * vmscan could retry to move the page to unevictable lru if the
- 	 * page is actually mlocked.
+ #include "mb862xxfb.h"
+ #include "mb862xx_reg.h"
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-linux-next.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch
+revert-m68k-merge-mmu-and-non-mmu-bitopsh.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+mtd-convert-to-seq_file-interface.patch
+rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
