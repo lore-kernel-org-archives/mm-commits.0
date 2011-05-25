@@ -1,363 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:27:07 -0700
-Message-ID: <201105252025.p4PKPUwW014399@imap1.linux-foundation.org>
+Subject: [merged] mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:26 -0700
+Message-ID: <201105252025.p4PKPnSl014430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755622Ab1EYU03 (ORCPT
+	by vger.kernel.org with ESMTP id S1755634Ab1EYU0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:26:29 -0400
+	Wed, 25 May 2011 16:26:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gxt@mprc.pku.edu.cn, jejb@parisc-linux.org, kyle@mcmartin.ca, linux@arm.linux.org.uk, tony.luck@intel.com
+To: namhyung@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch, mm: filter disallowed nodes from arch specific show_mem functions
+     mm: nommu: check the vma list when unmapping file-mapped vma
 has been removed from the -mm tree.  Its filename was
-     arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
+     mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch, mm: filter disallowed nodes from arch specific show_mem functions
-From: David Rientjes <rientjes@google.com>
+Subject: mm: nommu: check the vma list when unmapping file-mapped vma
+From: Namhyung Kim <namhyung@gmail.com>
 
-Architectures that implement their own show_mem() function did not pass
-the filter argument to show_free_areas() to appropriately avoid emitting
-the state of nodes that are disallowed in the current context.  This patch
-now passes the filter argument to show_free_areas() so those nodes are now
-avoided.
+Now we have the sorted vma list, use it in do_munmap() to check that we
+have an exact match.
 
-This patch also removes the show_free_areas() wrapper around
-__show_free_areas() and converts existing callers to pass an empty filter.
-
-ia64 emits additional information for each node, so skip_free_areas_zone()
-must be made global to filter disallowed nodes and it is converted to use
-a nid argument rather than a zone for this use case.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James Bottomley <jejb@parisc-linux.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c               |    2 +-
- arch/ia64/mm/contig.c            |   10 ++++++----
- arch/ia64/mm/discontig.c         |   10 ++++++----
- arch/parisc/mm/init.c            |    2 +-
- arch/sparc/kernel/setup_32.c     |    2 +-
- arch/sparc/mm/init_32.c          |    2 +-
- arch/unicore32/mm/init.c         |    2 +-
- drivers/net/ioc3-eth.c           |    2 +-
- drivers/tty/serial/68328serial.c |    2 +-
- include/linux/mm.h               |    6 +++---
- lib/show_mem.c                   |    2 +-
- mm/nommu.c                       |    6 +++---
- mm/page_alloc.c                  |   22 ++++++++--------------
- 13 files changed, 34 insertions(+), 36 deletions(-)
+ mm/nommu.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/arm/mm/init.c
-@@ -85,7 +85,7 @@ void show_mem(unsigned int filter)
- 	struct meminfo * mi = &meminfo;
- 
- 	printk("Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- 
- 	for_each_bank (i, mi) {
- 		struct membank *bank = &mi->bank[i];
-diff -puN arch/ia64/mm/contig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/ia64/mm/contig.c
-@@ -44,13 +44,16 @@ void show_mem(unsigned int filter)
- 	pg_data_t *pgdat;
- 
- 	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- 	printk(KERN_INFO "Node memory in pages:\n");
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long present;
- 		unsigned long flags;
- 		int shared = 0, cached = 0, reserved = 0;
-+		int nid = pgdat->node_id;
- 
-+		if (skip_free_areas_node(filter, nid))
-+			continue;
- 		pgdat_resize_lock(pgdat, &flags);
- 		present = pgdat->node_present_pages;
- 		for(i = 0; i < pgdat->node_spanned_pages; i++) {
-@@ -64,8 +67,7 @@ void show_mem(unsigned int filter)
- 				if (max_gap < LARGE_GAP)
- 					continue;
- #endif
--				i = vmemmap_find_next_valid_pfn(pgdat->node_id,
--					 i) - 1;
-+				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
- 				continue;
- 			}
- 			if (PageReserved(page))
-@@ -81,7 +83,7 @@ void show_mem(unsigned int filter)
- 		total_cached += cached;
- 		total_shared += shared;
- 		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
--		       "shrd: %10d, swpd: %10d\n", pgdat->node_id,
-+		       "shrd: %10d, swpd: %10d\n", nid,
- 		       present, reserved, shared, cached);
- 	}
- 	printk(KERN_INFO "%ld pages of RAM\n", total_present);
-diff -puN arch/ia64/mm/discontig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/ia64/mm/discontig.c
-@@ -622,13 +622,16 @@ void show_mem(unsigned int filter)
- 	pg_data_t *pgdat;
- 
- 	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- 	printk(KERN_INFO "Node memory in pages:\n");
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long present;
- 		unsigned long flags;
- 		int shared = 0, cached = 0, reserved = 0;
-+		int nid = pgdat->node_id;
- 
-+		if (skip_free_areas_node(filter, nid))
-+			continue;
- 		pgdat_resize_lock(pgdat, &flags);
- 		present = pgdat->node_present_pages;
- 		for(i = 0; i < pgdat->node_spanned_pages; i++) {
-@@ -638,8 +641,7 @@ void show_mem(unsigned int filter)
- 			if (pfn_valid(pgdat->node_start_pfn + i))
- 				page = pfn_to_page(pgdat->node_start_pfn + i);
- 			else {
--				i = vmemmap_find_next_valid_pfn(pgdat->node_id,
--					 i) - 1;
-+				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
- 				continue;
- 			}
- 			if (PageReserved(page))
-@@ -655,7 +657,7 @@ void show_mem(unsigned int filter)
- 		total_cached += cached;
- 		total_shared += shared;
- 		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
--		       "shrd: %10d, swpd: %10d\n", pgdat->node_id,
-+		       "shrd: %10d, swpd: %10d\n", nid,
- 		       present, reserved, shared, cached);
- 	}
- 	printk(KERN_INFO "%ld pages of RAM\n", total_present);
-diff -puN arch/parisc/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/parisc/mm/init.c
-@@ -686,7 +686,7 @@ void show_mem(unsigned int filter)
- 	int shared = 0, cached = 0;
- 
- 	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- #ifndef CONFIG_DISCONTIGMEM
- 	i = max_mapnr;
- 	while (i-- > 0) {
-diff -puN arch/sparc/kernel/setup_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/sparc/kernel/setup_32.c
---- a/arch/sparc/kernel/setup_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/sparc/kernel/setup_32.c
-@@ -82,7 +82,7 @@ static void prom_sync_me(void)
- 			     "nop\n\t" : : "r" (&trapbase));
- 
- 	prom_printf("PROM SYNC COMMAND...\n");
--	show_free_areas();
-+	show_free_areas(0);
- 	if(current->pid != 0) {
- 		local_irq_enable();
- 		sys_sync();
-diff -puN arch/sparc/mm/init_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/sparc/mm/init_32.c
---- a/arch/sparc/mm/init_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/sparc/mm/init_32.c
-@@ -78,7 +78,7 @@ void __init kmap_init(void)
- void show_mem(unsigned int filter)
- {
- 	printk("Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- 	printk("Free swap:       %6ldkB\n",
- 	       nr_swap_pages << (PAGE_SHIFT-10));
- 	printk("%ld pages of RAM\n", totalram_pages);
-diff -puN arch/unicore32/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/unicore32/mm/init.c
---- a/arch/unicore32/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/arch/unicore32/mm/init.c
-@@ -62,7 +62,7 @@ void show_mem(unsigned int filter)
- 	struct meminfo *mi = &meminfo;
- 
- 	printk(KERN_DEFAULT "Mem-info:\n");
--	show_free_areas();
-+	show_free_areas(filter);
- 
- 	for_each_bank(i, mi) {
- 		struct membank *bank = &mi->bank[i];
-diff -puN drivers/net/ioc3-eth.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions drivers/net/ioc3-eth.c
---- a/drivers/net/ioc3-eth.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/drivers/net/ioc3-eth.c
-@@ -915,7 +915,7 @@ static void ioc3_alloc_rings(struct net_
- 
- 			skb = ioc3_alloc_skb(RX_BUF_ALLOC_SIZE, GFP_ATOMIC);
- 			if (!skb) {
--				show_free_areas();
-+				show_free_areas(0);
- 				continue;
- 			}
- 
-diff -puN drivers/tty/serial/68328serial.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions drivers/tty/serial/68328serial.c
---- a/drivers/tty/serial/68328serial.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/drivers/tty/serial/68328serial.c
-@@ -281,7 +281,7 @@ static void receive_chars(struct m68k_se
- #ifdef CONFIG_MAGIC_SYSRQ
- 			} else if (ch == 0x10) { /* ^P */
- 				show_state();
--				show_free_areas();
-+				show_free_areas(0);
- 				show_buffers();
- /*				show_net_buffers(); */
- 				return;
-diff -puN include/linux/mm.h~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions include/linux/mm.h
---- a/include/linux/mm.h~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/include/linux/mm.h
-@@ -862,13 +862,13 @@ extern void pagefault_out_of_memory(void
- #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
- 
- /*
-- * Flags passed to show_mem() and __show_free_areas() to suppress output in
-+ * Flags passed to show_mem() and show_free_areas() to suppress output in
-  * various contexts.
-  */
- #define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
- 
--extern void show_free_areas(void);
--extern void __show_free_areas(unsigned int flags);
-+extern void show_free_areas(unsigned int flags);
-+extern bool skip_free_areas_node(unsigned int flags, int nid);
- 
- int shmem_lock(struct file *file, int lock, struct user_struct *user);
- struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
-diff -puN lib/show_mem.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions lib/show_mem.c
---- a/lib/show_mem.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/lib/show_mem.c
-@@ -16,7 +16,7 @@ void show_mem(unsigned int filter)
- 		nonshared = 0, highmem = 0;
- 
- 	printk("Mem-Info:\n");
--	__show_free_areas(filter);
-+	show_free_areas(filter);
- 
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long i, flags;
-diff -puN mm/nommu.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions mm/nommu.c
---- a/mm/nommu.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
+diff -puN mm/nommu.c~mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-check-the-vma-list-when-unmapping-file-mapped-vma
 +++ a/mm/nommu.c
-@@ -1235,7 +1235,7 @@ error_free:
- enomem:
- 	printk("Allocation of length %lu from process %d (%s) failed\n",
- 	       len, current->pid, current->comm);
--	show_free_areas();
-+	show_free_areas(0);
- 	return -ENOMEM;
- }
- 
-@@ -1468,14 +1468,14 @@ error_getting_vma:
- 	printk(KERN_WARNING "Allocation of vma for %lu byte allocation"
- 	       " from process %d failed\n",
- 	       len, current->pid);
--	show_free_areas();
-+	show_free_areas(0);
- 	return -ENOMEM;
- 
- error_getting_region:
- 	printk(KERN_WARNING "Allocation of vm region for %lu byte allocation"
- 	       " from process %d failed\n",
- 	       len, current->pid);
--	show_free_areas();
-+	show_free_areas(0);
- 	return -ENOMEM;
- }
- EXPORT_SYMBOL(do_mmap_pgoff);
-diff -puN mm/page_alloc.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions mm/page_alloc.c
---- a/mm/page_alloc.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
-+++ a/mm/page_alloc.c
-@@ -2473,10 +2473,10 @@ void si_meminfo_node(struct sysinfo *val
- #endif
- 
- /*
-- * Determine whether the zone's node should be displayed or not, depending on
-- * whether SHOW_MEM_FILTER_NODES was passed to __show_free_areas().
-+ * Determine whether the node should be displayed or not, depending on whether
-+ * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
-  */
--static bool skip_free_areas_zone(unsigned int flags, const struct zone *zone)
-+bool skip_free_areas_node(unsigned int flags, int nid)
+@@ -1635,7 +1635,6 @@ static int shrink_vma(struct mm_struct *
+ int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
  {
- 	bool ret = false;
+ 	struct vm_area_struct *vma;
+-	struct rb_node *rb;
+ 	unsigned long end = start + len;
+ 	int ret;
  
-@@ -2484,8 +2484,7 @@ static bool skip_free_areas_zone(unsigne
- 		goto out;
- 
- 	get_mems_allowed();
--	ret = !node_isset(zone->zone_pgdat->node_id,
--				cpuset_current_mems_allowed);
-+	ret = !node_isset(nid, cpuset_current_mems_allowed);
- 	put_mems_allowed();
- out:
- 	return ret;
-@@ -2500,13 +2499,13 @@ out:
-  * Suppresses nodes that are not allowed by current's cpuset if
-  * SHOW_MEM_FILTER_NODES is passed.
-  */
--void __show_free_areas(unsigned int filter)
-+void show_free_areas(unsigned int filter)
- {
- 	int cpu;
- 	struct zone *zone;
- 
- 	for_each_populated_zone(zone) {
--		if (skip_free_areas_zone(filter, zone))
-+		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
- 		show_node(zone);
- 		printk("%s per-cpu:\n", zone->name);
-@@ -2549,7 +2548,7 @@ void __show_free_areas(unsigned int filt
- 	for_each_populated_zone(zone) {
- 		int i;
- 
--		if (skip_free_areas_zone(filter, zone))
-+		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
- 		show_node(zone);
- 		printk("%s"
-@@ -2618,7 +2617,7 @@ void __show_free_areas(unsigned int filt
- 	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
- 
--		if (skip_free_areas_zone(filter, zone))
-+		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
- 		show_node(zone);
- 		printk("%s: ", zone->name);
-@@ -2639,11 +2638,6 @@ void __show_free_areas(unsigned int filt
- 	show_swap_cache_info();
- }
- 
--void show_free_areas(void)
--{
--	__show_free_areas(0);
--}
+@@ -1668,9 +1667,8 @@ int do_munmap(struct mm_struct *mm, unsi
+ 			}
+ 			if (end == vma->vm_end)
+ 				goto erase_whole_vma;
+-			rb = rb_next(&vma->vm_rb);
+-			vma = rb_entry(rb, struct vm_area_struct, vm_rb);
+-		} while (rb);
++			vma = vma->vm_next;
++		} while (vma);
+ 		kleave(" = -EINVAL [split file]");
+ 		return -EINVAL;
+ 	} else {
+_
+
+Patches currently in -mm which might be from namhyung@gmail.com are
+
+origin.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
+
