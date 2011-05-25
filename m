@@ -1,101 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:05 -0700
-Message-ID: <201105252028.p4PKSSnl014745@imap1.linux-foundation.org>
+Subject: [merged] mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:17 -0700
+Message-ID: <201105252028.p4PKSePi014760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755404Ab1EYU3R (ORCPT
+	by vger.kernel.org with ESMTP id S1755650Ab1EYU3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:29:17 -0400
+	Wed, 25 May 2011 16:29:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, hpa@zytor.com, lucas.demarchi@profusion.mobi, mingo@elte.hu, olaf@aepfle.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
+     mm: use walk_page_range() instead of custom page table walking code
 has been removed from the -mm tree.  Its filename was
-     memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
+     mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: mm: use walk_page_range() instead of custom page table walking code
+From: Stephen Wilson <wilsons@start.ca>
 
-The bootmem wrapper with memblock supports top-down now, so we do not need
-to set the low limit to __pa(MAX_DMA_ADDRESS).
+Converting show_numa_map() to use the generic routine decouples the
+function from mempolicy.c, allowing it to be moved out of the mm subsystem
+and into fs/proc.
 
-The logic should be: good to allocate above __pa(MAX_DMA_ADDRESS), but it
-is ok if we can not find memory above 16M on system that has a small
-amount of RAM.
+Also, include KSM pages in /proc/pid/numa_maps statistics.  The pagewalk
+logic implemented by check_pte_range() failed to account for such pages as
+they were not applicable to the page migration case.
 
-Signed-off-by: Yinghai LU <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Signed-off-by: Stephen Wilson <wilsons@start.ca>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ mm/mempolicy.c |   75 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 68 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit include/linux/bootmem.h
---- a/include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit
-+++ a/include/linux/bootmem.h
-@@ -99,24 +99,31 @@ extern void *__alloc_bootmem_low_node(pg
- 				      unsigned long align,
- 				      unsigned long goal);
+diff -puN mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code
++++ a/mm/mempolicy.c
+@@ -2531,6 +2531,7 @@ int mpol_to_str(char *buffer, int maxlen
+ }
  
-+#ifdef CONFIG_NO_BOOTMEM
-+/* We are using top down, so it is safe to use 0 here */
-+#define BOOTMEM_LOW_LIMIT 0
-+#else
-+#define BOOTMEM_LOW_LIMIT __pa(MAX_DMA_ADDRESS)
-+#endif
+ struct numa_maps {
++	struct vm_area_struct *vma;
+ 	unsigned long pages;
+ 	unsigned long anon;
+ 	unsigned long active;
+@@ -2568,6 +2569,41 @@ static void gather_stats(struct page *pa
+ 	md->node[page_to_nid(page)]++;
+ }
+ 
++static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
++		unsigned long end, struct mm_walk *walk)
++{
++	struct numa_maps *md;
++	spinlock_t *ptl;
++	pte_t *orig_pte;
++	pte_t *pte;
 +
- #define alloc_bootmem(x) \
--	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_align(x, align) \
--	__alloc_bootmem(x, align, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, align, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_nopanic(x) \
--	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages(x) \
--	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_nopanic(x) \
--	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_nopanic(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_node(pgdat, x) \
--	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_node_nopanic(pgdat, x) \
--	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_node(pgdat, x) \
--	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
- #define alloc_bootmem_pages_node_nopanic(pgdat, x) \
--	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
++	md = walk->private;
++	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	do {
++		struct page *page;
++		int nid;
++
++		if (!pte_present(*pte))
++			continue;
++
++		page = vm_normal_page(md->vma, addr, *pte);
++		if (!page)
++			continue;
++
++		if (PageReserved(page))
++			continue;
++
++		nid = page_to_nid(page);
++		if (!node_isset(nid, node_states[N_HIGH_MEMORY]))
++			continue;
++
++		gather_stats(page, md, pte_dirty(*pte));
++
++	} while (pte++, addr += PAGE_SIZE, addr != end);
++	pte_unmap_unlock(orig_pte, ptl);
++	return 0;
++}
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ static void check_huge_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end,
+@@ -2597,12 +2633,35 @@ static void check_huge_range(struct vm_a
+ 		gather_stats(page, md, pte_dirty(*ptep));
+ 	}
+ }
++
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	struct page *page;
++
++	if (pte_none(*pte))
++		return 0;
++
++	page = pte_page(*pte);
++	if (!page)
++		return 0;
++
++	gather_stats(page, walk->private, pte_dirty(*pte));
++	return 0;
++}
++
+ #else
+ static inline void check_huge_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end,
+ 		struct numa_maps *md)
+ {
+ }
++
++static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++		unsigned long addr, unsigned long end, struct mm_walk *walk)
++{
++	return 0;
++}
+ #endif
  
- #define alloc_bootmem_low(x) \
- 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
+ /*
+@@ -2615,6 +2674,7 @@ int show_numa_map(struct seq_file *m, vo
+ 	struct numa_maps *md;
+ 	struct file *file = vma->vm_file;
+ 	struct mm_struct *mm = vma->vm_mm;
++	struct mm_walk walk = {};
+ 	struct mempolicy *pol;
+ 	int n;
+ 	char buffer[50];
+@@ -2626,6 +2686,13 @@ int show_numa_map(struct seq_file *m, vo
+ 	if (!md)
+ 		return 0;
+ 
++	md->vma = vma;
++
++	walk.hugetlb_entry = gather_hugetbl_stats;
++	walk.pmd_entry = gather_pte_stats;
++	walk.private = md;
++	walk.mm = mm;
++
+ 	pol = get_vma_policy(priv->task, vma, vma->vm_start);
+ 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
+ 	mpol_cond_put(pol);
+@@ -2642,13 +2709,7 @@ int show_numa_map(struct seq_file *m, vo
+ 		seq_printf(m, " stack");
+ 	}
+ 
+-	if (is_vm_hugetlb_page(vma)) {
+-		check_huge_range(vma, vma->vm_start, vma->vm_end, md);
+-		seq_printf(m, " huge");
+-	} else {
+-		check_pgd_range(vma, vma->vm_start, vma->vm_end,
+-			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
+-	}
++	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ 
+ 	if (!md->pages)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from wilsons@start.ca are
 
 origin.patch
-pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
 
