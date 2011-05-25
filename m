@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 24 May 2011 17:02:53 -0700
-Message-ID: <201105250002.p4P02rrI024231@imap1.linux-foundation.org>
+Subject: [folded] bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 17:03:17 -0700
+Message-ID: <201105250003.p4P03Iks024327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932838Ab1EYADb (ORCPT
+	by vger.kernel.org with ESMTP id S933302Ab1EYAEF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 20:03:31 -0400
+	Tue, 24 May 2011 20:04:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jesper.nilsson@axis.com, kosaki.motohiro@jp.fujitsu.com, starvik@axis.com, tfransosi@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, lee.schermerhorn@hp.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
+     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
 has been removed from the -mm tree.  Its filename was
-     cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+     bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
 
-This patch was dropped because it was folded into cris-convert-old-cpumask-api-into-new-one.patch
+This patch was dropped because it was folded into bitmap-irq-add-smp_affinity_list-interface-to-proc-irq.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
+Subject: bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements (8, 12)
-#39: FILE: arch/cris/arch-v32/kernel/smp.c:83:
- 	for (i = 0; i < max_cpus; i++)
-+	    cpumask_set_cpu(i, &phys_cpu_present_map);
+make __bitmap_parselist() static
 
-total: 0 errors, 1 warnings, 113 lines checked
-
-./patches/cris-convert-old-cpumask-api-into-new-one.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Thiago Farina <tfransosi@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/kernel/smp.c |    2 +-
+ lib/bitmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes arch/cris/arch-v32/kernel/smp.c
---- a/arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
-+++ a/arch/cris/arch-v32/kernel/smp.c
-@@ -81,7 +81,7 @@ void __init smp_prepare_cpus(unsigned in
- 
- 	/* Mark all possible CPUs as present */
- 	for (i = 0; i < max_cpus; i++)
--	    cpumask_set_cpu(i, &phys_cpu_present_map);
-+		cpumask_set_cpu(i, &phys_cpu_present_map);
- }
- 
- void __devinit smp_prepare_boot_cpu(void)
+diff -puN lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix
++++ a/lib/bitmap.c
+@@ -590,7 +590,7 @@ EXPORT_SYMBOL(bitmap_scnlistprintf);
+  *    %-EINVAL: invalid character in string
+  *    %-ERANGE: bit number specified too large for mask
+  */
+-int __bitmap_parselist(const char *buf, unsigned int buflen,
++static int __bitmap_parselist(const char *buf, unsigned int buflen,
+ 		int is_user, unsigned long *maskp,
+ 		int nmaskbits)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +69,7 @@ mm-filter-unevictable-page-out-in-deactivate_page.patch
 nommu-add-page-alignment-to-mmap.patch
 alpha-hook-up-gpiolib-support.patch
 cris-convert-old-cpumask-api-into-new-one.patch
-bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
 printk-allocate-kernel-log-buffer-earlier-v2-checkpatch-fixes.patch
