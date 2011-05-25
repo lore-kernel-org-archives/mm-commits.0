@@ -1,39 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 24 May 2011 21:02:58 -0700
-Message-ID: <201105250401.p4P41SNh002156@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Wed, 25 May 2011 12:43:08 -0700
+Message-ID: <201105251941.p4PJfW4g012186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750952Ab1EYEBa (ORCPT
+	by vger.kernel.org with ESMTP id S1754425Ab1EYTmF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 00:01:30 -0400
+	Wed, 25 May 2011 15:42:05 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4P41SXl031630
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p4PJfWPq001704
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 24 May 2011 21:01:28 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 25 May 2011 12:41:32 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      linux-next-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -73,32 +63,8 @@ _
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
-mm-nommu-sort-mm-mmap-list-properly.patch
-mm-per-node-vmstat-show-proper-vmstats.patch
-mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
-mm-mmu_gather-rework.patch
-mm-uninline-large-generic-tlbh-functions.patch
-mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
-vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
-mm-filter-unevictable-page-out-in-deactivate_page.patch
-nommu-add-page-alignment-to-mmap.patch
-alpha-hook-up-gpiolib-support.patch
-cris-convert-old-cpumask-api-into-new-one.patch
-bitmap-irq-add-smp_affinity_list-interface-to-proc-irq.patch
-init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure.patch
-printk-allocate-kernel-log-buffer-earlier-v2.patch
-drivers-leds-leds-lm3530c-add-regulator.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
-lru_cache-use-correct-type-in-sizeof-for-allocation.patch
-percpu_counter-change-return-value-and-add-comments.patch
-fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
-drivers-gpio-vx855_gpioc-needs-slabh.patch
-drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
-drivers-tty-serial-pch_uartc-needs-slabh.patch
 backlight-add-backlight-type-fix.patch
 linux-next.patch
-linux-next-rejects.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
