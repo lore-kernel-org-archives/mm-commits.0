@@ -1,258 +1,474 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:29:12 -0700
-Message-ID: <201105252027.p4PKRZvA014589@imap1.linux-foundation.org>
+Subject: [merged] mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:28:38 -0700
+Message-ID: <201105252027.p4PKR2w0014538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754374Ab1EYU2U (ORCPT
+	by vger.kernel.org with ESMTP id S1755608Ab1EYU2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:28:20 -0400
+	Wed, 25 May 2011 16:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cmetcalf@tilera.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd@google.com, jdike@addtoit.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lethal@linu
 
 
 The patch titled
-     mm: convert mm->cpu_vm_cpumask into cpumask_var_t
+     mm, powerpc: move the RCU page-table freeing into generic code
 has been removed from the -mm tree.  Its filename was
-     mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+     mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: convert mm->cpu_vm_cpumask into cpumask_var_t
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm, powerpc: move the RCU page-table freeing into generic code
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-cpumask_t is very big struct and cpu_vm_mask is placed wrong position.
-It might lead to reduce cache hit ratio.
+In case other architectures require RCU freed page-tables to implement
+gup_fast() and software filled hashes and similar things, provide the
+means to do so by moving the logic into generic code.
 
-This patch has two change.
-1) Move the place of cpumask into last of mm_struct. Because usually cpumask
-   is accessed only front bits when the system has cpu-hotplug capability
-2) Convert cpu_vm_mask into cpumask_var_t. It may help to reduce memory
-   footprint if cpumask_size() will use nr_cpumask_bits properly in future.
-
-In addition, this patch change the name of cpu_vm_mask with cpu_vm_mask_var.
-It may help to detect out of tree cpu_vm_mask users.
-
-This patch has no functional change.
-
-[akpm@linux-foundation.org: build fix]
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Requested-by: David Miller <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cachetlb.txt |    2 -
- arch/x86/kernel/tboot.c    |    1 
- include/linux/mm_types.h   |    9 +++++---
- include/linux/sched.h      |    1 
- init/main.c                |    2 +
- kernel/fork.c              |   37 ++++++++++++++++++++++++++++++++---
- mm/init-mm.c               |    1 
- 7 files changed, 44 insertions(+), 9 deletions(-)
+ arch/Kconfig                       |    3 
+ arch/powerpc/Kconfig               |    1 
+ arch/powerpc/include/asm/pgalloc.h |   21 ++++-
+ arch/powerpc/include/asm/tlb.h     |   10 --
+ arch/powerpc/mm/pgtable.c          |   98 ---------------------------
+ arch/powerpc/mm/tlb_hash32.c       |    3 
+ arch/powerpc/mm/tlb_hash64.c       |    3 
+ arch/powerpc/mm/tlb_nohash.c       |    3 
+ include/asm-generic/tlb.h          |   56 ++++++++++++++-
+ mm/memory.c                        |   77 +++++++++++++++++++++
+ 10 files changed, 150 insertions(+), 125 deletions(-)
 
-diff -puN Documentation/cachetlb.txt~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t Documentation/cachetlb.txt
---- a/Documentation/cachetlb.txt~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/Documentation/cachetlb.txt
-@@ -16,7 +16,7 @@ on all processors in the system.  Don't 
- thinking SMP cache/tlb flushing must be so inefficient, this is in
- fact an area where many optimizations are possible.  For example,
- if it can be proven that a user address space has never executed
--on a cpu (see vma->cpu_vm_mask), one need not perform a flush
-+on a cpu (see mm_cpumask()), one need not perform a flush
- for this address space on that cpu.
+diff -puN arch/Kconfig~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/Kconfig
+--- a/arch/Kconfig~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/Kconfig
+@@ -175,4 +175,7 @@ config HAVE_ARCH_JUMP_LABEL
+ config HAVE_ARCH_MUTEX_CPU_RELAX
+ 	bool
  
- First, the TLB flushing interfaces, since they are the simplest.  The
-diff -puN arch/x86/kernel/tboot.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t arch/x86/kernel/tboot.c
---- a/arch/x86/kernel/tboot.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/arch/x86/kernel/tboot.c
-@@ -110,7 +110,6 @@ static struct mm_struct tboot_mm = {
- 	.mmap_sem       = __RWSEM_INITIALIZER(init_mm.mmap_sem),
- 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
- 	.mmlist         = LIST_HEAD_INIT(init_mm.mmlist),
--	.cpu_vm_mask    = CPU_MASK_ALL,
- };
++config HAVE_RCU_TABLE_FREE
++	bool
++
+ source "kernel/gcov/Kconfig"
+diff -puN arch/powerpc/Kconfig~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/Kconfig
+@@ -140,6 +140,7 @@ config PPC
+ 	select IRQ_PER_CPU
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_IRQ_SHOW_LEVEL
++	select HAVE_RCU_TABLE_FREE if SMP
  
- static inline void switch_to_tboot_pt(void)
-diff -puN include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/include/linux/mm_types.h
-@@ -266,8 +266,6 @@ struct mm_struct {
+ config EARLY_PRINTK
+ 	bool
+diff -puN arch/powerpc/include/asm/pgalloc.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/include/asm/pgalloc.h
+--- a/arch/powerpc/include/asm/pgalloc.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/include/asm/pgalloc.h
+@@ -31,14 +31,29 @@ static inline void pte_free(struct mm_st
+ #endif
  
- 	struct linux_binfmt *binfmt;
+ #ifdef CONFIG_SMP
+-extern void pgtable_free_tlb(struct mmu_gather *tlb, void *table, unsigned shift);
+-extern void pte_free_finish(struct mmu_gather *tlb);
++struct mmu_gather;
++extern void tlb_remove_table(struct mmu_gather *, void *);
++
++static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
++{
++	unsigned long pgf = (unsigned long)table;
++	BUG_ON(shift > MAX_PGTABLE_INDEX_SIZE);
++	pgf |= shift;
++	tlb_remove_table(tlb, (void *)pgf);
++}
++
++static inline void __tlb_remove_table(void *_table)
++{
++	void *table = (void *)((unsigned long)_table & ~MAX_PGTABLE_INDEX_SIZE);
++	unsigned shift = (unsigned long)_table & MAX_PGTABLE_INDEX_SIZE;
++
++	pgtable_free(table, shift);
++}
+ #else /* CONFIG_SMP */
+ static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, unsigned shift)
+ {
+ 	pgtable_free(table, shift);
+ }
+-static inline void pte_free_finish(struct mmu_gather *tlb) { }
+ #endif /* !CONFIG_SMP */
  
--	cpumask_t cpu_vm_mask;
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *ptepage,
+diff -puN arch/powerpc/include/asm/tlb.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/include/asm/tlb.h
+--- a/arch/powerpc/include/asm/tlb.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -28,16 +28,6 @@
+ #define tlb_start_vma(tlb, vma)	do { } while (0)
+ #define tlb_end_vma(tlb, vma)	do { } while (0)
+ 
+-#define HAVE_ARCH_MMU_GATHER 1
 -
- 	/* Architecture-specific MM context */
- 	mm_context_t context;
+-struct pte_freelist_batch;
+-
+-struct arch_mmu_gather {
+-	struct pte_freelist_batch *batch;
+-};
+-
+-#define ARCH_MMU_GATHER_INIT (struct arch_mmu_gather){ .batch = NULL, }
+-
+ extern void tlb_flush(struct mmu_gather *tlb);
  
-@@ -317,9 +315,14 @@ struct mm_struct {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	pgtable_t pmd_huge_pte; /* protected by page_table_lock */
- #endif
-+
-+	cpumask_var_t cpu_vm_mask_var;
- };
+ /* Get the generic bits... */
+diff -puN arch/powerpc/mm/pgtable.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/mm/pgtable.c
+--- a/arch/powerpc/mm/pgtable.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/mm/pgtable.c
+@@ -33,104 +33,6 @@
  
- /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
--#define mm_cpumask(mm) (&(mm)->cpu_vm_mask)
-+static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
-+{
-+	return mm->cpu_vm_mask_var;
-+}
+ #include "mmu_decl.h"
  
- #endif /* _LINUX_MM_TYPES_H */
-diff -puN include/linux/sched.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t include/linux/sched.h
---- a/include/linux/sched.h~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/include/linux/sched.h
-@@ -2176,6 +2176,7 @@ static inline void mmdrop(struct mm_stru
- 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
- 		__mmdrop(mm);
- }
-+extern int mm_init_cpumask(struct mm_struct *mm, struct mm_struct *oldmm);
- 
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
-diff -puN init/main.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t init/main.c
---- a/init/main.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/init/main.c
-@@ -509,6 +509,8 @@ asmlinkage void __init start_kernel(void
- 	sort_main_extable();
- 	trap_init();
- 	mm_init();
-+	BUG_ON(mm_init_cpumask(&init_mm, 0));
-+
- 	/*
- 	 * Set up the scheduler prior starting any interrupts (such as the
- 	 * timer interrupt). Full topology setup happens at smp_init()
-diff -puN kernel/fork.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t kernel/fork.c
---- a/kernel/fork.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/kernel/fork.c
-@@ -485,6 +485,20 @@ static void mm_init_aio(struct mm_struct
- #endif
- }
- 
-+int mm_init_cpumask(struct mm_struct *mm, struct mm_struct *oldmm)
-+{
-+#ifdef CONFIG_CPUMASK_OFFSTACK
-+	if (!alloc_cpumask_var(&mm->cpu_vm_mask_var, GFP_KERNEL))
-+		return -ENOMEM;
-+
-+	if (oldmm)
-+		cpumask_copy(mm_cpumask(mm), mm_cpumask(oldmm));
-+	else
-+		memset(mm_cpumask(mm), 0, cpumask_size());
-+#endif
-+	return 0;
-+}
-+
- static struct mm_struct * mm_init(struct mm_struct * mm, struct task_struct *p)
+-#ifdef CONFIG_SMP
+-
+-/*
+- * Handle batching of page table freeing on SMP. Page tables are
+- * queued up and send to be freed later by RCU in order to avoid
+- * freeing a page table page that is being walked without locks
+- */
+-
+-static unsigned long pte_freelist_forced_free;
+-
+-struct pte_freelist_batch
+-{
+-	struct rcu_head	rcu;
+-	unsigned int	index;
+-	unsigned long	tables[0];
+-};
+-
+-#define PTE_FREELIST_SIZE \
+-	((PAGE_SIZE - sizeof(struct pte_freelist_batch)) \
+-	  / sizeof(unsigned long))
+-
+-static void pte_free_smp_sync(void *arg)
+-{
+-	/* Do nothing, just ensure we sync with all CPUs */
+-}
+-
+-/* This is only called when we are critically out of memory
+- * (and fail to get a page in pte_free_tlb).
+- */
+-static void pgtable_free_now(void *table, unsigned shift)
+-{
+-	pte_freelist_forced_free++;
+-
+-	smp_call_function(pte_free_smp_sync, NULL, 1);
+-
+-	pgtable_free(table, shift);
+-}
+-
+-static void pte_free_rcu_callback(struct rcu_head *head)
+-{
+-	struct pte_freelist_batch *batch =
+-		container_of(head, struct pte_freelist_batch, rcu);
+-	unsigned int i;
+-
+-	for (i = 0; i < batch->index; i++) {
+-		void *table = (void *)(batch->tables[i] & ~MAX_PGTABLE_INDEX_SIZE);
+-		unsigned shift = batch->tables[i] & MAX_PGTABLE_INDEX_SIZE;
+-
+-		pgtable_free(table, shift);
+-	}
+-
+-	free_page((unsigned long)batch);
+-}
+-
+-static void pte_free_submit(struct pte_freelist_batch *batch)
+-{
+-	call_rcu_sched(&batch->rcu, pte_free_rcu_callback);
+-}
+-
+-void pgtable_free_tlb(struct mmu_gather *tlb, void *table, unsigned shift)
+-{
+-	struct pte_freelist_batch **batchp = &tlb->arch.batch;
+-	unsigned long pgf;
+-
+-	if (atomic_read(&tlb->mm->mm_users) < 2) {
+-		pgtable_free(table, shift);
+-		return;
+-	}
+-
+-	if (*batchp == NULL) {
+-		*batchp = (struct pte_freelist_batch *)__get_free_page(GFP_ATOMIC);
+-		if (*batchp == NULL) {
+-			pgtable_free_now(table, shift);
+-			return;
+-		}
+-		(*batchp)->index = 0;
+-	}
+-	BUG_ON(shift > MAX_PGTABLE_INDEX_SIZE);
+-	pgf = (unsigned long)table | shift;
+-	(*batchp)->tables[(*batchp)->index++] = pgf;
+-	if ((*batchp)->index == PTE_FREELIST_SIZE) {
+-		pte_free_submit(*batchp);
+-		*batchp = NULL;
+-	}
+-}
+-
+-void pte_free_finish(struct mmu_gather *tlb)
+-{
+-	struct pte_freelist_batch **batchp = &tlb->arch.batch;
+-
+-	if (*batchp == NULL)
+-		return;
+-	pte_free_submit(*batchp);
+-	*batchp = NULL;
+-}
+-
+-#endif /* CONFIG_SMP */
+-
+ static inline int is_exec_fault(void)
  {
- 	atomic_set(&mm->mm_users, 1);
-@@ -521,10 +535,20 @@ struct mm_struct * mm_alloc(void)
- 	struct mm_struct * mm;
- 
- 	mm = allocate_mm();
--	if (mm) {
--		memset(mm, 0, sizeof(*mm));
--		mm = mm_init(mm, current);
-+	if (!mm)
-+		return NULL;
-+
-+	memset(mm, 0, sizeof(*mm));
-+	mm = mm_init(mm, current);
-+	if (!mm)
-+		return NULL;
-+
-+	if (mm_init_cpumask(mm, NULL)) {
-+		mm_free_pgd(mm);
-+		free_mm(mm);
-+		return NULL;
+ 	return current->thread.regs && TRAP(current->thread.regs) == 0x400;
+diff -puN arch/powerpc/mm/tlb_hash32.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/mm/tlb_hash32.c
+--- a/arch/powerpc/mm/tlb_hash32.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/mm/tlb_hash32.c
+@@ -71,9 +71,6 @@ void tlb_flush(struct mmu_gather *tlb)
+ 		 */
+ 		_tlbia();
  	}
-+
- 	return mm;
+-
+-	/* Push out batch of freed page tables */
+-	pte_free_finish(tlb);
  }
  
-@@ -536,6 +560,7 @@ struct mm_struct * mm_alloc(void)
- void __mmdrop(struct mm_struct *mm)
+ /*
+diff -puN arch/powerpc/mm/tlb_hash64.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/mm/tlb_hash64.c
+--- a/arch/powerpc/mm/tlb_hash64.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/mm/tlb_hash64.c
+@@ -165,9 +165,6 @@ void tlb_flush(struct mmu_gather *tlb)
+ 		__flush_tlb_pending(tlbbatch);
+ 
+ 	put_cpu_var(ppc64_tlb_batch);
+-
+-	/* Push out batch of freed page tables */
+-	pte_free_finish(tlb);
+ }
+ 
+ /**
+diff -puN arch/powerpc/mm/tlb_nohash.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code arch/powerpc/mm/tlb_nohash.c
+--- a/arch/powerpc/mm/tlb_nohash.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/arch/powerpc/mm/tlb_nohash.c
+@@ -299,9 +299,6 @@ EXPORT_SYMBOL(flush_tlb_range);
+ void tlb_flush(struct mmu_gather *tlb)
  {
- 	BUG_ON(mm == &init_mm);
-+	free_cpumask_var(mm->cpu_vm_mask_var);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
- 	mmu_notifier_mm_destroy(mm);
-@@ -690,6 +715,9 @@ struct mm_struct *dup_mm(struct task_str
- 	if (!mm_init(mm, tsk))
- 		goto fail_nomem;
+ 	flush_tlb_mm(tlb->mm);
+-
+-	/* Push out batch of freed page tables */
+-	pte_free_finish(tlb);
+ }
  
-+	if (mm_init_cpumask(mm, oldmm))
-+		goto fail_nocpumask;
+ /*
+diff -puN include/asm-generic/tlb.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/include/asm-generic/tlb.h
+@@ -29,6 +29,49 @@
+   #define tlb_fast_mode(tlb) 1
+ #endif
+ 
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++/*
++ * Semi RCU freeing of the page directories.
++ *
++ * This is needed by some architectures to implement software pagetable walkers.
++ *
++ * gup_fast() and other software pagetable walkers do a lockless page-table
++ * walk and therefore needs some synchronization with the freeing of the page
++ * directories. The chosen means to accomplish that is by disabling IRQs over
++ * the walk.
++ *
++ * Architectures that use IPIs to flush TLBs will then automagically DTRT,
++ * since we unlink the page, flush TLBs, free the page. Since the disabling of
++ * IRQs delays the completion of the TLB flush we can never observe an already
++ * freed page.
++ *
++ * Architectures that do not have this (PPC) need to delay the freeing by some
++ * other means, this is that means.
++ *
++ * What we do is batch the freed directory pages (tables) and RCU free them.
++ * We use the sched RCU variant, as that guarantees that IRQ/preempt disabling
++ * holds off grace periods.
++ *
++ * However, in order to batch these pages we need to allocate storage, this
++ * allocation is deep inside the MM code and can thus easily fail on memory
++ * pressure. To guarantee progress we fall back to single table freeing, see
++ * the implementation of tlb_remove_table_one().
++ *
++ */
++struct mmu_table_batch {
++	struct rcu_head		rcu;
++	unsigned int		nr;
++	void			*tables[0];
++};
 +
- 	if (init_new_context(tsk, mm))
- 		goto fail_nocontext;
- 
-@@ -716,6 +744,9 @@ fail_nomem:
- 	return NULL;
- 
- fail_nocontext:
-+	free_cpumask_var(mm->cpu_vm_mask_var);
++#define MAX_TABLE_BATCH		\
++	((PAGE_SIZE - sizeof(struct mmu_table_batch)) / sizeof(void *))
 +
-+fail_nocpumask:
- 	/*
- 	 * If init_new_context() failed, we cannot use mmput() to free the mm
- 	 * because it calls destroy_context()
-diff -puN mm/init-mm.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t mm/init-mm.c
---- a/mm/init-mm.c~mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t
-+++ a/mm/init-mm.c
-@@ -21,6 +21,5 @@ struct mm_struct init_mm = {
- 	.mmap_sem	= __RWSEM_INITIALIZER(init_mm.mmap_sem),
- 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
- 	.mmlist		= LIST_HEAD_INIT(init_mm.mmlist),
--	.cpu_vm_mask	= CPU_MASK_ALL,
- 	INIT_MM_CONTEXT(init_mm)
++extern void tlb_table_flush(struct mmu_gather *tlb);
++extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
++
++#endif
++
+ /*
+  * If we can't allocate a page to make a big batch of page pointers
+  * to work on, then just handle a few from the on-stack structure.
+@@ -40,13 +83,13 @@
+  */
+ struct mmu_gather {
+ 	struct mm_struct	*mm;
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++	struct mmu_table_batch	*batch;
++#endif
+ 	unsigned int		nr;	/* set to ~0U means fast mode */
+ 	unsigned int		max;	/* nr < max */
+ 	unsigned int		need_flush;/* Really unmapped some ptes? */
+ 	unsigned int		fullmm; /* non-zero means full mm flush */
+-#ifdef HAVE_ARCH_MMU_GATHER
+-	struct arch_mmu_gather	arch;
+-#endif
+ 	struct page		**pages;
+ 	struct page		*local[MMU_GATHER_BUNDLE];
  };
+@@ -82,8 +125,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
+ 
+ 	tlb->fullmm = fullmm;
+ 
+-#ifdef HAVE_ARCH_MMU_GATHER
+-	tlb->arch = ARCH_MMU_GATHER_INIT;
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++	tlb->batch = NULL;
+ #endif
+ }
+ 
+@@ -94,6 +137,9 @@ tlb_flush_mmu(struct mmu_gather *tlb)
+ 		return;
+ 	tlb->need_flush = 0;
+ 	tlb_flush(tlb);
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++	tlb_table_flush(tlb);
++#endif
+ 	if (!tlb_fast_mode(tlb)) {
+ 		free_pages_and_swap_cache(tlb->pages, tlb->nr);
+ 		tlb->nr = 0;
+diff -puN mm/memory.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code mm/memory.c
+--- a/mm/memory.c~mm-powerpc-move-the-rcu-page-table-freeing-into-generic-code
++++ a/mm/memory.c
+@@ -193,6 +193,83 @@ static void check_sync_rss_stat(struct t
+ 
+ #endif
+ 
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++
++/*
++ * See the comment near struct mmu_table_batch.
++ */
++
++static void tlb_remove_table_smp_sync(void *arg)
++{
++	/* Simply deliver the interrupt */
++}
++
++static void tlb_remove_table_one(void *table)
++{
++	/*
++	 * This isn't an RCU grace period and hence the page-tables cannot be
++	 * assumed to be actually RCU-freed.
++	 *
++	 * It is however sufficient for software page-table walkers that rely on
++	 * IRQ disabling. See the comment near struct mmu_table_batch.
++	 */
++	smp_call_function(tlb_remove_table_smp_sync, NULL, 1);
++	__tlb_remove_table(table);
++}
++
++static void tlb_remove_table_rcu(struct rcu_head *head)
++{
++	struct mmu_table_batch *batch;
++	int i;
++
++	batch = container_of(head, struct mmu_table_batch, rcu);
++
++	for (i = 0; i < batch->nr; i++)
++		__tlb_remove_table(batch->tables[i]);
++
++	free_page((unsigned long)batch);
++}
++
++void tlb_table_flush(struct mmu_gather *tlb)
++{
++	struct mmu_table_batch **batch = &tlb->batch;
++
++	if (*batch) {
++		call_rcu_sched(&(*batch)->rcu, tlb_remove_table_rcu);
++		*batch = NULL;
++	}
++}
++
++void tlb_remove_table(struct mmu_gather *tlb, void *table)
++{
++	struct mmu_table_batch **batch = &tlb->batch;
++
++	tlb->need_flush = 1;
++
++	/*
++	 * When there's less then two users of this mm there cannot be a
++	 * concurrent page-table walk.
++	 */
++	if (atomic_read(&tlb->mm->mm_users) < 2) {
++		__tlb_remove_table(table);
++		return;
++	}
++
++	if (*batch == NULL) {
++		*batch = (struct mmu_table_batch *)__get_free_page(GFP_NOWAIT | __GFP_NOWARN);
++		if (*batch == NULL) {
++			tlb_remove_table_one(table);
++			return;
++		}
++		(*batch)->nr = 0;
++	}
++	(*batch)->tables[(*batch)->nr++] = table;
++	if ((*batch)->nr == MAX_TABLE_BATCH)
++		tlb_table_flush(tlb);
++}
++
++#endif
++
+ /*
+  * If a p?d_bad entry is found while walking page tables, report
+  * the error, before resetting entry to p?d_none.  Usually (but
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
 linux-next.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-m32r-convert-cpumask-api.patch
-m32r-fix-spin_lock_irqsave-misuse.patch
-m32r-remove-redundant-declaration.patch
-getdelays-show-average-cpu-io-swap-reclaim-delays.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
 cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
