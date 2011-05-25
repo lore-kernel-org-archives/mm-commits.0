@@ -1,211 +1,572 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:27:53 -0700
-Message-ID: <201105252026.p4PKQGON014481@imap1.linux-foundation.org>
+Subject: [merged] tmpfs-implement-generic-xattr-support.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:10 -0700
+Message-ID: <201105252028.p4PKSXXp014751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751885Ab1EYUvQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752335Ab1EYUvw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:51:16 -0400
+	Wed, 25 May 2011 16:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hughd@google.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: eparis@redhat.com, hughd@google.com, jordipujolp@gmail.com, kyle@mcmartin.ca, mszeredi@suse.cz, serge.hallyn@ubuntu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: replace PF_OOM_ORIGIN with toggling oom_score_adj
+     tmpfs: implement generic xattr support
 has been removed from the -mm tree.  Its filename was
-     oom-replace-pf_oom_origin-with-toggling-oom_score_adj.patch
+     tmpfs-implement-generic-xattr-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: replace PF_OOM_ORIGIN with toggling oom_score_adj
-From: David Rientjes <rientjes@google.com>
+Subject: tmpfs: implement generic xattr support
+From: Eric Paris <eparis@redhat.com>
 
-There's a kernel-wide shortage of per-process flags, so it's always
-helpful to trim one when possible without incurring a significant penalty.
- It's even more important when you're planning on adding a per- process
-flag yourself, which I plan to do shortly for transparent hugepages.
+Implement generic xattrs for tmpfs filesystems.  The Feodra project, while
+trying to replace suid apps with file capabilities, realized that tmpfs,
+which is used on the build systems, does not support file capabilities and
+thus cannot be used to build packages which use file capabilities.  Xattrs
+are also needed for overlayfs.
 
-PF_OOM_ORIGIN is used by ksm and swapoff to prefer current since it has a
-tendency to allocate large amounts of memory and should be preferred for
-killing over other tasks.  We'd rather immediately kill the task making
-the errant syscall rather than penalizing an innocent task.
+The xattr interface is a bit odd.  If a filesystem does not implement any
+{get,set,list}xattr functions the VFS will call into some random LSM hooks
+and the running LSM can then implement some method for handling xattrs. 
+SELinux for example provides a method to support security.selinux but no
+other security.* xattrs.
 
-This patch removes PF_OOM_ORIGIN since its behavior is equivalent to
-setting the process's oom_score_adj to OOM_SCORE_ADJ_MAX.
+As it stands today when one enables CONFIG_TMPFS_POSIX_ACL tmpfs will have
+xattr handler routines specifically to handle acls.  Because of this tmpfs
+would loose the VFS/LSM helpers to support the running LSM.  To make up
+for that tmpfs had stub functions that did nothing but call into the LSM
+hooks which implement the helpers.
 
-The process's old oom_score_adj is stored and then set to
-OOM_SCORE_ADJ_MAX during the time it used to have PF_OOM_ORIGIN.  The old
-value is then reinstated when the process should no longer be considered a
-high priority for oom killing.
+This new patch does not use the LSM fallback functions and instead just
+implements a native get/set/list xattr feature for the full security.* and
+trusted.* namespace like a normal filesystem.  This means that tmpfs can
+now support both security.selinux and security.capability, which was not
+previously possible.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The basic implementation is that I attach a:
+
+struct shmem_xattr {
+	struct list_head list; /* anchored by shmem_inode_info->xattr_list */
+	char *name;
+	size_t size;
+	char value[0];
+};
+
+Into the struct shmem_inode_info for each xattr that is set.  This
+implementation could easily support the user.* namespace as well, except
+some care needs to be taken to prevent large amounts of unswappable memory
+being allocated for unprivileged users.
+
+[mszeredi@suse.cz: new config option, suport trusted.*, support symlinks]
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Serge Hallyn <serge.hallyn@ubuntu.com>
+Tested-by: Serge Hallyn <serge.hallyn@ubuntu.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Acked-by: Hugh Dickins <hughd@google.com>
+Tested-by: Jordi Pujol <jordipujolp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h   |    2 ++
- include/linux/sched.h |    1 -
- mm/ksm.c              |    7 +++++--
- mm/oom_kill.c         |   36 +++++++++++++++++++++++++++---------
- mm/swapfile.c         |    6 ++++--
- 5 files changed, 38 insertions(+), 14 deletions(-)
+ fs/Kconfig               |   18 +-
+ include/linux/shmem_fs.h |    8 
+ mm/shmem.c               |  320 ++++++++++++++++++++++++++++++-------
+ 3 files changed, 290 insertions(+), 56 deletions(-)
 
-diff -puN include/linux/oom.h~oom-replace-pf_oom_origin-with-toggling-oom_score_adj include/linux/oom.h
---- a/include/linux/oom.h~oom-replace-pf_oom_origin-with-toggling-oom_score_adj
-+++ a/include/linux/oom.h
-@@ -40,6 +40,8 @@ enum oom_constraint {
- 	CONSTRAINT_MEMCG,
+diff -puN fs/Kconfig~tmpfs-implement-generic-xattr-support fs/Kconfig
+--- a/fs/Kconfig~tmpfs-implement-generic-xattr-support
++++ a/fs/Kconfig
+@@ -121,9 +121,25 @@ config TMPFS
+ 
+ 	  See <file:Documentation/filesystems/tmpfs.txt> for details.
+ 
++config TMPFS_XATTR
++	bool "Tmpfs extended attributes"
++	depends on TMPFS
++	default n
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page, or visit
++	  <http://acl.bestbits.at/> for details).
++
++	  Currently this enables support for the trusted.* and
++	  security.* namespaces.
++
++	  If unsure, say N.
++
++	  You need this for POSIX ACL support on tmpfs.
++
+ config TMPFS_POSIX_ACL
+ 	bool "Tmpfs POSIX Access Control Lists"
+-	depends on TMPFS
++	depends on TMPFS_XATTR
+ 	select GENERIC_ACL
+ 	help
+ 	  POSIX Access Control Lists (ACLs) support permissions for users and
+diff -puN include/linux/shmem_fs.h~tmpfs-implement-generic-xattr-support include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~tmpfs-implement-generic-xattr-support
++++ a/include/linux/shmem_fs.h
+@@ -9,6 +9,8 @@
+ 
+ #define SHMEM_NR_DIRECT 16
+ 
++#define SHMEM_SYMLINK_INLINE_LEN (SHMEM_NR_DIRECT * sizeof(swp_entry_t))
++
+ struct shmem_inode_info {
+ 	spinlock_t		lock;
+ 	unsigned long		flags;
+@@ -17,8 +19,12 @@ struct shmem_inode_info {
+ 	unsigned long		next_index;	/* highest alloced index + 1 */
+ 	struct shared_policy	policy;		/* NUMA memory alloc policy */
+ 	struct page		*i_indirect;	/* top indirect blocks page */
+-	swp_entry_t		i_direct[SHMEM_NR_DIRECT]; /* first blocks */
++	union {
++		swp_entry_t	i_direct[SHMEM_NR_DIRECT]; /* first blocks */
++		char		inline_symlink[SHMEM_SYMLINK_INLINE_LEN];
++	};
+ 	struct list_head	swaplist;	/* chain of maybes on swap */
++	struct list_head	xattr_list;	/* list of shmem_xattr */
+ 	struct inode		vfs_inode;
  };
  
-+extern int test_set_oom_score_adj(int new_val);
-+
- extern unsigned int oom_badness(struct task_struct *p, struct mem_cgroup *mem,
- 			const nodemask_t *nodemask, unsigned long totalpages);
- extern int try_set_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
-diff -puN include/linux/sched.h~oom-replace-pf_oom_origin-with-toggling-oom_score_adj include/linux/sched.h
---- a/include/linux/sched.h~oom-replace-pf_oom_origin-with-toggling-oom_score_adj
-+++ a/include/linux/sched.h
-@@ -1753,7 +1753,6 @@ extern void thread_group_times(struct ta
- #define PF_FROZEN	0x00010000	/* frozen for system suspend */
- #define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
- #define PF_KSWAPD	0x00040000	/* I am kswapd */
--#define PF_OOM_ORIGIN	0x00080000	/* Allocating much memory to others */
- #define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
- #define PF_KTHREAD	0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
-diff -puN mm/ksm.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj mm/ksm.c
---- a/mm/ksm.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj
-+++ a/mm/ksm.c
-@@ -35,6 +35,7 @@
- #include <linux/ksm.h>
- #include <linux/hash.h>
- #include <linux/freezer.h>
-+#include <linux/oom.h>
+diff -puN mm/shmem.c~tmpfs-implement-generic-xattr-support mm/shmem.c
+--- a/mm/shmem.c~tmpfs-implement-generic-xattr-support
++++ a/mm/shmem.c
+@@ -99,6 +99,13 @@ static struct vfsmount *shm_mnt;
+ /* Pretend that each entry is of this size in directory's i_size */
+ #define BOGO_DIRENT_SIZE 20
  
- #include <asm/tlbflush.h>
- #include "internal.h"
-@@ -1894,9 +1895,11 @@ static ssize_t run_store(struct kobject 
- 	if (ksm_run != flags) {
- 		ksm_run = flags;
- 		if (flags & KSM_RUN_UNMERGE) {
--			current->flags |= PF_OOM_ORIGIN;
-+			int oom_score_adj;
++struct shmem_xattr {
++	struct list_head list;	/* anchored by shmem_inode_info->xattr_list */
++	char *name;		/* xattr name */
++	size_t size;
++	char value[0];
++};
 +
-+			oom_score_adj = test_set_oom_score_adj(OOM_SCORE_ADJ_MAX);
- 			err = unmerge_and_remove_all_rmap_items();
--			current->flags &= ~PF_OOM_ORIGIN;
-+			test_set_oom_score_adj(oom_score_adj);
- 			if (err) {
- 				ksm_run = KSM_RUN_STOP;
- 				count = err;
-diff -puN mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj mm/oom_kill.c
---- a/mm/oom_kill.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj
-+++ a/mm/oom_kill.c
-@@ -38,6 +38,33 @@ int sysctl_oom_kill_allocating_task;
- int sysctl_oom_dump_tasks = 1;
- static DEFINE_SPINLOCK(zone_scan_lock);
+ /* Flag allocation requirements to shmem_getpage and shmem_swp_alloc */
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+@@ -822,6 +829,7 @@ static int shmem_notify_change(struct de
+ static void shmem_evict_inode(struct inode *inode)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_xattr *xattr, *nxattr;
  
-+/**
-+ * test_set_oom_score_adj() - set current's oom_score_adj and return old value
-+ * @new_val: new oom_score_adj value
-+ *
-+ * Sets the oom_score_adj value for current to @new_val with proper
-+ * synchronization and returns the old value.  Usually used to temporarily
-+ * set a value, save the old value in the caller, and then reinstate it later.
-+ */
-+int test_set_oom_score_adj(int new_val)
-+{
-+	struct sighand_struct *sighand = current->sighand;
-+	int old_val;
+ 	if (inode->i_mapping->a_ops == &shmem_aops) {
+ 		truncate_inode_pages(inode->i_mapping, 0);
+@@ -834,6 +842,11 @@ static void shmem_evict_inode(struct ino
+ 			mutex_unlock(&shmem_swaplist_mutex);
+ 		}
+ 	}
 +
-+	spin_lock_irq(&sighand->siglock);
-+	old_val = current->signal->oom_score_adj;
-+	if (new_val != old_val) {
-+		if (new_val == OOM_SCORE_ADJ_MIN)
-+			atomic_inc(&current->mm->oom_disable_count);
-+		else if (old_val == OOM_SCORE_ADJ_MIN)
-+			atomic_dec(&current->mm->oom_disable_count);
-+		current->signal->oom_score_adj = new_val;
++	list_for_each_entry_safe(xattr, nxattr, &info->xattr_list, list) {
++		kfree(xattr->name);
++		kfree(xattr);
 +	}
-+	spin_unlock_irq(&sighand->siglock);
+ 	BUG_ON(inode->i_blocks);
+ 	shmem_free_inode(inode->i_sb);
+ 	end_writeback(inode);
+@@ -1615,6 +1628,7 @@ static struct inode *shmem_get_inode(str
+ 		spin_lock_init(&info->lock);
+ 		info->flags = vm_flags & VM_NORESERVE;
+ 		INIT_LIST_HEAD(&info->swaplist);
++		INIT_LIST_HEAD(&info->xattr_list);
+ 		cache_no_acl(inode);
+ 
+ 		switch (mode & S_IFMT) {
+@@ -2014,9 +2028,9 @@ static int shmem_symlink(struct inode *d
+ 
+ 	info = SHMEM_I(inode);
+ 	inode->i_size = len-1;
+-	if (len <= (char *)inode - (char *)info) {
++	if (len <= SHMEM_SYMLINK_INLINE_LEN) {
+ 		/* do it inline */
+-		memcpy(info, symname, len);
++		memcpy(info->inline_symlink, symname, len);
+ 		inode->i_op = &shmem_symlink_inline_operations;
+ 	} else {
+ 		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
+@@ -2042,7 +2056,7 @@ static int shmem_symlink(struct inode *d
+ 
+ static void *shmem_follow_link_inline(struct dentry *dentry, struct nameidata *nd)
+ {
+-	nd_set_link(nd, (char *)SHMEM_I(dentry->d_inode));
++	nd_set_link(nd, SHMEM_I(dentry->d_inode)->inline_symlink);
+ 	return NULL;
+ }
+ 
+@@ -2066,63 +2080,253 @@ static void shmem_put_link(struct dentry
+ 	}
+ }
+ 
+-static const struct inode_operations shmem_symlink_inline_operations = {
+-	.readlink	= generic_readlink,
+-	.follow_link	= shmem_follow_link_inline,
+-};
+-
+-static const struct inode_operations shmem_symlink_inode_operations = {
+-	.readlink	= generic_readlink,
+-	.follow_link	= shmem_follow_link,
+-	.put_link	= shmem_put_link,
+-};
+-
+-#ifdef CONFIG_TMPFS_POSIX_ACL
++#ifdef CONFIG_TMPFS_XATTR
+ /*
+- * Superblocks without xattr inode operations will get security.* xattr
+- * support from the VFS "for free". As soon as we have any other xattrs
++ * Superblocks without xattr inode operations may get some security.* xattr
++ * support from the LSM "for free". As soon as we have any other xattrs
+  * like ACLs, we also need to implement the security.* handlers at
+  * filesystem level, though.
+  */
+ 
+-static size_t shmem_xattr_security_list(struct dentry *dentry, char *list,
+-					size_t list_len, const char *name,
+-					size_t name_len, int handler_flags)
++static int shmem_xattr_get(struct dentry *dentry, const char *name,
++			   void *buffer, size_t size)
+ {
+-	return security_inode_listsecurity(dentry->d_inode, list, list_len);
+-}
++	struct shmem_inode_info *info;
++	struct shmem_xattr *xattr;
++	int ret = -ENODATA;
+ 
+-static int shmem_xattr_security_get(struct dentry *dentry, const char *name,
+-		void *buffer, size_t size, int handler_flags)
+-{
+-	if (strcmp(name, "") == 0)
+-		return -EINVAL;
+-	return xattr_getsecurity(dentry->d_inode, name, buffer, size);
++	info = SHMEM_I(dentry->d_inode);
 +
-+	return old_val;
++	spin_lock(&info->lock);
++	list_for_each_entry(xattr, &info->xattr_list, list) {
++		if (strcmp(name, xattr->name))
++			continue;
++
++		ret = xattr->size;
++		if (buffer) {
++			if (size < xattr->size)
++				ret = -ERANGE;
++			else
++				memcpy(buffer, xattr->value, xattr->size);
++		}
++		break;
++	}
++	spin_unlock(&info->lock);
++	return ret;
+ }
+ 
+-static int shmem_xattr_security_set(struct dentry *dentry, const char *name,
+-		const void *value, size_t size, int flags, int handler_flags)
++static int shmem_xattr_set(struct dentry *dentry, const char *name,
++			   const void *value, size_t size, int flags)
+ {
+-	if (strcmp(name, "") == 0)
+-		return -EINVAL;
+-	return security_inode_setsecurity(dentry->d_inode, name, value,
+-					  size, flags);
++	struct inode *inode = dentry->d_inode;
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_xattr *xattr;
++	struct shmem_xattr *new_xattr = NULL;
++	size_t len;
++	int err = 0;
++
++	/* value == NULL means remove */
++	if (value) {
++		/* wrap around? */
++		len = sizeof(*new_xattr) + size;
++		if (len <= sizeof(*new_xattr))
++			return -ENOMEM;
++
++		new_xattr = kmalloc(len, GFP_KERNEL);
++		if (!new_xattr)
++			return -ENOMEM;
++
++		new_xattr->name = kstrdup(name, GFP_KERNEL);
++		if (!new_xattr->name) {
++			kfree(new_xattr);
++			return -ENOMEM;
++		}
++
++		new_xattr->size = size;
++		memcpy(new_xattr->value, value, size);
++	}
++
++	spin_lock(&info->lock);
++	list_for_each_entry(xattr, &info->xattr_list, list) {
++		if (!strcmp(name, xattr->name)) {
++			if (flags & XATTR_CREATE) {
++				xattr = new_xattr;
++				err = -EEXIST;
++			} else if (new_xattr) {
++				list_replace(&xattr->list, &new_xattr->list);
++			} else {
++				list_del(&xattr->list);
++			}
++			goto out;
++		}
++	}
++	if (flags & XATTR_REPLACE) {
++		xattr = new_xattr;
++		err = -ENODATA;
++	} else {
++		list_add(&new_xattr->list, &info->xattr_list);
++		xattr = NULL;
++	}
++out:
++	spin_unlock(&info->lock);
++	if (xattr)
++		kfree(xattr->name);
++	kfree(xattr);
++	return err;
+ }
+ 
+-static const struct xattr_handler shmem_xattr_security_handler = {
+-	.prefix = XATTR_SECURITY_PREFIX,
+-	.list   = shmem_xattr_security_list,
+-	.get    = shmem_xattr_security_get,
+-	.set    = shmem_xattr_security_set,
+-};
+ 
+ static const struct xattr_handler *shmem_xattr_handlers[] = {
++#ifdef CONFIG_TMPFS_POSIX_ACL
+ 	&generic_acl_access_handler,
+ 	&generic_acl_default_handler,
+-	&shmem_xattr_security_handler,
++#endif
+ 	NULL
+ };
++
++static int shmem_xattr_validate(const char *name)
++{
++	struct { const char *prefix; size_t len; } arr[] = {
++		{ XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN },
++		{ XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN }
++	};
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(arr); i++) {
++		size_t preflen = arr[i].len;
++		if (strncmp(name, arr[i].prefix, preflen) == 0) {
++			if (!name[preflen])
++				return -EINVAL;
++			return 0;
++		}
++	}
++	return -EOPNOTSUPP;
 +}
 +
- #ifdef CONFIG_NUMA
- /**
-  * has_intersects_mems_allowed() - check task eligiblity for kill
-@@ -155,15 +182,6 @@ unsigned int oom_badness(struct task_str
- 	}
++static ssize_t shmem_getxattr(struct dentry *dentry, const char *name,
++			      void *buffer, size_t size)
++{
++	int err;
++
++	/*
++	 * If this is a request for a synthetic attribute in the system.*
++	 * namespace use the generic infrastructure to resolve a handler
++	 * for it via sb->s_xattr.
++	 */
++	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
++		return generic_getxattr(dentry, name, buffer, size);
++
++	err = shmem_xattr_validate(name);
++	if (err)
++		return err;
++
++	return shmem_xattr_get(dentry, name, buffer, size);
++}
++
++static int shmem_setxattr(struct dentry *dentry, const char *name,
++			  const void *value, size_t size, int flags)
++{
++	int err;
++
++	/*
++	 * If this is a request for a synthetic attribute in the system.*
++	 * namespace use the generic infrastructure to resolve a handler
++	 * for it via sb->s_xattr.
++	 */
++	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
++		return generic_setxattr(dentry, name, value, size, flags);
++
++	err = shmem_xattr_validate(name);
++	if (err)
++		return err;
++
++	if (size == 0)
++		value = "";  /* empty EA, do not remove */
++
++	return shmem_xattr_set(dentry, name, value, size, flags);
++
++}
++
++static int shmem_removexattr(struct dentry *dentry, const char *name)
++{
++	int err;
++
++	/*
++	 * If this is a request for a synthetic attribute in the system.*
++	 * namespace use the generic infrastructure to resolve a handler
++	 * for it via sb->s_xattr.
++	 */
++	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
++		return generic_removexattr(dentry, name);
++
++	err = shmem_xattr_validate(name);
++	if (err)
++		return err;
++
++	return shmem_xattr_set(dentry, name, NULL, 0, XATTR_REPLACE);
++}
++
++static bool xattr_is_trusted(const char *name)
++{
++	return !strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN);
++}
++
++static ssize_t shmem_listxattr(struct dentry *dentry, char *buffer, size_t size)
++{
++	bool trusted = capable(CAP_SYS_ADMIN);
++	struct shmem_xattr *xattr;
++	struct shmem_inode_info *info;
++	size_t used = 0;
++
++	info = SHMEM_I(dentry->d_inode);
++
++	spin_lock(&info->lock);
++	list_for_each_entry(xattr, &info->xattr_list, list) {
++		size_t len;
++
++		/* skip "trusted." attributes for unprivileged callers */
++		if (!trusted && xattr_is_trusted(xattr->name))
++			continue;
++
++		len = strlen(xattr->name) + 1;
++		used += len;
++		if (buffer) {
++			if (size < used) {
++				used = -ERANGE;
++				break;
++			}
++			memcpy(buffer, xattr->name, len);
++			buffer += len;
++		}
++	}
++	spin_unlock(&info->lock);
++
++	return used;
++}
++#endif /* CONFIG_TMPFS_XATTR */
++
++static const struct inode_operations shmem_symlink_inline_operations = {
++	.readlink	= generic_readlink,
++	.follow_link	= shmem_follow_link_inline,
++#ifdef CONFIG_TMPFS_XATTR
++	.setxattr	= shmem_setxattr,
++	.getxattr	= shmem_getxattr,
++	.listxattr	= shmem_listxattr,
++	.removexattr	= shmem_removexattr,
++#endif
++};
++
++static const struct inode_operations shmem_symlink_inode_operations = {
++	.readlink	= generic_readlink,
++	.follow_link	= shmem_follow_link,
++	.put_link	= shmem_put_link,
++#ifdef CONFIG_TMPFS_XATTR
++	.setxattr	= shmem_setxattr,
++	.getxattr	= shmem_getxattr,
++	.listxattr	= shmem_listxattr,
++	.removexattr	= shmem_removexattr,
+ #endif
++};
  
- 	/*
--	 * When the PF_OOM_ORIGIN bit is set, it indicates the task should have
--	 * priority for oom killing.
--	 */
--	if (p->flags & PF_OOM_ORIGIN) {
--		task_unlock(p);
--		return 1000;
--	}
--
--	/*
- 	 * The memory controller may have a limit of 0 bytes, so avoid a divide
- 	 * by zero, if necessary.
- 	 */
-diff -puN mm/swapfile.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj mm/swapfile.c
---- a/mm/swapfile.c~oom-replace-pf_oom_origin-with-toggling-oom_score_adj
-+++ a/mm/swapfile.c
-@@ -31,6 +31,7 @@
- #include <linux/syscalls.h>
- #include <linux/memcontrol.h>
- #include <linux/poll.h>
-+#include <linux/oom.h>
+ static struct dentry *shmem_get_parent(struct dentry *child)
+ {
+@@ -2402,8 +2606,10 @@ int shmem_fill_super(struct super_block 
+ 	sb->s_magic = TMPFS_MAGIC;
+ 	sb->s_op = &shmem_ops;
+ 	sb->s_time_gran = 1;
+-#ifdef CONFIG_TMPFS_POSIX_ACL
++#ifdef CONFIG_TMPFS_XATTR
+ 	sb->s_xattr = shmem_xattr_handlers;
++#endif
++#ifdef CONFIG_TMPFS_POSIX_ACL
+ 	sb->s_flags |= MS_POSIXACL;
+ #endif
  
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-@@ -1555,6 +1556,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	struct address_space *mapping;
- 	struct inode *inode;
- 	char *pathname;
-+	int oom_score_adj;
- 	int i, type, prev;
- 	int err;
+@@ -2501,11 +2707,13 @@ static const struct file_operations shme
+ static const struct inode_operations shmem_inode_operations = {
+ 	.setattr	= shmem_notify_change,
+ 	.truncate_range	= shmem_truncate_range,
++#ifdef CONFIG_TMPFS_XATTR
++	.setxattr	= shmem_setxattr,
++	.getxattr	= shmem_getxattr,
++	.listxattr	= shmem_listxattr,
++	.removexattr	= shmem_removexattr,
++#endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+-	.listxattr	= generic_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.check_acl	= generic_check_acl,
+ #endif
  
-@@ -1613,9 +1615,9 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	p->flags &= ~SWP_WRITEOK;
- 	spin_unlock(&swap_lock);
+@@ -2523,23 +2731,27 @@ static const struct inode_operations shm
+ 	.mknod		= shmem_mknod,
+ 	.rename		= shmem_rename,
+ #endif
++#ifdef CONFIG_TMPFS_XATTR
++	.setxattr	= shmem_setxattr,
++	.getxattr	= shmem_getxattr,
++	.listxattr	= shmem_listxattr,
++	.removexattr	= shmem_removexattr,
++#endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_notify_change,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+-	.listxattr	= generic_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.check_acl	= generic_check_acl,
+ #endif
+ };
  
--	current->flags |= PF_OOM_ORIGIN;
-+	oom_score_adj = test_set_oom_score_adj(OOM_SCORE_ADJ_MAX);
- 	err = try_to_unuse(type);
--	current->flags &= ~PF_OOM_ORIGIN;
-+	test_set_oom_score_adj(oom_score_adj);
- 
- 	if (err) {
- 		/*
+ static const struct inode_operations shmem_special_inode_operations = {
++#ifdef CONFIG_TMPFS_XATTR
++	.setxattr	= shmem_setxattr,
++	.getxattr	= shmem_getxattr,
++	.listxattr	= shmem_listxattr,
++	.removexattr	= shmem_removexattr,
++#endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_notify_change,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+-	.listxattr	= generic_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.check_acl	= generic_check_acl,
+ #endif
+ };
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from eparis@redhat.com are
 
 origin.patch
-mm-increase-reclaim_distance-to-30.patch
+linux-next.patch
+audit-always-follow-va_copy-with-va_end.patch
 flex_array-avoid-divisions-when-accessing-elements.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
-cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
-cgroups-add-per-thread-subsystem-callbacks.patch
-cgroups-make-procs-file-writable.patch
-cgroups-use-flex_array-in-attach_proc.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
