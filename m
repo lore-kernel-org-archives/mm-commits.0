@@ -1,179 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-delete-non-atomic-mm-counter-implementation.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:03 -0700
-Message-ID: <201105252028.p4PKSQif014742@imap1.linux-foundation.org>
+Subject: [merged] proc-allocate-storage-for-numa_maps-statistics-once.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:26 -0700
+Message-ID: <201105252028.p4PKSnbe014781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756488Ab1EYUtJ (ORCPT
+	by vger.kernel.org with ESMTP id S932580Ab1EYUtK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:09 -0400
+	Wed, 25 May 2011 16:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@linux.intel.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: delete non-atomic mm counter implementation
+     proc: allocate storage for numa_maps statistics once
 has been removed from the -mm tree.  Its filename was
-     mm-delete-non-atomic-mm-counter-implementation.patch
+     proc-allocate-storage-for-numa_maps-statistics-once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: delete non-atomic mm counter implementation
-From: Matt Fleming <matt.fleming@linux.intel.com>
+Subject: proc: allocate storage for numa_maps statistics once
+From: Stephen Wilson <wilsons@start.ca>
 
-The problem with having two different types of counters is that developers
-adding new code need to keep in mind whether it's safe to use both the
-atomic and non-atomic implementations.  For example, when adding new
-callers of the *_mm_counter() functions a developer needs to ensure that
-those paths are always executed with page_table_lock held, in case we're
-using the non-atomic implementation of mm counters.
+In show_numa_map() we collect statistics into a numa_maps structure. 
+Since the number of NUMA nodes can be very large, this structure is not a
+candidate for stack allocation.
 
-Hugh Dickins introduced the atomic mm counters in commit f412ac08c986
-("[PATCH] mm: fix rss and mmlist locking").  When asked why he left the
-non-atomic counters around he said,
+Instead of going thru a kmalloc()+kfree() cycle each time show_numa_map()
+is invoked, perform the allocation just once when /proc/pid/numa_maps is
+opened.
 
-  | The only reason was to avoid adding costly atomic operations into a
-  | configuration that had no need for them there: the page_table_lock
-  | sufficed.
-  |
-  | Certainly it would be simpler just to delete the non-atomic variant.
-  |
-  | And I think it's fair to say that any configuration on which we're
-  | measuring performance to that degree (rather than "does it boot fast?"
-  | type measurements), would already be going the split ptlocks route.
+Performing the allocation when numa_maps is opened, and thus before a
+reference to the target tasks mm is taken, eliminates a potential
+stalemate condition in the oom-killer as originally described by Hugh
+Dickins:
 
-Removing the non-atomic counters eases the maintenance burden because
-developers no longer have to mindful of the two implementations when using
-*_mm_counter().
+  ... imagine what happens if the system is out of memory, and the mm
+  we're looking at is selected for killing by the OOM killer: while
+  we wait in __get_free_page for more memory, no memory is freed
+  from the selected mm because it cannot reach exit_mmap while we hold
+  that reference.
 
-Note that all architectures provide a means of atomically updating
-atomic_long_t variables, even if they have to revert to the generic
-spinlock implementation because they don't support 64-bit atomic
-instructions (see lib/atomic64.c).
-
-Signed-off-by: Matt Fleming <matt.fleming@linux.intel.com>
-Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Stephen Wilson <wilsons@start.ca>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   44 +++++--------------------------------
- include/linux/mm_types.h |    9 ++-----
- 2 files changed, 10 insertions(+), 43 deletions(-)
+ fs/proc/task_mmu.c |   36 +++++++++++++++++++++++++++---------
+ 1 file changed, 27 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm.h
---- a/include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation
-+++ a/include/linux/mm.h
-@@ -1053,65 +1053,35 @@ int __get_user_pages_fast(unsigned long 
- /*
-  * per-process(per-mm_struct) statistics.
-  */
--#if defined(SPLIT_RSS_COUNTING)
--/*
-- * The mm counters are not protected by its page_table_lock,
-- * so must be incremented atomically.
-- */
- static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
- {
- 	atomic_long_set(&mm->rss_stat.count[member], value);
- }
- 
-+#if defined(SPLIT_RSS_COUNTING)
- unsigned long get_mm_counter(struct mm_struct *mm, int member);
--
--static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
--{
--	atomic_long_add(value, &mm->rss_stat.count[member]);
--}
--
--static inline void inc_mm_counter(struct mm_struct *mm, int member)
--{
--	atomic_long_inc(&mm->rss_stat.count[member]);
--}
--
--static inline void dec_mm_counter(struct mm_struct *mm, int member)
--{
--	atomic_long_dec(&mm->rss_stat.count[member]);
--}
--
--#else  /* !USE_SPLIT_PTLOCKS */
--/*
-- * The mm counters are protected by its page_table_lock,
-- * so can be incremented directly.
-- */
--static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
--{
--	mm->rss_stat.count[member] = value;
--}
--
-+#else
- static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
- {
--	return mm->rss_stat.count[member];
-+	return atomic_long_read(&mm->rss_stat.count[member]);
- }
-+#endif
- 
- static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
- {
--	mm->rss_stat.count[member] += value;
-+	atomic_long_add(value, &mm->rss_stat.count[member]);
- }
- 
- static inline void inc_mm_counter(struct mm_struct *mm, int member)
- {
--	mm->rss_stat.count[member]++;
-+	atomic_long_inc(&mm->rss_stat.count[member]);
- }
- 
- static inline void dec_mm_counter(struct mm_struct *mm, int member)
- {
--	mm->rss_stat.count[member]--;
-+	atomic_long_dec(&mm->rss_stat.count[member]);
- }
- 
--#endif /* !USE_SPLIT_PTLOCKS */
--
- static inline unsigned long get_mm_rss(struct mm_struct *mm)
- {
- 	return get_mm_counter(mm, MM_FILEPAGES) +
-diff -puN include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation
-+++ a/include/linux/mm_types.h
-@@ -204,19 +204,16 @@ enum {
- 
- #if USE_SPLIT_PTLOCKS && defined(CONFIG_MMU)
- #define SPLIT_RSS_COUNTING
--struct mm_rss_stat {
--	atomic_long_t count[NR_MM_COUNTERS];
--};
- /* per-thread cached information, */
- struct task_rss_stat {
- 	int events;	/* for synchronization threshold */
- 	int count[NR_MM_COUNTERS];
+diff -puN fs/proc/task_mmu.c~proc-allocate-storage-for-numa_maps-statistics-once fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-allocate-storage-for-numa_maps-statistics-once
++++ a/fs/proc/task_mmu.c
+@@ -871,6 +871,11 @@ struct numa_maps {
+ 	unsigned long node[MAX_NUMNODES];
  };
--#else  /* !USE_SPLIT_PTLOCKS */
-+#endif /* USE_SPLIT_PTLOCKS */
+ 
++struct numa_maps_private {
++	struct proc_maps_private proc_maps;
++	struct numa_maps md;
++};
 +
- struct mm_rss_stat {
--	unsigned long count[NR_MM_COUNTERS];
-+	atomic_long_t count[NR_MM_COUNTERS];
- };
--#endif /* !USE_SPLIT_PTLOCKS */
+ static void gather_stats(struct page *page, struct numa_maps *md, int pte_dirty)
+ {
+ 	int count = page_mapcount(page);
+@@ -963,9 +968,10 @@ static int gather_hugetbl_stats(pte_t *p
+  */
+ static int show_numa_map(struct seq_file *m, void *v)
+ {
+-	struct proc_maps_private *priv = m->private;
++	struct numa_maps_private *numa_priv = m->private;
++	struct proc_maps_private *proc_priv = &numa_priv->proc_maps;
+ 	struct vm_area_struct *vma = v;
+-	struct numa_maps *md;
++	struct numa_maps *md = &numa_priv->md;
+ 	struct file *file = vma->vm_file;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mm_walk walk = {};
+@@ -976,9 +982,8 @@ static int show_numa_map(struct seq_file
+ 	if (!mm)
+ 		return 0;
  
- struct mm_struct {
- 	struct vm_area_struct * mmap;		/* list of VMAs */
+-	md = kzalloc(sizeof(struct numa_maps), GFP_KERNEL);
+-	if (!md)
+-		return 0;
++	/* Ensure we start with an empty set of numa_maps statistics. */
++	memset(md, 0, sizeof(*md));
+ 
+ 	md->vma = vma;
+ 
+@@ -987,7 +992,7 @@ static int show_numa_map(struct seq_file
+ 	walk.private = md;
+ 	walk.mm = mm;
+ 
+-	pol = get_vma_policy(priv->task, vma, vma->vm_start);
++	pol = get_vma_policy(proc_priv->task, vma, vma->vm_start);
+ 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
+ 	mpol_cond_put(pol);
+ 
+@@ -1034,12 +1039,12 @@ static int show_numa_map(struct seq_file
+ 			seq_printf(m, " N%d=%lu", n, md->node[n]);
+ out:
+ 	seq_putc(m, '\n');
+-	kfree(md);
+ 
+ 	if (m->count < m->size)
+-		m->version = (vma != priv->tail_vma) ? vma->vm_start : 0;
++		m->version = (vma != proc_priv->tail_vma) ? vma->vm_start : 0;
+ 	return 0;
+ }
++
+ static const struct seq_operations proc_pid_numa_maps_op = {
+         .start  = m_start,
+         .next   = m_next,
+@@ -1049,7 +1054,20 @@ static const struct seq_operations proc_
+ 
+ static int numa_maps_open(struct inode *inode, struct file *file)
+ {
+-	return do_maps_open(inode, file, &proc_pid_numa_maps_op);
++	struct numa_maps_private *priv;
++	int ret = -ENOMEM;
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (priv) {
++		priv->proc_maps.pid = proc_pid(inode);
++		ret = seq_open(file, &proc_pid_numa_maps_op);
++		if (!ret) {
++			struct seq_file *m = file->private_data;
++			m->private = priv;
++		} else {
++			kfree(priv);
++		}
++	}
++	return ret;
+ }
+ 
+ const struct file_operations proc_numa_maps_operations = {
 _
 
-Patches currently in -mm which might be from matt.fleming@linux.intel.com are
+Patches currently in -mm which might be from wilsons@start.ca are
 
 origin.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
 
