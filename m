@@ -1,101 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparse-define-__must_be_array-for-__checker__.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:31:31 -0700
-Message-ID: <201105252029.p4PKTsOb014888@imap1.linux-foundation.org>
+Subject: [merged] ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:31:10 -0700
+Message-ID: <201105252029.p4PKTXx6014851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932804Ab1EYUs4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756467Ab1EYUtF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:48:56 -0400
+	Wed, 25 May 2011 16:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, dave@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: tim.gardner@canonical.com, dank@kegel.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparse: define __must_be_array() for __CHECKER__
+     ulimit: raise default hard ulimit on number of files to 4096
 has been removed from the -mm tree.  Its filename was
-     sparse-define-__must_be_array-for-__checker__.patch
+     ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparse: define __must_be_array() for __CHECKER__
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: ulimit: raise default hard ulimit on number of files to 4096
+From: Tim Gardner <tim.gardner@canonical.com>
 
-commit c5e631cf65f ("ARRAY_SIZE: check for type") added __must_be_array().
-But sparse can't parse this gcc extention.
+Apps are increasingly using more than 1024 file descriptors.  See
+discussion in several distro bug trackers, e.g.  BugLink:
+http://bugs.launchpad.net/bugs/663090
+https://issues.rpath.com/browse/RPL-2054
 
-Now make C=2 makes following sparse errors a lot.
+You don't want to raise the default soft limit, since that might break
+apps that use select(), but it's safe to raise the default hard limit;
+that way, apps that know they need lots of file descriptors can raise
+their soft limit without needing root, and without user intervention.
 
-  kernel/futex.c:2699:25: error: No right hand side of '+'-expression
+Ubuntu is doing this with a kernel change because they have a policy of
+not changing kernel defaults in userland.
 
-Because __must_be_array() is used for ARRAY_SIZE() macro and it is
-used very widely.
+While 4096 might not be enough for *all* apps, it seems to be plenty for
+the apps I've seen lately that are unhappy with 1024.
 
-This patch fixes it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+Cc: Dan Kegel <dank@kegel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/asm-generic/resource.h |    2 +-
+ include/linux/fs.h             |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~sparse-define-__must_be_array-for-__checker__ include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~sparse-define-__must_be_array-for-__checker__
-+++ a/include/linux/compiler-gcc.h
-@@ -34,8 +34,12 @@
-     __asm__ ("" : "=r"(__ptr) : "0"(ptr));		\
-     (typeof(ptr)) (__ptr + (off)); })
+diff -puN include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/asm-generic/resource.h
+--- a/include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
++++ a/include/asm-generic/resource.h
+@@ -78,7 +78,7 @@
+ 	[RLIMIT_CORE]		= {              0,  RLIM_INFINITY },	\
+ 	[RLIMIT_RSS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
+ 	[RLIMIT_NPROC]		= {              0,              0 },	\
+-	[RLIMIT_NOFILE]		= {       INR_OPEN,       INR_OPEN },	\
++	[RLIMIT_NOFILE]		= {   INR_OPEN_CUR,   INR_OPEN_MAX },	\
+ 	[RLIMIT_MEMLOCK]	= {    MLOCK_LIMIT,    MLOCK_LIMIT },	\
+ 	[RLIMIT_AS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
+ 	[RLIMIT_LOCKS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
+diff -puN include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/linux/fs.h
+--- a/include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
++++ a/include/linux/fs.h
+@@ -23,7 +23,8 @@
  
-+#ifdef __CHECKER__
-+#define __must_be_array(arr) 0
-+#else
- /* &a[0] degrades to a pointer: a different type from an array */
- #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-+#endif
+ /* Fixed constants first: */
+ #undef NR_OPEN
+-#define INR_OPEN 1024		/* Initial setting for nfile rlimits */
++#define INR_OPEN_CUR 1024	/* Initial setting for nfile rlimits */
++#define INR_OPEN_MAX 4096	/* Hard limit for nfile rlimits */
  
- /*
-  * Force always-inline if the user requests it so via the .config,
+ #define BLOCK_SIZE_BITS 10
+ #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from tim.gardner@canonical.com are
 
 origin.patch
-linux-next.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-m32r-convert-cpumask-api.patch
-m32r-fix-spin_lock_irqsave-misuse.patch
-m32r-remove-redundant-declaration.patch
-getdelays-show-average-cpu-io-swap-reclaim-delays.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
