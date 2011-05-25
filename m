@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] alpha-hook-up-gpiolib-support-fix.patch removed from -mm tree
-Date: Tue, 24 May 2011 17:00:50 -0700
-Message-ID: <201105250000.p4P00o96024183@imap1.linux-foundation.org>
+Subject: [folded] cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 24 May 2011 17:02:53 -0700
+Message-ID: <201105250002.p4P02rrI024231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932838Ab1EYABE (ORCPT
+	by vger.kernel.org with ESMTP id S932838Ab1EYADb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 20:01:04 -0400
+	Tue, 24 May 2011 20:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jesper.nilsson@axis.com, kosaki.motohiro@jp.fujitsu.com, starvik@axis.com, tfransosi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha-hook-up-gpiolib-support-fix
+     cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     alpha-hook-up-gpiolib-support-fix.patch
+     cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into alpha-hook-up-gpiolib-support.patch
+This patch was dropped because it was folded into cris-convert-old-cpumask-api-into-new-one.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-hook-up-gpiolib-support-fix
+Subject: cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-define GENERIC_GPIO
+WARNING: suspect code indent for conditional statements (8, 12)
+#39: FILE: arch/cris/arch-v32/kernel/smp.c:83:
+ 	for (i = 0; i < max_cpus; i++)
++	    cpumask_set_cpu(i, &phys_cpu_present_map);
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
+total: 0 errors, 1 warnings, 113 lines checked
+
+./patches/cris-convert-old-cpumask-api-into-new-one.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Thiago Farina <tfransosi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- alpha/include/asm/gpio.h |    0 
- arch/alpha/Kconfig       |    3 +++
- 2 files changed, 3 insertions(+)
+ arch/cris/arch-v32/kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix
-+++ a/arch/alpha/Kconfig
-@@ -52,6 +52,9 @@ config GENERIC_CALIBRATE_DELAY
- config GENERIC_CMOS_UPDATE
-         def_bool y
+diff -puN arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes arch/cris/arch-v32/kernel/smp.c
+--- a/arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes
++++ a/arch/cris/arch-v32/kernel/smp.c
+@@ -81,7 +81,7 @@ void __init smp_prepare_cpus(unsigned in
  
-+config GENERIC_GPIO
-+	def_bool y
-+
- config ZONE_DMA
- 	bool
- 	default y
-diff -puN arch/alpha/include/asm/gpio.h~alpha-hook-up-gpiolib-support-fix arch/alpha/include/asm/gpio.h
+ 	/* Mark all possible CPUs as present */
+ 	for (i = 0; i < max_cpus; i++)
+-	    cpumask_set_cpu(i, &phys_cpu_present_map);
++		cpumask_set_cpu(i, &phys_cpu_present_map);
+ }
+ 
+ void __devinit smp_prepare_boot_cpu(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +78,7 @@ vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 mm-filter-unevictable-page-out-in-deactivate_page.patch
 nommu-add-page-alignment-to-mmap.patch
 alpha-hook-up-gpiolib-support.patch
-cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
+cris-convert-old-cpumask-api-into-new-one.patch
 bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-fix.patch
