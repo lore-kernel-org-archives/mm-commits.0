@@ -1,321 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-irda-convert-bfin_sir-to-common-blackfin-uart-header.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:32:45 -0700
-Message-ID: <201105252031.p4PKV8oM015041@imap1.linux-foundation.org>
+Subject: [merged] mm-nommu-sort-mm-mmap-list-properly.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:19 -0700
+Message-ID: <201105252025.p4PKPgkf014418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755914Ab1EYUtn (ORCPT
+	by vger.kernel.org with ESMTP id S1755914Ab1EYUtt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:43 -0400
+	Wed, 25 May 2011 16:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, davem@davemloft.net, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: namhyung@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/irda: convert bfin_sir to common Blackfin UART header
+     mm: nommu: sort mm->mmap list properly
 has been removed from the -mm tree.  Its filename was
-     net-irda-convert-bfin_sir-to-common-blackfin-uart-header.patch
+     mm-nommu-sort-mm-mmap-list-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/irda: convert bfin_sir to common Blackfin UART header
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: mm: nommu: sort mm->mmap list properly
+From: Namhyung Kim <namhyung@gmail.com>
 
-No need to duplicate these defines now that the common Blackfin code has
-unified these for all UART devices.
+When I was reading nommu code, I found that it handles the vma list/tree
+in an unusual way.  IIUC, because there can be more than one
+identical/overrapped vmas in the list/tree, it sorts the tree more
+strictly and does a linear search on the tree.  But it doesn't applied to
+the list (i.e.  the list could be constructed in a different order than
+the tree so that we can't use the list when finding the first vma in that
+order).
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: David Miller <davem@davemloft.net>
+Since inserting/sorting a vma in the tree and link is done at the same
+time, we can easily construct both of them in the same order.  And linear
+searching on the tree could be more costly than doing it on the list, it
+can be converted to use the list.
+
+Also, after the commit 297c5eee3724 ("mm: make the vma list be doubly
+linked") made the list be doubly linked, there were a couple of code need
+to be fixed to construct the list properly.
+
+Patch 1/6 is a preparation.  It maintains the list sorted same as the tree
+and construct doubly-linked list properly.  Patch 2/6 is a simple
+optimization for the vma deletion.  Patch 3/6 and 4/6 convert tree
+traversal to list traversal and the rest are simple fixes and cleanups.
+
+
+
+This patch:
+
+@vma added into @mm should be sorted by start addr, end addr and VMA
+struct addr in that order because we may get identical VMAs in the @mm. 
+However this was true only for the rbtree, not for the list.
+
+This patch fixes this by remembering 'rb_prev' during the tree traversal
+like find_vma_prepare() does and linking the @vma via __vma_link_list(). 
+After this patch, we can iterate the whole VMAs in correct order simply by
+using @mm->mmap list.
+
+[akpm@linux-foundation.org: avoid duplicating __vma_link_list()]
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/bfin_sir.c |   59 +++++++++++++++----------------
- drivers/net/irda/bfin_sir.h |   63 ++--------------------------------
- 2 files changed, 33 insertions(+), 89 deletions(-)
+ mm/internal.h |    4 ++++
+ mm/mmap.c     |   23 -----------------------
+ mm/nommu.c    |   38 ++++++++++++++++----------------------
+ mm/util.c     |   24 ++++++++++++++++++++++++
+ 4 files changed, 44 insertions(+), 45 deletions(-)
 
-diff -puN drivers/net/irda/bfin_sir.c~net-irda-convert-bfin_sir-to-common-blackfin-uart-header drivers/net/irda/bfin_sir.c
---- a/drivers/net/irda/bfin_sir.c~net-irda-convert-bfin_sir-to-common-blackfin-uart-header
-+++ a/drivers/net/irda/bfin_sir.c
-@@ -67,27 +67,27 @@ static void bfin_sir_stop_tx(struct bfin
- 	disable_dma(port->tx_dma_channel);
- #endif
- 
--	while (!(SIR_UART_GET_LSR(port) & THRE)) {
-+	while (!(UART_GET_LSR(port) & THRE)) {
- 		cpu_relax();
- 		continue;
- 	}
- 
--	SIR_UART_STOP_TX(port);
-+	UART_CLEAR_IER(port, ETBEI);
+diff -puN mm/internal.h~mm-nommu-sort-mm-mmap-list-properly mm/internal.h
+--- a/mm/internal.h~mm-nommu-sort-mm-mmap-list-properly
++++ a/mm/internal.h
+@@ -66,6 +66,10 @@ static inline unsigned long page_order(s
+ 	return page_private(page);
  }
  
- static void bfin_sir_enable_tx(struct bfin_sir_port *port)
- {
--	SIR_UART_ENABLE_TX(port);
-+	UART_SET_IER(port, ETBEI);
++/* mm/util.c */
++void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct rb_node *rb_parent);
++
+ #ifdef CONFIG_MMU
+ extern long mlock_vma_pages_range(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+diff -puN mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly mm/mmap.c
+--- a/mm/mmap.c~mm-nommu-sort-mm-mmap-list-properly
++++ a/mm/mmap.c
+@@ -398,29 +398,6 @@ find_vma_prepare(struct mm_struct *mm, u
+ 	return vma;
  }
  
- static void bfin_sir_stop_rx(struct bfin_sir_port *port)
- {
--	SIR_UART_STOP_RX(port);
-+	UART_CLEAR_IER(port, ERBFI);
- }
- 
- static void bfin_sir_enable_rx(struct bfin_sir_port *port)
- {
--	SIR_UART_ENABLE_RX(port);
-+	UART_SET_IER(port, ERBFI);
- }
- 
- static int bfin_sir_set_speed(struct bfin_sir_port *port, int speed)
-@@ -116,7 +116,7 @@ static int bfin_sir_set_speed(struct bfi
- 
- 		do {
- 			udelay(utime);
--			lsr = SIR_UART_GET_LSR(port);
-+			lsr = UART_GET_LSR(port);
- 		} while (!(lsr & TEMT) && count--);
- 
- 		/* The useconds for 1 bits to transmit */
-@@ -125,27 +125,27 @@ static int bfin_sir_set_speed(struct bfi
- 		/* Clear UCEN bit to reset the UART state machine
- 		 * and control registers
- 		 */
--		val = SIR_UART_GET_GCTL(port);
-+		val = UART_GET_GCTL(port);
- 		val &= ~UCEN;
--		SIR_UART_PUT_GCTL(port, val);
-+		UART_PUT_GCTL(port, val);
- 
- 		/* Set DLAB in LCR to Access THR RBR IER */
--		SIR_UART_SET_DLAB(port);
-+		UART_SET_DLAB(port);
- 		SSYNC();
- 
--		SIR_UART_PUT_DLL(port, quot & 0xFF);
--		SIR_UART_PUT_DLH(port, (quot >> 8) & 0xFF);
-+		UART_PUT_DLL(port, quot & 0xFF);
-+		UART_PUT_DLH(port, (quot >> 8) & 0xFF);
- 		SSYNC();
- 
- 		/* Clear DLAB in LCR */
--		SIR_UART_CLEAR_DLAB(port);
-+		UART_CLEAR_DLAB(port);
- 		SSYNC();
- 
--		SIR_UART_PUT_LCR(port, lcr);
-+		UART_PUT_LCR(port, lcr);
- 
--		val = SIR_UART_GET_GCTL(port);
-+		val = UART_GET_GCTL(port);
- 		val |= UCEN;
--		SIR_UART_PUT_GCTL(port, val);
-+		UART_PUT_GCTL(port, val);
- 
- 		ret = 0;
- 		break;
-@@ -154,12 +154,12 @@ static int bfin_sir_set_speed(struct bfi
- 		break;
- 	}
- 
--	val = SIR_UART_GET_GCTL(port);
-+	val = UART_GET_GCTL(port);
- 	/* If not add the 'RPOLC', we can't catch the receive interrupt.
- 	 * It's related with the HW layout and the IR transiver.
- 	 */
- 	val |= IREN | RPOLC;
--	SIR_UART_PUT_GCTL(port, val);
-+	UART_PUT_GCTL(port, val);
- 	return ret;
- }
- 
-@@ -168,7 +168,7 @@ static int bfin_sir_is_receiving(struct 
- 	struct bfin_sir_self *self = netdev_priv(dev);
- 	struct bfin_sir_port *port = self->sir_port;
- 
--	if (!(SIR_UART_GET_IER(port) & ERBFI))
-+	if (!(UART_GET_IER(port) & ERBFI))
- 		return 0;
- 	return self->rx_buff.state != OUTSIDE_FRAME;
- }
-@@ -182,7 +182,7 @@ static void bfin_sir_tx_chars(struct net
- 
- 	if (self->tx_buff.len != 0) {
- 		chr = *(self->tx_buff.data);
--		SIR_UART_PUT_CHAR(port, chr);
-+		UART_PUT_CHAR(port, chr);
- 		self->tx_buff.data++;
- 		self->tx_buff.len--;
- 	} else {
-@@ -206,8 +206,8 @@ static void bfin_sir_rx_chars(struct net
- 	struct bfin_sir_port *port = self->sir_port;
- 	unsigned char ch;
- 
--	SIR_UART_CLEAR_LSR(port);
--	ch = SIR_UART_GET_CHAR(port);
-+	UART_CLEAR_LSR(port);
-+	ch = UART_GET_CHAR(port);
- 	async_unwrap_char(dev, &self->stats, &self->rx_buff, ch);
- 	dev->last_rx = jiffies;
- }
-@@ -219,7 +219,7 @@ static irqreturn_t bfin_sir_rx_int(int i
- 	struct bfin_sir_port *port = self->sir_port;
- 
- 	spin_lock(&self->lock);
--	while ((SIR_UART_GET_LSR(port) & DR))
-+	while ((UART_GET_LSR(port) & DR))
- 		bfin_sir_rx_chars(dev);
- 	spin_unlock(&self->lock);
- 
-@@ -233,7 +233,7 @@ static irqreturn_t bfin_sir_tx_int(int i
- 	struct bfin_sir_port *port = self->sir_port;
- 
- 	spin_lock(&self->lock);
--	if (SIR_UART_GET_LSR(port) & THRE)
-+	if (UART_GET_LSR(port) & THRE)
- 		bfin_sir_tx_chars(dev);
- 	spin_unlock(&self->lock);
- 
-@@ -312,7 +312,7 @@ static void bfin_sir_dma_rx_chars(struct
- 	struct bfin_sir_port *port = self->sir_port;
- 	int i;
- 
--	SIR_UART_CLEAR_LSR(port);
-+	UART_CLEAR_LSR(port);
- 
- 	for (i = port->rx_dma_buf.head; i < port->rx_dma_buf.tail; i++)
- 		async_unwrap_char(dev, &self->stats, &self->rx_buff, port->rx_dma_buf.buf[i]);
-@@ -430,11 +430,10 @@ static void bfin_sir_shutdown(struct bfi
- 	unsigned short val;
- 
- 	bfin_sir_stop_rx(port);
--	SIR_UART_DISABLE_INTS(port);
- 
--	val = SIR_UART_GET_GCTL(port);
-+	val = UART_GET_GCTL(port);
- 	val &= ~(UCEN | IREN | RPOLC);
--	SIR_UART_PUT_GCTL(port, val);
-+	UART_PUT_GCTL(port, val);
- 
- #ifdef CONFIG_SIR_BFIN_DMA
- 	disable_dma(port->tx_dma_channel);
-@@ -518,12 +517,12 @@ static void bfin_sir_send_work(struct wo
- 	 * sending data. We also can set the speed, which will
- 	 * reset all the UART.
- 	 */
--	val = SIR_UART_GET_GCTL(port);
-+	val = UART_GET_GCTL(port);
- 	val &= ~(IREN | RPOLC);
--	SIR_UART_PUT_GCTL(port, val);
-+	UART_PUT_GCTL(port, val);
- 	SSYNC();
- 	val |= IREN | RPOLC;
--	SIR_UART_PUT_GCTL(port, val);
-+	UART_PUT_GCTL(port, val);
- 	SSYNC();
- 	/* bfin_sir_set_speed(port, self->speed); */
- 
-diff -puN drivers/net/irda/bfin_sir.h~net-irda-convert-bfin_sir-to-common-blackfin-uart-header drivers/net/irda/bfin_sir.h
---- a/drivers/net/irda/bfin_sir.h~net-irda-convert-bfin_sir-to-common-blackfin-uart-header
-+++ a/drivers/net/irda/bfin_sir.h
-@@ -26,7 +26,6 @@
- #include <asm/cacheflush.h>
- #include <asm/dma.h>
- #include <asm/portmux.h>
--#include <mach/bfin_serial_5xx.h>
- #undef DRIVER_NAME
- 
- #ifdef CONFIG_SIR_BFIN_DMA
-@@ -83,64 +82,10 @@ struct bfin_sir_self {
- 
- #define DRIVER_NAME "bfin_sir"
- 
--#define SIR_UART_GET_CHAR(port)    bfin_read16((port)->membase + OFFSET_RBR)
--#define SIR_UART_GET_DLL(port)     bfin_read16((port)->membase + OFFSET_DLL)
--#define SIR_UART_GET_DLH(port)     bfin_read16((port)->membase + OFFSET_DLH)
--#define SIR_UART_GET_LCR(port)     bfin_read16((port)->membase + OFFSET_LCR)
--#define SIR_UART_GET_GCTL(port)    bfin_read16((port)->membase + OFFSET_GCTL)
--
--#define SIR_UART_PUT_CHAR(port, v) bfin_write16(((port)->membase + OFFSET_THR), v)
--#define SIR_UART_PUT_DLL(port, v)  bfin_write16(((port)->membase + OFFSET_DLL), v)
--#define SIR_UART_PUT_DLH(port, v)  bfin_write16(((port)->membase + OFFSET_DLH), v)
--#define SIR_UART_PUT_LCR(port, v)  bfin_write16(((port)->membase + OFFSET_LCR), v)
--#define SIR_UART_PUT_GCTL(port, v) bfin_write16(((port)->membase + OFFSET_GCTL), v)
--
--#ifdef CONFIG_BF54x
--#define SIR_UART_GET_LSR(port)     bfin_read16((port)->membase + OFFSET_LSR)
--#define SIR_UART_GET_IER(port)     bfin_read16((port)->membase + OFFSET_IER_SET)
--#define SIR_UART_SET_IER(port, v)  bfin_write16(((port)->membase + OFFSET_IER_SET), v)
--#define SIR_UART_CLEAR_IER(port, v) bfin_write16(((port)->membase + OFFSET_IER_CLEAR), v)
--#define SIR_UART_PUT_LSR(port, v)  bfin_write16(((port)->membase + OFFSET_LSR), v)
--#define SIR_UART_CLEAR_LSR(port)   bfin_write16(((port)->membase + OFFSET_LSR), -1)
--
--#define SIR_UART_SET_DLAB(port)
--#define SIR_UART_CLEAR_DLAB(port)
--
--#define SIR_UART_ENABLE_INTS(port, v) SIR_UART_SET_IER(port, v)
--#define SIR_UART_DISABLE_INTS(port)   SIR_UART_CLEAR_IER(port, 0xF)
--#define SIR_UART_STOP_TX(port)     do { SIR_UART_PUT_LSR(port, TFI); SIR_UART_CLEAR_IER(port, ETBEI); } while (0)
--#define SIR_UART_ENABLE_TX(port)   do { SIR_UART_SET_IER(port, ETBEI); } while (0)
--#define SIR_UART_STOP_RX(port)     do { SIR_UART_CLEAR_IER(port, ERBFI); } while (0)
--#define SIR_UART_ENABLE_RX(port)   do { SIR_UART_SET_IER(port, ERBFI); } while (0)
--#else
--
--#define SIR_UART_GET_IIR(port)     bfin_read16((port)->membase + OFFSET_IIR)
--#define SIR_UART_GET_IER(port)     bfin_read16((port)->membase + OFFSET_IER)
--#define SIR_UART_PUT_IER(port, v)  bfin_write16(((port)->membase + OFFSET_IER), v)
--
--#define SIR_UART_SET_DLAB(port)    do { SIR_UART_PUT_LCR(port, SIR_UART_GET_LCR(port) | DLAB); } while (0)
--#define SIR_UART_CLEAR_DLAB(port)  do { SIR_UART_PUT_LCR(port, SIR_UART_GET_LCR(port) & ~DLAB); } while (0)
--
--#define SIR_UART_ENABLE_INTS(port, v) SIR_UART_PUT_IER(port, v)
--#define SIR_UART_DISABLE_INTS(port)   SIR_UART_PUT_IER(port, 0)
--#define SIR_UART_STOP_TX(port)     do { SIR_UART_PUT_IER(port, SIR_UART_GET_IER(port) & ~ETBEI); } while (0)
--#define SIR_UART_ENABLE_TX(port)   do { SIR_UART_PUT_IER(port, SIR_UART_GET_IER(port) | ETBEI); } while (0)
--#define SIR_UART_STOP_RX(port)     do { SIR_UART_PUT_IER(port, SIR_UART_GET_IER(port) & ~ERBFI); } while (0)
--#define SIR_UART_ENABLE_RX(port)   do { SIR_UART_PUT_IER(port, SIR_UART_GET_IER(port) | ERBFI); } while (0)
--
--static inline unsigned int SIR_UART_GET_LSR(struct bfin_sir_port *port)
+-static inline void
+-__vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
+-		struct vm_area_struct *prev, struct rb_node *rb_parent)
 -{
--	unsigned int lsr = bfin_read16(port->membase + OFFSET_LSR);
--	port->lsr |= (lsr & (BI|FE|PE|OE));
--	return lsr | port->lsr;
+-	struct vm_area_struct *next;
+-
+-	vma->vm_prev = prev;
+-	if (prev) {
+-		next = prev->vm_next;
+-		prev->vm_next = vma;
+-	} else {
+-		mm->mmap = vma;
+-		if (rb_parent)
+-			next = rb_entry(rb_parent,
+-					struct vm_area_struct, vm_rb);
+-		else
+-			next = NULL;
+-	}
+-	vma->vm_next = next;
+-	if (next)
+-		next->vm_prev = vma;
 -}
 -
--static inline void SIR_UART_CLEAR_LSR(struct bfin_sir_port *port)
--{
--	port->lsr = 0;
--	bfin_read16(port->membase + OFFSET_LSR);
--}
--#endif
-+#define port_membase(port)     (((struct bfin_sir_port *)(port))->membase)
-+#define get_lsr_cache(port)    (((struct bfin_sir_port *)(port))->lsr)
-+#define put_lsr_cache(port, v) (((struct bfin_sir_port *)(port))->lsr = (v))
-+#include <asm/bfin_serial.h>
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+diff -puN mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-sort-mm-mmap-list-properly
++++ a/mm/nommu.c
+@@ -680,9 +680,9 @@ static void protect_vma(struct vm_area_s
+  */
+ static void add_vma_to_mm(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+-	struct vm_area_struct *pvma, **pp, *next;
++	struct vm_area_struct *pvma, *prev;
+ 	struct address_space *mapping;
+-	struct rb_node **p, *parent;
++	struct rb_node **p, *parent, *rb_prev;
  
- static const unsigned short per[][4] = {
- 	/* rx pin      tx pin     NULL  uart_number */
+ 	kenter(",%p", vma);
+ 
+@@ -703,7 +703,7 @@ static void add_vma_to_mm(struct mm_stru
+ 	}
+ 
+ 	/* add the VMA to the tree */
+-	parent = NULL;
++	parent = rb_prev = NULL;
+ 	p = &mm->mm_rb.rb_node;
+ 	while (*p) {
+ 		parent = *p;
+@@ -713,17 +713,20 @@ static void add_vma_to_mm(struct mm_stru
+ 		 * (the latter is necessary as we may get identical VMAs) */
+ 		if (vma->vm_start < pvma->vm_start)
+ 			p = &(*p)->rb_left;
+-		else if (vma->vm_start > pvma->vm_start)
++		else if (vma->vm_start > pvma->vm_start) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else if (vma->vm_end < pvma->vm_end)
++		} else if (vma->vm_end < pvma->vm_end)
+ 			p = &(*p)->rb_left;
+-		else if (vma->vm_end > pvma->vm_end)
++		else if (vma->vm_end > pvma->vm_end) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else if (vma < pvma)
++		} else if (vma < pvma)
+ 			p = &(*p)->rb_left;
+-		else if (vma > pvma)
++		else if (vma > pvma) {
++			rb_prev = parent;
+ 			p = &(*p)->rb_right;
+-		else
++		} else
+ 			BUG();
+ 	}
+ 
+@@ -731,20 +734,11 @@ static void add_vma_to_mm(struct mm_stru
+ 	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
+ 
+ 	/* add VMA to the VMA list also */
+-	for (pp = &mm->mmap; (pvma = *pp); pp = &(*pp)->vm_next) {
+-		if (pvma->vm_start > vma->vm_start)
+-			break;
+-		if (pvma->vm_start < vma->vm_start)
+-			continue;
+-		if (pvma->vm_end < vma->vm_end)
+-			break;
+-	}
++	prev = NULL;
++	if (rb_prev)
++		prev = rb_entry(rb_prev, struct vm_area_struct, vm_rb);
+ 
+-	next = *pp;
+-	*pp = vma;
+-	vma->vm_next = next;
+-	if (next)
+-		next->vm_prev = vma;
++	__vma_link_list(mm, vma, prev, parent);
+ }
+ 
+ /*
+diff -puN mm/util.c~mm-nommu-sort-mm-mmap-list-properly mm/util.c
+--- a/mm/util.c~mm-nommu-sort-mm-mmap-list-properly
++++ a/mm/util.c
+@@ -6,6 +6,8 @@
+ #include <linux/sched.h>
+ #include <asm/uaccess.h>
+ 
++#include "internal.h"
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/kmem.h>
+ 
+@@ -215,6 +217,28 @@ char *strndup_user(const char __user *s,
+ }
+ EXPORT_SYMBOL(strndup_user);
+ 
++void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
++		struct vm_area_struct *prev, struct rb_node *rb_parent)
++{
++	struct vm_area_struct *next;
++
++	vma->vm_prev = prev;
++	if (prev) {
++		next = prev->vm_next;
++		prev->vm_next = vma;
++	} else {
++		mm->mmap = vma;
++		if (rb_parent)
++			next = rb_entry(rb_parent,
++					struct vm_area_struct, vm_rb);
++		else
++			next = NULL;
++	}
++	vma->vm_next = next;
++	if (next)
++		next->vm_prev = vma;
++}
++
+ #if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
+ void arch_pick_mmap_layout(struct mm_struct *mm)
+ {
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 origin.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
-mtd-convert-to-seq_file-interface.patch
-asm-generic-ptraceh-start-a-common-low-level-ptrace-helper.patch
-blackfin-convert-to-asm-generic-ptraceh.patch
-x86-convert-to-asm-generic-ptraceh.patch
-sh-convert-to-asm-generic-ptraceh.patch
-kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
-proc-constify-status-array.patch
+memcg-mark-init_section_page_cgroup-properly.patch
+memcg-fix-off-by-one-when-calculating-swap-cgroup-map-length.patch
+memcg-move-page-freeing-code-out-of-lock.patch
+maintainers-add-mm-page_cgroupc-into-memcg-subsystem.patch
 
