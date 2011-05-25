@@ -1,213 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fscache-remove-dead-code-under-config_workqueue_debugfs.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:31:20 -0700
-Message-ID: <201105252029.p4PKThnr014864@imap1.linux-foundation.org>
+Subject: [merged] cris-convert-old-cpumask-api-into-new-one.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:50 -0700
+Message-ID: <201105252029.p4PKTD7e014824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755791Ab1EYUaO (ORCPT
+	by vger.kernel.org with ESMTP id S932097Ab1EYU3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:30:14 -0400
+	Wed, 25 May 2011 16:29:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, jesper.nilsson@axis.com, starvik@axis.com, tfransosi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fscache: remove dead code under CONFIG_WORKQUEUE_DEBUGFS
+     cris: convert old cpumask API into new one
 has been removed from the -mm tree.  Its filename was
-     fscache-remove-dead-code-under-config_workqueue_debugfs.patch
+     cris-convert-old-cpumask-api-into-new-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fscache: remove dead code under CONFIG_WORKQUEUE_DEBUGFS
-From: Amerigo Wang <amwang@redhat.com>
+Subject: cris: convert old cpumask API into new one
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-There is no CONFIG_WORKQUEUE_DEBUGFS any more, so this code is dead.
+Adapt to the new API.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Thiago Farina <tfransosi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/operation.c        |   10 ----------
- fs/fscache/page.c             |   13 -------------
- include/linux/fscache-cache.h |   12 ------------
- 3 files changed, 35 deletions(-)
+ arch/cris/arch-v32/kernel/irq.c |    4 +--
+ arch/cris/arch-v32/kernel/smp.c |   33 ++++++++++++++++--------------
+ 2 files changed, 20 insertions(+), 17 deletions(-)
 
-diff -puN fs/fscache/operation.c~fscache-remove-dead-code-under-config_workqueue_debugfs fs/fscache/operation.c
---- a/fs/fscache/operation.c~fscache-remove-dead-code-under-config_workqueue_debugfs
-+++ a/fs/fscache/operation.c
-@@ -33,8 +33,6 @@ void fscache_enqueue_operation(struct fs
- 	_enter("{OBJ%x OP%x,%u}",
- 	       op->object->debug_id, op->debug_id, atomic_read(&op->usage));
+diff -puN arch/cris/arch-v32/kernel/irq.c~cris-convert-old-cpumask-api-into-new-one arch/cris/arch-v32/kernel/irq.c
+--- a/arch/cris/arch-v32/kernel/irq.c~cris-convert-old-cpumask-api-into-new-one
++++ a/arch/cris/arch-v32/kernel/irq.c
+@@ -266,11 +266,11 @@ static int irq_cpu(int irq)
  
--	fscache_set_op_state(op, "EnQ");
--
- 	ASSERT(list_empty(&op->pend_link));
- 	ASSERT(op->processor != NULL);
- 	ASSERTCMP(op->object->state, >=, FSCACHE_OBJECT_AVAILABLE);
-@@ -66,8 +64,6 @@ EXPORT_SYMBOL(fscache_enqueue_operation)
- static void fscache_run_op(struct fscache_object *object,
- 			   struct fscache_operation *op)
+ 
+ 	/* Let the interrupt stay if possible */
+-	if (cpu_isset(cpu, irq_allocations[irq - FIRST_IRQ].mask))
++	if (cpumask_test_cpu(cpu, &irq_allocations[irq - FIRST_IRQ].mask))
+ 		goto out;
+ 
+ 	/* IRQ must be moved to another CPU. */
+-	cpu = first_cpu(irq_allocations[irq - FIRST_IRQ].mask);
++	cpu = cpumask_first(&irq_allocations[irq - FIRST_IRQ].mask);
+ 	irq_allocations[irq - FIRST_IRQ].cpu = cpu;
+ out:
+ 	spin_unlock_irqrestore(&irq_lock, flags);
+diff -puN arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one arch/cris/arch-v32/kernel/smp.c
+--- a/arch/cris/arch-v32/kernel/smp.c~cris-convert-old-cpumask-api-into-new-one
++++ a/arch/cris/arch-v32/kernel/smp.c
+@@ -81,7 +81,7 @@ void __init smp_prepare_cpus(unsigned in
+ 
+ 	/* Mark all possible CPUs as present */
+ 	for (i = 0; i < max_cpus; i++)
+-	    cpu_set(i, phys_cpu_present_map);
++		cpumask_set_cpu(i, &phys_cpu_present_map);
+ }
+ 
+ void __devinit smp_prepare_boot_cpu(void)
+@@ -98,7 +98,7 @@ void __devinit smp_prepare_boot_cpu(void
+ 	SUPP_REG_WR(RW_MM_TLB_PGD, pgd);
+ 
+ 	set_cpu_online(0, true);
+-	cpu_set(0, phys_cpu_present_map);
++	cpumask_set_cpu(0, &phys_cpu_present_map);
+ 	set_cpu_possible(0, true);
+ }
+ 
+@@ -112,8 +112,9 @@ smp_boot_one_cpu(int cpuid)
  {
--	fscache_set_op_state(op, "Run");
--
- 	object->n_in_progress++;
- 	if (test_and_clear_bit(FSCACHE_OP_WAITING, &op->flags))
- 		wake_up_bit(&op->flags, FSCACHE_OP_WAITING);
-@@ -88,8 +84,6 @@ int fscache_submit_exclusive_op(struct f
+ 	unsigned timeout;
+ 	struct task_struct *idle;
+-	cpumask_t cpu_mask = CPU_MASK_NONE;
++	cpumask_t cpu_mask;
  
- 	_enter("{OBJ%x OP%x},", object->debug_id, op->debug_id);
++	cpumask_clear(&cpu_mask);
+ 	idle = fork_idle(cpuid);
+ 	if (IS_ERR(idle))
+ 		panic("SMP: fork failed for CPU:%d", cpuid);
+@@ -125,10 +126,10 @@ smp_boot_one_cpu(int cpuid)
+ 	cpu_now_booting = cpuid;
  
--	fscache_set_op_state(op, "SubmitX");
--
- 	spin_lock(&object->lock);
- 	ASSERTCMP(object->n_ops, >=, object->n_in_progress);
- 	ASSERTCMP(object->n_ops, >=, object->n_exclusive);
-@@ -194,8 +188,6 @@ int fscache_submit_op(struct fscache_obj
+ 	/* Kick it */
+-	cpu_set(cpuid, cpu_online_map);
+-	cpu_set(cpuid, cpu_mask);
++	set_cpu_online(cpuid, true);
++	cpumask_set_cpu(cpuid, &cpu_mask);
+ 	send_ipi(IPI_BOOT, 0, cpu_mask);
+-	cpu_clear(cpuid, cpu_online_map);
++	set_cpu_online(cpuid, false);
  
- 	ASSERTCMP(atomic_read(&op->usage), >, 0);
+ 	/* Wait for CPU to come online */
+ 	for (timeout = 0; timeout < 10000; timeout++) {
+@@ -176,7 +177,7 @@ void __init smp_callin(void)
+ 	notify_cpu_starting(cpu);
+ 	local_irq_enable();
  
--	fscache_set_op_state(op, "Submit");
--
- 	spin_lock(&object->lock);
- 	ASSERTCMP(object->n_ops, >=, object->n_in_progress);
- 	ASSERTCMP(object->n_ops, >=, object->n_exclusive);
-@@ -335,8 +327,6 @@ void fscache_put_operation(struct fscach
- 	if (!atomic_dec_and_test(&op->usage))
- 		return;
- 
--	fscache_set_op_state(op, "Put");
--
- 	_debug("PUT OP");
- 	if (test_and_set_bit(FSCACHE_OP_DEAD, &op->flags))
- 		BUG();
-diff -puN fs/fscache/page.c~fscache-remove-dead-code-under-config_workqueue_debugfs fs/fscache/page.c
---- a/fs/fscache/page.c~fscache-remove-dead-code-under-config_workqueue_debugfs
-+++ a/fs/fscache/page.c
-@@ -155,11 +155,9 @@ static void fscache_attr_changed_op(stru
- 	fscache_stat(&fscache_n_attr_changed_calls);
- 
- 	if (fscache_object_is_active(object)) {
--		fscache_set_op_state(op, "CallFS");
- 		fscache_stat(&fscache_n_cop_attr_changed);
- 		ret = object->cache->ops->attr_changed(object);
- 		fscache_stat_d(&fscache_n_cop_attr_changed);
--		fscache_set_op_state(op, "Done");
- 		if (ret < 0)
- 			fscache_abort_object(object);
- 	}
-@@ -190,7 +188,6 @@ int __fscache_attr_changed(struct fscach
- 
- 	fscache_operation_init(op, fscache_attr_changed_op, NULL);
- 	op->flags = FSCACHE_OP_ASYNC | (1 << FSCACHE_OP_EXCLUSIVE);
--	fscache_set_op_name(op, "Attr");
- 
- 	spin_lock(&cookie->lock);
- 
-@@ -257,7 +254,6 @@ static struct fscache_retrieval *fscache
- 	op->context	= context;
- 	op->start_time	= jiffies;
- 	INIT_LIST_HEAD(&op->to_do);
--	fscache_set_op_name(&op->op, "Retr");
- 	return op;
+-	cpu_set(cpu, cpu_online_map);
++	set_cpu_online(cpu, true);
+ 	cpu_idle();
  }
  
-@@ -368,7 +364,6 @@ int __fscache_read_or_alloc_page(struct 
- 		_leave(" = -ENOMEM");
- 		return -ENOMEM;
- 	}
--	fscache_set_op_name(&op->op, "RetrRA1");
+@@ -214,8 +215,9 @@ int __cpuinit __cpu_up(unsigned int cpu)
  
- 	spin_lock(&cookie->lock);
- 
-@@ -487,7 +482,6 @@ int __fscache_read_or_alloc_pages(struct
- 	op = fscache_alloc_retrieval(mapping, end_io_func, context);
- 	if (!op)
- 		return -ENOMEM;
--	fscache_set_op_name(&op->op, "RetrRAN");
- 
- 	spin_lock(&cookie->lock);
- 
-@@ -589,7 +583,6 @@ int __fscache_alloc_page(struct fscache_
- 	op = fscache_alloc_retrieval(page->mapping, NULL, NULL);
- 	if (!op)
- 		return -ENOMEM;
--	fscache_set_op_name(&op->op, "RetrAL1");
- 
- 	spin_lock(&cookie->lock);
- 
-@@ -662,8 +655,6 @@ static void fscache_write_op(struct fsca
- 
- 	_enter("{OP%x,%d}", op->op.debug_id, atomic_read(&op->op.usage));
- 
--	fscache_set_op_state(&op->op, "GetPage");
--
- 	spin_lock(&object->lock);
- 	cookie = object->cookie;
- 
-@@ -698,15 +689,12 @@ static void fscache_write_op(struct fsca
- 	spin_unlock(&cookie->stores_lock);
- 	spin_unlock(&object->lock);
- 
--	fscache_set_op_state(&op->op, "Store");
- 	fscache_stat(&fscache_n_store_pages);
- 	fscache_stat(&fscache_n_cop_write_page);
- 	ret = object->cache->ops->write_page(op, page);
- 	fscache_stat_d(&fscache_n_cop_write_page);
--	fscache_set_op_state(&op->op, "EndWrite");
- 	fscache_end_page_write(object, page);
- 	if (ret < 0) {
--		fscache_set_op_state(&op->op, "Abort");
- 		fscache_abort_object(object);
- 	} else {
- 		fscache_enqueue_operation(&op->op);
-@@ -778,7 +766,6 @@ int __fscache_write_page(struct fscache_
- 	fscache_operation_init(&op->op, fscache_write_op,
- 			       fscache_release_write_op);
- 	op->op.flags = FSCACHE_OP_ASYNC | (1 << FSCACHE_OP_WAITING);
--	fscache_set_op_name(&op->op, "Write1");
- 
- 	ret = radix_tree_preload(gfp & ~__GFP_HIGHMEM);
- 	if (ret < 0)
-diff -puN include/linux/fscache-cache.h~fscache-remove-dead-code-under-config_workqueue_debugfs include/linux/fscache-cache.h
---- a/include/linux/fscache-cache.h~fscache-remove-dead-code-under-config_workqueue_debugfs
-+++ a/include/linux/fscache-cache.h
-@@ -100,17 +100,6 @@ struct fscache_operation {
- 
- 	/* operation releaser */
- 	fscache_operation_release_t release;
--
--#ifdef CONFIG_WORKQUEUE_DEBUGFS
--	struct work_struct put_work;	/* work to delay operation put */
--	const char *name;		/* operation name */
--	const char *state;		/* operation state */
--#define fscache_set_op_name(OP, N)	do { (OP)->name  = (N); } while(0)
--#define fscache_set_op_state(OP, S)	do { (OP)->state = (S); } while(0)
--#else
--#define fscache_set_op_name(OP, N)	do { } while(0)
--#define fscache_set_op_state(OP, S)	do { } while(0)
--#endif
- };
- 
- extern atomic_t fscache_op_debug_id;
-@@ -137,7 +126,6 @@ static inline void fscache_operation_ini
- 	op->processor = processor;
- 	op->release = release;
- 	INIT_LIST_HEAD(&op->pend_link);
--	fscache_set_op_state(op, "Init");
+ void smp_send_reschedule(int cpu)
+ {
+-	cpumask_t cpu_mask = CPU_MASK_NONE;
+-	cpu_set(cpu, cpu_mask);
++	cpumask_t cpu_mask;
++	cpumask_clear(&cpu_mask);
++	cpumask_set_cpu(cpu, &cpu_mask);
+ 	send_ipi(IPI_SCHEDULE, 0, cpu_mask);
  }
  
- /*
+@@ -232,7 +234,7 @@ void flush_tlb_common(struct mm_struct* 
+ 
+ 	spin_lock_irqsave(&tlbstate_lock, flags);
+ 	cpu_mask = (mm == FLUSH_ALL ? cpu_all_mask : *mm_cpumask(mm));
+-	cpu_clear(smp_processor_id(), cpu_mask);
++	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+ 	flush_mm = mm;
+ 	flush_vma = vma;
+ 	flush_addr = addr;
+@@ -277,10 +279,10 @@ int send_ipi(int vector, int wait, cpuma
+ 	int ret = 0;
+ 
+ 	/* Calculate CPUs to send to. */
+-	cpus_and(cpu_mask, cpu_mask, cpu_online_map);
++	cpumask_and(&cpu_mask, &cpu_mask, cpu_online_mask);
+ 
+ 	/* Send the IPI. */
+-	for_each_cpu_mask(i, cpu_mask)
++	for_each_cpu(i, &cpu_mask)
+ 	{
+ 		ipi.vector |= vector;
+ 		REG_WR(intr_vect, irq_regs[i], rw_ipi, ipi);
+@@ -288,7 +290,7 @@ int send_ipi(int vector, int wait, cpuma
+ 
+ 	/* Wait for IPI to finish on other CPUS */
+ 	if (wait) {
+-		for_each_cpu_mask(i, cpu_mask) {
++		for_each_cpu(i, &cpu_mask) {
+                         int j;
+                         for (j = 0 ; j < 1000; j++) {
+ 				ipi = REG_RD(intr_vect, irq_regs[i], rw_ipi);
+@@ -314,11 +316,12 @@ int send_ipi(int vector, int wait, cpuma
+  */
+ int smp_call_function(void (*func)(void *info), void *info, int wait)
+ {
+-	cpumask_t cpu_mask = CPU_MASK_ALL;
++	cpumask_t cpu_mask;
+ 	struct call_data_struct data;
+ 	int ret;
+ 
+-	cpu_clear(smp_processor_id(), cpu_mask);
++	cpumask_setall(&cpu_mask);
++	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+ 
+ 	WARN_ON(irqs_disabled());
+ 
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+mm-increase-reclaim_distance-to-30.patch
+slab-use-numa_no_node.patch
+m32r-convert-cpumask-api.patch
+m32r-fix-spin_lock_irqsave-misuse.patch
+m32r-remove-redundant-declaration.patch
+getdelays-show-average-cpu-io-swap-reclaim-delays.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
+memcg-fix-get_scan_count-for-small-targets.patch
+memcg-remove-unused-retry-signal-from-reclaim.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
