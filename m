@@ -1,133 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-genallocc-add-support-for-specifying-the-physical-address-v2.patch removed from -mm tree
-Date: Tue, 24 May 2011 17:06:23 -0700
-Message-ID: <201105250006.p4P06OdS024466@imap1.linux-foundation.org>
+Subject: [folded] percpu_counter-change-return-value-and-add-comments-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 17:06:40 -0700
+Message-ID: <201105250006.p4P06eUn024470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754753Ab1EYAHC (ORCPT
+	by vger.kernel.org with ESMTP id S1754753Ab1EYAHJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 20:07:02 -0400
+	Tue, 24 May 2011 20:07:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: plagnioj@jcrosoft.com, jes@wildopensource.com, nicolas.ferre@atmel.com, patrice.vilchez@atmel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-genallocc-add-support-for-specifying-the-physical-address-v2
+     percpu_counter-change-return-value-and-add-comments-fix
 has been removed from the -mm tree.  Its filename was
-     lib-genallocc-add-support-for-specifying-the-physical-address-v2.patch
+     percpu_counter-change-return-value-and-add-comments-fix.patch
 
-This patch was dropped because it was folded into lib-genallocc-add-support-for-specifying-the-physical-address.patch
+This patch was dropped because it was folded into percpu_counter-change-return-value-and-add-comments.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-genallocc-add-support-for-specifying-the-physical-address-v2
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: percpu_counter-change-return-value-and-add-comments-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-	update documentation
-	use phys_addr_t for physical addr
+tweak comment
 
-Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Patrice VILCHEZ <patrice.vilchez@atmel.com>
-Cc: Jes Sorensen <jes@wildopensource.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |   10 ++++++----
- lib/genalloc.c           |   12 ++++++++----
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ include/linux/percpu_counter.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/genalloc.h~lib-genallocc-add-support-for-specifying-the-physical-address-v2 include/linux/genalloc.h
---- a/include/linux/genalloc.h~lib-genallocc-add-support-for-specifying-the-physical-address-v2
-+++ a/include/linux/genalloc.h
-@@ -26,15 +26,15 @@ struct gen_pool {
- struct gen_pool_chunk {
- 	spinlock_t lock;
- 	struct list_head next_chunk;	/* next chunk in pool */
--	unsigned long phys_addr;	/* physical starting address of memory chunk */
-+	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
- 	unsigned long start_addr;	/* starting address of memory chunk */
- 	unsigned long end_addr;		/* ending address of memory chunk */
- 	unsigned long bits[0];		/* bitmap for allocating memory chunk */
- };
- 
- extern struct gen_pool *gen_pool_create(int, int);
--extern unsigned long gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
--extern int gen_pool_add_virt(struct gen_pool *, unsigned long, unsigned long,
-+extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
-+extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
- 			     size_t, int);
- /**
-  * gen_pool_add - add a new chunk of special memory to the pool
-@@ -45,11 +45,13 @@ extern int gen_pool_add_virt(struct gen_
-  *       allocated on, or -1
-  *
-  * Add a new chunk of special memory to the specified pool.
-+ *
-+ * Returns 0 on success or a -ve errno on failure.
-  */
- static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
- 			       size_t size, int nid)
- {
--	return gen_pool_add_virt(pool, addr, 0, size, nid);
-+	return gen_pool_add_virt(pool, addr, -1, size, nid);
+diff -puN include/linux/percpu_counter.h~percpu_counter-change-return-value-and-add-comments-fix include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~percpu_counter-change-return-value-and-add-comments-fix
++++ a/include/linux/percpu_counter.h
+@@ -134,8 +134,8 @@ static inline s64 percpu_counter_read(st
  }
- extern void gen_pool_destroy(struct gen_pool *);
- extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
-diff -puN lib/genalloc.c~lib-genallocc-add-support-for-specifying-the-physical-address-v2 lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-add-support-for-specifying-the-physical-address-v2
-+++ a/lib/genalloc.c
-@@ -48,8 +48,10 @@ EXPORT_SYMBOL(gen_pool_create);
-  *       allocated on, or -1
-  *
-  * Add a new chunk of special memory to the specified pool.
-+ *
-+ * Returns 0 on success or a -ve errno on failure.
+ 
+ /*
+- * percpu_counter is intended to track positive number. In UP case, the number
+- * should never be negative.
++ * percpu_counter is intended to track positive numbers. In the UP case the
++ * number should never be negative.
   */
--int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, unsigned long phys,
-+int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phys,
- 		 size_t size, int nid)
+ static inline s64 percpu_counter_read_positive(struct percpu_counter *fbc)
  {
- 	struct gen_pool_chunk *chunk;
-@@ -59,7 +61,7 @@ int gen_pool_add_virt(struct gen_pool *p
- 
- 	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
- 	if (unlikely(chunk == NULL))
--		return -1;
-+		return -ENOMEM;
- 
- 	spin_lock_init(&chunk->lock);
- 	chunk->phys_addr = phys;
-@@ -78,8 +80,10 @@ EXPORT_SYMBOL(gen_pool_add_virt);
-  * gen_pool_virt_to_phys - return the physical address of memory
-  * @pool: pool to allocate from
-  * @addr: starting address of memory
-+ *
-+ * Returns the physical address on success, or -1 on error.
-  */
--unsigned long gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
-+phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
- {
- 	struct list_head *_chunk;
- 	struct gen_pool_chunk *chunk;
-@@ -93,7 +97,7 @@ unsigned long gen_pool_virt_to_phys(stru
- 	}
- 	read_unlock(&pool->lock);
- 
--	return ~0UL;
-+	return -1;
- }
- EXPORT_SYMBOL(gen_pool_virt_to_phys);
- 
 _
 
-Patches currently in -mm which might be from plagnioj@jcrosoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-include-linux-genalloch-add-multiple-inclusion-guards.patch
-lib-genallocc-add-support-for-specifying-the-physical-address.patch
+drivers-video-backlight-adp5520_blc-check-strict_strtoul-return-value.patch
+mm-nommu-sort-mm-mmap-list-properly.patch
+mm-per-node-vmstat-show-proper-vmstats.patch
+mm-mem-hotplug-update-pcp-stat_threshold-when-memory-hotplug-occur.patch
+mm-mmu_gather-rework.patch
+mm-uninline-large-generic-tlbh-functions.patch
+mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
+vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
+mm-filter-unevictable-page-out-in-deactivate_page.patch
+nommu-add-page-alignment-to-mmap.patch
+alpha-hook-up-gpiolib-support.patch
+cris-convert-old-cpumask-api-into-new-one.patch
+bitmap-irq-add-smp_affinity_list-interface-to-proc-irq.patch
+init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure.patch
+printk-allocate-kernel-log-buffer-earlier-v2.patch
+drivers-leds-leds-lm3530c-add-regulator.patch
+leds-provide-helper-to-register-leds-gpio-devices.patch
+lru_cache-use-correct-type-in-sizeof-for-allocation.patch
+percpu_counter-change-return-value-and-add-comments.patch
+fs-ncpfs-inodec-suppress-used-uninitialised-warning.patch
+drivers-gpio-vx855_gpioc-needs-slabh.patch
+drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
+drivers-tty-serial-pch_uartc-needs-slabh.patch
 
