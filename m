@@ -1,85 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-export-get_vma_policy.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:15 -0700
-Message-ID: <201105252028.p4PKScBM014757@imap1.linux-foundation.org>
+Subject: [merged] memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:05 -0700
+Message-ID: <201105252028.p4PKSSnl014745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754730Ab1EYU3R (ORCPT
+	by vger.kernel.org with ESMTP id S1755404Ab1EYU3R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 25 May 2011 16:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, hpa@zytor.com, lucas.demarchi@profusion.mobi, mingo@elte.hu, olaf@aepfle.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: export get_vma_policy()
+     memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
 has been removed from the -mm tree.  Its filename was
-     mm-export-get_vma_policy.patch
+     memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export get_vma_policy()
-From: Stephen Wilson <wilsons@start.ca>
+Subject: memblock/nobootmem: allow alloc_bootmem() to take 0 as low limit
+From: Yinghai Lu <yinghai@kernel.org>
 
-In commit 48fce3429d ("mempolicies: unexport get_vma_policy()")
-get_vma_policy() was marked static as all clients were local to
-mempolicy.c.
+The bootmem wrapper with memblock supports top-down now, so we do not need
+to set the low limit to __pa(MAX_DMA_ADDRESS).
 
-However, the decision to generate /proc/pid/numa_maps in the numa memory
-policy code and outside the procfs subsystem introduces an artificial
-interdependency between the two systems.  Exporting get_vma_policy() once
-again is the first step to clean up this interdependency.
+The logic should be: good to allocate above __pa(MAX_DMA_ADDRESS), but it
+is ok if we can not find memory above 16M on system that has a small
+amount of RAM.
 
-Signed-off-by: Stephen Wilson <wilsons@start.ca>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Yinghai LU <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    3 +++
- mm/mempolicy.c            |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ include/linux/bootmem.h |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-export-get_vma_policy include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-export-get_vma_policy
-+++ a/include/linux/mempolicy.h
-@@ -199,6 +199,9 @@ void mpol_free_shared_policy(struct shar
- struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
- 					    unsigned long idx);
+diff -puN include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit include/linux/bootmem.h
+--- a/include/linux/bootmem.h~memblock-nobootmem-allow-alloc_bootmem-to-take-0-as-low-limit
++++ a/include/linux/bootmem.h
+@@ -99,24 +99,31 @@ extern void *__alloc_bootmem_low_node(pg
+ 				      unsigned long align,
+ 				      unsigned long goal);
  
-+struct mempolicy *get_vma_policy(struct task_struct *tsk,
-+		struct vm_area_struct *vma, unsigned long addr);
++#ifdef CONFIG_NO_BOOTMEM
++/* We are using top down, so it is safe to use 0 here */
++#define BOOTMEM_LOW_LIMIT 0
++#else
++#define BOOTMEM_LOW_LIMIT __pa(MAX_DMA_ADDRESS)
++#endif
 +
- extern void numa_default_policy(void);
- extern void numa_policy_init(void);
- extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
-diff -puN mm/mempolicy.c~mm-export-get_vma_policy mm/mempolicy.c
---- a/mm/mempolicy.c~mm-export-get_vma_policy
-+++ a/mm/mempolicy.c
-@@ -1489,7 +1489,7 @@ asmlinkage long compat_sys_mbind(compat_
-  * freeing by another task.  It is the caller's responsibility to free the
-  * extra reference for shared policies.
-  */
--static struct mempolicy *get_vma_policy(struct task_struct *task,
-+struct mempolicy *get_vma_policy(struct task_struct *task,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct mempolicy *pol = task->mempolicy;
+ #define alloc_bootmem(x) \
+-	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_align(x, align) \
+-	__alloc_bootmem(x, align, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem(x, align, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_nopanic(x) \
+-	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_pages(x) \
+-	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_pages_nopanic(x) \
+-	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_nopanic(x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_node(pgdat, x) \
+-	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_node_nopanic(pgdat, x) \
+-	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node_nopanic(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_pages_node(pgdat, x) \
+-	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_pages_node_nopanic(pgdat, x) \
+-	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, BOOTMEM_LOW_LIMIT)
+ 
+ #define alloc_bootmem_low(x) \
+ 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
 _
 
-Patches currently in -mm which might be from wilsons@start.ca are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
+pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
