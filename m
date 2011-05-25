@@ -1,77 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpio-ml_ioh_gpioc-needs-slabh.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:32:36 -0700
-Message-ID: <201105252030.p4PKUxf6015018@imap1.linux-foundation.org>
+Subject: [merged] drivers-tty-serial-pch_uartc-needs-slabh.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:32:38 -0700
+Message-ID: <201105252031.p4PKV14I015032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754679Ab1EYUnh (ORCPT
+	by vger.kernel.org with ESMTP id S1753346Ab1EYUoQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:43:37 -0400
+	Wed, 25 May 2011 16:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpio/ml_ioh_gpio.c needs slab.h
+     drivers/tty/serial/pch_uart.c needs slab.h
 has been removed from the -mm tree.  Its filename was
-     drivers-gpio-ml_ioh_gpioc-needs-slabh.patch
+     drivers-tty-serial-pch_uartc-needs-slabh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/ml_ioh_gpio.c needs slab.h
+Subject: drivers/tty/serial/pch_uart.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha allmodconfig:
 
-drivers/gpio/ml_ioh_gpio.c: In function 'ioh_gpio_probe':
-drivers/gpio/ml_ioh_gpio.c:205: error: implicit declaration of function 'kzalloc'
-drivers/gpio/ml_ioh_gpio.c:205: warning: assignment makes pointer from integer without a cast
+drivers/tty/serial/pch_uart.c: In function 'dma_handle_tx':
+drivers/tty/serial/pch_uart.c:873: error: implicit declaration of function 'kzalloc'
+drivers/tty/serial/pch_uart.c:873: warning: assignment makes pointer from integer without a cast
+drivers/tty/serial/pch_uart.c: In function 'pch_uart_init_port':
+drivers/tty/serial/pch_uart.c:1403: warning: assignment makes pointer from integer without a cast
 
-also fix this:
-
-drivers/gpio/ml_ioh_gpio.c:145: warning: 'ioh_gpio_save_reg_conf' defined but not used
-drivers/gpio/ml_ioh_gpio.c:154: warning: 'ioh_gpio_restore_reg_conf' defined but not used
-
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/ml_ioh_gpio.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/tty/serial/pch_uart.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh drivers/gpio/ml_ioh_gpio.c
---- a/drivers/gpio/ml_ioh_gpio.c~drivers-gpio-ml_ioh_gpioc-needs-slabh
-+++ a/drivers/gpio/ml_ioh_gpio.c
+diff -puN drivers/tty/serial/pch_uart.c~drivers-tty-serial-pch_uartc-needs-slabh drivers/tty/serial/pch_uart.c
+--- a/drivers/tty/serial/pch_uart.c~drivers-tty-serial-pch_uartc-needs-slabh
++++ a/drivers/tty/serial/pch_uart.c
 @@ -15,6 +15,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+  *Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
   */
- #include <linux/kernel.h>
+ #include <linux/serial_reg.h>
 +#include <linux/slab.h>
+ #include <linux/module.h>
  #include <linux/pci.h>
- #include <linux/gpio.h>
- 
-@@ -138,6 +139,7 @@ static int ioh_gpio_direction_input(stru
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
- /*
-  * Save register configuration and disable interrupts.
-  */
-@@ -157,6 +159,7 @@ static void ioh_gpio_restore_reg_conf(st
- 	/* to store contents of PM register */
- 	iowrite32(chip->ioh_gpio_reg.pm_reg, &chip->reg->regs[chip->ch].pm);
- }
-+#endif
- 
- static void ioh_gpio_setup(struct ioh_gpio *chip, int num_port)
- {
+ #include <linux/serial_core.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
