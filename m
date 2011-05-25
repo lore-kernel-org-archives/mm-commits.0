@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 24 May 2011 17:00:31 -0700
-Message-ID: <201105250000.p4P00VPY024176@imap1.linux-foundation.org>
+Subject: [folded] alpha-hook-up-gpiolib-support-fix.patch removed from -mm tree
+Date: Tue, 24 May 2011 17:00:50 -0700
+Message-ID: <201105250000.p4P00o96024183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932838Ab1EYAAe (ORCPT
+	by vger.kernel.org with ESMTP id S932838Ab1EYABE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 20:00:34 -0400
+	Tue, 24 May 2011 20:01:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lliubbo@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu-add-page-alignment-to-mmap-checkpatch-fixes
+     alpha-hook-up-gpiolib-support-fix
 has been removed from the -mm tree.  Its filename was
-     nommu-add-page-alignment-to-mmap-checkpatch-fixes.patch
+     alpha-hook-up-gpiolib-support-fix.patch
 
-This patch was dropped because it was folded into nommu-add-page-alignment-to-mmap.patch
+This patch was dropped because it was folded into alpha-hook-up-gpiolib-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu-add-page-alignment-to-mmap-checkpatch-fixes
+Subject: alpha-hook-up-gpiolib-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not use assignment in if condition
-#110: FILE: mm/nommu.c:1644:
-+	if ((len = PAGE_ALIGN(len)) == 0)
+define GENERIC_GPIO
 
-total: 1 errors, 0 warnings, 89 lines checked
-
-./patches/nommu-add-page-alignment-to-mmap.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ alpha/include/asm/gpio.h |    0 
+ arch/alpha/Kconfig       |    3 +++
+ 2 files changed, 3 insertions(+)
 
-diff -puN mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes mm/nommu.c
---- a/mm/nommu.c~nommu-add-page-alignment-to-mmap-checkpatch-fixes
-+++ a/mm/nommu.c
-@@ -1641,7 +1641,8 @@ int do_munmap(struct mm_struct *mm, unsi
+diff -puN arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-hook-up-gpiolib-support-fix
++++ a/arch/alpha/Kconfig
+@@ -52,6 +52,9 @@ config GENERIC_CALIBRATE_DELAY
+ config GENERIC_CMOS_UPDATE
+         def_bool y
  
- 	kenter(",%lx,%zx", start, len);
- 
--	if ((len = PAGE_ALIGN(len)) == 0)
-+	len = PAGE_ALIGN(len);
-+	if (len == 0)
- 		return -EINVAL;
- 
- 	end = start + len;
++config GENERIC_GPIO
++	def_bool y
++
+ config ZONE_DMA
+ 	bool
+ 	default y
+diff -puN arch/alpha/include/asm/gpio.h~alpha-hook-up-gpiolib-support-fix arch/alpha/include/asm/gpio.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +70,7 @@ mm-convert-mm-cpu_vm_cpumask-into-cpumask_var_t.patch
 vmscan-change-shrinker-api-by-passing-shrink_control-struct.patch
 mm-filter-unevictable-page-out-in-deactivate_page.patch
 nommu-add-page-alignment-to-mmap.patch
-alpha-hook-up-gpiolib-support-fix.patch
+alpha-hook-up-gpiolib-support.patch
 cris-convert-old-cpumask-api-into-new-one-checkpatch-fixes.patch
 bitmap-irq-add-smp_affinity_list-interface-to-proc-irq-fix.patch
 init-calibratec-fix-for-critical-bogomips-intermittent-calculation-failure-checkpatch-fixes.patch
