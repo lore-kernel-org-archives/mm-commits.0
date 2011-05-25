@@ -1,198 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-batch-activate_page-to-reduce-lock-contention.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:37 -0700
-Message-ID: <201105252029.p4PKT10h014799@imap1.linux-foundation.org>
+Subject: [merged] alpha-replace-with-new-cpumask-apis.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:42 -0700
+Message-ID: <201105252029.p4PKT5Sg014814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754084Ab1EYU3p (ORCPT
+	by vger.kernel.org with ESMTP id S1754084Ab1EYU3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:29:45 -0400
+	Wed, 25 May 2011 16:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, andi@firstfloor.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyuki@gmail.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, rie
+To: kosaki.motohiro@jp.fujitsu.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: batch activate_page() to reduce lock contention
+     alpha: replace with new cpumask APIs
 has been removed from the -mm tree.  Its filename was
-     mm-batch-activate_page-to-reduce-lock-contention.patch
+     alpha-replace-with-new-cpumask-apis.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: batch activate_page() to reduce lock contention
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: alpha: replace with new cpumask APIs
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The zone->lru_lock is heavily contented in workload where activate_page()
-is frequently used.  We could do batch activate_page() to reduce the lock
-contention.  The batched pages will be added into zone list when the pool
-is full or page reclaim is trying to drain them.
+We plan to remove cpu_xx() old APIs.  Thus convert them.  This patch has
+no functional change.
 
-For example, in a 4 socket 64 CPU system, create a sparse file and 64
-processes, processes shared map to the file.  Each process read access the
-whole file and then exit.  The process exit will do unmap_vmas() and cause
-a lot of activate_page() call.  In such workload, we saw about 58% total
-time reduction with below patch.  Other workloads with a lot of
-activate_page also benefits a lot too.
-
-Andrew Morton suggested activate_page() and putback_lru_pages() should
-follow the same path to active pages, but this is hard to implement (see
-commit 7a608572a282a ("Revert "mm: batch activate_page() to reduce lock
-contention")).  On the other hand, do we really need putback_lru_pages()
-to follow the same path?  I tested several FIO/FFSB benchmark (about 20
-scripts for each benchmark) in 3 machines here from 2 sockets to 4
-sockets.  My test doesn't show anything significant with/without below
-patch (there is slight difference but mostly some noise which we found
-even without below patch before).  Below patch basically returns to the
-same as my first post.
-
-I tested some microbenchmarks:
-case-anon-cow-rand-mt               0.58%
-case-anon-cow-rand          -3.30%
-case-anon-cow-seq-mt                -0.51%
-case-anon-cow-seq           -5.68%
-case-anon-r-rand-mt         0.23%
-case-anon-r-rand            0.81%
-case-anon-r-seq-mt          -0.71%
-case-anon-r-seq                     -1.99%
-case-anon-rx-rand-mt                2.11%
-case-anon-rx-seq-mt         3.46%
-case-anon-w-rand-mt         -0.03%
-case-anon-w-rand            -0.50%
-case-anon-w-seq-mt          -1.08%
-case-anon-w-seq                     -0.12%
-case-anon-wx-rand-mt                -5.02%
-case-anon-wx-seq-mt         -1.43%
-case-fork                   1.65%
-case-fork-sleep                     -0.07%
-case-fork-withmem           1.39%
-case-hugetlb                        -0.59%
-case-lru-file-mmap-read-mt  -0.54%
-case-lru-file-mmap-read             0.61%
-case-lru-file-mmap-read-rand        -2.24%
-case-lru-file-readonce              -0.64%
-case-lru-file-readtwice             -11.69%
-case-lru-memcg                      -1.35%
-case-mmap-pread-rand-mt             1.88%
-case-mmap-pread-rand                -15.26%
-case-mmap-pread-seq-mt              0.89%
-case-mmap-pread-seq         -69.72%
-case-mmap-xread-rand-mt             0.71%
-case-mmap-xread-seq-mt              0.38%
-
-The most significent are:
-case-lru-file-readtwice             -11.69%
-case-mmap-pread-rand                -15.26%
-case-mmap-pread-seq         -69.72%
-
-which use activate_page a lot.  others are basically variations because
-each run has slightly difference.
-
-In UP case, 'size mm/swap.o'
-before the two patches:
-   text    data     bss     dec     hex filename
-   6466     896       4    7366    1cc6 mm/swap.o
-after the two patches:
-   text    data     bss     dec     hex filename
-   6343     896       4    7243    1c4b mm/swap.o
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 40 insertions(+), 5 deletions(-)
+ arch/alpha/kernel/process.c   |    2 +-
+ arch/alpha/kernel/setup.c     |    2 +-
+ arch/alpha/kernel/smp.c       |    7 ++++---
+ arch/alpha/kernel/sys_dp264.c |    2 +-
+ arch/alpha/kernel/sys_titan.c |   13 +++++++------
+ 5 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention mm/swap.c
---- a/mm/swap.c~mm-batch-activate_page-to-reduce-lock-contention
-+++ a/mm/swap.c
-@@ -272,14 +272,10 @@ static void update_page_reclaim_stat(str
- 		memcg_reclaim_stat->recent_rotated[file]++;
- }
+diff -puN arch/alpha/kernel/process.c~alpha-replace-with-new-cpumask-apis arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~alpha-replace-with-new-cpumask-apis
++++ a/arch/alpha/kernel/process.c
+@@ -121,7 +121,7 @@ common_shutdown_1(void *generic_ptr)
+ 	/* Wait for the secondaries to halt. */
+ 	set_cpu_present(boot_cpuid, false);
+ 	set_cpu_possible(boot_cpuid, false);
+-	while (cpus_weight(cpu_present_map))
++	while (cpumask_weight(cpu_present_mask))
+ 		barrier();
+ #endif
  
--/*
-- * FIXME: speed this up?
-- */
--void activate_page(struct page *page)
-+static void __activate_page(struct page *page, void *arg)
- {
- 	struct zone *zone = page_zone(page);
+diff -puN arch/alpha/kernel/setup.c~alpha-replace-with-new-cpumask-apis arch/alpha/kernel/setup.c
+--- a/arch/alpha/kernel/setup.c~alpha-replace-with-new-cpumask-apis
++++ a/arch/alpha/kernel/setup.c
+@@ -1257,7 +1257,7 @@ show_cpuinfo(struct seq_file *f, void *s
+ #ifdef CONFIG_SMP
+ 	seq_printf(f, "cpus active\t\t: %u\n"
+ 		      "cpu active mask\t\t: %016lx\n",
+-		       num_online_cpus(), cpus_addr(cpu_possible_map)[0]);
++		       num_online_cpus(), cpumask_bits(cpu_possible_mask)[0]);
+ #endif
  
--	spin_lock_irq(&zone->lru_lock);
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_cache(page);
- 		int lru = page_lru_base_type(page);
-@@ -292,8 +288,45 @@ void activate_page(struct page *page)
- 
- 		update_page_reclaim_stat(zone, page, file, 1);
+ 	show_cache_size (f, "L1 Icache", alpha_l1i_cacheshape);
+diff -puN arch/alpha/kernel/smp.c~alpha-replace-with-new-cpumask-apis arch/alpha/kernel/smp.c
+--- a/arch/alpha/kernel/smp.c~alpha-replace-with-new-cpumask-apis
++++ a/arch/alpha/kernel/smp.c
+@@ -451,7 +451,7 @@ setup_smp(void)
  	}
-+}
-+
-+#ifdef CONFIG_SMP
-+static DEFINE_PER_CPU(struct pagevec, activate_page_pvecs);
-+
-+static void activate_page_drain(int cpu)
-+{
-+	struct pagevec *pvec = &per_cpu(activate_page_pvecs, cpu);
-+
-+	if (pagevec_count(pvec))
-+		pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+}
-+
-+void activate_page(struct page *page)
-+{
-+	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
-+		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
-+
-+		page_cache_get(page);
-+		if (!pagevec_add(pvec, page))
-+			pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+		put_cpu_var(activate_page_pvecs);
-+	}
-+}
-+
-+#else
-+static inline void activate_page_drain(int cpu)
-+{
-+}
-+
-+void activate_page(struct page *page)
-+{
-+	struct zone *zone = page_zone(page);
-+
-+	spin_lock_irq(&zone->lru_lock);
-+	__activate_page(page, NULL);
- 	spin_unlock_irq(&zone->lru_lock);
+ 
+ 	printk(KERN_INFO "SMP: %d CPUs probed -- cpu_present_map = %lx\n",
+-	       smp_num_probed, cpu_present_map.bits[0]);
++	       smp_num_probed, cpumask_bits(cpu_present_mask)[0]);
  }
-+#endif
  
  /*
-  * Mark a page as having seen activity.
-@@ -464,6 +497,8 @@ static void drain_cpu_pagevecs(int cpu)
- 	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+
-+	activate_page_drain(cpu);
- }
+@@ -629,8 +629,9 @@ smp_send_reschedule(int cpu)
+ void
+ smp_send_stop(void)
+ {
+-	cpumask_t to_whom = cpu_possible_map;
+-	cpu_clear(smp_processor_id(), to_whom);
++	cpumask_t to_whom;
++	cpumask_copy(&to_whom, cpu_possible_mask);
++	cpumask_clear_cpu(smp_processor_id(), &to_whom);
+ #ifdef DEBUG_IPI_MSG
+ 	if (hard_smp_processor_id() != boot_cpu_id)
+ 		printk(KERN_WARNING "smp_send_stop: Not on boot cpu.\n");
+diff -puN arch/alpha/kernel/sys_dp264.c~alpha-replace-with-new-cpumask-apis arch/alpha/kernel/sys_dp264.c
+--- a/arch/alpha/kernel/sys_dp264.c~alpha-replace-with-new-cpumask-apis
++++ a/arch/alpha/kernel/sys_dp264.c
+@@ -140,7 +140,7 @@ cpu_set_irq_affinity(unsigned int irq, c
  
- /**
+ 	for (cpu = 0; cpu < 4; cpu++) {
+ 		unsigned long aff = cpu_irq_affinity[cpu];
+-		if (cpu_isset(cpu, affinity))
++		if (cpumask_test_cpu(cpu, &affinity))
+ 			aff |= 1UL << irq;
+ 		else
+ 			aff &= ~(1UL << irq);
+diff -puN arch/alpha/kernel/sys_titan.c~alpha-replace-with-new-cpumask-apis arch/alpha/kernel/sys_titan.c
+--- a/arch/alpha/kernel/sys_titan.c~alpha-replace-with-new-cpumask-apis
++++ a/arch/alpha/kernel/sys_titan.c
+@@ -65,10 +65,11 @@ titan_update_irq_hw(unsigned long mask)
+ 	register int bcpu = boot_cpuid;
+ 
+ #ifdef CONFIG_SMP
+-	cpumask_t cpm = cpu_present_map;
++	cpumask_t cpm;
+ 	volatile unsigned long *dim0, *dim1, *dim2, *dim3;
+ 	unsigned long mask0, mask1, mask2, mask3, dummy;
+ 
++	cpumask_copy(&cpm, cpu_present_mask);
+ 	mask &= ~isa_enable;
+ 	mask0 = mask & titan_cpu_irq_affinity[0];
+ 	mask1 = mask & titan_cpu_irq_affinity[1];
+@@ -84,10 +85,10 @@ titan_update_irq_hw(unsigned long mask)
+ 	dim1 = &cchip->dim1.csr;
+ 	dim2 = &cchip->dim2.csr;
+ 	dim3 = &cchip->dim3.csr;
+-	if (!cpu_isset(0, cpm)) dim0 = &dummy;
+-	if (!cpu_isset(1, cpm)) dim1 = &dummy;
+-	if (!cpu_isset(2, cpm)) dim2 = &dummy;
+-	if (!cpu_isset(3, cpm)) dim3 = &dummy;
++	if (!cpumask_test_cpu(0, &cpm)) dim0 = &dummy;
++	if (!cpumask_test_cpu(1, &cpm)) dim1 = &dummy;
++	if (!cpumask_test_cpu(2, &cpm)) dim2 = &dummy;
++	if (!cpumask_test_cpu(3, &cpm)) dim3 = &dummy;
+ 
+ 	*dim0 = mask0;
+ 	*dim1 = mask1;
+@@ -137,7 +138,7 @@ titan_cpu_set_irq_affinity(unsigned int 
+ 	int cpu;
+ 
+ 	for (cpu = 0; cpu < 4; cpu++) {
+-		if (cpu_isset(cpu, affinity))
++		if (cpumask_test_cpu(cpu, &affinity))
+ 			titan_cpu_irq_affinity[cpu] |= 1UL << irq;
+ 		else
+ 			titan_cpu_irq_affinity[cpu] &= ~(1UL << irq);
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+mm-increase-reclaim_distance-to-30.patch
+slab-use-numa_no_node.patch
+m32r-convert-cpumask-api.patch
+m32r-fix-spin_lock_irqsave-misuse.patch
+m32r-remove-redundant-declaration.patch
+getdelays-show-average-cpu-io-swap-reclaim-delays.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
+memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
+memcg-fix-get_scan_count-for-small-targets.patch
+memcg-remove-unused-retry-signal-from-reclaim.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
