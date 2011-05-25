@@ -1,39 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:17 -0700
-Message-ID: <201105252028.p4PKSePi014760@imap1.linux-foundation.org>
+Subject: [merged] mm-remove-check_huge_range.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:20 -0700
+Message-ID: <201105252028.p4PKShRq014769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755650Ab1EYU3U (ORCPT
+	by vger.kernel.org with ESMTP id S1755658Ab1EYU3X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:29:20 -0400
+	Wed, 25 May 2011 16:29:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wilsons@start.ca, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: use walk_page_range() instead of custom page table walking code
+     mm: remove check_huge_range()
 has been removed from the -mm tree.  Its filename was
-     mm-use-walk_page_range-instead-of-custom-page-table-walking-code.patch
+     mm-remove-check_huge_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use walk_page_range() instead of custom page table walking code
+Subject: mm: remove check_huge_range()
 From: Stephen Wilson <wilsons@start.ca>
 
-Converting show_numa_map() to use the generic routine decouples the
-function from mempolicy.c, allowing it to be moved out of the mm subsystem
-and into fs/proc.
-
-Also, include KSM pages in /proc/pid/numa_maps statistics.  The pagewalk
-logic implemented by check_pte_range() failed to account for such pages as
-they were not applicable to the page migration case.
+This function has been superseded by gather_hugetbl_stats() and is no
+longer needed.
 
 Signed-off-by: Stephen Wilson <wilsons@start.ca>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -45,140 +40,54 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   75 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 68 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |   35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-walk_page_range-instead-of-custom-page-table-walking-code
+diff -puN mm/mempolicy.c~mm-remove-check_huge_range mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-check_huge_range
 +++ a/mm/mempolicy.c
-@@ -2531,6 +2531,7 @@ int mpol_to_str(char *buffer, int maxlen
+@@ -2600,35 +2600,6 @@ static int gather_pte_stats(pmd_t *pmd, 
  }
  
- struct numa_maps {
-+	struct vm_area_struct *vma;
- 	unsigned long pages;
- 	unsigned long anon;
- 	unsigned long active;
-@@ -2568,6 +2569,41 @@ static void gather_stats(struct page *pa
- 	md->node[page_to_nid(page)]++;
- }
- 
-+static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
-+		unsigned long end, struct mm_walk *walk)
-+{
-+	struct numa_maps *md;
-+	spinlock_t *ptl;
-+	pte_t *orig_pte;
-+	pte_t *pte;
-+
-+	md = walk->private;
-+	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	do {
-+		struct page *page;
-+		int nid;
-+
-+		if (!pte_present(*pte))
-+			continue;
-+
-+		page = vm_normal_page(md->vma, addr, *pte);
-+		if (!page)
-+			continue;
-+
-+		if (PageReserved(page))
-+			continue;
-+
-+		nid = page_to_nid(page);
-+		if (!node_isset(nid, node_states[N_HIGH_MEMORY]))
-+			continue;
-+
-+		gather_stats(page, md, pte_dirty(*pte));
-+
-+	} while (pte++, addr += PAGE_SIZE, addr != end);
-+	pte_unmap_unlock(orig_pte, ptl);
-+	return 0;
-+}
-+
  #ifdef CONFIG_HUGETLB_PAGE
- static void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
-@@ -2597,12 +2633,35 @@ static void check_huge_range(struct vm_a
- 		gather_stats(page, md, pte_dirty(*ptep));
- 	}
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	struct page *page;
-+
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	page = pte_page(*pte);
-+	if (!page)
-+		return 0;
-+
-+	gather_stats(page, walk->private, pte_dirty(*pte));
-+	return 0;
-+}
-+
- #else
- static inline void check_huge_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
- 		struct numa_maps *md)
- {
- }
-+
-+static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
-+{
-+	return 0;
-+}
- #endif
- 
- /*
-@@ -2615,6 +2674,7 @@ int show_numa_map(struct seq_file *m, vo
- 	struct numa_maps *md;
- 	struct file *file = vma->vm_file;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct mm_walk walk = {};
- 	struct mempolicy *pol;
- 	int n;
- 	char buffer[50];
-@@ -2626,6 +2686,13 @@ int show_numa_map(struct seq_file *m, vo
- 	if (!md)
- 		return 0;
- 
-+	md->vma = vma;
-+
-+	walk.hugetlb_entry = gather_hugetbl_stats;
-+	walk.pmd_entry = gather_pte_stats;
-+	walk.private = md;
-+	walk.mm = mm;
-+
- 	pol = get_vma_policy(priv->task, vma, vma->vm_start);
- 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
- 	mpol_cond_put(pol);
-@@ -2642,13 +2709,7 @@ int show_numa_map(struct seq_file *m, vo
- 		seq_printf(m, " stack");
- 	}
- 
--	if (is_vm_hugetlb_page(vma)) {
--		check_huge_range(vma, vma->vm_start, vma->vm_end, md);
--		seq_printf(m, " huge");
--	} else {
--		check_pgd_range(vma, vma->vm_start, vma->vm_end,
--			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
+-static void check_huge_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end,
+-		struct numa_maps *md)
+-{
+-	unsigned long addr;
+-	struct page *page;
+-	struct hstate *h = hstate_vma(vma);
+-	unsigned long sz = huge_page_size(h);
+-
+-	for (addr = start; addr < end; addr += sz) {
+-		pte_t *ptep = huge_pte_offset(vma->vm_mm,
+-						addr & huge_page_mask(h));
+-		pte_t pte;
+-
+-		if (!ptep)
+-			continue;
+-
+-		pte = *ptep;
+-		if (pte_none(pte))
+-			continue;
+-
+-		page = pte_page(pte);
+-		if (!page)
+-			continue;
+-
+-		gather_stats(page, md, pte_dirty(*ptep));
 -	}
-+	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+-}
+-
+ static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
+@@ -2648,12 +2619,6 @@ static int gather_hugetbl_stats(pte_t *p
+ }
  
- 	if (!md->pages)
- 		goto out;
-_
-
-Patches currently in -mm which might be from wilsons@start.ca are
-
-origin.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-
+ #else
+-static inline void check_huge_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end,
+-		struct numa_maps *md)
+-{
+-}
