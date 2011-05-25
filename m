@@ -1,67 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch added to -mm tree
-Date: Wed, 25 May 2011 16:09:24 -0700
-Message-ID: <201105252346.p4PNk9kQ025237@imap1.linux-foundation.org>
+Subject: [obsolete] arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch removed from -mm tree
+Date: Wed, 25 May 2011 16:13:44 -0700
+Message-ID: <201105252350.p4PNoTcE025432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753508Ab1EYXqS (ORCPT
+	by vger.kernel.org with ESMTP id S1756377Ab1EYXvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 19:46:18 -0400
+	Wed, 25 May 2011 19:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agust@denx.de, lethal@linux-sh.org
+To: akpm@linux-foundation.org, ben@decadent.org.uk, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
-has been added to the -mm tree.  Its filename is
-     drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
+     arch/alpha/include/asm/io.h: s/extern inline/static inline/
+has been removed from the -mm tree.  Its filename was
+     arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
+Subject: arch/alpha/include/asm/io.h: s/extern inline/static inline/
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha allmodconfig:
+When building the kernel for alpha using gcc 4.4, many files will provoke these
+warnings:
 
-drivers/video/mb862xx/mb862xxfbdrv.c: In function 'mb862xxfb_ioctl':
-drivers/video/mb862xx/mb862xxfbdrv.c:323: error: implicit declaration of function 'copy_to_user'
-drivers/video/mb862xx/mb862xxfbdrv.c:327: error: implicit declaration of function 'copy_from_user'
+arch/alpha/include/asm/io.h: In function '__set_hae':
+arch/alpha/include/asm/io.h:41: warning: 'arch_local_irq_save' is static but
+used in inline function '__set_hae' which is not static
+arch/alpha/include/asm/io.h:49: warning: 'arch_local_irq_restore' is static but
+used in inline function '__set_hae' which is not static
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Anatolij Gustschin <agust@denx.de>
+and because the alpha makefiles include -Werror in CFLAGS, this is fatal.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25432
+
+(akpm: there are lots more extern inlines in there, but people have been
+playing games mixing them up with extern non-inlines so it needs more work).
+
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xxfbdrv.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/include/asm/io.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh drivers/video/mb862xx/mb862xxfbdrv.c
---- a/drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh
-+++ a/drivers/video/mb862xx/mb862xxfbdrv.c
-@@ -16,6 +16,7 @@
+diff -puN arch/alpha/include/asm/io.h~arch-alpha-include-asm-ioh-s-extern-inline-static-inline arch/alpha/include/asm/io.h
+--- a/arch/alpha/include/asm/io.h~arch-alpha-include-asm-ioh-s-extern-inline-static-inline
++++ a/arch/alpha/include/asm/io.h
+@@ -35,7 +35,7 @@
+  * register not being up-to-date with respect to the hardware
+  * value.
+  */
+-extern inline void __set_hae(unsigned long new_hae)
++static inline void __set_hae(unsigned long new_hae)
+ {
+ 	unsigned long flags = swpipl(IPL_MAX);
  
- #include <linux/fb.h>
- #include <linux/delay.h>
-+#include <linux/uaccess.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/pci.h>
+@@ -51,7 +51,7 @@ extern inline void __set_hae(unsigned lo
+ 	barrier();
+ }
+ 
+-extern inline void set_hae(unsigned long new_hae)
++static inline void set_hae(unsigned long new_hae)
+ {
+ 	if (new_hae != alpha_mv.hae_cache)
+ 		__set_hae(new_hae);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +81,6 @@ origin.patch
 drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch
 drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
 drivers-bcma-host_pcic-needs-slabh.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 checkpatch-suggest-using-min_t-or-max_t.patch
 lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
