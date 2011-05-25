@@ -1,138 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-add-earlyprintk-support.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:59 -0700
-Message-ID: <201105252029.p4PKTNWN014835@imap1.linux-foundation.org>
+Subject: [merged] drivers-gpu-drm-radeon-atomc-fix-warning.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:32:42 -0700
+Message-ID: <201105252031.p4PKV52Z015038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754135Ab1EYUqF (ORCPT
+	by vger.kernel.org with ESMTP id S1756636Ab1EYUqf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:46:05 -0400
+	Wed, 25 May 2011 16:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, mattst88@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: add earlyprintk support
+     drivers/gpu/drm/radeon/atom.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     um-add-earlyprintk-support.patch
+     drivers-gpu-drm-radeon-atomc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: add earlyprintk support
-From: Richard Weinberger <richard@nod.at>
+Subject: drivers/gpu/drm/radeon/atom.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-User Mode Linux can also benefit from earlyprintk.  UML's earlyprintk
-writes kernel messages directly to stdout.
+udelay() doesn't like 8-bit arguments:
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+drivers/gpu/drm/radeon/atom.c: In function 'atom_op_delay':
+drivers/gpu/drm/radeon/atom.c:653: warning: comparison is always false due to limited range of data type
+
+while we're there, use msleep() rather than open-coding it.
+
+Cc: David Airlie <airlied@linux.ie>
+Reviewed-by: Alex Deucher <alexdeucher@gmail.com>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.debug         |   10 +++++++++
- arch/um/include/shared/os.h   |    1 
- arch/um/kernel/Makefile       |    1 
- arch/um/kernel/early_printk.c |   33 ++++++++++++++++++++++++++++++++
- arch/um/os-Linux/util.c       |    5 ++++
- 5 files changed, 50 insertions(+)
+ drivers/gpu/drm/radeon/atom.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/Kconfig.debug~um-add-earlyprintk-support arch/um/Kconfig.debug
---- a/arch/um/Kconfig.debug~um-add-earlyprintk-support
-+++ a/arch/um/Kconfig.debug
-@@ -37,4 +37,14 @@ config DEBUG_STACK_USAGE
- 	  stack seen so far.
+diff -puN drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning drivers/gpu/drm/radeon/atom.c
+--- a/drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning
++++ a/drivers/gpu/drm/radeon/atom.c
+@@ -652,12 +652,12 @@ static void atom_op_compare(atom_exec_co
  
- 	  This option will slow down process creation and destruction somewhat.
-+
-+config EARLY_PRINTK
-+	bool "Early printk"
-+	default y
-+	---help---
-+	  Write kernel log output directly to stdout.
-+
-+	  This is useful for kernel debugging when your machine crashes very
-+	  early before the console code is initialized.
-+
- endmenu
-diff -puN arch/um/include/shared/os.h~um-add-earlyprintk-support arch/um/include/shared/os.h
---- a/arch/um/include/shared/os.h~um-add-earlyprintk-support
-+++ a/arch/um/include/shared/os.h
-@@ -244,6 +244,7 @@ extern int raw(int fd);
- extern void setup_machinename(char *machine_out);
- extern void setup_hostinfo(char *buf, int len);
- extern void os_dump_core(void) __attribute__ ((noreturn));
-+extern void um_early_printk(const char *s, unsigned int n);
- 
- /* time.c */
- extern void idle_sleep(unsigned long long nsecs);
-diff -puN arch/um/kernel/Makefile~um-add-earlyprintk-support arch/um/kernel/Makefile
---- a/arch/um/kernel/Makefile~um-add-earlyprintk-support
-+++ a/arch/um/kernel/Makefile
-@@ -17,6 +17,7 @@ obj-y = config.o exec.o exitcode.o init_
- obj-$(CONFIG_BLK_DEV_INITRD) += initrd.o
- obj-$(CONFIG_GPROF)	+= gprof_syms.o
- obj-$(CONFIG_GCOV)	+= gmon_syms.o
-+obj-$(CONFIG_EARLY_PRINTK) += early_printk.o
- 
- USER_OBJS := config.o
- 
-diff -puN /dev/null arch/um/kernel/early_printk.c
---- /dev/null
-+++ a/arch/um/kernel/early_printk.c
-@@ -0,0 +1,33 @@
-+/*
-+ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/console.h>
-+#include <linux/init.h>
-+#include "os.h"
-+
-+static void early_console_write(struct console *con, const char *s, unsigned int n)
-+{
-+	um_early_printk(s, n);
-+}
-+
-+static struct console early_console = {
-+	.name = "earlycon",
-+	.write = early_console_write,
-+	.flags = CON_BOOT,
-+	.index = -1,
-+};
-+
-+static int __init setup_early_printk(char *buf)
-+{
-+	register_console(&early_console);
-+
-+	return 0;
-+}
-+
-+early_param("earlyprintk", setup_early_printk);
-diff -puN arch/um/os-Linux/util.c~um-add-earlyprintk-support arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~um-add-earlyprintk-support
-+++ a/arch/um/os-Linux/util.c
-@@ -139,3 +139,8 @@ void os_dump_core(void)
- 
- 	uml_abort();
+ static void atom_op_delay(atom_exec_context *ctx, int *ptr, int arg)
+ {
+-	uint8_t count = U8((*ptr)++);
++	unsigned count = U8((*ptr)++);
+ 	SDEBUG("   count: %d\n", count);
+ 	if (arg == ATOM_UNIT_MICROSEC)
+ 		udelay(count);
+ 	else
+-		schedule_timeout_uninterruptible(msecs_to_jiffies(count));
++		msleep(count);
  }
-+
-+void um_early_printk(const char *s, unsigned int n)
-+{
-+	printf("%.*s", n, s);
-+}
+ 
+ static void atom_op_div(atom_exec_context *ctx, int *ptr, int arg)
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+backlight-add-backlight-type-fix.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-m68k-merge-mmu-and-non-mmu-bitopsh.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+mtd-convert-to-seq_file-interface.patch
+rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+slab-use-numa_no_node.patch
+mm.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
