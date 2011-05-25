@@ -1,87 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:31:10 -0700
-Message-ID: <201105252029.p4PKTXx6014851@imap1.linux-foundation.org>
+Subject: [merged] m32r-mm-set-all-online-nodes-in-n_normal_memory.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:29:28 -0700
+Message-ID: <201105252027.p4PKRqbl014622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756467Ab1EYUtF (ORCPT
+	by vger.kernel.org with ESMTP id S1756388Ab1EYUtE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:05 -0400
+	Wed, 25 May 2011 16:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.gardner@canonical.com, dank@kegel.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rientjes@google.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ulimit: raise default hard ulimit on number of files to 4096
+     m32r, mm: set all online nodes in N_NORMAL_MEMORY
 has been removed from the -mm tree.  Its filename was
-     ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096.patch
+     m32r-mm-set-all-online-nodes-in-n_normal_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ulimit: raise default hard ulimit on number of files to 4096
-From: Tim Gardner <tim.gardner@canonical.com>
+Subject: m32r, mm: set all online nodes in N_NORMAL_MEMORY
+From: David Rientjes <rientjes@google.com>
 
-Apps are increasingly using more than 1024 file descriptors.  See
-discussion in several distro bug trackers, e.g.  BugLink:
-http://bugs.launchpad.net/bugs/663090
-https://issues.rpath.com/browse/RPL-2054
+For m32r, N_NORMAL_MEMORY represents all nodes that have present memory
+since it does not support HIGHMEM.  This patch sets the bit at the time
+the node is initialized.
 
-You don't want to raise the default soft limit, since that might break
-apps that use select(), but it's safe to raise the default hard limit;
-that way, apps that know they need lots of file descriptors can raise
-their soft limit without needing root, and without user intervention.
+If N_NORMAL_MEMORY is not accurate, slub may encounter errors since it
+uses this nodemask to setup per-cache kmem_cache_node data structures.
 
-Ubuntu is doing this with a kernel change because they have a policy of
-not changing kernel defaults in userland.
-
-While 4096 might not be enough for *all* apps, it seems to be plenty for
-the apps I've seen lately that are unhappy with 1024.
-
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Cc: Dan Kegel <dank@kegel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/resource.h |    2 +-
- include/linux/fs.h             |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/m32r/mm/discontig.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/asm-generic/resource.h
---- a/include/asm-generic/resource.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
-+++ a/include/asm-generic/resource.h
-@@ -78,7 +78,7 @@
- 	[RLIMIT_CORE]		= {              0,  RLIM_INFINITY },	\
- 	[RLIMIT_RSS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
- 	[RLIMIT_NPROC]		= {              0,              0 },	\
--	[RLIMIT_NOFILE]		= {       INR_OPEN,       INR_OPEN },	\
-+	[RLIMIT_NOFILE]		= {   INR_OPEN_CUR,   INR_OPEN_MAX },	\
- 	[RLIMIT_MEMLOCK]	= {    MLOCK_LIMIT,    MLOCK_LIMIT },	\
- 	[RLIMIT_AS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
- 	[RLIMIT_LOCKS]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
-diff -puN include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096 include/linux/fs.h
---- a/include/linux/fs.h~ulimit-raise-default-hard-ulimit-on-number-of-files-to-4096
-+++ a/include/linux/fs.h
-@@ -23,7 +23,8 @@
+diff -puN arch/m32r/mm/discontig.c~m32r-mm-set-all-online-nodes-in-n_normal_memory arch/m32r/mm/discontig.c
+--- a/arch/m32r/mm/discontig.c~m32r-mm-set-all-online-nodes-in-n_normal_memory
++++ a/arch/m32r/mm/discontig.c
+@@ -149,6 +149,7 @@ unsigned long __init zone_sizes_init(voi
+ 		zholes_size[ZONE_DMA] = mp->holes;
+ 		holes += zholes_size[ZONE_DMA];
  
- /* Fixed constants first: */
- #undef NR_OPEN
--#define INR_OPEN 1024		/* Initial setting for nfile rlimits */
-+#define INR_OPEN_CUR 1024	/* Initial setting for nfile rlimits */
-+#define INR_OPEN_MAX 4096	/* Hard limit for nfile rlimits */
++		node_set_state(nid, N_NORMAL_MEMORY);
+ 		free_area_init_node(nid, zones_size, start_pfn, zholes_size);
+ 	}
  
- #define BLOCK_SIZE_BITS 10
- #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 _
 
-Patches currently in -mm which might be from tim.gardner@canonical.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+mm-increase-reclaim_distance-to-30.patch
+flex_array-avoid-divisions-when-accessing-elements.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
+cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-per-thread-subsystem-callbacks.patch
+cgroups-make-procs-file-writable.patch
+cgroups-use-flex_array-in-attach_proc.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
