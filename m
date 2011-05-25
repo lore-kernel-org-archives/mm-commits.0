@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-genalloch-add-multiple-inclusion-guards.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:32:15 -0700
-Message-ID: <201105252030.p4PKUcwo014982@imap1.linux-foundation.org>
+Subject: [merged] mmap-avoid-unnecessary-anon_vma-lock.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:13 -0700
+Message-ID: <201105252025.p4PKPaCA014405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756191Ab1EYUtC (ORCPT
+	by vger.kernel.org with ESMTP id S1756294Ab1EYUtD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:02 -0400
+	Wed, 25 May 2011 16:49:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: plagnioj@jcrosoft.com, jes@wildopensource.com, nicolas.ferre@atmel.com, patrice.vilchez@atmel.com, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, andi@firstfloor.org, hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/genalloc.h: add multiple-inclusion guards
+     mmap: avoid unnecessary anon_vma lock
 has been removed from the -mm tree.  Its filename was
-     include-linux-genalloch-add-multiple-inclusion-guards.patch
+     mmap-avoid-unnecessary-anon_vma-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/genalloc.h: add multiple-inclusion guards
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: mmap: avoid unnecessary anon_vma lock
+From: Shaohua Li <shaohua.li@intel.com>
 
-Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Patrice VILCHEZ <patrice.vilchez@atmel.com>
-Cc: Jes Sorensen <jes@wildopensource.com>
+If we only change vma->vm_end, we can avoid taking anon_vma lock even if
+'insert' isn't NULL, which is the case of split_vma.
+
+As I understand it, we need the lock before because rmap must get the
+'insert' VMA when we adjust old VMA's vm_end (the 'insert' VMA is linked
+to anon_vma list in __insert_vm_struct before).
+
+But now this isn't true any more.  The 'insert' VMA is already linked to
+anon_vma list in __split_vma(with anon_vma_clone()) instead of
+__insert_vm_struct.  There is no race rmap can't get required VMAs.  So
+the anon_vma lock is unnecessary, and this can reduce one locking in brk
+case and improve scalability.
+
+Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/genalloc.h~include-linux-genalloch-add-multiple-inclusion-guards include/linux/genalloc.h
---- a/include/linux/genalloc.h~include-linux-genalloch-add-multiple-inclusion-guards
-+++ a/include/linux/genalloc.h
-@@ -9,6 +9,8 @@
-  */
- 
- 
-+#ifndef __GENALLOC_H__
-+#define __GENALLOC_H__
- /*
-  *  General purpose special memory pool descriptor.
-  */
-@@ -34,3 +36,4 @@ extern int gen_pool_add(struct gen_pool 
- extern void gen_pool_destroy(struct gen_pool *);
- extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
- extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
-+#endif /* __GENALLOC_H__ */
+diff -puN mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock mm/mmap.c
+--- a/mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock
++++ a/mm/mmap.c
+@@ -609,7 +609,7 @@ again:			remove_next = 1 + (end > next->
+ 	 * lock may be shared between many sibling processes.  Skipping
+ 	 * the lock for brk adjustments makes a difference sometimes.
+ 	 */
+-	if (vma->anon_vma && (insert || importer || start != vma->vm_start)) {
++	if (vma->anon_vma && (importer || start != vma->vm_start)) {
+ 		anon_vma = vma->anon_vma;
+ 		anon_vma_lock(anon_vma);
+ 	}
 _
 
-Patches currently in -mm which might be from plagnioj@jcrosoft.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
