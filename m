@@ -1,90 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:30:31 -0700
-Message-ID: <201105252028.p4PKSsqE014793@imap1.linux-foundation.org>
+Subject: [merged] mm-print-vmalloc-state-after-allocation-failures.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:29:16 -0700
+Message-ID: <201105252027.p4PKRdk3014596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756358Ab1EYUtP (ORCPT
+	by vger.kernel.org with ESMTP id S932670Ab1EYUtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:15 -0400
+	Wed, 25 May 2011 16:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abarry@cray.com, mgorman@suse.de, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mina86@mina86.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c: prevent unending loop in __alloc_pages_slowpath()
+     mm: print vmalloc() state after allocation failures
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath.patch
+     mm-print-vmalloc-state-after-allocation-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: prevent unending loop in __alloc_pages_slowpath()
-From: Andrew Barry <abarry@cray.com>
+Subject: mm: print vmalloc() state after allocation failures
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-I believe I found a problem in __alloc_pages_slowpath, which allows a
-process to get stuck endlessly looping, even when lots of memory is
-available.
+I was tracking down a page allocation failure that ended up in vmalloc(). 
+Since vmalloc() uses 0-order pages, if somebody asks for an insane amount
+of memory, we'll still get a warning with "order:0" in it.  That's not
+very useful.
 
-Running an I/O and memory intensive stress-test I see a 0-order page
-allocation with __GFP_IO and __GFP_WAIT, running on a system with very
-little free memory.  Right about the same time that the stress-test gets
-killed by the OOM-killer, the utility trying to allocate memory gets stuck
-in __alloc_pages_slowpath even though most of the systems memory was freed
-by the oom-kill of the stress-test.
+During recovery, vmalloc() also nicely frees all of the memory that it got
+up to the point of the failure.  That is wonderful, but it also quickly
+hides any issues.  We have a much different sitation if vmalloc()
+repeatedly fails 10GB in to:
 
-The utility ends up looping from the rebalance label down through the
-wait_iff_congested continiously.  Because order=0,
-__alloc_pages_direct_compact skips the call to get_page_from_freelist. 
-Because all of the reclaimable memory on the system has already been
-reclaimed, __alloc_pages_direct_reclaim skips the call to
-get_page_from_freelist.  Since there is no __GFP_FS flag, the block with
-__alloc_pages_may_oom is skipped.  The loop hits the wait_iff_congested,
-then jumps back to rebalance without ever trying to
-get_page_from_freelist.  This loop repeats infinitely.
+	vmalloc(100 * 1<<30);
 
-The test case is pretty pathological.  Running a mix of I/O stress-tests
-that do a lot of fork() and consume all of the system memory, I can pretty
-reliably hit this on 600 nodes, in about 12 hours.  32GB/node.
+versus repeatedly failing 4096 bytes in to a:
 
-Signed-off-by: Andrew Barry <abarry@cray.com>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Rik van Riel<riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@kernel.org>
+	vmalloc(8192);
+
+This patch will print out messages that look like this:
+
+[   68.123503] vmalloc: allocation failure, allocated 6680576 of 13426688 bytes
+[   68.124218] bash: page allocation failure: order:0, mode:0xd2
+[   68.124811] Pid: 3770, comm: bash Not tainted 2.6.39-rc3-00082-g85f2e68-dirty #333
+[   68.125579] Call Trace:
+[   68.125853]  [<ffffffff810f6da6>] warn_alloc_failed+0x146/0x170
+[   68.126464]  [<ffffffff8107e05c>] ? printk+0x6c/0x70
+[   68.126791]  [<ffffffff8112b5d4>] ? alloc_pages_current+0x94/0xe0
+[   68.127661]  [<ffffffff8111ed37>] __vmalloc_node_range+0x237/0x290
+...
+
+The 'order' variable is added for clarity when calling warn_alloc_failed()
+to avoid having an unexplained '0' as an argument.
+
+The 'tmp_mask' is because adding an open-coded '| __GFP_NOWARN' would take
+us over 80 columns for the alloc_pages_node() call.  If we are going to
+add a line, it might as well be one that makes the sucker easier to read.
+
+As a side issue, I also noticed that ctl_ioctl() does vmalloc() based
+solely on an unverified value passed in from userspace.  Granted, it's
+under CAP_SYS_ADMIN, but it still frightens me a bit.
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-prevent-unending-loop-in-__alloc_pages_slowpath
-+++ a/mm/page_alloc.c
-@@ -2106,6 +2106,7 @@ restart:
- 		first_zones_zonelist(zonelist, high_zoneidx, NULL,
- 					&preferred_zone);
+diff -puN mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures
++++ a/mm/vmalloc.c
+@@ -1534,6 +1534,7 @@ static void *__vmalloc_node(unsigned lon
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node, void *caller)
+ {
++	const int order = 0;
+ 	struct page **pages;
+ 	unsigned int nr_pages, array_size, i;
+ 	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+@@ -1560,11 +1561,12 @@ static void *__vmalloc_area_node(struct 
  
-+rebalance:
- 	/* This is the last chance, in general, before the goto nopage. */
- 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
- 			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
-@@ -2113,7 +2114,6 @@ restart:
- 	if (page)
- 		goto got_pg;
+ 	for (i = 0; i < area->nr_pages; i++) {
+ 		struct page *page;
++		gfp_t tmp_mask = gfp_mask | __GFP_NOWARN;
  
--rebalance:
- 	/* Allocate without watermarks if the context allows */
- 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
- 		page = __alloc_pages_high_priority(gfp_mask, order,
+ 		if (node < 0)
+-			page = alloc_page(gfp_mask);
++			page = alloc_page(tmp_mask);
+ 		else
+-			page = alloc_pages_node(node, gfp_mask, 0);
++			page = alloc_pages_node(node, tmp_mask, order);
+ 
+ 		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
+@@ -1579,6 +1581,9 @@ static void *__vmalloc_area_node(struct 
+ 	return area->addr;
+ 
+ fail:
++	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
++			  "allocated %ld of %ld bytes\n",
++			  (area->nr_pages*PAGE_SIZE), area->size);
+ 	vfree(area->addr);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from abarry@cray.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
 origin.patch
+linux-next.patch
+mm-increase-reclaim_distance-to-30.patch
+flex_array-avoid-divisions-when-accessing-elements.patch
 
