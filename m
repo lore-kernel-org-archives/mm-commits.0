@@ -1,223 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-provide-helper-to-register-leds-gpio-devices-v4.patch removed from -mm tree
-Date: Tue, 24 May 2011 17:05:43 -0700
-Message-ID: <201105250005.p4P05hOt024437@imap1.linux-foundation.org>
+Subject: [folded] lib-genallocc-add-support-for-specifying-the-physical-address-v2.patch removed from -mm tree
+Date: Tue, 24 May 2011 17:06:23 -0700
+Message-ID: <201105250006.p4P06OdS024466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932271Ab1EYAGj (ORCPT
+	by vger.kernel.org with ESMTP id S1754753Ab1EYAHC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 May 2011 20:06:39 -0400
+	Tue, 24 May 2011 20:07:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, fabio.estevam@freescale.com, hartleys@visionengravers.com, richard.purdie@linuxfoundation.org, rmk@arm.linux.org.uk, s.hauer@pengutronix.de, mm-commits
+To: plagnioj@jcrosoft.com, jes@wildopensource.com, nicolas.ferre@atmel.com, patrice.vilchez@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds-provide-helper-to-register-leds-gpio-devices-v4
+     lib-genallocc-add-support-for-specifying-the-physical-address-v2
 has been removed from the -mm tree.  Its filename was
-     leds-provide-helper-to-register-leds-gpio-devices-v4.patch
+     lib-genallocc-add-support-for-specifying-the-physical-address-v2.patch
 
-This patch was dropped because it was folded into leds-provide-helper-t=
-o-register-leds-gpio-devices.patch
+This patch was dropped because it was folded into lib-genallocc-add-support-for-specifying-the-physical-address.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-provide-helper-to-register-leds-gpio-devices-v4
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: lib-genallocc-add-support-for-specifying-the-physical-address-v2
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 
-- new commit log
-- improved documentation and moved it to .c file
-- used obj-$(CONFIG..) and renamed source file
-- provide an example usage (in a seperate patch)
+	update documentation
+	use phys_addr_t for physical addr
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Patrice VILCHEZ <patrice.vilchez@atmel.com>
+Cc: Jes Sorensen <jes@wildopensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig              |    4 ++
- drivers/leds/Makefile             |    2 -
- drivers/leds/led-register.c       |   33 ----------------------
- drivers/leds/leds-gpio-register.c |   42 ++++++++++++++++++++++++++++
- include/linux/leds.h              |   10 ------
- 5 files changed, 46 insertions(+), 45 deletions(-)
+ include/linux/genalloc.h |   10 ++++++----
+ lib/genalloc.c           |   12 ++++++++----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpi=
-o-devices-v4 drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-provide-helper-to-register-leds-gpio-de=
-vices-v4
-+++ a/drivers/leds/Kconfig
-@@ -14,10 +14,12 @@ config LEDS_CLASS
- 	  This option enables the led sysfs class in /sys/class/leds.  You'll
- 	  need this to do anything useful with LEDs.  If unsure, say N.
-=20
--config LEDS_REGISTER_GPIO
-+config LEDS_GPIO_REGISTER
- 	bool
- 	help
- 	  This option provides the function gpio_led_register_device.
-+	  As this function is used by arch code it must not be compiled as a
-+	  module.
-=20
- if NEW_LEDS
-=20
-diff -puN drivers/leds/Makefile~leds-provide-helper-to-register-leds-gp=
-io-devices-v4 drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-provide-helper-to-register-leds-gpio-d=
-evices-v4
-+++ a/drivers/leds/Makefile
-@@ -3,7 +3,6 @@
- obj-$(CONFIG_NEW_LEDS)			+=3D led-core.o
- obj-$(CONFIG_LEDS_CLASS)		+=3D led-class.o
- obj-$(CONFIG_LEDS_TRIGGERS)		+=3D led-triggers.o
--obj-y					+=3D led-register.o
-=20
- # LED Platform Drivers
- obj-$(CONFIG_LEDS_88PM860X)		+=3D leds-88pm860x.o
-@@ -21,6 +20,7 @@ obj-$(CONFIG_LEDS_COBALT_QUBE)		+=3D leds-
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+=3D leds-cobalt-raq.o
- obj-$(CONFIG_LEDS_SUNFIRE)		+=3D leds-sunfire.o
- obj-$(CONFIG_LEDS_PCA9532)		+=3D leds-pca9532.o
-+obj-$(CONFIG_LEDS_GPIO_REGISTER)	+=3D leds-gpio-register.o
- obj-$(CONFIG_LEDS_GPIO)			+=3D leds-gpio.o
- obj-$(CONFIG_LEDS_LP3944)		+=3D leds-lp3944.o
- obj-$(CONFIG_LEDS_LP5521)		+=3D leds-lp5521.o
-diff -puN drivers/leds/led-register.c~leds-provide-helper-to-register-l=
-eds-gpio-devices-v4 /dev/null
---- a/drivers/leds/led-register.c
-+++ /dev/null
-@@ -1,33 +0,0 @@
--/*
-- * Copyright (C) 2011 Pengutronix
-- * Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modif=
-y it under
-- * the terms of the GNU General Public License version 2 as published =
-by the
-- * Free Software Foundation.
-- */
--#include <linux/err.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/leds.h>
--
--#if defined(CONFIG_LEDS_REGISTER_GPIO)
--struct platform_device *__init gpio_led_register_device(
--		int id, const struct gpio_led_platform_data *pdata)
--{
--	struct platform_device *ret;
--	struct gpio_led_platform_data _pdata =3D *pdata;
--
--	_pdata.leds =3D kmemdup(pdata->leds,
--			pdata->num_leds * sizeof(*pdata->leds), GFP_KERNEL);
--	if (!_pdata.leds)
--		return ERR_PTR(-ENOMEM);
--
--	ret =3D platform_device_register_resndata(NULL, "leds-gpio", id,
--			NULL, 0, &_pdata, sizeof(_pdata));
--	if (IS_ERR(ret))
--		kfree(_pdata.leds);
--
--	return ret;
--}
--#endif
-diff -puN /dev/null drivers/leds/leds-gpio-register.c
---- /dev/null
-+++ a/drivers/leds/leds-gpio-register.c
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (C) 2011 Pengutronix
-+ * Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y it under
-+ * the terms of the GNU General Public License version 2 as published =
-by the
-+ * Free Software Foundation.
-+ */
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/leds.h>
-+
-+/**
-+ * gpio_led_register_device - register a gpio-led device
-+ * @pdata: the platform data used for the new device
-+ *
-+ * Makes a copy of pdata and pdata->leds and registers a new leds-gpio=
- device
-+ * with the result. This allows to have pdata and pdata-leds in .init.=
-rodata
-+ * and so saves some bytes compared to a static struct platform_device=
- with
-+ * static platform data.
-+ *
-+ * Returns the registered device or an error pointer.
-+ */
-+struct platform_device *__init gpio_led_register_device(
-+		int id, const struct gpio_led_platform_data *pdata)
-+{
-+	struct platform_device *ret;
-+	struct gpio_led_platform_data _pdata =3D *pdata;
-+
-+	_pdata.leds =3D kmemdup(pdata->leds,
-+			pdata->num_leds * sizeof(*pdata->leds), GFP_KERNEL);
-+	if (!_pdata.leds)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret =3D platform_device_register_resndata(NULL, "leds-gpio", id,
-+			NULL, 0, &_pdata, sizeof(_pdata));
-+	if (IS_ERR(ret))
-+		kfree(_pdata.leds);
-+
-+	return ret;
-+}
-diff -puN include/linux/leds.h~leds-provide-helper-to-register-leds-gpi=
-o-devices-v4 include/linux/leds.h
---- a/include/linux/leds.h~leds-provide-helper-to-register-leds-gpio-de=
-vices-v4
-+++ a/include/linux/leds.h
-@@ -207,16 +207,6 @@ struct gpio_led_platform_data {
- 					unsigned long *delay_off);
+diff -puN include/linux/genalloc.h~lib-genallocc-add-support-for-specifying-the-physical-address-v2 include/linux/genalloc.h
+--- a/include/linux/genalloc.h~lib-genallocc-add-support-for-specifying-the-physical-address-v2
++++ a/include/linux/genalloc.h
+@@ -26,15 +26,15 @@ struct gen_pool {
+ struct gen_pool_chunk {
+ 	spinlock_t lock;
+ 	struct list_head next_chunk;	/* next chunk in pool */
+-	unsigned long phys_addr;	/* physical starting address of memory chunk */
++	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
+ 	unsigned long start_addr;	/* starting address of memory chunk */
+ 	unsigned long end_addr;		/* ending address of memory chunk */
+ 	unsigned long bits[0];		/* bitmap for allocating memory chunk */
  };
-=20
--/**
-- * gpio_led_register_device - register a gpio-led device
-- * @pdata: the platform data used for the new device
-- *
-- * Use this function instead of platform_device_add()ing a static stru=
-ct
-- * platform_device.
-- *
-- * Note: as pdata and pdata->leds is copied these usually can and shou=
-ld be
-- * __initdata.
-- */
- struct platform_device *gpio_led_register_device(
- 		int id, const struct gpio_led_platform_data *pdata);
-=20
+ 
+ extern struct gen_pool *gen_pool_create(int, int);
+-extern unsigned long gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
+-extern int gen_pool_add_virt(struct gen_pool *, unsigned long, unsigned long,
++extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
++extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
+ 			     size_t, int);
+ /**
+  * gen_pool_add - add a new chunk of special memory to the pool
+@@ -45,11 +45,13 @@ extern int gen_pool_add_virt(struct gen_
+  *       allocated on, or -1
+  *
+  * Add a new chunk of special memory to the specified pool.
++ *
++ * Returns 0 on success or a -ve errno on failure.
+  */
+ static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
+ 			       size_t size, int nid)
+ {
+-	return gen_pool_add_virt(pool, addr, 0, size, nid);
++	return gen_pool_add_virt(pool, addr, -1, size, nid);
+ }
+ extern void gen_pool_destroy(struct gen_pool *);
+ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
+diff -puN lib/genalloc.c~lib-genallocc-add-support-for-specifying-the-physical-address-v2 lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-add-support-for-specifying-the-physical-address-v2
++++ a/lib/genalloc.c
+@@ -48,8 +48,10 @@ EXPORT_SYMBOL(gen_pool_create);
+  *       allocated on, or -1
+  *
+  * Add a new chunk of special memory to the specified pool.
++ *
++ * Returns 0 on success or a -ve errno on failure.
+  */
+-int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, unsigned long phys,
++int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phys,
+ 		 size_t size, int nid)
+ {
+ 	struct gen_pool_chunk *chunk;
+@@ -59,7 +61,7 @@ int gen_pool_add_virt(struct gen_pool *p
+ 
+ 	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
+ 	if (unlikely(chunk == NULL))
+-		return -1;
++		return -ENOMEM;
+ 
+ 	spin_lock_init(&chunk->lock);
+ 	chunk->phys_addr = phys;
+@@ -78,8 +80,10 @@ EXPORT_SYMBOL(gen_pool_add_virt);
+  * gen_pool_virt_to_phys - return the physical address of memory
+  * @pool: pool to allocate from
+  * @addr: starting address of memory
++ *
++ * Returns the physical address on success, or -1 on error.
+  */
+-unsigned long gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
++phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
+ {
+ 	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
+@@ -93,7 +97,7 @@ unsigned long gen_pool_virt_to_phys(stru
+ 	}
+ 	read_unlock(&pool->lock);
+ 
+-	return ~0UL;
++	return -1;
+ }
+ EXPORT_SYMBOL(gen_pool_virt_to_phys);
+ 
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from plagnioj@jcrosoft.com are
 
 origin.patch
-leds-provide-helper-to-register-leds-gpio-devices.patch
+include-linux-genalloch-add-multiple-inclusion-guards.patch
+lib-genallocc-add-support-for-specifying-the-physical-address.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
