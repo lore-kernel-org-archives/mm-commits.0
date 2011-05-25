@@ -1,446 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-per-node-vmstat-show-proper-vmstats.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:27:32 -0700
-Message-ID: <201105252025.p4PKPtSR014439@imap1.linux-foundation.org>
+Subject: [merged] arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:07 -0700
+Message-ID: <201105252025.p4PKPUwW014399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755650Ab1EYU0f (ORCPT
+	by vger.kernel.org with ESMTP id S1755622Ab1EYU03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:26:35 -0400
+	Wed, 25 May 2011 16:26:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, mrubin@google.com, rdunlap@xenotime.net, rientjes@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gxt@mprc.pku.edu.cn, jejb@parisc-linux.org, kyle@mcmartin.ca, linux@arm.linux.org.uk, tony.luck@intel.com
 
 
 The patch titled
-     mm: per-node vmstat: show proper vmstats
+     arch, mm: filter disallowed nodes from arch specific show_mem functions
 has been removed from the -mm tree.  Its filename was
-     mm-per-node-vmstat-show-proper-vmstats.patch
+     arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: per-node vmstat: show proper vmstats
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: arch, mm: filter disallowed nodes from arch specific show_mem functions
+From: David Rientjes <rientjes@google.com>
 
-commit 2ac390370a ("writeback: add
-/sys/devices/system/node/<node>/vmstat") added vmstat entry.  But
-strangely it only show nr_written and nr_dirtied.
+Architectures that implement their own show_mem() function did not pass
+the filter argument to show_free_areas() to appropriately avoid emitting
+the state of nodes that are disallowed in the current context.  This patch
+now passes the filter argument to show_free_areas() so those nodes are now
+avoided.
 
-        # cat /sys/devices/system/node/node20/vmstat
-        nr_written 0
-        nr_dirtied 0
+This patch also removes the show_free_areas() wrapper around
+__show_free_areas() and converts existing callers to pass an empty filter.
 
-Of course, It's not adequate.  With this patch, the vmstat show all vm
-stastics as /proc/vmstat.
+ia64 emits additional information for each node, so skip_free_areas_zone()
+must be made global to filter disallowed nodes and it is converted to use
+a nid argument rather than a zone for this use case.
 
-        # cat /sys/devices/system/node/node0/vmstat
-	nr_free_pages 899224
-	nr_inactive_anon 201
-	nr_active_anon 17380
-	nr_inactive_file 31572
-	nr_active_file 28277
-	nr_unevictable 0
-	nr_mlock 0
-	nr_anon_pages 17321
-	nr_mapped 8640
-	nr_file_pages 60107
-	nr_dirty 33
-	nr_writeback 0
-	nr_slab_reclaimable 6850
-	nr_slab_unreclaimable 7604
-	nr_page_table_pages 3105
-	nr_kernel_stack 175
-	nr_unstable 0
-	nr_bounce 0
-	nr_vmscan_write 0
-	nr_writeback_temp 0
-	nr_isolated_anon 0
-	nr_isolated_file 0
-	nr_shmem 260
-	nr_dirtied 1050
-	nr_written 938
-	numa_hit 962872
-	numa_miss 0
-	numa_foreign 0
-	numa_interleave 8617
-	numa_local 962872
-	numa_other 0
-	nr_anon_transparent_hugepages 0
-
-[akpm@linux-foundation.org: no externs in .c files]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Bottomley <jejb@parisc-linux.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |   14 +-
- include/linux/vmstat.h |    4 
- mm/vmstat.c            |  261 +++++++++++++++++++--------------------
- 3 files changed, 144 insertions(+), 135 deletions(-)
+ arch/arm/mm/init.c               |    2 +-
+ arch/ia64/mm/contig.c            |   10 ++++++----
+ arch/ia64/mm/discontig.c         |   10 ++++++----
+ arch/parisc/mm/init.c            |    2 +-
+ arch/sparc/kernel/setup_32.c     |    2 +-
+ arch/sparc/mm/init_32.c          |    2 +-
+ arch/unicore32/mm/init.c         |    2 +-
+ drivers/net/ioc3-eth.c           |    2 +-
+ drivers/tty/serial/68328serial.c |    2 +-
+ include/linux/mm.h               |    6 +++---
+ lib/show_mem.c                   |    2 +-
+ mm/nommu.c                       |    6 +++---
+ mm/page_alloc.c                  |   22 ++++++++--------------
+ 13 files changed, 34 insertions(+), 36 deletions(-)
 
-diff -puN drivers/base/node.c~mm-per-node-vmstat-show-proper-vmstats drivers/base/node.c
---- a/drivers/base/node.c~mm-per-node-vmstat-show-proper-vmstats
-+++ a/drivers/base/node.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/memory.h>
-+#include <linux/vmstat.h>
- #include <linux/node.h>
- #include <linux/hugetlb.h>
- #include <linux/compaction.h>
-@@ -179,11 +180,14 @@ static ssize_t node_read_vmstat(struct s
- 				struct sysdev_attribute *attr, char *buf)
+diff -puN arch/arm/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/arm/mm/init.c
+@@ -85,7 +85,7 @@ void show_mem(unsigned int filter)
+ 	struct meminfo * mi = &meminfo;
+ 
+ 	printk("Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ 
+ 	for_each_bank (i, mi) {
+ 		struct membank *bank = &mi->bank[i];
+diff -puN arch/ia64/mm/contig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/ia64/mm/contig.c
+@@ -44,13 +44,16 @@ void show_mem(unsigned int filter)
+ 	pg_data_t *pgdat;
+ 
+ 	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ 	printk(KERN_INFO "Node memory in pages:\n");
+ 	for_each_online_pgdat(pgdat) {
+ 		unsigned long present;
+ 		unsigned long flags;
+ 		int shared = 0, cached = 0, reserved = 0;
++		int nid = pgdat->node_id;
+ 
++		if (skip_free_areas_node(filter, nid))
++			continue;
+ 		pgdat_resize_lock(pgdat, &flags);
+ 		present = pgdat->node_present_pages;
+ 		for(i = 0; i < pgdat->node_spanned_pages; i++) {
+@@ -64,8 +67,7 @@ void show_mem(unsigned int filter)
+ 				if (max_gap < LARGE_GAP)
+ 					continue;
+ #endif
+-				i = vmemmap_find_next_valid_pfn(pgdat->node_id,
+-					 i) - 1;
++				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
+ 				continue;
+ 			}
+ 			if (PageReserved(page))
+@@ -81,7 +83,7 @@ void show_mem(unsigned int filter)
+ 		total_cached += cached;
+ 		total_shared += shared;
+ 		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
+-		       "shrd: %10d, swpd: %10d\n", pgdat->node_id,
++		       "shrd: %10d, swpd: %10d\n", nid,
+ 		       present, reserved, shared, cached);
+ 	}
+ 	printk(KERN_INFO "%ld pages of RAM\n", total_present);
+diff -puN arch/ia64/mm/discontig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/ia64/mm/discontig.c
+@@ -622,13 +622,16 @@ void show_mem(unsigned int filter)
+ 	pg_data_t *pgdat;
+ 
+ 	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ 	printk(KERN_INFO "Node memory in pages:\n");
+ 	for_each_online_pgdat(pgdat) {
+ 		unsigned long present;
+ 		unsigned long flags;
+ 		int shared = 0, cached = 0, reserved = 0;
++		int nid = pgdat->node_id;
+ 
++		if (skip_free_areas_node(filter, nid))
++			continue;
+ 		pgdat_resize_lock(pgdat, &flags);
+ 		present = pgdat->node_present_pages;
+ 		for(i = 0; i < pgdat->node_spanned_pages; i++) {
+@@ -638,8 +641,7 @@ void show_mem(unsigned int filter)
+ 			if (pfn_valid(pgdat->node_start_pfn + i))
+ 				page = pfn_to_page(pgdat->node_start_pfn + i);
+ 			else {
+-				i = vmemmap_find_next_valid_pfn(pgdat->node_id,
+-					 i) - 1;
++				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
+ 				continue;
+ 			}
+ 			if (PageReserved(page))
+@@ -655,7 +657,7 @@ void show_mem(unsigned int filter)
+ 		total_cached += cached;
+ 		total_shared += shared;
+ 		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
+-		       "shrd: %10d, swpd: %10d\n", pgdat->node_id,
++		       "shrd: %10d, swpd: %10d\n", nid,
+ 		       present, reserved, shared, cached);
+ 	}
+ 	printk(KERN_INFO "%ld pages of RAM\n", total_present);
+diff -puN arch/parisc/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/parisc/mm/init.c
+@@ -686,7 +686,7 @@ void show_mem(unsigned int filter)
+ 	int shared = 0, cached = 0;
+ 
+ 	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ #ifndef CONFIG_DISCONTIGMEM
+ 	i = max_mapnr;
+ 	while (i-- > 0) {
+diff -puN arch/sparc/kernel/setup_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/sparc/kernel/setup_32.c
+--- a/arch/sparc/kernel/setup_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/sparc/kernel/setup_32.c
+@@ -82,7 +82,7 @@ static void prom_sync_me(void)
+ 			     "nop\n\t" : : "r" (&trapbase));
+ 
+ 	prom_printf("PROM SYNC COMMAND...\n");
+-	show_free_areas();
++	show_free_areas(0);
+ 	if(current->pid != 0) {
+ 		local_irq_enable();
+ 		sys_sync();
+diff -puN arch/sparc/mm/init_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/sparc/mm/init_32.c
+@@ -78,7 +78,7 @@ void __init kmap_init(void)
+ void show_mem(unsigned int filter)
  {
- 	int nid = dev->id;
--	return sprintf(buf,
--		"nr_written %lu\n"
--		"nr_dirtied %lu\n",
--		node_page_state(nid, NR_WRITTEN),
--		node_page_state(nid, NR_DIRTIED));
-+	int i;
-+	int n = 0;
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		n += sprintf(buf+n, "%s %lu\n", vmstat_text[i],
-+			     node_page_state(nid, i));
-+
-+	return n;
+ 	printk("Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ 	printk("Free swap:       %6ldkB\n",
+ 	       nr_swap_pages << (PAGE_SHIFT-10));
+ 	printk("%ld pages of RAM\n", totalram_pages);
+diff -puN arch/unicore32/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions arch/unicore32/mm/init.c
+--- a/arch/unicore32/mm/init.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/arch/unicore32/mm/init.c
+@@ -62,7 +62,7 @@ void show_mem(unsigned int filter)
+ 	struct meminfo *mi = &meminfo;
+ 
+ 	printk(KERN_DEFAULT "Mem-info:\n");
+-	show_free_areas();
++	show_free_areas(filter);
+ 
+ 	for_each_bank(i, mi) {
+ 		struct membank *bank = &mi->bank[i];
+diff -puN drivers/net/ioc3-eth.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions drivers/net/ioc3-eth.c
+--- a/drivers/net/ioc3-eth.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/drivers/net/ioc3-eth.c
+@@ -915,7 +915,7 @@ static void ioc3_alloc_rings(struct net_
+ 
+ 			skb = ioc3_alloc_skb(RX_BUF_ALLOC_SIZE, GFP_ATOMIC);
+ 			if (!skb) {
+-				show_free_areas();
++				show_free_areas(0);
+ 				continue;
+ 			}
+ 
+diff -puN drivers/tty/serial/68328serial.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions drivers/tty/serial/68328serial.c
+--- a/drivers/tty/serial/68328serial.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/drivers/tty/serial/68328serial.c
+@@ -281,7 +281,7 @@ static void receive_chars(struct m68k_se
+ #ifdef CONFIG_MAGIC_SYSRQ
+ 			} else if (ch == 0x10) { /* ^P */
+ 				show_state();
+-				show_free_areas();
++				show_free_areas(0);
+ 				show_buffers();
+ /*				show_net_buffers(); */
+ 				return;
+diff -puN include/linux/mm.h~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions include/linux/mm.h
+--- a/include/linux/mm.h~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/include/linux/mm.h
+@@ -862,13 +862,13 @@ extern void pagefault_out_of_memory(void
+ #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
+ 
+ /*
+- * Flags passed to show_mem() and __show_free_areas() to suppress output in
++ * Flags passed to show_mem() and show_free_areas() to suppress output in
+  * various contexts.
+  */
+ #define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
+ 
+-extern void show_free_areas(void);
+-extern void __show_free_areas(unsigned int flags);
++extern void show_free_areas(unsigned int flags);
++extern bool skip_free_areas_node(unsigned int flags, int nid);
+ 
+ int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
+diff -puN lib/show_mem.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions lib/show_mem.c
+--- a/lib/show_mem.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/lib/show_mem.c
+@@ -16,7 +16,7 @@ void show_mem(unsigned int filter)
+ 		nonshared = 0, highmem = 0;
+ 
+ 	printk("Mem-Info:\n");
+-	__show_free_areas(filter);
++	show_free_areas(filter);
+ 
+ 	for_each_online_pgdat(pgdat) {
+ 		unsigned long i, flags;
+diff -puN mm/nommu.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions mm/nommu.c
+--- a/mm/nommu.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/mm/nommu.c
+@@ -1235,7 +1235,7 @@ error_free:
+ enomem:
+ 	printk("Allocation of length %lu from process %d (%s) failed\n",
+ 	       len, current->pid, current->comm);
+-	show_free_areas();
++	show_free_areas(0);
+ 	return -ENOMEM;
  }
- static SYSDEV_ATTR(vmstat, S_IRUGO, node_read_vmstat, NULL);
  
-diff -puN include/linux/vmstat.h~mm-per-node-vmstat-show-proper-vmstats include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-per-node-vmstat-show-proper-vmstats
-+++ a/include/linux/vmstat.h
-@@ -313,6 +313,8 @@ static inline void __dec_zone_page_state
- #define set_pgdat_percpu_threshold(pgdat, callback) { }
+@@ -1468,14 +1468,14 @@ error_getting_vma:
+ 	printk(KERN_WARNING "Allocation of vma for %lu byte allocation"
+ 	       " from process %d failed\n",
+ 	       len, current->pid);
+-	show_free_areas();
++	show_free_areas(0);
+ 	return -ENOMEM;
  
- static inline void refresh_cpu_vm_stats(int cpu) { }
--#endif
-+#endif		/* CONFIG_SMP */
-+
-+extern const char * const vmstat_text[];
- 
- #endif /* _LINUX_VMSTAT_H */
-diff -puN mm/vmstat.c~mm-per-node-vmstat-show-proper-vmstats mm/vmstat.c
---- a/mm/vmstat.c~mm-per-node-vmstat-show-proper-vmstats
-+++ a/mm/vmstat.c
-@@ -659,6 +659,138 @@ static void walk_zones_in_node(struct se
+ error_getting_region:
+ 	printk(KERN_WARNING "Allocation of vm region for %lu byte allocation"
+ 	       " from process %d failed\n",
+ 	       len, current->pid);
+-	show_free_areas();
++	show_free_areas(0);
+ 	return -ENOMEM;
  }
+ EXPORT_SYMBOL(do_mmap_pgoff);
+diff -puN mm/page_alloc.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions mm/page_alloc.c
+--- a/mm/page_alloc.c~arch-mm-filter-disallowed-nodes-from-arch-specific-show_mem-functions
++++ a/mm/page_alloc.c
+@@ -2473,10 +2473,10 @@ void si_meminfo_node(struct sysinfo *val
  #endif
  
-+#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
-+#ifdef CONFIG_ZONE_DMA
-+#define TEXT_FOR_DMA(xx) xx "_dma",
-+#else
-+#define TEXT_FOR_DMA(xx)
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA32
-+#define TEXT_FOR_DMA32(xx) xx "_dma32",
-+#else
-+#define TEXT_FOR_DMA32(xx)
-+#endif
-+
-+#ifdef CONFIG_HIGHMEM
-+#define TEXT_FOR_HIGHMEM(xx) xx "_high",
-+#else
-+#define TEXT_FOR_HIGHMEM(xx)
-+#endif
-+
-+#define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
-+					TEXT_FOR_HIGHMEM(xx) xx "_movable",
-+
-+const char * const vmstat_text[] = {
-+	/* Zoned VM counters */
-+	"nr_free_pages",
-+	"nr_inactive_anon",
-+	"nr_active_anon",
-+	"nr_inactive_file",
-+	"nr_active_file",
-+	"nr_unevictable",
-+	"nr_mlock",
-+	"nr_anon_pages",
-+	"nr_mapped",
-+	"nr_file_pages",
-+	"nr_dirty",
-+	"nr_writeback",
-+	"nr_slab_reclaimable",
-+	"nr_slab_unreclaimable",
-+	"nr_page_table_pages",
-+	"nr_kernel_stack",
-+	"nr_unstable",
-+	"nr_bounce",
-+	"nr_vmscan_write",
-+	"nr_writeback_temp",
-+	"nr_isolated_anon",
-+	"nr_isolated_file",
-+	"nr_shmem",
-+	"nr_dirtied",
-+	"nr_written",
-+
-+#ifdef CONFIG_NUMA
-+	"numa_hit",
-+	"numa_miss",
-+	"numa_foreign",
-+	"numa_interleave",
-+	"numa_local",
-+	"numa_other",
-+#endif
-+	"nr_anon_transparent_hugepages",
-+	"nr_dirty_threshold",
-+	"nr_dirty_background_threshold",
-+
-+#ifdef CONFIG_VM_EVENT_COUNTERS
-+	"pgpgin",
-+	"pgpgout",
-+	"pswpin",
-+	"pswpout",
-+
-+	TEXTS_FOR_ZONES("pgalloc")
-+
-+	"pgfree",
-+	"pgactivate",
-+	"pgdeactivate",
-+
-+	"pgfault",
-+	"pgmajfault",
-+
-+	TEXTS_FOR_ZONES("pgrefill")
-+	TEXTS_FOR_ZONES("pgsteal")
-+	TEXTS_FOR_ZONES("pgscan_kswapd")
-+	TEXTS_FOR_ZONES("pgscan_direct")
-+
-+#ifdef CONFIG_NUMA
-+	"zone_reclaim_failed",
-+#endif
-+	"pginodesteal",
-+	"slabs_scanned",
-+	"kswapd_steal",
-+	"kswapd_inodesteal",
-+	"kswapd_low_wmark_hit_quickly",
-+	"kswapd_high_wmark_hit_quickly",
-+	"kswapd_skip_congestion_wait",
-+	"pageoutrun",
-+	"allocstall",
-+
-+	"pgrotated",
-+
-+#ifdef CONFIG_COMPACTION
-+	"compact_blocks_moved",
-+	"compact_pages_moved",
-+	"compact_pagemigrate_failed",
-+	"compact_stall",
-+	"compact_fail",
-+	"compact_success",
-+#endif
-+
-+#ifdef CONFIG_HUGETLB_PAGE
-+	"htlb_buddy_alloc_success",
-+	"htlb_buddy_alloc_fail",
-+#endif
-+	"unevictable_pgs_culled",
-+	"unevictable_pgs_scanned",
-+	"unevictable_pgs_rescued",
-+	"unevictable_pgs_mlocked",
-+	"unevictable_pgs_munlocked",
-+	"unevictable_pgs_cleared",
-+	"unevictable_pgs_stranded",
-+	"unevictable_pgs_mlockfreed",
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	"thp_fault_alloc",
-+	"thp_fault_fallback",
-+	"thp_collapse_alloc",
-+	"thp_collapse_alloc_failed",
-+	"thp_split",
-+#endif
-+
-+#endif /* CONFIG_VM_EVENTS_COUNTERS */
-+};
-+#endif /* CONFIG_PROC_FS || CONFIG_SYSFS */
-+
-+
- #ifdef CONFIG_PROC_FS
- static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
- 						struct zone *zone)
-@@ -831,135 +963,6 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
- 
--#ifdef CONFIG_ZONE_DMA
--#define TEXT_FOR_DMA(xx) xx "_dma",
--#else
--#define TEXT_FOR_DMA(xx)
--#endif
--
--#ifdef CONFIG_ZONE_DMA32
--#define TEXT_FOR_DMA32(xx) xx "_dma32",
--#else
--#define TEXT_FOR_DMA32(xx)
--#endif
--
--#ifdef CONFIG_HIGHMEM
--#define TEXT_FOR_HIGHMEM(xx) xx "_high",
--#else
--#define TEXT_FOR_HIGHMEM(xx)
--#endif
--
--#define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
--					TEXT_FOR_HIGHMEM(xx) xx "_movable",
--
--static const char * const vmstat_text[] = {
--	/* Zoned VM counters */
--	"nr_free_pages",
--	"nr_inactive_anon",
--	"nr_active_anon",
--	"nr_inactive_file",
--	"nr_active_file",
--	"nr_unevictable",
--	"nr_mlock",
--	"nr_anon_pages",
--	"nr_mapped",
--	"nr_file_pages",
--	"nr_dirty",
--	"nr_writeback",
--	"nr_slab_reclaimable",
--	"nr_slab_unreclaimable",
--	"nr_page_table_pages",
--	"nr_kernel_stack",
--	"nr_unstable",
--	"nr_bounce",
--	"nr_vmscan_write",
--	"nr_writeback_temp",
--	"nr_isolated_anon",
--	"nr_isolated_file",
--	"nr_shmem",
--	"nr_dirtied",
--	"nr_written",
--
--#ifdef CONFIG_NUMA
--	"numa_hit",
--	"numa_miss",
--	"numa_foreign",
--	"numa_interleave",
--	"numa_local",
--	"numa_other",
--#endif
--	"nr_anon_transparent_hugepages",
--	"nr_dirty_threshold",
--	"nr_dirty_background_threshold",
--
--#ifdef CONFIG_VM_EVENT_COUNTERS
--	"pgpgin",
--	"pgpgout",
--	"pswpin",
--	"pswpout",
--
--	TEXTS_FOR_ZONES("pgalloc")
--
--	"pgfree",
--	"pgactivate",
--	"pgdeactivate",
--
--	"pgfault",
--	"pgmajfault",
--
--	TEXTS_FOR_ZONES("pgrefill")
--	TEXTS_FOR_ZONES("pgsteal")
--	TEXTS_FOR_ZONES("pgscan_kswapd")
--	TEXTS_FOR_ZONES("pgscan_direct")
--
--#ifdef CONFIG_NUMA
--	"zone_reclaim_failed",
--#endif
--	"pginodesteal",
--	"slabs_scanned",
--	"kswapd_steal",
--	"kswapd_inodesteal",
--	"kswapd_low_wmark_hit_quickly",
--	"kswapd_high_wmark_hit_quickly",
--	"kswapd_skip_congestion_wait",
--	"pageoutrun",
--	"allocstall",
--
--	"pgrotated",
--
--#ifdef CONFIG_COMPACTION
--	"compact_blocks_moved",
--	"compact_pages_moved",
--	"compact_pagemigrate_failed",
--	"compact_stall",
--	"compact_fail",
--	"compact_success",
--#endif
--
--#ifdef CONFIG_HUGETLB_PAGE
--	"htlb_buddy_alloc_success",
--	"htlb_buddy_alloc_fail",
--#endif
--	"unevictable_pgs_culled",
--	"unevictable_pgs_scanned",
--	"unevictable_pgs_rescued",
--	"unevictable_pgs_mlocked",
--	"unevictable_pgs_munlocked",
--	"unevictable_pgs_cleared",
--	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	"thp_fault_alloc",
--	"thp_fault_fallback",
--	"thp_collapse_alloc",
--	"thp_collapse_alloc_failed",
--	"thp_split",
--#endif
--
--#endif /* CONFIG_VM_EVENTS_COUNTERS */
--};
--
- static void zoneinfo_show_print(struct seq_file *m, pg_data_t *pgdat,
- 							struct zone *zone)
+ /*
+- * Determine whether the zone's node should be displayed or not, depending on
+- * whether SHOW_MEM_FILTER_NODES was passed to __show_free_areas().
++ * Determine whether the node should be displayed or not, depending on whether
++ * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
+  */
+-static bool skip_free_areas_zone(unsigned int flags, const struct zone *zone)
++bool skip_free_areas_node(unsigned int flags, int nid)
  {
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-linux-next.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-m32r-convert-cpumask-api.patch
-m32r-fix-spin_lock_irqsave-misuse.patch
-m32r-remove-redundant-declaration.patch
-getdelays-show-average-cpu-io-swap-reclaim-delays.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix-2.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
-proc-fix-pagemap_read-error-case.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-
+ 	bool ret = false;
+ 
+@@ -2484,8 +2484,7 @@ static bool skip_free_areas_zone(unsigne
+ 		goto out;
+ 
+ 	get_mems_allowed();
+-	ret = !node_isset(zone->zone_pgdat->node_id,
+-				cpuset_current_mems_allowed);
++	ret = !node_isset(nid, cpuset_current_mems_allowed);
+ 	put_mems_allowed();
+ out:
+ 	return ret;
+@@ -2500,13 +2499,13 @@ out:
+  * Suppresses nodes that are not allowed by current's cpuset if
+  * SHOW_MEM_FILTER_NODES is passed.
+  */
+-void __show_free_areas(unsigned int filter)
++void show_free_areas(unsigned int filter)
+ {
+ 	int cpu;
+ 	struct zone *zone;
+ 
+ 	for_each_populated_zone(zone) {
+-		if (skip_free_areas_zone(filter, zone))
++		if (skip_free_areas_node(filter, zone_to_nid(zone)))
+ 			continue;
+ 		show_node(zone);
+ 		printk("%s per-cpu:\n", zone->name);
+@@ -2549,7 +2548,7 @@ void __show_free_areas(unsigned int filt
+ 	for_each_populated_zone(zone) {
+ 		int i;
+ 
+-		if (skip_free_areas_zone(filter, zone))
++		if (skip_free_areas_node(filter, zone_to_nid(zone)))
+ 			continue;
+ 		show_node(zone);
+ 		printk("%s"
+@@ -2618,7 +2617,7 @@ void __show_free_areas(unsigned int filt
+ 	for_each_populated_zone(zone) {
+  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
+ 
+-		if (skip_free_areas_zone(filter, zone))
++		if (skip_free_areas_node(filter, zone_to_nid(zone)))
+ 			continue;
+ 		show_node(zone);
+ 		printk("%s: ", zone->name);
+@@ -2639,11 +2638,6 @@ void __show_free_areas(unsigned int filt
+ 	show_swap_cache_info();
+ }
+ 
+-void show_free_areas(void)
+-{
+-	__show_free_areas(0);
+-}
