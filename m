@@ -1,59 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-osstc-fix-warning.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:32:57 -0700
-Message-ID: <201105252031.p4PKVK0a015056@imap1.linux-foundation.org>
+Subject: [merged] drbd-fix-warning.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:33:03 -0700
+Message-ID: <201105252031.p4PKVQc1015063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755103Ab1EYUbu (ORCPT
+	by vger.kernel.org with ESMTP id S1751885Ab1EYUcE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:31:50 -0400
+	Wed, 25 May 2011 16:32:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, drbd-dev@lists.linbit.com, philipp.reisner@linbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/osst.c: fix warning
+     drbd: fix warning
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-osstc-fix-warning.patch
+     drbd-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/osst.c: fix warning
+Subject: drbd: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/osst.c: In function '__os_scsi_tape_open':
-drivers/scsi/osst.c:4705: warning: ISO C90 forbids mixed declarations and code
+In file included from drivers/block/drbd/drbd_main.c:54:                        drivers/block/drbd/drbd_int.h:1190: warning: parameter has incomplete type
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Forward declarations of enums do not work.
+
+Fix it unpleasantly by moving the prototype.
+
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/drbd/drbd_int.h |    2 --
+ drivers/block/drbd/drbd_req.h |    1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~drivers-scsi-osstc-fix-warning
-+++ a/drivers/scsi/osst.c
-@@ -4698,11 +4698,12 @@ static int __os_scsi_tape_open(struct in
- 			break;
+diff -puN drivers/block/drbd/drbd_int.h~drbd-fix-warning drivers/block/drbd/drbd_int.h
+--- a/drivers/block/drbd/drbd_int.h~drbd-fix-warning
++++ a/drivers/block/drbd/drbd_int.h
+@@ -1218,8 +1218,6 @@ extern void drbd_free_resources(struct d
+ extern void tl_release(struct drbd_conf *mdev, unsigned int barrier_nr,
+ 		       unsigned int set_size);
+ extern void tl_clear(struct drbd_conf *mdev);
+-enum drbd_req_event;
+-extern void tl_restart(struct drbd_conf *mdev, enum drbd_req_event what);
+ extern void _tl_add_barrier(struct drbd_conf *, struct drbd_tl_epoch *);
+ extern void drbd_free_sock(struct drbd_conf *mdev);
+ extern int drbd_send(struct drbd_conf *mdev, struct socket *sock,
+diff -puN drivers/block/drbd/drbd_req.h~drbd-fix-warning drivers/block/drbd/drbd_req.h
+--- a/drivers/block/drbd/drbd_req.h~drbd-fix-warning
++++ a/drivers/block/drbd/drbd_req.h
+@@ -323,6 +323,7 @@ extern int __req_mod(struct drbd_request
+ extern void complete_master_bio(struct drbd_conf *mdev,
+ 		struct bio_and_error *m);
+ extern void request_timer_fn(unsigned long data);
++extern void tl_restart(struct drbd_conf *mdev, enum drbd_req_event what);
  
- 			if ((SRpnt->sense[2] & 0x0f) == UNIT_ATTENTION) {
-+				int j;
-+
- 				STp->pos_unknown = 0;
- 				STp->partition = STp->new_partition = 0;
- 				if (STp->can_partitions)
- 					STp->nbr_partitions = 1;  /* This guess will be updated later if necessary */
--				int j;
- 				for (j = 0; j < ST_NBR_PARTITIONS; j++) {
- 					STps = &(STp->ps[j]);
- 					STps->rw = ST_IDLE;
+ /* use this if you don't want to deal with calling complete_master_bio()
+  * outside the spinlock, e.g. when walking some list on cleanup. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
