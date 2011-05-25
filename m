@@ -1,112 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch removed from -mm tree
-Date: Wed, 25 May 2011 16:13:44 -0700
-Message-ID: <201105252350.p4PNoTcE025432@imap1.linux-foundation.org>
+Subject: [folded] gpio-add-new-altera-pio-driver-update.patch removed from -mm tree
+Date: Wed, 25 May 2011 16:19:55 -0700
+Message-ID: <201105252356.p4PNueTt025705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756377Ab1EYXvF (ORCPT
+	by vger.kernel.org with ESMTP id S1756420Ab1EYX5N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 19:51:05 -0400
+	Wed, 25 May 2011 19:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben@decadent.org.uk, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: thomas@wytron.com.tw, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/alpha/include/asm/io.h: s/extern inline/static inline/
+     gpio-add-new-altera-pio-driver-update
 has been removed from the -mm tree.  Its filename was
-     arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
+     gpio-add-new-altera-pio-driver-update.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into gpio-add-new-altera-pio-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/alpha/include/asm/io.h: s/extern inline/static inline/
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio-add-new-altera-pio-driver-update
+From: Thomas Chou <thomas@wytron.com.tw>
 
-When building the kernel for alpha using gcc 4.4, many files will provoke these
-warnings:
+v3 remove subsys_initcall.
+   add to_altera_gpio() macro.
 
-arch/alpha/include/asm/io.h: In function '__set_hae':
-arch/alpha/include/asm/io.h:41: warning: 'arch_local_irq_save' is static but
-used in inline function '__set_hae' which is not static
-arch/alpha/include/asm/io.h:49: warning: 'arch_local_irq_restore' is static but
-used in inline function '__set_hae' which is not static
-
-and because the alpha makefiles include -Werror in CFLAGS, this is fatal.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=25432
-
-(akpm: there are lots more extern inlines in there, but people have been
-playing games mixing them up with extern non-inlines so it needs more work).
-
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Thomas Chou <thomas@wytron.com.tw>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/io.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/gpio/altera_gpio.txt |    7 +
+ drivers/gpio/Makefile                                  |    2 
+ drivers/gpio/altera_gpio.c                             |   40 ++++------
+ 3 files changed, 27 insertions(+), 22 deletions(-)
 
-diff -puN arch/alpha/include/asm/io.h~arch-alpha-include-asm-ioh-s-extern-inline-static-inline arch/alpha/include/asm/io.h
---- a/arch/alpha/include/asm/io.h~arch-alpha-include-asm-ioh-s-extern-inline-static-inline
-+++ a/arch/alpha/include/asm/io.h
-@@ -35,7 +35,7 @@
-  * register not being up-to-date with respect to the hardware
-  * value.
-  */
--extern inline void __set_hae(unsigned long new_hae)
-+static inline void __set_hae(unsigned long new_hae)
- {
- 	unsigned long flags = swpipl(IPL_MAX);
+diff -puN /dev/null Documentation/devicetree/bindings/gpio/altera_gpio.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/gpio/altera_gpio.txt
+@@ -0,0 +1,7 @@
++Altera GPIO
++
++Required properties:
++- compatible : should be "ALTR,pio-1.0".
++Optional properties:
++- resetvalue : the reset value of the output port.
++- width : the width of the port in number of bits.
+diff -puN drivers/gpio/Makefile~gpio-add-new-altera-pio-driver-update drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-add-new-altera-pio-driver-update
++++ a/drivers/gpio/Makefile
+@@ -4,9 +4,9 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
  
-@@ -51,7 +51,7 @@ extern inline void __set_hae(unsigned lo
- 	barrier();
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ 
+-obj-$(CONFIG_GPIO_ALTERA)	+= altera_gpio.o
+ obj-$(CONFIG_GPIO_ADP5520)	+= adp5520-gpio.o
+ obj-$(CONFIG_GPIO_ADP5588)	+= adp5588-gpio.o
++obj-$(CONFIG_GPIO_ALTERA)	+= altera_gpio.o
+ obj-$(CONFIG_GPIO_BASIC_MMIO)	+= basic_mmio_gpio.o
+ obj-$(CONFIG_GPIO_LANGWELL)	+= langwell_gpio.o
+ obj-$(CONFIG_GPIO_MAX730X)	+= max730x.o
+diff -puN drivers/gpio/altera_gpio.c~gpio-add-new-altera-pio-driver-update drivers/gpio/altera_gpio.c
+--- a/drivers/gpio/altera_gpio.c~gpio-add-new-altera-pio-driver-update
++++ a/drivers/gpio/altera_gpio.c
+@@ -37,6 +37,12 @@ struct altera_gpio_instance {
+ 	spinlock_t gpio_lock;	/* Lock used for synchronization */
+ };
+ 
++static inline struct altera_gpio_instance *to_altera_gpio(
++	struct of_mm_gpio_chip *mm_gc)
++{
++	return container_of(mm_gc, struct altera_gpio_instance, mmchip);
++}
++
+ /*
+  * altera_gpio_get - Read the specified signal of the GPIO device.
+  * @gc:     Pointer to gpio_chip device structure.
+@@ -65,8 +71,7 @@ static void altera_gpio_set(struct gpio_
+ {
+ 	unsigned long flags;
+ 	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
+-	struct altera_gpio_instance *chip =
+-	    container_of(mm_gc, struct altera_gpio_instance, mmchip);
++	struct altera_gpio_instance *chip = to_altera_gpio(mm_gc);
+ 
+ 	spin_lock_irqsave(&chip->gpio_lock, flags);
+ 
+@@ -93,8 +98,7 @@ static int altera_gpio_dir_in(struct gpi
+ {
+ 	unsigned long flags;
+ 	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
+-	struct altera_gpio_instance *chip =
+-	    container_of(mm_gc, struct altera_gpio_instance, mmchip);
++	struct altera_gpio_instance *chip = to_altera_gpio(mm_gc);
+ 
+ 	spin_lock_irqsave(&chip->gpio_lock, flags);
+ 
+@@ -121,8 +125,7 @@ static int altera_gpio_dir_out(struct gp
+ {
+ 	unsigned long flags;
+ 	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
+-	struct altera_gpio_instance *chip =
+-	    container_of(mm_gc, struct altera_gpio_instance, mmchip);
++	struct altera_gpio_instance *chip = to_altera_gpio(mm_gc);
+ 
+ 	spin_lock_irqsave(&chip->gpio_lock, flags);
+ 
+@@ -148,8 +151,7 @@ static int altera_gpio_dir_out(struct gp
+  */
+ static void altera_gpio_save_regs(struct of_mm_gpio_chip *mm_gc)
+ {
+-	struct altera_gpio_instance *chip =
+-	    container_of(mm_gc, struct altera_gpio_instance, mmchip);
++	struct altera_gpio_instance *chip = to_altera_gpio(mm_gc);
+ 
+ 	writel(chip->gpio_state, mm_gc->regs + ALTERA_GPIO_DATA_OFFSET);
+ 	writel(chip->gpio_dir, mm_gc->regs + ALTERA_GPIO_DIR_OFFSET);
+@@ -167,15 +169,16 @@ static int __devinit altera_gpio_of_prob
+ {
+ 	struct altera_gpio_instance *chip;
+ 	int status = 0;
+-	const u32 *tree_info;
++	int len;
++	const __be32 *tree_info;
+ 
+ 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+ 	if (!chip)
+ 		return -ENOMEM;
+ 
+ 	/* Update GPIO state shadow register with default value */
+-	tree_info = of_get_property(np, "resetvalue", NULL);
+-	if (tree_info)
++	tree_info = of_get_property(np, "resetvalue", &len);
++	if (tree_info && len >= sizeof(__be32))
+ 		chip->gpio_state = be32_to_cpup(tree_info);
+ 
+ 	/* Update GPIO direction shadow register with default value */
+@@ -183,8 +186,8 @@ static int __devinit altera_gpio_of_prob
+ 
+ 	/* Check device node for device width */
+ 	chip->mmchip.gc.ngpio = 32; /* By default assume full GPIO controller */
+-	tree_info = of_get_property(np, "width", NULL);
+-	if (tree_info)
++	tree_info = of_get_property(np, "width", &len);
++	if (tree_info && len >= sizeof(__be32))
+ 		chip->mmchip.gc.ngpio = be32_to_cpup(tree_info);
+ 
+ 	spin_lock_init(&chip->gpio_lock);
+@@ -209,24 +212,19 @@ static int __devinit altera_gpio_of_prob
  }
  
--extern inline void set_hae(unsigned long new_hae)
-+static inline void set_hae(unsigned long new_hae)
+ static struct of_device_id altera_gpio_of_match[] __devinitdata = {
+-	{ .compatible = "altr,pio-1.0", },
++	{ .compatible = "ALTR,pio-1.0", },
+ 	{},
+ };
+ 
+-static int __init altera_gpio_init(void)
++/* Make sure we get initialized before anyone else tries to use us */
++void __init altera_gpio_init(void)
  {
- 	if (new_hae != alpha_mv.hae_cache)
- 		__set_hae(new_hae);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch
-drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+ 	struct device_node *np;
+ 
+ 	for_each_matching_node(np, altera_gpio_of_match)
+ 		altera_gpio_of_probe(np);
+-
+-	return 0;
+ }
+ 
+-/* Make sure we get initialized before anyone else tries to use us */
+-subsys_initcall(altera_gpio_init);
+-/* No exit call at the moment as we cannot unregister of GPIO chips */
