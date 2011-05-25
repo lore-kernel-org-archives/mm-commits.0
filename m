@@ -1,49 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do-not-define-pfn_section_shift-if-config_sparsemem.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:29:59 -0700
-Message-ID: <201105252028.p4PKSMhn014736@imap1.linux-foundation.org>
+Subject: [merged] include-linux-gfph-convert-bug_on-into-vm_bug_on.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:57 -0700
+Message-ID: <201105252026.p4PKQKWk014487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932347Ab1EYUrn (ORCPT
+	by vger.kernel.org with ESMTP id S1756297Ab1EYUsK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:47:43 -0400
+	Wed, 25 May 2011 16:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dkiper@net-space.pl, dave@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: do not define PFN_SECTION_SHIFT if !CONFIG_SPARSEMEM
+     include/linux/gfp.h: convert BUG_ON() into VM_BUG_ON()
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-define-pfn_section_shift-if-config_sparsemem.patch
+     include-linux-gfph-convert-bug_on-into-vm_bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: do not define PFN_SECTION_SHIFT if !CONFIG_SPARSEMEM
-From: Daniel Kiper <dkiper@net-space.pl>
+Subject: include/linux/gfp.h: convert BUG_ON() into VM_BUG_ON()
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Do not define PFN_SECTION_SHIFT if !CONFIG_SPARSEMEM.
+VM_BUG_ON() if effectively a BUG_ON() undef #ifdef CONFIG_DEBUG_VM.  That
+is exactly what we have here now, and two different folks have suggested
+doing it this way.
 
-Signed-off-by: Daniel Kiper <dkiper@net-space.pl>
-Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/gfp.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-do-not-define-pfn_section_shift-if-config_sparsemem include/linux/mm.h
---- a/include/linux/mm.h~mm-do-not-define-pfn_section_shift-if-config_sparsemem
-+++ a/include/linux/mm.h
-@@ -605,10 +605,6 @@ static inline pte_t maybe_mkwrite(pte_t 
- #define NODE_NOT_IN_PAGE_FLAGS
- #endif
+diff -puN include/linux/gfp.h~include-linux-gfph-convert-bug_on-into-vm_bug_on include/linux/gfp.h
+--- a/include/linux/gfp.h~include-linux-gfph-convert-bug_on-into-vm_bug_on
++++ a/include/linux/gfp.h
+@@ -249,9 +249,7 @@ static inline enum zone_type gfp_zone(gf
  
--#ifndef PFN_SECTION_SHIFT
--#define PFN_SECTION_SHIFT 0
+ 	z = (GFP_ZONE_TABLE >> (bit * ZONES_SHIFT)) &
+ 					 ((1 << ZONES_SHIFT) - 1);
+-#ifdef CONFIG_DEBUG_VM
+-	BUG_ON((GFP_ZONE_BAD >> bit) & 1);
 -#endif
++	VM_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+ 	return z;
+ }
+ 
+_
+
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+
+origin.patch
+linux-next.patch
+mm-increase-reclaim_distance-to-30.patch
+flex_array-avoid-divisions-when-accessing-elements.patch
+
