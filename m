@@ -1,123 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-print-vmalloc-state-after-allocation-failures.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:29:16 -0700
-Message-ID: <201105252027.p4PKRdk3014596@imap1.linux-foundation.org>
+Subject: [merged] mm-delete-non-atomic-mm-counter-implementation.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:30:03 -0700
+Message-ID: <201105252028.p4PKSQif014742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932670Ab1EYUtV (ORCPT
+	by vger.kernel.org with ESMTP id S1756488Ab1EYUtJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:49:21 -0400
+	Wed, 25 May 2011 16:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mina86@mina86.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: matt.fleming@linux.intel.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: print vmalloc() state after allocation failures
+     mm: delete non-atomic mm counter implementation
 has been removed from the -mm tree.  Its filename was
-     mm-print-vmalloc-state-after-allocation-failures.patch
+     mm-delete-non-atomic-mm-counter-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: print vmalloc() state after allocation failures
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: mm: delete non-atomic mm counter implementation
+From: Matt Fleming <matt.fleming@linux.intel.com>
 
-I was tracking down a page allocation failure that ended up in vmalloc(). 
-Since vmalloc() uses 0-order pages, if somebody asks for an insane amount
-of memory, we'll still get a warning with "order:0" in it.  That's not
-very useful.
+The problem with having two different types of counters is that developers
+adding new code need to keep in mind whether it's safe to use both the
+atomic and non-atomic implementations.  For example, when adding new
+callers of the *_mm_counter() functions a developer needs to ensure that
+those paths are always executed with page_table_lock held, in case we're
+using the non-atomic implementation of mm counters.
 
-During recovery, vmalloc() also nicely frees all of the memory that it got
-up to the point of the failure.  That is wonderful, but it also quickly
-hides any issues.  We have a much different sitation if vmalloc()
-repeatedly fails 10GB in to:
+Hugh Dickins introduced the atomic mm counters in commit f412ac08c986
+("[PATCH] mm: fix rss and mmlist locking").  When asked why he left the
+non-atomic counters around he said,
 
-	vmalloc(100 * 1<<30);
+  | The only reason was to avoid adding costly atomic operations into a
+  | configuration that had no need for them there: the page_table_lock
+  | sufficed.
+  |
+  | Certainly it would be simpler just to delete the non-atomic variant.
+  |
+  | And I think it's fair to say that any configuration on which we're
+  | measuring performance to that degree (rather than "does it boot fast?"
+  | type measurements), would already be going the split ptlocks route.
 
-versus repeatedly failing 4096 bytes in to a:
+Removing the non-atomic counters eases the maintenance burden because
+developers no longer have to mindful of the two implementations when using
+*_mm_counter().
 
-	vmalloc(8192);
+Note that all architectures provide a means of atomically updating
+atomic_long_t variables, even if they have to revert to the generic
+spinlock implementation because they don't support 64-bit atomic
+instructions (see lib/atomic64.c).
 
-This patch will print out messages that look like this:
-
-[   68.123503] vmalloc: allocation failure, allocated 6680576 of 13426688 bytes
-[   68.124218] bash: page allocation failure: order:0, mode:0xd2
-[   68.124811] Pid: 3770, comm: bash Not tainted 2.6.39-rc3-00082-g85f2e68-dirty #333
-[   68.125579] Call Trace:
-[   68.125853]  [<ffffffff810f6da6>] warn_alloc_failed+0x146/0x170
-[   68.126464]  [<ffffffff8107e05c>] ? printk+0x6c/0x70
-[   68.126791]  [<ffffffff8112b5d4>] ? alloc_pages_current+0x94/0xe0
-[   68.127661]  [<ffffffff8111ed37>] __vmalloc_node_range+0x237/0x290
-...
-
-The 'order' variable is added for clarity when calling warn_alloc_failed()
-to avoid having an unexplained '0' as an argument.
-
-The 'tmp_mask' is because adding an open-coded '| __GFP_NOWARN' would take
-us over 80 columns for the alloc_pages_node() call.  If we are going to
-add a line, it might as well be one that makes the sucker easier to read.
-
-As a side issue, I also noticed that ctl_ioctl() does vmalloc() based
-solely on an unverified value passed in from userspace.  Granted, it's
-under CAP_SYS_ADMIN, but it still frightens me a bit.
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Matt Fleming <matt.fleming@linux.intel.com>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/mm.h       |   44 +++++--------------------------------
+ include/linux/mm_types.h |    9 ++-----
+ 2 files changed, 10 insertions(+), 43 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures mm/vmalloc.c
---- a/mm/vmalloc.c~mm-print-vmalloc-state-after-allocation-failures
-+++ a/mm/vmalloc.c
-@@ -1534,6 +1534,7 @@ static void *__vmalloc_node(unsigned lon
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node, void *caller)
+diff -puN include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm.h
+--- a/include/linux/mm.h~mm-delete-non-atomic-mm-counter-implementation
++++ a/include/linux/mm.h
+@@ -1053,65 +1053,35 @@ int __get_user_pages_fast(unsigned long 
+ /*
+  * per-process(per-mm_struct) statistics.
+  */
+-#if defined(SPLIT_RSS_COUNTING)
+-/*
+- * The mm counters are not protected by its page_table_lock,
+- * so must be incremented atomically.
+- */
+ static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
  {
-+	const int order = 0;
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
- 	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
-@@ -1560,11 +1561,12 @@ static void *__vmalloc_area_node(struct 
- 
- 	for (i = 0; i < area->nr_pages; i++) {
- 		struct page *page;
-+		gfp_t tmp_mask = gfp_mask | __GFP_NOWARN;
- 
- 		if (node < 0)
--			page = alloc_page(gfp_mask);
-+			page = alloc_page(tmp_mask);
- 		else
--			page = alloc_pages_node(node, gfp_mask, 0);
-+			page = alloc_pages_node(node, tmp_mask, order);
- 
- 		if (unlikely(!page)) {
- 			/* Successfully allocated i pages, free them in __vunmap() */
-@@ -1579,6 +1581,9 @@ static void *__vmalloc_area_node(struct 
- 	return area->addr;
- 
- fail:
-+	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
-+			  "allocated %ld of %ld bytes\n",
-+			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
- 	return NULL;
+ 	atomic_long_set(&mm->rss_stat.count[member], value);
  }
+ 
++#if defined(SPLIT_RSS_COUNTING)
+ unsigned long get_mm_counter(struct mm_struct *mm, int member);
+-
+-static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
+-{
+-	atomic_long_add(value, &mm->rss_stat.count[member]);
+-}
+-
+-static inline void inc_mm_counter(struct mm_struct *mm, int member)
+-{
+-	atomic_long_inc(&mm->rss_stat.count[member]);
+-}
+-
+-static inline void dec_mm_counter(struct mm_struct *mm, int member)
+-{
+-	atomic_long_dec(&mm->rss_stat.count[member]);
+-}
+-
+-#else  /* !USE_SPLIT_PTLOCKS */
+-/*
+- * The mm counters are protected by its page_table_lock,
+- * so can be incremented directly.
+- */
+-static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
+-{
+-	mm->rss_stat.count[member] = value;
+-}
+-
++#else
+ static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
+ {
+-	return mm->rss_stat.count[member];
++	return atomic_long_read(&mm->rss_stat.count[member]);
+ }
++#endif
+ 
+ static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
+ {
+-	mm->rss_stat.count[member] += value;
++	atomic_long_add(value, &mm->rss_stat.count[member]);
+ }
+ 
+ static inline void inc_mm_counter(struct mm_struct *mm, int member)
+ {
+-	mm->rss_stat.count[member]++;
++	atomic_long_inc(&mm->rss_stat.count[member]);
+ }
+ 
+ static inline void dec_mm_counter(struct mm_struct *mm, int member)
+ {
+-	mm->rss_stat.count[member]--;
++	atomic_long_dec(&mm->rss_stat.count[member]);
+ }
+ 
+-#endif /* !USE_SPLIT_PTLOCKS */
+-
+ static inline unsigned long get_mm_rss(struct mm_struct *mm)
+ {
+ 	return get_mm_counter(mm, MM_FILEPAGES) +
+diff -puN include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-delete-non-atomic-mm-counter-implementation
++++ a/include/linux/mm_types.h
+@@ -204,19 +204,16 @@ enum {
+ 
+ #if USE_SPLIT_PTLOCKS && defined(CONFIG_MMU)
+ #define SPLIT_RSS_COUNTING
+-struct mm_rss_stat {
+-	atomic_long_t count[NR_MM_COUNTERS];
+-};
+ /* per-thread cached information, */
+ struct task_rss_stat {
+ 	int events;	/* for synchronization threshold */
+ 	int count[NR_MM_COUNTERS];
+ };
+-#else  /* !USE_SPLIT_PTLOCKS */
++#endif /* USE_SPLIT_PTLOCKS */
++
+ struct mm_rss_stat {
+-	unsigned long count[NR_MM_COUNTERS];
++	atomic_long_t count[NR_MM_COUNTERS];
+ };
+-#endif /* !USE_SPLIT_PTLOCKS */
+ 
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from matt.fleming@linux.intel.com are
 
 origin.patch
-linux-next.patch
-mm-increase-reclaim_distance-to-30.patch
-flex_array-avoid-divisions-when-accessing-elements.patch
 
