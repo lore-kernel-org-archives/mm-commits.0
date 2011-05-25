@@ -1,116 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-radeon-atomc-fix-warning.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:32:42 -0700
-Message-ID: <201105252031.p4PKV52Z015038@imap1.linux-foundation.org>
+Subject: [merged] lib-add-kstrto_from_user.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:32:11 -0700
+Message-ID: <201105252030.p4PKUY7e014976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756636Ab1EYUqf (ORCPT
+	by vger.kernel.org with ESMTP id S932649Ab1EYUq6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:46:35 -0400
+	Wed, 25 May 2011 16:46:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, mattst88@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/radeon/atom.c: fix warning
+     lib: add kstrto*_from_user()
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-radeon-atomc-fix-warning.patch
+     lib-add-kstrto_from_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/atom.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: add kstrto*_from_user()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-udelay() doesn't like 8-bit arguments:
+There is quite a lot of code which does copy_from_user() + strict_strto*()
+or simple_strto*() combo in slightly different ways.
 
-drivers/gpu/drm/radeon/atom.c: In function 'atom_op_delay':
-drivers/gpu/drm/radeon/atom.c:653: warning: comparison is always false due to limited range of data type
+Before doing conversions all over tree, let's get final API correct.
 
-while we're there, use msleep() rather than open-coding it.
+Enter kstrtoull_from_user() and friends.
 
-Cc: David Airlie <airlied@linux.ie>
-Reviewed-by: Alex Deucher <alexdeucher@gmail.com>
-Cc: Matt Turner <mattst88@gmail.com>
+Typical code which uses them looks very simple:
+
+	TYPE val;
+	int rv;
+
+	rv = kstrtoTYPE_from_user(buf, count, 0, &val);
+	if (rv < 0)
+		return rv;
+	[use val]
+	return count;
+
+There is a tiny semantic difference from the plain kstrto*() API -- the
+latter allows any amount of leading zeroes, while the former copies data
+into buffer on stack and thus allows leading zeroes as long as it fits
+into buffer.
+
+This shouldn't be a problem for typical usecase "echo 42 > /proc/x".
+
+The point is to make reading one integer from userspace _very_ simple and
+very bug free.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/atom.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kernel.h |   31 +++++++++++++++++++++++++++++++
+ lib/kstrtox.c          |   26 ++++++++++++++++++++++++++
+ 2 files changed, 57 insertions(+)
 
-diff -puN drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning drivers/gpu/drm/radeon/atom.c
---- a/drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning
-+++ a/drivers/gpu/drm/radeon/atom.c
-@@ -652,12 +652,12 @@ static void atom_op_compare(atom_exec_co
+diff -puN include/linux/kernel.h~lib-add-kstrto_from_user include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-add-kstrto_from_user
++++ a/include/linux/kernel.h
+@@ -248,6 +248,37 @@ int __must_check kstrtos16(const char *s
+ int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
+ int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
  
- static void atom_op_delay(atom_exec_context *ctx, int *ptr, int arg)
++int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
++int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
++int __must_check kstrtoul_from_user(const char __user *s, size_t count, unsigned int base, unsigned long *res);
++int __must_check kstrtol_from_user(const char __user *s, size_t count, unsigned int base, long *res);
++int __must_check kstrtouint_from_user(const char __user *s, size_t count, unsigned int base, unsigned int *res);
++int __must_check kstrtoint_from_user(const char __user *s, size_t count, unsigned int base, int *res);
++int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigned int base, u16 *res);
++int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
++int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
++int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
++
++static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
++{
++	return kstrtoull_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtos64_from_user(const char __user *s, size_t count, unsigned int base, s64 *res)
++{
++	return kstrtoll_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtou32_from_user(const char __user *s, size_t count, unsigned int base, u32 *res)
++{
++	return kstrtouint_from_user(s, count, base, res);
++}
++
++static inline int __must_check kstrtos32_from_user(const char __user *s, size_t count, unsigned int base, s32 *res)
++{
++	return kstrtoint_from_user(s, count, base, res);
++}
++
+ extern unsigned long simple_strtoul(const char *,char **,unsigned int);
+ extern long simple_strtol(const char *,char **,unsigned int);
+ extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+diff -puN lib/kstrtox.c~lib-add-kstrto_from_user lib/kstrtox.c
+--- a/lib/kstrtox.c~lib-add-kstrto_from_user
++++ a/lib/kstrtox.c
+@@ -17,6 +17,7 @@
+ #include <linux/math64.h>
+ #include <linux/module.h>
+ #include <linux/types.h>
++#include <asm/uaccess.h>
+ 
+ static inline char _tolower(const char c)
  {
--	uint8_t count = U8((*ptr)++);
-+	unsigned count = U8((*ptr)++);
- 	SDEBUG("   count: %d\n", count);
- 	if (arg == ATOM_UNIT_MICROSEC)
- 		udelay(count);
- 	else
--		schedule_timeout_uninterruptible(msecs_to_jiffies(count));
-+		msleep(count);
+@@ -222,3 +223,28 @@ int kstrtos8(const char *s, unsigned int
+ 	return 0;
  }
- 
- static void atom_op_div(atom_exec_context *ctx, int *ptr, int arg)
+ EXPORT_SYMBOL(kstrtos8);
++
++#define kstrto_from_user(f, g, type)					\
++int f(const char __user *s, size_t count, unsigned int base, type *res)	\
++{									\
++	/* sign, base 2 representation, newline, terminator */		\
++	char buf[1 + sizeof(type) * 8 + 1 + 1];				\
++									\
++	count = min(count, sizeof(buf) - 1);				\
++	if (copy_from_user(buf, s, count))				\
++		return -EFAULT;						\
++	buf[count] = '\0';						\
++	return g(buf, base, res);					\
++}									\
++EXPORT_SYMBOL(f)
++
++kstrto_from_user(kstrtoull_from_user,	kstrtoull,	unsigned long long);
++kstrto_from_user(kstrtoll_from_user,	kstrtoll,	long long);
++kstrto_from_user(kstrtoul_from_user,	kstrtoul,	unsigned long);
++kstrto_from_user(kstrtol_from_user,	kstrtol,	long);
++kstrto_from_user(kstrtouint_from_user,	kstrtouint,	unsigned int);
++kstrto_from_user(kstrtoint_from_user,	kstrtoint,	int);
++kstrto_from_user(kstrtou16_from_user,	kstrtou16,	u16);
++kstrto_from_user(kstrtos16_from_user,	kstrtos16,	s16);
++kstrto_from_user(kstrtou8_from_user,	kstrtou8,	u8);
++kstrto_from_user(kstrtos8_from_user,	kstrtos8,	s8);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-backlight-add-backlight-type-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-m68k-merge-mmu-and-non-mmu-bitopsh.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 mtd-convert-to-seq_file-interface.patch
-rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-slab-use-numa_no_node.patch
-mm.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-arch-alpha-include-asm-ioh-s-extern-inline-static-inline.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kstrtox-convert-fs-proc.patch
+proc-constify-status-array.patch
+proc-stat-use-defined-macro-kmalloc_max_size.patch
+proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
+proc-fix-pagemap_read-error-case.patch
+fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch
+ipmi-convert-to-seq_file-interface.patch
+sysctl-add-proc_dointvec_bool-handler.patch
 
