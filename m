@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-wait_on_page_locked_killable.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:27:34 -0700
-Message-ID: <201105252025.p4PKPvVX014442@imap1.linux-foundation.org>
+Subject: [merged] x86mm-make-pagefault-killable.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:36 -0700
+Message-ID: <201105252025.p4PKPxvV014445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755678Ab1EYU0r (ORCPT
+	by vger.kernel.org with ESMTP id S1754628Ab1EYU0r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 25 May 2011 16:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,25 +15,38 @@ To: kosaki.motohiro@jp.fujitsu.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.co
 
 
 The patch titled
-     mm: introduce wait_on_page_locked_killable()
+     x86,mm: make pagefault killable
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-wait_on_page_locked_killable.patch
+     x86mm-make-pagefault-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce wait_on_page_locked_killable()
+Subject: x86,mm: make pagefault killable
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-commit 2687a356 ("Add lock_page_killable") introduced killable
-lock_page().  Similarly this patch introdues killable
-wait_on_page_locked().
+When an oom killing occurs, almost all processes are getting stuck at the
+following two points.
+
+	1) __alloc_pages_nodemask
+	2) __lock_page_or_retry
+
+1) is not very problematic because TIF_MEMDIE leads to an allocation
+failure and getting out from page allocator.
+
+2) is more problematic.  In an OOM situation, zones typically don't have
+page cache at all and memory starvation might lead to greatly reduced IO
+performance.  When a fork bomb occurs, TIF_MEMDIE tasks don't die quickly,
+meaning that a fork bomb may create new process quickly rather than the
+oom-killer killing it.  Then, the system may become livelocked.
+
+This patch makes the pagefault interruptible by SIGKILL.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -41,50 +54,94 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    9 +++++++++
- mm/filemap.c            |   11 +++++++++++
- 2 files changed, 20 insertions(+)
+ arch/x86/mm/fault.c |   12 +++++++++++-
+ include/linux/mm.h  |    1 +
+ mm/filemap.c        |   31 ++++++++++++++++++++++++-------
+ 3 files changed, 36 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-introduce-wait_on_page_locked_killable include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-introduce-wait_on_page_locked_killable
-+++ a/include/linux/pagemap.h
-@@ -357,6 +357,15 @@ static inline int lock_page_or_retry(str
-  */
- extern void wait_on_page_bit(struct page *page, int bit_nr);
+diff -puN arch/x86/mm/fault.c~x86mm-make-pagefault-killable arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~x86mm-make-pagefault-killable
++++ a/arch/x86/mm/fault.c
+@@ -965,7 +965,7 @@ do_page_fault(struct pt_regs *regs, unsi
+ 	struct mm_struct *mm;
+ 	int fault;
+ 	int write = error_code & PF_WRITE;
+-	unsigned int flags = FAULT_FLAG_ALLOW_RETRY |
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
+ 					(write ? FAULT_FLAG_WRITE : 0);
  
-+extern int wait_on_page_bit_killable(struct page *page, int bit_nr);
+ 	tsk = current;
+@@ -1139,6 +1139,16 @@ good_area:
+ 	}
+ 
+ 	/*
++	 * Pagefault was interrupted by SIGKILL. We have no reason to
++	 * continue pagefault.
++	 */
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
++		if (!(error_code & PF_USER))
++			no_context(regs, error_code, address);
++		return;
++	}
 +
-+static inline int wait_on_page_locked_killable(struct page *page)
-+{
-+	if (PageLocked(page))
-+		return wait_on_page_bit_killable(page, PG_locked);
-+	return 0;
-+}
-+
- /* 
-  * Wait for a page to be unlocked.
-  *
-diff -puN mm/filemap.c~mm-introduce-wait_on_page_locked_killable mm/filemap.c
---- a/mm/filemap.c~mm-introduce-wait_on_page_locked_killable
++	/*
+ 	 * Major/minor page fault accounting is only done on the
+ 	 * initial attempt. If we go through a retry, it is extremely
+ 	 * likely that the page will be found in page cache at that point.
+diff -puN include/linux/mm.h~x86mm-make-pagefault-killable include/linux/mm.h
+--- a/include/linux/mm.h~x86mm-make-pagefault-killable
++++ a/include/linux/mm.h
+@@ -153,6 +153,7 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_MKWRITE	0x04	/* Fault was mkwrite of existing pte */
+ #define FAULT_FLAG_ALLOW_RETRY	0x08	/* Retry fault if blocking */
+ #define FAULT_FLAG_RETRY_NOWAIT	0x10	/* Don't drop mmap_sem and wait when retrying */
++#define FAULT_FLAG_KILLABLE	0x20	/* The fault task is in SIGKILL killable region */
+ 
+ /*
+  * This interface is used by x86 PAT code to identify a pfn mapping that is
+diff -puN mm/filemap.c~x86mm-make-pagefault-killable mm/filemap.c
+--- a/mm/filemap.c~x86mm-make-pagefault-killable
 +++ a/mm/filemap.c
-@@ -562,6 +562,17 @@ void wait_on_page_bit(struct page *page,
+@@ -654,15 +654,32 @@ EXPORT_SYMBOL_GPL(__lock_page_killable);
+ int __lock_page_or_retry(struct page *page, struct mm_struct *mm,
+ 			 unsigned int flags)
+ {
+-	if (!(flags & FAULT_FLAG_ALLOW_RETRY)) {
+-		__lock_page(page);
+-		return 1;
+-	} else {
+-		if (!(flags & FAULT_FLAG_RETRY_NOWAIT)) {
+-			up_read(&mm->mmap_sem);
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		/*
++		 * CAUTION! In this case, mmap_sem is not released
++		 * even though return 0.
++		 */
++		if (flags & FAULT_FLAG_RETRY_NOWAIT)
++			return 0;
++
++		up_read(&mm->mmap_sem);
++		if (flags & FAULT_FLAG_KILLABLE)
++			wait_on_page_locked_killable(page);
++		else
+ 			wait_on_page_locked(page);
+-		}
+ 		return 0;
++	} else {
++		if (flags & FAULT_FLAG_KILLABLE) {
++			int ret;
++
++			ret = __lock_page_killable(page);
++			if (ret) {
++				up_read(&mm->mmap_sem);
++				return 0;
++			}
++		} else
++			__lock_page(page);
++		return 1;
+ 	}
  }
- EXPORT_SYMBOL(wait_on_page_bit);
  
-+int wait_on_page_bit_killable(struct page *page, int bit_nr)
-+{
-+	DEFINE_WAIT_BIT(wait, &page->flags, bit_nr);
-+
-+	if (!test_bit(bit_nr, &page->flags))
-+		return 0;
-+
-+	return __wait_on_bit(page_waitqueue(page), &wait,
-+			     sleep_on_page_killable, TASK_KILLABLE);
-+}
-+
- /**
-  * add_page_wait_queue - Add an arbitrary waiter to a page's wait queue
-  * @page: Page defining the wait queue of interest
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
