@@ -1,94 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:27:38 -0700
-Message-ID: <201105252026.p4PKQ1nZ014457@imap1.linux-foundation.org>
+Subject: [merged] mm-introduce-wait_on_page_locked_killable.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:34 -0700
+Message-ID: <201105252025.p4PKPvVX014442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754289Ab1EYU0n (ORCPT
+	by vger.kernel.org with ESMTP id S1755678Ab1EYU0r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:26:43 -0400
+	Wed, 25 May 2011 16:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, mingo@elte.hu, tglx@linutronix.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
+     mm: introduce wait_on_page_locked_killable()
 has been removed from the -mm tree.  Its filename was
-     mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit.patch
+     mm-introduce-wait_on_page_locked_killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, mem-hotplug: fix section mismatch. setup_per_zone_inactive_ratio() should be __meminit.
+Subject: mm: introduce wait_on_page_locked_killable()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Commit bce7394a3e ("page-allocator: reset wmark_min and inactive ratio of
-zone when hotplug happens") introduced invalid section references.  Now,
-setup_per_zone_inactive_ratio() is marked __init and then it can't be
-referenced from memory hotplug code.
-
-This patch marks it as __meminit and also marks caller as __ref.
+commit 2687a356 ("Add lock_page_killable") introduced killable
+lock_page().  Similarly this patch introdues killable
+wait_on_page_locked().
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
- mm/page_alloc.c     |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/pagemap.h |    9 +++++++++
+ mm/filemap.c            |   11 +++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
-+++ a/mm/memory_hotplug.c
-@@ -400,7 +400,7 @@ static int online_pages_range(unsigned l
- }
- 
- 
--int online_pages(unsigned long pfn, unsigned long nr_pages)
-+int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
- {
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
-@@ -795,7 +795,7 @@ check_pages_isolated(unsigned long start
- 	return offlined;
- }
- 
--static int offline_pages(unsigned long start_pfn,
-+static int __ref offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
- {
- 	unsigned long pfn, nr_pages, expire;
-diff -puN mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit mm/page_alloc.c
---- a/mm/page_alloc.c~mm-mem-hotplug-fix-section-mismatch-setup_per_zone_inactive_ratio-should-be-__meminit
-+++ a/mm/page_alloc.c
-@@ -5094,7 +5094,7 @@ void setup_per_zone_wmarks(void)
-  *    1TB     101        10GB
-  *   10TB     320        32GB
+diff -puN include/linux/pagemap.h~mm-introduce-wait_on_page_locked_killable include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-introduce-wait_on_page_locked_killable
++++ a/include/linux/pagemap.h
+@@ -357,6 +357,15 @@ static inline int lock_page_or_retry(str
   */
--void calculate_zone_inactive_ratio(struct zone *zone)
-+void __meminit calculate_zone_inactive_ratio(struct zone *zone)
- {
- 	unsigned int gb, ratio;
+ extern void wait_on_page_bit(struct page *page, int bit_nr);
  
-@@ -5108,7 +5108,7 @@ void calculate_zone_inactive_ratio(struc
- 	zone->inactive_ratio = ratio;
++extern int wait_on_page_bit_killable(struct page *page, int bit_nr);
++
++static inline int wait_on_page_locked_killable(struct page *page)
++{
++	if (PageLocked(page))
++		return wait_on_page_bit_killable(page, PG_locked);
++	return 0;
++}
++
+ /* 
+  * Wait for a page to be unlocked.
+  *
+diff -puN mm/filemap.c~mm-introduce-wait_on_page_locked_killable mm/filemap.c
+--- a/mm/filemap.c~mm-introduce-wait_on_page_locked_killable
++++ a/mm/filemap.c
+@@ -562,6 +562,17 @@ void wait_on_page_bit(struct page *page,
  }
+ EXPORT_SYMBOL(wait_on_page_bit);
  
--static void __init setup_per_zone_inactive_ratio(void)
-+static void __meminit setup_per_zone_inactive_ratio(void)
- {
- 	struct zone *zone;
- 
++int wait_on_page_bit_killable(struct page *page, int bit_nr)
++{
++	DEFINE_WAIT_BIT(wait, &page->flags, bit_nr);
++
++	if (!test_bit(bit_nr, &page->flags))
++		return 0;
++
++	return __wait_on_bit(page_waitqueue(page), &wait,
++			     sleep_on_page_killable, TASK_KILLABLE);
++}
++
+ /**
+  * add_page_wait_queue - Add an arbitrary waiter to a page's wait queue
+  * @page: Page defining the wait queue of interest
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
