@@ -1,100 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:26:53 -0700
-Message-ID: <201105252025.p4PKPGge014382@imap1.linux-foundation.org>
+Subject: [merged] mmap-avoid-merging-cloned-vmas.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:27:15 -0700
+Message-ID: <201105252025.p4PKPcOG014409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754994Ab1EYU0K (ORCPT
+	by vger.kernel.org with ESMTP id S1754135Ab1EYU0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:26:10 -0400
+	Wed, 25 May 2011 16:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, James.Bottomley@HansenPartnership.com, chris.mason@oracle.com, cl@linux.com, colin.king@canonical.com, fengguang.wu@intel.com, jack@suse.cz, mgorman@suse.de, minch
+To: shaohua.li@intel.com, andi@firstfloor.org, hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: vmscan: correct use of pgdat_balanced in sleeping_prematurely
+     mmap: avoid merging cloned VMAs
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely.patch
+     mmap-avoid-merging-cloned-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: correct use of pgdat_balanced in sleeping_prematurely
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mmap: avoid merging cloned VMAs
+From: Shaohua Li <shaohua.li@intel.com>
 
-There are a few reports of people experiencing hangs when copying large
-amounts of data with kswapd using a large amount of CPU which appear to be
-due to recent reclaim changes.  SLUB using high orders is the trigger but
-not the root cause as SLUB has been using high orders for a while.  The
-root cause was bugs introduced into reclaim which are addressed by the
-following two patches.
+Avoid merging a VMA with another VMA which is cloned from the parent process.
 
-Patch 1 corrects logic introduced by commit 1741c877 ("mm: kswapd:
-        keep kswapd awake for high-order allocations until a percentage of
-        the node is balanced") to allow kswapd to go to sleep when
-        balanced for high orders.
+The cloned VMA shares the anon_vma lock with the parent process's VMA.  If
+we do the merge, more vmas (even the new range is only for current
+process) use the perent process's anon_vma lock.  This introduces
+scalability issues.  find_mergeable_anon_vma() already considers this
+case.
 
-Patch 2 notes that it is possible for kswapd to miss every
-        cond_resched() and updates shrink_slab() so it'll at least reach
-        that scheduling point.
-
-Chris Wood reports that these two patches in isolation are sufficient to
-prevent the system hanging.  AFAIK, they should also resolve similar hangs
-experienced by James Bottomley.
-
-
-This patch:
-
-Johannes Weiner poined out that the logic in commit 1741c877 ("mm: kswapd:
-keep kswapd awake for high-order allocations until a percentage of the
-node is balanced") is backwards.  Instead of allowing kswapd to go to
-sleep when balancing for high order allocations, it keeps it kswapd
-running uselessly.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Tested-by: Colin King <colin.king@canonical.com>
-Cc: Raghavendra D Prabhu <raghu.prabhu13@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: <stable@kernel.org>		[2.6.38+]
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-correct-use-of-pgdat_balanced-in-sleeping_prematurely
-+++ a/mm/vmscan.c
-@@ -2287,7 +2287,7 @@ static bool sleeping_prematurely(pg_data
- 	 * must be balanced
- 	 */
- 	if (order)
--		return pgdat_balanced(pgdat, balanced, classzone_idx);
-+		return !pgdat_balanced(pgdat, balanced, classzone_idx);
- 	else
- 		return !all_zones_ok;
+diff -puN mm/mmap.c~mmap-avoid-merging-cloned-vmas mm/mmap.c
+--- a/mm/mmap.c~mmap-avoid-merging-cloned-vmas
++++ a/mm/mmap.c
+@@ -703,9 +703,17 @@ static inline int is_mergeable_vma(struc
  }
+ 
+ static inline int is_mergeable_anon_vma(struct anon_vma *anon_vma1,
+-					struct anon_vma *anon_vma2)
++					struct anon_vma *anon_vma2,
++					struct vm_area_struct *vma)
+ {
+-	return !anon_vma1 || !anon_vma2 || (anon_vma1 == anon_vma2);
++	/*
++	 * The list_is_singular() test is to avoid merging VMA cloned from
++	 * parents. This can improve scalability caused by anon_vma lock.
++	 */
++	if ((!anon_vma1 || !anon_vma2) && (!vma ||
++		list_is_singular(&vma->anon_vma_chain)))
++		return 1;
++	return anon_vma1 == anon_vma2;
+ }
+ 
+ /*
+@@ -724,7 +732,7 @@ can_vma_merge_before(struct vm_area_stru
+ 	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
+ {
+ 	if (is_mergeable_vma(vma, file, vm_flags) &&
+-	    is_mergeable_anon_vma(anon_vma, vma->anon_vma)) {
++	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+ 		if (vma->vm_pgoff == vm_pgoff)
+ 			return 1;
+ 	}
+@@ -743,7 +751,7 @@ can_vma_merge_after(struct vm_area_struc
+ 	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
+ {
+ 	if (is_mergeable_vma(vma, file, vm_flags) &&
+-	    is_mergeable_anon_vma(anon_vma, vma->anon_vma)) {
++	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+ 		pgoff_t vm_pglen;
+ 		vm_pglen = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+ 		if (vma->vm_pgoff + vm_pglen == vm_pgoff)
+@@ -821,7 +829,7 @@ struct vm_area_struct *vma_merge(struct 
+ 				can_vma_merge_before(next, vm_flags,
+ 					anon_vma, file, pgoff+pglen) &&
+ 				is_mergeable_anon_vma(prev->anon_vma,
+-						      next->anon_vma)) {
++						      next->anon_vma, NULL)) {
+ 							/* cases 1, 6 */
+ 			err = vma_adjust(prev, prev->vm_start,
+ 				next->vm_end, prev->vm_pgoff, NULL);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
+linux-next.patch
 
