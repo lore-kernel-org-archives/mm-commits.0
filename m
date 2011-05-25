@@ -1,96 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-readahead-page-allocations-are-ok-to-fail.patch removed from -mm tree
-Date: Wed, 25 May 2011 13:29:36 -0700
-Message-ID: <201105252027.p4PKRx5S014628@imap1.linux-foundation.org>
+Subject: [merged] mm-optimize-page_lock_anon_vma-fast-path.patch removed from -mm tree
+Date: Wed, 25 May 2011 13:29:05 -0700
+Message-ID: <201105252027.p4PKRSnZ014578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755103Ab1EYU2c (ORCPT
+	by vger.kernel.org with ESMTP id S1755627Ab1EYU2d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 May 2011 16:28:32 -0400
+	Wed, 25 May 2011 16:28:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, hidave.darkstar@gmail.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, hughd@google.com, jdike@addtoit.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lethal@linu
 
 
 The patch titled
-     readahead: readahead page allocations are OK to fail
+     mm: optimize page_lock_anon_vma() fast-path
 has been removed from the -mm tree.  Its filename was
-     readahead-readahead-page-allocations-are-ok-to-fail.patch
+     mm-optimize-page_lock_anon_vma-fast-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: readahead page allocations are OK to fail
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mm: optimize page_lock_anon_vma() fast-path
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Pass __GFP_NORETRY|__GFP_NOWARN for readahead page allocations.
+Optimize the page_lock_anon_vma() fast path to be one atomic op, instead
+of two.
 
-readahead page allocations are completely optional.  They are OK to fail
-and in particular shall not trigger OOM on themselves.
-
-Reported-by: Dave Young <hidave.darkstar@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    6 ++++++
- mm/readahead.c          |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ mm/rmap.c |   86 +++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 82 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/pagemap.h~readahead-readahead-page-allocations-are-ok-to-fail include/linux/pagemap.h
---- a/include/linux/pagemap.h~readahead-readahead-page-allocations-are-ok-to-fail
-+++ a/include/linux/pagemap.h
-@@ -219,6 +219,12 @@ static inline struct page *page_cache_al
- 	return __page_cache_alloc(mapping_gfp_mask(x)|__GFP_COLD);
+diff -puN mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path mm/rmap.c
+--- a/mm/rmap.c~mm-optimize-page_lock_anon_vma-fast-path
++++ a/mm/rmap.c
+@@ -86,6 +86,29 @@ static inline struct anon_vma *anon_vma_
+ static inline void anon_vma_free(struct anon_vma *anon_vma)
+ {
+ 	VM_BUG_ON(atomic_read(&anon_vma->refcount));
++
++	/*
++	 * Synchronize against page_lock_anon_vma() such that
++	 * we can safely hold the lock without the anon_vma getting
++	 * freed.
++	 *
++	 * Relies on the full mb implied by the atomic_dec_and_test() from
++	 * put_anon_vma() against the acquire barrier implied by
++	 * mutex_trylock() from page_lock_anon_vma(). This orders:
++	 *
++	 * page_lock_anon_vma()		VS	put_anon_vma()
++	 *   mutex_trylock()			  atomic_dec_and_test()
++	 *   LOCK				  MB
++	 *   atomic_read()			  mutex_is_locked()
++	 *
++	 * LOCK should suffice since the actual taking of the lock must
++	 * happen _before_ what follows.
++	 */
++	if (mutex_is_locked(&anon_vma->root->mutex)) {
++		anon_vma_lock(anon_vma);
++		anon_vma_unlock(anon_vma);
++	}
++
+ 	kmem_cache_free(anon_vma_cachep, anon_vma);
  }
  
-+static inline struct page *page_cache_alloc_readahead(struct address_space *x)
-+{
-+	return __page_cache_alloc(mapping_gfp_mask(x) |
-+				  __GFP_COLD | __GFP_NORETRY | __GFP_NOWARN);
-+}
+@@ -372,20 +395,75 @@ out:
+ 	return anon_vma;
+ }
+ 
++/*
++ * Similar to page_get_anon_vma() except it locks the anon_vma.
++ *
++ * Its a little more complex as it tries to keep the fast path to a single
++ * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
++ * reference like with page_get_anon_vma() and then block on the mutex.
++ */
+ struct anon_vma *page_lock_anon_vma(struct page *page)
+ {
+-	struct anon_vma *anon_vma = page_get_anon_vma(page);
++	struct anon_vma *anon_vma = NULL;
++	unsigned long anon_mapping;
+ 
+-	if (anon_vma)
+-		anon_vma_lock(anon_vma);
++	rcu_read_lock();
++	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
++	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
++		goto out;
++	if (!page_mapped(page))
++		goto out;
 +
- typedef int filler_t(void *, struct page *);
++	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
++	if (mutex_trylock(&anon_vma->root->mutex)) {
++		/*
++		 * If we observe a !0 refcount, then holding the lock ensures
++		 * the anon_vma will not go away, see __put_anon_vma().
++		 */
++		if (!atomic_read(&anon_vma->refcount)) {
++			anon_vma_unlock(anon_vma);
++			anon_vma = NULL;
++		}
++		goto out;
++	}
++
++	/* trylock failed, we got to sleep */
++	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
++		anon_vma = NULL;
++		goto out;
++	}
  
- extern struct page * find_get_page(struct address_space *mapping,
-diff -puN mm/readahead.c~readahead-readahead-page-allocations-are-ok-to-fail mm/readahead.c
---- a/mm/readahead.c~readahead-readahead-page-allocations-are-ok-to-fail
-+++ a/mm/readahead.c
-@@ -180,7 +180,7 @@ __do_page_cache_readahead(struct address
- 		if (page)
- 			continue;
++	if (!page_mapped(page)) {
++		put_anon_vma(anon_vma);
++		anon_vma = NULL;
++		goto out;
++	}
++
++	/* we pinned the anon_vma, its safe to sleep */
++	rcu_read_unlock();
++	anon_vma_lock(anon_vma);
++
++	if (atomic_dec_and_test(&anon_vma->refcount)) {
++		/*
++		 * Oops, we held the last refcount, release the lock
++		 * and bail -- can't simply use put_anon_vma() because
++		 * we'll deadlock on the anon_vma_lock() recursion.
++		 */
++		anon_vma_unlock(anon_vma);
++		__put_anon_vma(anon_vma);
++		anon_vma = NULL;
++	}
++
++	return anon_vma;
++
++out:
++	rcu_read_unlock();
+ 	return anon_vma;
+ }
  
--		page = page_cache_alloc_cold(mapping);
-+		page = page_cache_alloc_readahead(mapping);
- 		if (!page)
- 			break;
- 		page->index = page_offset;
+ void page_unlock_anon_vma(struct anon_vma *anon_vma)
+ {
+ 	anon_vma_unlock(anon_vma);
+-	put_anon_vma(anon_vma);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-writeback-pass-writeback_control-down-to-move_expired_inodes.patch
-writeback-introduce-writeback_controlinodes_cleaned.patch
-writeback-try-more-writeback-as-long-as-something-was-written.patch
-writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-refill-b_io-iff-empty.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-writeback-elevate-queue_io-into-wb_writeback.patch
-writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage.patch
-writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch
-writeback-avoid-extra-sync-work-at-enqueue-time.patch
-getdelays-show-average-cpu-io-swap-reclaim-delays.patch
+linux-next.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 
