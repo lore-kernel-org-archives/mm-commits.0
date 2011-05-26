@@ -1,57 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch removed from -mm tree
-Date: Thu, 26 May 2011 16:17:34 -0700
-Message-ID: <201105262317.p4QNHYOk026368@imap1.linux-foundation.org>
+Subject: [folded] memcg-add-memorynumastat-api-for-numa-statistics-v5.patch removed from -mm tree
+Date: Thu, 26 May 2011 16:18:27 -0700
+Message-ID: <201105262318.p4QNIRNC026453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758527Ab1EZXSL (ORCPT
+	by vger.kernel.org with ESMTP id S1754362Ab1EZXSj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 19:18:11 -0400
+	Thu, 26 May 2011 19:18:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
+     memcg-add-memorynumastat-api-for-numa-statistics-v5
 has been removed from the -mm tree.  Its filename was
-     memcg-reclaim-memory-from-nodes-in-round-robin-order-fix.patch
+     memcg-add-memorynumastat-api-for-numa-statistics-v5.patch
 
-This patch was dropped because it was folded into memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+This patch was dropped because it was folded into memcg-add-memorynumastat-api-for-numa-statistics.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
+Subject: memcg-add-memorynumastat-api-for-numa-statistics-v5
 From: Ying Han <yinghan@google.com>
 
-The value for counter base should be initialized. If not,
-this returns wrong value.
+1. disable the API non-NUMA kernel.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Ying Han <yinghan@google.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order-fix
+diff -puN mm/memcontrol.c~memcg-add-memorynumastat-api-for-numa-statistics-v5 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-memorynumastat-api-for-numa-statistics-v5
 +++ a/mm/memcontrol.c
-@@ -633,7 +633,7 @@ static unsigned long
- mem_cgroup_get_zonestat_node(struct mem_cgroup *mem, int nid, enum lru_list idx)
- {
- 	struct mem_cgroup_per_zone *mz;
--	u64 total;
-+	u64 total = 0;
- 	int zid;
+@@ -1089,6 +1089,7 @@ unsigned long mem_cgroup_zone_nr_lru_pag
+ 	return MEM_CGROUP_ZSTAT(mz, lru);
+ }
  
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++#ifdef CONFIG_NUMA
+ static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
+ 							int nid)
+ {
+@@ -1173,6 +1174,7 @@ static unsigned long mem_cgroup_nr_lru_p
+ 
+ 	return total;
+ }
++#endif /* CONFIG_NUMA */
+ 
+ struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
+ 						      struct zone *zone)
+@@ -4029,6 +4031,7 @@ mem_cgroup_get_total_stat(struct mem_cgr
+ 		mem_cgroup_get_local_stat(iter, s);
+ }
+ 
++#ifdef CONFIG_NUMA
+ static int mem_control_numa_stat_show(struct seq_file *m, void *arg)
+ {
+ 	int nid;
+@@ -4071,6 +4074,7 @@ static int mem_control_numa_stat_show(st
+ 	seq_putc(m, '\n');
+ 	return 0;
+ }
++#endif /* CONFIG_NUMA */
+ 
+ static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+ 				 struct cgroup_map_cb *cb)
+@@ -4506,6 +4510,7 @@ static int mem_cgroup_oom_control_write(
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_NUMA
+ static const struct file_operations mem_control_numa_stat_file_operations = {
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+@@ -4519,6 +4524,7 @@ static int mem_control_numa_stat_open(st
+ 	file->f_op = &mem_control_numa_stat_file_operations;
+ 	return single_open(file, mem_control_numa_stat_show, cont);
+ }
++#endif /* CONFIG_NUMA */
+ 
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+@@ -4583,10 +4589,12 @@ static struct cftype mem_cgroup_files[] 
+ 		.unregister_event = mem_cgroup_oom_unregister_event,
+ 		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
+ 	},
++#ifdef CONFIG_NUMA
+ 	{
+ 		.name = "numa_stat",
+ 		.open = mem_control_numa_stat_open,
+ 	},
++#endif
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
 _
 
 Patches currently in -mm which might be from yinghan@google.com are
@@ -65,6 +118,5 @@ memcg-fix-get_scan_count-for-small-targets.patch
 memcg-remove-unused-retry-signal-from-reclaim.patch
 memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
 memcg-add-memorynumastat-api-for-numa-statistics.patch
-memcg-add-memorynumastat-api-for-numa-statistics-v5.patch
 add-the-pagefault-count-into-memcg-stats.patch
 
