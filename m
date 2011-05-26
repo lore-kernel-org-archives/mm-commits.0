@@ -1,81 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch removed from -mm tree
-Date: Thu, 26 May 2011 16:19:09 -0700
-Message-ID: <201105262319.p4QNJAwp026478@imap1.linux-foundation.org>
+Subject: [folded] w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.patch removed from -mm tree
+Date: Thu, 26 May 2011 16:19:40 -0700
+Message-ID: <201105262319.p4QNJecQ026492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754820Ab1EZXTW (ORCPT
+	by vger.kernel.org with ESMTP id S1754820Ab1EZXUJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 19:19:22 -0400
+	Thu, 26 May 2011 19:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Matt_Domsch@dell.com, davej@codemonkey.org.uk, eugeneteo@kernel.sg, warns@pre-sense.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
+     w1: fix w1_ds2408.c printk formats
 has been removed from the -mm tree.  Its filename was
-     fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+     w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.p=
+atch
 
-This patch was dropped because it was folded into fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
+This patch was dropped because it was folded into w1-add-1-wire-w1-ds24=
+08-8-channel-addressable-switch-support.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: w1: fix w1_ds2408.c printk formats
+=46rom: Randy Dunlap <randy.dunlap@oracle.com>
 
-fix layout and indenting
+=46ix printk format warnings (on i386):
+(in w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch)
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Timo Warns <warns@pre-sense.de>
+drivers/w1/slaves/w1_ds2408.c:79: warning: format '%lu' expects type 'l=
+ong unsigned int', but argument 7 has type 'size_t'
+drivers/w1/slaves/w1_ds2408.c:92: warning: format '%lu' expects type 'l=
+ong unsigned int', but argument 7 has type 'size_t'
+drivers/w1/slaves/w1_ds2408.c:106: warning: format '%lu' expects type '=
+long unsigned int', but argument 7 has type 'size_t'
+drivers/w1/slaves/w1_ds2408.c:120: warning: format '%lu' expects type '=
+long unsigned int', but argument 7 has type 'size_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
+Cc: Matt Reimer <mreimer@vpop.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/w1/slaves/w1_ds2408.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix fs/partitions/efi.c
---- a/fs/partitions/efi.c~fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix
-+++ a/fs/partitions/efi.c
-@@ -311,11 +311,11 @@ static int is_gpt_valid(struct parsed_pa
- 	}
- 
- 	/* Check the GUID Partition Table header size */
--	if (le32_to_cpu((*gpt)->header_size) > bdev_logical_block_size(state->bdev)) {
--		pr_debug("GUID Partition Table Header size is wrong:"
--			 "%u > %u\n",
--             le32_to_cpu((*gpt)->header_size),
--             bdev_logical_block_size(state->bdev));
-+	if (le32_to_cpu((*gpt)->header_size) >
-+			bdev_logical_block_size(state->bdev)) {
-+		pr_debug("GUID Partition Table Header size is wrong: %u > %u\n",
-+			le32_to_cpu((*gpt)->header_size),
-+			bdev_logical_block_size(state->bdev));
- 		goto fail;
- 	}
- 
+diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-chann=
+el-addressable-switch-support-fix drivers/w1/slaves/w1_ds2408.c
+--- a/drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-channel-a=
+ddressable-switch-support-fix
++++ a/drivers/w1/slaves/w1_ds2408.c
+@@ -77,7 +77,7 @@ static ssize_t w1_f29_read_state(
+ 	char *buf, loff_t off, size_t count)
+ {
+ 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
+-		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
++		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
+ 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
+ 	if (count !=3D 1 || off !=3D 0)
+ 		return -EFAULT;
+@@ -90,7 +90,7 @@ static ssize_t w1_f29_read_output(
+ 	char *buf, loff_t off, size_t count)
+ {
+ 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
+-		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
++		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
+ 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
+ 	if (count !=3D 1 || off !=3D 0)
+ 		return -EFAULT;
+@@ -104,7 +104,7 @@ static ssize_t w1_f29_read_activity(
+ 	char *buf, loff_t off, size_t count)
+ {
+ 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
+-		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
++		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
+ 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
+ 	if (count !=3D 1 || off !=3D 0)
+ 		return -EFAULT;
+@@ -118,7 +118,7 @@ static ssize_t w1_f29_read_cond_search_m
+ 	char *buf, loff_t off, size_t count)
+ {
+ 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
+-		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
++		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
+ 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
+ 	if (count !=3D 1 || off !=3D 0)
+ 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com ar=
+e
 
 origin.patch
-drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-include-linux-hugetlbh-needs-mm_typesh.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch
-ufs-truncated-values-handling-64-bit-metadata.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-add-the-pagefault-count-into-memcg-stats.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
+w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
