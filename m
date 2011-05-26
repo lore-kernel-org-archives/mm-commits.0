@@ -1,153 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-namespacec-bound-mount-propagation-fix.patch removed from -mm tree
-Date: Thu, 26 May 2011 12:40:19 -0700
-Message-ID: <201105261938.p4QJcYXE015311@imap1.linux-foundation.org>
+Subject: [withdrawn] fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch removed from -mm tree
+Date: Thu, 26 May 2011 13:11:44 -0700
+Message-ID: <201105262011.p4QKBigI017119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50518 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754886Ab1EZTi4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758320Ab1EZUM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 15:38:56 -0400
+	Thu, 26 May 2011 16:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-roman.borisov@nokia.com, cebbert@redhat.com, hch@lst.de, vda.linux@googlemail.com, viro@zeniv.linux.org.uk, virtuoso@slind.org, mm-commits@vger.kernel.org
+To: wad@chromium.org, ebiederm@xmission.com, nhorman@tuxdriver.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/namespace.c: bound mount propagation fix
+     fs/exec.c: provide the correct process pid to the pipe helper
 has been removed from the -mm tree.  Its filename was
-     fs-namespacec-bound-mount-propagation-fix.patch
+     fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/namespace.c: bound mount propagation fix
-From: Roman Borisov <ext-roman.borisov@nokia.com>
+Subject: fs/exec.c: provide the correct process pid to the pipe helper
+From: Will Drewry <wad@chromium.org>
 
-This issue was discovered by users of busybox.  And the bug is actual for
-busybox users, I don't know how it affects others.  Apparently, mount is
-called with and without MS_SILENT, and this affects mount() behaviour. 
-But MS_SILENT is only supposed to affect kernel logging verbosity.
+format_corename() uses task_tgid_vnr to provide the numeric pid of a
+core-dumping process.  For file-based coredumps, this is perfectly
+satisfactory.  However, when the core_pattern contains a pipe, the
+substituted PID is invalid in the namespace of the core_pattern pipe
+helper, the init namespace.
 
-The following script was run in an empty test directory:
+By changing this, any core collector may now find the process in the init
+namespace /proc.  This helps with VFS namespacing too since the mount root
+is available via /proc.  Unfortunately, it does not help in cases of more
+complex namespacing, like net namespaces.  For that, the helper thread
+will need to be migrated to the core-dump namespaces.
 
-mkdir -p mount.dir mount.shared1 mount.shared2
-touch mount.dir/a mount.dir/b
-mount -vv --bind         mount.shared1 mount.shared1
-mount -vv --make-rshared mount.shared1
-mount -vv --bind         mount.shared2 mount.shared2
-mount -vv --make-rshared mount.shared2
-mount -vv --bind mount.shared2 mount.shared1
-mount -vv --bind mount.dir     mount.shared2
-ls -R mount.dir mount.shared1 mount.shared2
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-rm -f mount.dir/a mount.dir/b mount.dir/c
-rmdir mount.dir mount.shared1 mount.shared2
+I have a separate patch series which implements migrating the
+____call_usermodehelper thread to the coredump namespace, but it adds a
+fair amount of complexity which might be better handled by someone who
+understands that code.  I'm happy to mail it out as well though (it works,
+but I don't assign a namespaced pid which may open up issues on its own).
 
-
-mount -vv was used to show the mount() call arguments and result.
-Output shows that flag argument has 0x00008000 = MS_SILENT bit:
-
-mount: mount('mount.shared1','mount.shared1','(null)',0x00009000,'(null)'):0
-mount: mount('','mount.shared1','',0x0010c000,''):0
-mount: mount('mount.shared2','mount.shared2','(null)',0x00009000,'(null)'):0
-mount: mount('','mount.shared2','',0x0010c000,''):0
-mount: mount('mount.shared2','mount.shared1','(null)',0x00009000,'(null)'):0
-mount: mount('mount.dir','mount.shared2','(null)',0x00009000,'(null)'):0
-mount.dir:
-a
-b
-
-mount.shared1:
-
-mount.shared2:
-a
-b
-
-
-After adding --loud option to remove MS_SILENT bit from just one mount cmd:
-
-mkdir -p mount.dir mount.shared1 mount.shared2
-touch mount.dir/a mount.dir/b
-mount -vv --bind         mount.shared1 mount.shared1 2>&1
-mount -vv --make-rshared mount.shared1               2>&1
-mount -vv --bind         mount.shared2 mount.shared2 2>&1
-mount -vv --loud --make-rshared mount.shared2               2>&1  # <-HERE
-mount -vv --bind mount.shared2 mount.shared1         2>&1
-mount -vv --bind mount.dir     mount.shared2         2>&1
-ls -R mount.dir mount.shared1 mount.shared2      2>&1
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-umount mount.dir mount.shared1 mount.shared2 2>/dev/null
-rm -f mount.dir/a mount.dir/b mount.dir/c
-rmdir mount.dir mount.shared1 mount.shared2
-
-
-The result is different now - look closely at mount.shared1 directory listing.
-Now it does show files 'a' and 'b':
-
-mount: mount('mount.shared1','mount.shared1','(null)',0x00009000,'(null)'):0
-mount: mount('','mount.shared1','',0x0010c000,''):0
-mount: mount('mount.shared2','mount.shared2','(null)',0x00009000,'(null)'):0
-mount: mount('','mount.shared2','',0x00104000,''):0
-mount: mount('mount.shared2','mount.shared1','(null)',0x00009000,'(null)'):0
-mount: mount('mount.dir','mount.shared2','(null)',0x00009000,'(null)'):0
-
-mount.dir:
-a
-b
-
-mount.shared1:
-a
-b
-
-mount.shared2:
-a
-b
-
-The analysis shows that MS_SILENT flag which is ON by default in any
-busybox-> mount operations cames to flags_to_propagation_type function and
-causes the error return while is_power_of_2 checking because the function
-expects only one bit set.  This doesn't allow to do busybox->mount with
-any --make-[r]shared, --make-[r]private etc options.
-
-Moreover, the recently added flags_to_propagation_type() function doesn't
-allow us to do such operations as --make-[r]private --make-[r]shared etc. 
-when MS_SILENT is on.  The idea or clearing the MS_SILENT flag came from
-to Denys Vlasenko.
-
-Signed-off-by: Roman Borisov <ext-roman.borisov@nokia.com>
-Reported-by: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Will Drewry <wad@chromium.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/namespace.c~fs-namespacec-bound-mount-propagation-fix fs/namespace.c
---- a/fs/namespace.c~fs-namespacec-bound-mount-propagation-fix
-+++ a/fs/namespace.c
-@@ -1695,7 +1695,7 @@ static int graft_tree(struct vfsmount *m
+diff -puN fs/exec.c~fs-execc-provide-the-correct-process-pid-to-the-pipe-helper fs/exec.c
+--- a/fs/exec.c~fs-execc-provide-the-correct-process-pid-to-the-pipe-helper
++++ a/fs/exec.c
+@@ -1601,6 +1601,13 @@ static int format_corename(struct core_n
+ 	int ispipe = (*pat_ptr == '|');
+ 	int pid_in_pattern = 0;
+ 	int err = 0;
++	pid_t pid = task_tgid_vnr(current);
++
++	/* The pipe helper runs in the init namespace and should
++	 * receive the matching pid until that changes.
++	 */
++	if (ispipe)
++		pid = task_tgid_nr(current);
  
- static int flags_to_propagation_type(int flags)
- {
--	int type = flags & ~MS_REC;
-+	int type = flags & ~(MS_REC | MS_SILENT);
- 
- 	/* Fail if any non-propagation flags are set */
- 	if (type & ~(MS_SHARED | MS_PRIVATE | MS_SLAVE | MS_UNBINDABLE))
+ 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
+ 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
+@@ -1628,8 +1635,7 @@ static int format_corename(struct core_n
+ 			/* pid */
+ 			case 'p':
+ 				pid_in_pattern = 1;
+-				err = cn_printf(cn, "%d",
+-					      task_tgid_vnr(current));
++				err = cn_printf(cn, "%d", pid);
+ 				break;
+ 			/* uid */
+ 			case 'u':
+@@ -1691,7 +1697,7 @@ static int format_corename(struct core_n
+ 	 * and core_uses_pid is set, then .%pid will be appended to
+ 	 * the filename. Do not do this for piped commands. */
+ 	if (!ispipe && !pid_in_pattern && core_uses_pid) {
+-		err = cn_printf(cn, ".%d", task_tgid_vnr(current));
++		err = cn_printf(cn, ".%d", pid);
+ 		if (err)
+ 			return err;
+ 	}
 _
 
-Patches currently in -mm which might be from ext-roman.borisov@nokia.com are
+Patches currently in -mm which might be from wad@chromium.org are
 
-origin.patch
 
