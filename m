@@ -1,99 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch removed from -mm tree
-Date: Thu, 26 May 2011 13:11:44 -0700
-Message-ID: <201105262011.p4QKBigI017119@imap1.linux-foundation.org>
+Subject: + include-linux-hugetlbh-needs-mm_typesh.patch added to -mm tree
+Date: Thu, 26 May 2011 13:25:37 -0700
+Message-ID: <201105262102.p4QL2Pkg019906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758320Ab1EZUM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755056Ab1EZVC3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 16:12:26 -0400
+	Thu, 26 May 2011 17:02:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wad@chromium.org, ebiederm@xmission.com, nhorman@tuxdriver.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     fs/exec.c: provide the correct process pid to the pipe helper
-has been removed from the -mm tree.  Its filename was
-     fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
+     include/linux/hugetlb.h needs mm_types.h
+has been added to the -mm tree.  Its filename is
+     include-linux-hugetlbh-needs-mm_typesh.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: provide the correct process pid to the pipe helper
-From: Will Drewry <wad@chromium.org>
+Subject: include/linux/hugetlb.h needs mm_types.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-format_corename() uses task_tgid_vnr to provide the numeric pid of a
-core-dumping process.  For file-based coredumps, this is perfectly
-satisfactory.  However, when the core_pattern contains a pipe, the
-substituted PID is invalid in the namespace of the core_pattern pipe
-helper, the init namespace.
+x86_64 allnoconfig:
 
-By changing this, any core collector may now find the process in the init
-namespace /proc.  This helps with VFS namespacing too since the mount root
-is available via /proc.  Unfortunately, it does not help in cases of more
-complex namespacing, like net namespaces.  For that, the helper thread
-will need to be migrated to the core-dump namespaces.
+In file included from fs/proc/meminfo.c:2:
+include/linux/hugetlb.h:195: error: expected declaration specifiers or '...' before 'vm_flags_t'
 
-I have a separate patch series which implements migrating the
-____call_usermodehelper thread to the coredump namespace, but it adds a
-fair amount of complexity which might be better handled by someone who
-understands that code.  I'm happy to mail it out as well though (it works,
-but I don't assign a namespaced pid which may open up issues on its own).
-
-Signed-off-by: Will Drewry <wad@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/exec.c~fs-execc-provide-the-correct-process-pid-to-the-pipe-helper fs/exec.c
---- a/fs/exec.c~fs-execc-provide-the-correct-process-pid-to-the-pipe-helper
-+++ a/fs/exec.c
-@@ -1601,6 +1601,13 @@ static int format_corename(struct core_n
- 	int ispipe = (*pat_ptr == '|');
- 	int pid_in_pattern = 0;
- 	int err = 0;
-+	pid_t pid = task_tgid_vnr(current);
-+
-+	/* The pipe helper runs in the init namespace and should
-+	 * receive the matching pid until that changes.
-+	 */
-+	if (ispipe)
-+		pid = task_tgid_nr(current);
+diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-needs-mm_typesh include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-needs-mm_typesh
++++ a/include/linux/hugetlb.h
+@@ -1,6 +1,7 @@
+ #ifndef _LINUX_HUGETLB_H
+ #define _LINUX_HUGETLB_H
  
- 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
- 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
-@@ -1628,8 +1635,7 @@ static int format_corename(struct core_n
- 			/* pid */
- 			case 'p':
- 				pid_in_pattern = 1;
--				err = cn_printf(cn, "%d",
--					      task_tgid_vnr(current));
-+				err = cn_printf(cn, "%d", pid);
- 				break;
- 			/* uid */
- 			case 'u':
-@@ -1691,7 +1697,7 @@ static int format_corename(struct core_n
- 	 * and core_uses_pid is set, then .%pid will be appended to
- 	 * the filename. Do not do this for piped commands. */
- 	if (!ispipe && !pid_in_pattern && core_uses_pid) {
--		err = cn_printf(cn, ".%d", task_tgid_vnr(current));
-+		err = cn_printf(cn, ".%d", pid);
- 		if (err)
- 			return err;
- 	}
++#include <linux/mm_types.h>
+ #include <linux/fs.h>
+ #include <linux/hugetlb_inline.h>
+ 
 _
 
-Patches currently in -mm which might be from wad@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+include-linux-hugetlbh-needs-mm_typesh.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
+ufs-truncated-values-handling-64-bit-metadata-fix.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
+add-the-pagefault-count-into-memcg-stats.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
 
