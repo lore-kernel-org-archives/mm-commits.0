@@ -1,108 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch removed from -mm tree
-Date: Thu, 26 May 2011 12:40:16 -0700
-Message-ID: <201105261938.p4QJcVJL015308@imap1.linux-foundation.org>
+Subject: [merged] fs-namespacec-bound-mount-propagation-fix.patch removed from -mm tree
+Date: Thu, 26 May 2011 12:40:19 -0700
+Message-ID: <201105261938.p4QJcYXE015311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58471 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754886Ab1EZTik (ORCPT
+	by vger.kernel.org with ESMTP id S1754886Ab1EZTi4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 15:38:40 -0400
+	Thu, 26 May 2011 15:38:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agust@denx.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: ext-roman.borisov@nokia.com, cebbert@redhat.com, hch@lst.de, vda.linux@googlemail.com, viro@zeniv.linux.org.uk, virtuoso@slind.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/mb862xx/mb862xx-i2c.c needs delay.h
+     fs/namespace.c: bound mount propagation fix
 has been removed from the -mm tree.  Its filename was
-     drivers-video-mb862xx-mb862xx-i2cc-needs-delayh.patch
+     fs-namespacec-bound-mount-propagation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/mb862xx/mb862xx-i2c.c needs delay.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/namespace.c: bound mount propagation fix
+From: Roman Borisov <ext-roman.borisov@nokia.com>
 
-x86_64 allmodconfig:
+This issue was discovered by users of busybox.  And the bug is actual for
+busybox users, I don't know how it affects others.  Apparently, mount is
+called with and without MS_SILENT, and this affects mount() behaviour. 
+But MS_SILENT is only supposed to affect kernel logging verbosity.
 
-drivers/video/mb862xx/mb862xx-i2c.c: In function 'mb862xx_i2c_wait_event':
-drivers/video/mb862xx/mb862xx-i2c.c:25: error: implicit declaration of function 'udelay'
+The following script was run in an empty test directory:
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Anatolij Gustschin <agust@denx.de>
+mkdir -p mount.dir mount.shared1 mount.shared2
+touch mount.dir/a mount.dir/b
+mount -vv --bind         mount.shared1 mount.shared1
+mount -vv --make-rshared mount.shared1
+mount -vv --bind         mount.shared2 mount.shared2
+mount -vv --make-rshared mount.shared2
+mount -vv --bind mount.shared2 mount.shared1
+mount -vv --bind mount.dir     mount.shared2
+ls -R mount.dir mount.shared1 mount.shared2
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+rm -f mount.dir/a mount.dir/b mount.dir/c
+rmdir mount.dir mount.shared1 mount.shared2
+
+
+mount -vv was used to show the mount() call arguments and result.
+Output shows that flag argument has 0x00008000 = MS_SILENT bit:
+
+mount: mount('mount.shared1','mount.shared1','(null)',0x00009000,'(null)'):0
+mount: mount('','mount.shared1','',0x0010c000,''):0
+mount: mount('mount.shared2','mount.shared2','(null)',0x00009000,'(null)'):0
+mount: mount('','mount.shared2','',0x0010c000,''):0
+mount: mount('mount.shared2','mount.shared1','(null)',0x00009000,'(null)'):0
+mount: mount('mount.dir','mount.shared2','(null)',0x00009000,'(null)'):0
+mount.dir:
+a
+b
+
+mount.shared1:
+
+mount.shared2:
+a
+b
+
+
+After adding --loud option to remove MS_SILENT bit from just one mount cmd:
+
+mkdir -p mount.dir mount.shared1 mount.shared2
+touch mount.dir/a mount.dir/b
+mount -vv --bind         mount.shared1 mount.shared1 2>&1
+mount -vv --make-rshared mount.shared1               2>&1
+mount -vv --bind         mount.shared2 mount.shared2 2>&1
+mount -vv --loud --make-rshared mount.shared2               2>&1  # <-HERE
+mount -vv --bind mount.shared2 mount.shared1         2>&1
+mount -vv --bind mount.dir     mount.shared2         2>&1
+ls -R mount.dir mount.shared1 mount.shared2      2>&1
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+umount mount.dir mount.shared1 mount.shared2 2>/dev/null
+rm -f mount.dir/a mount.dir/b mount.dir/c
+rmdir mount.dir mount.shared1 mount.shared2
+
+
+The result is different now - look closely at mount.shared1 directory listing.
+Now it does show files 'a' and 'b':
+
+mount: mount('mount.shared1','mount.shared1','(null)',0x00009000,'(null)'):0
+mount: mount('','mount.shared1','',0x0010c000,''):0
+mount: mount('mount.shared2','mount.shared2','(null)',0x00009000,'(null)'):0
+mount: mount('','mount.shared2','',0x00104000,''):0
+mount: mount('mount.shared2','mount.shared1','(null)',0x00009000,'(null)'):0
+mount: mount('mount.dir','mount.shared2','(null)',0x00009000,'(null)'):0
+
+mount.dir:
+a
+b
+
+mount.shared1:
+a
+b
+
+mount.shared2:
+a
+b
+
+The analysis shows that MS_SILENT flag which is ON by default in any
+busybox-> mount operations cames to flags_to_propagation_type function and
+causes the error return while is_power_of_2 checking because the function
+expects only one bit set.  This doesn't allow to do busybox->mount with
+any --make-[r]shared, --make-[r]private etc options.
+
+Moreover, the recently added flags_to_propagation_type() function doesn't
+allow us to do such operations as --make-[r]private --make-[r]shared etc. 
+when MS_SILENT is on.  The idea or clearing the MS_SILENT flag came from
+to Denys Vlasenko.
+
+Signed-off-by: Roman Borisov <ext-roman.borisov@nokia.com>
+Reported-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Alexander Shishkin <virtuoso@slind.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xx-i2c.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/mb862xx/mb862xx-i2c.c~drivers-video-mb862xx-mb862xx-i2cc-needs-delayh drivers/video/mb862xx/mb862xx-i2c.c
---- a/drivers/video/mb862xx/mb862xx-i2c.c~drivers-video-mb862xx-mb862xx-i2cc-needs-delayh
-+++ a/drivers/video/mb862xx/mb862xx-i2c.c
-@@ -12,6 +12,7 @@
- #include <linux/fb.h>
- #include <linux/i2c.h>
- #include <linux/io.h>
-+#include <linux/delay.h>
+diff -puN fs/namespace.c~fs-namespacec-bound-mount-propagation-fix fs/namespace.c
+--- a/fs/namespace.c~fs-namespacec-bound-mount-propagation-fix
++++ a/fs/namespace.c
+@@ -1695,7 +1695,7 @@ static int graft_tree(struct vfsmount *m
  
- #include "mb862xxfb.h"
- #include "mb862xx_reg.h"
+ static int flags_to_propagation_type(int flags)
+ {
+-	int type = flags & ~MS_REC;
++	int type = flags & ~(MS_REC | MS_SILENT);
+ 
+ 	/* Fail if any non-propagation flags are set */
+ 	if (type & ~(MS_SHARED | MS_PRIVATE | MS_SLAVE | MS_UNBINDABLE))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ext-roman.borisov@nokia.com are
 
 origin.patch
-drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
-drivers-bcma-host_pcic-needs-slabh.patch
-drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region-fix.patch
-drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch-fix.patch
-ufs-truncated-values-handling-64-bit-metadata-fix.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-m68k-merge-mmu-and-non-mmu-bitopsh.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-mtd-convert-to-seq_file-interface.patch
-rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
-slab-use-numa_no_node.patch
-mm.patch
-writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-documentation-accounting-getdelaysc-handle-sendto-failures.patch
-documentation-configfs-examples-crash-fix-checkpatch-fixes.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-fix.patch
-add-the-pagefault-count-into-memcg-stats.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops-fix.patch
-kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
