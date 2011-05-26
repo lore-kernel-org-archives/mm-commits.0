@@ -1,112 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [folded] w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.patch removed from -mm tree
-Date: Thu, 26 May 2011 16:19:40 -0700
-Message-ID: <201105262319.p4QNJecQ026492@imap1.linux-foundation.org>
+Subject: [folded] w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch removed from -mm tree
+Date: Thu, 26 May 2011 16:20:17 -0700
+Message-ID: <201105262320.p4QNKHZB026555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754820Ab1EZXUJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754820Ab1EZXUe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 19:20:09 -0400
+	Thu, 26 May 2011 19:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cabarnes@indesign-llc.com, haojian.zhuang@gmail.com, johnpol@2ka.mipt.ru, ryan@bluewatersys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: fix w1_ds2408.c printk formats
+     w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix
 has been removed from the -mm tree.  Its filename was
-     w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support-fix.p=
-atch
+     w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix.patch
 
-This patch was dropped because it was folded into w1-add-1-wire-w1-ds24=
-08-8-channel-addressable-switch-support.patch
+This patch was dropped because it was folded into w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: fix w1_ds2408.c printk formats
-=46rom: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-=46ix printk format warnings (on i386):
-(in w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch)
+use min_t()
 
-drivers/w1/slaves/w1_ds2408.c:79: warning: format '%lu' expects type 'l=
-ong unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:92: warning: format '%lu' expects type 'l=
-ong unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:106: warning: format '%lu' expects type '=
-long unsigned int', but argument 7 has type 'size_t'
-drivers/w1/slaves/w1_ds2408.c:120: warning: format '%lu' expects type '=
-long unsigned int', but argument 7 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Cc: Clifton Barnes <cabarnes@indesign-llc.com>
 Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
-Cc: Matt Reimer <mreimer@vpop.net>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Ryan Mallon <ryan@bluewatersys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2408.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/power/ds2780_battery.c |    8 ++++----
+ drivers/w1/slaves/w1_ds2780.c  |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-chann=
-el-addressable-switch-support-fix drivers/w1/slaves/w1_ds2408.c
---- a/drivers/w1/slaves/w1_ds2408.c~w1-add-1-wire-w1-ds2408-8-channel-a=
-ddressable-switch-support-fix
-+++ a/drivers/w1/slaves/w1_ds2408.c
-@@ -77,7 +77,7 @@ static ssize_t w1_f29_read_state(
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -90,7 +90,7 @@ static ssize_t w1_f29_read_output(
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -104,7 +104,7 @@ static ssize_t w1_f29_read_activity(
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
-@@ -118,7 +118,7 @@ static ssize_t w1_f29_read_cond_search_m
- 	char *buf, loff_t off, size_t count)
- {
- 	dev_dbg(&kobj_to_w1_slave(kobj)->dev,
--		"Reading %s kobj: %p, off: %0#10x, count: %lu, buff addr: %p",
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
- 		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
- 	if (count !=3D 1 || off !=3D 0)
- 		return -EFAULT;
+diff -puN drivers/power/ds2780_battery.c~w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix drivers/power/ds2780_battery.c
+--- a/drivers/power/ds2780_battery.c~w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix
++++ a/drivers/power/ds2780_battery.c
+@@ -628,7 +628,7 @@ static ssize_t ds2780_read_param_eeprom_
+ 	struct power_supply *psy = to_power_supply(dev);
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 
+-	count = min((loff_t)count,
++	count = min_t(loff_t, count,
+ 		DS2780_EEPROM_BLOCK1_END -
+ 		DS2780_EEPROM_BLOCK1_START + 1 - off);
+ 
+@@ -646,7 +646,7 @@ static ssize_t ds2780_write_param_eeprom
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 	int ret;
+ 
+-	count = min((loff_t)count,
++	count = min_t(loff_t, count,
+ 		DS2780_EEPROM_BLOCK1_END -
+ 		DS2780_EEPROM_BLOCK1_START + 1 - off);
+ 
+@@ -681,7 +681,7 @@ static ssize_t ds2780_read_user_eeprom_b
+ 	struct power_supply *psy = to_power_supply(dev);
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 
+-	count = min((loff_t)count,
++	count = min_t(loff_t, count,
+ 		DS2780_EEPROM_BLOCK0_END -
+ 		DS2780_EEPROM_BLOCK0_START + 1 - off);
+ 
+@@ -700,7 +700,7 @@ static ssize_t ds2780_write_user_eeprom_
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 	int ret;
+ 
+-	count = min((loff_t)count,
++	count = min_t(loff_t, count,
+ 		DS2780_EEPROM_BLOCK0_END -
+ 		DS2780_EEPROM_BLOCK0_START + 1 - off);
+ 
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support-v3-fix
++++ a/drivers/w1/slaves/w1_ds2780.c
+@@ -40,7 +40,7 @@ int w1_ds2780_io(struct device *dev, cha
+ 		count = 0;
+ 		goto out;
+ 	}
+-	count = min((int)count, DS2780_DATA_SIZE - addr);
++	count = min_t(int, count, DS2780_DATA_SIZE - addr);
+ 
+ 	if (w1_reset_select_slave(sl) == 0) {
+ 		if (io) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com ar=
-e
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-w1-add-1-wire-w1-ds2408-8-channel-addressable-switch-support.patch
+drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
+drivers-bcma-host_pcic-needs-slabh.patch
+include-linux-hugetlbh-needs-mm_typesh.patch
+drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
+drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch
+ufs-truncated-values-handling-64-bit-metadata.patch
+documentation-accounting-getdelaysc-handle-sendto-failures.patch
+documentation-configfs-examples-crash-fix.patch
+mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
+memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+add-the-pagefault-count-into-memcg-stats.patch
+fs-partitions-efic-corrupted-guid-partition-tables-can-cause-kernel-oops.patch
+kernel-profilec-remove-some-duplicate-code-from-profile_hits-fix.patch
+w1-add-maxim-dallas-ds2780-stand-alone-fuel-gauge-ic-support.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
