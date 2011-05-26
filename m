@@ -1,122 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-add-memorynumastat-api-for-numa-statistics-v5.patch removed from -mm tree
-Date: Thu, 26 May 2011 16:18:27 -0700
-Message-ID: <201105262318.p4QNIRNC026453@imap1.linux-foundation.org>
+Subject: [folded] coredump-escape-in-hostname-and-comm-fix.patch removed from -mm tree
+Date: Thu, 26 May 2011 16:18:49 -0700
+Message-ID: <201105262318.p4QNInOV026457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754362Ab1EZXSj (ORCPT
+	by vger.kernel.org with ESMTP id S1754820Ab1EZXTN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 May 2011 19:18:39 -0400
+	Thu, 26 May 2011 19:19:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-add-memorynumastat-api-for-numa-statistics-v5
+     coredump: escape / in hostname and comm fix
 has been removed from the -mm tree.  Its filename was
-     memcg-add-memorynumastat-api-for-numa-statistics-v5.patch
+     coredump-escape-in-hostname-and-comm-fix.patch
 
-This patch was dropped because it was folded into memcg-add-memorynumastat-api-for-numa-statistics.patch
+This patch was dropped because it was folded into coredump-escape-in-hostname-and-comm.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-memorynumastat-api-for-numa-statistics-v5
-From: Ying Han <yinghan@google.com>
+Subject: coredump: escape / in hostname and comm fix
+From: Jiri Slaby <jslaby@suse.cz>
 
-1. disable the API non-NUMA kernel.
+Escape comm also in failing %E case.
 
-Signed-off-by: Ying Han <yinghan@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/exec.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-memorynumastat-api-for-numa-statistics-v5 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-memorynumastat-api-for-numa-statistics-v5
-+++ a/mm/memcontrol.c
-@@ -1089,6 +1089,7 @@ unsigned long mem_cgroup_zone_nr_lru_pag
- 	return MEM_CGROUP_ZSTAT(mz, lru);
- }
+diff -puN fs/exec.c~coredump-escape-in-hostname-and-comm-fix fs/exec.c
+--- a/fs/exec.c~coredump-escape-in-hostname-and-comm-fix
++++ a/fs/exec.c
+@@ -1563,8 +1563,8 @@ static int cn_print_exe_file(struct core
+ 	exe_file = get_mm_exe_file(current->mm);
+ 	if (!exe_file) {
+ 		char comm[TASK_COMM_LEN];
+-		return cn_printf(cn, "%s (path unknown)", get_task_comm(comm,
+-					current));
++		cn_escape(get_task_comm(comm, current));
++		return cn_printf(cn, "%s (path unknown)", comm);
+ 	}
  
-+#ifdef CONFIG_NUMA
- static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
- 							int nid)
- {
-@@ -1173,6 +1174,7 @@ static unsigned long mem_cgroup_nr_lru_p
- 
- 	return total;
- }
-+#endif /* CONFIG_NUMA */
- 
- struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
- 						      struct zone *zone)
-@@ -4029,6 +4031,7 @@ mem_cgroup_get_total_stat(struct mem_cgr
- 		mem_cgroup_get_local_stat(iter, s);
- }
- 
-+#ifdef CONFIG_NUMA
- static int mem_control_numa_stat_show(struct seq_file *m, void *arg)
- {
- 	int nid;
-@@ -4071,6 +4074,7 @@ static int mem_control_numa_stat_show(st
- 	seq_putc(m, '\n');
- 	return 0;
- }
-+#endif /* CONFIG_NUMA */
- 
- static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
- 				 struct cgroup_map_cb *cb)
-@@ -4506,6 +4510,7 @@ static int mem_cgroup_oom_control_write(
- 	return 0;
- }
- 
-+#ifdef CONFIG_NUMA
- static const struct file_operations mem_control_numa_stat_file_operations = {
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-@@ -4519,6 +4524,7 @@ static int mem_control_numa_stat_open(st
- 	file->f_op = &mem_control_numa_stat_file_operations;
- 	return single_open(file, mem_control_numa_stat_show, cont);
- }
-+#endif /* CONFIG_NUMA */
- 
- static struct cftype mem_cgroup_files[] = {
- 	{
-@@ -4583,10 +4589,12 @@ static struct cftype mem_cgroup_files[] 
- 		.unregister_event = mem_cgroup_oom_unregister_event,
- 		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
- 	},
-+#ifdef CONFIG_NUMA
- 	{
- 		.name = "numa_stat",
- 		.open = mem_control_numa_stat_open,
- 	},
-+#endif
- };
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ 	pathbuf = kmalloc(PATH_MAX, GFP_TEMPORARY);
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 origin.patch
-mm-move-enum-vm_event_item-into-a-standalone-header-file.patch
-memcg-count-the-soft_limit-reclaim-in-global-background-reclaim.patch
-memcg-add-the-soft_limit-reclaim-in-global-direct-reclaim.patch
-memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
-memcg-fix-get_scan_count-for-small-targets.patch
-memcg-remove-unused-retry-signal-from-reclaim.patch
-memcg-rename-mem_cgroup_zone_nr_pages-to-mem_cgroup_zone_nr_lru_pages.patch
-memcg-add-memorynumastat-api-for-numa-statistics.patch
-add-the-pagefault-count-into-memcg-stats.patch
+documentation-configfs-examples-crash-fix.patch
+mm-extract-exe_file-handling-from-procfs.patch
+coredump-add-support-for-exe_file-in-core-name.patch
+coredump-use-get_task_comm-for-%e-filename-format.patch
+coredump-use-task-comm-instead-of-unknown.patch
+coredump-escape-in-hostname-and-comm.patch
 
