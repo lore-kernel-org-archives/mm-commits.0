@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch added to -mm tree
-Date: Fri, 27 May 2011 15:24:54 -0700
-Message-ID: <201105272224.p4RMOseG024993@imap1.linux-foundation.org>
+Subject: + xattr-fix-error-results-for-non-existent-invisible-attributes.patch added to -mm tree
+Date: Fri, 27 May 2011 15:30:06 -0700
+Message-ID: <201105272230.p4RMU6AT025227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161Ab1E0WZP (ORCPT
+	by vger.kernel.org with ESMTP id S1753396Ab1E0Wa2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 18:25:15 -0400
+	Fri, 27 May 2011 18:30:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agruen@kernel.org, axboe@kernel.dk
+Cc: agruen@kernel.org, eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     block: improve the bio_add_page() and bio_add_pc_page() descriptions
+     xattr: fix error results for non-existent / invisible attributes
 has been added to the -mm tree.  Its filename is
-     block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch
+     xattr-fix-error-results-for-non-existent-invisible-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: improve the bio_add_page() and bio_add_pc_page() descriptions
+Subject: xattr: fix error results for non-existent / invisible attributes
 From: Andreas Gruenbacher <agruen@kernel.org>
 
-The descriptions of bio_add_page() and bio_add_pc_page() are slightly
-inconsistent; improve them.
+Return -ENODATA when trying to read a user.* attribute which cannot exist:
+user space otherwise does not have a reasonable way to distinguish between
+non-existent and inaccessible attributes.
+
+Likewise, return -ENODATA when an unprivileged process tries to read a
+trusted.* attribute: to unprivileged processes, those attributes are
+invisible (listxattr() won't include them).
+
+Related to this bug report: https://bugzilla.redhat.com/660613
 
 Signed-off-by: Andreas Gruenbacher <agruen@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/xattr.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions fs/bio.c
---- a/fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions
-+++ a/fs/bio.c
-@@ -638,10 +638,11 @@ static int __bio_add_page(struct request
-  *	@offset: vec entry offset
-  *
-  *	Attempt to add a page to the bio_vec maplist. This can fail for a
-- *	number of reasons, such as the bio being full or target block
-- *	device limitations. The target block device must allow bio's
-- *      smaller than PAGE_SIZE, so it is always possible to add a single
-- *      page to an empty bio. This should only be used by REQ_PC bios.
-+ *	number of reasons, such as the bio being full or target block device
-+ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
-+ *	so it is always possible to add a single page to an empty bio.
-+ *
-+ *	This should only be used by REQ_PC bios.
-  */
- int bio_add_pc_page(struct request_queue *q, struct bio *bio, struct page *page,
- 		    unsigned int len, unsigned int offset)
-@@ -659,10 +660,9 @@ EXPORT_SYMBOL(bio_add_pc_page);
-  *	@offset: vec entry offset
-  *
-  *	Attempt to add a page to the bio_vec maplist. This can fail for a
-- *	number of reasons, such as the bio being full or target block
-- *	device limitations. The target block device must allow bio's
-- *      smaller than PAGE_SIZE, so it is always possible to add a single
-- *      page to an empty bio.
-+ *	number of reasons, such as the bio being full or target block device
-+ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
-+ *	so it is always possible to add a single page to an empty bio.
-  */
- int bio_add_page(struct bio *bio, struct page *page, unsigned int len,
- 		 unsigned int offset)
+diff -puN fs/xattr.c~xattr-fix-error-results-for-non-existent-invisible-attributes fs/xattr.c
+--- a/fs/xattr.c~xattr-fix-error-results-for-non-existent-invisible-attributes
++++ a/fs/xattr.c
+@@ -46,18 +46,22 @@ xattr_permission(struct inode *inode, co
+ 		return 0;
+ 
+ 	/*
+-	 * The trusted.* namespace can only be accessed by a privileged user.
++	 * The trusted.* namespace can only be accessed by privileged users.
+ 	 */
+-	if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN))
+-		return (capable(CAP_SYS_ADMIN) ? 0 : -EPERM);
++	if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN)) {
++		if (!capable(CAP_SYS_ADMIN))
++			return (mask & MAY_WRITE) ? -EPERM : -ENODATA;
++		return 0;
++	}
+ 
+-	/* In user.* namespace, only regular files and directories can have
++	/*
++	 * In the user.* namespace, only regular files and directories can have
+ 	 * extended attributes. For sticky directories, only the owner and
+-	 * privileged user can write attributes.
++	 * privileged users can write attributes.
+ 	 */
+ 	if (!strncmp(name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN)) {
+ 		if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
+-			return -EPERM;
++			return (mask & MAY_WRITE) ? -EPERM : -ENODATA;
+ 		if (S_ISDIR(inode->i_mode) && (inode->i_mode & S_ISVTX) &&
+ 		    (mask & MAY_WRITE) && !inode_owner_or_capable(inode))
+ 			return -EPERM;
 _
 
 Patches currently in -mm which might be from agruen@kernel.org are
 
 block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch
+xattr-fix-error-results-for-non-existent-invisible-attributes.patch
 
