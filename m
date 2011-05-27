@@ -1,98 +1,308 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-remove-redundant-declaration.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:56:56 -0700
-Message-ID: <201105271955.p4RJt1vo017417@imap1.linux-foundation.org>
+Subject: [merged] rtc-add-basic-support-for-st-m41t93-spi-rtc.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:57:08 -0700
+Message-ID: <201105271955.p4RJtDc0017435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751411Ab1E0Tzo (ORCPT
+	by vger.kernel.org with ESMTP id S1753968Ab1E0Tzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:55:44 -0400
+	Fri, 27 May 2011 15:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: N.Voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca, n.voss@weinmann.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: remove redundant declaration
+     rtc: add basic support for ST M41T93 SPI RTC
 has been removed from the -mm tree.  Its filename was
-     m32r-remove-redundant-declaration.patch
+     rtc-add-basic-support-for-st-m41t93-spi-rtc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove redundant declaration
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: rtc: add basic support for ST M41T93 SPI RTC
+From: "Voss, Nikolaus" <N.Voss@weinmann.de>
 
-They have no meaning.
+Add basic support for ST m41t93 SPI RTCs.  Tested with factory-new and
+with "run-in" species with and without backup batteries.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/smp.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/rtc/Kconfig      |    9 +
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-m41t93.c |  225 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 235 insertions(+)
 
-diff -puN arch/m32r/kernel/smp.c~m32r-remove-redundant-declaration arch/m32r/kernel/smp.c
---- a/arch/m32r/kernel/smp.c~m32r-remove-redundant-declaration
-+++ a/arch/m32r/kernel/smp.c
-@@ -30,6 +30,7 @@
- #include <asm/io.h>
- #include <asm/mmu_context.h>
- #include <asm/m32r.h>
-+#include <asm/tlbflush.h>
+diff -puN drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-basic-support-for-st-m41t93-spi-rtc
++++ a/drivers/rtc/Kconfig
+@@ -375,6 +375,15 @@ comment "SPI RTC drivers"
  
- /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
- /* Data structures and variables                                             */
-@@ -61,27 +62,17 @@ extern spinlock_t ipi_lock[];
- /* Function Prototypes                                                       */
- /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ if SPI_MASTER
  
--void smp_send_reschedule(int);
- void smp_reschedule_interrupt(void);
--
--void smp_flush_cache_all(void);
- void smp_flush_cache_all_interrupt(void);
- 
--void smp_flush_tlb_all(void);
- static void flush_tlb_all_ipi(void *);
--
--void smp_flush_tlb_mm(struct mm_struct *);
--void smp_flush_tlb_range(struct vm_area_struct *, unsigned long, \
--	unsigned long);
--void smp_flush_tlb_page(struct vm_area_struct *, unsigned long);
- static void flush_tlb_others(cpumask_t, struct mm_struct *,
- 	struct vm_area_struct *, unsigned long);
++config RTC_DRV_M41T93
++        tristate "ST M41T93"
++        help
++          If you say yes here you will get support for the
++          ST M41T93 SPI RTC chip.
 +
- void smp_invalidate_interrupt(void);
- 
--void smp_send_stop(void);
- static void stop_this_cpu(void *);
- 
--void smp_send_timer(void);
- void smp_ipi_timer_interrupt(struct pt_regs *);
- void smp_local_timer_interrupt(void);
- 
++          This driver can also be built as a module. If so, the module
++          will be called rtc-m41t93.
++
+ config RTC_DRV_M41T94
+ 	tristate "ST M41T94"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-basic-support-for-st-m41t93-spi-rtc
++++ a/drivers/rtc/Makefile
+@@ -53,6 +53,7 @@ obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-is
+ obj-$(CONFIG_RTC_DRV_JZ4740)	+= rtc-jz4740.o
+ obj-$(CONFIG_RTC_DRV_LPC32XX)	+= rtc-lpc32xx.o
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
++obj-$(CONFIG_RTC_DRV_M41T93)	+= rtc-m41t93.o
+ obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
+ obj-$(CONFIG_RTC_DRV_M48T35)	+= rtc-m48t35.o
+ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+diff -puN /dev/null drivers/rtc/rtc-m41t93.c
+--- /dev/null
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -0,0 +1,225 @@
++/*
++ *
++ * Driver for ST M41T93 SPI RTC
++ *
++ * (c) 2010 Nikolaus Voss, Weinmann Medical GmbH
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/bcd.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
++
++#define M41T93_REG_SSEC			0
++#define M41T93_REG_ST_SEC		1
++#define M41T93_REG_MIN			2
++#define M41T93_REG_CENT_HOUR		3
++#define M41T93_REG_WDAY			4
++#define M41T93_REG_DAY			5
++#define M41T93_REG_MON			6
++#define M41T93_REG_YEAR			7
++
++
++#define M41T93_REG_ALM_HOUR_HT		0xc
++#define M41T93_REG_FLAGS		0xf
++
++#define M41T93_FLAG_ST			(1 << 7)
++#define M41T93_FLAG_OF			(1 << 2)
++#define M41T93_FLAG_BL			(1 << 4)
++#define M41T93_FLAG_HT			(1 << 6)
++
++static inline int m41t93_set_reg(struct spi_device *spi, u8 addr, u8 data)
++{
++	u8 buf[2];
++
++	/* MSB must be '1' to write */
++	buf[0] = addr | 0x80;
++	buf[1] = data;
++
++	return spi_write(spi, buf, sizeof(buf));
++}
++
++static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
++	u8 * const data = &buf[1]; /* ptr to first data byte */
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"write", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	if (tm->tm_year < 100) {
++		dev_warn(&spi->dev, "unsupported date (before 2000-01-01).\n");
++		return -EINVAL;
++	}
++
++	data[M41T93_REG_SSEC]		= 0;
++	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
++	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
++	data[M41T93_REG_CENT_HOUR]	= bin2bcd(tm->tm_hour) |
++						((tm->tm_year/100-1) << 6);
++	data[M41T93_REG_DAY]		= bin2bcd(tm->tm_mday);
++	data[M41T93_REG_WDAY]		= bin2bcd(tm->tm_wday + 1);
++	data[M41T93_REG_MON]		= bin2bcd(tm->tm_mon + 1);
++	data[M41T93_REG_YEAR]		= bin2bcd(tm->tm_year % 100);
++
++	return spi_write(spi, buf, sizeof(buf));
++}
++
++
++static int m41t93_get_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	const u8 start_addr = 0;
++	u8 buf[8];
++	int century_after_1900;
++	int tmp;
++	int ret = 0;
++
++	/* Check status of clock. Two states must be considered:
++	   1. halt bit (HT) is set: the clock is running but update of readout
++	      registers has been disabled due to power failure. This is normal
++	      case after poweron. Time is valid after resetting HT bit.
++	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
++	      time is invalid:
++	      a) OF can be immeditely reset.
++	      b) OF cannot be immediately reset: oscillator has to be restarted.
++	*/
++	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_HT) {
++		dev_dbg(&spi->dev, "HT bit is set, reenable clock update.\n");
++		m41t93_set_reg(spi, M41T93_REG_ALM_HOUR_HT,
++			       tmp & ~M41T93_FLAG_HT);
++	}
++
++	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_OF) {
++		ret = -EINVAL;
++		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
++		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
++
++		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++		if (tmp < 0)
++			return tmp;
++		else if (tmp & M41T93_FLAG_OF) {
++			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
++
++			dev_warn(&spi->dev,
++				 "OF bit is still set, kickstarting clock.\n");
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++			reset_osc &= ~M41T93_FLAG_ST;
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++		}
++	}
++
++	if (tmp & M41T93_FLAG_BL)
++		dev_warn(&spi->dev, "BL bit is set, replace battery.\n");
++
++	/* read actual time/date */
++	tmp = spi_write_then_read(spi, &start_addr, 1, buf, sizeof(buf));
++	if (tmp < 0)
++		return tmp;
++
++	tm->tm_sec	= bcd2bin(buf[M41T93_REG_ST_SEC]);
++	tm->tm_min	= bcd2bin(buf[M41T93_REG_MIN]);
++	tm->tm_hour	= bcd2bin(buf[M41T93_REG_CENT_HOUR] & 0x3f);
++	tm->tm_mday	= bcd2bin(buf[M41T93_REG_DAY]);
++	tm->tm_mon	= bcd2bin(buf[M41T93_REG_MON]) - 1;
++	tm->tm_wday	= bcd2bin(buf[M41T93_REG_WDAY] & 0x0f) - 1;
++
++	century_after_1900 = (buf[M41T93_REG_CENT_HOUR] >> 6) + 1;
++	tm->tm_year = bcd2bin(buf[M41T93_REG_YEAR]) + century_after_1900 * 100;
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"read", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	return ret < 0 ? ret : rtc_valid_tm(tm);
++}
++
++
++static const struct rtc_class_ops m41t93_rtc_ops = {
++	.read_time	= m41t93_get_time,
++	.set_time	= m41t93_set_time,
++};
++
++static struct spi_driver m41t93_driver;
++
++static int __devinit m41t93_probe(struct spi_device *spi)
++{
++	struct rtc_device *rtc;
++	int res;
++
++	spi->bits_per_word = 8;
++	spi_setup(spi);
++
++	res = spi_w8r8(spi, M41T93_REG_WDAY);
++	if (res < 0 || (res & 0xf8) != 0) {
++		dev_err(&spi->dev, "not found 0x%x.\n", res);
++		return -ENODEV;
++	}
++
++	rtc = rtc_device_register(m41t93_driver.driver.name,
++		&spi->dev, &m41t93_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	dev_set_drvdata(&spi->dev, rtc);
++
++	return 0;
++}
++
++
++static int __devexit m41t93_remove(struct spi_device *spi)
++{
++	struct rtc_device *rtc = platform_get_drvdata(spi);
++
++	if (rtc)
++		rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct spi_driver m41t93_driver = {
++	.driver = {
++		.name	= "rtc-m41t93",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= m41t93_probe,
++	.remove = __devexit_p(m41t93_remove),
++};
++
++static __init int m41t93_init(void)
++{
++	return spi_register_driver(&m41t93_driver);
++}
++module_init(m41t93_init);
++
++static __exit void m41t93_exit(void)
++{
++	spi_unregister_driver(&m41t93_driver);
++}
++module_exit(m41t93_exit);
++
++MODULE_AUTHOR("Nikolaus Voss <n.voss@weinmann.de>");
++MODULE_DESCRIPTION("Driver for ST M41T93 SPI RTC");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-m41t93");
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from N.Voss@weinmann.de are
 
 origin.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
