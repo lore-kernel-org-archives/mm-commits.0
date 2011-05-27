@@ -1,65 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-mspecc-use-kvzalloc-to-allocate-memory.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:55 -0700
-Message-ID: <201105271957.p4RJv1bE017628@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-ppdevc-put-gotten-port-value.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:59:07 -0700
+Message-ID: <201105271957.p4RJvCrc017643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754576Ab1E0UGE (ORCPT
+	by vger.kernel.org with ESMTP id S1757212Ab1E0UGv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:06:04 -0400
+	Fri, 27 May 2011 16:06:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rakib.mullick@gmail.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/mspec.c: use {k,v}zalloc to allocate memory
+     drivers/char/ppdev.c: put gotten port value
 has been removed from the -mm tree.  Its filename was
-     drivers-char-mspecc-use-kvzalloc-to-allocate-memory.patch
+     drivers-char-ppdevc-put-gotten-port-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mspec.c: use {k,v}zalloc to allocate memory
-From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: drivers/char/ppdev.c: put gotten port value
+From: Julia Lawall <julia@diku.dk>
 
-Let memory allocator initialize the allocated memory as null, thus remove
-the use of memset.
+parport_find_number() calls parport_get_port() on its result, so there
+should be a corresponding call to parport_put_port() before dropping the
+reference.  Similar code is found in the function register_device() in the
+same file.
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@exists@
+local idexpression struct parport * x;
+expression ra,rr;
+statement S1,S2;
+@@
+
+x = parport_find_number(...)
+... when != x = rr
+    when any
+    when != parport_put_port(x,...)
+    when != if (...) { ... parport_put_port(x,...) ...}
+(
+if(<+...x...+>) S1 else S2
+|
+if(...) { ... when != x = ra
+     when forall
+     when != parport_put_port(x,...)
+*return...;
+}
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/char/ppdev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/mspec.c~drivers-char-mspecc-use-kvzalloc-to-allocate-memory drivers/char/mspec.c
---- a/drivers/char/mspec.c~drivers-char-mspecc-use-kvzalloc-to-allocate-memory
-+++ a/drivers/char/mspec.c
-@@ -271,14 +271,13 @@ mspec_mmap(struct file *file, struct vm_
- 	pages = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- 	vdata_size = sizeof(struct vma_data) + pages * sizeof(long);
- 	if (vdata_size <= PAGE_SIZE)
--		vdata = kmalloc(vdata_size, GFP_KERNEL);
-+		vdata = kzalloc(vdata_size, GFP_KERNEL);
- 	else {
--		vdata = vmalloc(vdata_size);
-+		vdata = vzalloc(vdata_size);
- 		flags = VMD_VMALLOCED;
- 	}
- 	if (!vdata)
- 		return -ENOMEM;
--	memset(vdata, 0, vdata_size);
+diff -puN drivers/char/ppdev.c~drivers-char-ppdevc-put-gotten-port-value drivers/char/ppdev.c
+--- a/drivers/char/ppdev.c~drivers-char-ppdevc-put-gotten-port-value
++++ a/drivers/char/ppdev.c
+@@ -457,6 +457,7 @@ static int pp_do_ioctl(struct file *file
+ 			return -ENODEV;
  
- 	vdata->vm_start = vma->vm_start;
- 	vdata->vm_end = vma->vm_end;
+ 		modes = port->modes;
++		parport_put_port(port);
+ 		if (copy_to_user (argp, &modes, sizeof (modes))) {
+ 			return -EFAULT;
+ 		}
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 
