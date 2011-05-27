@@ -1,133 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-convert-to-seq_file-interface.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:59:35 -0700
-Message-ID: <201105271957.p4RJveLe017708@imap1.linux-foundation.org>
+Subject: [merged] edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:59:05 -0700
+Message-ID: <201105271957.p4RJvA2O017640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752961Ab1E0UN3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753005Ab1E0UNb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:13:29 -0400
+	Fri, 27 May 2011 16:13:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, cbouatmailru@gmail.com, dwmw2@infradead.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, dougthompson@xmission.com, mchehab@infradead.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: convert to seq_file interface
+     edac,rcu: use synchronize_rcu() instead of call_rcu()+rcu_barrier()
 has been removed from the -mm tree.  Its filename was
-     mtd-convert-to-seq_file-interface.patch
+     edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: convert to seq_file interface
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: edac,rcu: use synchronize_rcu() instead of call_rcu()+rcu_barrier()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-The ->read_proc interface is going away, switch to seq_file.
+synchronize_rcu() does the stuff as needed.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |   50 +++++++++++++++-------------------------
- 1 file changed, 19 insertions(+), 31 deletions(-)
+ drivers/edac/edac_core.h   |   12 ------------
+ drivers/edac/edac_device.c |   24 ++++++------------------
+ drivers/edac/edac_mc.c     |   16 ++++++----------
+ drivers/edac/edac_pci.c    |   21 ++++++---------------
+ 4 files changed, 18 insertions(+), 55 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-convert-to-seq_file-interface
-+++ a/drivers/mtd/mtdcore.c
-@@ -24,6 +24,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/ptrace.h>
-+#include <linux/seq_file.h>
- #include <linux/string.h>
- #include <linux/timer.h>
- #include <linux/major.h>
-@@ -656,44 +657,32 @@ EXPORT_SYMBOL_GPL(default_mtd_writev);
+diff -puN drivers/edac/edac_core.h~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
++++ a/drivers/edac/edac_core.h
+@@ -421,10 +421,6 @@ struct mem_ctl_info {
+ 	u32 ce_count;		/* Total Correctable Errors for this MC */
+ 	unsigned long start_time;	/* mci load start time (in jiffies) */
  
- static struct proc_dir_entry *proc_mtd;
+-	/* this stuff is for safe removal of mc devices from global list while
+-	 * NMI handlers may be traversing list
+-	 */
+-	struct rcu_head rcu;
+ 	struct completion complete;
  
--static inline int mtd_proc_info(char *buf, struct mtd_info *this)
--{
--	return sprintf(buf, "mtd%d: %8.8llx %8.8x \"%s\"\n", this->index,
--		       (unsigned long long)this->size,
--		       this->erasesize, this->name);
--}
--
--static int mtd_read_proc (char *page, char **start, off_t off, int count,
--			  int *eof, void *data_unused)
-+static int mtd_proc_show(struct seq_file *m, void *v)
- {
- 	struct mtd_info *mtd;
--	int len, l;
--        off_t   begin = 0;
+ 	/* edac sysfs device control */
+@@ -620,10 +616,6 @@ struct edac_device_ctl_info {
  
-+	seq_puts(m, "dev:    size   erasesize  name\n");
- 	mutex_lock(&mtd_table_mutex);
--
--	len = sprintf(page, "dev:    size   erasesize  name\n");
- 	mtd_for_each_device(mtd) {
--		l = mtd_proc_info(page + len, mtd);
--                len += l;
--                if (len+begin > off+count)
--                        goto done;
--                if (len+begin < off) {
--                        begin += len;
--                        len = 0;
--                }
-+		seq_printf(m, "mtd%d: %8.8llx %8.8x \"%s\"\n",
-+			   mtd->index, (unsigned long long)mtd->size,
-+			   mtd->erasesize, mtd->name);
-         }
--
--        *eof = 1;
--
--done:
- 	mutex_unlock(&mtd_table_mutex);
--        if (off >= len+begin)
--                return 0;
--        *start = page + (off-begin);
--        return ((count < begin+len-off) ? count : begin+len-off);
-+	return 0;
+ 	unsigned long start_time;	/* edac_device load start time (jiffies) */
+ 
+-	/* these are for safe removal of mc devices from global list while
+-	 * NMI handlers may be traversing list
+-	 */
+-	struct rcu_head rcu;
+ 	struct completion removal_complete;
+ 
+ 	/* sysfs top name under 'edac' directory
+@@ -722,10 +714,6 @@ struct edac_pci_ctl_info {
+ 
+ 	unsigned long start_time;	/* edac_pci load start time (jiffies) */
+ 
+-	/* these are for safe removal of devices from global list while
+-	 * NMI handlers may be traversing list
+-	 */
+-	struct rcu_head rcu;
+ 	struct completion complete;
+ 
+ 	/* sysfs top name under 'edac' directory
+diff -puN drivers/edac/edac_device.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
++++ a/drivers/edac/edac_device.c
+@@ -346,30 +346,18 @@ fail1:
  }
  
-+static int mtd_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mtd_proc_show, NULL);
-+}
+ /*
+- * complete_edac_device_list_del
+- *
+- *	callback function when reference count is zero
+- */
+-static void complete_edac_device_list_del(struct rcu_head *head)
+-{
+-	struct edac_device_ctl_info *edac_dev;
+-
+-	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
+-	INIT_LIST_HEAD(&edac_dev->link);
+-}
+-
+-/*
+  * del_edac_device_from_global_list
+- *
+- *	remove the RCU, setup for a callback call,
+- *	then wait for the callback to occur
+  */
+ static void del_edac_device_from_global_list(struct edac_device_ctl_info
+ 						*edac_device)
+ {
+ 	list_del_rcu(&edac_device->link);
+-	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
+-	rcu_barrier();
 +
-+static const struct file_operations mtd_proc_ops = {
-+	.open		= mtd_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- #endif /* CONFIG_PROC_FS */
++	/* these are for safe removal of devices from global list while
++	 * NMI handlers may be traversing list
++	 */
++	synchronize_rcu();
++	INIT_LIST_HEAD(&edac_device->link);
+ }
  
- /*====================================================================*/
-@@ -734,8 +723,7 @@ static int __init init_mtd(void)
- 		goto err_bdi3;
+ /*
+diff -puN drivers/edac/edac_mc.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
++++ a/drivers/edac/edac_mc.c
+@@ -447,20 +447,16 @@ fail1:
+ 	return 1;
+ }
  
- #ifdef CONFIG_PROC_FS
--	if ((proc_mtd = create_proc_entry( "mtd", 0, NULL )))
--		proc_mtd->read_proc = mtd_read_proc;
-+	proc_mtd = proc_create("mtd", 0, NULL, &mtd_proc_ops);
- #endif /* CONFIG_PROC_FS */
- 	return 0;
+-static void complete_mc_list_del(struct rcu_head *head)
+-{
+-	struct mem_ctl_info *mci;
+-
+-	mci = container_of(head, struct mem_ctl_info, rcu);
+-	INIT_LIST_HEAD(&mci->link);
+-}
+-
+ static void del_mc_from_global_list(struct mem_ctl_info *mci)
+ {
+ 	atomic_dec(&edac_handlers);
+ 	list_del_rcu(&mci->link);
+-	call_rcu(&mci->rcu, complete_mc_list_del);
+-	rcu_barrier();
++
++	/* these are for safe removal of devices from global list while
++	 * NMI handlers may be traversing list
++	 */
++	synchronize_rcu();
++	INIT_LIST_HEAD(&mci->link);
+ }
  
+ /**
+diff -puN drivers/edac/edac_pci.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier drivers/edac/edac_pci.c
+--- a/drivers/edac/edac_pci.c~edacrcu-use-synchronize_rcu-instead-of-call_rcurcu_barrier
++++ a/drivers/edac/edac_pci.c
+@@ -164,19 +164,6 @@ fail1:
+ }
+ 
+ /*
+- * complete_edac_pci_list_del
+- *
+- *	RCU completion callback to indicate item is deleted
+- */
+-static void complete_edac_pci_list_del(struct rcu_head *head)
+-{
+-	struct edac_pci_ctl_info *pci;
+-
+-	pci = container_of(head, struct edac_pci_ctl_info, rcu);
+-	INIT_LIST_HEAD(&pci->link);
+-}
+-
+-/*
+  * del_edac_pci_from_global_list
+  *
+  *	remove the PCI control struct from the global list
+@@ -184,8 +171,12 @@ static void complete_edac_pci_list_del(s
+ static void del_edac_pci_from_global_list(struct edac_pci_ctl_info *pci)
+ {
+ 	list_del_rcu(&pci->link);
+-	call_rcu(&pci->rcu, complete_edac_pci_list_del);
+-	rcu_barrier();
++
++	/* these are for safe removal of devices from global list while
++	 * NMI handlers may be traversing list
++	 */
++	synchronize_rcu();
++	INIT_LIST_HEAD(&pci->link);
+ }
+ 
+ #if 0
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-sysctl-add-proc_dointvec_bool-handler.patch
 
