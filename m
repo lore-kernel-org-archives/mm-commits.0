@@ -1,188 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:57:35 -0700
-Message-ID: <201105271955.p4RJtech017477@imap1.linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:57:19 -0700
+Message-ID: <201105271955.p4RJtONc017450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751411Ab1E0T4T (ORCPT
+	by vger.kernel.org with ESMTP id S1756980Ab1E0T4X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:56:19 -0400
+	Fri, 27 May 2011 15:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bblum@andrew.cmu.edu, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, miaox@cn.fujitsu.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, alessandro.zummo@towertech.it, vzapolskiy@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: read-write lock CLONE_THREAD forking per threadgroup
+     drivers/rtc/rtc-mxc.c: remove defines already included in rtc.h
 has been removed from the -mm tree.  Its filename was
-     cgroups-read-write-lock-clone_thread-forking-per-threadgroup.patch
+     drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: read-write lock CLONE_THREAD forking per threadgroup
-From: Ben Blum <bblum@andrew.cmu.edu>
+Subject: drivers/rtc/rtc-mxc.c: remove defines already included in rtc.h
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-Adds functionality to read/write lock CLONE_THREAD fork()ing per-threadgroup
-
-Add an rwsem that lives in a threadgroup's signal_struct that's taken for
-reading in the fork path, under CONFIG_CGROUPS.  If another part of the
-kernel later wants to use such a locking mechanism, the CONFIG_CGROUPS
-ifdefs should be changed to a higher-up flag that CGROUPS and the other
-system would both depend on.
-
-This is a pre-patch for cgroup-procs-write.patch.
-
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Reviewed-by: Paul Menage <menage@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
+[akpm@linux-foundation.org: retain the code comments]
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    9 +++++++++
- include/linux/sched.h     |   36 ++++++++++++++++++++++++++++++++++++
- kernel/fork.c             |   10 ++++++++++
- 3 files changed, 55 insertions(+)
+ drivers/rtc/rtc-mxc.c |    6 ------
+ include/linux/rtc.h   |    8 ++++----
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/init_task.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup include/linux/init_task.h
---- a/include/linux/init_task.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
-+++ a/include/linux/init_task.h
-@@ -22,6 +22,14 @@
- extern struct files_struct init_files;
- extern struct fs_struct init_fs;
- 
-+#ifdef CONFIG_CGROUPS
-+#define INIT_THREADGROUP_FORK_LOCK(sig)					\
-+	.threadgroup_fork_lock =					\
-+		__RWSEM_INITIALIZER(sig.threadgroup_fork_lock),
-+#else
-+#define INIT_THREADGROUP_FORK_LOCK(sig)
-+#endif
-+
- #define INIT_SIGNALS(sig) {						\
- 	.nr_threads	= 1,						\
- 	.wait_chldexit	= __WAIT_QUEUE_HEAD_INITIALIZER(sig.wait_chldexit),\
-@@ -38,6 +46,7 @@ extern struct fs_struct init_fs;
- 	},								\
- 	.cred_guard_mutex =						\
- 		 __MUTEX_INITIALIZER(sig.cred_guard_mutex),		\
-+	INIT_THREADGROUP_FORK_LOCK(sig)					\
- }
- 
- extern struct nsproxy init_nsproxy;
-diff -puN include/linux/sched.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup include/linux/sched.h
---- a/include/linux/sched.h~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
-+++ a/include/linux/sched.h
-@@ -513,6 +513,7 @@ struct thread_group_cputimer {
- 	spinlock_t lock;
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch
++++ a/drivers/rtc/rtc-mxc.c
+@@ -55,12 +55,6 @@ static const u32 PIE_BIT_DEF[MAX_PIE_NUM
+ 	{ MAX_PIE_FREQ,	RTC_SAM7_BIT },
  };
  
-+#include <linux/rwsem.h>
- struct autogroup;
+-/* Those are the bits from a classic RTC we want to mimic */
+-#define RTC_IRQF	0x80	/* any of the following 3 is active */
+-#define RTC_PF		0x40	/* Periodic interrupt */
+-#define RTC_AF		0x20	/* Alarm interrupt */
+-#define RTC_UF		0x10	/* Update interrupt for 1Hz RTC */
+-
+ #define MXC_RTC_TIME	0
+ #define MXC_RTC_ALARM	1
  
- /*
-@@ -632,6 +633,16 @@ struct signal_struct {
- 	unsigned audit_tty;
- 	struct tty_audit_buf *tty_audit_buf;
- #endif
-+#ifdef CONFIG_CGROUPS
-+	/*
-+	 * The threadgroup_fork_lock prevents threads from forking with
-+	 * CLONE_THREAD while held for writing. Use this for fork-sensitive
-+	 * threadgroup-wide operations. It's taken for reading in fork.c in
-+	 * copy_process().
-+	 * Currently only needed write-side by cgroups.
-+	 */
-+	struct rw_semaphore threadgroup_fork_lock;
-+#endif
+diff -puN include/linux/rtc.h~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch include/linux/rtc.h
+--- a/include/linux/rtc.h~drivers-rtc-rtc-mxcc-remove-defines-already-included-in-rtch
++++ a/include/linux/rtc.h
+@@ -92,10 +92,10 @@ struct rtc_pll_info {
+ #define RTC_PLL_SET	_IOW('p', 0x12, struct rtc_pll_info)  /* Set PLL correction */
  
- 	int oom_adj;		/* OOM kill score adjustment (bit shift) */
- 	int oom_score_adj;	/* OOM kill score adjustment */
-@@ -2323,6 +2334,31 @@ static inline void unlock_task_sighand(s
- 	spin_unlock_irqrestore(&tsk->sighand->siglock, *flags);
- }
+ /* interrupt flags */
+-#define RTC_IRQF 0x80 /* any of the following is active */
+-#define RTC_PF 0x40
+-#define RTC_AF 0x20
+-#define RTC_UF 0x10
++#define RTC_IRQF 0x80	/* Any of the following is active */
++#define RTC_PF 0x40	/* Periodic interrupt */
++#define RTC_AF 0x20	/* Alarm interrupt */
++#define RTC_UF 0x10	/* Update interrupt for 1Hz RTC */
  
-+/* See the declaration of threadgroup_fork_lock in signal_struct. */
-+#ifdef CONFIG_CGROUPS
-+static inline void threadgroup_fork_read_lock(struct task_struct *tsk)
-+{
-+	down_read(&tsk->signal->threadgroup_fork_lock);
-+}
-+static inline void threadgroup_fork_read_unlock(struct task_struct *tsk)
-+{
-+	up_read(&tsk->signal->threadgroup_fork_lock);
-+}
-+static inline void threadgroup_fork_write_lock(struct task_struct *tsk)
-+{
-+	down_write(&tsk->signal->threadgroup_fork_lock);
-+}
-+static inline void threadgroup_fork_write_unlock(struct task_struct *tsk)
-+{
-+	up_write(&tsk->signal->threadgroup_fork_lock);
-+}
-+#else
-+static inline void threadgroup_fork_read_lock(struct task_struct *tsk) {}
-+static inline void threadgroup_fork_read_unlock(struct task_struct *tsk) {}
-+static inline void threadgroup_fork_write_lock(struct task_struct *tsk) {}
-+static inline void threadgroup_fork_write_unlock(struct task_struct *tsk) {}
-+#endif
-+
- #ifndef __HAVE_THREAD_FUNCTIONS
+ #ifdef __KERNEL__
  
- #define task_thread_info(task)	((struct thread_info *)(task)->stack)
-diff -puN kernel/fork.c~cgroups-read-write-lock-clone_thread-forking-per-threadgroup kernel/fork.c
---- a/kernel/fork.c~cgroups-read-write-lock-clone_thread-forking-per-threadgroup
-+++ a/kernel/fork.c
-@@ -957,6 +957,10 @@ static int copy_signal(unsigned long clo
- 	tty_audit_fork(sig);
- 	sched_autogroup_fork(sig);
- 
-+#ifdef CONFIG_CGROUPS
-+	init_rwsem(&sig->threadgroup_fork_lock);
-+#endif
-+
- 	sig->oom_adj = current->signal->oom_adj;
- 	sig->oom_score_adj = current->signal->oom_score_adj;
- 	sig->oom_score_adj_min = current->signal->oom_score_adj_min;
-@@ -1138,6 +1142,8 @@ static struct task_struct *copy_process(
- 	monotonic_to_bootbased(&p->real_start_time);
- 	p->io_context = NULL;
- 	p->audit_context = NULL;
-+	if (clone_flags & CLONE_THREAD)
-+		threadgroup_fork_read_lock(current);
- 	cgroup_fork(p);
- #ifdef CONFIG_NUMA
- 	p->mempolicy = mpol_dup(p->mempolicy);
-@@ -1342,6 +1348,8 @@ static struct task_struct *copy_process(
- 	write_unlock_irq(&tasklist_lock);
- 	proc_fork_connector(p);
- 	cgroup_post_fork(p);
-+	if (clone_flags & CLONE_THREAD)
-+		threadgroup_fork_read_unlock(current);
- 	perf_event_fork(p);
- 	return p;
- 
-@@ -1380,6 +1388,8 @@ bad_fork_cleanup_policy:
- 	mpol_put(p->mempolicy);
- bad_fork_cleanup_cgroup:
- #endif
-+	if (clone_flags & CLONE_THREAD)
-+		threadgroup_fork_read_unlock(current);
- 	cgroup_exit(p, cgroup_callbacks_done);
- 	delayacct_tsk_free(p);
- 	module_put(task_thread_info(p)->exec_domain->module);
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
+linux-next.patch
+rtc-driver-for-pt7c4338-chip.patch
+gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch
 
