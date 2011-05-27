@@ -1,82 +1,449 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:57:11 -0700
-Message-ID: <201105271955.p4RJtGIf017438@imap1.linux-foundation.org>
+Subject: [merged] rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:56:59 -0700
+Message-ID: <201105271955.p4RJt4If017426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756976Ab1E0Tzo (ORCPT
+	by vger.kernel.org with ESMTP id S1753968Ab1E0Tzr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:55:44 -0400
+	Fri, 27 May 2011 15:55:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: alchark@gmail.com, a.zummo@towertech.it, lars@metafoo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
+     rtc: add support for the RTC in VIA VT8500 and compatibles
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
+     rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
-From: Julia Lawall <julia@diku.dk>
+Subject: rtc: add support for the RTC in VIA VT8500 and compatibles
+From: Alexey Charkov <alchark@gmail.com>
 
-The memory allocated using request_mem_region should be released using
-release_mem_region, not release_region.
+This adds a driver for the RTC devices in VIA and WonderMedia
+Systems-on-Chip.  Alarm, 1Hz interrupts, reading and setting time are
+supported.
 
-The semantic patch that fixes part of this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression E1,E2,E3;
-@@
-
-request_mem_region(E1,E2,E3)
-...
-?- release_region(E1,E2)
-+ release_mem_region(E1,E2)
-// </smpl>
-
-[akpm@linux-foundation.org: use resource_size()]
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Alexey Charkov <alchark@gmail.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Alexey Charkov <alchark@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mrst.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/Kconfig      |    7 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-vt8500.c |  366 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 374 insertions(+)
 
-diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region drivers/rtc/rtc-mrst.c
---- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region
-+++ a/drivers/rtc/rtc-mrst.c
-@@ -380,7 +380,7 @@ cleanup1:
- cleanup0:
- 	dev_set_drvdata(dev, NULL);
- 	mrst_rtc.dev = NULL;
--	release_region(iomem->start, iomem->end + 1 - iomem->start);
-+	release_mem_region(iomem->start, resource_size(iomem));
- 	dev_err(dev, "rtc-mrst: unable to initialise\n");
- 	return retval;
- }
-@@ -406,7 +406,7 @@ static void __devexit rtc_mrst_do_remove
- 	mrst->rtc = NULL;
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles
++++ a/drivers/rtc/Kconfig
+@@ -874,6 +874,13 @@ config RTC_DRV_PXA
+          This RTC driver uses PXA RTC registers available since pxa27x
+          series (RDxR, RYxR) instead of legacy RCNR, RTAR.
  
- 	iomem = mrst->iomem;
--	release_region(iomem->start, iomem->end + 1 - iomem->start);
-+	release_mem_region(iomem->start, resource_size(iomem));
- 	mrst->iomem = NULL;
++config RTC_DRV_VT8500
++	tristate "VIA/WonderMedia 85xx SoC RTC"
++	depends on ARCH_VT8500
++	help
++	  If you say Y here you will get access to the real time clock
++	  built into your VIA VT8500 SoC or its relatives.
++
  
- 	mrst->dev = NULL;
+ config RTC_DRV_SUN4V
+ 	bool "SUN4V Hypervisor RTC"
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-the-rtc-in-via-vt8500-and-compatibles
++++ a/drivers/rtc/Makefile
+@@ -98,6 +98,7 @@ obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl
+ obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
++obj-$(CONFIG_RTC_DRV_VT8500)	+= rtc-vt8500.o
+ obj-$(CONFIG_RTC_DRV_WM831X)	+= rtc-wm831x.o
+ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
+ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+diff -puN /dev/null drivers/rtc/rtc-vt8500.c
+--- /dev/null
++++ a/drivers/rtc/rtc-vt8500.c
+@@ -0,0 +1,366 @@
++/*
++ * drivers/rtc/rtc-vt8500.c
++ *
++ *  Copyright (C) 2010 Alexey Charkov <alchark@gmail.com>
++ *
++ * Based on rtc-pxa.c
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/rtc.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/bcd.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++/*
++ * Register definitions
++ */
++#define VT8500_RTC_TS		0x00	/* Time set */
++#define VT8500_RTC_DS		0x04	/* Date set */
++#define VT8500_RTC_AS		0x08	/* Alarm set */
++#define VT8500_RTC_CR		0x0c	/* Control */
++#define VT8500_RTC_TR		0x10	/* Time read */
++#define VT8500_RTC_DR		0x14	/* Date read */
++#define VT8500_RTC_WS		0x18	/* Write status */
++#define VT8500_RTC_CL		0x20	/* Calibration */
++#define VT8500_RTC_IS		0x24	/* Interrupt status */
++#define VT8500_RTC_ST		0x28	/* Status */
++
++#define INVALID_TIME_BIT	(1 << 31)
++
++#define DATE_CENTURY_S		19
++#define DATE_YEAR_S		11
++#define DATE_YEAR_MASK		(0xff << DATE_YEAR_S)
++#define DATE_MONTH_S		6
++#define DATE_MONTH_MASK		(0x1f << DATE_MONTH_S)
++#define DATE_DAY_MASK		0x3f
++
++#define TIME_DOW_S		20
++#define TIME_DOW_MASK		(0x07 << TIME_DOW_S)
++#define TIME_HOUR_S		14
++#define TIME_HOUR_MASK		(0x3f << TIME_HOUR_S)
++#define TIME_MIN_S		7
++#define TIME_MIN_MASK		(0x7f << TIME_MIN_S)
++#define TIME_SEC_MASK		0x7f
++
++#define ALARM_DAY_S		20
++#define ALARM_DAY_MASK		(0x3f << ALARM_DAY_S)
++
++#define ALARM_DAY_BIT		(1 << 29)
++#define ALARM_HOUR_BIT		(1 << 28)
++#define ALARM_MIN_BIT		(1 << 27)
++#define ALARM_SEC_BIT		(1 << 26)
++
++#define ALARM_ENABLE_MASK	(ALARM_DAY_BIT \
++				| ALARM_HOUR_BIT \
++				| ALARM_MIN_BIT \
++				| ALARM_SEC_BIT)
++
++#define VT8500_RTC_CR_ENABLE	(1 << 0)	/* Enable RTC */
++#define VT8500_RTC_CR_24H	(1 << 1)	/* 24h time format */
++#define VT8500_RTC_CR_SM_ENABLE	(1 << 2)	/* Enable periodic irqs */
++#define VT8500_RTC_CR_SM_SEC	(1 << 3)	/* 0: 1Hz/60, 1: 1Hz */
++#define VT8500_RTC_CR_CALIB	(1 << 4)	/* Enable calibration */
++
++struct vt8500_rtc {
++	void __iomem		*regbase;
++	struct resource		*res;
++	int			irq_alarm;
++	int			irq_hz;
++	struct rtc_device	*rtc;
++	spinlock_t		lock;		/* Protects this structure */
++};
++
++static irqreturn_t vt8500_rtc_irq(int irq, void *dev_id)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_id;
++	u32 isr;
++	unsigned long events = 0;
++
++	spin_lock(&vt8500_rtc->lock);
++
++	/* clear interrupt sources */
++	isr = readl(vt8500_rtc->regbase + VT8500_RTC_IS);
++	writel(isr, vt8500_rtc->regbase + VT8500_RTC_IS);
++
++	spin_unlock(&vt8500_rtc->lock);
++
++	if (isr & 1)
++		events |= RTC_AF | RTC_IRQF;
++
++	/* Only second/minute interrupts are supported */
++	if (isr & 2)
++		events |= RTC_UF | RTC_IRQF;
++
++	rtc_update_irq(vt8500_rtc->rtc, 1, events);
++
++	return IRQ_HANDLED;
++}
++
++static int vt8500_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++	u32 date, time;
++
++	date = readl(vt8500_rtc->regbase + VT8500_RTC_DR);
++	time = readl(vt8500_rtc->regbase + VT8500_RTC_TR);
++
++	tm->tm_sec = bcd2bin(time & TIME_SEC_MASK);
++	tm->tm_min = bcd2bin((time & TIME_MIN_MASK) >> TIME_MIN_S);
++	tm->tm_hour = bcd2bin((time & TIME_HOUR_MASK) >> TIME_HOUR_S);
++	tm->tm_mday = bcd2bin(date & DATE_DAY_MASK);
++	tm->tm_mon = bcd2bin((date & DATE_MONTH_MASK) >> DATE_MONTH_S);
++	tm->tm_year = bcd2bin((date & DATE_YEAR_MASK) >> DATE_YEAR_S)
++			+ ((date >> DATE_CENTURY_S) & 1 ? 200 : 100);
++	tm->tm_wday = (time & TIME_DOW_MASK) >> TIME_DOW_S;
++
++	return 0;
++}
++
++static int vt8500_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++
++	if (tm->tm_year < 100) {
++		dev_warn(dev, "Only years 2000-2199 are supported by the "
++			      "hardware!\n");
++		return -EINVAL;
++	}
++
++	writel((bin2bcd(tm->tm_year - 100) << DATE_YEAR_S)
++		| (bin2bcd(tm->tm_mon) << DATE_MONTH_S)
++		| (bin2bcd(tm->tm_mday)),
++		vt8500_rtc->regbase + VT8500_RTC_DS);
++	writel((bin2bcd(tm->tm_wday) << TIME_DOW_S)
++		| (bin2bcd(tm->tm_hour) << TIME_HOUR_S)
++		| (bin2bcd(tm->tm_min) << TIME_MIN_S)
++		| (bin2bcd(tm->tm_sec)),
++		vt8500_rtc->regbase + VT8500_RTC_TS);
++
++	return 0;
++}
++
++static int vt8500_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++	u32 isr, alarm;
++
++	alarm = readl(vt8500_rtc->regbase + VT8500_RTC_AS);
++	isr = readl(vt8500_rtc->regbase + VT8500_RTC_IS);
++
++	alrm->time.tm_mday = bcd2bin((alarm & ALARM_DAY_MASK) >> ALARM_DAY_S);
++	alrm->time.tm_hour = bcd2bin((alarm & TIME_HOUR_MASK) >> TIME_HOUR_S);
++	alrm->time.tm_min = bcd2bin((alarm & TIME_MIN_MASK) >> TIME_MIN_S);
++	alrm->time.tm_sec = bcd2bin((alarm & TIME_SEC_MASK));
++
++	alrm->enabled = (alarm & ALARM_ENABLE_MASK) ? 1 : 0;
++
++	alrm->pending = (isr & 1) ? 1 : 0;
++	return rtc_valid_tm(&alrm->time);
++}
++
++static int vt8500_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++
++	writel((alrm->enabled ? ALARM_ENABLE_MASK : 0)
++		| (bin2bcd(alrm->time.tm_mday) << ALARM_DAY_S)
++		| (bin2bcd(alrm->time.tm_hour) << TIME_HOUR_S)
++		| (bin2bcd(alrm->time.tm_min) << TIME_MIN_S)
++		| (bin2bcd(alrm->time.tm_sec)),
++		vt8500_rtc->regbase + VT8500_RTC_AS);
++
++	return 0;
++}
++
++static int vt8500_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++	unsigned long tmp = readl(vt8500_rtc->regbase + VT8500_RTC_AS);
++
++	if (enabled)
++		tmp |= ALARM_ENABLE_MASK;
++	else
++		tmp &= ~ALARM_ENABLE_MASK;
++
++	writel(tmp, vt8500_rtc->regbase + VT8500_RTC_AS);
++	return 0;
++}
++
++static int vt8500_update_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct vt8500_rtc *vt8500_rtc = dev_get_drvdata(dev);
++	unsigned long tmp = readl(vt8500_rtc->regbase + VT8500_RTC_CR);
++
++	if (enabled)
++		tmp |= VT8500_RTC_CR_SM_SEC | VT8500_RTC_CR_SM_ENABLE;
++	else
++		tmp &= ~VT8500_RTC_CR_SM_ENABLE;
++
++	writel(tmp, vt8500_rtc->regbase + VT8500_RTC_CR);
++	return 0;
++}
++
++static const struct rtc_class_ops vt8500_rtc_ops = {
++	.read_time = vt8500_rtc_read_time,
++	.set_time = vt8500_rtc_set_time,
++	.read_alarm = vt8500_rtc_read_alarm,
++	.set_alarm = vt8500_rtc_set_alarm,
++	.alarm_irq_enable = vt8500_alarm_irq_enable,
++	.update_irq_enable = vt8500_update_irq_enable,
++};
++
++static int __devinit vt8500_rtc_probe(struct platform_device *pdev)
++{
++	struct vt8500_rtc *vt8500_rtc;
++	int ret;
++
++	vt8500_rtc = kzalloc(sizeof(struct vt8500_rtc), GFP_KERNEL);
++	if (!vt8500_rtc)
++		return -ENOMEM;
++
++	spin_lock_init(&vt8500_rtc->lock);
++	platform_set_drvdata(pdev, vt8500_rtc);
++
++	vt8500_rtc->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!vt8500_rtc->res) {
++		dev_err(&pdev->dev, "No I/O memory resource defined\n");
++		ret = -ENXIO;
++		goto err_free;
++	}
++
++	vt8500_rtc->irq_alarm = platform_get_irq(pdev, 0);
++	if (vt8500_rtc->irq_alarm < 0) {
++		dev_err(&pdev->dev, "No alarm IRQ resource defined\n");
++		ret = -ENXIO;
++		goto err_free;
++	}
++
++	vt8500_rtc->irq_hz = platform_get_irq(pdev, 1);
++	if (vt8500_rtc->irq_hz < 0) {
++		dev_err(&pdev->dev, "No 1Hz IRQ resource defined\n");
++		ret = -ENXIO;
++		goto err_free;
++	}
++
++	vt8500_rtc->res = request_mem_region(vt8500_rtc->res->start,
++					     resource_size(vt8500_rtc->res),
++					     "vt8500-rtc");
++	if (vt8500_rtc->res == NULL) {
++		dev_err(&pdev->dev, "failed to request I/O memory\n");
++		ret = -EBUSY;
++		goto err_free;
++	}
++
++	vt8500_rtc->regbase = ioremap(vt8500_rtc->res->start,
++				      resource_size(vt8500_rtc->res));
++	if (!vt8500_rtc->regbase) {
++		dev_err(&pdev->dev, "Unable to map RTC I/O memory\n");
++		ret = -EBUSY;
++		goto err_release;
++	}
++
++	/* Enable the second/minute interrupt generation and enable RTC */
++	writel(VT8500_RTC_CR_ENABLE | VT8500_RTC_CR_24H
++		| VT8500_RTC_CR_SM_ENABLE | VT8500_RTC_CR_SM_SEC,
++	       vt8500_rtc->regbase + VT8500_RTC_CR);
++
++	vt8500_rtc->rtc = rtc_device_register("vt8500-rtc", &pdev->dev,
++					      &vt8500_rtc_ops, THIS_MODULE);
++	if (IS_ERR(vt8500_rtc->rtc)) {
++		ret = PTR_ERR(vt8500_rtc->rtc);
++		dev_err(&pdev->dev,
++			"Failed to register RTC device -> %d\n", ret);
++		goto err_unmap;
++	}
++
++	ret = request_irq(vt8500_rtc->irq_hz, vt8500_rtc_irq, 0,
++			  "rtc 1Hz", vt8500_rtc);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "can't get irq %i, err %d\n",
++			vt8500_rtc->irq_hz, ret);
++		goto err_unreg;
++	}
++
++	ret = request_irq(vt8500_rtc->irq_alarm, vt8500_rtc_irq, 0,
++			  "rtc alarm", vt8500_rtc);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "can't get irq %i, err %d\n",
++			vt8500_rtc->irq_alarm, ret);
++		goto err_free_hz;
++	}
++
++	return 0;
++
++err_free_hz:
++	free_irq(vt8500_rtc->irq_hz, vt8500_rtc);
++err_unreg:
++	rtc_device_unregister(vt8500_rtc->rtc);
++err_unmap:
++	iounmap(vt8500_rtc->regbase);
++err_release:
++	release_mem_region(vt8500_rtc->res->start,
++			   resource_size(vt8500_rtc->res));
++err_free:
++	kfree(vt8500_rtc);
++	return ret;
++}
++
++static int __devexit vt8500_rtc_remove(struct platform_device *pdev)
++{
++	struct vt8500_rtc *vt8500_rtc = platform_get_drvdata(pdev);
++
++	free_irq(vt8500_rtc->irq_alarm, vt8500_rtc);
++	free_irq(vt8500_rtc->irq_hz, vt8500_rtc);
++
++	rtc_device_unregister(vt8500_rtc->rtc);
++
++	/* Disable alarm matching */
++	writel(0, vt8500_rtc->regbase + VT8500_RTC_IS);
++	iounmap(vt8500_rtc->regbase);
++	release_mem_region(vt8500_rtc->res->start,
++			   resource_size(vt8500_rtc->res));
++
++	kfree(vt8500_rtc);
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver vt8500_rtc_driver = {
++	.probe		= vt8500_rtc_probe,
++	.remove		= __devexit_p(vt8500_rtc_remove),
++	.driver		= {
++		.name	= "vt8500-rtc",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init vt8500_rtc_init(void)
++{
++	return platform_driver_register(&vt8500_rtc_driver);
++}
++module_init(vt8500_rtc_init);
++
++static void __exit vt8500_rtc_exit(void)
++{
++	platform_driver_unregister(&vt8500_rtc_driver);
++}
++module_exit(vt8500_rtc_exit);
++
++MODULE_AUTHOR("Alexey Charkov <alchark@gmail.com>");
++MODULE_DESCRIPTION("VIA VT8500 SoC Realtime Clock Driver (RTC)");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:vt8500-rtc");
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from alchark@gmail.com are
 
 origin.patch
 
