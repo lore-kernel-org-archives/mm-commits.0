@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch added to -mm tree
-Date: Fri, 27 May 2011 15:24:10 -0700
-Message-ID: <201105272224.p4RMOA9K024977@imap1.linux-foundation.org>
+Subject: + block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch added to -mm tree
+Date: Fri, 27 May 2011 15:24:54 -0700
+Message-ID: <201105272224.p4RMOseG024993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161Ab1E0WYh (ORCPT
+	by vger.kernel.org with ESMTP id S1754161Ab1E0WZP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 18:24:37 -0400
+	Fri, 27 May 2011 18:25:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, mel@csn.ul.ie
+Cc: agruen@kernel.org, axboe@kernel.dk
 
 
 The patch titled
-     fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
+     block: improve the bio_add_page() and bio_add_pc_page() descriptions
 has been added to the -mm tree.  Its filename is
-     fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+     block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
-From: Michal Hocko <mhocko@suse.cz>
+Subject: block: improve the bio_add_page() and bio_add_pc_page() descriptions
+From: Andreas Gruenbacher <agruen@kernel.org>
 
-a8bef8ff ("mm: migration: avoid race between shift_arg_pages() and
-rmap_walk() during migration by not migrating temporary stacks")
-introduced a BUG_ON() to ensure that VM_STACK_FLAGS and
-VM_STACK_INCOMPLETE_SETUP do not overlap.  The check is a compile time
-one, so BUILD_BUG_ON is more appropriate.
+The descriptions of bio_add_page() and bio_add_pc_page() are slightly
+inconsistent; improve them.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Andreas Gruenbacher <agruen@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/bio.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup fs/exec.c
---- a/fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup
-+++ a/fs/exec.c
-@@ -277,7 +277,7 @@ static int __bprm_mm_init(struct linux_b
- 	 * use STACK_TOP because that can depend on attributes which aren't
- 	 * configured yet.
- 	 */
--	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
-+	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
- 	vma->vm_end = STACK_TOP_MAX;
- 	vma->vm_start = vma->vm_end - PAGE_SIZE;
- 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+diff -puN fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions fs/bio.c
+--- a/fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions
++++ a/fs/bio.c
+@@ -638,10 +638,11 @@ static int __bio_add_page(struct request
+  *	@offset: vec entry offset
+  *
+  *	Attempt to add a page to the bio_vec maplist. This can fail for a
+- *	number of reasons, such as the bio being full or target block
+- *	device limitations. The target block device must allow bio's
+- *      smaller than PAGE_SIZE, so it is always possible to add a single
+- *      page to an empty bio. This should only be used by REQ_PC bios.
++ *	number of reasons, such as the bio being full or target block device
++ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
++ *	so it is always possible to add a single page to an empty bio.
++ *
++ *	This should only be used by REQ_PC bios.
+  */
+ int bio_add_pc_page(struct request_queue *q, struct bio *bio, struct page *page,
+ 		    unsigned int len, unsigned int offset)
+@@ -659,10 +660,9 @@ EXPORT_SYMBOL(bio_add_pc_page);
+  *	@offset: vec entry offset
+  *
+  *	Attempt to add a page to the bio_vec maplist. This can fail for a
+- *	number of reasons, such as the bio being full or target block
+- *	device limitations. The target block device must allow bio's
+- *      smaller than PAGE_SIZE, so it is always possible to add a single
+- *      page to an empty bio.
++ *	number of reasons, such as the bio being full or target block device
++ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
++ *	so it is always possible to add a single page to an empty bio.
+  */
+ int bio_add_page(struct bio *bio, struct page *page, unsigned int len,
+ 		 unsigned int offset)
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from agruen@kernel.org are
 
-origin.patch
-fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch
 
