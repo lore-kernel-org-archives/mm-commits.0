@@ -1,73 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-fix-spin_lock_irqsave-misuse.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:56:54 -0700
-Message-ID: <201105271954.p4RJsxmF017386@imap1.linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:57:11 -0700
+Message-ID: <201105271955.p4RJtGIf017438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751411Ab1E0Tzj (ORCPT
+	by vger.kernel.org with ESMTP id S1756976Ab1E0Tzo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:55:39 -0400
+	Fri, 27 May 2011 15:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: fix spin_lock_irqsave() misuse
+     drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-spin_lock_irqsave-misuse.patch
+     drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: fix spin_lock_irqsave() misuse
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drivers/rtc/rtc-mrst.c: use release_mem_region after request_mem_region
+From: Julia Lawall <julia@diku.dk>
 
-spin_lock_irqsave() requires unsigned long.
+The memory allocated using request_mem_region should be released using
+release_mem_region, not release_region.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+The semantic patch that fixes part of this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression E1,E2,E3;
+@@
+
+request_mem_region(E1,E2,E3)
+...
+?- release_region(E1,E2)
++ release_mem_region(E1,E2)
+// </smpl>
+
+[akpm@linux-foundation.org: use resource_size()]
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/m32r_sio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-mrst.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse drivers/tty/serial/m32r_sio.c
---- a/drivers/tty/serial/m32r_sio.c~m32r-fix-spin_lock_irqsave-misuse
-+++ a/drivers/tty/serial/m32r_sio.c
-@@ -907,9 +907,10 @@ static int m32r_sio_request_port(struct 
- 	return ret;
+diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrstc-use-release_mem_region-after-request_mem_region
++++ a/drivers/rtc/rtc-mrst.c
+@@ -380,7 +380,7 @@ cleanup1:
+ cleanup0:
+ 	dev_set_drvdata(dev, NULL);
+ 	mrst_rtc.dev = NULL;
+-	release_region(iomem->start, iomem->end + 1 - iomem->start);
++	release_mem_region(iomem->start, resource_size(iomem));
+ 	dev_err(dev, "rtc-mrst: unable to initialise\n");
+ 	return retval;
  }
+@@ -406,7 +406,7 @@ static void __devexit rtc_mrst_do_remove
+ 	mrst->rtc = NULL;
  
--static void m32r_sio_config_port(struct uart_port *port, int flags)
-+static void m32r_sio_config_port(struct uart_port *port, int unused)
- {
- 	struct uart_sio_port *up = (struct uart_sio_port *)port;
-+	unsigned long flags;
+ 	iomem = mrst->iomem;
+-	release_region(iomem->start, iomem->end + 1 - iomem->start);
++	release_mem_region(iomem->start, resource_size(iomem));
+ 	mrst->iomem = NULL;
  
- 	spin_lock_irqsave(&up->port.lock, flags);
- 
+ 	mrst->dev = NULL;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
