@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-nommuc-fix-remap_pfn_range.patch added to -mm tree
-Date: Fri, 27 May 2011 15:10:08 -0700
-Message-ID: <201105272210.p4RMA8PY024317@imap1.linux-foundation.org>
+Subject: + fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch added to -mm tree
+Date: Fri, 27 May 2011 15:24:10 -0700
+Message-ID: <201105272224.p4RMOA9K024977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753396Ab1E0WKo (ORCPT
+	by vger.kernel.org with ESMTP id S1754161Ab1E0WYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 18:10:44 -0400
+	Fri, 27 May 2011 18:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, vapier@gentoo.org
+Cc: mhocko@suse.cz, mel@csn.ul.ie
 
 
 The patch titled
-     mm/nommu.c: fix remap_pfn_range()
+     fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
 has been added to the -mm tree.  Its filename is
-     mm-nommuc-fix-remap_pfn_range.patch
+     fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/nommu.c: fix remap_pfn_range()
-From: Bob Liu <lliubbo@gmail.com>
+Subject: fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
+From: Michal Hocko <mhocko@suse.cz>
 
-remap_pfn_range() does not update vma->end on no mmu arch which will cause
-munmap() fail because it can't match the vma.
+a8bef8ff ("mm: migration: avoid race between shift_arg_pages() and
+rmap_walk() during migration by not migrating temporary stacks")
+introduced a BUG_ON() to ensure that VM_STACK_FLAGS and
+VM_STACK_INCOMPLETE_SETUP do not overlap.  The check is a compile time
+one, so BUILD_BUG_ON is more appropriate.
 
-eg.  fb_mmap() in fbmem.c will call io_remap_pfn_range() which is
-remap_pfn_range() on nommu arch, if an address is not page aligned
-vma->start will be changed in remap_pfn_range(), but neither size nor
-vma->end will be updated.  Then munmap(start, len) can't find the vma to
-free, because it need to compare (start + len) with vma->end.
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Bob Liu <lliubbo@gmail.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~mm-nommuc-fix-remap_pfn_range mm/nommu.c
---- a/mm/nommu.c~mm-nommuc-fix-remap_pfn_range
-+++ a/mm/nommu.c
-@@ -1817,6 +1817,7 @@ int remap_pfn_range(struct vm_area_struc
- 		unsigned long to, unsigned long size, pgprot_t prot)
- {
- 	vma->vm_start = vma->vm_pgoff << PAGE_SHIFT;
-+	vma->vm_end = vma->vm_start + size;
- 	return 0;
- }
- EXPORT_SYMBOL(remap_pfn_range);
+diff -puN fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup fs/exec.c
+--- a/fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup
++++ a/fs/exec.c
+@@ -277,7 +277,7 @@ static int __bprm_mm_init(struct linux_b
+ 	 * use STACK_TOP because that can depend on attributes which aren't
+ 	 * configured yet.
+ 	 */
+-	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
++	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
+ 	vma->vm_end = STACK_TOP_MAX;
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
+ 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-nommuc-fix-remap_pfn_range.patch
+fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 
