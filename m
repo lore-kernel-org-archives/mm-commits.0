@@ -1,77 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sh-convert-to-asm-generic-ptraceh.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:28 -0700
-Message-ID: <201105271956.p4RJuXMY017569@imap1.linux-foundation.org>
+Subject: [merged] proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:58:44 -0700
+Message-ID: <201105271956.p4RJuoiM017601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757076Ab1E0T5c (ORCPT
+	by vger.kernel.org with ESMTP id S1757052Ab1E0T5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:57:32 -0400
+	Fri, 27 May 2011 15:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dongdong.deng@windriver.com, hpa@zytor.com, jason.wessel@windriver.com, lethal@linux-sh.org, mingo@redhat.com, oleg@redhat.com, sshtylyov@mvista.com, tglx@linutronix
+To: kosaki.motohiro@jp.fujitsu.com, adobriyan@gmail.com, bookjovi@gmail.com, hughd@google.com, wilsons@start.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: convert to asm-generic ptrace.h
+     proc: put check_mem_permission after __get_free_page in mem_write
 has been removed from the -mm tree.  Its filename was
-     sh-convert-to-asm-generic-ptraceh.patch
+     proc-put-check_mem_permission-after-__get_free_page-in-mem_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: convert to asm-generic ptrace.h
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: proc: put check_mem_permission after __get_free_page in mem_write
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Dongdong Deng <dongdong.deng@windriver.com>
+It whould be better if put check_mem_permission after __get_free_page in
+mem_write, to be same as function mem_read.
+
+Hugh Dickins explained the reason.
+
+    check_mem_permission gets a reference to the mm.  If we __get_free_page
+    after check_mem_permission, imagine what happens if the system is out
+    of memory, and the mm we're looking at is selected for killing by the
+    OOM killer: while we wait in __get_free_page for more memory, no memory
+    is freed from the selected mm because it cannot reach exit_mmap while
+    we hold that reference.
+
+Reported-by: Jovi Zhang <bookjovi@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Stephen Wilson <wilsons@start.ca>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/ptrace.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/proc/base.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN arch/sh/include/asm/ptrace.h~sh-convert-to-asm-generic-ptraceh arch/sh/include/asm/ptrace.h
---- a/arch/sh/include/asm/ptrace.h~sh-convert-to-asm-generic-ptraceh
-+++ a/arch/sh/include/asm/ptrace.h
-@@ -40,9 +40,8 @@
- #include <asm/system.h>
+diff -puN fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write fs/proc/base.c
+--- a/fs/proc/base.c~proc-put-check_mem_permission-after-__get_free_page-in-mem_write
++++ a/fs/proc/base.c
+@@ -894,20 +894,20 @@ static ssize_t mem_write(struct file * f
+ 	if (!task)
+ 		goto out_no_task;
  
- #define user_mode(regs)			(((regs)->sr & 0x40000000)==0)
--#define user_stack_pointer(_regs)	((unsigned long)(_regs)->regs[15])
- #define kernel_stack_pointer(_regs)	((unsigned long)(_regs)->regs[15])
--#define instruction_pointer(regs)	((unsigned long)(regs)->pc)
-+#define GET_USP(regs) ((regs)->regs[15])
- 
- extern void show_regs(struct pt_regs *);
- 
-@@ -139,6 +138,9 @@ static inline unsigned long profile_pc(s
- 
- 	return pc;
- }
-+#define profile_pc profile_pc
++	copied = -ENOMEM;
++	page = (char *)__get_free_page(GFP_TEMPORARY);
++	if (!page)
++		goto out_task;
 +
-+#include <asm-generic/ptrace.h>
- #endif /* __KERNEL__ */
+ 	mm = check_mem_permission(task);
+ 	copied = PTR_ERR(mm);
+ 	if (IS_ERR(mm))
+-		goto out_task;
++		goto out_free;
  
- #endif /* __ASM_SH_PTRACE_H */
+ 	copied = -EIO;
+ 	if (file->private_data != (void *)((long)current->self_exec_id))
+ 		goto out_mm;
+ 
+-	copied = -ENOMEM;
+-	page = (char *)__get_free_page(GFP_TEMPORARY);
+-	if (!page)
+-		goto out_mm;
+-
+ 	copied = 0;
+ 	while (count > 0) {
+ 		int this_len, retval;
+@@ -929,9 +929,11 @@ static ssize_t mem_write(struct file * f
+ 		count -= retval;			
+ 	}
+ 	*ppos = dst;
+-	free_page((unsigned long) page);
++
+ out_mm:
+ 	mmput(mm);
++out_free:
++	free_page((unsigned long) page);
+ out_task:
+ 	put_task_struct(task);
+ out_no_task:
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
+mm-increase-reclaim_distance-to-30.patch
+slab-use-numa_no_node.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
