@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:56:44 -0700
-Message-ID: <201105271954.p4RJsnw5017369@imap1.linux-foundation.org>
+Subject: [merged] drivers-bcma-host_pcic-needs-slabh.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:56:47 -0700
+Message-ID: <201105271954.p4RJsqED017377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932150Ab1E0TzP (ORCPT
+	by vger.kernel.org with ESMTP id S1751411Ab1E0TzZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:55:15 -0400
+	Fri, 27 May 2011 15:55:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agust@denx.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, zajec5@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
+     drivers/bcma/host_pci.c needs slab.h
 has been removed from the -mm tree.  Its filename was
-     drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
+     drivers-bcma-host_pcic-needs-slabh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
+Subject: drivers/bcma/host_pci.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha allmodconfig:
 
-drivers/video/mb862xx/mb862xxfbdrv.c: In function 'mb862xxfb_ioctl':
-drivers/video/mb862xx/mb862xxfbdrv.c:323: error: implicit declaration of function 'copy_to_user'
-drivers/video/mb862xx/mb862xxfbdrv.c:327: error: implicit declaration of function 'copy_from_user'
+drivers/bcma/host_pci.c: In function 'bcma_host_pci_probe':
+drivers/bcma/host_pci.c:102: error: implicit declaration of function 'kzalloc'  drivers/bcma/host_pci.c:102: warning: assignment makes pointer from integer without a cast
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Anatolij Gustschin <agust@denx.de>
+Cc: <zajec5@gmail.com>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xxfbdrv.c |    1 +
+ drivers/bcma/host_pci.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh drivers/video/mb862xx/mb862xxfbdrv.c
---- a/drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh
-+++ a/drivers/video/mb862xx/mb862xxfbdrv.c
-@@ -16,6 +16,7 @@
+diff -puN drivers/bcma/host_pci.c~drivers-bcma-host_pcic-needs-slabh drivers/bcma/host_pci.c
+--- a/drivers/bcma/host_pci.c~drivers-bcma-host_pcic-needs-slabh
++++ a/drivers/bcma/host_pci.c
+@@ -6,6 +6,7 @@
+  */
  
- #include <linux/fb.h>
- #include <linux/delay.h>
-+#include <linux/uaccess.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
+ #include "bcma_private.h"
++#include <linux/slab.h>
+ #include <linux/bcma/bcma.h>
  #include <linux/pci.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
