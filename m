@@ -1,141 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:31 -0700
-Message-ID: <201105271956.p4RJuaWq017578@imap1.linux-foundation.org>
+Subject: [merged] w1-add-1-wire-w1-reset-and-resume-command-api-support.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:59:11 -0700
+Message-ID: <201105271957.p4RJvGMf017650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757051Ab1E0T5l (ORCPT
+	by vger.kernel.org with ESMTP id S1757154Ab1E0T6T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:57:41 -0400
+	Fri, 27 May 2011 15:58:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dongdong.deng@windriver.com, hpa@zytor.com, jason.wessel@windriver.com, lethal@linux-sh.org, mingo@redhat.com, oleg@redhat.com, sshtylyov@mvista.com, tglx@linutronix
+To: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdbts: unify/generalize gdb breakpoint adjustment
+     w1: add 1-wire (w1) reset and resume command API support
 has been removed from the -mm tree.  Its filename was
-     kgdbts-unify-generalize-gdb-breakpoint-adjustment.patch
+     w1-add-1-wire-w1-reset-and-resume-command-api-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: kgdbts: unify/generalize gdb breakpoint adjustment
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: w1: add 1-wire (w1) reset and resume command API support
+=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
 
-The Blackfin arch, like the x86 arch, needs to adjust the PC manually
-after a breakpoint is hit as normally this is handled by the remote gdb. 
-However, rather than starting another arch ifdef mess, create a common
-GDB_ADJUSTS_BREAK_OFFSET define for any arch to opt-in via their kgdb.h.
+The first patch adds generic functionnality to w1_io for Resume Command
+[A5h] lots of slaves support.  I found it useful for multi-commands/res=
+et
+workflows with the same slave on a multi-slave bus.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Dongdong Deng <dongdong.deng@windriver.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
+This DS2408 w1 slave driver is not complete for all the features of the
+chip, but its sufficient if you use it as a simple IO expander.  Enjoy!
+
+The ds1wm had Kconfig dependencies towards ARM && HAVE_CLK.  I took the=
+m
+out since I was using the ds1wm on an x86_64 platform (ds1wm in a FPGA
+through pcie) and found them irrelevant.
+
+The clock freq/divisors at the top of ds1wm.c did not have the MSB set =
+to
+1.  This bit is CLK_EN which turns the whole prescaler and dividers on.=
+=20
+The driver never mentionned this bit either, so I just included this bi=
+t
+right in the table entries.  I also took the liberty to add a couple of
+entries to the table.  The spec doesn't explicitely mentions these
+possibilities but the description and examination of the core shows the
+prescalers & dividers can be used for more than the table explicitely
+shows.  The table I enlarged still doesn't cover all possibilities, but
+it's a good start.
+
+I also made a few tweaks to a couple of the read and write algorithms
+which made sense while I had my head very deep in the ds1wm documentati=
+on.
+ We stressed it a lot with 10+ slaves on the bus, many ds2408, ds2431 a=
+nd
+ds2433 at the same time doing extensive interaction.  It proved quite
+stable in our production environment.
+
+This patch:
+
+Add generic functionnality to w1_io for Resume Command [A5h] lots of
+slaves support.
+
+Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
+Cc: Matt Reimer <mreimer@vpop.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/kgdb.h |    1 +
- arch/sh/include/asm/kgdb.h       |    1 +
- arch/x86/include/asm/kgdb.h      |    1 +
- drivers/misc/kgdbts.c            |   29 +++++++++++------------------
- 4 files changed, 14 insertions(+), 18 deletions(-)
+ drivers/w1/w1.h    |    2 ++
+ drivers/w1/w1_io.c |   26 ++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN arch/blackfin/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment arch/blackfin/include/asm/kgdb.h
---- a/arch/blackfin/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment
-+++ a/arch/blackfin/include/asm/kgdb.h
-@@ -108,6 +108,7 @@ static inline void arch_kgdb_breakpoint(
- #else
- # define CACHE_FLUSH_IS_SAFE	1
- #endif
-+#define GDB_ADJUSTS_BREAK_OFFSET
- #define HW_INST_WATCHPOINT_NUM	6
- #define HW_WATCHPOINT_NUM	8
- #define TYPE_INST_WATCHPOINT	0
-diff -puN arch/sh/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment arch/sh/include/asm/kgdb.h
---- a/arch/sh/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment
-+++ a/arch/sh/include/asm/kgdb.h
-@@ -34,5 +34,6 @@ static inline void arch_kgdb_breakpoint(
- 
- #define CACHE_FLUSH_IS_SAFE	1
- #define BREAK_INSTR_SIZE	2
-+#define GDB_ADJUSTS_BREAK_OFFSET
- 
- #endif /* __ASM_SH_KGDB_H */
-diff -puN arch/x86/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment arch/x86/include/asm/kgdb.h
---- a/arch/x86/include/asm/kgdb.h~kgdbts-unify-generalize-gdb-breakpoint-adjustment
-+++ a/arch/x86/include/asm/kgdb.h
-@@ -77,6 +77,7 @@ static inline void arch_kgdb_breakpoint(
- }
- #define BREAK_INSTR_SIZE	1
- #define CACHE_FLUSH_IS_SAFE	1
-+#define GDB_ADJUSTS_BREAK_OFFSET
- 
- extern int kgdb_ll_trap(int cmd, const char *str,
- 			struct pt_regs *regs, long err, int trap, int sig);
-diff -puN drivers/misc/kgdbts.c~kgdbts-unify-generalize-gdb-breakpoint-adjustment drivers/misc/kgdbts.c
---- a/drivers/misc/kgdbts.c~kgdbts-unify-generalize-gdb-breakpoint-adjustment
-+++ a/drivers/misc/kgdbts.c
-@@ -285,33 +285,26 @@ static void hw_break_val_write(void)
- static int check_and_rewind_pc(char *put_str, char *arg)
- {
- 	unsigned long addr = lookup_addr(arg);
-+	unsigned long ip;
- 	int offset = 0;
- 
- 	kgdb_hex2mem(&put_str[1], (char *)kgdbts_gdb_regs,
- 		 NUMREGBYTES);
- 	gdb_regs_to_pt_regs(kgdbts_gdb_regs, &kgdbts_regs);
--	v2printk("Stopped at IP: %lx\n", instruction_pointer(&kgdbts_regs));
--#ifdef CONFIG_X86
--	/* On x86 a breakpoint stop requires it to be decremented */
--	if (addr + 1 == kgdbts_regs.ip)
--		offset = -1;
--#elif defined(CONFIG_SUPERH)
--	/* On SUPERH a breakpoint stop requires it to be decremented */
--	if (addr + 2 == kgdbts_regs.pc)
--		offset = -2;
-+	ip = instruction_pointer(&kgdbts_regs);
-+	v2printk("Stopped at IP: %lx\n", ip);
-+#ifdef GDB_ADJUSTS_BREAK_OFFSET
-+	/* On some arches, a breakpoint stop requires it to be decremented */
-+	if (addr + BREAK_INSTR_SIZE == ip)
-+		offset = -BREAK_INSTR_SIZE;
- #endif
--	if (strcmp(arg, "silent") &&
--		instruction_pointer(&kgdbts_regs) + offset != addr) {
-+	if (strcmp(arg, "silent") && ip + offset != addr) {
- 		eprintk("kgdbts: BP mismatch %lx expected %lx\n",
--			   instruction_pointer(&kgdbts_regs) + offset, addr);
-+			   ip + offset, addr);
- 		return 1;
- 	}
--#ifdef CONFIG_X86
--	/* On x86 adjust the instruction pointer if needed */
--	kgdbts_regs.ip += offset;
--#elif defined(CONFIG_SUPERH)
--	kgdbts_regs.pc += offset;
--#endif
-+	/* Readjust the instruction pointer if needed */
-+	instruction_pointer_set(&kgdbts_regs, ip + offset);
- 	return 0;
- }
- 
+diff -puN drivers/w1/w1.h~w1-add-1-wire-w1-reset-and-resume-command-api=
+-support drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-add-1-wire-w1-reset-and-resume-command-api-sup=
+port
++++ a/drivers/w1/w1.h
+@@ -55,6 +55,7 @@ struct w1_reg_num
+ #define W1_READ_ROM		0x33
+ #define W1_READ_PSUPPLY		0xB4
+ #define W1_MATCH_ROM		0x55
++#define W1_RESUME_CMD		0xA5
+=20
+ #define W1_SLAVE_ACTIVE		0
+=20
+@@ -213,6 +214,7 @@ void w1_write_block(struct w1_master *,=20
+ void w1_touch_block(struct w1_master *, u8 *, int);
+ u8 w1_read_block(struct w1_master *, u8 *, int);
+ int w1_reset_select_slave(struct w1_slave *sl);
++int w1_reset_resume_command(struct w1_master *);
+ void w1_next_pullup(struct w1_master *, int);
+=20
+ static inline struct w1_slave* dev_to_w1_slave(struct device *dev)
+diff -puN drivers/w1/w1_io.c~w1-add-1-wire-w1-reset-and-resume-command-=
+api-support drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-add-1-wire-w1-reset-and-resume-command-api-=
+support
++++ a/drivers/w1/w1_io.c
+@@ -390,6 +390,32 @@ int w1_reset_select_slave(struct w1_slav
+ EXPORT_SYMBOL_GPL(w1_reset_select_slave);
+=20
+ /**
++ * When the workflow with a slave amongst many requires several
++ * successive commands a reset between each, this function is similar
++ * to doing a reset then a match ROM for the last matched ROM. The
++ * advantage being that the matched ROM step is skipped in favor of th=
+e
++ * resume command. The slave must support the command of course.
++ *
++ * If the bus has only one slave, traditionnaly the match ROM is skipp=
+ed
++ * and a "SKIP ROM" is done for efficiency. On multi-slave busses, thi=
+s
++ * doesn't work of course, but the resume command is the next best thi=
+ng.
++ *
++ * The w1 master lock must be held.
++ *
++ * @param dev     the master device
++ */
++int w1_reset_resume_command(struct w1_master *dev)
++{
++	if (w1_reset_bus(dev))
++		return -1;
++
++	/* This will make only the last matched slave perform a skip ROM. */
++	w1_write_8(dev, W1_RESUME_CMD);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(w1_reset_resume_command);
++
++/**
+  * Put out a strong pull-up of the specified duration after the next w=
+rite
+  * operation.  Not all hardware supports strong pullups.  Hardware tha=
+t
+  * doesn't support strong pullups will sleep for the given time after =
+the
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from dagenaisj@sonatest.com are
 
 origin.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
