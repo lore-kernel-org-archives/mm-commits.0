@@ -1,613 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-support-for-spear-rtc.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:57:14 -0700
-Message-ID: <201105271955.p4RJtJao017441@imap1.linux-foundation.org>
+Subject: [merged] flex_array-avoid-divisions-when-accessing-elements.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:56:58 -0700
+Message-ID: <201105271955.p4RJt3Pd017423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756938Ab1E0Tzu (ORCPT
+	by vger.kernel.org with ESMTP id S932223Ab1E0Tz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:55:50 -0400
+	Fri, 27 May 2011 15:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rajeev-dlh.kumar@st.com, a.zummo@towertech.it, viresh.kumar@st.com, mm-commits@vger.kernel.org
+To: jesse@nicira.com, dave@linux.vnet.ibm.com, eparis@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add support for spear rtc
+     flex_array: avoid divisions when accessing elements
 has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-spear-rtc.patch
+     flex_array-avoid-divisions-when-accessing-elements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add support for spear rtc
-From: Rajeev Kumar <rajeev-dlh.kumar@st.com>
+Subject: flex_array: avoid divisions when accessing elements
+From: Jesse Gross <jesse@nicira.com>
 
-Signed-off-by: Rajeev Kumar <rajeev-dlh.kumar@st.com>
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+On most architectures division is an expensive operation and accessing an
+element currently requires four of them.  This performance penalty
+effectively precludes flex arrays from being used on any kind of fast
+path.  However, two of these divisions can be handled at creation time and
+the others can be replaced by a reciprocal divide, completely avoiding
+real divisions on access.
+
+[eparis@redhat.com: rebase on top of changes to support 0 len elements]
+[eparis@redhat.com: initialize part_nr when array fits entirely in base]
+Signed-off-by: Jesse Gross <jesse@nicira.com>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig     |    8 
- drivers/rtc/Makefile    |    1 
- drivers/rtc/rtc-spear.c |  534 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 543 insertions(+)
+ include/linux/flex_array.h |    2 +
+ lib/flex_array.c           |   51 +++++++++++++++++++----------------
+ 2 files changed, 31 insertions(+), 22 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-spear-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-spear-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -672,6 +672,14 @@ config RTC_DRV_WM8350
- 	  This driver can also be built as a module. If so, the module
- 	  will be called "rtc-wm8350".
+diff -puN include/linux/flex_array.h~flex_array-avoid-divisions-when-accessing-elements include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-avoid-divisions-when-accessing-elements
++++ a/include/linux/flex_array.h
+@@ -21,6 +21,8 @@ struct flex_array {
+ 		struct {
+ 			int element_size;
+ 			int total_nr_elements;
++			int elems_per_part;
++			u32 reciprocal_elems;
+ 			struct flex_array_part *parts[];
+ 		};
+ 		/*
+diff -puN lib/flex_array.c~flex_array-avoid-divisions-when-accessing-elements lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-avoid-divisions-when-accessing-elements
++++ a/lib/flex_array.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/stddef.h>
+ #include <linux/module.h>
++#include <linux/reciprocal_div.h>
  
-+config RTC_DRV_SPEAR
-+	tristate "SPEAR ST RTC"
-+	depends on PLAT_SPEAR
-+	default y
-+	help
-+	 If you say Y here you will get support for the RTC found on
-+	 spear
-+
- config RTC_DRV_PCF50633
- 	depends on MFD_PCF50633
- 	tristate "NXP PCF50633 RTC"
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-spear-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-support-for-spear-rtc
-+++ a/drivers/rtc/Makefile
-@@ -90,6 +90,7 @@ obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
-+obj-$(CONFIG_RTC_DRV_SPEAR)	+= rtc-spear.o
- obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
- obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
- obj-$(CONFIG_RTC_DRV_STMP)	+= rtc-stmp3xxx.o
-diff -puN /dev/null drivers/rtc/rtc-spear.c
---- /dev/null
-+++ a/drivers/rtc/rtc-spear.c
-@@ -0,0 +1,534 @@
-+/*
-+ * drivers/rtc/rtc-spear.c
-+ *
-+ * Copyright (C) 2010 ST Microelectronics
-+ * Rajeev Kumar<rajeev-dlh.kumar@st.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+
-+#include <linux/bcd.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+
-+/* RTC registers */
-+#define TIME_REG		0x00
-+#define DATE_REG		0x04
-+#define ALARM_TIME_REG		0x08
-+#define ALARM_DATE_REG		0x0C
-+#define CTRL_REG		0x10
-+#define STATUS_REG		0x14
-+
-+/* TIME_REG & ALARM_TIME_REG */
-+#define SECONDS_UNITS		(0xf<<0)	/* seconds units position */
-+#define SECONDS_TENS		(0x7<<4)	/* seconds tens position */
-+#define MINUTES_UNITS		(0xf<<8)	/* minutes units position */
-+#define MINUTES_TENS		(0x7<<12)	/* minutes tens position */
-+#define HOURS_UNITS		(0xf<<16)	/* hours units position */
-+#define HOURS_TENS		(0x3<<20)	/* hours tens position */
-+
-+/* DATE_REG & ALARM_DATE_REG */
-+#define DAYS_UNITS		(0xf<<0)	/* days units position */
-+#define DAYS_TENS		(0x3<<4)	/* days tens position */
-+#define MONTHS_UNITS		(0xf<<8)	/* months units position */
-+#define MONTHS_TENS		(0x1<<12)	/* months tens position */
-+#define YEARS_UNITS		(0xf<<16)	/* years units position */
-+#define YEARS_TENS		(0xf<<20)	/* years tens position */
-+#define YEARS_HUNDREDS		(0xf<<24)	/* years hundereds position */
-+#define YEARS_MILLENIUMS	(0xf<<28)	/* years millenium position */
-+
-+/* MASK SHIFT TIME_REG & ALARM_TIME_REG*/
-+#define SECOND_SHIFT		0x00		/* seconds units */
-+#define MINUTE_SHIFT		0x08		/* minutes units position */
-+#define HOUR_SHIFT		0x10		/* hours units position */
-+#define MDAY_SHIFT		0x00		/* Month day shift */
-+#define MONTH_SHIFT		0x08		/* Month shift */
-+#define YEAR_SHIFT		0x10		/* Year shift */
-+
-+#define SECOND_MASK		0x7F
-+#define MIN_MASK		0x7F
-+#define HOUR_MASK		0x3F
-+#define DAY_MASK		0x3F
-+#define MONTH_MASK		0x7F
-+#define YEAR_MASK		0xFFFF
-+
-+/* date reg equal to time reg, for debug only */
-+#define TIME_BYP		(1<<9)
-+#define INT_ENABLE		(1<<31)		/* interrupt enable */
-+
-+/* STATUS_REG */
-+#define CLK_UNCONNECTED		(1<<0)
-+#define PEND_WR_TIME		(1<<2)
-+#define PEND_WR_DATE		(1<<3)
-+#define LOST_WR_TIME		(1<<4)
-+#define LOST_WR_DATE		(1<<5)
-+#define RTC_INT_MASK		(1<<31)
-+#define STATUS_BUSY		(PEND_WR_TIME | PEND_WR_DATE)
-+#define STATUS_FAIL		(LOST_WR_TIME | LOST_WR_DATE)
-+
-+struct spear_rtc_config {
-+	struct clk *clk;
-+	spinlock_t lock;
-+	void __iomem *ioaddr;
-+};
-+
-+static inline void spear_rtc_clear_interrupt(struct spear_rtc_config *config)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&config->lock, flags);
-+	val = readl(config->ioaddr + STATUS_REG);
-+	val |= RTC_INT_MASK;
-+	writel(val, config->ioaddr + STATUS_REG);
-+	spin_unlock_irqrestore(&config->lock, flags);
-+}
-+
-+static inline void spear_rtc_enable_interrupt(struct spear_rtc_config *config)
-+{
-+	unsigned int val;
-+
-+	val = readl(config->ioaddr + CTRL_REG);
-+	if (!(val & INT_ENABLE)) {
-+		spear_rtc_clear_interrupt(config);
-+		val |= INT_ENABLE;
-+		writel(val, config->ioaddr + CTRL_REG);
+ struct flex_array_part {
+ 	char elements[FLEX_ARRAY_PART_SIZE];
+@@ -70,15 +71,15 @@ static inline int elements_fit_in_base(s
+  * Element size | Objects | Objects |
+  * PAGE_SIZE=4k |  32-bit |  64-bit |
+  * ---------------------------------|
+- *      1 bytes | 4186112 | 2093056 |
+- *      2 bytes | 2093056 | 1046528 |
+- *      3 bytes | 1395030 |  697515 |
+- *      4 bytes | 1046528 |  523264 |
+- *     32 bytes |  130816 |   65408 |
+- *     33 bytes |  126728 |   63364 |
+- *   2048 bytes |    2044 |    1022 |
+- *   2049 bytes |    1022 |     511 |
+- *       void * | 1046528 |  261632 |
++ *      1 bytes | 4177920 | 2088960 |
++ *      2 bytes | 2088960 | 1044480 |
++ *      3 bytes | 1392300 |  696150 |
++ *      4 bytes | 1044480 |  522240 |
++ *     32 bytes |  130560 |   65408 |
++ *     33 bytes |  126480 |   63240 |
++ *   2048 bytes |    2040 |    1020 |
++ *   2049 bytes |    1020 |     510 |
++ *       void * | 1044480 |  261120 |
+  *
+  * Since 64-bit pointers are twice the size, we lose half the
+  * capacity in the base structure.  Also note that no effort is made
+@@ -88,11 +89,15 @@ struct flex_array *flex_array_alloc(int 
+ 					gfp_t flags)
+ {
+ 	struct flex_array *ret;
++	int elems_per_part = 0;
++	int reciprocal_elems = 0;
+ 	int max_size = 0;
+ 
+-	if (element_size)
+-		max_size = FLEX_ARRAY_NR_BASE_PTRS *
+-			   FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
++	if (element_size) {
++		elems_per_part = FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
++		reciprocal_elems = reciprocal_value(elems_per_part);
++		max_size = FLEX_ARRAY_NR_BASE_PTRS * elems_per_part;
 +	}
-+}
-+
-+static inline void spear_rtc_disable_interrupt(struct spear_rtc_config *config)
-+{
-+	unsigned int val;
-+
-+	val = readl(config->ioaddr + CTRL_REG);
-+	if (val & INT_ENABLE) {
-+		val &= ~INT_ENABLE;
-+		writel(val, config->ioaddr + CTRL_REG);
-+	}
-+}
-+
-+static inline int is_write_complete(struct spear_rtc_config *config)
-+{
-+	int ret = 0;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&config->lock, flags);
-+	if ((readl(config->ioaddr + STATUS_REG)) & STATUS_FAIL)
-+		ret = -EIO;
-+	spin_unlock_irqrestore(&config->lock, flags);
-+
-+	return ret;
-+}
-+
-+static void rtc_wait_not_busy(struct spear_rtc_config *config)
-+{
-+	int status, count = 0;
-+	unsigned long flags;
-+
-+	/* Assuming BUSY may stay active for 80 msec) */
-+	for (count = 0; count < 80; count++) {
-+		spin_lock_irqsave(&config->lock, flags);
-+		status = readl(config->ioaddr + STATUS_REG);
-+		spin_unlock_irqrestore(&config->lock, flags);
-+		if ((status & STATUS_BUSY) == 0)
-+			break;
-+		/* check status busy, after each msec */
-+		msleep(1);
-+	}
-+}
-+
-+static irqreturn_t spear_rtc_irq(int irq, void *dev_id)
-+{
-+	struct rtc_device *rtc = (struct rtc_device *)dev_id;
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	unsigned long flags, events = 0;
-+	unsigned int irq_data;
-+
-+	spin_lock_irqsave(&config->lock, flags);
-+	irq_data = readl(config->ioaddr + STATUS_REG);
-+	spin_unlock_irqrestore(&config->lock, flags);
-+
-+	if ((irq_data & RTC_INT_MASK)) {
-+		spear_rtc_clear_interrupt(config);
-+		events = RTC_IRQF | RTC_AF;
-+		rtc_update_irq(rtc, 1, events);
-+		return IRQ_HANDLED;
-+	} else
-+		return IRQ_NONE;
-+
-+}
-+
-+static int tm2bcd(struct rtc_time *tm)
-+{
-+	if (rtc_valid_tm(tm) != 0)
-+		return -EINVAL;
-+	tm->tm_sec = bin2bcd(tm->tm_sec);
-+	tm->tm_min = bin2bcd(tm->tm_min);
-+	tm->tm_hour = bin2bcd(tm->tm_hour);
-+	tm->tm_mday = bin2bcd(tm->tm_mday);
-+	tm->tm_mon = bin2bcd(tm->tm_mon + 1);
-+	tm->tm_year = bin2bcd(tm->tm_year);
-+
-+	return 0;
-+}
-+
-+static void bcd2tm(struct rtc_time *tm)
-+{
-+	tm->tm_sec = bcd2bin(tm->tm_sec);
-+	tm->tm_min = bcd2bin(tm->tm_min);
-+	tm->tm_hour = bcd2bin(tm->tm_hour);
-+	tm->tm_mday = bcd2bin(tm->tm_mday);
-+	tm->tm_mon = bcd2bin(tm->tm_mon) - 1;
-+	/* epoch == 1900 */
-+	tm->tm_year = bcd2bin(tm->tm_year);
-+}
-+
-+/*
-+ * spear_rtc_read_time - set the time
-+ * @dev: rtc device in use
-+ * @tm: holds date and time
-+ *
-+ * This function read time and date. On success it will return 0
-+ * otherwise -ve error is returned.
-+ */
-+static int spear_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	unsigned int time, date;
-+
-+	/* we don't report wday/yday/isdst ... */
-+	rtc_wait_not_busy(config);
-+
-+	time = readl(config->ioaddr + TIME_REG);
-+	date = readl(config->ioaddr + DATE_REG);
-+	tm->tm_sec = (time >> SECOND_SHIFT) & SECOND_MASK;
-+	tm->tm_min = (time >> MINUTE_SHIFT) & MIN_MASK;
-+	tm->tm_hour = (time >> HOUR_SHIFT) & HOUR_MASK;
-+	tm->tm_mday = (date >> MDAY_SHIFT) & DAY_MASK;
-+	tm->tm_mon = (date >> MONTH_SHIFT) & MONTH_MASK;
-+	tm->tm_year = (date >> YEAR_SHIFT) & YEAR_MASK;
-+
-+	bcd2tm(tm);
-+	return 0;
-+}
-+
-+/*
-+ * spear_rtc_set_time - set the time
-+ * @dev: rtc device in use
-+ * @tm: holds date and time
-+ *
-+ * This function set time and date. On success it will return 0
-+ * otherwise -ve error is returned.
-+ */
-+static int spear_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	unsigned int time, date, err = 0;
-+
-+	if (tm2bcd(tm) < 0)
-+		return -EINVAL;
-+
-+	rtc_wait_not_busy(config);
-+	time = (tm->tm_sec << SECOND_SHIFT) | (tm->tm_min << MINUTE_SHIFT) |
-+		(tm->tm_hour << HOUR_SHIFT);
-+	date = (tm->tm_mday << MDAY_SHIFT) | (tm->tm_mon << MONTH_SHIFT) |
-+		(tm->tm_year << YEAR_SHIFT);
-+	writel(time, config->ioaddr + TIME_REG);
-+	writel(date, config->ioaddr + DATE_REG);
-+	err = is_write_complete(config);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+/*
-+ * spear_rtc_read_alarm - read the alarm time
-+ * @dev: rtc device in use
-+ * @alm: holds alarm date and time
-+ *
-+ * This function read alarm time and date. On success it will return 0
-+ * otherwise -ve error is returned.
-+ */
-+static int spear_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	unsigned int time, date;
-+
-+	rtc_wait_not_busy(config);
-+
-+	time = readl(config->ioaddr + ALARM_TIME_REG);
-+	date = readl(config->ioaddr + ALARM_DATE_REG);
-+	alm->time.tm_sec = (time >> SECOND_SHIFT) & SECOND_MASK;
-+	alm->time.tm_min = (time >> MINUTE_SHIFT) & MIN_MASK;
-+	alm->time.tm_hour = (time >> HOUR_SHIFT) & HOUR_MASK;
-+	alm->time.tm_mday = (date >> MDAY_SHIFT) & DAY_MASK;
-+	alm->time.tm_mon = (date >> MONTH_SHIFT) & MONTH_MASK;
-+	alm->time.tm_year = (date >> YEAR_SHIFT) & YEAR_MASK;
-+
-+	bcd2tm(&alm->time);
-+	alm->enabled = readl(config->ioaddr + CTRL_REG) & INT_ENABLE;
-+
-+	return 0;
-+}
-+
-+/*
-+ * spear_rtc_set_alarm - set the alarm time
-+ * @dev: rtc device in use
-+ * @alm: holds alarm date and time
-+ *
-+ * This function set alarm time and date. On success it will return 0
-+ * otherwise -ve error is returned.
-+ */
-+static int spear_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	unsigned int time, date, err = 0;
-+
-+	if (tm2bcd(&alm->time) < 0)
-+		return -EINVAL;
-+
-+	rtc_wait_not_busy(config);
-+
-+	time = (alm->time.tm_sec << SECOND_SHIFT) | (alm->time.tm_min <<
-+			MINUTE_SHIFT) |	(alm->time.tm_hour << HOUR_SHIFT);
-+	date = (alm->time.tm_mday << MDAY_SHIFT) | (alm->time.tm_mon <<
-+			MONTH_SHIFT) | (alm->time.tm_year << YEAR_SHIFT);
-+
-+	writel(time, config->ioaddr + ALARM_TIME_REG);
-+	writel(date, config->ioaddr + ALARM_DATE_REG);
-+	err = is_write_complete(config);
-+	if (err < 0)
-+		return err;
-+
-+	if (alm->enabled)
-+		spear_rtc_enable_interrupt(config);
-+	else
-+		spear_rtc_disable_interrupt(config);
-+
-+	return 0;
-+}
-+static struct rtc_class_ops spear_rtc_ops = {
-+	.read_time = spear_rtc_read_time,
-+	.set_time = spear_rtc_set_time,
-+	.read_alarm = spear_rtc_read_alarm,
-+	.set_alarm = spear_rtc_set_alarm,
-+};
-+
-+static int __devinit spear_rtc_probe(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct rtc_device *rtc;
-+	struct spear_rtc_config *config;
-+	unsigned int status = 0;
-+	int irq;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "no resource defined\n");
-+		return -EBUSY;
-+	}
-+	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
-+		dev_err(&pdev->dev, "rtc region already claimed\n");
-+		return -EBUSY;
-+	}
-+
-+	config = kzalloc(sizeof(*config), GFP_KERNEL);
-+	if (!config) {
-+		dev_err(&pdev->dev, "out of memory\n");
-+		status = -ENOMEM;
-+		goto err_release_region;
-+	}
-+
-+	config->clk = clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(config->clk)) {
-+		status = PTR_ERR(config->clk);
-+		goto err_kfree;
-+	}
-+
-+	status = clk_enable(config->clk);
-+	if (status < 0)
-+		goto err_clk_put;
-+
-+	config->ioaddr = ioremap(res->start, resource_size(res));
-+	if (!config->ioaddr) {
-+		dev_err(&pdev->dev, "ioremap fail\n");
-+		status = -ENOMEM;
-+		goto err_disable_clock;
-+	}
-+
-+	spin_lock_init(&config->lock);
-+
-+	rtc = rtc_device_register(pdev->name, &pdev->dev, &spear_rtc_ops,
-+			THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
-+				PTR_ERR(rtc));
-+		status = PTR_ERR(rtc);
-+		goto err_iounmap;
-+	}
-+
-+	platform_set_drvdata(pdev, rtc);
-+	dev_set_drvdata(&rtc->dev, config);
-+
-+	/* alarm irqs */
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
-+		dev_err(&pdev->dev, "no update irq?\n");
-+		status = irq;
-+		goto err_clear_platdata;
-+	}
-+
-+	status = request_irq(irq, spear_rtc_irq, 0, pdev->name, rtc);
-+	if (status) {
-+		dev_err(&pdev->dev, "Alarm interrupt IRQ%d already \
-+				claimed\n", irq);
-+		goto err_clear_platdata;
-+	}
-+
-+	if (!device_can_wakeup(&pdev->dev))
-+		device_init_wakeup(&pdev->dev, 1);
-+
-+	return 0;
-+
-+err_clear_platdata:
-+	platform_set_drvdata(pdev, NULL);
-+	dev_set_drvdata(&rtc->dev, NULL);
-+	rtc_device_unregister(rtc);
-+err_iounmap:
-+	iounmap(config->ioaddr);
-+err_disable_clock:
-+	clk_disable(config->clk);
-+err_clk_put:
-+	clk_put(config->clk);
-+err_kfree:
-+	kfree(config);
-+err_release_region:
-+	release_mem_region(res->start, resource_size(res));
-+
-+	return status;
-+}
-+
-+static int __devexit spear_rtc_remove(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	int irq;
-+	struct resource *res;
-+
-+	/* leave rtc running, but disable irqs */
-+	spear_rtc_disable_interrupt(config);
-+	device_init_wakeup(&pdev->dev, 0);
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq)
-+		free_irq(irq, pdev);
-+	clk_disable(config->clk);
-+	clk_put(config->clk);
-+	iounmap(config->ioaddr);
-+	kfree(config);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, resource_size(res));
-+	platform_set_drvdata(pdev, NULL);
-+	dev_set_drvdata(&rtc->dev, NULL);
-+	rtc_device_unregister(rtc);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+
-+static int spear_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	int irq;
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (device_may_wakeup(&pdev->dev))
-+		enable_irq_wake(irq);
-+	else {
-+		spear_rtc_disable_interrupt(config);
-+		clk_disable(config->clk);
-+	}
-+
-+	return 0;
-+}
-+
-+static int spear_rtc_resume(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+	int irq;
-+
-+	irq = platform_get_irq(pdev, 0);
-+
-+	if (device_may_wakeup(&pdev->dev))
-+		disable_irq_wake(irq);
-+	else {
-+		clk_enable(config->clk);
-+		spear_rtc_enable_interrupt(config);
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+#define spear_rtc_suspend	NULL
-+#define spear_rtc_resume	NULL
-+#endif
-+
-+static void spear_rtc_shutdown(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct spear_rtc_config *config = dev_get_drvdata(&rtc->dev);
-+
-+	spear_rtc_disable_interrupt(config);
-+	clk_disable(config->clk);
-+}
-+
-+static struct platform_driver spear_rtc_driver = {
-+	.probe = spear_rtc_probe,
-+	.remove = __devexit_p(spear_rtc_remove),
-+	.suspend = spear_rtc_suspend,
-+	.resume = spear_rtc_resume,
-+	.shutdown = spear_rtc_shutdown,
-+	.driver = {
-+		.name = "rtc-spear",
-+	},
-+};
-+
-+static int __init rtc_init(void)
-+{
-+	return platform_driver_register(&spear_rtc_driver);
-+}
-+module_init(rtc_init);
-+
-+static void __exit rtc_exit(void)
-+{
-+	platform_driver_unregister(&spear_rtc_driver);
-+}
-+module_exit(rtc_exit);
-+
-+MODULE_ALIAS("platform:rtc-spear");
-+MODULE_AUTHOR("Rajeev Kumar <rajeev-dlh.kumar@st.com>");
-+MODULE_DESCRIPTION("ST SPEAr Realtime Clock Driver (RTC)");
-+MODULE_LICENSE("GPL");
+ 
+ 	/* max_size will end up 0 if element_size > PAGE_SIZE */
+ 	if (total > max_size)
+@@ -102,6 +107,8 @@ struct flex_array *flex_array_alloc(int 
+ 		return NULL;
+ 	ret->element_size = element_size;
+ 	ret->total_nr_elements = total;
++	ret->elems_per_part = elems_per_part;
++	ret->reciprocal_elems = reciprocal_elems;
+ 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
+ 		memset(&ret->parts[0], FLEX_ARRAY_FREE,
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
+@@ -112,7 +119,7 @@ EXPORT_SYMBOL(flex_array_alloc);
+ static int fa_element_to_part_nr(struct flex_array *fa,
+ 					unsigned int element_nr)
+ {
+-	return element_nr / FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
++	return reciprocal_divide(element_nr, fa->reciprocal_elems);
+ }
+ 
+ /**
+@@ -141,12 +148,12 @@ void flex_array_free(struct flex_array *
+ EXPORT_SYMBOL(flex_array_free);
+ 
+ static unsigned int index_inside_part(struct flex_array *fa,
+-					unsigned int element_nr)
++					unsigned int element_nr,
++					unsigned int part_nr)
+ {
+ 	unsigned int part_offset;
+ 
+-	part_offset = element_nr %
+-				FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
++	part_offset = element_nr - part_nr * fa->elems_per_part;
+ 	return part_offset * fa->element_size;
+ }
+ 
+@@ -186,7 +193,7 @@ __fa_get_part(struct flex_array *fa, int
+ int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
+ 			gfp_t flags)
+ {
+-	int part_nr;
++	int part_nr = 0;
+ 	struct flex_array_part *part;
+ 	void *dst;
+ 
+@@ -202,7 +209,7 @@ int flex_array_put(struct flex_array *fa
+ 		if (!part)
+ 			return -ENOMEM;
+ 	}
+-	dst = &part->elements[index_inside_part(fa, element_nr)];
++	dst = &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ 	memcpy(dst, src, fa->element_size);
+ 	return 0;
+ }
+@@ -217,7 +224,7 @@ EXPORT_SYMBOL(flex_array_put);
+  */
+ int flex_array_clear(struct flex_array *fa, unsigned int element_nr)
+ {
+-	int part_nr;
++	int part_nr = 0;
+ 	struct flex_array_part *part;
+ 	void *dst;
+ 
+@@ -233,7 +240,7 @@ int flex_array_clear(struct flex_array *
+ 		if (!part)
+ 			return -EINVAL;
+ 	}
+-	dst = &part->elements[index_inside_part(fa, element_nr)];
++	dst = &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ 	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
+ 	return 0;
+ }
+@@ -302,7 +309,7 @@ EXPORT_SYMBOL(flex_array_prealloc);
+  */
+ void *flex_array_get(struct flex_array *fa, unsigned int element_nr)
+ {
+-	int part_nr;
++	int part_nr = 0;
+ 	struct flex_array_part *part;
+ 
+ 	if (!fa->element_size)
+@@ -317,7 +324,7 @@ void *flex_array_get(struct flex_array *
+ 		if (!part)
+ 			return NULL;
+ 	}
+-	return &part->elements[index_inside_part(fa, element_nr)];
++	return &part->elements[index_inside_part(fa, element_nr, part_nr)];
+ }
+ EXPORT_SYMBOL(flex_array_get);
+ 
 _
 
-Patches currently in -mm which might be from rajeev-dlh.kumar@st.com are
+Patches currently in -mm which might be from jesse@nicira.com are
 
 origin.patch
 
