@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] checkpatch-suggest-using-min_t-or-max_t.patch removed from -mm tree
-Date: Fri, 27 May 2011 13:43:45 -0700
-Message-ID: <201105272043.p4RKhj7o020124@imap1.linux-foundation.org>
+Subject: + checkpatch-suggest-using-min_t-or-max_t-v2.patch added to -mm tree
+Date: Fri, 27 May 2011 13:44:29 -0700
+Message-ID: <201105272044.p4RKiTGH020145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753437Ab1E0UoS (ORCPT
+	by vger.kernel.org with ESMTP id S1753437Ab1E0Uo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:44:18 -0400
+	Fri, 27 May 2011 16:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, apw@canonical.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, akpm@linux-foundation.org
 
 
 The patch titled
-     checkpatch: suggest using min_t() or max_t()
-has been removed from the -mm tree.  Its filename was
-     checkpatch-suggest-using-min_t-or-max_t.patch
+     checkpatch: suggest using min_t or max_t
+has been added to the -mm tree.  Its filename is
+     checkpatch-suggest-using-min_t-or-max_t-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: suggest using min_t() or max_t()
+Subject: checkpatch: suggest using min_t or max_t
 From: Joe Perches <joe@perches.com>
 
 A common issue with min() or max() is using a cast on one or both of the
@@ -33,23 +43,31 @@ arguments when using min_t/max_t could be better.
 Add cast detection to uses of min/max and suggest an appropriate use of
 min_t or max_t instead.
 
+Caveat:  This only works for min() or max() on a single line.
+         It does not find min() or max() split across multiple lines.
+
+This does find:
+	min((u32)foo, bar);
+But it does not find:
+	max((unsigned long)foo,
+	    bar);
+
 Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
  1 file changed, 35 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t
+diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t-v2 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t-v2
 +++ a/scripts/checkpatch.pl
 @@ -268,6 +268,20 @@ sub build_types {
  }
  build_types();
  
-+our $match_balanced_parentheses = qr/(\((?:[^\(\)]++|(?-1))*\))/;
++our $match_balanced_parentheses = qr/(\((?:[^\(\)]+|(-1))*\))/;
 +
 +our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
 +our $LvalOrFunc	= qr{($Lval)\s*($match_balanced_parentheses{0,1})\s*};
@@ -71,13 +89,13 @@ diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t scripts/
  		}
  
 +# typecasts on min/max could be min_t/max_t
-+		if ($line =~ /^\+.*\b(min|max)\s*\($Typecast{0,1}($LvalOrFunc)\s*,\s*$Typecast{0,1}($LvalOrFunc)\s*\)/) {
-+			if (defined $2 || defined $7) {
++		if ($line =~ /^\+(?:.*?)\b(min|max)\s*\($Typecast{0,1}($LvalOrFunc)\s*,\s*$Typecast{0,1}($LvalOrFunc)\s*\)/) {
++			if (defined $2 || defined $8) {
 +				my $call = $1;
 +				my $cast1 = deparenthesize($2);
 +				my $arg1 = $3;
-+				my $cast2 = deparenthesize($7);
-+				my $arg2 = $8;
++				my $cast2 = deparenthesize($8);
++				my $arg2 = $9;
 +				my $cast;
 +
 +				if ($cast1 ne "" && $cast2 ne "") {
@@ -100,4 +118,5 @@ Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
 
