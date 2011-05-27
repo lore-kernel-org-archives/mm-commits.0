@@ -1,86 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68knommu-use-generic-find_next_bit_le.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:59:31 -0700
-Message-ID: <201105271957.p4RJva18017702@imap1.linux-foundation.org>
+Subject: [merged] w1-have-netlink-search-update-kernel-list.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:59:19 -0700
+Message-ID: <201105271957.p4RJvOZj017671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757206Ab1E0UJy (ORCPT
+	by vger.kernel.org with ESMTP id S1757235Ab1E0UKm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:09:54 -0400
+	Fri, 27 May 2011 16:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: David@Fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: use generic find_next_bit_le()
+     w1: have netlink search update kernel list
 has been removed from the -mm tree.  Its filename was
-     m68knommu-use-generic-find_next_bit_le.patch
+     w1-have-netlink-search-update-kernel-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: use generic find_next_bit_le()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: w1: have netlink search update kernel list
+From: David Fries <David@Fries.net>
 
-The implementation of find_next_bit_le() on m68knommu is identical with
-the generic implementation of find_next_bit_le().
+Reorganize so the netlink connector one wire search command will update
+the kernel list of detected slave devices.  Otherwise, a newly detected
+device is unusable because unless it's in the kernel list of known devices
+any commands will result in ENODEV status.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: David Fries <David@Fries.net>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops_no.h |   46 +---------------------------
- 1 file changed, 2 insertions(+), 44 deletions(-)
+ drivers/w1/w1.c         |   12 +++++++++---
+ drivers/w1/w1.h         |    4 +++-
+ drivers/w1/w1_netlink.c |    5 ++++-
+ 3 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-use-generic-find_next_bit_le arch/m68k/include/asm/bitops_no.h
---- a/arch/m68k/include/asm/bitops_no.h~m68knommu-use-generic-find_next_bit_le
-+++ a/arch/m68k/include/asm/bitops_no.h
-@@ -321,50 +321,8 @@ found_middle:
+diff -puN drivers/w1/w1.c~w1-have-netlink-search-update-kernel-list drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-have-netlink-search-update-kernel-list
++++ a/drivers/w1/w1.c
+@@ -827,7 +827,7 @@ void w1_reconnect_slaves(struct w1_famil
+ 	mutex_unlock(&w1_mlock);
  }
- #define find_next_zero_bit_le find_next_zero_bit_le
  
--static inline unsigned long find_next_bit_le(const void *addr, unsigned
--		long size, unsigned long offset)
--{
--	const unsigned long *p = addr;
--	unsigned long result = offset & ~(BITS_PER_LONG - 1);
--	unsigned long tmp;
--
--	if (offset >= size)
--		return size;
--	p += offset / BITS_PER_LONG;
--	size -= result;
--	offset &= (BITS_PER_LONG - 1UL);
--	if (offset) {
--		tmp = __swab32(*(p++));
--		tmp &= (~0UL << offset);
--		if (size < BITS_PER_LONG)
--			goto found_first;
--		if (tmp)
--			goto found_middle;
--		size -= BITS_PER_LONG;
--		result += BITS_PER_LONG;
--	}
--
--	while (size & ~(BITS_PER_LONG - 1)) {
--		tmp = *(p++);
--		if (tmp)
--			goto found_middle_swap;
--		result += BITS_PER_LONG;
--		size -= BITS_PER_LONG;
--	}
--	if (!size)
--		return result;
--	tmp = __swab32(*p);
--found_first:
--	tmp &= (~0UL >> (BITS_PER_LONG - size));
--	if (tmp == 0UL)		/* Are any bits set? */
--		return result + size; /* Nope. */
--found_middle:
--	return result + __ffs(tmp);
+-static void w1_slave_found(struct w1_master *dev, u64 rn)
++void w1_slave_found(struct w1_master *dev, u64 rn)
+ {
+ 	struct w1_slave *sl;
+ 	struct w1_reg_num *tmp;
+@@ -933,14 +933,15 @@ void w1_search(struct w1_master *dev, u8
+ 	}
+ }
+ 
+-void w1_search_process(struct w1_master *dev, u8 search_type)
++void w1_search_process_cb(struct w1_master *dev, u8 search_type,
++	w1_slave_found_callback cb)
+ {
+ 	struct w1_slave *sl, *sln;
+ 
+ 	list_for_each_entry(sl, &dev->slist, w1_slave_entry)
+ 		clear_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
+ 
+-	w1_search_devices(dev, search_type, w1_slave_found);
++	w1_search_devices(dev, search_type, cb);
+ 
+ 	list_for_each_entry_safe(sl, sln, &dev->slist, w1_slave_entry) {
+ 		if (!test_bit(W1_SLAVE_ACTIVE, (unsigned long *)&sl->flags) && !--sl->ttl)
+@@ -953,6 +954,11 @@ void w1_search_process(struct w1_master 
+ 		dev->search_count--;
+ }
+ 
++static void w1_search_process(struct w1_master *dev, u8 search_type)
++{
++	w1_search_process_cb(dev, search_type, w1_slave_found);
++}
++
+ int w1_process(void *data)
+ {
+ 	struct w1_master *dev = (struct w1_master *) data;
+diff -puN drivers/w1/w1.h~w1-have-netlink-search-update-kernel-list drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-have-netlink-search-update-kernel-list
++++ a/drivers/w1/w1.h
+@@ -194,7 +194,9 @@ void w1_destroy_master_attributes(struct
+ void w1_search(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb);
+ void w1_search_devices(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb);
+ struct w1_slave *w1_search_slave(struct w1_reg_num *id);
+-void w1_search_process(struct w1_master *dev, u8 search_type);
++void w1_slave_found(struct w1_master *dev, u64 rn);
++void w1_search_process_cb(struct w1_master *dev, u8 search_type,
++	w1_slave_found_callback cb);
+ struct w1_master *w1_search_master_id(u32 id);
+ 
+ /* Disconnect and reconnect devices in the given family.  Used for finding
+diff -puN drivers/w1/w1_netlink.c~w1-have-netlink-search-update-kernel-list drivers/w1/w1_netlink.c
+--- a/drivers/w1/w1_netlink.c~w1-have-netlink-search-update-kernel-list
++++ a/drivers/w1/w1_netlink.c
+@@ -55,6 +55,9 @@ static void w1_send_slave(struct w1_mast
+ 	struct w1_netlink_cmd *cmd = (struct w1_netlink_cmd *)(hdr + 1);
+ 	int avail;
+ 
++	/* update kernel slave list */
++	w1_slave_found(dev, rn);
++
+ 	avail = dev->priv_size - cmd->len;
+ 
+ 	if (avail > 8) {
+@@ -85,7 +88,7 @@ static int w1_process_search_command(str
+ 	dev->priv = msg;
+ 	dev->priv_size = avail;
+ 
+-	w1_search_devices(dev, search_type, w1_send_slave);
++	w1_search_process_cb(dev, search_type, w1_send_slave);
+ 
+ 	msg->ack = 0;
+ 	cn_netlink_send(msg, 0, GFP_KERNEL);
+_
+
+Patches currently in -mm which might be from David@Fries.net are
+
+origin.patch
+rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch
+
