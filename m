@@ -1,249 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-reclaim-memory-from-nodes-in-round-robin-order.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:10 -0700
-Message-ID: <201105271956.p4RJuFhB017535@imap1.linux-foundation.org>
+Subject: [merged] add-the-pagefault-count-into-memcg-stats.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:58:20 -0700
+Message-ID: <201105271956.p4RJuPrY017555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757051Ab1E0T5L (ORCPT
+	by vger.kernel.org with ESMTP id S1757076Ab1E0T5H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:57:11 -0400
+	Fri, 27 May 2011 15:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: yinghan@google.com, balbir@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm
 
 
 The patch titled
-     memcg: reclaim memory from nodes in round-robin order
+     memcg: add the pagefault count into memcg stats
 has been removed from the -mm tree.  Its filename was
-     memcg-reclaim-memory-from-nodes-in-round-robin-order.patch
+     add-the-pagefault-count-into-memcg-stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: reclaim memory from nodes in round-robin order
+Subject: memcg: add the pagefault count into memcg stats
 From: Ying Han <yinghan@google.com>
 
-Presently, memory cgroup's direct reclaim frees memory from the current
-node.  But this has some troubles.  Usually when a set of threads works in
-a cooperative way, they tend to operate on the same node.  So if they hit
-limits under memcg they will reclaim memory from themselves, damaging the
-active working set.
+Two new stats in per-memcg memory.stat which tracks the number of page
+faults and number of major page faults.
 
-For example, assume 2 node system which has Node 0 and Node 1 and a memcg
-which has 1G limit.  After some work, file cache remains and the usages
-are
+"pgfault"
+"pgmajfault"
 
-   Node 0:  1M
-   Node 1:  998M.
+They are different from "pgpgin"/"pgpgout" stat which count number of
+pages charged/discharged to the cgroup and have no meaning of reading/
+writing page to disk.
 
-and run an application on Node 0, it will eat its foot before freeing
-unnecessary file caches.
+It is valuable to track the two stats for both measuring application's
+performance as well as the efficiency of the kernel page reclaim path. 
+Counting pagefaults per process is useful, but we also need the aggregated
+value since processes are monitored and controlled in cgroup basis in
+memcg.
 
-This patch adds round-robin for NUMA and adds equal pressure to each node.
-When using cpuset's spread memory feature, this will work very well.
+Functional test: check the total number of pgfault/pgmajfault of all
+memcgs and compare with global vmstat value:
 
-But yes, a better algorithm is needed.
+$ cat /proc/vmstat | grep fault
+pgfault 1070751
+pgmajfault 553
 
-[akpm@linux-foundation.org: comment editing]
-[kamezawa.hiroyu@jp.fujitsu.com: fix time comparisons]
+$ cat /dev/cgroup/memory.stat | grep fault
+pgfault 1071138
+pgmajfault 553
+total_pgfault 1071142
+total_pgmajfault 553
+
+$ cat /dev/cgroup/A/memory.stat | grep fault
+pgfault 199
+pgmajfault 0
+total_pgfault 199
+total_pgmajfault 0
+
+Performance test: run page fault test(pft) wit 16 thread on faulting in
+15G anon pages in 16G container.  There is no regression noticed on the
+"flt/cpu/s"
+
+Sample output from pft:
+TAG pft:anon-sys-default:
+  Gb  Thr CLine   User     System     Wall    flt/cpu/s fault/wsec
+  15   16   1     0.67s   233.41s    14.76s   16798.546 266356.260
+
++-------------------------------------------------------------------------+
+    N           Min           Max        Median           Avg        Stddev
+x  10     16682.962     17344.027     16913.524     16928.812      166.5362
++  10     16695.568     16923.896     16820.604     16824.652     84.816568
+No difference proven at 95.0% confidence
+
+[akpm@linux-foundation.org: fix build]
+[hughd@google.com: shmem fix]
 Signed-off-by: Ying Han <yinghan@google.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 
- mm/memcontrol.c            |  102 ++++++++++++++++++++++++++++++++---
- mm/vmscan.c                |   10 +++
- 3 files changed, 106 insertions(+), 7 deletions(-)
+ fs/ncpfs/mmap.c            |    2 +
+ include/linux/memcontrol.h |    7 +++++
+ mm/filemap.c               |    1 
+ mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++++
+ mm/memory.c                |    2 +
+ mm/shmem.c                 |   11 ++++----
+ 6 files changed, 65 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-reclaim-memory-from-nodes-in-round-robin-order include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-reclaim-memory-from-nodes-in-round-robin-order
+diff -puN fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats fs/ncpfs/mmap.c
+--- a/fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats
++++ a/fs/ncpfs/mmap.c
+@@ -16,6 +16,7 @@
+ #include <linux/mman.h>
+ #include <linux/string.h>
+ #include <linux/fcntl.h>
++#include <linux/memcontrol.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+@@ -92,6 +93,7 @@ static int ncp_file_mmap_fault(struct vm
+ 	 * -- wli
+ 	 */
+ 	count_vm_event(PGMAJFAULT);
++	mem_cgroup_count_vm_event(area->vm_mm, PGMAJFAULT);
+ 	return VM_FAULT_MAJOR;
+ }
+ 
+diff -puN include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats
 +++ a/include/linux/memcontrol.h
-@@ -106,6 +106,7 @@ extern void mem_cgroup_end_migration(str
-  */
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
- int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
-+int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
- 				       struct zone *zone,
- 				       enum lru_list lru);
-diff -puN mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reclaim-memory-from-nodes-in-round-robin-order
-+++ a/mm/memcontrol.c
-@@ -231,6 +231,11 @@ struct mem_cgroup {
- 	 * reclaimed from.
- 	 */
- 	int last_scanned_child;
-+	int last_scanned_node;
-+#if MAX_NUMNODES > 1
-+	nodemask_t	scan_nodes;
-+	unsigned long   next_scan_node_update;
-+#endif
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
-@@ -624,18 +629,27 @@ static void mem_cgroup_charge_statistics
- 	preempt_enable();
- }
- 
-+static unsigned long
-+mem_cgroup_get_zonestat_node(struct mem_cgroup *mem, int nid, enum lru_list idx)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+	u64 total = 0;
-+	int zid;
+@@ -20,6 +20,8 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
+ #include <linux/cgroup.h>
++#include <linux/vm_event_item.h>
 +
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		mz = mem_cgroup_zoneinfo(mem, nid, zid);
-+		total += MEM_CGROUP_ZSTAT(mz, idx);
-+	}
-+	return total;
-+}
- static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
- 					enum lru_list idx)
+ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
+@@ -149,6 +151,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 						unsigned long *total_scanned);
+ u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
+ 
++void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
+ #endif
+@@ -357,6 +360,10 @@ static inline void mem_cgroup_split_huge
  {
--	int nid, zid;
--	struct mem_cgroup_per_zone *mz;
-+	int nid;
- 	u64 total = 0;
- 
- 	for_each_online_node(nid)
--		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--			mz = mem_cgroup_zoneinfo(mem, nid, zid);
--			total += MEM_CGROUP_ZSTAT(mz, idx);
--		}
-+		total += mem_cgroup_get_zonestat_node(mem, nid, idx);
- 	return total;
  }
  
-@@ -1418,6 +1432,81 @@ mem_cgroup_select_victim(struct mem_cgro
- 	return ret;
- }
- 
-+#if MAX_NUMNODES > 1
-+
-+/*
-+ * Always updating the nodemask is not very good - even if we have an empty
-+ * list or the wrong list here, we can start from some node and traverse all
-+ * nodes based on the zonelist. So update the list loosely once per 10 secs.
-+ *
-+ */
-+static void mem_cgroup_may_update_nodemask(struct mem_cgroup *mem)
++static inline
++void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
 +{
-+	int nid;
++}
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
+diff -puN mm/filemap.c~add-the-pagefault-count-into-memcg-stats mm/filemap.c
+--- a/mm/filemap.c~add-the-pagefault-count-into-memcg-stats
++++ a/mm/filemap.c
+@@ -1661,6 +1661,7 @@ int filemap_fault(struct vm_area_struct 
+ 		/* No page in the page cache at all */
+ 		do_sync_mmap_readahead(vma, ra, file, offset);
+ 		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 		ret = VM_FAULT_MAJOR;
+ retry_find:
+ 		page = find_get_page(mapping, offset);
+diff -puN mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats mm/memcontrol.c
+--- a/mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats
++++ a/mm/memcontrol.c
+@@ -94,6 +94,8 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
+ 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
+ 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
++	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
++	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
+ /*
+@@ -590,6 +592,16 @@ static void mem_cgroup_swap_statistics(s
+ 	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
+ }
+ 
++void mem_cgroup_pgfault(struct mem_cgroup *mem, int val)
++{
++	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGFAULT], val);
++}
 +
-+	if (time_after(mem->next_scan_node_update, jiffies))
++void mem_cgroup_pgmajfault(struct mem_cgroup *mem, int val)
++{
++	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT], val);
++}
++
+ static unsigned long mem_cgroup_read_events(struct mem_cgroup *mem,
+ 					    enum mem_cgroup_events_index idx)
+ {
+@@ -827,6 +839,33 @@ static inline bool mem_cgroup_is_root(st
+ 	return (mem == root_mem_cgroup);
+ }
+ 
++void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
++{
++	struct mem_cgroup *mem;
++
++	if (!mm)
 +		return;
 +
-+	mem->next_scan_node_update = jiffies + 10*HZ;
-+	/* make a nodemask where this memcg uses memory from */
-+	mem->scan_nodes = node_states[N_HIGH_MEMORY];
++	rcu_read_lock();
++	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
++	if (unlikely(!mem))
++		goto out;
 +
-+	for_each_node_mask(nid, node_states[N_HIGH_MEMORY]) {
-+
-+		if (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_FILE) ||
-+		    mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_FILE))
-+			continue;
-+
-+		if (total_swap_pages &&
-+		    (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_ANON) ||
-+		     mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_ANON)))
-+			continue;
-+		node_clear(nid, mem->scan_nodes);
++	switch (idx) {
++	case PGMAJFAULT:
++		mem_cgroup_pgmajfault(mem, 1);
++		break;
++	case PGFAULT:
++		mem_cgroup_pgfault(mem, 1);
++		break;
++	default:
++		BUG();
 +	}
++out:
++	rcu_read_unlock();
 +}
-+
-+/*
-+ * Selecting a node where we start reclaim from. Because what we need is just
-+ * reducing usage counter, start from anywhere is O,K. Considering
-+ * memory reclaim from current node, there are pros. and cons.
-+ *
-+ * Freeing memory from current node means freeing memory from a node which
-+ * we'll use or we've used. So, it may make LRU bad. And if several threads
-+ * hit limits, it will see a contention on a node. But freeing from remote
-+ * node means more costs for memory reclaim because of memory latency.
-+ *
-+ * Now, we use round-robin. Better algorithm is welcomed.
-+ */
-+int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
-+{
-+	int node;
-+
-+	mem_cgroup_may_update_nodemask(mem);
-+	node = mem->last_scanned_node;
-+
-+	node = next_node(node, mem->scan_nodes);
-+	if (node == MAX_NUMNODES)
-+		node = first_node(mem->scan_nodes);
-+	/*
-+	 * We call this when we hit limit, not when pages are added to LRU.
-+	 * No LRU may hold pages because all pages are UNEVICTABLE or
-+	 * memcg is too small and all pages are not on LRU. In that case,
-+	 * we use curret node.
-+	 */
-+	if (unlikely(node == MAX_NUMNODES))
-+		node = numa_node_id();
-+
-+	mem->last_scanned_node = node;
-+	return node;
-+}
-+
-+#else
-+int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
-+{
-+	return 0;
-+}
-+#endif
++EXPORT_SYMBOL(mem_cgroup_count_vm_event);
 +
  /*
-  * Scan the hierarchy if needed to reclaim memory. We remember the last child
-  * we reclaimed from, so that we don't end up penalizing one child extensively
-@@ -4606,6 +4695,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 		res_counter_init(&mem->memsw, NULL);
+  * Following LRU functions are allowed to be used without PCG_LOCK.
+  * Operations are called by routine of global LRU independently from memcg.
+@@ -3958,6 +3997,8 @@ enum {
+ 	MCS_PGPGIN,
+ 	MCS_PGPGOUT,
+ 	MCS_SWAP,
++	MCS_PGFAULT,
++	MCS_PGMAJFAULT,
+ 	MCS_INACTIVE_ANON,
+ 	MCS_ACTIVE_ANON,
+ 	MCS_INACTIVE_FILE,
+@@ -3980,6 +4021,8 @@ struct {
+ 	{"pgpgin", "total_pgpgin"},
+ 	{"pgpgout", "total_pgpgout"},
+ 	{"swap", "total_swap"},
++	{"pgfault", "total_pgfault"},
++	{"pgmajfault", "total_pgmajfault"},
+ 	{"inactive_anon", "total_inactive_anon"},
+ 	{"active_anon", "total_active_anon"},
+ 	{"inactive_file", "total_inactive_file"},
+@@ -4008,6 +4051,10 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
  	}
- 	mem->last_scanned_child = 0;
-+	mem->last_scanned_node = MAX_NUMNODES;
- 	INIT_LIST_HEAD(&mem->oom_notify);
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGFAULT);
++	s->stat[MCS_PGFAULT] += val;
++	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGMAJFAULT);
++	s->stat[MCS_PGMAJFAULT] += val;
  
- 	if (parent)
-diff -puN mm/vmscan.c~memcg-reclaim-memory-from-nodes-in-round-robin-order mm/vmscan.c
---- a/mm/vmscan.c~memcg-reclaim-memory-from-nodes-in-round-robin-order
-+++ a/mm/vmscan.c
-@@ -2226,6 +2226,7 @@ unsigned long try_to_free_mem_cgroup_pag
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
-+	int nid;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
-@@ -2242,7 +2243,14 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.gfp_mask = sc.gfp_mask,
- 	};
+ 	/* per zone stat */
+ 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
+diff -puN mm/memory.c~add-the-pagefault-count-into-memcg-stats mm/memory.c
+--- a/mm/memory.c~add-the-pagefault-count-into-memcg-stats
++++ a/mm/memory.c
+@@ -2874,6 +2874,7 @@ static int do_swap_page(struct mm_struct
+ 		/* Had to read the page from swap area: Major fault */
+ 		ret = VM_FAULT_MAJOR;
+ 		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(mm, PGMAJFAULT);
+ 	} else if (PageHWPoison(page)) {
+ 		/*
+ 		 * hwpoisoned dirty swapcache pages are kept for killing
+@@ -3413,6 +3414,7 @@ int handle_mm_fault(struct mm_struct *mm
+ 	__set_current_state(TASK_RUNNING);
  
--	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
-+	/*
-+	 * Unlike direct reclaim via alloc_pages(), memcg's reclaim doesn't
-+	 * take care of from where we get pages. So the node where we start the
-+	 * scan does not need to be the current node.
-+	 */
-+	nid = mem_cgroup_select_victim_node(mem_cont);
-+
-+	zonelist = NODE_DATA(nid)->node_zonelists;
+ 	count_vm_event(PGFAULT);
++	mem_cgroup_count_vm_event(mm, PGFAULT);
  
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
-_
-
-Patches currently in -mm which might be from yinghan@google.com are
-
-origin.patch
-
+ 	/* do counter updates before entering really critical section. */
+ 	check_sync_rss_stat(current);
+diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats mm/shmem.c
+--- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats
++++ a/mm/shmem.c
+@@ -1305,12 +1305,10 @@ repeat:
+ 		swappage = lookup_swap_cache(swap);
+ 		if (!swappage) {
+ 			shmem_swp_unmap(entry);
++			spin_unlock(&info->lock);
+ 			/* here we actually do the io */
+-			if (type && !(*type & VM_FAULT_MAJOR)) {
+-				__count_vm_event(PGMAJFAULT);
++			if (type)
+ 				*type |= VM_FAULT_MAJOR;
+-			}
+-			spin_unlock(&info->lock);
+ 			swappage = shmem_swapin(swap, gfp, info, idx);
+ 			if (!swappage) {
+ 				spin_lock(&info->lock);
+@@ -1549,7 +1547,10 @@ static int shmem_fault(struct vm_area_st
+ 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
