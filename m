@@ -1,55 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-hugetlbh-needs-mm_typesh.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:56:49 -0700
-Message-ID: <201105271954.p4RJssjY017380@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:56:44 -0700
+Message-ID: <201105271954.p4RJsnw5017369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932148Ab1E0TzP (ORCPT
+	by vger.kernel.org with ESMTP id S932150Ab1E0TzP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 27 May 2011 15:55:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agust@denx.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/hugetlb.h needs mm_types.h
+     drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
 has been removed from the -mm tree.  Its filename was
-     include-linux-hugetlbh-needs-mm_typesh.patch
+     drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/hugetlb.h needs mm_types.h
+Subject: drivers/video/mb862xx/mb862xxfbdrv.c needs uaccess.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+alpha allmodconfig:
 
-In file included from fs/proc/meminfo.c:2:
-include/linux/hugetlb.h:195: error: expected declaration specifiers or '...' before 'vm_flags_t'
+drivers/video/mb862xx/mb862xxfbdrv.c: In function 'mb862xxfb_ioctl':
+drivers/video/mb862xx/mb862xxfbdrv.c:323: error: implicit declaration of function 'copy_to_user'
+drivers/video/mb862xx/mb862xxfbdrv.c:327: error: implicit declaration of function 'copy_from_user'
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Anatolij Gustschin <agust@denx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
+ drivers/video/mb862xx/mb862xxfbdrv.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-needs-mm_typesh include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~include-linux-hugetlbh-needs-mm_typesh
-+++ a/include/linux/hugetlb.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_HUGETLB_H
- #define _LINUX_HUGETLB_H
+diff -puN drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh drivers/video/mb862xx/mb862xxfbdrv.c
+--- a/drivers/video/mb862xx/mb862xxfbdrv.c~drivers-video-mb862xx-mb862xxfbdrvc-needs-uaccessh
++++ a/drivers/video/mb862xx/mb862xxfbdrv.c
+@@ -16,6 +16,7 @@
  
-+#include <linux/mm_types.h>
- #include <linux/fs.h>
- #include <linux/hugetlb_inline.h>
- 
+ #include <linux/fb.h>
+ #include <linux/delay.h>
++#include <linux/uaccess.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
