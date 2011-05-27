@@ -1,69 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-constify-status-array.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:40 -0700
-Message-ID: <201105271956.p4RJujDu017595@imap1.linux-foundation.org>
+Subject: [merged] m68knommu-use-generic-find_next_bit_le.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:59:31 -0700
+Message-ID: <201105271957.p4RJva18017702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35802 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757206Ab1E0UJE (ORCPT
+	by vger.kernel.org with ESMTP id S1757206Ab1E0UJy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:09:04 -0400
+	Fri, 27 May 2011 16:09:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: constify status array
+     m68knommu: use generic find_next_bit_le()
 has been removed from the -mm tree.  Its filename was
-     proc-constify-status-array.patch
+     m68knommu-use-generic-find_next_bit_le.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: constify status array
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: m68knommu: use generic find_next_bit_le()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-No need for this local array to be writable, so mark it const.
+The implementation of find_next_bit_le() on m68knommu is identical with
+the generic implementation of find_next_bit_le().
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m68k/include/asm/bitops_no.h |   46 +---------------------------
+ 1 file changed, 2 insertions(+), 44 deletions(-)
 
-diff -puN fs/proc/array.c~proc-constify-status-array fs/proc/array.c
---- a/fs/proc/array.c~proc-constify-status-array
-+++ a/fs/proc/array.c
-@@ -131,7 +131,7 @@ static inline void task_name(struct seq_
-  * you can test for combinations of others with
-  * simple bit tests.
-  */
--static const char *task_state_array[] = {
-+static const char * const task_state_array[] = {
- 	"R (running)",		/*   0 */
- 	"S (sleeping)",		/*   1 */
- 	"D (disk sleep)",	/*   2 */
-@@ -147,7 +147,7 @@ static const char *task_state_array[] = 
- static inline const char *get_task_state(struct task_struct *tsk)
- {
- 	unsigned int state = (tsk->state & TASK_REPORT) | tsk->exit_state;
--	const char **p = &task_state_array[0];
-+	const char * const *p = &task_state_array[0];
+diff -puN arch/m68k/include/asm/bitops_no.h~m68knommu-use-generic-find_next_bit_le arch/m68k/include/asm/bitops_no.h
+--- a/arch/m68k/include/asm/bitops_no.h~m68knommu-use-generic-find_next_bit_le
++++ a/arch/m68k/include/asm/bitops_no.h
+@@ -321,50 +321,8 @@ found_middle:
+ }
+ #define find_next_zero_bit_le find_next_zero_bit_le
  
- 	BUILD_BUG_ON(1 + ilog2(TASK_STATE_MAX) != ARRAY_SIZE(task_state_array));
- 
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-backlight-new-driver-for-the-adp8870-backlight-devices.patch
-backlight-add-backlight-type-fix.patch
-linux-next.patch
-
+-static inline unsigned long find_next_bit_le(const void *addr, unsigned
+-		long size, unsigned long offset)
+-{
+-	const unsigned long *p = addr;
+-	unsigned long result = offset & ~(BITS_PER_LONG - 1);
+-	unsigned long tmp;
+-
+-	if (offset >= size)
+-		return size;
+-	p += offset / BITS_PER_LONG;
+-	size -= result;
+-	offset &= (BITS_PER_LONG - 1UL);
+-	if (offset) {
+-		tmp = __swab32(*(p++));
+-		tmp &= (~0UL << offset);
+-		if (size < BITS_PER_LONG)
+-			goto found_first;
+-		if (tmp)
+-			goto found_middle;
+-		size -= BITS_PER_LONG;
+-		result += BITS_PER_LONG;
+-	}
+-
+-	while (size & ~(BITS_PER_LONG - 1)) {
+-		tmp = *(p++);
+-		if (tmp)
+-			goto found_middle_swap;
+-		result += BITS_PER_LONG;
+-		size -= BITS_PER_LONG;
+-	}
+-	if (!size)
+-		return result;
+-	tmp = __swab32(*p);
+-found_first:
+-	tmp &= (~0UL >> (BITS_PER_LONG - size));
+-	if (tmp == 0UL)		/* Are any bits set? */
+-		return result + size; /* Nope. */
+-found_middle:
+-	return result + __ffs(tmp);
