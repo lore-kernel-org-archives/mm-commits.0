@@ -1,100 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-configfs-examples-crash-fix.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:57:33 -0700
-Message-ID: <201105271955.p4RJtc55017474@imap1.linux-foundation.org>
+Subject: [merged] getdelays-show-average-cpu-io-swap-reclaim-delays.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:57:30 -0700
+Message-ID: <201105271955.p4RJtZ5m017471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54771 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756826Ab1E0T4D (ORCPT
+	by vger.kernel.org with ESMTP id S1756808Ab1E0T4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:56:03 -0400
+	Fri, 27 May 2011 15:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, joel.becker@oracle.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@linux.vnet.ibm.com, satoru.moriya@hds.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: configfs examples crash fix
+     getdelays: show average CPU/IO/SWAP/RECLAIM delays
 has been removed from the -mm tree.  Its filename was
-     documentation-configfs-examples-crash-fix.patch
+     getdelays-show-average-cpu-io-swap-reclaim-delays.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: configfs examples crash fix
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: getdelays: show average CPU/IO/SWAP/RECLAIM delays
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-When configfs_register_subsystem() fails, we unregister too many
-subsystems in configfs_example_init.  Decrement i by one to not unregister
-non-registered subsystem.
+I find it very handy to show the average delays in milliseconds.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Joel Becker <joel.becker@oracle.com>
+Example output (on 100 concurrent dd reading sparse files):
+
+CPU             count     real total  virtual total    delay total  delay average
+                  986     3223509952     3207643301    38863410579         39.415ms
+IO              count    delay total  delay average
+                    0              0              0ms
+SWAP            count    delay total  delay average
+                    0              0              0ms
+RECLAIM         count    delay total  delay average
+                 1059     5131834899              4ms
+dd: read=0, write=0, cancelled_write=0
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Reviewed-by: Satoru Moriya <satoru.moriya@hds.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/configfs/configfs_example_explicit.c |    6 ++----
- Documentation/filesystems/configfs/configfs_example_macros.c   |    6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ Documentation/accounting/getdelays.c |   33 +++++++++++++++----------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/filesystems/configfs/configfs_example_explicit.c~documentation-configfs-examples-crash-fix Documentation/filesystems/configfs/configfs_example_explicit.c
---- a/Documentation/filesystems/configfs/configfs_example_explicit.c~documentation-configfs-examples-crash-fix
-+++ a/Documentation/filesystems/configfs/configfs_example_explicit.c
-@@ -464,9 +464,8 @@ static int __init configfs_example_init(
- 	return 0;
- 
- out_unregister:
--	for (; i >= 0; i--) {
-+	for (i--; i >= 0; i--)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- 
- 	return ret;
+diff -puN Documentation/accounting/getdelays.c~getdelays-show-average-cpu-io-swap-reclaim-delays Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~getdelays-show-average-cpu-io-swap-reclaim-delays
++++ a/Documentation/accounting/getdelays.c
+@@ -193,30 +193,37 @@ static int get_family_id(int sd)
+ 	return id;
  }
-@@ -475,9 +474,8 @@ static void __exit configfs_example_exit
+ 
++#define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
++
+ static void print_delayacct(struct taskstats *t)
  {
- 	int i;
- 
--	for (i = 0; example_subsys[i]; i++) {
-+	for (i = 0; example_subsys[i]; i++)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
+-	printf("\n\nCPU   %15s%15s%15s%15s\n"
+-	       "      %15llu%15llu%15llu%15llu\n"
+-	       "IO    %15s%15s\n"
+-	       "      %15llu%15llu\n"
+-	       "SWAP  %15s%15s\n"
+-	       "      %15llu%15llu\n"
+-	       "RECLAIM  %12s%15s\n"
+-	       "      %15llu%15llu\n",
+-	       "count", "real total", "virtual total", "delay total",
++	printf("\n\nCPU   %15s%15s%15s%15s%15s\n"
++	       "      %15llu%15llu%15llu%15llu%15.3fms\n"
++	       "IO    %15s%15s%15s\n"
++	       "      %15llu%15llu%15llums\n"
++	       "SWAP  %15s%15s%15s\n"
++	       "      %15llu%15llu%15llums\n"
++	       "RECLAIM  %12s%15s%15s\n"
++	       "      %15llu%15llu%15llums\n",
++	       "count", "real total", "virtual total",
++	       "delay total", "delay average",
+ 	       (unsigned long long)t->cpu_count,
+ 	       (unsigned long long)t->cpu_run_real_total,
+ 	       (unsigned long long)t->cpu_run_virtual_total,
+ 	       (unsigned long long)t->cpu_delay_total,
+-	       "count", "delay total",
++	       average_ms((double)t->cpu_delay_total, t->cpu_count),
++	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->blkio_count,
+ 	       (unsigned long long)t->blkio_delay_total,
+-	       "count", "delay total",
++	       average_ms(t->blkio_delay_total, t->blkio_count),
++	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->swapin_count,
+ 	       (unsigned long long)t->swapin_delay_total,
+-	       "count", "delay total",
++	       average_ms(t->swapin_delay_total, t->swapin_count),
++	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->freepages_count,
+-	       (unsigned long long)t->freepages_delay_total);
++	       (unsigned long long)t->freepages_delay_total,
++	       average_ms(t->freepages_delay_total, t->freepages_count));
  }
  
- module_init(configfs_example_init);
-diff -puN Documentation/filesystems/configfs/configfs_example_macros.c~documentation-configfs-examples-crash-fix Documentation/filesystems/configfs/configfs_example_macros.c
---- a/Documentation/filesystems/configfs/configfs_example_macros.c~documentation-configfs-examples-crash-fix
-+++ a/Documentation/filesystems/configfs/configfs_example_macros.c
-@@ -427,9 +427,8 @@ static int __init configfs_example_init(
- 	return 0;
- 
- out_unregister:
--	for (; i >= 0; i--) {
-+	for (i--; i >= 0; i--)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- 
- 	return ret;
- }
-@@ -438,9 +437,8 @@ static void __exit configfs_example_exit
- {
- 	int i;
- 
--	for (i = 0; example_subsys[i]; i++) {
-+	for (i = 0; example_subsys[i]; i++)
- 		configfs_unregister_subsystem(example_subsys[i]);
--	}
- }
- 
- module_init(configfs_example_init);
+ static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
+writeback-pass-writeback_control-down-to-move_expired_inodes.patch
+writeback-introduce-writeback_controlinodes_cleaned.patch
+writeback-try-more-writeback-as-long-as-something-was-written.patch
+writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+writeback-refill-b_io-iff-empty.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+writeback-elevate-queue_io-into-wb_writeback.patch
+writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage.patch
+writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch
+writeback-avoid-extra-sync-work-at-enqueue-time.patch
 
