@@ -1,293 +1,274 @@
 From: akpm@linux-foundation.org
-Subject: [merged] add-the-pagefault-count-into-memcg-stats.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:20 -0700
-Message-ID: <201105271956.p4RJuPrY017555@imap1.linux-foundation.org>
+Subject: [merged] mm-extract-exe_file-handling-from-procfs.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:58:34 -0700
+Message-ID: <201105271956.p4RJudSM017583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757076Ab1E0T5H (ORCPT
+	by vger.kernel.org with ESMTP id S1751411Ab1E0T53 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 15:57:07 -0400
+	Fri, 27 May 2011 15:57:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, balbir@linux.vnet.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, mm
+To: jslaby@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add the pagefault count into memcg stats
+     mm: extract exe_file handling from procfs
 has been removed from the -mm tree.  Its filename was
-     add-the-pagefault-count-into-memcg-stats.patch
+     mm-extract-exe_file-handling-from-procfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add the pagefault count into memcg stats
-From: Ying Han <yinghan@google.com>
+Subject: mm: extract exe_file handling from procfs
+From: Jiri Slaby <jslaby@suse.cz>
 
-Two new stats in per-memcg memory.stat which tracks the number of page
-faults and number of major page faults.
+Setup and cleanup of mm_struct->exe_file is currently done in fs/proc/. 
+This was because exe_file was needed only for /proc/<pid>/exe.  Since we
+will need the exe_file functionality also for core dumps (so core name can
+contain full binary path), built this functionality always into the
+kernel.
 
-"pgfault"
-"pgmajfault"
+To achieve that move that out of proc FS to the kernel/ where in fact it
+should belong.  By doing that we can make dup_mm_exe_file static.  Also we
+can drop linux/proc_fs.h inclusion in fs/exec.c and kernel/fork.c.
 
-They are different from "pgpgin"/"pgpgout" stat which count number of
-pages charged/discharged to the cgroup and have no meaning of reading/
-writing page to disk.
-
-It is valuable to track the two stats for both measuring application's
-performance as well as the efficiency of the kernel page reclaim path. 
-Counting pagefaults per process is useful, but we also need the aggregated
-value since processes are monitored and controlled in cgroup basis in
-memcg.
-
-Functional test: check the total number of pgfault/pgmajfault of all
-memcgs and compare with global vmstat value:
-
-$ cat /proc/vmstat | grep fault
-pgfault 1070751
-pgmajfault 553
-
-$ cat /dev/cgroup/memory.stat | grep fault
-pgfault 1071138
-pgmajfault 553
-total_pgfault 1071142
-total_pgmajfault 553
-
-$ cat /dev/cgroup/A/memory.stat | grep fault
-pgfault 199
-pgmajfault 0
-total_pgfault 199
-total_pgmajfault 0
-
-Performance test: run page fault test(pft) wit 16 thread on faulting in
-15G anon pages in 16G container.  There is no regression noticed on the
-"flt/cpu/s"
-
-Sample output from pft:
-TAG pft:anon-sys-default:
-  Gb  Thr CLine   User     System     Wall    flt/cpu/s fault/wsec
-  15   16   1     0.67s   233.41s    14.76s   16798.546 266356.260
-
-+-------------------------------------------------------------------------+
-    N           Min           Max        Median           Avg        Stddev
-x  10     16682.962     17344.027     16913.524     16928.812      166.5362
-+  10     16695.568     16923.896     16820.604     16824.652     84.816568
-No difference proven at 95.0% confidence
-
-[akpm@linux-foundation.org: fix build]
-[hughd@google.com: shmem fix]
-Signed-off-by: Ying Han <yinghan@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/mmap.c            |    2 +
- include/linux/memcontrol.h |    7 +++++
- mm/filemap.c               |    1 
- mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++++
- mm/memory.c                |    2 +
- mm/shmem.c                 |   11 ++++----
- 6 files changed, 65 insertions(+), 5 deletions(-)
+ fs/exec.c                |    1 
+ fs/proc/base.c           |   51 ------------------------------------
+ include/linux/mm.h       |   10 +------
+ include/linux/mm_types.h |    2 -
+ include/linux/proc_fs.h  |   19 -------------
+ kernel/fork.c            |   52 ++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 53 insertions(+), 82 deletions(-)
 
-diff -puN fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats fs/ncpfs/mmap.c
---- a/fs/ncpfs/mmap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/fs/ncpfs/mmap.c
-@@ -16,6 +16,7 @@
- #include <linux/mman.h>
- #include <linux/string.h>
- #include <linux/fcntl.h>
-+#include <linux/memcontrol.h>
- 
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -92,6 +93,7 @@ static int ncp_file_mmap_fault(struct vm
- 	 * -- wli
- 	 */
- 	count_vm_event(PGMAJFAULT);
-+	mem_cgroup_count_vm_event(area->vm_mm, PGMAJFAULT);
- 	return VM_FAULT_MAJOR;
- }
- 
-diff -puN include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~add-the-pagefault-count-into-memcg-stats
-+++ a/include/linux/memcontrol.h
-@@ -20,6 +20,8 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
- #include <linux/cgroup.h>
-+#include <linux/vm_event_item.h>
-+
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
-@@ -149,6 +151,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 						unsigned long *total_scanned);
- u64 mem_cgroup_get_limit(struct mem_cgroup *mem);
- 
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
- #endif
-@@ -357,6 +360,10 @@ static inline void mem_cgroup_split_huge
- {
- }
- 
-+static inline
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
-+{
-+}
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
-diff -puN mm/filemap.c~add-the-pagefault-count-into-memcg-stats mm/filemap.c
---- a/mm/filemap.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/filemap.c
-@@ -1661,6 +1661,7 @@ int filemap_fault(struct vm_area_struct 
- 		/* No page in the page cache at all */
- 		do_sync_mmap_readahead(vma, ra, file, offset);
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 		ret = VM_FAULT_MAJOR;
- retry_find:
- 		page = find_get_page(mapping, offset);
-diff -puN mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats mm/memcontrol.c
---- a/mm/memcontrol.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/memcontrol.c
-@@ -94,6 +94,8 @@ enum mem_cgroup_events_index {
- 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
- 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
- 	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
-+	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
-+	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
- 	MEM_CGROUP_EVENTS_NSTATS,
+diff -puN fs/exec.c~mm-extract-exe_file-handling-from-procfs fs/exec.c
+--- a/fs/exec.c~mm-extract-exe_file-handling-from-procfs
++++ a/fs/exec.c
+@@ -42,7 +42,6 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/module.h>
+ #include <linux/namei.h>
+-#include <linux/proc_fs.h>
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+diff -puN fs/proc/base.c~mm-extract-exe_file-handling-from-procfs fs/proc/base.c
+--- a/fs/proc/base.c~mm-extract-exe_file-handling-from-procfs
++++ a/fs/proc/base.c
+@@ -1576,57 +1576,6 @@ static const struct file_operations proc
+ 	.release	= single_release,
  };
- /*
-@@ -590,6 +592,16 @@ static void mem_cgroup_swap_statistics(s
- 	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
- }
  
-+void mem_cgroup_pgfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGFAULT], val);
-+}
-+
-+void mem_cgroup_pgmajfault(struct mem_cgroup *mem, int val)
-+{
-+	this_cpu_add(mem->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT], val);
-+}
-+
- static unsigned long mem_cgroup_read_events(struct mem_cgroup *mem,
- 					    enum mem_cgroup_events_index idx)
+-/*
+- * We added or removed a vma mapping the executable. The vmas are only mapped
+- * during exec and are not mapped with the mmap system call.
+- * Callers must hold down_write() on the mm's mmap_sem for these
+- */
+-void added_exe_file_vma(struct mm_struct *mm)
+-{
+-	mm->num_exe_file_vmas++;
+-}
+-
+-void removed_exe_file_vma(struct mm_struct *mm)
+-{
+-	mm->num_exe_file_vmas--;
+-	if ((mm->num_exe_file_vmas == 0) && mm->exe_file){
+-		fput(mm->exe_file);
+-		mm->exe_file = NULL;
+-	}
+-
+-}
+-
+-void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
+-{
+-	if (new_exe_file)
+-		get_file(new_exe_file);
+-	if (mm->exe_file)
+-		fput(mm->exe_file);
+-	mm->exe_file = new_exe_file;
+-	mm->num_exe_file_vmas = 0;
+-}
+-
+-struct file *get_mm_exe_file(struct mm_struct *mm)
+-{
+-	struct file *exe_file;
+-
+-	/* We need mmap_sem to protect against races with removal of
+-	 * VM_EXECUTABLE vmas */
+-	down_read(&mm->mmap_sem);
+-	exe_file = mm->exe_file;
+-	if (exe_file)
+-		get_file(exe_file);
+-	up_read(&mm->mmap_sem);
+-	return exe_file;
+-}
+-
+-void dup_mm_exe_file(struct mm_struct *oldmm, struct mm_struct *newmm)
+-{
+-	/* It's safe to write the exe_file pointer without exe_file_lock because
+-	 * this is called during fork when the task is not yet in /proc */
+-	newmm->exe_file = get_mm_exe_file(oldmm);
+-}
+-
+ static int proc_exe_link(struct inode *inode, struct path *exe_path)
  {
-@@ -827,6 +839,33 @@ static inline bool mem_cgroup_is_root(st
- 	return (mem == root_mem_cgroup);
+ 	struct task_struct *task;
+diff -puN include/linux/mm.h~mm-extract-exe_file-handling-from-procfs include/linux/mm.h
+--- a/include/linux/mm.h~mm-extract-exe_file-handling-from-procfs
++++ a/include/linux/mm.h
+@@ -1408,17 +1408,11 @@ extern void exit_mmap(struct mm_struct *
+ extern int mm_take_all_locks(struct mm_struct *mm);
+ extern void mm_drop_all_locks(struct mm_struct *mm);
+ 
+-#ifdef CONFIG_PROC_FS
+ /* From fs/proc/base.c. callers must _not_ hold the mm's exe_file_lock */
+ extern void added_exe_file_vma(struct mm_struct *mm);
+ extern void removed_exe_file_vma(struct mm_struct *mm);
+-#else
+-static inline void added_exe_file_vma(struct mm_struct *mm)
+-{}
+-
+-static inline void removed_exe_file_vma(struct mm_struct *mm)
+-{}
+-#endif /* CONFIG_PROC_FS */
++extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
++extern struct file *get_mm_exe_file(struct mm_struct *mm);
+ 
+ extern int may_expand_vm(struct mm_struct *mm, unsigned long npages);
+ extern int install_special_mapping(struct mm_struct *mm,
+diff -puN include/linux/mm_types.h~mm-extract-exe_file-handling-from-procfs include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-extract-exe_file-handling-from-procfs
++++ a/include/linux/mm_types.h
+@@ -302,11 +302,9 @@ struct mm_struct {
+ 	struct task_struct __rcu *owner;
+ #endif
+ 
+-#ifdef CONFIG_PROC_FS
+ 	/* store ref to file /proc/<pid>/exe symlink points to */
+ 	struct file *exe_file;
+ 	unsigned long num_exe_file_vmas;
+-#endif
+ #ifdef CONFIG_MMU_NOTIFIER
+ 	struct mmu_notifier_mm *mmu_notifier_mm;
+ #endif
+diff -puN include/linux/proc_fs.h~mm-extract-exe_file-handling-from-procfs include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~mm-extract-exe_file-handling-from-procfs
++++ a/include/linux/proc_fs.h
+@@ -173,12 +173,6 @@ extern void proc_net_remove(struct net *
+ extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
+ 	struct proc_dir_entry *parent);
+ 
+-/* While the {get|set|dup}_mm_exe_file functions are for mm_structs, they are
+- * only needed to implement /proc/<pid>|self/exe so we define them here. */
+-extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
+-extern struct file *get_mm_exe_file(struct mm_struct *mm);
+-extern void dup_mm_exe_file(struct mm_struct *oldmm, struct mm_struct *newmm);
+-
+ extern struct file *proc_ns_fget(int fd);
+ 
+ #else
+@@ -230,19 +224,6 @@ static inline void pid_ns_release_proc(s
+ {
  }
  
-+void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
+-static inline void set_mm_exe_file(struct mm_struct *mm,
+-				   struct file *new_exe_file)
+-{}
+-
+-static inline struct file *get_mm_exe_file(struct mm_struct *mm)
+-{
+-	return NULL;
+-}
+-
+-static inline void dup_mm_exe_file(struct mm_struct *oldmm,
+-	       			   struct mm_struct *newmm)
+-{}
+-
+ static inline struct file *proc_ns_fget(int fd)
+ {
+ 	return ERR_PTR(-EINVAL);
+diff -puN kernel/fork.c~mm-extract-exe_file-handling-from-procfs kernel/fork.c
+--- a/kernel/fork.c~mm-extract-exe_file-handling-from-procfs
++++ a/kernel/fork.c
+@@ -59,7 +59,6 @@
+ #include <linux/taskstats_kern.h>
+ #include <linux/random.h>
+ #include <linux/tty.h>
+-#include <linux/proc_fs.h>
+ #include <linux/blkdev.h>
+ #include <linux/fs_struct.h>
+ #include <linux/magic.h>
+@@ -597,6 +596,57 @@ void mmput(struct mm_struct *mm)
+ }
+ EXPORT_SYMBOL_GPL(mmput);
+ 
++/*
++ * We added or removed a vma mapping the executable. The vmas are only mapped
++ * during exec and are not mapped with the mmap system call.
++ * Callers must hold down_write() on the mm's mmap_sem for these
++ */
++void added_exe_file_vma(struct mm_struct *mm)
 +{
-+	struct mem_cgroup *mem;
-+
-+	if (!mm)
-+		return;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	if (unlikely(!mem))
-+		goto out;
-+
-+	switch (idx) {
-+	case PGMAJFAULT:
-+		mem_cgroup_pgmajfault(mem, 1);
-+		break;
-+	case PGFAULT:
-+		mem_cgroup_pgfault(mem, 1);
-+		break;
-+	default:
-+		BUG();
-+	}
-+out:
-+	rcu_read_unlock();
++	mm->num_exe_file_vmas++;
 +}
-+EXPORT_SYMBOL(mem_cgroup_count_vm_event);
 +
- /*
-  * Following LRU functions are allowed to be used without PCG_LOCK.
-  * Operations are called by routine of global LRU independently from memcg.
-@@ -3958,6 +3997,8 @@ enum {
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
- 	MCS_SWAP,
-+	MCS_PGFAULT,
-+	MCS_PGMAJFAULT,
- 	MCS_INACTIVE_ANON,
- 	MCS_ACTIVE_ANON,
- 	MCS_INACTIVE_FILE,
-@@ -3980,6 +4021,8 @@ struct {
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
- 	{"swap", "total_swap"},
-+	{"pgfault", "total_pgfault"},
-+	{"pgmajfault", "total_pgmajfault"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
-@@ -4008,6 +4051,10 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
- 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGFAULT);
-+	s->stat[MCS_PGFAULT] += val;
-+	val = mem_cgroup_read_events(mem, MEM_CGROUP_EVENTS_PGMAJFAULT);
-+	s->stat[MCS_PGMAJFAULT] += val;
- 
- 	/* per zone stat */
- 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
-diff -puN mm/memory.c~add-the-pagefault-count-into-memcg-stats mm/memory.c
---- a/mm/memory.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/memory.c
-@@ -2874,6 +2874,7 @@ static int do_swap_page(struct mm_struct
- 		/* Had to read the page from swap area: Major fault */
- 		ret = VM_FAULT_MAJOR;
- 		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(mm, PGMAJFAULT);
- 	} else if (PageHWPoison(page)) {
- 		/*
- 		 * hwpoisoned dirty swapcache pages are kept for killing
-@@ -3413,6 +3414,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	__set_current_state(TASK_RUNNING);
- 
- 	count_vm_event(PGFAULT);
-+	mem_cgroup_count_vm_event(mm, PGFAULT);
- 
- 	/* do counter updates before entering really critical section. */
- 	check_sync_rss_stat(current);
-diff -puN mm/shmem.c~add-the-pagefault-count-into-memcg-stats mm/shmem.c
---- a/mm/shmem.c~add-the-pagefault-count-into-memcg-stats
-+++ a/mm/shmem.c
-@@ -1305,12 +1305,10 @@ repeat:
- 		swappage = lookup_swap_cache(swap);
- 		if (!swappage) {
- 			shmem_swp_unmap(entry);
-+			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type && !(*type & VM_FAULT_MAJOR)) {
--				__count_vm_event(PGMAJFAULT);
-+			if (type)
- 				*type |= VM_FAULT_MAJOR;
--			}
--			spin_unlock(&info->lock);
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
-@@ -1549,7 +1547,10 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
++void removed_exe_file_vma(struct mm_struct *mm)
++{
++	mm->num_exe_file_vmas--;
++	if ((mm->num_exe_file_vmas == 0) && mm->exe_file){
++		fput(mm->exe_file);
++		mm->exe_file = NULL;
++	}
++
++}
++
++void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
++{
++	if (new_exe_file)
++		get_file(new_exe_file);
++	if (mm->exe_file)
++		fput(mm->exe_file);
++	mm->exe_file = new_exe_file;
++	mm->num_exe_file_vmas = 0;
++}
++
++struct file *get_mm_exe_file(struct mm_struct *mm)
++{
++	struct file *exe_file;
++
++	/* We need mmap_sem to protect against races with removal of
++	 * VM_EXECUTABLE vmas */
++	down_read(&mm->mmap_sem);
++	exe_file = mm->exe_file;
++	if (exe_file)
++		get_file(exe_file);
++	up_read(&mm->mmap_sem);
++	return exe_file;
++}
++
++static void dup_mm_exe_file(struct mm_struct *oldmm, struct mm_struct *newmm)
++{
++	/* It's safe to write the exe_file pointer without exe_file_lock because
++	 * this is called during fork when the task is not yet in /proc */
++	newmm->exe_file = get_mm_exe_file(oldmm);
++}
++
+ /**
+  * get_task_mm - acquire a reference to the task's mm
+  *
+_
+
+Patches currently in -mm which might be from jslaby@suse.cz are
+
+origin.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+
