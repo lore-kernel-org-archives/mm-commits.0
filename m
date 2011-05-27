@@ -1,129 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] w1-have-netlink-search-update-kernel-list.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:59:19 -0700
-Message-ID: <201105271957.p4RJvOZj017671@imap1.linux-foundation.org>
+Subject: [merged] fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:58:50 -0700
+Message-ID: <201105271956.p4RJut3p017608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757235Ab1E0UKm (ORCPT
+	by vger.kernel.org with ESMTP id S1757235Ab1E0ULW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:10:42 -0400
+	Fri, 27 May 2011 16:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: David@Fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: have netlink search update kernel list
+     fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
 has been removed from the -mm tree.  Its filename was
-     w1-have-netlink-search-update-kernel-list.patch
+     fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: have netlink search update kernel list
-From: David Fries <David@Fries.net>
+Subject: fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
+From: Olaf Hering <olaf@aepfle.de>
 
-Reorganize so the netlink connector one wire search command will update
-the kernel list of detected slave devices.  Otherwise, a newly detected
-device is unusable because unless it's in the kernel list of known devices
-any commands will result in ENODEV status.
+The balloon driver in a Xen guest frees guest pages and marks them as
+mmio.  When the kernel crashes and the crash kernel attempts to read the
+oldmem via /proc/vmcore a read from ballooned pages will generate 100%
+load in dom0 because Xen asks qemu-dm for the page content.  Since the
+reads come in as 8byte requests each ballooned page is tried 512 times.
 
-Signed-off-by: David Fries <David@Fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+With this change a hook can be registered which checks wether the given
+pfn is really ram.  The hook has to return a value > 0 for ram pages, a
+value < 0 on error (because the hypercall is not known) and 0 for non-ram
+pages.
+
+This will reduce the time to read /proc/vmcore.  Without this change a
+512M guest with 128M crashkernel region needs 200 seconds to read it, with
+this change it takes just 2 seconds.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c         |   12 +++++++++---
- drivers/w1/w1.h         |    4 +++-
- drivers/w1/w1_netlink.c |    5 ++++-
- 3 files changed, 16 insertions(+), 5 deletions(-)
+ fs/proc/vmcore.c           |   52 ++++++++++++++++++++++++++++++++---
+ include/linux/crash_dump.h |    5 +++
+ 2 files changed, 54 insertions(+), 3 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-have-netlink-search-update-kernel-list drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-have-netlink-search-update-kernel-list
-+++ a/drivers/w1/w1.c
-@@ -827,7 +827,7 @@ void w1_reconnect_slaves(struct w1_famil
- 	mutex_unlock(&w1_mlock);
- }
+diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
++++ a/fs/proc/vmcore.c
+@@ -35,6 +35,46 @@ static u64 vmcore_size;
  
--static void w1_slave_found(struct w1_master *dev, u64 rn)
-+void w1_slave_found(struct w1_master *dev, u64 rn)
- {
- 	struct w1_slave *sl;
- 	struct w1_reg_num *tmp;
-@@ -933,14 +933,15 @@ void w1_search(struct w1_master *dev, u8
- 	}
- }
+ static struct proc_dir_entry *proc_vmcore = NULL;
  
--void w1_search_process(struct w1_master *dev, u8 search_type)
-+void w1_search_process_cb(struct w1_master *dev, u8 search_type,
-+	w1_slave_found_callback cb)
- {
- 	struct w1_slave *sl, *sln;
- 
- 	list_for_each_entry(sl, &dev->slist, w1_slave_entry)
- 		clear_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
- 
--	w1_search_devices(dev, search_type, w1_slave_found);
-+	w1_search_devices(dev, search_type, cb);
- 
- 	list_for_each_entry_safe(sl, sln, &dev->slist, w1_slave_entry) {
- 		if (!test_bit(W1_SLAVE_ACTIVE, (unsigned long *)&sl->flags) && !--sl->ttl)
-@@ -953,6 +954,11 @@ void w1_search_process(struct w1_master 
- 		dev->search_count--;
- }
- 
-+static void w1_search_process(struct w1_master *dev, u8 search_type)
++/*
++ * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
++ * The called function has to take care of module refcounting.
++ */
++static int (*oldmem_pfn_is_ram)(unsigned long pfn);
++
++int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn))
 +{
-+	w1_search_process_cb(dev, search_type, w1_slave_found);
++	if (oldmem_pfn_is_ram)
++		return -EBUSY;
++	oldmem_pfn_is_ram = fn;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(register_oldmem_pfn_is_ram);
++
++void unregister_oldmem_pfn_is_ram(void)
++{
++	oldmem_pfn_is_ram = NULL;
++	wmb();
++}
++EXPORT_SYMBOL_GPL(unregister_oldmem_pfn_is_ram);
++
++static int pfn_is_ram(unsigned long pfn)
++{
++	int (*fn)(unsigned long pfn);
++	/* pfn is ram unless fn() checks pagetype */
++	int ret = 1;
++
++	/*
++	 * Ask hypervisor if the pfn is really ram.
++	 * A ballooned page contains no data and reading from such a page
++	 * will cause high load in the hypervisor.
++	 */
++	fn = oldmem_pfn_is_ram;
++	if (fn)
++		ret = fn(pfn);
++
++	return ret;
 +}
 +
- int w1_process(void *data)
- {
- 	struct w1_master *dev = (struct w1_master *) data;
-diff -puN drivers/w1/w1.h~w1-have-netlink-search-update-kernel-list drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-have-netlink-search-update-kernel-list
-+++ a/drivers/w1/w1.h
-@@ -194,7 +194,9 @@ void w1_destroy_master_attributes(struct
- void w1_search(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb);
- void w1_search_devices(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb);
- struct w1_slave *w1_search_slave(struct w1_reg_num *id);
--void w1_search_process(struct w1_master *dev, u8 search_type);
-+void w1_slave_found(struct w1_master *dev, u64 rn);
-+void w1_search_process_cb(struct w1_master *dev, u8 search_type,
-+	w1_slave_found_callback cb);
- struct w1_master *w1_search_master_id(u32 id);
+ /* Reads a page from the oldmem device from given offset. */
+ static ssize_t read_from_oldmem(char *buf, size_t count,
+ 				u64 *ppos, int userbuf)
+@@ -55,9 +95,15 @@ static ssize_t read_from_oldmem(char *bu
+ 		else
+ 			nr_bytes = count;
  
- /* Disconnect and reconnect devices in the given family.  Used for finding
-diff -puN drivers/w1/w1_netlink.c~w1-have-netlink-search-update-kernel-list drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~w1-have-netlink-search-update-kernel-list
-+++ a/drivers/w1/w1_netlink.c
-@@ -55,6 +55,9 @@ static void w1_send_slave(struct w1_mast
- 	struct w1_netlink_cmd *cmd = (struct w1_netlink_cmd *)(hdr + 1);
- 	int avail;
- 
-+	/* update kernel slave list */
-+	w1_slave_found(dev, rn);
+-		tmp = copy_oldmem_page(pfn, buf, nr_bytes, offset, userbuf);
+-		if (tmp < 0)
+-			return tmp;
++		/* If pfn is not ram, return zeros for sparse dump files */
++		if (pfn_is_ram(pfn) == 0)
++			memset(buf, 0, nr_bytes);
++		else {
++			tmp = copy_oldmem_page(pfn, buf, nr_bytes,
++						offset, userbuf);
++			if (tmp < 0)
++				return tmp;
++		}
+ 		*ppos += nr_bytes;
+ 		count -= nr_bytes;
+ 		buf += nr_bytes;
+diff -puN include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
++++ a/include/linux/crash_dump.h
+@@ -66,6 +66,11 @@ static inline void vmcore_unusable(void)
+ 	if (is_kdump_kernel())
+ 		elfcorehdr_addr = ELFCORE_ADDR_ERR;
+ }
 +
- 	avail = dev->priv_size - cmd->len;
- 
- 	if (avail > 8) {
-@@ -85,7 +88,7 @@ static int w1_process_search_command(str
- 	dev->priv = msg;
- 	dev->priv_size = avail;
- 
--	w1_search_devices(dev, search_type, w1_send_slave);
-+	w1_search_process_cb(dev, search_type, w1_send_slave);
- 
- 	msg->ack = 0;
- 	cn_netlink_send(msg, 0, GFP_KERNEL);
++#define HAVE_OLDMEM_PFN_IS_RAM 1
++extern int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn));
++extern void unregister_oldmem_pfn_is_ram(void);
++
+ #else /* !CONFIG_CRASH_DUMP */
+ static inline int is_kdump_kernel(void) { return 0; }
+ #endif /* CONFIG_CRASH_DUMP */
 _
 
-Patches currently in -mm which might be from David@Fries.net are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch
 
