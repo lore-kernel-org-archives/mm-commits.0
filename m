@@ -1,143 +1,445 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch removed from -mm tree
-Date: Fri, 27 May 2011 12:58:50 -0700
-Message-ID: <201105271956.p4RJut3p017608@imap1.linux-foundation.org>
+Subject: [merged] ipmi-convert-to-seq_file-interface.patch removed from -mm tree
+Date: Fri, 27 May 2011 12:58:53 -0700
+Message-ID: <201105271956.p4RJux8t017619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757235Ab1E0ULW (ORCPT
+	by vger.kernel.org with ESMTP id S1753667Ab1E0UMO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 16:11:22 -0400
+	Fri, 27 May 2011 16:12:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
+     ipmi: convert to seq_file interface
 has been removed from the -mm tree.  Its filename was
-     fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages.patch
+     ipmi-convert-to-seq_file-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages
-From: Olaf Hering <olaf@aepfle.de>
+Subject: ipmi: convert to seq_file interface
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The balloon driver in a Xen guest frees guest pages and marks them as
-mmio.  When the kernel crashes and the crash kernel attempts to read the
-oldmem via /proc/vmcore a read from ballooned pages will generate 100%
-load in dom0 because Xen asks qemu-dm for the page content.  Since the
-reads come in as 8byte requests each ballooned page is tried 512 times.
+The ->read_proc interface is going away, convert to seq_file.
 
-With this change a hook can be registered which checks wether the given
-pfn is really ram.  The hook has to return a value > 0 for ram pages, a
-value < 0 on error (because the hypercall is not known) and 0 for non-ram
-pages.
-
-This will reduce the time to read /proc/vmcore.  Without this change a
-512M guest with 128M crashkernel region needs 200 seconds to read it, with
-this change it takes just 2 seconds.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc:Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c           |   52 ++++++++++++++++++++++++++++++++---
- include/linux/crash_dump.h |    5 +++
- 2 files changed, 54 insertions(+), 3 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |  138 +++++++++++++++-----------
+ drivers/char/ipmi/ipmi_si_intf.c    |   88 +++++++++++-----
+ include/linux/ipmi_smi.h            |    2 
+ 3 files changed, 142 insertions(+), 86 deletions(-)
 
-diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
-+++ a/fs/proc/vmcore.c
-@@ -35,6 +35,46 @@ static u64 vmcore_size;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-to-seq_file-interface drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-to-seq_file-interface
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -36,6 +36,7 @@
+ #include <asm/system.h>
+ #include <linux/poll.h>
+ #include <linux/sched.h>
++#include <linux/seq_file.h>
+ #include <linux/spinlock.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+@@ -1896,102 +1897,128 @@ int ipmi_request_supply_msgs(ipmi_user_t
+ EXPORT_SYMBOL(ipmi_request_supply_msgs);
  
- static struct proc_dir_entry *proc_vmcore = NULL;
+ #ifdef CONFIG_PROC_FS
+-static int ipmb_file_read_proc(char *page, char **start, off_t off,
+-			       int count, int *eof, void *data)
++static int smi_ipmb_proc_show(struct seq_file *m, void *v)
+ {
+-	char       *out = (char *) page;
+-	ipmi_smi_t intf = data;
++	ipmi_smi_t intf = m->private;
+ 	int        i;
+-	int        rv = 0;
  
-+/*
-+ * Returns > 0 for RAM pages, 0 for non-RAM pages, < 0 on error
-+ * The called function has to take care of module refcounting.
-+ */
-+static int (*oldmem_pfn_is_ram)(unsigned long pfn);
+-	for (i = 0; i < IPMI_MAX_CHANNELS; i++)
+-		rv += sprintf(out+rv, "%x ", intf->channels[i].address);
+-	out[rv-1] = '\n'; /* Replace the final space with a newline */
+-	out[rv] = '\0';
+-	rv++;
+-	return rv;
++	seq_printf(m, "%x", intf->channels[0].address);
++	for (i = 1; i < IPMI_MAX_CHANNELS; i++)
++		seq_printf(m, " %x", intf->channels[i].address);
++	return seq_putc(m, '\n');
+ }
+ 
+-static int version_file_read_proc(char *page, char **start, off_t off,
+-				  int count, int *eof, void *data)
++static int smi_ipmb_proc_open(struct inode *inode, struct file *file)
+ {
+-	char       *out = (char *) page;
+-	ipmi_smi_t intf = data;
++	return single_open(file, smi_ipmb_proc_show, PDE(inode)->data);
++}
+ 
+-	return sprintf(out, "%u.%u\n",
++static const struct file_operations smi_ipmb_proc_ops = {
++	.open		= smi_ipmb_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
 +
-+int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn))
++static int smi_version_proc_show(struct seq_file *m, void *v)
 +{
-+	if (oldmem_pfn_is_ram)
-+		return -EBUSY;
-+	oldmem_pfn_is_ram = fn;
++	ipmi_smi_t intf = m->private;
++
++	return seq_printf(m, "%u.%u\n",
+ 		       ipmi_version_major(&intf->bmc->id),
+ 		       ipmi_version_minor(&intf->bmc->id));
+ }
+ 
+-static int stat_file_read_proc(char *page, char **start, off_t off,
+-			       int count, int *eof, void *data)
++static int smi_version_proc_open(struct inode *inode, struct file *file)
+ {
+-	char       *out = (char *) page;
+-	ipmi_smi_t intf = data;
++	return single_open(file, smi_version_proc_show, PDE(inode)->data);
++}
++
++static const struct file_operations smi_version_proc_ops = {
++	.open		= smi_version_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
+-	out += sprintf(out, "sent_invalid_commands:       %u\n",
++static int smi_stats_proc_show(struct seq_file *m, void *v)
++{
++	ipmi_smi_t intf = m->private;
++
++	seq_printf(m, "sent_invalid_commands:       %u\n",
+ 		       ipmi_get_stat(intf, sent_invalid_commands));
+-	out += sprintf(out, "sent_local_commands:         %u\n",
++	seq_printf(m, "sent_local_commands:         %u\n",
+ 		       ipmi_get_stat(intf, sent_local_commands));
+-	out += sprintf(out, "handled_local_responses:     %u\n",
++	seq_printf(m, "handled_local_responses:     %u\n",
+ 		       ipmi_get_stat(intf, handled_local_responses));
+-	out += sprintf(out, "unhandled_local_responses:   %u\n",
++	seq_printf(m, "unhandled_local_responses:   %u\n",
+ 		       ipmi_get_stat(intf, unhandled_local_responses));
+-	out += sprintf(out, "sent_ipmb_commands:          %u\n",
++	seq_printf(m, "sent_ipmb_commands:          %u\n",
+ 		       ipmi_get_stat(intf, sent_ipmb_commands));
+-	out += sprintf(out, "sent_ipmb_command_errs:      %u\n",
++	seq_printf(m, "sent_ipmb_command_errs:      %u\n",
+ 		       ipmi_get_stat(intf, sent_ipmb_command_errs));
+-	out += sprintf(out, "retransmitted_ipmb_commands: %u\n",
++	seq_printf(m, "retransmitted_ipmb_commands: %u\n",
+ 		       ipmi_get_stat(intf, retransmitted_ipmb_commands));
+-	out += sprintf(out, "timed_out_ipmb_commands:     %u\n",
++	seq_printf(m, "timed_out_ipmb_commands:     %u\n",
+ 		       ipmi_get_stat(intf, timed_out_ipmb_commands));
+-	out += sprintf(out, "timed_out_ipmb_broadcasts:   %u\n",
++	seq_printf(m, "timed_out_ipmb_broadcasts:   %u\n",
+ 		       ipmi_get_stat(intf, timed_out_ipmb_broadcasts));
+-	out += sprintf(out, "sent_ipmb_responses:         %u\n",
++	seq_printf(m, "sent_ipmb_responses:         %u\n",
+ 		       ipmi_get_stat(intf, sent_ipmb_responses));
+-	out += sprintf(out, "handled_ipmb_responses:      %u\n",
++	seq_printf(m, "handled_ipmb_responses:      %u\n",
+ 		       ipmi_get_stat(intf, handled_ipmb_responses));
+-	out += sprintf(out, "invalid_ipmb_responses:      %u\n",
++	seq_printf(m, "invalid_ipmb_responses:      %u\n",
+ 		       ipmi_get_stat(intf, invalid_ipmb_responses));
+-	out += sprintf(out, "unhandled_ipmb_responses:    %u\n",
++	seq_printf(m, "unhandled_ipmb_responses:    %u\n",
+ 		       ipmi_get_stat(intf, unhandled_ipmb_responses));
+-	out += sprintf(out, "sent_lan_commands:           %u\n",
++	seq_printf(m, "sent_lan_commands:           %u\n",
+ 		       ipmi_get_stat(intf, sent_lan_commands));
+-	out += sprintf(out, "sent_lan_command_errs:       %u\n",
++	seq_printf(m, "sent_lan_command_errs:       %u\n",
+ 		       ipmi_get_stat(intf, sent_lan_command_errs));
+-	out += sprintf(out, "retransmitted_lan_commands:  %u\n",
++	seq_printf(m, "retransmitted_lan_commands:  %u\n",
+ 		       ipmi_get_stat(intf, retransmitted_lan_commands));
+-	out += sprintf(out, "timed_out_lan_commands:      %u\n",
++	seq_printf(m, "timed_out_lan_commands:      %u\n",
+ 		       ipmi_get_stat(intf, timed_out_lan_commands));
+-	out += sprintf(out, "sent_lan_responses:          %u\n",
++	seq_printf(m, "sent_lan_responses:          %u\n",
+ 		       ipmi_get_stat(intf, sent_lan_responses));
+-	out += sprintf(out, "handled_lan_responses:       %u\n",
++	seq_printf(m, "handled_lan_responses:       %u\n",
+ 		       ipmi_get_stat(intf, handled_lan_responses));
+-	out += sprintf(out, "invalid_lan_responses:       %u\n",
++	seq_printf(m, "invalid_lan_responses:       %u\n",
+ 		       ipmi_get_stat(intf, invalid_lan_responses));
+-	out += sprintf(out, "unhandled_lan_responses:     %u\n",
++	seq_printf(m, "unhandled_lan_responses:     %u\n",
+ 		       ipmi_get_stat(intf, unhandled_lan_responses));
+-	out += sprintf(out, "handled_commands:            %u\n",
++	seq_printf(m, "handled_commands:            %u\n",
+ 		       ipmi_get_stat(intf, handled_commands));
+-	out += sprintf(out, "invalid_commands:            %u\n",
++	seq_printf(m, "invalid_commands:            %u\n",
+ 		       ipmi_get_stat(intf, invalid_commands));
+-	out += sprintf(out, "unhandled_commands:          %u\n",
++	seq_printf(m, "unhandled_commands:          %u\n",
+ 		       ipmi_get_stat(intf, unhandled_commands));
+-	out += sprintf(out, "invalid_events:              %u\n",
++	seq_printf(m, "invalid_events:              %u\n",
+ 		       ipmi_get_stat(intf, invalid_events));
+-	out += sprintf(out, "events:                      %u\n",
++	seq_printf(m, "events:                      %u\n",
+ 		       ipmi_get_stat(intf, events));
+-	out += sprintf(out, "failed rexmit LAN msgs:      %u\n",
++	seq_printf(m, "failed rexmit LAN msgs:      %u\n",
+ 		       ipmi_get_stat(intf, dropped_rexmit_lan_commands));
+-	out += sprintf(out, "failed rexmit IPMB msgs:     %u\n",
++	seq_printf(m, "failed rexmit IPMB msgs:     %u\n",
+ 		       ipmi_get_stat(intf, dropped_rexmit_ipmb_commands));
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(register_oldmem_pfn_is_ram);
-+
-+void unregister_oldmem_pfn_is_ram(void)
-+{
-+	oldmem_pfn_is_ram = NULL;
-+	wmb();
-+}
-+EXPORT_SYMBOL_GPL(unregister_oldmem_pfn_is_ram);
-+
-+static int pfn_is_ram(unsigned long pfn)
-+{
-+	int (*fn)(unsigned long pfn);
-+	/* pfn is ram unless fn() checks pagetype */
-+	int ret = 1;
-+
-+	/*
-+	 * Ask hypervisor if the pfn is really ram.
-+	 * A ballooned page contains no data and reading from such a page
-+	 * will cause high load in the hypervisor.
-+	 */
-+	fn = oldmem_pfn_is_ram;
-+	if (fn)
-+		ret = fn(pfn);
-+
-+	return ret;
-+}
-+
- /* Reads a page from the oldmem device from given offset. */
- static ssize_t read_from_oldmem(char *buf, size_t count,
- 				u64 *ppos, int userbuf)
-@@ -55,9 +95,15 @@ static ssize_t read_from_oldmem(char *bu
- 		else
- 			nr_bytes = count;
  
--		tmp = copy_oldmem_page(pfn, buf, nr_bytes, offset, userbuf);
--		if (tmp < 0)
--			return tmp;
-+		/* If pfn is not ram, return zeros for sparse dump files */
-+		if (pfn_is_ram(pfn) == 0)
-+			memset(buf, 0, nr_bytes);
-+		else {
-+			tmp = copy_oldmem_page(pfn, buf, nr_bytes,
-+						offset, userbuf);
-+			if (tmp < 0)
-+				return tmp;
-+		}
- 		*ppos += nr_bytes;
- 		count -= nr_bytes;
- 		buf += nr_bytes;
-diff -puN include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~fs-proc-vmcorec-add-hook-to-read_from_oldmem-to-check-for-non-ram-pages
-+++ a/include/linux/crash_dump.h
-@@ -66,6 +66,11 @@ static inline void vmcore_unusable(void)
- 	if (is_kdump_kernel())
- 		elfcorehdr_addr = ELFCORE_ADDR_ERR;
+-	return (out - ((char *) page));
++static int smi_stats_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, smi_stats_proc_show, PDE(inode)->data);
  }
 +
-+#define HAVE_OLDMEM_PFN_IS_RAM 1
-+extern int register_oldmem_pfn_is_ram(int (*fn)(unsigned long pfn));
-+extern void unregister_oldmem_pfn_is_ram(void);
++static const struct file_operations smi_stats_proc_ops = {
++	.open		= smi_stats_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif /* CONFIG_PROC_FS */
+ 
+ int ipmi_smi_add_proc_entry(ipmi_smi_t smi, char *name,
+-			    read_proc_t *read_proc,
++			    const struct file_operations *proc_ops,
+ 			    void *data)
+ {
+ 	int                    rv = 0;
+@@ -2010,15 +2037,12 @@ int ipmi_smi_add_proc_entry(ipmi_smi_t s
+ 	}
+ 	strcpy(entry->name, name);
+ 
+-	file = create_proc_entry(name, 0, smi->proc_dir);
++	file = proc_create_data(name, 0, smi->proc_dir, proc_ops, data);
+ 	if (!file) {
+ 		kfree(entry->name);
+ 		kfree(entry);
+ 		rv = -ENOMEM;
+ 	} else {
+-		file->data = data;
+-		file->read_proc = read_proc;
+-
+ 		mutex_lock(&smi->proc_entry_lock);
+ 		/* Stick it on the list. */
+ 		entry->next = smi->proc_entries;
+@@ -2043,17 +2067,17 @@ static int add_proc_entries(ipmi_smi_t s
+ 
+ 	if (rv == 0)
+ 		rv = ipmi_smi_add_proc_entry(smi, "stats",
+-					     stat_file_read_proc,
++					     &smi_stats_proc_ops,
+ 					     smi);
+ 
+ 	if (rv == 0)
+ 		rv = ipmi_smi_add_proc_entry(smi, "ipmb",
+-					     ipmb_file_read_proc,
++					     &smi_ipmb_proc_ops,
+ 					     smi);
+ 
+ 	if (rv == 0)
+ 		rv = ipmi_smi_add_proc_entry(smi, "version",
+-					     version_file_read_proc,
++					     &smi_version_proc_ops,
+ 					     smi);
+ #endif /* CONFIG_PROC_FS */
+ 
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-to-seq_file-interface drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-to-seq_file-interface
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -43,6 +43,7 @@
+ #include <linux/moduleparam.h>
+ #include <asm/system.h>
+ #include <linux/sched.h>
++#include <linux/seq_file.h>
+ #include <linux/timer.h>
+ #include <linux/errno.h>
+ #include <linux/spinlock.h>
+@@ -2805,54 +2806,73 @@ static int try_enable_event_buffer(struc
+ 	return rv;
+ }
+ 
+-static int type_file_read_proc(char *page, char **start, off_t off,
+-			       int count, int *eof, void *data)
++static int smi_type_proc_show(struct seq_file *m, void *v)
+ {
+-	struct smi_info *smi = data;
++	struct smi_info *smi = m->private;
+ 
+-	return sprintf(page, "%s\n", si_to_str[smi->si_type]);
++	return seq_printf(m, "%s\n", si_to_str[smi->si_type]);
+ }
+ 
+-static int stat_file_read_proc(char *page, char **start, off_t off,
+-			       int count, int *eof, void *data)
++static int smi_type_proc_open(struct inode *inode, struct file *file)
+ {
+-	char            *out = (char *) page;
+-	struct smi_info *smi = data;
++	return single_open(file, smi_type_proc_show, PDE(inode)->data);
++}
 +
- #else /* !CONFIG_CRASH_DUMP */
- static inline int is_kdump_kernel(void) { return 0; }
- #endif /* CONFIG_CRASH_DUMP */
++static const struct file_operations smi_type_proc_ops = {
++	.open		= smi_type_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int smi_si_stats_proc_show(struct seq_file *m, void *v)
++{
++	struct smi_info *smi = m->private;
+ 
+-	out += sprintf(out, "interrupts_enabled:    %d\n",
++	seq_printf(m, "interrupts_enabled:    %d\n",
+ 		       smi->irq && !smi->interrupt_disabled);
+-	out += sprintf(out, "short_timeouts:        %u\n",
++	seq_printf(m, "short_timeouts:        %u\n",
+ 		       smi_get_stat(smi, short_timeouts));
+-	out += sprintf(out, "long_timeouts:         %u\n",
++	seq_printf(m, "long_timeouts:         %u\n",
+ 		       smi_get_stat(smi, long_timeouts));
+-	out += sprintf(out, "idles:                 %u\n",
++	seq_printf(m, "idles:                 %u\n",
+ 		       smi_get_stat(smi, idles));
+-	out += sprintf(out, "interrupts:            %u\n",
++	seq_printf(m, "interrupts:            %u\n",
+ 		       smi_get_stat(smi, interrupts));
+-	out += sprintf(out, "attentions:            %u\n",
++	seq_printf(m, "attentions:            %u\n",
+ 		       smi_get_stat(smi, attentions));
+-	out += sprintf(out, "flag_fetches:          %u\n",
++	seq_printf(m, "flag_fetches:          %u\n",
+ 		       smi_get_stat(smi, flag_fetches));
+-	out += sprintf(out, "hosed_count:           %u\n",
++	seq_printf(m, "hosed_count:           %u\n",
+ 		       smi_get_stat(smi, hosed_count));
+-	out += sprintf(out, "complete_transactions: %u\n",
++	seq_printf(m, "complete_transactions: %u\n",
+ 		       smi_get_stat(smi, complete_transactions));
+-	out += sprintf(out, "events:                %u\n",
++	seq_printf(m, "events:                %u\n",
+ 		       smi_get_stat(smi, events));
+-	out += sprintf(out, "watchdog_pretimeouts:  %u\n",
++	seq_printf(m, "watchdog_pretimeouts:  %u\n",
+ 		       smi_get_stat(smi, watchdog_pretimeouts));
+-	out += sprintf(out, "incoming_messages:     %u\n",
++	seq_printf(m, "incoming_messages:     %u\n",
+ 		       smi_get_stat(smi, incoming_messages));
++	return 0;
++}
+ 
+-	return out - page;
++static int smi_si_stats_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, smi_si_stats_proc_show, PDE(inode)->data);
+ }
+ 
+-static int param_read_proc(char *page, char **start, off_t off,
+-			   int count, int *eof, void *data)
++static const struct file_operations smi_si_stats_proc_ops = {
++	.open		= smi_si_stats_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int smi_params_proc_show(struct seq_file *m, void *v)
+ {
+-	struct smi_info *smi = data;
++	struct smi_info *smi = m->private;
+ 
+-	return sprintf(page,
++	return seq_printf(m,
+ 		       "%s,%s,0x%lx,rsp=%d,rsi=%d,rsh=%d,irq=%d,ipmb=%d\n",
+ 		       si_to_str[smi->si_type],
+ 		       addr_space_to_str[smi->io.addr_type],
+@@ -2864,6 +2884,18 @@ static int param_read_proc(char *page, c
+ 		       smi->slave_addr);
+ }
+ 
++static int smi_params_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, smi_params_proc_show, PDE(inode)->data);
++}
++
++static const struct file_operations smi_params_proc_ops = {
++	.open		= smi_params_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ /*
+  * oem_data_avail_to_receive_msg_avail
+  * @info - smi_info structure with msg_flags set
+@@ -3257,7 +3289,7 @@ static int try_smi_init(struct smi_info 
+ 	}
+ 
+ 	rv = ipmi_smi_add_proc_entry(new_smi->intf, "type",
+-				     type_file_read_proc,
++				     &smi_type_proc_ops,
+ 				     new_smi);
+ 	if (rv) {
+ 		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+@@ -3265,7 +3297,7 @@ static int try_smi_init(struct smi_info 
+ 	}
+ 
+ 	rv = ipmi_smi_add_proc_entry(new_smi->intf, "si_stats",
+-				     stat_file_read_proc,
++				     &smi_si_stats_proc_ops,
+ 				     new_smi);
+ 	if (rv) {
+ 		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+@@ -3273,7 +3305,7 @@ static int try_smi_init(struct smi_info 
+ 	}
+ 
+ 	rv = ipmi_smi_add_proc_entry(new_smi->intf, "params",
+-				     param_read_proc,
++				     &smi_params_proc_ops,
+ 				     new_smi);
+ 	if (rv) {
+ 		dev_err(new_smi->dev, "Unable to create proc entry: %d\n", rv);
+diff -puN include/linux/ipmi_smi.h~ipmi-convert-to-seq_file-interface include/linux/ipmi_smi.h
+--- a/include/linux/ipmi_smi.h~ipmi-convert-to-seq_file-interface
++++ a/include/linux/ipmi_smi.h
+@@ -236,7 +236,7 @@ static inline void ipmi_free_smi_msg(str
+    directory for this interface.  Note that the entry will
+    automatically be dstroyed when the interface is destroyed. */
+ int ipmi_smi_add_proc_entry(ipmi_smi_t smi, char *name,
+-			    read_proc_t *read_proc,
++			    const struct file_operations *proc_ops,
+ 			    void *data);
+ 
+ #endif /* __LINUX_IPMI_SMI_H */
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+linux-next.patch
+sysctl-add-proc_dointvec_bool-handler.patch
 
