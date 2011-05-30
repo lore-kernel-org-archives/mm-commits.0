@@ -1,99 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 30 May 2011 00:55:00 -0700
-Message-ID: <201105300754.p4U7su2x001583@imap1.linux-foundation.org>
+Subject: [withdrawn] rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 30 May 2011 14:00:52 -0700
+Message-ID: <201105302100.p4UL0iFE002822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752165Ab1E3Hzh (ORCPT
+	by vger.kernel.org with ESMTP id S1751807Ab1E3VAu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 May 2011 03:55:37 -0400
+	Mon, 30 May 2011 17:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+To: akpm@linux-foundation.org, david@fries.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+     rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes
+Subject: rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo* bar" should be "foo *bar"
-#49: FILE: mm/thrash.c:32:
-+static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
+ERROR: space required before the open parenthesis '('
+#29: FILE: net/bluetooth/rfcomm/core.c:1962:
++			if(n->prev != p)
 
-ERROR: "foo* bar" should be "foo *bar"
-#60: FILE: mm/thrash.c:43:
-+static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
+total: 1 errors, 0 warnings, 12 lines checked
 
-total: 2 errors, 0 warnings, 40 lines checked
-
-./patches/vmscanmemcg-memcg-aware-swap-token-fix.patch has style problems, please review.  If any of these errors
+./patches/rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Fries <david@fries.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/bluetooth/rfcomm/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes mm/thrash.c
---- a/mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes
-+++ a/mm/thrash.c
-@@ -29,7 +29,7 @@ struct mem_cgroup *swap_token_memcg;
- static unsigned int global_faults;
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
--static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
-+static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
- {
- 	struct mem_cgroup *memcg;
- 
-@@ -40,7 +40,7 @@ static struct mem_cgroup* swap_token_mem
- 	return memcg;
- }
- #else
--static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
-+static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
- {
- 	return NULL;
- }
+diff -puN net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes
++++ a/net/bluetooth/rfcomm/core.c
+@@ -1959,7 +1959,7 @@ static inline void rfcomm_process_sessio
+ 			 * in which case s is now dangling.  Check if it
+ 			 * has been removed.
+ 			 */
+-			if(n->prev != p)
++			if (n->prev != p)
+ 				continue;
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 backlight-add-backlight-type-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-rfcomm-corec-avoid-dangling-pointer-check-session-exists-checkpatch-fixes.patch
 slab-use-numa_no_node.patch
 mm.patch
 writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
@@ -108,8 +86,6 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
 rtc-driver-for-pt7c4338-chip-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
