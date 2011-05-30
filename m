@@ -1,94 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch removed from -mm tree
-Date: Fri, 27 May 2011 17:39:50 -0700
-Message-ID: <201105280037.p4S0bsXs031476@imap1.linux-foundation.org>
+Subject: + vmscanmemcg-memcg-aware-swap-token-fix.patch added to -mm tree
+Date: Mon, 30 May 2011 00:54:21 -0700
+Message-ID: <201105300754.p4U7sI2I001567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757578Ab1E1Ai1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752165Ab1E3HyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 May 2011 20:38:27 -0400
+	Mon, 30 May 2011 03:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-has been removed from the -mm tree.  Its filename was
-     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+     vmscanmemcg-memcg-aware-swap-token-fix
+has been added to the -mm tree.  Its filename is
+     vmscanmemcg-memcg-aware-swap-token-fix.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-From: Michal Hocko <mhocko@suse.cz>
+Subject: vmscanmemcg-memcg-aware-swap-token-fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Define node_random directly in the mempolicy header
+> CONFIG_CGROUPS=n:
+>
+> mm/thrash.c: In function 'grab_swap_token':
+> mm/thrash.c:73: error: implicit declaration of function 'css_put'
+>
+> I don't think that adding a null stub for css_put() is the right fix
+> here...
 
-Alpha allows a strange configuration CONFIG_NUMA=n and CONFIG_NODES_SHIFT=7
-which means that mempolicy.c is not compiled and linked while we still have
-MAX_NUMNODES>1 which means that node_random is not defined.
+My bad. Following patch fixes this issue.
 
-Let's move node_random definition into the header. We will be consistent with
-other node_* functions.
+Thanks.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+From 6a824b46219cb2f11b125e9a33f65e0f01899d09 Mon Sep 17 00:00:00 2001
+Date: Mon, 30 May 2011 15:47:32 +0900
+Subject: [PATCH] swap-token: fix compilation error when CONFIG_CGROUPS=n
+
+Andrew Morton pointed out css_put() is not defined when
+CONFIG_CGROUPS=n.
+
+: CONFIG_CGROUPS=n:
+:
+: mm/thrash.c: In function 'grab_swap_token':
+: mm/thrash.c:73: error: implicit declaration of function 'css_put'
+
+Thus, this patch move the whole logic into CONFIG_CGROUP_MEM_RES_CTLR
+condtion.
+
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Rik van Riel<riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   16 +++++++++++++++-
- mm/mempolicy.c           |   15 ---------------
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ mm/thrash.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-+++ a/include/linux/nodemask.h
-@@ -433,7 +433,21 @@ static inline void node_set_offline(int 
- 	nr_online_nodes = num_node_state(N_ONLINE);
- }
+diff -puN mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix mm/thrash.c
+--- a/mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix
++++ a/mm/thrash.c
+@@ -28,10 +28,27 @@ struct mm_struct *swap_token_mm;
+ struct mem_cgroup *swap_token_memcg;
+ static unsigned int global_faults;
  
--extern int node_random(const nodemask_t *maskp);
-+unsigned int get_random_int(void);
-+/*
-+ * Return the bit number of a random bit set in the nodemask.
-+ * (returns -1 if nodemask is empty)
-+ */
-+static inline int node_random(const nodemask_t *maskp)
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
++static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
 +{
-+	int w, bit = -1;
++	struct mem_cgroup *memcg;
 +
-+	w = nodes_weight(*maskp);
-+	if (w)
-+		bit = bitmap_ord_to_pos(maskp->bits,
-+			get_random_int() % w, MAX_NUMNODES);
-+	return bit;
++	memcg = try_get_mem_cgroup_from_mm(mm);
++	if (memcg)
++		css_put(mem_cgroup_css(memcg));
++
++	return memcg;
 +}
++#else
++static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
++{
++	return NULL;
++}
++#endif
++
+ void grab_swap_token(struct mm_struct *mm)
+ {
+ 	int current_interval;
+-	struct mem_cgroup *memcg;
  
- #else
+ 	global_faults++;
  
-diff -puN mm/mempolicy.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix mm/mempolicy.c
---- a/mm/mempolicy.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-+++ a/mm/mempolicy.c
-@@ -1646,21 +1646,6 @@ static inline unsigned interleave_nid(st
- 		return interleave_nodes(pol);
+@@ -68,11 +85,8 @@ out:
+ 
+ replace_token:
+ 	mm->token_priority += 2;
+-	memcg = try_get_mem_cgroup_from_mm(mm);
+-	if (memcg)
+-		css_put(mem_cgroup_css(memcg));
+ 	swap_token_mm = mm;
+-	swap_token_memcg = memcg;
++	swap_token_memcg = swap_token_memcg_from_mm(mm);
+ 	goto out;
  }
  
--/*
-- * Return the bit number of a random bit set in the nodemask.
-- * (returns -1 if nodemask is empty)
-- */
--int node_random(const nodemask_t *maskp)
--{
--	int w, bit = -1;
--
--	w = nodes_weight(*maskp);
--	if (w)
--		bit = bitmap_ord_to_pos(maskp->bits,
--			get_random_int() % w, MAX_NUMNODES);
--	return bit;
--}
+_
+
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+
+origin.patch
+mm-increase-reclaim_distance-to-30.patch
+x86-optimize-fatal-signal-checking.patch
+slab-use-numa_no_node.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+
