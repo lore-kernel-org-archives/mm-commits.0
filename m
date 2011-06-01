@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-documentation-for-the-memorynumastat-api-fix.patch added to -mm tree
-Date: Wed, 01 Jun 2011 16:16:43 -0700
-Message-ID: <201106012316.p51NGhoZ015521@imap1.linux-foundation.org>
+Subject: + kmsg_dumph-fix-build-when-config_printk-is-disabled.patch added to -mm tree
+Date: Wed, 01 Jun 2011 16:45:58 -0700
+Message-ID: <201106012345.p51Njwvu016868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753818Ab1FAX0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 19:26:51 -0400
+	by vger.kernel.org with ESMTP id S1758965Ab1FAXqC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 19:46:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, yinghan@google.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     memcg-add-documentation-for-the-memorynumastat-api-fix
+     kmsg_dump.h: fix build when CONFIG_PRINTK is disabled
 has been added to the -mm tree.  Its filename is
-     memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+     kmsg_dumph-fix-build-when-config_printk-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-documentation-for-the-memorynumastat-api-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kmsg_dump.h: fix build when CONFIG_PRINTK is disabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-rework text, fit it into 80-cols
+Fix <linux/kmsg_dump.h> when CONFIG_PRINTK is not enabled:
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
+include/linux/kmsg_dump.h:56: error: 'EINVAL' undeclared (first use in this function)
+include/linux/kmsg_dump.h:61: error: 'EINVAL' undeclared (first use in this function)
+
+Looks like previous commit:
+commit 595dd3d8bf953254d8d2f30f99c54fe09c470040
+Author: Randy Dunlap <randy.dunlap@oracle.com>
+Date:   Tue Dec 1 10:52:02 2009 -0800
+
+    kmsg_dump: fix build for CONFIG_PRINTK=n
+
+uses EINVAL without having the needed header file(s), but I'm sure that I
+build tested that patch also.  oh well.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ include/linux/kmsg_dump.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix
-+++ a/Documentation/cgroups/memory.txt
-@@ -467,13 +467,14 @@ value in memory.stat(see 5.2).
+diff -puN include/linux/kmsg_dump.h~kmsg_dumph-fix-build-when-config_printk-is-disabled include/linux/kmsg_dump.h
+--- a/include/linux/kmsg_dump.h~kmsg_dumph-fix-build-when-config_printk-is-disabled
++++ a/include/linux/kmsg_dump.h
+@@ -12,6 +12,7 @@
+ #ifndef _LINUX_KMSG_DUMP_H
+ #define _LINUX_KMSG_DUMP_H
  
- 5.6 numa_stat
++#include <linux/errno.h>
+ #include <linux/list.h>
  
--This is similar to numa_maps but per-memcg basis. This is useful to add visibility
--of numa locality information in memcg since the pages are allowed to be allocated
--at any physical node. One of the usecase is evaluating application performance by
--combining this information with the cpu allocation to the application.
-+This is similar to numa_maps but operates on a per-memcg basis.  This is
-+useful for providing visibility into the numa locality information within
-+an memcg since the pages are allowed to be allocated from any physical
-+node.  One of the usecases is evaluating application performance by
-+combining this information with the application's cpu allocation.
- 
--We export "total", "file", "anon" and "unevictable" pages per-node for each memcg.
--The format ouput of the memory.numa_stat:
-+We export "total", "file", "anon" and "unevictable" pages per-node for
-+each memcg.  The ouput format of memory.numa_stat is:
- 
- total=<total pages> N0=<node 0 pages> N1=<node 1 pages> ...
- file=<total file pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ enum kmsg_dump_reason {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-backlight-add-backlight-type-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+mm-memoryc-fix-kernel-doc-notation.patch
+lib-bitmapc-fix-kernel-doc-notation.patch
+kmsg_dumph-fix-build-when-config_printk-is-disabled.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-slab-use-numa_no_node.patch
-mm.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module.patch
 mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
