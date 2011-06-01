@@ -1,86 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xattr-fix-error-results-for-non-existent-invisible-attributes.patch removed from -mm tree
-Date: Wed, 01 Jun 2011 13:34:07 -0700
-Message-ID: <201106012033.p51KXePe008111@imap1.linux-foundation.org>
+Subject: [alternative-merged] cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch removed from -mm tree
+Date: Wed, 01 Jun 2011 13:33:51 -0700
+Message-ID: <201106012033.p51KXOLe008090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759180Ab1FAUds (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 16:33:48 -0400
+	by vger.kernel.org with ESMTP id S1759180Ab1FAUdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 16:33:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agruen@kernel.org, eparis@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, efault@gmx.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xattr: fix error results for non-existent / invisible attributes
+     cpumask: convert cpumask_of_cpu() to cpumask_of()
 has been removed from the -mm tree.  Its filename was
-     xattr-fix-error-results-for-non-existent-invisible-attributes.patch
+     cpumask-convert-cpumask_of_cpu-to-cpumask_of.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xattr: fix error results for non-existent / invisible attributes
-From: Andreas Gruenbacher <agruen@kernel.org>
+Subject: cpumask: convert cpumask_of_cpu() to cpumask_of()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Return -ENODATA when trying to read a user.* attribute which cannot exist:
-user space otherwise does not have a reasonable way to distinguish between
-non-existent and inaccessible attributes.
+Adapt the code to the new api fashion.
 
-Likewise, return -ENODATA when an unprivileged process tries to read a
-trusted.* attribute: to unprivileged processes, those attributes are
-invisible (listxattr() won't include them).
-
-Related to this bug report: https://bugzilla.redhat.com/660613
-
-Signed-off-by: Andreas Gruenbacher <agruen@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ kernel/kthread.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/xattr.c~xattr-fix-error-results-for-non-existent-invisible-attributes fs/xattr.c
---- a/fs/xattr.c~xattr-fix-error-results-for-non-existent-invisible-attributes
-+++ a/fs/xattr.c
-@@ -46,18 +46,22 @@ xattr_permission(struct inode *inode, co
- 		return 0;
+diff -puN kernel/kthread.c~cpumask-convert-cpumask_of_cpu-to-cpumask_of kernel/kthread.c
+--- a/kernel/kthread.c~cpumask-convert-cpumask_of_cpu-to-cpumask_of
++++ a/kernel/kthread.c
+@@ -202,7 +202,7 @@ void kthread_bind(struct task_struct *p,
+ 		return;
+ 	}
  
- 	/*
--	 * The trusted.* namespace can only be accessed by a privileged user.
-+	 * The trusted.* namespace can only be accessed by privileged users.
- 	 */
--	if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN))
--		return (capable(CAP_SYS_ADMIN) ? 0 : -EPERM);
-+	if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN)) {
-+		if (!capable(CAP_SYS_ADMIN))
-+			return (mask & MAY_WRITE) ? -EPERM : -ENODATA;
-+		return 0;
-+	}
- 
--	/* In user.* namespace, only regular files and directories can have
-+	/*
-+	 * In the user.* namespace, only regular files and directories can have
- 	 * extended attributes. For sticky directories, only the owner and
--	 * privileged user can write attributes.
-+	 * privileged users can write attributes.
- 	 */
- 	if (!strncmp(name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN)) {
- 		if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
--			return -EPERM;
-+			return (mask & MAY_WRITE) ? -EPERM : -ENODATA;
- 		if (S_ISDIR(inode->i_mode) && (inode->i_mode & S_ISVTX) &&
- 		    (mask & MAY_WRITE) && !inode_owner_or_capable(inode))
- 			return -EPERM;
+-	p->cpus_allowed = cpumask_of_cpu(cpu);
++	cpumask_copy(&p->cpus_allowed, cpumask_of(cpu));
+ 	p->rt.nr_cpus_allowed = 1;
+ 	p->flags |= PF_THREAD_BOUND;
+ }
 _
 
-Patches currently in -mm which might be from agruen@kernel.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+mm-increase-reclaim_distance-to-30.patch
+slab-use-numa_no_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
