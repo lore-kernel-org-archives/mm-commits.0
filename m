@@ -1,108 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch removed from -mm tree
-Date: Wed, 01 Jun 2011 15:27:29 -0700
-Message-ID: <201106012227.p51MRTL6013382@imap1.linux-foundation.org>
+Subject: + memcg-add-documentation-for-the-memorynumastat-api.patch added to -mm tree
+Date: Wed, 01 Jun 2011 16:13:34 -0700
+Message-ID: <201106012313.p51NDYGp015424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754500Ab1FAW2o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 18:28:44 -0400
+	by vger.kernel.org with ESMTP id S1752395Ab1FAXOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 19:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, hughd@google.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp
+To: mm-commits@vger.kernel.org
+Cc: yinghan@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
-has been removed from the -mm tree.  Its filename was
-     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
+     memcg: add documentation for the memory.numastat API
+has been added to the -mm tree.  Its filename is
+     memcg-add-documentation-for-the-memorynumastat-api.patch
 
-This patch was dropped because it was folded into writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: add documentation for the memory.numastat API
+From: Ying Han <yinghan@google.com>
 
-repair crappy comment while we're there
-
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mel Gorman <mel@linux.vnet.ibm.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ Documentation/cgroups/memory.txt |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix fs/block_dev.c
---- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix
-+++ a/fs/block_dev.c
-@@ -44,13 +44,12 @@ inline struct block_device *I_BDEV(struc
- {
- 	return &BDEV_I(inode)->bdev;
- }
--
- EXPORT_SYMBOL(I_BDEV);
+diff -puN Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api
++++ a/Documentation/cgroups/memory.txt
+@@ -70,6 +70,7 @@ Brief summary of control files.
+ 				 (See sysctl's vm.swappiness)
+  memory.move_charge_at_immigrate # set/show controls of moving charges
+  memory.oom_control		 # set/show oom controls.
++ memory.numa_stat		 # show the number of memory usage per numa node
  
- /*
-- * move the inode from it's current bdi to the a new bdi. if the inode is dirty
-- * we need to move it onto the dirty list of @dst so that the inode is always
-- * on the right list.
-+ * Move the inode from its current bdi to a new bdi. If the inode is dirty we
-+ * need to move it onto the dirty list of @dst so that the inode is always on the
-+ * right list.
-  */
- static void bdev_inode_switch_bdi(struct inode *inode,
- 			struct backing_dev_info *dst)
+ 1. History
+ 
+@@ -464,6 +465,23 @@ value for efficient access. (Of course, 
+ If you want to know more exact memory usage, you should use RSS+CACHE(+SWAP)
+ value in memory.stat(see 5.2).
+ 
++5.6 numa_stat
++
++This is similar to numa_maps but per-memcg basis. This is useful to add visibility
++of numa locality information in memcg since the pages are allowed to be allocated
++at any physical node. One of the usecase is evaluating application performance by
++combining this information with the cpu allocation to the application.
++
++We export "total", "file", "anon" and "unevictable" pages per-node for each memcg.
++The format ouput of the memory.numa_stat:
++
++total=<total pages> N0=<node 0 pages> N1=<node 1 pages> ...
++file=<total file pages> N0=<node 0 pages> N1=<node 1 pages> ...
++anon=<total anon pages> N0=<node 0 pages> N1=<node 1 pages> ...
++unevictable=<total anon pages> N0=<node 0 pages> N1=<node 1 pages> ...
++
++And we have total = file + anon + unevictable.
++
+ 6. Hierarchy support
+ 
+ The memory controller supports a deep hierarchy and hierarchical accounting.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghan@google.com are
 
-origin.patch
-backlight-add-backlight-type-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-slab-use-numa_no_node.patch
-mm.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memcg-add-documentation-for-the-memorynumastat-api.patch
 
