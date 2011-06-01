@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] writeback-sync-expired-inodes-first-in-background-writeback-fix.patch removed from -mm tree
-Date: Wed, 01 Jun 2011 15:26:54 -0700
-Message-ID: <201106012226.p51MQsPn013351@imap1.linux-foundation.org>
+Subject: [folded] writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch removed from -mm tree
+Date: Wed, 01 Jun 2011 15:27:26 -0700
+Message-ID: <201106012227.p51MRQ6k013376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754509Ab1FAW04 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 18:26:56 -0400
+	by vger.kernel.org with ESMTP id S1754500Ab1FAW21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 18:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, hughd@google.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp
 
 
 The patch titled
-     writeback-sync-expired-inodes-first-in-background-writeback-fix
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
 has been removed from the -mm tree.  Its filename was
-     writeback-sync-expired-inodes-first-in-background-writeback-fix.patch
+     writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
 
-This patch was dropped because it was folded into writeback-sync-expired-inodes-first-in-background-writeback.patch
+This patch was dropped because it was folded into writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-sync-expired-inodes-first-in-background-writeback-fix
+Subject: writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-tweak a comment
+add comment
 
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mel Gorman <mel@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback-fix
-+++ a/fs/fs-writeback.c
-@@ -744,10 +744,10 @@ retry:
- 		if (wbc.inodes_cleaned)
- 			continue;
- 		/*
--		 * background writeback will start with expired inodes, and
--		 * if none is found, fallback to all inodes. This order helps
--		 * reduce the number of dirty pages reaching the end of LRU
--		 * lists and cause trouble to the page reclaim.
-+		 * background writeback will start with expired inodes and if
-+		 * none are found, fall back to all inodes. This order helps
-+		 * reduce the number of dirty pages reaching the end of LRU lists
-+		 * and causing difficulty in page reclaim.
- 		 */
- 		if (work->for_background &&
- 		    wbc.older_than_this &&
+diff -puN fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix fs/block_dev.c
+--- a/fs/block_dev.c~writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix
++++ a/fs/block_dev.c
+@@ -57,7 +57,7 @@ static void bdev_inode_switch_bdi(struct
+ {
+ 	struct backing_dev_info *old = inode->i_data.backing_dev_info;
+ 
+-	if (dst == old)
++	if (dst == old)			/* deadlock avoidance */
+ 		return;
+ 	bdi_lock_two(&old->wb, &dst->wb);
+ 	spin_lock(&inode->i_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +75,7 @@ arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 slab-use-numa_no_node.patch
 mm.patch
 writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
 writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock-fix-fix-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
