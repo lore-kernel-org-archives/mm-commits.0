@@ -1,65 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch removed from -mm tree
-Date: Mon, 30 May 2011 14:01:09 -0700
-Message-ID: <201105302101.p4UL10OL002828@imap1.linux-foundation.org>
+Subject: [merged] block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch removed from -mm tree
+Date: Wed, 01 Jun 2011 13:34:05 -0700
+Message-ID: <201106012033.p51KXcfB008106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751752Ab1E3VB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 May 2011 17:01:28 -0400
+	by vger.kernel.org with ESMTP id S1752607Ab1FAUdm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 16:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, David@fries.net, linville@tuxdriver.com, marcel@holtmann.org, padovan@profusion.mobi, mm-commits@vger.kernel.org
+To: agruen@kernel.org, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rfcomm/core.c: avoid dangling pointer, check session exists
+     block: improve the bio_add_page() and bio_add_pc_page() descriptions
 has been removed from the -mm tree.  Its filename was
-     rfcomm-corec-avoid-dangling-pointer-check-session-exists.patch
+     block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rfcomm/core.c: avoid dangling pointer, check session exists
-From: David Fries <david@fries.net>
+Subject: block: improve the bio_add_page() and bio_add_pc_page() descriptions
+From: Andreas Gruenbacher <agruen@kernel.org>
 
-rfcomm_process_sessions is calling rfcomm_process_rx, but in this case the
-session is closed and freed leaving a dangling pointer that blows up when
-rfcomm_process_rx returns and rfcomm_process_dlcs is called with the now
-dangling session pointer.  Check to see if the entry is still in the list.
+The descriptions of bio_add_page() and bio_add_pc_page() are slightly
+inconsistent; improve them.
 
-Signed-off-by: David Fries <David@Fries.net>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: "Gustavo F. Padovan" <padovan@profusion.mobi>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Andreas Gruenbacher <agruen@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/bio.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists net/bluetooth/rfcomm/core.c
---- a/net/bluetooth/rfcomm/core.c~rfcomm-corec-avoid-dangling-pointer-check-session-exists
-+++ a/net/bluetooth/rfcomm/core.c
-@@ -1955,6 +1955,12 @@ static inline void rfcomm_process_sessio
- 
- 		default:
- 			rfcomm_process_rx(s);
-+			/* The current session can be closed as part of rx
-+			 * in which case s is now dangling.  Check if it
-+			 * has been removed.
-+			 */
-+			if(n->prev != p)
-+				continue;
- 			break;
- 		}
- 
+diff -puN fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions fs/bio.c
+--- a/fs/bio.c~block-improve-the-bio_add_page-and-bio_add_pc_page-descriptions
++++ a/fs/bio.c
+@@ -638,10 +638,11 @@ static int __bio_add_page(struct request
+  *	@offset: vec entry offset
+  *
+  *	Attempt to add a page to the bio_vec maplist. This can fail for a
+- *	number of reasons, such as the bio being full or target block
+- *	device limitations. The target block device must allow bio's
+- *      smaller than PAGE_SIZE, so it is always possible to add a single
+- *      page to an empty bio. This should only be used by REQ_PC bios.
++ *	number of reasons, such as the bio being full or target block device
++ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
++ *	so it is always possible to add a single page to an empty bio.
++ *
++ *	This should only be used by REQ_PC bios.
+  */
+ int bio_add_pc_page(struct request_queue *q, struct bio *bio, struct page *page,
+ 		    unsigned int len, unsigned int offset)
+@@ -659,10 +660,9 @@ EXPORT_SYMBOL(bio_add_pc_page);
+  *	@offset: vec entry offset
+  *
+  *	Attempt to add a page to the bio_vec maplist. This can fail for a
+- *	number of reasons, such as the bio being full or target block
+- *	device limitations. The target block device must allow bio's
+- *      smaller than PAGE_SIZE, so it is always possible to add a single
+- *      page to an empty bio.
++ *	number of reasons, such as the bio being full or target block device
++ *	limitations. The target block device must allow bio's up to PAGE_SIZE,
++ *	so it is always possible to add a single page to an empty bio.
+  */
+ int bio_add_page(struct bio *bio, struct page *page, unsigned int len,
+ 		 unsigned int offset)
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from agruen@kernel.org are
 
+linux-next.patch
 
