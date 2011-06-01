@@ -1,128 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-optimize-fatal-signal-checking.patch removed from -mm tree
-Date: Wed, 01 Jun 2011 13:34:03 -0700
-Message-ID: <201106012033.p51KXan0008101@imap1.linux-foundation.org>
+Subject: [merged] gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch removed from -mm tree
+Date: Wed, 01 Jun 2011 13:34:09 -0700
+Message-ID: <201106012033.p51KXgG7008114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759483Ab1FAUd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 16:33:58 -0400
+	by vger.kernel.org with ESMTP id S1759633Ab1FAUeC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2011 16:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: lars@metafoo.de, eric.y.miao@gmail.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: optimize fatal signal checking
+     gpio: make gpio_{request,free}_array gpio array parameter const
 has been removed from the -mm tree.  Its filename was
-     x86-optimize-fatal-signal-checking.patch
+     gpio-make-gpio_requestfree_array-gpio-array-parameter-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: optimize fatal signal checking
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: gpio: make gpio_{request,free}_array gpio array parameter const
+From: Lars-Peter Clausen <lars@metafoo.de>
 
-Ingo suggested SIGKILL check should be moved into slowpath function.  It
-may reduce page fault fastpath impact.  This patch do that.
+gpio_{request,free}_array should not (and do not) modify the passed gpio
+array, so make the parameter const.
 
-Suggested-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Eric Miao <eric.y.miao@gmail.com>
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   35 ++++++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 15 deletions(-)
+ drivers/gpio/gpiolib.c     |    4 ++--
+ include/asm-generic/gpio.h |    4 ++--
+ include/linux/gpio.h       |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/mm/fault.c~x86-optimize-fatal-signal-checking arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~x86-optimize-fatal-signal-checking
-+++ a/arch/x86/mm/fault.c
-@@ -823,16 +823,30 @@ do_sigbus(struct pt_regs *regs, unsigned
- 	force_sig_info_fault(SIGBUS, code, address, tsk, fault);
- }
- 
--static noinline void
-+static noinline int
- mm_fault_error(struct pt_regs *regs, unsigned long error_code,
- 	       unsigned long address, unsigned int fault)
+diff -puN drivers/gpio/gpiolib.c~gpio-make-gpio_requestfree_array-gpio-array-parameter-const drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/drivers/gpio/gpiolib.c
+@@ -1296,7 +1296,7 @@ EXPORT_SYMBOL_GPL(gpio_request_one);
+  * @array:	array of the 'struct gpio'
+  * @num:	how many GPIOs in the array
+  */
+-int gpio_request_array(struct gpio *array, size_t num)
++int gpio_request_array(const struct gpio *array, size_t num)
  {
-+	/*
-+	 * Pagefault was interrupted by SIGKILL. We have no reason to
-+	 * continue pagefault.
-+	 */
-+	if (fatal_signal_pending(current)) {
-+		if (!(fault & VM_FAULT_RETRY))
-+			up_read(&current->mm->mmap_sem);
-+		if (!(error_code & PF_USER))
-+			no_context(regs, error_code, address);
-+		return 1;
-+	}
-+	if (!(fault & VM_FAULT_ERROR))
-+		return 0;
-+
- 	if (fault & VM_FAULT_OOM) {
- 		/* Kernel mode? Handle exceptions or die: */
- 		if (!(error_code & PF_USER)) {
- 			up_read(&current->mm->mmap_sem);
- 			no_context(regs, error_code, address);
--			return;
-+			return 1;
- 		}
+ 	int i, err;
  
- 		out_of_memory(regs, error_code, address);
-@@ -843,6 +857,7 @@ mm_fault_error(struct pt_regs *regs, uns
- 		else
- 			BUG();
- 	}
-+	return 1;
+@@ -1319,7 +1319,7 @@ EXPORT_SYMBOL_GPL(gpio_request_array);
+  * @array:	array of the 'struct gpio'
+  * @num:	how many GPIOs in the array
+  */
+-void gpio_free_array(struct gpio *array, size_t num)
++void gpio_free_array(const struct gpio *array, size_t num)
+ {
+ 	while (num--)
+ 		gpio_free((array++)->gpio);
+diff -puN include/asm-generic/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/include/asm-generic/gpio.h
+@@ -193,8 +193,8 @@ struct gpio {
+ };
+ 
+ extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
+-extern int gpio_request_array(struct gpio *array, size_t num);
+-extern void gpio_free_array(struct gpio *array, size_t num);
++extern int gpio_request_array(const struct gpio *array, size_t num);
++extern void gpio_free_array(const struct gpio *array, size_t num);
+ 
+ #ifdef CONFIG_GPIO_SYSFS
+ 
+diff -puN include/linux/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const include/linux/gpio.h
+--- a/include/linux/gpio.h~gpio-make-gpio_requestfree_array-gpio-array-parameter-const
++++ a/include/linux/gpio.h
+@@ -41,7 +41,7 @@ static inline int gpio_request_one(unsig
+ 	return -ENOSYS;
  }
  
- static int spurious_fault_check(unsigned long error_code, pte_t *pte)
-@@ -1133,19 +1148,9 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(mm, vma, address, flags);
+-static inline int gpio_request_array(struct gpio *array, size_t num)
++static inline int gpio_request_array(const struct gpio *array, size_t num)
+ {
+ 	return -ENOSYS;
+ }
+@@ -54,7 +54,7 @@ static inline void gpio_free(unsigned gp
+ 	WARN_ON(1);
+ }
  
--	if (unlikely(fault & VM_FAULT_ERROR)) {
--		mm_fault_error(regs, error_code, address, fault);
--		return;
--	}
--
--	/*
--	 * Pagefault was interrupted by SIGKILL. We have no reason to
--	 * continue pagefault.
--	 */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
--		if (!(error_code & PF_USER))
--			no_context(regs, error_code, address);
--		return;
-+	if (unlikely(fault & (VM_FAULT_RETRY|VM_FAULT_ERROR))) {
-+		if (mm_fault_error(regs, error_code, address, fault))
-+			return;
- 	}
+-static inline void gpio_free_array(struct gpio *array, size_t num)
++static inline void gpio_free_array(const struct gpio *array, size_t num)
+ {
+ 	might_sleep();
  
- 	/*
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from lars@metafoo.de are
 
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-mm-increase-reclaim_distance-to-30.patch
-slab-use-numa_no_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
 
