@@ -1,43 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 03 Jun 2011 16:44:05 -0700
-Message-ID: <201106032344.p53Ni56K015146@imap1.linux-foundation.org>
+Subject: [folded] rtc-driver-for-pt7c4338-chip-fix.patch removed from -mm tree
+Date: Fri, 03 Jun 2011 16:44:08 -0700
+Message-ID: <201106032344.p53Ni8qx015149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753331Ab1FCXoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 19:44:10 -0400
+	by vger.kernel.org with ESMTP id S1756511Ab1FCXoj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 19:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Priyanka.Jain@freescale.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Priyanka.Jain@freescale.com, a.zummo@towertech.it, benh@kernel.crashing.org, galak@gate.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+     rtc-driver-for-pt7c4338-chip-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+     rtc-driver-for-pt7c4338-chip-fix.patch
 
 This patch was dropped because it was folded into rtc-driver-for-pt7c4338-chip.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+Subject: rtc-driver-for-pt7c4338-chip-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: missing space after struct definition
-#128: FILE: drivers/rtc/rtc-pt7c4338.c:70:
-+struct pt7c4338{
+include slab.h, remove unused local
 
-total: 0 errors, 1 warnings, 237 lines checked
+drivers/rtc/rtc-pt7c4338.c: In function 'pt7c4338_probe':
+drivers/rtc/rtc-pt7c4338.c:159: error: implicit declaration of function 'kzalloc'
+drivers/rtc/rtc-pt7c4338.c:159: warning: assignment makes pointer from integer without a cast
+drivers/rtc/rtc-pt7c4338.c:176: error: implicit declaration of function 'kfree'
+drivers/rtc/rtc-pt7c4338.c:156: warning: unused variable 'adapter'
 
-./patches/rtc-driver-for-pt7c4338-chip.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Priyanka Jain <Priyanka.Jain@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -45,18 +44,25 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/rtc/rtc-pt7c4338.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes drivers/rtc/rtc-pt7c4338.c
---- a/drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+diff -puN drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-fix drivers/rtc/rtc-pt7c4338.c
+--- a/drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-fix
 +++ a/drivers/rtc/rtc-pt7c4338.c
-@@ -67,7 +67,7 @@ static const struct i2c_device_id pt7c43
- };
- MODULE_DEVICE_TABLE(i2c, pt7c4338_id);
+@@ -35,6 +35,7 @@
+  */
  
--struct pt7c4338{
-+struct pt7c4338 {
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
- };
+ #include <linux/kernel.h>
++#include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/rtc.h>
+@@ -153,7 +154,6 @@ static int pt7c4338_probe(struct i2c_cli
+ 		const struct i2c_device_id *id)
+ {
+ 	struct pt7c4338 *pt7c4338;
+-	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+ 	int ret;
+ 
+ 	pt7c4338 = kzalloc(sizeof(struct pt7c4338), GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +96,6 @@ init-skip-calibration-delay-if-previously-done-fix.patch
 init-skip-calibration-delay-if-previously-done-fix-fix.patch
 init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
 rtc-driver-for-pt7c4338-chip.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
