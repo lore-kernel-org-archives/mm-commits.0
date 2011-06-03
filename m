@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch added to -mm tree
-Date: Fri, 03 Jun 2011 15:51:59 -0700
-Message-ID: <201106032251.p53MpxUJ012434@imap1.linux-foundation.org>
+Subject: + pagewalk-add-locking-rule-comments.patch added to -mm tree
+Date: Fri, 03 Jun 2011 15:52:01 -0700
+Message-ID: <201106032252.p53Mq2fM012446@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932114Ab1FCWwJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 18:52:09 -0400
+	by vger.kernel.org with ESMTP id S932136Ab1FCWwK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 18:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, aarcange@redhat.com, kamezawa.hiroyuki@gmail
 
 
 The patch titled
-     pagewalk: don't look up vma if walk->hugetlb_entry is unused
+     pagewalk: add locking-rule comments
 has been added to the -mm tree.  Its filename is
-     pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
+     pagewalk-add-locking-rule-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagewalk: don't look up vma if walk->hugetlb_entry is unused
+Subject: pagewalk: add locking-rule comments
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, walk_page_range() calls find_vma() every page table for walk
-iteration.  but it's completely unnecessary if walk->hugetlb_entry is
-unused.  And we don't have to assume find_vma() is a lightweight
-operation.  So this patch checks the walk->hugetlb_entry and avoids the
-find_vma() call if possible.
+Originally, walk_hugetlb_range() didn't require a caller take any lock. 
+But commit d33b9f45bd ("mm: hugetlb: fix hugepage memory leak in
+walk_page_range") changed its rule.  Because it added find_vma() call in
+walk_hugetlb_range().
 
-This patch also makes some cleanups.  1) remove ugly uninitialized_var()
-and 2) #ifdef in function body.
+Any locking-rule change commit should write a doc too.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -53,84 +51,34 @@ Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   43 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 37 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/pagewalk.c      |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN mm/pagewalk.c~pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused
+diff -puN include/linux/mm.h~pagewalk-add-locking-rule-comments include/linux/mm.h
+--- a/include/linux/mm.h~pagewalk-add-locking-rule-comments
++++ a/include/linux/mm.h
+@@ -910,6 +910,7 @@ unsigned long unmap_vmas(struct mmu_gath
+  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
+  * @pte_hole: if set, called for each hole at all levels
+  * @hugetlb_entry: if set, called for each hugetlb entry
++ *                 *Caution*: The caller must hold mmap_sem() if it's used.
+  *
+  * (see walk_page_range for more details)
+  */
+diff -puN mm/pagewalk.c~pagewalk-add-locking-rule-comments mm/pagewalk.c
+--- a/mm/pagewalk.c~pagewalk-add-locking-rule-comments
 +++ a/mm/pagewalk.c
-@@ -126,7 +126,39 @@ static int walk_hugetlb_range(struct vm_
- 
- 	return 0;
- }
--#endif
-+
-+static struct vm_area_struct* hugetlb_vma(unsigned long addr, struct mm_walk *walk)
-+{
-+	struct vm_area_struct *vma;
-+
-+	/* We don't need vma lookup at all. */
-+	if (!walk->hugetlb_entry)
-+		return NULL;
-+
-+	VM_BUG_ON(!rwsem_is_locked(&walk->mm->mmap_sem));
-+	vma = find_vma(walk->mm, addr);
-+	if (vma && vma->vm_start <= addr && is_vm_hugetlb_page(vma))
-+		return vma;
-+
-+	return NULL;
-+}
-+
-+#else /* CONFIG_HUGETLB_PAGE */
-+static struct vm_area_struct* hugetlb_vma(unsigned long addr, struct mm_walk *walk)
-+{
-+	return NULL;
-+}
-+
-+static int walk_hugetlb_range(struct vm_area_struct *vma,
-+			      unsigned long addr, unsigned long end,
-+			      struct mm_walk *walk)
-+{
-+	return 0;
-+}
-+
-+#endif /* CONFIG_HUGETLB_PAGE */
-+
-+
- 
- /**
-  * walk_page_range - walk a memory map's page tables with a callback
-@@ -165,18 +197,17 @@ int walk_page_range(unsigned long addr, 
- 
- 	pgd = pgd_offset(walk->mm, addr);
- 	do {
--		struct vm_area_struct *uninitialized_var(vma);
-+		struct vm_area_struct *vma;
- 
- 		next = pgd_addr_end(addr, end);
- 
--#ifdef CONFIG_HUGETLB_PAGE
- 		/*
- 		 * handle hugetlb vma individually because pagetable walk for
- 		 * the hugetlb page is dependent on the architecture and
- 		 * we can't handled it in the same manner as non-huge pages.
- 		 */
--		vma = find_vma(walk->mm, addr);
--		if (vma && vma->vm_start <= addr && is_vm_hugetlb_page(vma)) {
-+		vma = hugetlb_vma(addr, walk);
-+		if (vma) {
- 			if (vma->vm_end < next)
- 				next = vma->vm_end;
- 			/*
-@@ -189,7 +220,7 @@ int walk_page_range(unsigned long addr, 
- 			pgd = pgd_offset(walk->mm, next);
- 			continue;
- 		}
--#endif
-+
- 		if (pgd_none_or_clear_bad(pgd)) {
- 			if (walk->pte_hole)
- 				err = walk->pte_hole(addr, next, walk);
+@@ -181,6 +181,9 @@ static int walk_hugetlb_range(struct vm_
+  *
+  * If any callback returns a non-zero value, the walk is aborted and
+  * the return value is propagated back to the caller. Otherwise 0 is returned.
++ *
++ * walk->mm->mmap_sem must be held for at least read if walk->hugetlb_entry
++ * is !NULL.
+  */
+ int walk_page_range(unsigned long addr, unsigned long end,
+ 		    struct mm_walk *walk)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
