@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-skip-calibration-delay-if-previously-done-fix-fix.patch added to -mm tree
-Date: Fri, 03 Jun 2011 14:45:58 -0700
-Message-ID: <201106032145.p53Ljw5R009380@imap1.linux-foundation.org>
+Subject: + drivers-misc-spear13xx_pcie_gadgetc-fix-a-memory-leak-in-spear_pcie_gadget_probe-error-path.patch added to -mm tree
+Date: Fri, 03 Jun 2011 15:16:29 -0700
+Message-ID: <201106032216.p53MGTjZ010688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34395 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756510Ab1FCVqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:46:07 -0400
+	by vger.kernel.org with ESMTP id S1756516Ab1FCWRV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 18:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org
+Cc: axel.lin@gmail.com, pratyush.anand@st.com
 
 
 The patch titled
-     init-skip-calibration-delay-if-previously-done-fix-fix
+     drivers/misc/spear13xx_pcie_gadget.c: fix a memory leak in spear_pcie_gadget_probe error path
 has been added to the -mm tree.  Its filename is
-     init-skip-calibration-delay-if-previously-done-fix-fix.patch
+     drivers-misc-spear13xx_pcie_gadgetc-fix-a-memory-leak-in-spear_pcie_gadget_probe-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init-skip-calibration-delay-if-previously-done-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/misc/spear13xx_pcie_gadget.c: fix a memory leak in spear_pcie_gadget_probe error path
+From: Axel Lin <axel.lin@gmail.com>
 
-Cc: Andrew Worsley <amworsley@gmail.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Sameer Nanda <snanda@chromium.org>
-Cc: David Daney <ddaney@caviumnetworks.com>
+In the case of goto err_kzalloc, we should kfree target.
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Pratyush Anand <pratyush.anand@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |    2 +-
+ drivers/misc/spear13xx_pcie_gadget.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix-fix init/calibrate.c
---- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix-fix
-+++ a/init/calibrate.c
-@@ -256,7 +256,7 @@ void __cpuinit calibrate_delay(void)
- 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
- 		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
- 		pr_info("Calibrating delay loop (skipped) "
--				"already calibrated this CPU previously.. ");
-+				"already calibrated this CPU");
- 	} else if (preset_lpj) {
- 		loops_per_jiffy = preset_lpj;
- 		if (!printed)
+diff -puN drivers/misc/spear13xx_pcie_gadget.c~drivers-misc-spear13xx_pcie_gadgetc-fix-a-memory-leak-in-spear_pcie_gadget_probe-error-path drivers/misc/spear13xx_pcie_gadget.c
+--- a/drivers/misc/spear13xx_pcie_gadget.c~drivers-misc-spear13xx_pcie_gadgetc-fix-a-memory-leak-in-spear_pcie_gadget_probe-error-path
++++ a/drivers/misc/spear13xx_pcie_gadget.c
+@@ -845,7 +845,7 @@ err_iounmap:
+ err_iounmap_app:
+ 	iounmap(config->va_app_base);
+ err_kzalloc:
+-	kfree(config);
++	kfree(target);
+ err_rel_res:
+ 	release_mem_region(res1->start, resource_size(res1));
+ err_rel_res0:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-origin.patch
-backlight-add-backlight-type-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+drivers-misc-spear13xx_pcie_gadgetc-fix-a-memory-leak-in-spear_pcie_gadget_probe-error-path.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
-rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
-rtc-driver-for-pt7c4338-chip-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
