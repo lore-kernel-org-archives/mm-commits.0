@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch added to -mm tree
-Date: Fri, 03 Jun 2011 14:46:00 -0700
-Message-ID: <201106032146.p53Lk0bf009383@imap1.linux-foundation.org>
+Subject: + init-skip-calibration-delay-if-previously-done-fix-fix.patch added to -mm tree
+Date: Fri, 03 Jun 2011 14:45:58 -0700
+Message-ID: <201106032145.p53Ljw5R009380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756513Ab1FCVqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:46:08 -0400
+	by vger.kernel.org with ESMTP id S1756510Ab1FCVqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, e
 
 
 The patch titled
-     init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
+     init-skip-calibration-delay-if-previously-done-fix-fix
 has been added to the -mm tree.  Its filename is
-     init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+     init-skip-calibration-delay-if-previously-done-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
+Subject: init-skip-calibration-delay-if-previously-done-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Make these messages more gramatically pleasing, more consistent and remove
-strange ellipses.
 
 Cc: Andrew Worsley <amworsley@gmail.com>
 Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
@@ -46,46 +43,21 @@ Cc: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ init/calibrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages init/calibrate.c
---- a/init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages
+diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix-fix init/calibrate.c
+--- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix-fix
 +++ a/init/calibrate.c
-@@ -255,24 +255,24 @@ void __cpuinit calibrate_delay(void)
- 
+@@ -256,7 +256,7 @@ void __cpuinit calibrate_delay(void)
  	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
  		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
--		pr_info("Calibrating delay loop (skipped) "
--				"already calibrated this CPU");
-+		pr_info("Calibrating delay loop.  Skipped: already calibrated "
-+				"this CPU");
+ 		pr_info("Calibrating delay loop (skipped) "
+-				"already calibrated this CPU previously.. ");
++				"already calibrated this CPU");
  	} else if (preset_lpj) {
  		loops_per_jiffy = preset_lpj;
  		if (!printed)
--			pr_info("Calibrating delay loop (skipped) "
--				"preset value.. ");
-+			pr_info("Calibrating delay loop.  Skipped: "
-+				"preset value");
- 	} else if ((!printed) && lpj_fine) {
- 		loops_per_jiffy = lpj_fine;
--		pr_info("Calibrating delay loop (skipped), "
--			"value calculated using timer frequency.. ");
-+		pr_info("Calibrating delay loop.  Skipped: value calculated "
-+				"using timer frequency");
- 	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
- 		if (!printed)
--			pr_info("Calibrating delay using timer "
--				"specific routine.. ");
-+			pr_info("Calibrating delay loop using timer-specific "
-+					"routine");
- 	} else {
- 		if (!printed)
--			pr_info("Calibrating delay loop... ");
-+			pr_info("Calibrating delay loop");
- 		loops_per_jiffy = calibrate_delay_converge();
- 	}
- 	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
