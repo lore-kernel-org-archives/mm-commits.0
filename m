@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-skip-calibration-delay-if-previously-done.patch added to -mm tree
-Date: Fri, 03 Jun 2011 14:01:09 -0700
-Message-ID: <201106032101.p53L1AXh007384@imap1.linux-foundation.org>
+Subject: + mm-swap-token-fix-dead-link.patch added to -mm tree
+Date: Fri, 03 Jun 2011 14:05:42 -0700
+Message-ID: <201106032105.p53L5gc4007577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756286Ab1FCVBu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:01:50 -0400
+	by vger.kernel.org with ESMTP id S1754392Ab1FCVGU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: snanda@chromium.org, amworsley@gmail.com, ext-phil.2.carmody@nokia.com
+Cc: kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     init: skip calibration delay if previously done
+     mm: swap-token: fix dead link
 has been added to the -mm tree.  Its filename is
-     init-skip-calibration-delay-if-previously-done.patch
+     mm-swap-token-fix-dead-link.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: skip calibration delay if previously done
-From: Sameer Nanda <snanda@chromium.org>
+Subject: mm: swap-token: fix dead link
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-For each CPU, do the calibration delay only once.  For subsequent calls,
-use the cached per-CPU value of loops_per_jiffy.
+http://www.cs.wm.edu/~sjiang/token.pdf is now dead.  Replace it with an
+alive alternative.
 
-This saves about 200ms of resume time on dual core Intel Atom N5xx based
-systems.  This helps bring down the kernel resume time on such systems
-from about 500ms to about 300ms.
-
-Signed-off-by: Sameer Nanda <snanda@chromium.org>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Andrew Worsley <amworsley@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/thrash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done init/calibrate.c
---- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done
-+++ a/init/calibrate.c
-@@ -246,11 +246,18 @@ recalibrate:
- 	return lpj;
- }
- 
-+DEFINE_PER_CPU(unsigned long, cpu_loops_per_jiffy) = { 0 };
-+
- void __cpuinit calibrate_delay(void)
- {
- 	static bool printed;
-+	int this_cpu = smp_processor_id();
- 
--	if (preset_lpj) {
-+	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
-+		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
-+		pr_info("Calibrating delay loop (skipped) "
-+				"already calibrated this CPU previously.. ");
-+	} else if (preset_lpj) {
- 		loops_per_jiffy = preset_lpj;
- 		if (!printed)
- 			pr_info("Calibrating delay loop (skipped) "
-@@ -268,6 +275,7 @@ void __cpuinit calibrate_delay(void)
- 			pr_info("Calibrating delay loop... ");
- 		loops_per_jiffy = calibrate_delay_converge();
- 	}
-+	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
- 	if (!printed)
- 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
- 			loops_per_jiffy/(500000/HZ),
+diff -puN mm/thrash.c~mm-swap-token-fix-dead-link mm/thrash.c
+--- a/mm/thrash.c~mm-swap-token-fix-dead-link
++++ a/mm/thrash.c
+@@ -6,7 +6,7 @@
+  * Released under the GPL, see the file COPYING for details.
+  *
+  * Simple token based thrashing protection, using the algorithm
+- * described in:  http://www.cs.wm.edu/~sjiang/token.pdf
++ * described in: http://www.cse.ohio-state.edu/hpcs/WWW/HTML/publications/abs05-1.html
+  *
+  * Sep 2006, Ashwin Chaugule <ashwin.chaugule@celunite.com>
+  * Improved algorithm to pass token:
 _
 
-Patches currently in -mm which might be from snanda@chromium.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-init-skip-calibration-delay-if-previously-done.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
+vmscanmemcg-memcg-aware-swap-token.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+vmscan-implement-swap-token-trace.patch
+vmscan-implement-swap-token-priority-aging.patch
+memcg-add-documentation-for-the-memorynumastat-api.patch
+memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+mm-increase-reclaim_distance-to-30.patch
+slab-use-numa_no_node.patch
+mm-swap-token-fix-dead-link.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
+cpumask-alloc_cpumask_var-use-numa_no_node.patch
+cpumask-add-cpumask_var_t-documentation.patch
+kexec-remove-kmsg_dump_kexec.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
 
