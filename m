@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-token-add-a-comment-for-priority-aging.patch added to -mm tree
-Date: Fri, 03 Jun 2011 14:15:20 -0700
-Message-ID: <201106032115.p53LFKDG008106@imap1.linux-foundation.org>
+Subject: + init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch added to -mm tree
+Date: Fri, 03 Jun 2011 14:46:00 -0700
+Message-ID: <201106032146.p53Lk0bf009383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756473Ab1FCVPY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:15:24 -0400
+	by vger.kernel.org with ESMTP id S1756513Ab1FCVqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 17:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org
 
 
 The patch titled
-     mm: swap-token: add a comment for priority aging
+     init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
 has been added to the -mm tree.  Its filename is
-     mm-swap-token-add-a-comment-for-priority-aging.patch
+     init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: swap-token: add a comment for priority aging
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Docuemnt some swap token aging design decisions.
+Make these messages more gramatically pleasing, more consistent and remove
+strange ellipses.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Andrew Worsley <amworsley@gmail.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Sameer Nanda <snanda@chromium.org>
+Cc: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ init/calibrate.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/thrash.c~mm-swap-token-add-a-comment-for-priority-aging mm/thrash.c
---- a/mm/thrash.c~mm-swap-token-add-a-comment-for-priority-aging
-+++ a/mm/thrash.c
-@@ -67,6 +67,17 @@ void grab_swap_token(struct mm_struct *m
- 	if (!swap_token_mm)
- 		goto replace_token;
+diff -puN init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages init/calibrate.c
+--- a/init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages
++++ a/init/calibrate.c
+@@ -255,24 +255,24 @@ void __cpuinit calibrate_delay(void)
  
-+	/*
-+	 * Usually, we don't need priority aging because long interval faults
-+	 * makes priority decrease quickly. But there is one exception. If the
-+	 * token owner task is sleeping, it never make long interval faults.
-+	 * Thus, we need a priority aging mechanism instead. The requirements
-+	 * of priority aging are
-+	 *  1) An aging interval is reasonable enough long. Too short aging
-+	 *     interval makes quick swap token lost and decrease performance.
-+	 *  2) The swap token owner task have to get priority aging even if
-+	 *     it's under sleep.
-+	 */
- 	if ((global_faults - last_aging) > TOKEN_AGING_INTERVAL) {
- 		swap_token_mm->token_priority /= 2;
- 		last_aging = global_faults;
+ 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
+ 		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
+-		pr_info("Calibrating delay loop (skipped) "
+-				"already calibrated this CPU");
++		pr_info("Calibrating delay loop.  Skipped: already calibrated "
++				"this CPU");
+ 	} else if (preset_lpj) {
+ 		loops_per_jiffy = preset_lpj;
+ 		if (!printed)
+-			pr_info("Calibrating delay loop (skipped) "
+-				"preset value.. ");
++			pr_info("Calibrating delay loop.  Skipped: "
++				"preset value");
+ 	} else if ((!printed) && lpj_fine) {
+ 		loops_per_jiffy = lpj_fine;
+-		pr_info("Calibrating delay loop (skipped), "
+-			"value calculated using timer frequency.. ");
++		pr_info("Calibrating delay loop.  Skipped: value calculated "
++				"using timer frequency");
+ 	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
+ 		if (!printed)
+-			pr_info("Calibrating delay using timer "
+-				"specific routine.. ");
++			pr_info("Calibrating delay loop using timer-specific "
++					"routine");
+ 	} else {
+ 		if (!printed)
+-			pr_info("Calibrating delay loop... ");
++			pr_info("Calibrating delay loop");
+ 		loops_per_jiffy = calibrate_delay_converge();
+ 	}
+ 	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscanmemcg-memcg-aware-swap-token.patch
+origin.patch
+backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token-fix.patch
 vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-memcg-add-documentation-for-the-memorynumastat-api.patch
 memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-mm-increase-reclaim_distance-to-30.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 slab-use-numa_no_node.patch
-mm-swap-token-fix-dead-link.patch
-mm-swap-token-makes-global-variables-to-function-local.patch
-mm-swap-token-add-a-comment-for-priority-aging.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
 kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
