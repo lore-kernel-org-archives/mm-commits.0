@@ -1,71 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-cs5535-mfgptc-fix-wrong-if-condition.patch added to -mm tree
-Date: Fri, 03 Jun 2011 16:14:26 -0700
-Message-ID: <201106032314.p53NEQFs013547@imap1.linux-foundation.org>
+Subject: [folded] rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 03 Jun 2011 16:44:05 -0700
+Message-ID: <201106032344.p53Ni56K015146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753814Ab1FCXO3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 19:14:29 -0400
+	by vger.kernel.org with ESMTP id S1753331Ab1FCXoK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 19:44:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: christian.gmeiner@gmail.com, dilinger@queued.net
+To: akpm@linux-foundation.org, Priyanka.Jain@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/cs5535-mfgpt.c: fix wrong if condition
-has been added to the -mm tree.  Its filename is
-     drivers-misc-cs5535-mfgptc-fix-wrong-if-condition.patch
+     rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     rtc-driver-for-pt7c4338-chip-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into rtc-driver-for-pt7c4338-chip.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/cs5535-mfgpt.c: fix wrong if condition
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Subject: rtc-driver-for-pt7c4338-chip-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the wrong `if' condition for the check if the requested timer is
-available.
+WARNING: missing space after struct definition
+#128: FILE: drivers/rtc/rtc-pt7c4338.c:70:
++struct pt7c4338{
 
-The bitmap avail is used to store if a timer is used already.  test_bit()
-is used to check if the requested timer is available.  If a bit in the
-avail bitmap is set it means that the timer is available.
+total: 0 errors, 1 warnings, 237 lines checked
 
-Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
-Cc: Andres Salomon <dilinger@queued.net>
+./patches/rtc-driver-for-pt7c4338-chip.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Priyanka Jain <Priyanka.Jain@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/cs5535-mfgpt.c |    2 +-
+ drivers/rtc/rtc-pt7c4338.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/cs5535-mfgpt.c~drivers-misc-cs5535-mfgptc-fix-wrong-if-condition drivers/misc/cs5535-mfgpt.c
---- a/drivers/misc/cs5535-mfgpt.c~drivers-misc-cs5535-mfgptc-fix-wrong-if-condition
-+++ a/drivers/misc/cs5535-mfgpt.c
-@@ -174,7 +174,7 @@ struct cs5535_mfgpt_timer *cs5535_mfgpt_
- 		timer_nr = t < max ? (int) t : -1;
- 	} else {
- 		/* check if the requested timer's available */
--		if (test_bit(timer_nr, mfgpt->avail))
-+               if (!test_bit(timer_nr, mfgpt->avail))
- 			timer_nr = -1;
- 	}
+diff -puN drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes drivers/rtc/rtc-pt7c4338.c
+--- a/drivers/rtc/rtc-pt7c4338.c~rtc-driver-for-pt7c4338-chip-checkpatch-fixes
++++ a/drivers/rtc/rtc-pt7c4338.c
+@@ -67,7 +67,7 @@ static const struct i2c_device_id pt7c43
+ };
+ MODULE_DEVICE_TABLE(i2c, pt7c4338_id);
  
+-struct pt7c4338{
++struct pt7c4338 {
+ 	struct i2c_client *client;
+ 	struct rtc_device *rtc;
+ };
 _
 
-Patches currently in -mm which might be from christian.gmeiner@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-misc-cs5535-mfgptc-fix-wrong-if-condition.patch
+origin.patch
+backlight-add-backlight-type-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+rtc-driver-for-pt7c4338-chip.patch
+rtc-driver-for-pt7c4338-chip-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
