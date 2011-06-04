@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device.patch added to -mm tree
-Date: Fri, 03 Jun 2011 16:46:55 -0700
-Message-ID: <201106032346.p53Nktoa015301@imap1.linux-foundation.org>
+Subject: + mm-fix-wrong-kunmap_atomic-pointer.patch added to -mm tree
+Date: Fri, 03 Jun 2011 21:13:52 -0700
+Message-ID: <201106040413.p544D9ox027032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753350Ab1FCXrV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2011 19:47:21 -0400
+	by vger.kernel.org with ESMTP id S1750806Ab1FDEN5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 4 Jun 2011 00:13:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Priyanka.Jain@freescale.com, B04825@freescale.com, B32167@freescale.com, a.zummo@towertech.it, avorontsov@mvista.com, benh@kernel.crashing.org, galak@gate.crashing.org, grant.likely@secretlab.ca, w.sang@pengutronix.de
+Cc: rostedt@goodmis.org, a.p.zijlstra@chello.nl, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     drivers/rtc/rtc-ds1307.c: add support for the pt7c4338 rtc device
+     mm: fix wrong kunmap_atomic() pointer
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device.patch
+     mm-fix-wrong-kunmap_atomic-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-ds1307.c: add support for the pt7c4338 rtc device
-From: Priyanka Jain <Priyanka.Jain@freescale.com>
+Subject: mm: fix wrong kunmap_atomic() pointer
+From: Steven Rostedt <rostedt@goodmis.org>
 
-PT7C4338 chip is being manufactured by Pericom Technology Inc.  It is a
-serial real-time clock which provides:
+Running a ktest.pl test, I hit the following bug on x86_32:
 
-1) Low-power clock/calendar.
-2) Programmable square-wave output.
+/bin/sh: line 41------------[ cut here ]------------
+: /proc/meminfo:WARNING: at arch/x86/mm/highmem_32.c:81 __kunmap_atomic+0x64/0xc1()
+ No such file orHardware name:
+ directory
+/binModules linked in:/sh: line 42: [:
+Pid: 93, comm: sh Not tainted 2.6.39-test+ #1
+Call Trace:
+ [<c04450da>] warn_slowpath_common+0x7c/0x91
+ [<c042f5df>] ? __kunmap_atomic+0x64/0xc1
+ [<c042f5df>] ? __kunmap_atomic+0x64/0xc1^M
+ [<c0445111>] warn_slowpath_null+0x22/0x24
+ [<c042f5df>] __kunmap_atomic+0x64/0xc1
+ [<c04d4a22>] unmap_vmas+0x43a/0x4e0
+ [<c04d9065>] exit_mmap+0x91/0xd2
+ [<c0443057>] mmput+0x43/0xad
+ [<c0448358>] exit_mm+0x111/0x119
+ [<c044855f>] do_exit+0x1ff/0x5fa
+ too many argume [<c0454ea2>] ? set_current_blocked+0x3c/0x40
+ [<c0454f24>] ? sigprocmask+0x7e/0x8e
+ [<c0448b55>] do_group_exit+0x65/0x88
+ [<c0448b90>] sys_exit_group+0x18/0x1c
+ [<c0c3915f>] sysenter_do_call+0x12/0x38
+---[ end trace 8055f74ea3c0eb62 ]---^M
 
-It has 56 bytes of nonvolatile RAM.  Its register set is same as that of
-the rtc device DS1307.
+Running a ktest.pl git bisect, found the culprit commit:
 
-Signed-off-by: Priyanka Jain <Priyanka.Jain@freescale.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Jain Priyanka-B32167 <B32167@freescale.com>
-Cc: Tabi Timur-B04825 <B04825@freescale.com>
-Cc: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+e303297e6 mm: extended batches for generic mmu_gather
+
+But although this was the commit triggering the bug, it was not the one
+originally responsible for the bug. That was:
+
+d16dfc55 mm: mmu_gather rework
+
+The code in zap_pte_range() has something that looks like the following:
+
+	pte =  pte_offset_map_lock(mm, pmd, addr, &ptl);
+	do {
+		[...]
+	} while (pte++, addr += PAGE_SIZE, addr != end);
+	pte_unmap_unlock(pte - 1, ptl);
+
+The pte starts off pointing at the first element in the page table
+directory that was returned by the pte_offset_map_lock().  When it's done
+with the page, pte will be pointing to anything between the next entry and
+the first entry of the next page inclusive.  By doing a pte - 1, this puts
+the pte back onto the original page, which is all that pte_unmap_unlock()
+needs.
+
+In most archs (64 bit), this is not an issue as the pte is ignored in the
+pte_unmap_unlock().  But on 32 bit archs, where things may be kmapped, it
+is essential that the pte passed to pte_unmap_unlock() resides on the same
+page that was given by pte_offest_map_lock().
+
+The problem came in d16dfc55 ("mm: mmu_gather rework") where it introduced
+a "break;" from the while loop.  This alone did not seem to easily trigger
+the bug.  But the modifications made by e303297e6 caused that "break;" to
+be hit on the first iteration, before the pte++.
+
+The pte not being incremented will now cause pte_unmap_unlock(pte - 1) to
+be pointing to the previous page.  This will cause the wrong page to be
+unmapped, and also trigger the warning above.
+
+The simple solution is to just save the pointer given by
+pte_offset_map_lock() and use it in the unlock.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    6 +++---
- drivers/rtc/rtc-ds1307.c |    7 +++++++
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ mm/memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device
-+++ a/drivers/rtc/Kconfig
-@@ -136,13 +136,13 @@ config RTC_DRV_88PM860X
- 	  will be called rtc-88pm860x.
+diff -puN mm/memory.c~mm-fix-wrong-kunmap_atomic-pointer mm/memory.c
+--- a/mm/memory.c~mm-fix-wrong-kunmap_atomic-pointer
++++ a/mm/memory.c
+@@ -1112,11 +1112,13 @@ static unsigned long zap_pte_range(struc
+ 	int force_flush = 0;
+ 	int rss[NR_MM_COUNTERS];
+ 	spinlock_t *ptl;
++	pte_t *start_pte;
+ 	pte_t *pte;
  
- config RTC_DRV_DS1307
--	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00, EPSON RX-8025"
-+	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00, EPSON RX-8025, PT7C4338"
- 	help
- 	  If you say yes here you get support for various compatible RTC
- 	  chips (often with battery backup) connected with I2C. This driver
- 	  should handle DS1307, DS1337, DS1338, DS1339, DS1340, ST M41T00,
--	  EPSON RX-8025 and probably other chips. In some cases the RTC
--	  must already have been initialized (by manufacturing or a
-+	  EPSON RX-8025, PT7C4338 and probably other chips. In some cases
-+	  the RTC must already have been initialized (by manufacturing or a
- 	  bootloader).
+ again:
+ 	init_rss_vec(rss);
+-	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	start_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	pte = start_pte;
+ 	arch_enter_lazy_mmu_mode();
+ 	do {
+ 		pte_t ptent = *pte;
+@@ -1196,7 +1198,7 @@ again:
  
- 	  The first seven registers on these chips hold an RTC, and other
-diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -4,6 +4,8 @@
-  *  Copyright (C) 2005 James Chapman (ds1337 core)
-  *  Copyright (C) 2006 David Brownell
-  *  Copyright (C) 2009 Matthias Fuchs (rx8025 support)
-+ *  Copyright (C) 2011 Priyanka Jain (Priyanka.Jain@freescale.com)
-+ *                                   (pt7c4338 support)
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -34,6 +36,7 @@ enum ds_type {
- 	ds_1388,
- 	ds_3231,
- 	m41t00,
-+	pt7c4338,
- 	rx_8025,
- 	// rs5c372 too?  different address...
- };
-@@ -137,6 +140,8 @@ static const struct chip_desc chips[] = 
- },
- [m41t00] = {
- },
-+[pt7c4338] = {
-+},
- [rx_8025] = {
- }, };
+ 	add_mm_rss_vec(mm, rss);
+ 	arch_leave_lazy_mmu_mode();
+-	pte_unmap_unlock(pte - 1, ptl);
++	pte_unmap_unlock(start_pte, ptl);
  
-@@ -149,6 +154,7 @@ static const struct i2c_device_id ds1307
- 	{ "ds1340", ds_1340 },
- 	{ "ds3231", ds_3231 },
- 	{ "m41t00", m41t00 },
-+	{ "pt7c4338", pt7c4338 },
- 	{ "rx8025", rx_8025 },
- 	{ }
- };
-@@ -769,6 +775,7 @@ read_rtc:
- 	switch (ds1307->type) {
- 	case ds_1307:
- 	case m41t00:
-+	case pt7c4338:
- 		/* clock halted?  turn it on, so clock can tick. */
- 		if (tmp & DS1307_BIT_CH) {
- 			i2c_smbus_write_byte_data(client, DS1307_REG_SECS, 0);
+ 	/*
+ 	 * mmu_gather ran out of room to batch pages, we break out of
 _
 
-Patches currently in -mm which might be from Priyanka.Jain@freescale.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-drivers-rtc-rtc-ds1307c-add-support-for-the-pt7c4338-rtc-device.patch
+origin.patch
+mm-fix-wrong-kunmap_atomic-pointer.patch
 
