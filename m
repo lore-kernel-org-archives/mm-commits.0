@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-null-pointer-deference-in-open_xa_dir.patch added to -mm tree
-Date: Mon, 06 Jun 2011 15:36:27 -0700
-Message-ID: <201106062236.p56MaRtJ027008@imap1.linux-foundation.org>
+Subject: [obsolete] reiserfs-fix-null-pointer-deference-in-open_xa_dir.patch removed from -mm tree
+Date: Mon, 06 Jun 2011 15:41:36 -0700
+Message-ID: <201106062241.p56MfaMX027333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758337Ab1FFWhF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2011 18:37:05 -0400
+	by vger.kernel.org with ESMTP id S1758181Ab1FFWmJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2011 18:42:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sergey.senozhatsky@gmail.com, hch@lst.de, sage@newdream.net, viro@zeniv.linux.org.uk
+To: sergey.senozhatsky@gmail.com, hch@lst.de, sage@newdream.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      reiserfs: fix NULL pointer deference in open_xa_dir()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      reiserfs-fix-null-pointer-deference-in-open_xa_dir.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -104,5 +94,4 @@ _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-reiserfs-fix-null-pointer-deference-in-open_xa_dir.patch
 
