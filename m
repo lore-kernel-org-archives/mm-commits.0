@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-calibratec-remove-annoying-printk.patch added to -mm tree
-Date: Tue, 07 Jun 2011 16:20:44 -0700
-Message-ID: <201106072320.p57NKi6D001274@imap1.linux-foundation.org>
+Subject: + drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap.patch added to -mm tree
+Date: Tue, 07 Jun 2011 16:21:48 -0700
+Message-ID: <201106072321.p57NLmTg001314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751142Ab1FGXVA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:21:00 -0400
+	by vger.kernel.org with ESMTP id S1751142Ab1FGXV7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: borislav.petkov@amd.com, amworsley@gmail.com, ext-phil.2.carmody@nokia.com, peterz@infradead.org
+Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com
 
 
 The patch titled
-     init/calibrate.c: remove annoying printk
+     drivers/scsi/ipr.c: reorder error handling code to include iounmap
 has been added to the -mm tree.  Its filename is
-     init-calibratec-remove-annoying-printk.patch
+     drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/calibrate.c: remove annoying printk
-From: Borislav Petkov <borislav.petkov@amd.com>
+Subject: drivers/scsi/ipr.c: reorder error handling code to include iounmap
+From: Julia Lawall <julia@diku.dk>
 
-Remove calibrate_delay_direct()'s KERN_DEBUG printk related to bogomips
-calculation as it appears when booting every core on setups with
-'ignore_loglevel' which dmesg people scan for possible issues.  As the
-message doesn't show very useful information to the widest audience of
-kernel boot message gazers, it should be removed.
+The out_msi_disable label should be before cleanup_nomem to additionally
+benefit from the call to iounmap.  Subsequent gotos are adjusted to go to
+out_msi_disable instead of cleanup_nomem, which now follows it.  This is
+safe because pci_disable_msi does nothing if pci_enable_msi was not called.
 
-Introduced by d2b463135f84d15 ("init/calibrate.c: fix for critical
-bogoMIPS intermittent calculation failure").
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
-Cc: Andrew Worsley <amworsley@gmail.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+// <smpl>
+@r@
+expression e1,e2;
+statement S;
+@@
+
+e1 = pci_ioremap_bar(...);
+... when != e1 = e2
+    when != iounmap(e1)
+    when any
+(
+ if (<+...e1...+>) S
+|
+ if(...) { ... return 0; }
+|
+ if (...) { ... when != iounmap(e1)
+                when != if (...) { ... iounmap(e1) ... }
+* return ...;
+ } else S
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Brian King <brking@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/scsi/ipr.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN init/calibrate.c~init-calibratec-remove-annoying-printk init/calibrate.c
---- a/init/calibrate.c~init-calibratec-remove-annoying-printk
-+++ a/init/calibrate.c
-@@ -93,9 +93,6 @@ static unsigned long __cpuinit calibrate
- 		 * If the upper limit and lower limit of the timer_rate is
- 		 * >= 12.5% apart, redo calibration.
- 		 */
--		printk(KERN_DEBUG "calibrate_delay_direct() timer_rate_max=%lu "
--			    "timer_rate_min=%lu pre_start=%lu pre_end=%lu\n",
--			  timer_rate_max, timer_rate_min, pre_start, pre_end);
- 		if (start >= post_end)
- 			printk(KERN_NOTICE "calibrate_delay_direct() ignoring "
- 					"timer_rate as we had a TSC wrap around"
+diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap
++++ a/drivers/scsi/ipr.c
+@@ -8778,14 +8778,14 @@ static int __devinit ipr_probe_ioa(struc
+ 	if (rc != PCIBIOS_SUCCESSFUL) {
+ 		dev_err(&pdev->dev, "Failed to save PCI config space\n");
+ 		rc = -EIO;
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 	}
+ 
+ 	if ((rc = ipr_save_pcix_cmd_reg(ioa_cfg)))
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 
+ 	if ((rc = ipr_set_pcix_cmd_reg(ioa_cfg)))
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 
+ 	if (ioa_cfg->sis64)
+ 		ioa_cfg->cfg_table_size = (sizeof(struct ipr_config_table_hdr64)
+@@ -8800,7 +8800,7 @@ static int __devinit ipr_probe_ioa(struc
+ 	if (rc < 0) {
+ 		dev_err(&pdev->dev,
+ 			"Couldn't allocate enough memory for device driver!\n");
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 	}
+ 
+ 	/*
+@@ -8845,10 +8845,10 @@ out:
+ 
+ cleanup_nolog:
+ 	ipr_free_mem(ioa_cfg);
+-cleanup_nomem:
+-	iounmap(ipr_regs);
+ out_msi_disable:
+ 	pci_disable_msi(pdev);
++cleanup_nomem:
++	iounmap(ipr_regs);
+ out_release_regions:
+ 	pci_release_regions(pdev);
+ out_scsi_host_put:
 _
 
-Patches currently in -mm which might be from borislav.petkov@amd.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-init-calibratec-remove-annoying-printk.patch
+linux-next.patch
+drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap.patch
 
