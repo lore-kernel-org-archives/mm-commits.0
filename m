@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + staging-iio-make-iio-depend-on-generic_hardirqs.patch added to -mm tree
-Date: Tue, 07 Jun 2011 16:17:48 -0700
-Message-ID: <201106072317.p57NHmDI001074@imap1.linux-foundation.org>
+Subject: + init-calibratec-remove-annoying-printk.patch added to -mm tree
+Date: Tue, 07 Jun 2011 16:20:44 -0700
+Message-ID: <201106072320.p57NKi6D001274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148Ab1FGXSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:18:00 -0400
+	by vger.kernel.org with ESMTP id S1751142Ab1FGXVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, gregkh@suse.de, jeffm@suse.com, jic23@cam.ac.uk
+Cc: borislav.petkov@amd.com, amworsley@gmail.com, ext-phil.2.carmody@nokia.com, peterz@infradead.org
 
 
 The patch titled
-     staging/iio: make IIO depend on GENERIC_HARDIRQS
+     init/calibrate.c: remove annoying printk
 has been added to the -mm tree.  Its filename is
-     staging-iio-make-iio-depend-on-generic_hardirqs.patch
+     init-calibratec-remove-annoying-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging/iio: make IIO depend on GENERIC_HARDIRQS
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: init/calibrate.c: remove annoying printk
+From: Borislav Petkov <borislav.petkov@amd.com>
 
-On m68k (which doesn't support generic hardirqs yet):
+Remove calibrate_delay_direct()'s KERN_DEBUG printk related to bogomips
+calculation as it appears when booting every core on setups with
+'ignore_loglevel' which dmesg people scan for possible issues.  As the
+message doesn't show very useful information to the widest audience of
+kernel boot message gazers, it should be removed.
 
-drivers/staging/iio/industrialio-trigger.c: In function `iio_trigger_poll':
-drivers/staging/iio/industrialio-trigger.c:180: error: implicit declaration of function `generic_handle_irq'
-drivers/staging/iio/industrialio-trigger.c: In function `iio_trigger_poll_chained':
-drivers/staging/iio/industrialio-trigger.c:200: error: implicit declaration of function `handle_nested_irq'
-drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_release':
-drivers/staging/iio/industrialio-trigger.c:379: error: implicit declaration of function `irq_modify_status'
-drivers/staging/iio/industrialio-trigger.c:382: error: implicit declaration of function `irq_set_chip'
-drivers/staging/iio/industrialio-trigger.c:384: error: implicit declaration of function `irq_set_handler'
-drivers/staging/iio/industrialio-trigger.c:388: error: implicit declaration of function `irq_free_descs'
-drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_subirqmask':
-drivers/staging/iio/industrialio-trigger.c:402: error: implicit declaration of function `irq_data_get_irq_chip'
-drivers/staging/iio/industrialio-trigger.c:402: warning: initialization makes pointer from integer without a cast
-drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_subirqunmask':
-drivers/staging/iio/industrialio-trigger.c:411: warning: initialization makes pointer from integer without a cast
-drivers/staging/iio/industrialio-trigger.c: In function `iio_allocate_trigger':
-drivers/staging/iio/industrialio-trigger.c:432: error: implicit declaration of function `irq_alloc_descs'
-drivers/staging/iio/industrialio-trigger.c:455: error: `handle_simple_irq' undeclared (first use in this function)
-drivers/staging/iio/industrialio-trigger.c:455: error: (Each undeclared identifier is reported only once
-drivers/staging/iio/industrialio-trigger.c:455: error: for each function it appears in.)
+Introduced by d2b463135f84d15 ("init/calibrate.c: fix for critical
+bogoMIPS intermittent calculation failure").
 
-Hence IIO_TRIGGER should depend on GENERIC_HARDIRQS.  But as IIO_TRIGGER
-and IIO_RING_BUFFER form a maze of dependencies and selects, just make the
-whole IIO subsystem depend on GENERIC_HARDIRQS.
-
-This dependency also covers !S390, so that one can be removed again.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
+Cc: Andrew Worsley <amworsley@gmail.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/calibrate.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/staging/iio/Kconfig~staging-iio-make-iio-depend-on-generic_hardirqs drivers/staging/iio/Kconfig
---- a/drivers/staging/iio/Kconfig~staging-iio-make-iio-depend-on-generic_hardirqs
-+++ a/drivers/staging/iio/Kconfig
-@@ -4,7 +4,7 @@
- 
- menuconfig IIO
- 	tristate "Industrial I/O support"
--	depends on !S390
-+	depends on GENERIC_HARDIRQS
- 	help
- 	  The industrial I/O subsystem provides a unified framework for
- 	  drivers for many different types of embedded sensors using a
+diff -puN init/calibrate.c~init-calibratec-remove-annoying-printk init/calibrate.c
+--- a/init/calibrate.c~init-calibratec-remove-annoying-printk
++++ a/init/calibrate.c
+@@ -93,9 +93,6 @@ static unsigned long __cpuinit calibrate
+ 		 * If the upper limit and lower limit of the timer_rate is
+ 		 * >= 12.5% apart, redo calibration.
+ 		 */
+-		printk(KERN_DEBUG "calibrate_delay_direct() timer_rate_max=%lu "
+-			    "timer_rate_min=%lu pre_start=%lu pre_end=%lu\n",
+-			  timer_rate_max, timer_rate_min, pre_start, pre_end);
+ 		if (start >= post_end)
+ 			printk(KERN_NOTICE "calibrate_delay_direct() ignoring "
+ 					"timer_rate as we had a TSC wrap around"
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from borislav.petkov@amd.com are
 
-w1-w1_master_ds1wm-should-depend-on-generic_hardirqs.patch
-mm-nommuc-fix-remap_pfn_range.patch
-linux-next.patch
-cris-fix-a-build-error-in-kernel-forkc.patch
-cris-fix-a-build-error-in-sync_serial_open.patch
-cris-fix-the-prototype-of-sync_serial_ioctl.patch
-cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
-fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
-staging-iio-make-iio-depend-on-generic_hardirqs.patch
+init-calibratec-remove-annoying-printk.patch
 
