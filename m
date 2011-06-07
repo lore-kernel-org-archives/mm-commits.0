@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-unify-show_regs-prototype-fix.patch added to -mm tree
-Date: Tue, 07 Jun 2011 13:34:15 -0700
-Message-ID: <201106072034.p57KYFCL025347@imap1.linux-foundation.org>
+Subject: + maintainers-add-videobuf2-maintainers.patch added to -mm tree
+Date: Tue, 07 Jun 2011 14:37:24 -0700
+Message-ID: <201106072137.p57LbOJo028408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756564Ab1FGUet (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 16:34:49 -0400
+	by vger.kernel.org with ESMTP id S1754630Ab1FGViG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 17:38:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, tj@kernel.org, vapier@gentoo.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com, mchehab@infradead.org
 
 
 The patch titled
-     ptrace-unify-show_regs-prototype-fix
+     MAINTAINERS: add videobuf2 maintainers
 has been added to the -mm tree.  Its filename is
-     ptrace-unify-show_regs-prototype-fix.patch
+     maintainers-add-videobuf2-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace-unify-show_regs-prototype-fix
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: MAINTAINERS: add videobuf2 maintainers
+From: Pawel Osciak <pawel@osciak.com>
 
-No need to declare show_regs() in ptrace.h, sched.h does this.
+Add maintainers for the videobuf2 V4L2 driver framework.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Pawel Osciak <pawel@osciak.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/ptrace.h~ptrace-unify-show_regs-prototype-fix include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-unify-show_regs-prototype-fix
-+++ a/include/linux/ptrace.h
-@@ -100,7 +100,6 @@
- #include <linux/sched.h>		/* For struct task_struct.  */
+diff -puN MAINTAINERS~maintainers-add-videobuf2-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-videobuf2-maintainers
++++ a/MAINTAINERS
+@@ -6734,6 +6734,14 @@ S:	Maintained
+ F:	Documentation/filesystems/vfat.txt
+ F:	fs/fat/
  
- 
--extern void show_regs(struct pt_regs *);
- extern long arch_ptrace(struct task_struct *child, long request,
- 			unsigned long addr, unsigned long data);
- extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
++VIDEOBUF2 FRAMEWORK
++M:	Pawel Osciak <pawel@osciak.com>
++M:	Marek Szyprowski <m.szyprowski@samsung.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/video/videobuf2-*
++F:	include/media/videobuf2-*
++
+ VIRTIO CONSOLE DRIVER
+ M:	Amit Shah <amit.shah@redhat.com>
+ L:	virtualization@lists.linux-foundation.org
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from pawel@osciak.com are
 
-linux-next.patch
-ptrace-unify-show_regs-prototype.patch
-ptrace-unify-show_regs-prototype-fix.patch
+maintainers-add-videobuf2-maintainers.patch
 
