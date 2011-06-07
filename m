@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] fs-fat-filec-fix-clearing-of-s_immutable.patch removed from -mm tree
-Date: Mon, 06 Jun 2011 17:07:20 -0700
-Message-ID: <201106070007.p5707K90031628@imap1.linux-foundation.org>
+Subject: [merged] fs-fat-filec-fix-clearing-of-s_immutable.patch removed from -mm tree
+Date: Tue, 07 Jun 2011 13:18:30 -0700
+Message-ID: <201106072017.p57KHRVd024493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754901Ab1FGAH4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2011 20:07:56 -0400
+	by vger.kernel.org with ESMTP id S1755425Ab1FGURf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 16:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dimondmm@yandex.ru, hch@lst.de, hirofumi@mail.parknet.co.jp, stable@kernel.org, mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ The patch titled
 has been removed from the -mm tree.  Its filename was
      fs-fat-filec-fix-clearing-of-s_immutable.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
