@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-implement-strict-user-copy-checks-for-x86_64.patch added to -mm tree
-Date: Tue, 07 Jun 2011 16:43:49 -0700
-Message-ID: <201106072343.p57NhnE1002518@imap1.linux-foundation.org>
+Subject: + kprobes-silence-debug_strict_user_copy_checks=y-warning.patch added to -mm tree
+Date: Tue, 07 Jun 2011 16:43:47 -0700
+Message-ID: <201106072343.p57Nhl5F002515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39351 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754951Ab1FGXnz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:43:55 -0400
+	by vger.kernel.org with ESMTP id S1754976Ab1FGXn5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sboyd@codeaurora.org, hpa@zytor.com, mingo@elte.hu
+Cc: sboyd@codeaurora.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, masami.hiramatsu.pt@hitachi.com
 
 
 The patch titled
-     x86: implement strict user copy checks for x86_64
+     kprobes: silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
 has been added to the -mm tree.  Its filename is
-     x86-implement-strict-user-copy-checks-for-x86_64.patch
+     kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: implement strict user copy checks for x86_64
+Subject: kprobes: silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
 From: Stephen Boyd <sboyd@codeaurora.org>
 
-Strict user copy checks are only really supported on x86_32 even though
-the config option is selectable on x86_64.  Add the necessary support to
-the 64 bit code to trigger copy_from_user() warnings at compile time.
+Enabling DEBUG_STRICT_USER_COPY_CHECKS causes the following warning:
+
+In file included from arch/x86/include/asm/uaccess.h:573,
+                 from kernel/kprobes.c:55:
+In function 'copy_from_user',
+    inlined from 'write_enabled_file_bool' at
+    kernel/kprobes.c:2191:
+arch/x86/include/asm/uaccess_64.h:65:
+warning: call to 'copy_from_user_overflow' declared with
+attribute warning: copy_from_user() buffer size is not provably
+correct
+
+presumably due to buf_size being signed causing GCC to fail to see that
+buf_size can't become negative.
 
 Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Acked-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess_64.h |   12 +++++++++---
- arch/x86/lib/usercopy_64.c        |    6 ++++++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ kernel/kprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/uaccess_64.h~x86-implement-strict-user-copy-checks-for-x86_64 arch/x86/include/asm/uaccess_64.h
---- a/arch/x86/include/asm/uaccess_64.h~x86-implement-strict-user-copy-checks-for-x86_64
-+++ a/arch/x86/include/asm/uaccess_64.h
-@@ -43,6 +43,14 @@ _copy_from_user(void *to, const void __u
- __must_check unsigned long
- copy_in_user(void __user *to, const void __user *from, unsigned len);
+diff -puN kernel/kprobes.c~kprobes-silence-debug_strict_user_copy_checks=y-warning kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-silence-debug_strict_user_copy_checks=y-warning
++++ a/kernel/kprobes.c
+@@ -2185,7 +2185,7 @@ static ssize_t write_enabled_file_bool(s
+ 	       const char __user *user_buf, size_t count, loff_t *ppos)
+ {
+ 	char buf[32];
+-	int buf_size;
++	size_t buf_size;
  
-+extern void copy_from_user_overflow(void)
-+#ifdef CONFIG_DEBUG_STRICT_USER_COPY_CHECKS
-+	__compiletime_error("copy_from_user() buffer size is not provably correct")
-+#else
-+	__compiletime_warning("copy_from_user() buffer size is not provably correct")
-+#endif
-+;
-+
- static inline unsigned long __must_check copy_from_user(void *to,
- 					  const void __user *from,
- 					  unsigned long n)
-@@ -52,10 +60,8 @@ static inline unsigned long __must_check
- 	might_fault();
- 	if (likely(sz == -1 || sz >= n))
- 		n = _copy_from_user(to, from, n);
--#ifdef CONFIG_DEBUG_VM
- 	else
--		WARN(1, "Buffer overflow detected!\n");
--#endif
-+		copy_from_user_overflow();
- 	return n;
- }
- 
-diff -puN arch/x86/lib/usercopy_64.c~x86-implement-strict-user-copy-checks-for-x86_64 arch/x86/lib/usercopy_64.c
---- a/arch/x86/lib/usercopy_64.c~x86-implement-strict-user-copy-checks-for-x86_64
-+++ a/arch/x86/lib/usercopy_64.c
-@@ -181,3 +181,9 @@ copy_user_handle_tail(char *to, char *fr
- 			break;
- 	return len;
- }
-+
-+void copy_from_user_overflow(void)
-+{
-+	WARN(1, "Buffer overflow detected!\n");
-+}
-+EXPORT_SYMBOL(copy_from_user_overflow);
+ 	buf_size = min(count, (sizeof(buf)-1));
+ 	if (copy_from_user(buf, user_buf, buf_size))
 _
 
 Patches currently in -mm which might be from sboyd@codeaurora.org are
