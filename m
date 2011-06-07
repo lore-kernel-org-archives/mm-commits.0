@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + staging-iio-make-iio-depend-on-generic_hardirqs.patch added to -mm tree
-Date: Tue, 07 Jun 2011 16:17:34 -0700
-Message-ID: <201106072317.p57NHY9D001056@imap1.linux-foundation.org>
+Date: Tue, 07 Jun 2011 16:17:48 -0700
+Message-ID: <201106072317.p57NHmDI001074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148Ab1FGXRp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:17:45 -0400
+	by vger.kernel.org with ESMTP id S1752148Ab1FGXSA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:18:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -67,7 +67,7 @@ This dependency also covers !S390, so that one can be removed again.
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
