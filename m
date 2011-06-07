@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200.patch added to -mm tree
-Date: Tue, 07 Jun 2011 16:32:47 -0700
-Message-ID: <201106072332.p57NWlhA001930@imap1.linux-foundation.org>
+Subject: + lpfc-silence-debug_strict_user_copy_checks=y-warning.patch added to -mm tree
+Date: Tue, 07 Jun 2011 16:43:45 -0700
+Message-ID: <201106072343.p57NhjgX002512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978Ab1FGXdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:33:32 -0400
+	by vger.kernel.org with ESMTP id S1754045Ab1FGXnt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:43:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbaryshkov@gmail.com, a.zummo@towertech.it, agust@denx.de, grant.likely@secretlab.ca
+Cc: sboyd@codeaurora.org, james.smart@emulex.com
 
 
 The patch titled
-     drivers/rtc/rtc-mpc5121.c: add support for RTC on MPC5200
+     lpfc: Silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200.patch
+     lpfc-silence-debug_strict_user_copy_checks=y-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-mpc5121.c: add support for RTC on MPC5200
-From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Subject: lpfc: Silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
+From: Stephen Boyd <sboyd@codeaurora.org>
 
-MPC5200B contains a limited version of RTC from MPC5121.  Add support for
-the RTC on that CPU.
+Enabling DEBUG_STRICT_USER_COPY_CHECKS causes the following warning:
 
-Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Anatolij Gustschin <agust@denx.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+In file included from arch/x86/include/asm/uaccess.h:573,
+                 from include/linux/uaccess.h:5,
+                 from include/linux/highmem.h:7,
+                 from include/linux/pagemap.h:10,
+                 from include/linux/blkdev.h:12,
+                 from drivers/scsi/lpfc/lpfc_debugfs.c:21:
+In function 'copy_from_user':
+arch/x86/include/asm/uaccess_64.h:65:
+warning: call to 'copy_from_user_overflow' declared with
+attribute warning: copy_from_user() buffer size is not provably
+correct
+
+presumably due to buf_size being signed causing GCC to fail to see that
+buf_size can't become negative.
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Acked-by: James Smart <james.smart@emulex.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |    4 -
- drivers/rtc/rtc-mpc5121.c |   81 ++++++++++++++++++++++++++++++++----
- 2 files changed, 75 insertions(+), 10 deletions(-)
+ drivers/scsi/lpfc/lpfc_debugfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200
-+++ a/drivers/rtc/Kconfig
-@@ -1006,10 +1006,10 @@ config RTC_DRV_MC13XXX
- 
- config RTC_DRV_MPC5121
- 	tristate "Freescale MPC5121 built-in RTC"
--	depends on PPC_MPC512x && RTC_CLASS
-+	depends on PPC_MPC512x || PPC_MPC52xx
- 	help
- 	  If you say yes here you will get support for the
--	  built-in RTC MPC5121.
-+	  built-in RTC on MPC5121 or on MPC5200.
- 
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-mpc5121.
-diff -puN drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200 drivers/rtc/rtc-mpc5121.c
---- a/drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200
-+++ a/drivers/rtc/rtc-mpc5121.c
-@@ -3,6 +3,7 @@
-  *
-  * Copyright 2007, Domen Puncer <domen.puncer@telargo.com>
-  * Copyright 2008, Freescale Semiconductor, Inc. All rights reserved.
-+ * Copyright 2011, Dmitry Eremin-Solenikov
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -145,6 +146,55 @@ static int mpc5121_rtc_set_time(struct d
- 	return 0;
- }
- 
-+static int mpc5200_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct mpc5121_rtc_data *rtc = dev_get_drvdata(dev);
-+	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
-+	int tmp;
-+
-+	tm->tm_sec = in_8(&regs->second);
-+	tm->tm_min = in_8(&regs->minute);
-+
-+	/* 12 hour format? */
-+	if (in_8(&regs->hour) & 0x20)
-+		tm->tm_hour = (in_8(&regs->hour) >> 1) +
-+			(in_8(&regs->hour) & 1 ? 12 : 0);
-+	else
-+		tm->tm_hour = in_8(&regs->hour);
-+
-+	tmp = in_8(&regs->wday_mday);
-+	tm->tm_mday = tmp & 0x1f;
-+	tm->tm_mon = in_8(&regs->month) - 1;
-+	tm->tm_year = in_be16(&regs->year) - 1900;
-+	tm->tm_wday = (tmp >> 5) % 7;
-+	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
-+	tm->tm_isdst = 0;
-+
-+	return 0;
-+}
-+
-+static int mpc5200_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct mpc5121_rtc_data *rtc = dev_get_drvdata(dev);
-+	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
-+
-+	mpc5121_rtc_update_smh(regs, tm);
-+
-+	/* date */
-+	out_8(&regs->month_set, tm->tm_mon + 1);
-+	out_8(&regs->weekday_set, tm->tm_wday ? tm->tm_wday : 7);
-+	out_8(&regs->date_set, tm->tm_mday);
-+	out_be16(&regs->year_set, tm->tm_year + 1900);
-+
-+	/* set date sequence */
-+	out_8(&regs->set_date, 0x1);
-+	out_8(&regs->set_date, 0x3);
-+	out_8(&regs->set_date, 0x1);
-+	out_8(&regs->set_date, 0x0);
-+
-+	return 0;
-+}
-+
- static int mpc5121_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~lpfc-silence-debug_strict_user_copy_checks=y-warning drivers/scsi/lpfc/lpfc_debugfs.c
+--- a/drivers/scsi/lpfc/lpfc_debugfs.c~lpfc-silence-debug_strict_user_copy_checks=y-warning
++++ a/drivers/scsi/lpfc/lpfc_debugfs.c
+@@ -1147,7 +1147,8 @@ static int lpfc_idiag_cmd_get(const char
  {
- 	struct mpc5121_rtc_data *rtc = dev_get_drvdata(dev);
-@@ -248,11 +298,18 @@ static const struct rtc_class_ops mpc512
- 	.alarm_irq_enable = mpc5121_rtc_alarm_irq_enable,
- };
+ 	char mybuf[64];
+ 	char *pbuf, *step_str;
+-	int bsize, i;
++	int i;
++	size_t bsize;
  
-+static const struct rtc_class_ops mpc5200_rtc_ops = {
-+	.read_time = mpc5200_rtc_read_time,
-+	.set_time = mpc5200_rtc_set_time,
-+	.read_alarm = mpc5121_rtc_read_alarm,
-+	.set_alarm = mpc5121_rtc_set_alarm,
-+	.alarm_irq_enable = mpc5121_rtc_alarm_irq_enable,
-+};
-+
- static int __devinit mpc5121_rtc_probe(struct platform_device *op)
- {
- 	struct mpc5121_rtc_data *rtc;
- 	int err = 0;
--	u32 ka;
- 
- 	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
-@@ -287,15 +344,22 @@ static int __devinit mpc5121_rtc_probe(s
- 		goto out_dispose2;
- 	}
- 
--	ka = in_be32(&rtc->regs->keep_alive);
--	if (ka & 0x02) {
--		dev_warn(&op->dev,
--			"mpc5121-rtc: Battery or oscillator failure!\n");
--		out_be32(&rtc->regs->keep_alive, ka);
-+	if (of_device_is_compatible(op->dev.of_node, "fsl,mpc5121-rtc")) {
-+		u32 ka;
-+		ka = in_be32(&rtc->regs->keep_alive);
-+		if (ka & 0x02) {
-+			dev_warn(&op->dev,
-+				"mpc5121-rtc: Battery or oscillator failure!\n");
-+			out_be32(&rtc->regs->keep_alive, ka);
-+		}
-+
-+		rtc->rtc = rtc_device_register("mpc5121-rtc", &op->dev,
-+						&mpc5121_rtc_ops, THIS_MODULE);
-+	} else {
-+		rtc->rtc = rtc_device_register("mpc5200-rtc", &op->dev,
-+						&mpc5200_rtc_ops, THIS_MODULE);
- 	}
- 
--	rtc->rtc = rtc_device_register("mpc5121-rtc", &op->dev,
--					&mpc5121_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		err = PTR_ERR(rtc->rtc);
- 		goto out_free_irq;
-@@ -340,6 +404,7 @@ static int __devexit mpc5121_rtc_remove(
- 
- static struct of_device_id mpc5121_rtc_match[] __devinitdata = {
- 	{ .compatible = "fsl,mpc5121-rtc", },
-+	{ .compatible = "fsl,mpc5200-rtc", },
- 	{},
- };
- 
+ 	/* Protect copy from user */
+ 	if (!access_ok(VERIFY_READ, buf, nbytes))
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200.patch
+linux-next.patch
+lpfc-silence-debug_strict_user_copy_checks=y-warning.patch
+kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
+x86-implement-strict-user-copy-checks-for-x86_64.patch
+consolidate-config_debug_strict_user_copy_checks.patch
 
