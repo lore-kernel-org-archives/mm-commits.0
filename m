@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist.patch added to -mm tree
-Date: Tue, 07 Jun 2011 18:36:20 -0700
-Message-ID: <201106080135.p581ZGDQ007973@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 08 Jun 2011 12:52:33 -0700
+Message-ID: <201106081951.p58JpPVw024793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755255Ab1FHBfy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 21:35:54 -0400
+	by vger.kernel.org with ESMTP id S1752041Ab1FHTv0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2011 15:51:26 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p58JpPS5022609
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 8 Jun 2011 12:51:26 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, dave@linux.vnet.ibm.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mm/memory_hotplug.c: fix building of node hotplug zonelist
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +37,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory_hotplug.c: fix building of node hotplug zonelist
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-During memory hotplug we refresh zonelists when we online a page in a new
-zone.  It means that the node's zonelist is not initialized until pages
-are onlined.  So for example, "nid" passed by MEM_GOING_ONLINE notifier
-will point to NODE_DATA(nid) which has no zone fallback list.  Moreover,
-if we hot-add cpu-only nodes, alloc_pages() will do no fallback.
-
-This patch makes a zonelist when a new pgdata is available.
-
-Note: in production, at fujitsu, memory should be onlined before cpu
-      and our server didn't have any memory-less nodes and had no problems.
-
-      But recent changes in MEM_GOING_ONLINE+page_cgroup
-      will access not initialized zonelist of node.
-      Anyway, there are memory-less node and we need some care.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/gpio/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist
-+++ a/mm/memory_hotplug.c
-@@ -494,6 +494,12 @@ static pg_data_t __ref *hotadd_new_pgdat
- 	/* init node's zones as empty zones, we don't have any present pages.*/
- 	free_area_init_node(nid, zones_size, start_pfn, zholes_size);
+diff -puN drivers/gpio/Kconfig~linux-next-git-rejects drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~linux-next-git-rejects
++++ a/drivers/gpio/Kconfig
+@@ -91,8 +91,6 @@ config GPIO_EP93XX
+ config GPIO_EXYNOS4
+ 	def_bool y
+ 	depends on CPU_EXYNOS4210
+-<<<<<<< HEAD
+-=======
  
-+	/*
-+	 * The node we allocated has no zone fallback lists. For avoiding
-+	 * to access not-initialized zonelist, build here.
-+	 */
-+	build_all_zonelists(NULL);
-+
- 	return pgdat;
- }
+ config GPIO_MXC
+ 	def_bool y
+@@ -105,7 +103,6 @@ config GPIO_MXS
+ 	depends on ARCH_MXS
+ 	select GPIO_GENERIC
+ 	select GENERIC_IRQ_CHIP
+->>>>>>> FETCH_HEAD
  
+ config GPIO_PLAT_SAMSUNG
+ 	def_bool y
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscanmemcg-memcg-aware-swap-token.patch
+origin.patch
+backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-memcg-add-documentation-for-the-memorynumastat-api.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
 memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-fix-wrong-kunmap_atomic-pointer.patch
-mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
