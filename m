@@ -1,96 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kexec-remove-kmsg_dump_kexec-fix.patch removed from -mm tree
-Date: Tue, 07 Jun 2011 16:58:57 -0700
-Message-ID: <201106072358.p57NwvO4003367@imap1.linux-foundation.org>
+Subject: + hfsplus-add-missing-call-to-bio_put.patch added to -mm tree
+Date: Tue, 07 Jun 2011 17:04:06 -0700
+Message-ID: <201106080004.p58046Vw003709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754138Ab1FGX73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 19:59:29 -0400
+	by vger.kernel.org with ESMTP id S1758162Ab1FHAEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 20:04:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, jarod@redhat.com, kosaki.motohiro@jp.fujitsu.com, vgoyal@redhat.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: seth.forshee@canonical.com, hch@lst.de, stable@kernel.org
 
 
 The patch titled
-     kexec-remove-kmsg_dump_kexec-fix
-has been removed from the -mm tree.  Its filename was
-     kexec-remove-kmsg_dump_kexec-fix.patch
+     hfsplus: add missing call to bio_put()
+has been added to the -mm tree.  Its filename is
+     hfsplus-add-missing-call-to-bio_put.patch
 
-This patch was dropped because it was folded into kexec-remove-kmsg_dump_kexec.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-remove-kmsg_dump_kexec-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hfsplus: add missing call to bio_put()
+From: Seth Forshee <seth.forshee@canonical.com>
 
-fix powerpc build
+hfsplus leaks bio objects by failing to call bio_put() on the bios it
+allocates.  Add the missing call to fix the leak.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@kernel.org>		[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/nvram.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/hfsplus/wrapper.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec-fix arch/powerpc/platforms/pseries/nvram.c
---- a/arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec-fix
-+++ a/arch/powerpc/platforms/pseries/nvram.c
-@@ -490,7 +490,6 @@ static void oops_to_nvram(struct kmsg_du
- 		/* These are almost always orderly shutdowns. */
- 		return;
- 	case KMSG_DUMP_OOPS:
--	case KMSG_DUMP_KEXEC:
- 		break;
- 	case KMSG_DUMP_PANIC:
- 		panicking = true;
+diff -puN fs/hfsplus/wrapper.c~hfsplus-add-missing-call-to-bio_put fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfsplus-add-missing-call-to-bio_put
++++ a/fs/hfsplus/wrapper.c
+@@ -36,6 +36,7 @@ int hfsplus_submit_bio(struct block_devi
+ {
+ 	DECLARE_COMPLETION_ONSTACK(wait);
+ 	struct bio *bio;
++	int ret = 0;
+ 
+ 	bio = bio_alloc(GFP_NOIO, 1);
+ 	bio->bi_sector = sector;
+@@ -54,8 +55,10 @@ int hfsplus_submit_bio(struct block_devi
+ 	wait_for_completion(&wait);
+ 
+ 	if (!bio_flagged(bio, BIO_UPTODATE))
+-		return -EIO;
+-	return 0;
++		ret = -EIO;
++
++	bio_put(bio);
++	return ret;
+ }
+ 
+ static int hfsplus_read_mdb(void *bufptr, struct hfsplus_wd *wd)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from seth.forshee@canonical.com are
 
-backlight-add-backlight-type-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-writeback-sync-expired-inodes-first-in-background-writeback.patch
-writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+hfsplus-add-missing-call-to-bio_put.patch
 
