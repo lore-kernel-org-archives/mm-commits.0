@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch added to -mm tree
-Date: Tue, 07 Jun 2011 17:32:58 -0700
-Message-ID: <201106080032.p580WxNw005197@imap1.linux-foundation.org>
+Subject: + drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch added to -mm tree
+Date: Tue, 07 Jun 2011 17:33:03 -0700
+Message-ID: <201106080033.p580X3ak005209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751615Ab1FHAdo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 20:33:44 -0400
+	by vger.kernel.org with ESMTP id S1752932Ab1FHAdy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2011 20:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aghayal@codeaurora.org, a.zummo@towertech.it, ashayj@codeaurora.org, mcuos.com@gmail.com, sameo@linux.intel.com, sboyd@codeaurora.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, aghayal@codeaurora.org, ashayj@codeaurora.org, mcuos.com@gmail.com, sameo@linux.intel.com, sboyd@codeaurora.org
 
 
 The patch titled
-     drivers/rtc: add support for Qualcomm PMIC8xxx RTC
+     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch
+     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,654 +33,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc: add support for Qualcomm PMIC8xxx RTC
-From: Anirudh Ghayal <aghayal@codeaurora.org>
+Subject: drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for PMIC8xxx based RTC.  PMIC8xxx is Qualcomm's power
-management IC that internally houses an RTC module.  This driver
-communicates with the PMIC module over SSBI bus.
+cosmetic tweaks
 
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
-Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
-Signed-off-by: Anirudh Ghayal <aghayal@codeaurora.org>
-Signed-off-by: Ashay Jaiswal <ashayj@codeaurora.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Wan ZongShun <mcuos.com@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Anirudh Ghayal <aghayal@codeaurora.org>
+Cc: Ashay Jaiswal <ashayj@codeaurora.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig            |   10 
- drivers/rtc/Makefile           |    1 
- drivers/rtc/rtc-pm8xxx.c       |  557 +++++++++++++++++++++++++++++++
- include/linux/mfd/pm8xxx/rtc.h |   25 +
- 4 files changed, 593 insertions(+)
+ drivers/rtc/rtc-pm8xxx.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -1034,6 +1034,16 @@ config RTC_DRV_LPC32XX
- 	  This driver can also be buillt as a module. If so, the module
- 	  will be called rtc-lpc32xx.
- 
-+config RTC_DRV_PM8XXX
-+	tristate "Qualcomm PMIC8XXX RTC"
-+	depends on MFD_PM8XXX
-+	help
-+	  If you say yes here you get support for the
-+	  Qualcomm PMIC8XXX RTC.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called rtc-pm8xxx.
-+
- config RTC_DRV_TEGRA
- 	tristate "NVIDIA Tegra Internal RTC driver"
- 	depends on RTC_CLASS && ARCH_TEGRA
-diff -puN drivers/rtc/Makefile~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc
-+++ a/drivers/rtc/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_RTC_DRV_PCF2123)	+= rtc-pcf
- obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
- obj-$(CONFIG_RTC_DRV_PL030)	+= rtc-pl030.o
- obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
-+obj-$(CONFIG_RTC_DRV_PM8XXX)	+= rtc-pm8xxx.o
- obj-$(CONFIG_RTC_DRV_PS3)	+= rtc-ps3.o
- obj-$(CONFIG_RTC_DRV_PUV3)	+= rtc-puv3.o
- obj-$(CONFIG_RTC_DRV_PXA)	+= rtc-pxa.o
-diff -puN /dev/null drivers/rtc/rtc-pm8xxx.c
---- /dev/null
+diff -puN drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix drivers/rtc/rtc-pm8xxx.c
+--- a/drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
 +++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -0,0 +1,557 @@
-+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/rtc.h>
-+#include <linux/pm.h>
-+#include <linux/slab.h>
-+#include<linux/spinlock.h>
-+
-+#include <linux/mfd/pm8xxx/core.h>
-+#include <linux/mfd/pm8xxx/rtc.h>
-+
-+
-+/* RTC Register offsets from RTC CTRL REG */
-+#define PM8XXX_ALARM_CTRL_OFFSET	0x01
-+#define PM8XXX_RTC_WRITE_OFFSET		0x02
-+#define PM8XXX_RTC_READ_OFFSET		0x06
-+#define PM8XXX_ALARM_RW_OFFSET		0x0A
-+
-+/* RTC_CTRL register bit fields */
-+#define PM8xxx_RTC_ENABLE		BIT(7)
-+#define PM8xxx_RTC_ALARM_ENABLE		BIT(1)
-+#define PM8xxx_RTC_ALARM_CLEAR		BIT(0)
-+
-+#define NUM_8_BIT_RTC_REGS		0x4
-+
-+/**
-+ * struct pm8xxx_rtc -  rtc driver internal structure
-+ * @rtc:		rtc device for this driver.
-+ * @rtc_alarm_irq:	rtc alarm irq number.
-+ * @rtc_base:		address of rtc control register.
-+ * @rtc_read_base:	base address of read registers.
-+ * @rtc_write_base:	base address of write registers.
-+ * @alarm_rw_base:	base address of alarm registers.
-+ * @ctrl_reg:		rtc control register.
-+ * @rtc_dev:		device structure.
-+ * @ctrl_reg_lock:	spinlock protecting access to ctrl_reg.
-+ */
-+
-+struct pm8xxx_rtc {
-+	struct rtc_device *rtc;
-+	int rtc_alarm_irq;
-+	int rtc_base;
-+	int rtc_read_base;
-+	int rtc_write_base;
-+	int alarm_rw_base;
-+	u8  ctrl_reg;
-+	struct device *rtc_dev;
-+	spinlock_t ctrl_reg_lock;
-+};
-+
-+/*
-+ * The RTC registers need to be read/written one byte at a time. This is a
-+ * hardware limitation.
-+ */
-+
-+static int pm8xxx_read_wrapper(struct pm8xxx_rtc *rtc_dd, u8 *rtc_val,
-+		int base, int count)
-+{
-+	int i, rc;
-+	struct device *parent = rtc_dd->rtc_dev->parent;
-+
-+	for (i = 0; i < count; i++) {
-+		rc = pm8xxx_readb(parent, base + i, &rtc_val[i]);
-+		if (rc < 0) {
-+			dev_err(rtc_dd->rtc_dev, "PMIC read failed\n");
-+			return rc;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int pm8xxx_write_wrapper(struct pm8xxx_rtc *rtc_dd, u8 *rtc_val,
-+		int base, int count)
-+{
-+	int i, rc;
-+	struct device *parent = rtc_dd->rtc_dev->parent;
-+
-+	for (i = 0; i < count; i++) {
-+		rc = pm8xxx_writeb(parent, base + i, rtc_val[i]);
-+		if (rc < 0) {
-+			dev_err(rtc_dd->rtc_dev, "PMIC write failed\n");
-+			return rc;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Steps to write the RTC registers.
-+ * 1. Disable alarm if enabled.
-+ * 2. Write 0x00 to LSB.
-+ * 3. Write Byte[1], Byte[2], Byte[3] then Byte[0].
-+ * 4. Enable alarm if disabled in step 1.
-+ */
-+static int
-+pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	int rc, i;
-+	unsigned long secs, irq_flags;
-+	u8 value[NUM_8_BIT_RTC_REGS], reg = 0, alarm_enabled = 0, ctrl_reg;
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	rtc_tm_to_time(tm, &secs);
-+
-+	for (i = 0; i < NUM_8_BIT_RTC_REGS; i++) {
-+		value[i] = secs & 0xFF;
-+		secs >>= 8;
-+	}
-+
-+	dev_dbg(dev, "Seconds value to be written to RTC = %lu\n", secs);
-+
-+	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	ctrl_reg = rtc_dd->ctrl_reg;
-+
-+	if (ctrl_reg & PM8xxx_RTC_ALARM_ENABLE) {
-+		alarm_enabled = 1;
-+		ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
-+		rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base,
-+				1);
-+		if (rc < 0) {
-+			dev_err(dev, "Write to RTC control register "
-+								"failed\n");
-+			goto rtc_rw_fail;
-+		}
-+		rtc_dd->ctrl_reg = ctrl_reg;
-+	} else
-+		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+
-+	/* Write 0 to Byte[0] */
-+	reg = 0;
-+	rc = pm8xxx_write_wrapper(rtc_dd, &reg, rtc_dd->rtc_write_base, 1);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC write data register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	/* Write Byte[1], Byte[2], Byte[3] */
-+	rc = pm8xxx_write_wrapper(rtc_dd, value + 1,
-+					rtc_dd->rtc_write_base + 1, 3);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC write data register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	/* Write Byte[0] */
-+	rc = pm8xxx_write_wrapper(rtc_dd, value, rtc_dd->rtc_write_base, 1);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC write data register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	if (alarm_enabled) {
-+		ctrl_reg |= PM8xxx_RTC_ALARM_ENABLE;
-+		rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base,
-+									1);
-+		if (rc < 0) {
-+			dev_err(dev, "Write to RTC control register "
-+								"failed\n");
-+			goto rtc_rw_fail;
-+		}
-+		rtc_dd->ctrl_reg = ctrl_reg;
-+	}
-+
-+rtc_rw_fail:
-+	if (alarm_enabled)
-+		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+
-+	return rc;
-+}
-+
-+static int
-+pm8xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	int rc;
-+	u8 value[NUM_8_BIT_RTC_REGS], reg;
-+	unsigned long secs;
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	rc = pm8xxx_read_wrapper(rtc_dd, value, rtc_dd->rtc_read_base,
-+							NUM_8_BIT_RTC_REGS);
-+	if (rc < 0) {
-+		dev_err(dev, "RTC read data register failed\n");
-+		return rc;
-+	}
-+
-+	/*
-+	 * Read the LSB again and check if there has been a carry over.
-+	 * If there is, redo the read operation.
-+	 */
-+	rc = pm8xxx_read_wrapper(rtc_dd, &reg, rtc_dd->rtc_read_base, 1);
-+	if (rc < 0) {
-+		dev_err(dev, "RTC read data register failed\n");
-+		return rc;
-+	}
-+
-+	if (unlikely(reg < value[0])) {
-+		rc = pm8xxx_read_wrapper(rtc_dd, value,
-+				rtc_dd->rtc_read_base, NUM_8_BIT_RTC_REGS);
-+		if (rc < 0) {
-+			dev_err(dev, "RTC read data register failed\n");
-+			return rc;
-+		}
-+	}
-+
-+	secs = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
-+
-+	rtc_time_to_tm(secs, tm);
-+
-+	rc = rtc_valid_tm(tm);
-+	if (rc < 0) {
-+		dev_err(dev, "Invalid time read from RTC\n");
-+		return rc;
-+	}
-+
-+	dev_dbg(dev, "secs = %lu, h:m:s == %d:%d:%d, d/m/y = %d/%d/%d\n",
-+				secs, tm->tm_hour, tm->tm_min, tm->tm_sec,
-+				tm->tm_mday, tm->tm_mon, tm->tm_year);
-+
-+	return 0;
-+}
-+
-+static int
-+pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	int rc, i;
-+	u8 value[NUM_8_BIT_RTC_REGS], ctrl_reg;
-+	unsigned long secs, irq_flags;
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	rtc_tm_to_time(&alarm->time, &secs);
-+
-+	for (i = 0; i < NUM_8_BIT_RTC_REGS; i++) {
-+		value[i] = secs & 0xFF;
-+		secs >>= 8;
-+	}
-+
-+	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
-+
-+	rc = pm8xxx_write_wrapper(rtc_dd, value, rtc_dd->alarm_rw_base,
-+							NUM_8_BIT_RTC_REGS);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC ALARM register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	ctrl_reg = rtc_dd->ctrl_reg;
-+	ctrl_reg = alarm->enabled ? (ctrl_reg | PM8xxx_RTC_ALARM_ENABLE) :
-+					(ctrl_reg & ~PM8xxx_RTC_ALARM_ENABLE);
-+
-+	rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC control register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	rtc_dd->ctrl_reg = ctrl_reg;
-+
-+	dev_dbg(dev, "Alarm Set for h:r:s=%d:%d:%d, d/m/y=%d/%d/%d\n",
-+				alarm->time.tm_hour, alarm->time.tm_min,
-+				alarm->time.tm_sec, alarm->time.tm_mday,
-+				alarm->time.tm_mon, alarm->time.tm_year);
-+rtc_rw_fail:
-+	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	return rc;
-+}
-+
-+static int
-+pm8xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	int rc;
-+	u8 value[NUM_8_BIT_RTC_REGS];
-+	unsigned long secs;
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	rc = pm8xxx_read_wrapper(rtc_dd, value, rtc_dd->alarm_rw_base,
-+			NUM_8_BIT_RTC_REGS);
-+	if (rc < 0) {
-+		dev_err(dev, "RTC alarm time read failed\n");
-+		return rc;
-+	}
-+
-+	secs = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
-+
-+	rtc_time_to_tm(secs, &alarm->time);
-+
-+	rc = rtc_valid_tm(&alarm->time);
-+	if (rc < 0) {
-+		dev_err(dev, "Invalid alarm time read from RTC\n");
-+		return rc;
-+	}
-+
-+	dev_dbg(dev, "Alarm set for - h:r:s=%d:%d:%d, d/m/y=%d/%d/%d\n",
-+				alarm->time.tm_hour, alarm->time.tm_min,
-+				alarm->time.tm_sec, alarm->time.tm_mday,
-+				alarm->time.tm_mon, alarm->time.tm_year);
-+
-+	return 0;
-+}
-+
-+
-+static int
-+pm8xxx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
-+{
-+	int rc;
-+	unsigned long irq_flags;
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+	u8 ctrl_reg;
-+
-+	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	ctrl_reg = rtc_dd->ctrl_reg;
-+	ctrl_reg = (enable) ? (ctrl_reg | PM8xxx_RTC_ALARM_ENABLE) :
-+				(ctrl_reg & ~PM8xxx_RTC_ALARM_ENABLE);
-+
-+	rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-+	if (rc < 0) {
-+		dev_err(dev, "Write to RTC control register failed\n");
-+		goto rtc_rw_fail;
-+	}
-+
-+	rtc_dd->ctrl_reg = ctrl_reg;
-+
-+rtc_rw_fail:
-+	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+	return rc;
-+}
-+
-+static struct rtc_class_ops pm8xxx_rtc_ops = {
-+	.read_time	= pm8xxx_rtc_read_time,
-+	.set_alarm	= pm8xxx_rtc_set_alarm,
-+	.read_alarm	= pm8xxx_rtc_read_alarm,
-+	.alarm_irq_enable = pm8xxx_rtc_alarm_irq_enable,
-+};
-+
-+static irqreturn_t pm8xxx_alarm_trigger(int irq, void *dev_id)
-+{
-+	struct pm8xxx_rtc *rtc_dd = dev_id;
-+	u8 ctrl_reg;
-+	int rc;
-+	unsigned long irq_flags;
-+
-+	rtc_update_irq(rtc_dd->rtc, 1, RTC_IRQF | RTC_AF);
-+
-+	spin_lock_irqsave(&rtc_dd->ctrl_reg_lock, irq_flags);
-+
-+	/* Clear the alarm enable bit */
-+	ctrl_reg = rtc_dd->ctrl_reg;
-+	ctrl_reg &= ~PM8xxx_RTC_ALARM_ENABLE;
-+
-+	rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-+	if (rc < 0) {
-+		spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+		dev_err(rtc_dd->rtc_dev, "Write to RTC control register "
-+								"failed\n");
-+		goto rtc_alarm_handled;
-+	}
-+
-+	rtc_dd->ctrl_reg = ctrl_reg;
-+	spin_unlock_irqrestore(&rtc_dd->ctrl_reg_lock, irq_flags);
-+
-+	/* Clear RTC alarm register */
-+	rc = pm8xxx_read_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base +
-+						PM8XXX_ALARM_CTRL_OFFSET, 1);
-+	if (rc < 0) {
-+		dev_err(rtc_dd->rtc_dev, "RTC Alarm control register read "
-+								"failed\n");
-+		goto rtc_alarm_handled;
-+	}
-+
-+	ctrl_reg &= ~PM8xxx_RTC_ALARM_CLEAR;
-+	rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base +
-+						PM8XXX_ALARM_CTRL_OFFSET, 1);
-+	if (rc < 0)
-+		dev_err(rtc_dd->rtc_dev, "Write to RTC Alarm control register"
-+								" failed\n");
-+
-+rtc_alarm_handled:
-+	return IRQ_HANDLED;
-+}
-+
-+static int __devinit pm8xxx_rtc_probe(struct platform_device *pdev)
-+{
-+	int rc;
-+	u8 ctrl_reg;
-+	bool rtc_write_enable = false;
-+	struct pm8xxx_rtc *rtc_dd;
-+	struct resource *rtc_resource;
-+	const struct pm8xxx_rtc_platform_data *pdata = mfd_get_data(pdev);
-+
-+	if (pdata != NULL)
-+		rtc_write_enable = pdata->rtc_write_enable;
-+
-+	rtc_dd = kzalloc(sizeof(*rtc_dd), GFP_KERNEL);
-+	if (rtc_dd == NULL) {
-+		dev_err(&pdev->dev, "Unable to allocate memory!\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* Initialise spinlock to protect RTC control register */
-+	spin_lock_init(&rtc_dd->ctrl_reg_lock);
-+
-+	rtc_dd->rtc_alarm_irq = platform_get_irq(pdev, 0);
-+	if (rtc_dd->rtc_alarm_irq < 0) {
-+		dev_err(&pdev->dev, "Alarm IRQ resource absent!\n");
-+		rc = -ENXIO;
-+		goto fail_rtc_enable;
-+	}
-+
-+	rtc_resource = platform_get_resource_byname(pdev, IORESOURCE_IO,
-+							"pmic_rtc_base");
-+	if (!(rtc_resource && rtc_resource->start)) {
-+		dev_err(&pdev->dev, "RTC IO resource absent!\n");
-+		rc = -ENXIO;
-+		goto fail_rtc_enable;
-+	}
-+
-+	rtc_dd->rtc_base = rtc_resource->start;
-+
-+	/* Setup RTC register addresses */
-+	rtc_dd->rtc_write_base = rtc_dd->rtc_base + PM8XXX_RTC_WRITE_OFFSET;
-+	rtc_dd->rtc_read_base = rtc_dd->rtc_base + PM8XXX_RTC_READ_OFFSET;
-+	rtc_dd->alarm_rw_base = rtc_dd->rtc_base + PM8XXX_ALARM_RW_OFFSET;
-+
-+	rtc_dd->rtc_dev = &pdev->dev;
-+
-+	/* Check if the RTC is on, else turn it on */
-+	rc = pm8xxx_read_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
-+	if (rc < 0) {
-+		dev_err(&pdev->dev, "RTC control register read failed!\n");
-+		goto fail_rtc_enable;
-+	}
-+
-+	if (!(ctrl_reg & PM8xxx_RTC_ENABLE)) {
-+		ctrl_reg |= PM8xxx_RTC_ENABLE;
-+		rc = pm8xxx_write_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base,
-+									1);
-+		if (rc < 0) {
-+			dev_err(&pdev->dev, "Write to RTC control register "
-+								"failed\n");
-+			goto fail_rtc_enable;
-+		}
-+	}
-+
-+	rtc_dd->ctrl_reg = ctrl_reg;
-+	if (rtc_write_enable == true)
-+		pm8xxx_rtc_ops.set_time = pm8xxx_rtc_set_time;
-+
-+	platform_set_drvdata(pdev, rtc_dd);
-+
-+	/* Register the RTC device */
-+	rtc_dd->rtc = rtc_device_register("pm8xxx_rtc", &pdev->dev,
-+				&pm8xxx_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc_dd->rtc)) {
-+		dev_err(&pdev->dev, "%s: RTC registration failed (%ld)\n",
-+					__func__, PTR_ERR(rtc_dd->rtc));
-+		rc = PTR_ERR(rtc_dd->rtc);
-+		goto fail_rtc_enable;
-+	}
-+
-+	/* Request the alarm IRQ */
-+	rc = request_any_context_irq(rtc_dd->rtc_alarm_irq,
-+				 pm8xxx_alarm_trigger, IRQF_TRIGGER_RISING,
-+				 "pm8xxx_rtc_alarm", rtc_dd);
-+	if (rc < 0) {
-+		dev_err(&pdev->dev, "Request IRQ failed (%d)\n", rc);
-+		goto fail_req_irq;
-+	}
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	dev_dbg(&pdev->dev, "Probe success !!\n");
-+
-+	return 0;
-+
-+fail_req_irq:
-+	rtc_device_unregister(rtc_dd->rtc);
-+fail_rtc_enable:
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc_dd);
-+	return rc;
-+}
-+
-+static int __devexit pm8xxx_rtc_remove(struct platform_device *pdev)
-+{
-+	struct pm8xxx_rtc *rtc_dd = platform_get_drvdata(pdev);
-+
-+	device_init_wakeup(&pdev->dev, 0);
-+	free_irq(rtc_dd->rtc_alarm_irq, rtc_dd);
-+	rtc_device_unregister(rtc_dd->rtc);
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc_dd);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int pm8xxx_rtc_resume(struct device *dev)
-+{
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(rtc_dd->rtc_alarm_irq);
-+
-+	return 0;
-+}
-+
-+static int pm8xxx_rtc_suspend(struct device *dev)
-+{
-+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq_wake(rtc_dd->rtc_alarm_irq);
-+
-+	return 0;
-+}
-+#endif
-+
-+SIMPLE_DEV_PM_OPS(pm8xxx_rtc_pm_ops, pm8xxx_rtc_suspend, pm8xxx_rtc_resume);
-+
-+static struct platform_driver pm8xxx_rtc_driver = {
-+	.probe		= pm8xxx_rtc_probe,
-+	.remove		= __devexit_p(pm8xxx_rtc_remove),
-+	.driver	= {
-+		.name	= PM8XXX_RTC_DEV_NAME,
-+		.owner	= THIS_MODULE,
-+		.pm	= &pm8xxx_rtc_pm_ops,
-+	},
-+};
-+
-+static int __init pm8xxx_rtc_init(void)
-+{
-+	return platform_driver_register(&pm8xxx_rtc_driver);
-+}
-+module_init(pm8xxx_rtc_init);
-+
-+static void __exit pm8xxx_rtc_exit(void)
-+{
-+	platform_driver_unregister(&pm8xxx_rtc_driver);
-+}
-+module_exit(pm8xxx_rtc_exit);
-+
-+MODULE_ALIAS("platform:rtc-pm8xxx");
-+MODULE_DESCRIPTION("PMIC8xxx RTC driver");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Anirudh Ghayal <aghayal@codeaurora.org>");
-diff -puN /dev/null include/linux/mfd/pm8xxx/rtc.h
---- /dev/null
-+++ a/include/linux/mfd/pm8xxx/rtc.h
-@@ -0,0 +1,25 @@
-+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __RTC_PM8XXX_H__
-+#define __RTC_PM8XXX_H__
-+
-+#define PM8XXX_RTC_DEV_NAME     "rtc-pm8xxx"
-+/**
-+ * struct pm8xxx_rtc_pdata - RTC driver platform data
-+ * @rtc_write_enable: variable stating RTC write capability
-+ */
-+struct pm8xxx_rtc_platform_data {
-+	bool rtc_write_enable;
-+};
-+
-+#endif /* __RTC_PM8XXX_H__ */
+@@ -15,7 +15,7 @@
+ #include <linux/rtc.h>
+ #include <linux/pm.h>
+ #include <linux/slab.h>
+-#include<linux/spinlock.h>
++#include <linux/spinlock.h>
+ 
+ #include <linux/mfd/pm8xxx/core.h>
+ #include <linux/mfd/pm8xxx/rtc.h>
+@@ -46,7 +46,6 @@
+  * @rtc_dev:		device structure.
+  * @ctrl_reg_lock:	spinlock protecting access to ctrl_reg.
+  */
+-
+ struct pm8xxx_rtc {
+ 	struct rtc_device *rtc;
+ 	int rtc_alarm_irq;
+@@ -63,7 +62,6 @@ struct pm8xxx_rtc {
+  * The RTC registers need to be read/written one byte at a time. This is a
+  * hardware limitation.
+  */
+-
+ static int pm8xxx_read_wrapper(struct pm8xxx_rtc *rtc_dd, u8 *rtc_val,
+ 		int base, int count)
+ {
+@@ -105,8 +103,7 @@ static int pm8xxx_write_wrapper(struct p
+  * 3. Write Byte[1], Byte[2], Byte[3] then Byte[0].
+  * 4. Enable alarm if disabled in step 1.
+  */
+-static int
+-pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
++static int pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	int rc, i;
+ 	unsigned long secs, irq_flags;
+@@ -181,8 +178,7 @@ rtc_rw_fail:
+ 	return rc;
+ }
+ 
+-static int
+-pm8xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
++static int pm8xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	int rc;
+ 	u8 value[NUM_8_BIT_RTC_REGS], reg;
+@@ -232,8 +228,7 @@ pm8xxx_rtc_read_time(struct device *dev,
+ 	return 0;
+ }
+ 
+-static int
+-pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++static int pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+ {
+ 	int rc, i;
+ 	u8 value[NUM_8_BIT_RTC_REGS], ctrl_reg;
+@@ -277,8 +272,7 @@ rtc_rw_fail:
+ 	return rc;
+ }
+ 
+-static int
+-pm8xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++static int pm8xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+ {
+ 	int rc;
+ 	u8 value[NUM_8_BIT_RTC_REGS];
+@@ -310,9 +304,7 @@ pm8xxx_rtc_read_alarm(struct device *dev
+ 	return 0;
+ }
+ 
+-
+-static int
+-pm8xxx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
++static int pm8xxx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
+ {
+ 	int rc;
+ 	unsigned long irq_flags;
 _
 
-Patches currently in -mm which might be from aghayal@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch
+backlight-add-backlight-type-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+drivers-base-platformc-dont-mark-platform_device_register_resndata-as-__init_or_module.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+writeback-sync-expired-inodes-first-in-background-writeback.patch
+writeback-split-inode_wb_list_lock-into-bdi_writebacklist_lock.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
 drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
