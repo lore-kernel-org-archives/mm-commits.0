@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cleanup-descriptions-of-filler-arg.patch added to -mm tree
-Date: Thu, 09 Jun 2011 15:42:36 -0700
-Message-ID: <201106092242.p59MgaSb005054@imap1.linux-foundation.org>
+Subject: + mm-move-shmem-prototypes-to-shmem_fsh.patch added to -mm tree
+Date: Thu, 09 Jun 2011 15:42:21 -0700
+Message-ID: <201106092242.p59MgLVf005027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756962Ab1FIWp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:45:56 -0400
+	by vger.kernel.org with ESMTP id S1756661Ab1FIWq3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com
+Cc: hughd@google.com, hch@infradead.org
 
 
 The patch titled
-     mm: cleanup descriptions of filler arg
+     mm: move shmem prototypes to shmem_fs.h
 has been added to the -mm tree.  Its filename is
-     mm-cleanup-descriptions-of-filler-arg.patch
+     mm-move-shmem-prototypes-to-shmem_fsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: cleanup descriptions of filler arg
+Subject: mm: move shmem prototypes to shmem_fs.h
 From: Hugh Dickins <hughd@google.com>
 
-The often-NULL data arg to read_cache_page() and read_mapping_page()
-functions is misdescribed as "destination for read data": no, it's the
-first arg to the filler function, often struct file * to ->readpage().
-
-Satisfy checkpatch.pl on those filler prototypes, and tidy up the
-declarations in linux/pagemap.h.
+Before adding any more global entry points into shmem.c, gather such
+prototypes into shmem_fs.h.  Remove mm's own declarations from swap.h, but
+for now leave the ones in mm.h: because shmem_file_setup() and
+shmem_zero_setup() are called from various places, and we should not force
+other subsystems to update immediately.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 +++++-------
- mm/filemap.c            |   12 ++++++------
- 2 files changed, 11 insertions(+), 13 deletions(-)
+ include/linux/shmem_fs.h |   17 +++++++++++++++++
+ include/linux/swap.h     |   10 ----------
+ mm/memcontrol.c          |    1 +
+ mm/swapfile.c            |    2 +-
+ 4 files changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-cleanup-descriptions-of-filler-arg include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-cleanup-descriptions-of-filler-arg
-+++ a/include/linux/pagemap.h
-@@ -255,26 +255,24 @@ static inline struct page *grab_cache_pa
- extern struct page * grab_cache_page_nowait(struct address_space *mapping,
- 				pgoff_t index);
- extern struct page * read_cache_page_async(struct address_space *mapping,
--				pgoff_t index, filler_t *filler,
--				void *data);
-+				pgoff_t index, filler_t *filler, void *data);
- extern struct page * read_cache_page(struct address_space *mapping,
--				pgoff_t index, filler_t *filler,
--				void *data);
-+				pgoff_t index, filler_t *filler, void *data);
- extern struct page * read_cache_page_gfp(struct address_space *mapping,
- 				pgoff_t index, gfp_t gfp_mask);
- extern int read_cache_pages(struct address_space *mapping,
- 		struct list_head *pages, filler_t *filler, void *data);
+diff -puN include/linux/shmem_fs.h~mm-move-shmem-prototypes-to-shmem_fsh include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~mm-move-shmem-prototypes-to-shmem_fsh
++++ a/include/linux/shmem_fs.h
+@@ -5,6 +5,13 @@
+ #include <linux/mempolicy.h>
+ #include <linux/percpu_counter.h>
  
- static inline struct page *read_mapping_page_async(
--						struct address_space *mapping,
--						     pgoff_t index, void *data)
-+				struct address_space *mapping,
-+				pgoff_t index, void *data)
- {
- 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
- 	return read_cache_page_async(mapping, index, filler, data);
++struct page;
++struct file;
++struct inode;
++struct super_block;
++struct user_struct;
++struct vm_area_struct;
++
+ /* inode in-kernel data */
+ 
+ #define SHMEM_NR_DIRECT 16
+@@ -45,7 +52,17 @@ static inline struct shmem_inode_info *S
+ 	return container_of(inode, struct shmem_inode_info, vfs_inode);
  }
  
- static inline struct page *read_mapping_page(struct address_space *mapping,
--					     pgoff_t index, void *data)
-+				pgoff_t index, void *data)
- {
- 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
- 	return read_cache_page(mapping, index, filler, data);
-diff -puN mm/filemap.c~mm-cleanup-descriptions-of-filler-arg mm/filemap.c
---- a/mm/filemap.c~mm-cleanup-descriptions-of-filler-arg
-+++ a/mm/filemap.c
-@@ -1795,7 +1795,7 @@ EXPORT_SYMBOL(generic_file_readonly_mmap
++/*
++ * Functions in mm/shmem.c called directly from elsewhere:
++ */
+ extern int init_tmpfs(void);
+ extern int shmem_fill_super(struct super_block *sb, void *data, int silent);
++extern struct file *shmem_file_setup(const char *name,
++					loff_t size, unsigned long flags);
++extern int shmem_zero_setup(struct vm_area_struct *);
++extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
++extern int shmem_unuse(swp_entry_t entry, struct page *page);
++extern void mem_cgroup_get_shmem_target(struct inode *inode, pgoff_t pgoff,
++					struct page **pagep, swp_entry_t *ent);
  
- static struct page *__read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
--				int (*filler)(void *,struct page*),
-+				int (*filler)(void *, struct page *),
- 				void *data,
- 				gfp_t gfp)
- {
-@@ -1826,7 +1826,7 @@ repeat:
+ #endif
+diff -puN include/linux/swap.h~mm-move-shmem-prototypes-to-shmem_fsh include/linux/swap.h
+--- a/include/linux/swap.h~mm-move-shmem-prototypes-to-shmem_fsh
++++ a/include/linux/swap.h
+@@ -302,16 +302,6 @@ static inline void scan_unevictable_unre
+ extern int kswapd_run(int nid);
+ extern void kswapd_stop(int nid);
  
- static struct page *do_read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
--				int (*filler)(void *,struct page*),
-+				int (*filler)(void *, struct page *),
- 				void *data,
- 				gfp_t gfp)
- 
-@@ -1866,7 +1866,7 @@ out:
-  * @mapping:	the page's address_space
-  * @index:	the page index
-  * @filler:	function to perform the read
-- * @data:	destination for read data
-+ * @data:	first arg to filler(data, page) function, often left as NULL
-  *
-  * Same as read_cache_page, but don't wait for page to become unlocked
-  * after submitting it to the filler.
-@@ -1878,7 +1878,7 @@ out:
-  */
- struct page *read_cache_page_async(struct address_space *mapping,
- 				pgoff_t index,
--				int (*filler)(void *,struct page*),
-+				int (*filler)(void *, struct page *),
- 				void *data)
- {
- 	return do_read_cache_page(mapping, index, filler, data, mapping_gfp_mask(mapping));
-@@ -1926,7 +1926,7 @@ EXPORT_SYMBOL(read_cache_page_gfp);
-  * @mapping:	the page's address_space
-  * @index:	the page index
-  * @filler:	function to perform the read
-- * @data:	destination for read data
-+ * @data:	first arg to filler(data, page) function, often left as NULL
-  *
-  * Read into the page cache. If a page already exists, and PageUptodate() is
-  * not set, try to fill the page then wait for it to become unlocked.
-@@ -1935,7 +1935,7 @@ EXPORT_SYMBOL(read_cache_page_gfp);
-  */
- struct page *read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
--				int (*filler)(void *,struct page*),
-+				int (*filler)(void *, struct page *),
- 				void *data)
- {
- 	return wait_on_page_read(read_cache_page_async(mapping, index, filler, data));
+-#ifdef CONFIG_MMU
+-/* linux/mm/shmem.c */
+-extern int shmem_unuse(swp_entry_t entry, struct page *page);
+-#endif /* CONFIG_MMU */
+-
+-#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+-extern void mem_cgroup_get_shmem_target(struct inode *inode, pgoff_t pgoff,
+-					struct page **pagep, swp_entry_t *ent);
+-#endif
+-
+ #ifdef CONFIG_SWAP
+ /* linux/mm/page_io.c */
+ extern int swap_readpage(struct page *);
+diff -puN mm/memcontrol.c~mm-move-shmem-prototypes-to-shmem_fsh mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-move-shmem-prototypes-to-shmem_fsh
++++ a/mm/memcontrol.c
+@@ -35,6 +35,7 @@
+ #include <linux/limits.h>
+ #include <linux/mutex.h>
+ #include <linux/rbtree.h>
++#include <linux/shmem_fs.h>
+ #include <linux/slab.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+diff -puN mm/swapfile.c~mm-move-shmem-prototypes-to-shmem_fsh mm/swapfile.c
+--- a/mm/swapfile.c~mm-move-shmem-prototypes-to-shmem_fsh
++++ a/mm/swapfile.c
+@@ -14,7 +14,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/pagemap.h>
+ #include <linux/namei.h>
+-#include <linux/shm.h>
++#include <linux/shmem_fs.h>
+ #include <linux/blkdev.h>
+ #include <linux/random.h>
+ #include <linux/writeback.h>
 _
 
 Patches currently in -mm which might be from hughd@google.com are
