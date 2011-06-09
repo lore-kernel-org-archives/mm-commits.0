@@ -1,158 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage.patch removed from -mm tree
-Date: Thu, 09 Jun 2011 12:05:39 -0700
-Message-ID: <201106091904.p59J4QNj025472@imap1.linux-foundation.org>
+Subject: [merged] writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 12:05:28 -0700
+Message-ID: <201106091904.p59J4FPL025382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754142Ab1FITFi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:38 -0400
+	by vger.kernel.org with ESMTP id S1753542Ab1FITFQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: introduce wbc.tagged_sync for the WB_SYNC_NONE sync stage
+     writeback: the kupdate expire timestamp should be a moving target
 has been removed from the -mm tree.  Its filename was
-     writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage.patch
+     writeback-the-kupdate-expire-timestamp-should-be-a-moving-target.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: introduce wbc.tagged_sync for the WB_SYNC_NONE sync stage
+Subject: writeback: the kupdate expire timestamp should be a moving target
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-sync(2) is performed in two stages: the WB_SYNC_NONE sync and the
-WB_SYNC_ALL sync.  Tag the first stage with wbc.tagged_sync and do
-livelock prevention for it, too.
+Dynamically compute the dirty expire timestamp at queue_io() time.
 
-Note that writeback_inodes_sb() is called by not only sync(), they are
-treated the same because the other callers need also need livelock
-prevention.
+writeback_control.older_than_this used to be determined at entrance to the
+kupdate writeback work.  This _static_ timestamp may go stale if the
+kupdate work runs on and on.  The flusher may then stuck with some old
+busy inodes, never considering newly expired inodes thereafter.
 
-Impacts:
+This has two possible problems:
 
-- it changes the order in which pages/inodes are synced to disk. Now in
-  the WB_SYNC_NONE stage, it won't proceed to write the next inode until
-  finished with the current inode.
+- It is unfair for a large dirty inode to delay (for a long time) the
+  writeback of small dirty inodes.
 
-- this adds a new field to the writeback trace events and may possibly
-  break some scripts.
+- As time goes by, the large and busy dirty inode may contain only
+  _freshly_ dirtied pages. Ignoring newly expired dirty inodes risks
+  delaying the expired dirty pages to the end of LRU lists, triggering
+  the evil pageout(). Nevertheless this patch merely addresses part
+  of the problem.
 
+v2: keep policy changes inside wb_writeback() and keep the
+wbc.older_than_this visibility as suggested by Dave.
+
+Signed-off-by: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: Jan Kara <jack@suse.cz>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c           |    4 ++--
- fs/fs-writeback.c         |    9 +++++----
- include/linux/writeback.h |    1 +
- mm/page-writeback.c       |    4 ++--
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ fs/fs-writeback.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/inode.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage fs/ext4/inode.c
---- a/fs/ext4/inode.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage
-+++ a/fs/ext4/inode.c
-@@ -2741,7 +2741,7 @@ static int write_cache_pages_da(struct a
- 	index = wbc->range_start >> PAGE_CACHE_SHIFT;
- 	end = wbc->range_end >> PAGE_CACHE_SHIFT;
- 
--	if (wbc->sync_mode == WB_SYNC_ALL)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_sync)
- 		tag = PAGECACHE_TAG_TOWRITE;
- 	else
- 		tag = PAGECACHE_TAG_DIRTY;
-@@ -2975,7 +2975,7 @@ static int ext4_da_writepages(struct add
- 	}
- 
- retry:
--	if (wbc->sync_mode == WB_SYNC_ALL)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_sync)
- 		tag_pages_for_writeback(mapping, index, end);
- 
- 	while (!ret && wbc->nr_to_write > 0) {
-diff -puN fs/fs-writeback.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage
+diff -puN fs/fs-writeback.c~writeback-the-kupdate-expire-timestamp-should-be-a-moving-target fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-the-kupdate-expire-timestamp-should-be-a-moving-target
 +++ a/fs/fs-writeback.c
-@@ -36,6 +36,7 @@ struct wb_writeback_work {
- 	long nr_pages;
- 	struct super_block *sb;
- 	enum writeback_sync_modes sync_mode;
-+	unsigned int tagged_sync:1;
- 	unsigned int for_kupdate:1;
- 	unsigned int range_cyclic:1;
- 	unsigned int for_background:1;
-@@ -644,6 +645,7 @@ static long wb_writeback(struct bdi_writ
- {
- 	struct writeback_control wbc = {
- 		.sync_mode		= work->sync_mode,
-+		.tagged_sync		= work->tagged_sync,
- 		.older_than_this	= NULL,
- 		.for_kupdate		= work->for_kupdate,
- 		.for_background		= work->for_background,
-@@ -651,7 +653,7 @@ static long wb_writeback(struct bdi_writ
- 	};
- 	unsigned long oldest_jif;
- 	long wrote = 0;
--	long write_chunk;
-+	long write_chunk = MAX_WRITEBACK_PAGES;
+@@ -661,11 +661,6 @@ static long wb_writeback(struct bdi_writ
+ 	long write_chunk;
  	struct inode *inode;
  
+-	if (wbc.for_kupdate) {
+-		wbc.older_than_this = &oldest_jif;
+-		oldest_jif = jiffies -
+-				msecs_to_jiffies(dirty_expire_interval * 10);
+-	}
  	if (!wbc.range_cyclic) {
-@@ -672,9 +674,7 @@ static long wb_writeback(struct bdi_writ
- 	 *                   (quickly) tag currently dirty pages
- 	 *                   (maybe slowly) sync all tagged pages
- 	 */
--	if (wbc.sync_mode == WB_SYNC_NONE)
--		write_chunk = MAX_WRITEBACK_PAGES;
--	else
-+	if (wbc.sync_mode == WB_SYNC_ALL || wbc.tagged_sync)
- 		write_chunk = LONG_MAX;
+ 		wbc.range_start = 0;
+ 		wbc.range_end = LLONG_MAX;
+@@ -714,6 +709,12 @@ static long wb_writeback(struct bdi_writ
+ 		if (work->for_background && !over_bground_thresh())
+ 			break;
  
- 	wbc.wb_start = jiffies; /* livelock avoidance */
-@@ -1209,6 +1209,7 @@ void writeback_inodes_sb_nr(struct super
- 	struct wb_writeback_work work = {
- 		.sb		= sb,
- 		.sync_mode	= WB_SYNC_NONE,
-+		.tagged_sync	= 1,
- 		.done		= &done,
- 		.nr_pages	= nr,
- 	};
-diff -puN include/linux/writeback.h~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage
-+++ a/include/linux/writeback.h
-@@ -46,6 +46,7 @@ struct writeback_control {
- 	unsigned encountered_congestion:1; /* An output: a queue is full */
- 	unsigned for_kupdate:1;		/* A kupdate writeback */
- 	unsigned for_background:1;	/* A background writeback */
-+	unsigned tagged_sync:1;		/* do livelock prevention for sync */
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
- 	unsigned more_io:1;		/* more io to be dispatched */
-diff -puN mm/page-writeback.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-introduce-wbctagged_sync-for-the-wb_sync_none-sync-stage
-+++ a/mm/page-writeback.c
-@@ -892,12 +892,12 @@ int write_cache_pages(struct address_spa
- 			range_whole = 1;
- 		cycled = 1; /* ignore range_cyclic tests */
- 	}
--	if (wbc->sync_mode == WB_SYNC_ALL)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_sync)
- 		tag = PAGECACHE_TAG_TOWRITE;
- 	else
- 		tag = PAGECACHE_TAG_DIRTY;
- retry:
--	if (wbc->sync_mode == WB_SYNC_ALL)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_sync)
- 		tag_pages_for_writeback(mapping, index, end);
- 	done_index = index;
- 	while (!done && (index <= end)) {
++		if (work->for_kupdate) {
++			oldest_jif = jiffies -
++				msecs_to_jiffies(dirty_expire_interval * 10);
++			wbc.older_than_this = &oldest_jif;
++		}
++
+ 		wbc.more_io = 0;
+ 		wbc.nr_to_write = write_chunk;
+ 		wbc.pages_skipped = 0;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
