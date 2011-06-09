@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-build-warnings-in-defconfigs-fix.patch added to -mm tree
-Date: Thu, 09 Jun 2011 14:44:18 -0700
-Message-ID: <201106092144.p59LiIMu001745@imap1.linux-foundation.org>
+Subject: [obsolete] rtc-fix-build-warnings-in-defconfigs-fix.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 14:54:41 -0700
+Message-ID: <201106092154.p59Lsfvx002304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754886Ab1FIVou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:44:50 -0400
+	by vger.kernel.org with ESMTP id S1756135Ab1FIVyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gxt@mprc.pku.edu.cn, wanlong.gao@gmail.com
+To: akpm@linux-foundation.org, gxt@mprc.pku.edu.cn, wanlong.gao@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      rtc-fix-build-warnings-in-defconfigs-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      rtc-fix-build-warnings-in-defconfigs-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -67,7 +57,6 @@ backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token-fix.patch
 vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
 memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-rtc-fix-build-warnings-in-defconfigs-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
