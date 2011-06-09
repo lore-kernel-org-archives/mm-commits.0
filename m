@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-build-warnings-in-defconfigs.patch added to -mm tree
-Date: Thu, 09 Jun 2011 14:43:46 -0700
-Message-ID: <201106092143.p59LhldE001719@imap1.linux-foundation.org>
+Subject: + rtc-fix-build-warnings-in-defconfigs-fix.patch added to -mm tree
+Date: Thu, 09 Jun 2011 14:44:18 -0700
+Message-ID: <201106092144.p59LiIMu001745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754886Ab1FIVok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:44:40 -0400
+	by vger.kernel.org with ESMTP id S1754886Ab1FIVou (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:44:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wanlong.gao@gmail.com, benh@kernel.crashing.org, gxt@mprc.pku.edu.cn, hans-christian.egtvedt@atmel.com, vapier@gentoo.org, w.sang@pengutronix.de
+Cc: akpm@linux-foundation.org, gxt@mprc.pku.edu.cn, wanlong.gao@gmail.com
 
 
 The patch titled
-     rtc: fix build warnings in defconfigs
+     rtc-fix-build-warnings-in-defconfigs-fix
 has been added to the -mm tree.  Its filename is
-     rtc-fix-build-warnings-in-defconfigs.patch
+     rtc-fix-build-warnings-in-defconfigs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,196 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix build warnings in defconfigs
-From: Wanlong Gao <wanlong.gao@gmail.com>
+Subject: rtc-fix-build-warnings-in-defconfigs-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-RTC_CLASS is changed to bool, so 'm' is invalid.
+revert unicore32 part
 
-Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
-Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Wanlong Gao <wanlong.gao@gmail.com>
 Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/davinci_all_defconfig     |    2 +-
- arch/arm/configs/mxs_defconfig             |    2 +-
- arch/arm/configs/netx_defconfig            |    2 +-
- arch/arm/configs/viper_defconfig           |    2 +-
- arch/arm/configs/xcep_defconfig            |    2 +-
- arch/arm/configs/zeus_defconfig            |    2 +-
- arch/avr32/configs/atngw100_mrmt_defconfig |    2 +-
- arch/blackfin/configs/CM-BF548_defconfig   |    2 +-
- arch/mips/configs/mtx1_defconfig           |    2 +-
- arch/powerpc/configs/52xx/pcm030_defconfig |    2 +-
- arch/powerpc/configs/ps3_defconfig         |    2 +-
- arch/sh/configs/titan_defconfig            |    2 +-
- arch/unicore32/configs/debug_defconfig     |    2 +-
- 13 files changed, 13 insertions(+), 13 deletions(-)
+ arch/unicore32/configs/debug_defconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/configs/davinci_all_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/davinci_all_defconfig
---- a/arch/arm/configs/davinci_all_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/davinci_all_defconfig
-@@ -157,7 +157,7 @@ CONFIG_LEDS_GPIO=m
- CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=m
- CONFIG_LEDS_TRIGGER_HEARTBEAT=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
- CONFIG_XFS_FS=m
-diff -puN arch/arm/configs/mxs_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/mxs_defconfig
---- a/arch/arm/configs/mxs_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/mxs_defconfig
-@@ -89,7 +89,7 @@ CONFIG_DISPLAY_SUPPORT=m
- # CONFIG_USB_SUPPORT is not set
- CONFIG_MMC=y
- CONFIG_MMC_MXS=y
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_DS1307=m
- CONFIG_DMADEVICES=y
- CONFIG_MXS_DMA=y
-diff -puN arch/arm/configs/netx_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/netx_defconfig
---- a/arch/arm/configs/netx_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/netx_defconfig
-@@ -60,7 +60,7 @@ CONFIG_FB_ARMCLCD=y
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_LOGO=y
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_INOTIFY=y
- CONFIG_TMPFS=y
- CONFIG_JFFS2_FS=y
-diff -puN arch/arm/configs/viper_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/viper_defconfig
---- a/arch/arm/configs/viper_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/viper_defconfig
-@@ -142,7 +142,7 @@ CONFIG_USB_GADGETFS=m
- CONFIG_USB_FILE_STORAGE=m
- CONFIG_USB_G_SERIAL=m
- CONFIG_USB_G_PRINTER=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_DS1307=m
- CONFIG_RTC_DRV_SA1100=m
- CONFIG_EXT2_FS=m
-diff -puN arch/arm/configs/xcep_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/xcep_defconfig
---- a/arch/arm/configs/xcep_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/xcep_defconfig
-@@ -73,7 +73,7 @@ CONFIG_SENSORS_MAX6650=m
- # CONFIG_VGA_CONSOLE is not set
- # CONFIG_HID_SUPPORT is not set
- # CONFIG_USB_SUPPORT is not set
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_SA1100=m
- CONFIG_DMADEVICES=y
- # CONFIG_DNOTIFY is not set
-diff -puN arch/arm/configs/zeus_defconfig~rtc-fix-build-warnings-in-defconfigs arch/arm/configs/zeus_defconfig
---- a/arch/arm/configs/zeus_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/arm/configs/zeus_defconfig
-@@ -158,7 +158,7 @@ CONFIG_LEDS_TRIGGER_HEARTBEAT=m
- CONFIG_LEDS_TRIGGER_BACKLIGHT=m
- CONFIG_LEDS_TRIGGER_GPIO=m
- CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_ISL1208=m
- CONFIG_RTC_DRV_PXA=m
- CONFIG_EXT2_FS=y
-diff -puN arch/avr32/configs/atngw100_mrmt_defconfig~rtc-fix-build-warnings-in-defconfigs arch/avr32/configs/atngw100_mrmt_defconfig
---- a/arch/avr32/configs/atngw100_mrmt_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/avr32/configs/atngw100_mrmt_defconfig
-@@ -109,7 +109,7 @@ CONFIG_LEDS_GPIO=y
- CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=y
- CONFIG_LEDS_TRIGGER_HEARTBEAT=y
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_S35390A=m
- CONFIG_RTC_DRV_AT32AP700X=m
- CONFIG_DMADEVICES=y
-diff -puN arch/blackfin/configs/CM-BF548_defconfig~rtc-fix-build-warnings-in-defconfigs arch/blackfin/configs/CM-BF548_defconfig
---- a/arch/blackfin/configs/CM-BF548_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/blackfin/configs/CM-BF548_defconfig
-@@ -112,7 +112,7 @@ CONFIG_USB_G_SERIAL=m
- CONFIG_USB_G_PRINTER=m
- CONFIG_MMC=m
- CONFIG_SDH_BFIN=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_BFIN=m
- CONFIG_EXT2_FS=m
- # CONFIG_DNOTIFY is not set
-diff -puN arch/mips/configs/mtx1_defconfig~rtc-fix-build-warnings-in-defconfigs arch/mips/configs/mtx1_defconfig
---- a/arch/mips/configs/mtx1_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/mips/configs/mtx1_defconfig
-@@ -678,7 +678,7 @@ CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=y
- CONFIG_LEDS_TRIGGER_HEARTBEAT=y
- CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_INTF_DEV_UIE_EMUL=y
- CONFIG_RTC_DRV_TEST=m
- CONFIG_RTC_DRV_DS1307=m
-diff -puN arch/powerpc/configs/52xx/pcm030_defconfig~rtc-fix-build-warnings-in-defconfigs arch/powerpc/configs/52xx/pcm030_defconfig
---- a/arch/powerpc/configs/52xx/pcm030_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/powerpc/configs/52xx/pcm030_defconfig
-@@ -85,7 +85,7 @@ CONFIG_USB_OHCI_HCD=m
- CONFIG_USB_OHCI_HCD_PPC_OF_BE=y
- # CONFIG_USB_OHCI_HCD_PCI is not set
- CONFIG_USB_STORAGE=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_PCF8563=m
- CONFIG_EXT2_FS=m
- CONFIG_EXT3_FS=m
-diff -puN arch/powerpc/configs/ps3_defconfig~rtc-fix-build-warnings-in-defconfigs arch/powerpc/configs/ps3_defconfig
---- a/arch/powerpc/configs/ps3_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/powerpc/configs/ps3_defconfig
-@@ -141,7 +141,7 @@ CONFIG_USB_EHCI_TT_NEWSCHED=y
- # CONFIG_USB_EHCI_HCD_PPC_OF is not set
- CONFIG_USB_OHCI_HCD=m
- CONFIG_USB_STORAGE=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_PS3=m
- CONFIG_EXT2_FS=m
- CONFIG_EXT3_FS=m
-diff -puN arch/sh/configs/titan_defconfig~rtc-fix-build-warnings-in-defconfigs arch/sh/configs/titan_defconfig
---- a/arch/sh/configs/titan_defconfig~rtc-fix-build-warnings-in-defconfigs
-+++ a/arch/sh/configs/titan_defconfig
-@@ -227,7 +227,7 @@ CONFIG_USB_SERIAL=m
- CONFIG_USB_SERIAL_GENERIC=y
- CONFIG_USB_SERIAL_ARK3116=m
- CONFIG_USB_SERIAL_PL2303=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_SH=m
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
-diff -puN arch/unicore32/configs/debug_defconfig~rtc-fix-build-warnings-in-defconfigs arch/unicore32/configs/debug_defconfig
---- a/arch/unicore32/configs/debug_defconfig~rtc-fix-build-warnings-in-defconfigs
+diff -puN arch/unicore32/configs/debug_defconfig~rtc-fix-build-warnings-in-defconfigs-fix arch/unicore32/configs/debug_defconfig
+--- a/arch/unicore32/configs/debug_defconfig~rtc-fix-build-warnings-in-defconfigs-fix
 +++ a/arch/unicore32/configs/debug_defconfig
 @@ -168,7 +168,7 @@ CONFIG_LEDS_TRIGGER_HEARTBEAT=y
  
  #	Real Time Clock
  CONFIG_RTC_LIB=m
--CONFIG_RTC_CLASS=m
-+CONFIG_RTC_CLASS=y
+-CONFIG_RTC_CLASS=y
++CONFIG_RTC_CLASS=m
  
  ### File systems
  CONFIG_EXT2_FS=m
 _
 
-Patches currently in -mm which might be from wanlong.gao@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-fix-build-warnings-in-defconfigs.patch
-fix-build-warning-of-the-defconfigs-fix.patch
+origin.patch
+backlight-add-backlight-type-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix.patch
+vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
+memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+rtc-fix-build-warnings-in-defconfigs-fix.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
