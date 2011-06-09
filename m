@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch added to -mm tree
-Date: Thu, 09 Jun 2011 16:43:32 -0700
-Message-ID: <201106092343.p59NhXNC008673@imap1.linux-foundation.org>
+Subject: + leds-fix-the-menuconfig-being-wrongly-displayed.patch added to -mm tree
+Date: Thu, 09 Jun 2011 16:47:41 -0700
+Message-ID: <201106092347.p59Nlfax008899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755001Ab1FIXni (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 19:43:38 -0400
+	by vger.kernel.org with ESMTP id S1757411Ab1FIXr5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 19:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aquini@linux.com, aarcange@redhat.com, cl@linux.com, rja@sgi.com
+Cc: eric.miao@canonical.com, Valdis.Kletnieks@vt.edu, eric.y.miao@gmail.com, randy.dunlap@oracle.com, rpurdie@rpsys.net
 
 
 The patch titled
-     mm: fix negative commitlimit when gigantic hugepages are allocated
+     leds: fix the incorrect display in menuconfig
 has been added to the -mm tree.  Its filename is
-     mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
+     leds-fix-the-menuconfig-being-wrongly-displayed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix negative commitlimit when gigantic hugepages are allocated
-From: Rafael Aquini <aquini@linux.com>
+Subject: leds: fix the incorrect display in menuconfig
+From: Eric Miao <eric.miao@canonical.com>
 
-When 1GB hugepages are allocated on a system, free(1) reports less
-available memory than what really is installed in the box.  Also, if the
-total size of hugepages allocated on a system is over half of the total
-memory size, CommitLimit becomes a negative number.
+Seems when a config option does not have a dependency of the menuconfig,
+it messes the display of the rest configs, even if it's a hidden one.
 
-The problem is that gigantic hugepages (order > MAX_ORDER) can only be
-allocated at boot with bootmem, thus its frames are not accounted to
-'totalram_pages'.  However, they are accounted to hugetlb_total_pages()
-
-What happens to turn CommitLimit into a negative number is this
-calculation, in fs/proc/meminfo.c:
-
-        allowed = ((totalram_pages - hugetlb_total_pages())
-                * sysctl_overcommit_ratio / 100) + total_swap_pages;
-
-A similar calculation occurs in __vm_enough_memory() in mm/mmap.c.
-
-Also, every vm statistic which depends on 'totalram_pages' will render
-confusing values, as if system were 'missing' some part of its memory.
-
-Reported-by: Russ Anderson <rja@sgi.com>
-Signed-off-by: Rafael Aquini <aquini@linux.com>
-Acked-by: Russ Anderson <rja@sgi.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Eric Miao <eric.y.miao@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/leds/Kconfig |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated
-+++ a/mm/hugetlb.c
-@@ -1111,6 +1111,14 @@ static void __init gather_bootmem_preall
- 		WARN_ON(page_count(page) != 1);
- 		prep_compound_huge_page(page, h->order);
- 		prep_new_huge_page(h, page, page_to_nid(page));
-+
-+		/* if we had gigantic hugepages allocated at boot time,
-+		 * we need to reinstate the 'stolen' pages to totalram_pages,
-+		 * in order to fix confusing memory reports from free(1)
-+		 * and another side-effects, like CommitLimit going negative.
-+		 */
-+		if (h->order > (MAX_ORDER - 1))
-+			totalram_pages += 1 << h->order;
- 	}
- }
+diff -puN drivers/leds/Kconfig~leds-fix-the-menuconfig-being-wrongly-displayed drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-fix-the-menuconfig-being-wrongly-displayed
++++ a/drivers/leds/Kconfig
+@@ -14,15 +14,14 @@ menuconfig NEW_LEDS
+ 	  This is not related to standard keyboard LEDs which are controlled
+ 	  via the input system.
  
-_
-
-Patches currently in -mm which might be from aquini@linux.com are
-
-mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
-mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
-
++if NEW_LEDS
++
+ config LEDS_CLASS
+ 	bool "LED Class Support"
+-	depends on NEW_LEDS
+ 	help
+ 	  This option enables the led sysfs class in /sys/class/leds.  You'll
+ 	  need this to do anything useful with LEDs.  If unsure, say N.
+ 
+-if NEW_LEDS
