@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-no-need-to-use-i_lock.patch added to -mm tree
-Date: Thu, 09 Jun 2011 15:42:46 -0700
-Message-ID: <201106092242.p59MgkPO005076@imap1.linux-foundation.org>
+Subject: + drm-ttm-use-shmem_read_mapping_page.patch added to -mm tree
+Date: Thu, 09 Jun 2011 15:42:27 -0700
+Message-ID: <201106092242.p59MgR9h005037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756994Ab1FIWnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:43:20 -0400
+	by vger.kernel.org with ESMTP id S1756964Ab1FIWnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, tim.c.chen@linux.intel.com
+Cc: hughd@google.com, airlied@redhat.com, hch@infradead.org, thellstrom@vmware.com
 
 
 The patch titled
-     tmpfs: no need to use i_lock
+     drm/ttm: use shmem_read_mapping_page
 has been added to the -mm tree.  Its filename is
-     tmpfs-no-need-to-use-i_lock.patch
+     drm-ttm-use-shmem_read_mapping_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: no need to use i_lock
+Subject: drm/ttm: use shmem_read_mapping_page
 From: Hugh Dickins <hughd@google.com>
 
-2.6.36's 7e496299d4d2 ("tmpfs: make tmpfs scalable with percpu_counter for
-used blocks") to make tmpfs scalable with percpu_counter used
-inode->i_lock in place of sbinfo->stat_lock around i_blocks updates; but
-that was adverse to scalability, and unnecessary, since info->lock is
-already held there in the fast paths.
+Soon tmpfs will stop supporting ->readpage and read_mapping_page(): once
+"tmpfs: add shmem_read_mapping_page_gfp" has been applied, this patch can
+be applied to ease the transition.
 
-Remove those uses of i_lock, and add info->lock in the three error paths
-where it's then needed across shmem_free_blocks().  It's not actually
-needed across shmem_unacct_blocks(), but they're so often paired that it
-looks wrong to split them apart.
+ttm_tt_swapin() and ttm_tt_swapout() use shmem_read_mapping_page() in
+place of read_mapping_page(), since their swap_space has been created with
+shmem_file_setup().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/ttm/ttm_tt.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-no-need-to-use-i_lock mm/shmem.c
---- a/mm/shmem.c~tmpfs-no-need-to-use-i_lock
-+++ a/mm/shmem.c
-@@ -241,9 +241,7 @@ static void shmem_free_blocks(struct ino
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	if (sbinfo->max_blocks) {
- 		percpu_counter_add(&sbinfo->used_blocks, -pages);
--		spin_lock(&inode->i_lock);
- 		inode->i_blocks -= pages*BLOCKS_PER_PAGE;
--		spin_unlock(&inode->i_lock);
- 	}
- }
+diff -puN drivers/gpu/drm/ttm/ttm_tt.c~drm-ttm-use-shmem_read_mapping_page drivers/gpu/drm/ttm/ttm_tt.c
+--- a/drivers/gpu/drm/ttm/ttm_tt.c~drm-ttm-use-shmem_read_mapping_page
++++ a/drivers/gpu/drm/ttm/ttm_tt.c
+@@ -31,6 +31,7 @@
+ #include <linux/sched.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/shmem_fs.h>
+ #include <linux/file.h>
+ #include <linux/swap.h>
+ #include <linux/slab.h>
+@@ -484,7 +485,7 @@ static int ttm_tt_swapin(struct ttm_tt *
+ 	swap_space = swap_storage->f_path.dentry->d_inode->i_mapping;
  
-@@ -432,9 +430,7 @@ static swp_entry_t *shmem_swp_alloc(stru
- 						sbinfo->max_blocks - 1) >= 0)
- 				return ERR_PTR(-ENOSPC);
- 			percpu_counter_inc(&sbinfo->used_blocks);
--			spin_lock(&inode->i_lock);
- 			inode->i_blocks += BLOCKS_PER_PAGE;
--			spin_unlock(&inode->i_lock);
- 		}
- 
- 		spin_unlock(&info->lock);
-@@ -1421,9 +1417,7 @@ repeat:
- 			    shmem_acct_block(info->flags))
- 				goto nospace;
- 			percpu_counter_inc(&sbinfo->used_blocks);
--			spin_lock(&inode->i_lock);
- 			inode->i_blocks += BLOCKS_PER_PAGE;
--			spin_unlock(&inode->i_lock);
- 		} else if (shmem_acct_block(info->flags))
- 			goto nospace;
- 
-@@ -1434,8 +1428,10 @@ repeat:
- 				spin_unlock(&info->lock);
- 				filepage = shmem_alloc_page(gfp, info, idx);
- 				if (!filepage) {
-+					spin_lock(&info->lock);
- 					shmem_unacct_blocks(info->flags, 1);
- 					shmem_free_blocks(inode, 1);
-+					spin_unlock(&info->lock);
- 					error = -ENOMEM;
- 					goto failed;
- 				}
-@@ -1449,8 +1445,10 @@ repeat:
- 					current->mm, GFP_KERNEL);
- 				if (error) {
- 					page_cache_release(filepage);
-+					spin_lock(&info->lock);
- 					shmem_unacct_blocks(info->flags, 1);
- 					shmem_free_blocks(inode, 1);
-+					spin_unlock(&info->lock);
- 					filepage = NULL;
- 					goto failed;
- 				}
-@@ -1480,10 +1478,10 @@ repeat:
- 			 * be done automatically.
- 			 */
- 			if (ret) {
--				spin_unlock(&info->lock);
--				page_cache_release(filepage);
- 				shmem_unacct_blocks(info->flags, 1);
- 				shmem_free_blocks(inode, 1);
-+				spin_unlock(&info->lock);
-+				page_cache_release(filepage);
- 				filepage = NULL;
- 				if (error)
- 					goto failed;
+ 	for (i = 0; i < ttm->num_pages; ++i) {
+-		from_page = read_mapping_page(swap_space, i, NULL);
++		from_page = shmem_read_mapping_page(swap_space, i);
+ 		if (IS_ERR(from_page)) {
+ 			ret = PTR_ERR(from_page);
+ 			goto out_err;
+@@ -557,7 +558,7 @@ int ttm_tt_swapout(struct ttm_tt *ttm, s
+ 		from_page = ttm->pages[i];
+ 		if (unlikely(from_page == NULL))
+ 			continue;
+-		to_page = read_mapping_page(swap_space, i, NULL);
++		to_page = shmem_read_mapping_page(swap_space, i);
+ 		if (unlikely(IS_ERR(to_page))) {
+ 			ret = PTR_ERR(to_page);
+ 			goto out_err;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
