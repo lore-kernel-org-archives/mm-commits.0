@@ -1,137 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch added to -mm tree
-Date: Thu, 09 Jun 2011 16:37:12 -0700
-Message-ID: <201106092337.p59NbCQH008350@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-hugepages-can-cause-negative-commitlimit.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 16:40:14 -0700
+Message-ID: <201106092340.p59NeECh008557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756155Ab1FIXhX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 19:37:23 -0400
+	by vger.kernel.org with ESMTP id S1756904Ab1FIXkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 19:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, aarcange@redhat.com, andrea@betterlinux.com, chrisw@sous-sol.org, stable@kernel.org
+To: rja@sgi.com, aarcange@redhat.com, aquini@linux.com, cl@linux.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: fix NULL pointer dereference in scan_get_next_rmap_item()
-has been added to the -mm tree.  Its filename is
-     ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch
+     mm: hugepages can cause negative commitlimit
+has been removed from the -mm tree.  Its filename was
+     mm-hugepages-can-cause-negative-commitlimit.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: fix NULL pointer dereference in scan_get_next_rmap_item()
-From: Hugh Dickins <hughd@google.com>
+Subject: mm: hugepages can cause negative commitlimit
+From: Russ Anderson <rja@sgi.com>
 
-Andrea Righi reported a case where an exiting task can race against
-ksmd::scan_get_next_rmap_item (http://lkml.org/lkml/2011/6/1/742) easily
-triggering a NULL pointer dereference in ksmd.
+If the total size of hugepages allocated on a system is over half of the
+total memory size, commitlimit becomes a negative number.
 
-ksm_scan.mm_slot == &ksm_mm_head with only one registered mm
+What happens in fs/proc/meminfo.c is this calculation:
 
-CPU 1 (__ksm_exit)		CPU 2 (scan_get_next_rmap_item)
- 				list_empty() is false
-lock				slot == &ksm_mm_head
-list_del(slot->mm_list)
-(list now empty)
-unlock
-				lock
-				slot = list_entry(slot->mm_list.next)
-				(list is empty, so slot is still ksm_mm_head)
-				unlock
-				slot->mm == NULL ... Oops
+        allowed = ((totalram_pages - hugetlb_total_pages())
+                * sysctl_overcommit_ratio / 100) + total_swap_pages;
 
-Close this race by revalidating that the new slot is not simply the list
-head again.
+The problem is that hugetlb_total_pages() is larger than totalram_pages
+resulting in a negative number.  Since allowed is an unsigned long the
+negative shows up as a big number.
 
-Andrea's test case:
+A similar calculation occurs in __vm_enough_memory() in mm/mmap.c.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
+A symptom of this problem is that /proc/meminfo prints a very large
+CommitLimit number.
 
-#define BUFSIZE getpagesize()
+CommitLimit:    737869762947802600 kB
 
-int main(int argc, char **argv)
-{
-	void *ptr;
+To reproduce the problem reserve over half of memory as hugepages.  For
+example "default_hugepagesz=1G hugepagesz=1G hugepages=64 Then look at
+/proc/meminfo "CommitLimit:" to see if it is too big.
 
-	if (posix_memalign(&ptr, getpagesize(), BUFSIZE) < 0) {
-		perror("posix_memalign");
-		exit(1);
-	}
-	if (madvise(ptr, BUFSIZE, MADV_MERGEABLE) < 0) {
-		perror("madvise");
-		exit(1);
-	}
-	*(char *)NULL = 0;
+The fix is to not subtract hugetlb_total_pages().  When hugepages are
+allocated totalram_pages is decremented so there is no need to subtract
+out hugetlb_total_pages() a second time.
 
-	return 0;
-}
+Example of "CommitLimit:" being too big.
 
-Reported-by: Andrea Righi <andrea@betterlinux.com>
-Tested-by: Andrea Righi <andrea@betterlinux.com>
+uv1-sys:~ # cat /proc/meminfo
+MemTotal:       32395508 kB
+MemFree:        32029276 kB
+Buffers:            8656 kB
+Cached:            89548 kB
+SwapCached:            0 kB
+Active:            55336 kB
+Inactive:          73916 kB
+Active(anon):      31220 kB
+Inactive(anon):       36 kB
+Active(file):      24116 kB
+Inactive(file):    73880 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB
+Dirty:              1692 kB
+Writeback:             0 kB
+AnonPages:         31132 kB
+Mapped:            15668 kB
+Shmem:               152 kB
+Slab:              70256 kB
+SReclaimable:      17148 kB
+SUnreclaim:        53108 kB
+KernelStack:        6536 kB
+PageTables:         3704 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    737869762947802600 kB
+Committed_AS:     394044 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      713960 kB
+VmallocChunk:   34325764204 kB
+HardwareCorrupted:     0 kB
+HugePages_Total:      32
+HugePages_Free:       32
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:    1048576 kB
+DirectMap4k:       16384 kB
+DirectMap2M:     2064384 kB
+DirectMap1G:    65011712 kB
+
+Reported-by: Russ Anderson <rja@sgi.com>
+Signed-off-by: Russ Anderson <rja@sgi.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Cc: <stable@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rafael Aquini <aquini@linux.com>
+Cc: <stable@kernel.org>		[2.6.39+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/meminfo.c |    2 +-
+ mm/mmap.c         |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/ksm.c~ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item mm/ksm.c
---- a/mm/ksm.c~ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item
-+++ a/mm/ksm.c
-@@ -1302,6 +1302,12 @@ static struct rmap_item *scan_get_next_r
- 		slot = list_entry(slot->mm_list.next, struct mm_slot, mm_list);
- 		ksm_scan.mm_slot = slot;
- 		spin_unlock(&ksm_mmlist_lock);
-+		/*
-+		 * Although we tested list_empty() above, a racing __ksm_exit
-+		 * of the last mm on the list may have removed it since then.
-+		 */
-+		if (slot == &ksm_mm_head)
-+			return NULL;
- next_mm:
- 		ksm_scan.address = 0;
- 		ksm_scan.rmap_list = &slot->rmap_list;
+diff -puN fs/proc/meminfo.c~mm-hugepages-can-cause-negative-commitlimit fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-hugepages-can-cause-negative-commitlimit
++++ a/fs/proc/meminfo.c
+@@ -36,7 +36,7 @@ static int meminfo_proc_show(struct seq_
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+ 	committed = percpu_counter_read_positive(&vm_committed_as);
+-	allowed = ((totalram_pages - hugetlb_total_pages())
++	allowed = (totalram_pages
+ 		* sysctl_overcommit_ratio / 100) + total_swap_pages;
+ 
+ 	cached = global_page_state(NR_FILE_PAGES) -
+diff -puN mm/mmap.c~mm-hugepages-can-cause-negative-commitlimit mm/mmap.c
+--- a/mm/mmap.c~mm-hugepages-can-cause-negative-commitlimit
++++ a/mm/mmap.c
+@@ -167,8 +167,7 @@ int __vm_enough_memory(struct mm_struct 
+ 		goto error;
+ 	}
+ 
+-	allowed = (totalram_pages - hugetlb_total_pages())
+-	       	* sysctl_overcommit_ratio / 100;
++	allowed = totalram_pages * sysctl_overcommit_ratio / 100;
+ 	/*
+ 	 * Leave the last 3% for root
+ 	 */
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from rja@sgi.com are
 
-mm-fix-wrong-kunmap_atomic-pointer.patch
-mm-migratec-dont-account-swapcache-as-shmem.patch
-linux-next.patch
-ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch
-mm-move-vmtruncate_range-to-truncatec.patch
-mm-move-shmem-prototypes-to-shmem_fsh.patch
-tmpfs-take-control-of-its-truncate_range.patch
-tmpfs-add-shmem_read_mapping_page_gfp.patch
-drm-ttm-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_truncate_range.patch
-drm-i915-more-struct_mutex-locking.patch
-mm-cleanup-descriptions-of-filler-arg.patch
-mm-truncate-functions-are-in-truncatec.patch
-mm-tidy-vmtruncate_range-and-related-functions.patch
-mm-consistent-truncate-and-invalidate-loops.patch
-mm-pincer-in-truncate_inode_pages_range.patch
-tmpfs-no-need-to-use-i_lock.patch
-prio_tree-debugging-patch.patch
 
