@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-i915-use-shmem_read_mapping_page.patch added to -mm tree
-Date: Thu, 09 Jun 2011 15:42:29 -0700
-Message-ID: <201106092242.p59MgTAo005040@imap1.linux-foundation.org>
+Subject: + exec-delay-address-limit-change-until-point-of-no-return.patch added to -mm tree
+Date: Thu, 09 Jun 2011 15:56:36 -0700
+Message-ID: <201106092256.p59MuaSp005826__47707.0633591667$1307660259$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756686Ab1FIWtE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:49:04 -0400
+	by vger.kernel.org with ESMTP id S1757104Ab1FIW5W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:57:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, airlied@redhat.com, chris@chris-wilson.co.uk, hch@infradead.org, keithp@keithp.com
+Cc: minipli@googlemail.com, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     drm/i915: use shmem_read_mapping_page
+     exec: delay address limit change until point of no return
 has been added to the -mm tree.  Its filename is
-     drm-i915-use-shmem_read_mapping_page.patch
+     exec-delay-address-limit-change-until-point-of-no-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,171 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/i915: use shmem_read_mapping_page
-From: Hugh Dickins <hughd@google.com>
+Subject: exec: delay address limit change until point of no return
+From: Mathias Krause <minipli@googlemail.com>
 
-Soon tmpfs will stop supporting ->readpage and read_cache_page_gfp(): once
-"tmpfs: add shmem_read_mapping_page_gfp" has been applied, this patch can
-be applied to ease the transition.
+We use kernel_execve() to transfer control of the init procces from
+kernel to userland. If the program to start as init process isn't given
+on the kernel command line or fails to start we use a few hardcoded
+fallbacks. This fallback mechanism does not work when we encounter a
+file that is executable but fails to start, e.g. due to a missing
+library dependency or by having an unsupported file format.
 
-Make i915_gem_object_get_pages_gtt() use shmem_read_mapping_page_gfp() in
-the one place it's needed; elsewhere use shmem_read_mapping_page(), with
-the mapping's gfp_mask properly initialized.
+Unconditionally changing the address limit to USER_DS and not restoring it
+to its old value in the error path is wrong because it prevents us using
+kernel memory on repeated calls to this function.  This, in fact, breaks
+the fallback of hard coded paths to the init program from being ever
+successful if the first candidate fails to load.
 
-Forget about __GFP_COLD: since tmpfs initializes its pages with memset,
-asking for a cold page is counter-productive.
+With this patch applied switching to USER_DS is delayed until the point of
+no return is reached which makes it possible to have a multi-arch rootfs
+with one arch specific init binary for each of the (hard coded) probed
+paths.
 
-Include linux/shmem_fs.h also in drm_gem.c: with shmem_file_setup() now
-declared there too, we shall remove the prototype from linux/mm.h later.
+Since the address limit is already set to USER_DS when start_thread()
+will be invoked, this redundancy can be safely removed.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Keith Packard <keithp@keithp.com>
-Cc: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_gem.c       |    1 
- drivers/gpu/drm/i915/i915_gem.c |   31 +++++++++++++-----------------
- 2 files changed, 15 insertions(+), 17 deletions(-)
+ arch/x86/kernel/process_32.c |    1 -
+ arch/x86/kernel/process_64.c |    1 -
+ fs/exec.c                    |    5 +----
+ 3 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_gem.c~drm-i915-use-shmem_read_mapping_page drivers/gpu/drm/drm_gem.c
---- a/drivers/gpu/drm/drm_gem.c~drm-i915-use-shmem_read_mapping_page
-+++ a/drivers/gpu/drm/drm_gem.c
-@@ -34,6 +34,7 @@
- #include <linux/module.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
-+#include <linux/shmem_fs.h>
- #include "drmP.h"
- 
- /** @file drm_gem.c
-diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-shmem_read_mapping_page drivers/gpu/drm/i915/i915_gem.c
---- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-shmem_read_mapping_page
-+++ a/drivers/gpu/drm/i915/i915_gem.c
-@@ -31,6 +31,7 @@
- #include "i915_drv.h"
- #include "i915_trace.h"
- #include "intel_drv.h"
-+#include <linux/shmem_fs.h>
- #include <linux/slab.h>
- #include <linux/swap.h>
- #include <linux/pci.h>
-@@ -359,8 +360,7 @@ i915_gem_shmem_pread_fast(struct drm_dev
- 		if ((page_offset + remain) > PAGE_SIZE)
- 			page_length = PAGE_SIZE - page_offset;
- 
--		page = read_cache_page_gfp(mapping, offset >> PAGE_SHIFT,
--					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		page = shmem_read_mapping_page(mapping, offset >> PAGE_SHIFT);
- 		if (IS_ERR(page))
- 			return PTR_ERR(page);
- 
-@@ -463,8 +463,7 @@ i915_gem_shmem_pread_slow(struct drm_dev
- 		if ((data_page_offset + page_length) > PAGE_SIZE)
- 			page_length = PAGE_SIZE - data_page_offset;
- 
--		page = read_cache_page_gfp(mapping, offset >> PAGE_SHIFT,
--					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		page = shmem_read_mapping_page(mapping, offset >> PAGE_SHIFT);
- 		if (IS_ERR(page))
- 			return PTR_ERR(page);
- 
-@@ -795,8 +794,7 @@ i915_gem_shmem_pwrite_fast(struct drm_de
- 		if ((page_offset + remain) > PAGE_SIZE)
- 			page_length = PAGE_SIZE - page_offset;
- 
--		page = read_cache_page_gfp(mapping, offset >> PAGE_SHIFT,
--					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		page = shmem_read_mapping_page(mapping, offset >> PAGE_SHIFT);
- 		if (IS_ERR(page))
- 			return PTR_ERR(page);
- 
-@@ -905,8 +903,7 @@ i915_gem_shmem_pwrite_slow(struct drm_de
- 		if ((data_page_offset + page_length) > PAGE_SIZE)
- 			page_length = PAGE_SIZE - data_page_offset;
- 
--		page = read_cache_page_gfp(mapping, offset >> PAGE_SHIFT,
--					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		page = shmem_read_mapping_page(mapping, offset >> PAGE_SHIFT);
- 		if (IS_ERR(page)) {
- 			ret = PTR_ERR(page);
- 			goto out;
-@@ -1556,12 +1553,10 @@ i915_gem_object_get_pages_gtt(struct drm
- 
- 	inode = obj->base.filp->f_path.dentry->d_inode;
- 	mapping = inode->i_mapping;
-+	gfpmask |= mapping_gfp_mask(mapping);
-+
- 	for (i = 0; i < page_count; i++) {
--		page = read_cache_page_gfp(mapping, i,
--					   GFP_HIGHUSER |
--					   __GFP_COLD |
--					   __GFP_RECLAIMABLE |
--					   gfpmask);
-+		page = shmem_read_mapping_page_gfp(mapping, i, gfpmask);
- 		if (IS_ERR(page))
- 			goto err_pages;
- 
-@@ -3565,6 +3560,7 @@ struct drm_i915_gem_object *i915_gem_all
+diff -puN arch/x86/kernel/process_32.c~exec-delay-address-limit-change-until-point-of-no-return arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/arch/x86/kernel/process_32.c
+@@ -245,7 +245,6 @@ start_thread(struct pt_regs *regs, unsig
  {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	struct drm_i915_gem_object *obj;
-+	struct address_space *mapping;
+ 	set_user_gs(regs, 0);
+ 	regs->fs		= 0;
+-	set_fs(USER_DS);
+ 	regs->ds		= __USER_DS;
+ 	regs->es		= __USER_DS;
+ 	regs->ss		= __USER_DS;
+diff -puN arch/x86/kernel/process_64.c~exec-delay-address-limit-change-until-point-of-no-return arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/arch/x86/kernel/process_64.c
+@@ -338,7 +338,6 @@ start_thread_common(struct pt_regs *regs
+ 	regs->cs		= _cs;
+ 	regs->ss		= _ss;
+ 	regs->flags		= X86_EFLAGS_IF;
+-	set_fs(USER_DS);
+ 	/*
+ 	 * Free the old FP and other extended state
+ 	 */
+diff -puN fs/exec.c~exec-delay-address-limit-change-until-point-of-no-return fs/exec.c
+--- a/fs/exec.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/fs/exec.c
+@@ -1093,6 +1093,7 @@ int flush_old_exec(struct linux_binprm *
  
- 	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
- 	if (obj == NULL)
-@@ -3575,6 +3571,9 @@ struct drm_i915_gem_object *i915_gem_all
- 		return NULL;
- 	}
+ 	bprm->mm = NULL;		/* We're using it now */
  
-+	mapping = obj->base.filp->f_path.dentry->d_inode->i_mapping;
-+	mapping_set_gfp_mask(mapping, GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+
- 	i915_gem_info_add_obj(dev_priv, size);
++	set_fs(USER_DS);
+ 	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD);
+ 	flush_thread();
+ 	current->personality &= ~bprm->per_clear;
+@@ -1357,10 +1358,6 @@ int search_binary_handler(struct linux_b
+ 	if (retval)
+ 		return retval;
  
- 	obj->base.write_domain = I915_GEM_DOMAIN_CPU;
-@@ -3950,8 +3949,7 @@ void i915_gem_detach_phys_object(struct 
- 
- 	page_count = obj->base.size / PAGE_SIZE;
- 	for (i = 0; i < page_count; i++) {
--		struct page *page = read_cache_page_gfp(mapping, i,
--							GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		struct page *page = shmem_read_mapping_page(mapping, i);
- 		if (!IS_ERR(page)) {
- 			char *dst = kmap_atomic(page);
- 			memcpy(dst, vaddr + i*PAGE_SIZE, PAGE_SIZE);
-@@ -4012,8 +4010,7 @@ i915_gem_attach_phys_object(struct drm_d
- 		struct page *page;
- 		char *dst, *src;
- 
--		page = read_cache_page_gfp(mapping, i,
--					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
-+		page = shmem_read_mapping_page(mapping, i);
- 		if (IS_ERR(page))
- 			return PTR_ERR(page);
- 
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-mm-fix-wrong-kunmap_atomic-pointer.patch
-mm-migratec-dont-account-swapcache-as-shmem.patch
-linux-next.patch
-mm-move-vmtruncate_range-to-truncatec.patch
-mm-move-shmem-prototypes-to-shmem_fsh.patch
-tmpfs-take-control-of-its-truncate_range.patch
-tmpfs-add-shmem_read_mapping_page_gfp.patch
-drm-ttm-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_truncate_range.patch
-drm-i915-more-struct_mutex-locking.patch
-mm-cleanup-descriptions-of-filler-arg.patch
-mm-truncate-functions-are-in-truncatec.patch
-mm-tidy-vmtruncate_range-and-related-functions.patch
-mm-consistent-truncate-and-invalidate-loops.patch
-mm-pincer-in-truncate_inode_pages_range.patch
-tmpfs-no-need-to-use-i_lock.patch
-prio_tree-debugging-patch.patch
-
+-	/* kernel module loader fixup */
+-	/* so we don't try to load run modprobe in kernel space. */
+-	set_fs(USER_DS);
