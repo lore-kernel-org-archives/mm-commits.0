@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kmsg_dumph-needs-errnoh.patch added to -mm tree
-Date: Thu, 09 Jun 2011 14:38:17 -0700
-Message-ID: <201106092138.p59LcH45001444@imap1.linux-foundation.org>
+Subject: - kmsg_dumph-needs-errnoh.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 14:42:22 -0700
+Message-ID: <201106092142.p59LgN8b001690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756368Ab1FIVjK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:39:10 -0400
+	by vger.kernel.org with ESMTP id S1756397Ab1FIVnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 17:43:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, David.Woodhouse@intel.com, kosaki.motohiro@jp.fujitsu.com, sfr@canb.auug.org.au, simon.kagstrom@netinsight.net
+To: randy.dunlap@oracle.com, David.Woodhouse@intel.com, kosaki.motohiro@jp.fujitsu.com, sfr@canb.auug.org.au, simon.kagstrom@netinsight.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      kmsg_dump.h: needs errno.h
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      kmsg_dumph-needs-errnoh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it's a dupe
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -80,7 +70,6 @@ Patches currently in -mm which might be from randy.dunlap@oracle.com are
 mm-memoryc-fix-kernel-doc-notation.patch
 lib-bitmapc-fix-kernel-doc-notation.patch
 kmsg_dumph-fix-build-when-config_printk-is-disabled.patch
-kmsg_dumph-needs-errnoh.patch
 linux-next.patch
 drivers-scsi-megaraidc-fix-sparse-warnings.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
