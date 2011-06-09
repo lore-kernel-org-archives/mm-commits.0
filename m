@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-truncate-functions-are-in-truncatec.patch added to -mm tree
-Date: Thu, 09 Jun 2011 15:42:38 -0700
-Message-ID: <201106092242.p59MgcrI005057@imap1.linux-foundation.org>
+Subject: + mm-cleanup-descriptions-of-filler-arg.patch added to -mm tree
+Date: Thu, 09 Jun 2011 15:42:36 -0700
+Message-ID: <201106092242.p59MgaSb005054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756661Ab1FIWp0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:45:26 -0400
+	by vger.kernel.org with ESMTP id S1756962Ab1FIWp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hughd@google.com
 
 
 The patch titled
-     mm: truncate functions are in truncate.c
+     mm: cleanup descriptions of filler arg
 has been added to the -mm tree.  Its filename is
-     mm-truncate-functions-are-in-truncatec.patch
+     mm-cleanup-descriptions-of-filler-arg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: truncate functions are in truncate.c
+Subject: mm: cleanup descriptions of filler arg
 From: Hugh Dickins <hughd@google.com>
 
-Correct comment on truncate_inode_pages*() in linux/mm.h; and remove
-declaration of page_unuse(), it didn't exist even in 2.2.26 or 2.4.0!
+The often-NULL data arg to read_cache_page() and read_mapping_page()
+functions is misdescribed as "destination for read data": no, it's the
+first arg to the filler function, often struct file * to ->readpage().
+
+Satisfy checkpatch.pl on those filler prototypes, and tidy up the
+declarations in linux/pagemap.h.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/pagemap.h |   12 +++++-------
+ mm/filemap.c            |   12 ++++++------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/mm.h~mm-truncate-functions-are-in-truncatec include/linux/mm.h
---- a/include/linux/mm.h~mm-truncate-functions-are-in-truncatec
-+++ a/include/linux/mm.h
-@@ -1447,8 +1447,7 @@ extern int do_munmap(struct mm_struct *,
+diff -puN include/linux/pagemap.h~mm-cleanup-descriptions-of-filler-arg include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-cleanup-descriptions-of-filler-arg
++++ a/include/linux/pagemap.h
+@@ -255,26 +255,24 @@ static inline struct page *grab_cache_pa
+ extern struct page * grab_cache_page_nowait(struct address_space *mapping,
+ 				pgoff_t index);
+ extern struct page * read_cache_page_async(struct address_space *mapping,
+-				pgoff_t index, filler_t *filler,
+-				void *data);
++				pgoff_t index, filler_t *filler, void *data);
+ extern struct page * read_cache_page(struct address_space *mapping,
+-				pgoff_t index, filler_t *filler,
+-				void *data);
++				pgoff_t index, filler_t *filler, void *data);
+ extern struct page * read_cache_page_gfp(struct address_space *mapping,
+ 				pgoff_t index, gfp_t gfp_mask);
+ extern int read_cache_pages(struct address_space *mapping,
+ 		struct list_head *pages, filler_t *filler, void *data);
  
- extern unsigned long do_brk(unsigned long, unsigned long);
+ static inline struct page *read_mapping_page_async(
+-						struct address_space *mapping,
+-						     pgoff_t index, void *data)
++				struct address_space *mapping,
++				pgoff_t index, void *data)
+ {
+ 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
+ 	return read_cache_page_async(mapping, index, filler, data);
+ }
  
--/* filemap.c */
--extern unsigned long page_unuse(struct page *);
-+/* truncate.c */
- extern void truncate_inode_pages(struct address_space *, loff_t);
- extern void truncate_inode_pages_range(struct address_space *,
- 				       loff_t lstart, loff_t lend);
+ static inline struct page *read_mapping_page(struct address_space *mapping,
+-					     pgoff_t index, void *data)
++				pgoff_t index, void *data)
+ {
+ 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
+ 	return read_cache_page(mapping, index, filler, data);
+diff -puN mm/filemap.c~mm-cleanup-descriptions-of-filler-arg mm/filemap.c
+--- a/mm/filemap.c~mm-cleanup-descriptions-of-filler-arg
++++ a/mm/filemap.c
+@@ -1795,7 +1795,7 @@ EXPORT_SYMBOL(generic_file_readonly_mmap
+ 
+ static struct page *__read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+-				int (*filler)(void *,struct page*),
++				int (*filler)(void *, struct page *),
+ 				void *data,
+ 				gfp_t gfp)
+ {
+@@ -1826,7 +1826,7 @@ repeat:
+ 
+ static struct page *do_read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+-				int (*filler)(void *,struct page*),
++				int (*filler)(void *, struct page *),
+ 				void *data,
+ 				gfp_t gfp)
+ 
+@@ -1866,7 +1866,7 @@ out:
+  * @mapping:	the page's address_space
+  * @index:	the page index
+  * @filler:	function to perform the read
+- * @data:	destination for read data
++ * @data:	first arg to filler(data, page) function, often left as NULL
+  *
+  * Same as read_cache_page, but don't wait for page to become unlocked
+  * after submitting it to the filler.
+@@ -1878,7 +1878,7 @@ out:
+  */
+ struct page *read_cache_page_async(struct address_space *mapping,
+ 				pgoff_t index,
+-				int (*filler)(void *,struct page*),
++				int (*filler)(void *, struct page *),
+ 				void *data)
+ {
+ 	return do_read_cache_page(mapping, index, filler, data, mapping_gfp_mask(mapping));
+@@ -1926,7 +1926,7 @@ EXPORT_SYMBOL(read_cache_page_gfp);
+  * @mapping:	the page's address_space
+  * @index:	the page index
+  * @filler:	function to perform the read
+- * @data:	destination for read data
++ * @data:	first arg to filler(data, page) function, often left as NULL
+  *
+  * Read into the page cache. If a page already exists, and PageUptodate() is
+  * not set, try to fill the page then wait for it to become unlocked.
+@@ -1935,7 +1935,7 @@ EXPORT_SYMBOL(read_cache_page_gfp);
+  */
+ struct page *read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+-				int (*filler)(void *,struct page*),
++				int (*filler)(void *, struct page *),
+ 				void *data)
+ {
+ 	return wait_on_page_read(read_cache_page_async(mapping, index, filler, data));
 _
 
 Patches currently in -mm which might be from hughd@google.com are
