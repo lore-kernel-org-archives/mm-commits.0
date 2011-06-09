@@ -1,121 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-sync-expired-inodes-first-in-background-writeback.patch removed from -mm tree
-Date: Thu, 09 Jun 2011 12:05:30 -0700
-Message-ID: <201106091904.p59J4HWX025386@imap1.linux-foundation.org>
+Subject: [merged] writeback-try-more-writeback-as-long-as-something-was-written.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 12:05:26 -0700
+Message-ID: <201106091904.p59J4DLh025379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752963Ab1FITFJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:09 -0400
+	by vger.kernel.org with ESMTP id S1752963Ab1FITFN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: sync expired inodes first in background writeback
+     writeback: try more writeback as long as something was written
 has been removed from the -mm tree.  Its filename was
-     writeback-sync-expired-inodes-first-in-background-writeback.patch
+     writeback-try-more-writeback-as-long-as-something-was-written.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: sync expired inodes first in background writeback
+Subject: writeback: try more writeback as long as something was written
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-A background flush work may run for ever.  So it's reasonable for it to
-mimic the kupdate behavior of syncing old/expired inodes first.
+writeback_inodes_wb()/__writeback_inodes_sb() are not aggressive in that
+they only populate possibly a subset of eligible inodes into b_io at entry
+time.  When the queued set of inodes are all synced, they just return,
+possibly with all queued inode pages written but still wbc.nr_to_write >
+0.
 
-At each queue_io() time, first try enqueuing only newly expired inodes. 
-If there are zero expired inodes to work with, then relax the rule and
-enqueue all dirty inodes.
+For kupdate and background writeback, there may be more eligible inodes
+sitting in b_dirty when the current set of b_io inodes are completed.  So
+it is necessary to try another round of writeback as long as we made some
+progress in this round.  When there are no more eligible inodes, no more
+inodes will be enqueued in queue_io(), hence nothing could/will be synced
+and we may safely bail.
 
-This will help reduce the number of dirty pages encountered by page
-reclaim, eg.  the pageout() calls.  Normally older inodes contain older
-dirty pages, which are more close to the end of the LRU lists.  So syncing
-older inodes first helps reducing the dirty pages reached by the page
-reclaim code.
+For example, imagine 100 inodes
 
-More background: as Mel put it, "it makes sense to write old pages first
-to reduce the chances page reclaim is initiating IO."
+        i0, i1, i2, ..., i90, i91, i99
 
-Rik also presented the situation with a graph:
+At queue_io() time, i90-i99 happen to be expired and moved to s_io for IO.
+ When finished successfully, if their total size is less than
+MAX_WRITEBACK_PAGES, nr_to_write will be > 0.  Then wb_writeback() will
+quit the background work (w/o this patch) while it's still over background
+threshold.  This will be a fairly normal/frequent case I guess.
 
-LRU head                                 [*] dirty page
-[                          *              *      * *  *  * * * * * *]
+Jan raised the concern
 
-Ideally, most dirty pages should lie close to the LRU tail instead of LRU
-head.  That requires the flusher thread to sync old/expired inodes first
-(as there are obvious correlations between inode age and page age), and to
-give fair opportunities to newly expired inodes rather than sticking with
-some large eldest inodes (as larger inodes have weaker correlations in the
-inode<=>page ages).
+       I'm just afraid that in some pathological cases this could
+       result in bad writeback pattern - like if there is some process
+       which manages to dirty just a few pages while we are doing
+       writeout, this looping could result in writing just a few pages in
+       each round which is bad for fragmentation etc.
 
-This patch helps the flusher to meet both the above requirements.
+However it requires really strong timing to make that to (continuously)
+happen.  In practice it's very hard to produce such a pattern even if
+there is such a possibility in theory.  I actually tried to write 1 page
+per 1ms with this command
 
-Side effects: it might reduce the batch size and hence reduce
-inode_wb_list_lock hold time, but in turn make the cluster-by-partition
-logic in the same function less effective on reducing disk seeks.
+	write-and-fsync -n10000 -S 1000 -c 4096 /fs/test
 
-v2: keep policy changes inside wb_writeback() and keep the
-wbc.older_than_this visibility as suggested by Dave.
+and do sync(1) at the same time.  The sync completes quickly on ext4, xfs,
+btrfs.  The readers could try other write-and-sleep patterns and check if
+it can block sync for longer time.
 
-[akpm@linux-foundation.org: tweak a comment]
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-sync-expired-inodes-first-in-background-writeback
+diff -puN fs/fs-writeback.c~writeback-try-more-writeback-as-long-as-something-was-written fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-try-more-writeback-as-long-as-something-was-written
 +++ a/fs/fs-writeback.c
-@@ -709,7 +709,7 @@ static long wb_writeback(struct bdi_writ
- 		if (work->for_background && !over_bground_thresh())
- 			break;
+@@ -730,23 +730,23 @@ static long wb_writeback(struct bdi_writ
+ 		wrote += write_chunk - wbc.nr_to_write;
  
--		if (work->for_kupdate) {
-+		if (work->for_kupdate || work->for_background) {
- 			oldest_jif = jiffies -
- 				msecs_to_jiffies(dirty_expire_interval * 10);
- 			wbc.older_than_this = &oldest_jif;
-@@ -720,6 +720,7 @@ static long wb_writeback(struct bdi_writ
- 		wbc.pages_skipped = 0;
- 		wbc.inodes_cleaned = 0;
- 
-+retry:
- 		trace_wbc_writeback_start(&wbc, wb->bdi);
- 		if (work->sb)
- 			__writeback_inodes_sb(work->sb, wb, &wbc);
-@@ -743,6 +744,19 @@ static long wb_writeback(struct bdi_writ
+ 		/*
+-		 * If we consumed everything, see if we have more
++		 * Did we write something? Try for more
++		 *
++		 * Dirty inodes are moved to b_io for writeback in batches.
++		 * The completion of the current batch does not necessarily
++		 * mean the overall work is done. So we keep looping as long
++		 * as made some progress on cleaning pages or inodes.
+ 		 */
+-		if (wbc.nr_to_write <= 0)
++		if (wbc.nr_to_write < write_chunk)
+ 			continue;
  		if (wbc.inodes_cleaned)
  			continue;
  		/*
-+		 * background writeback will start with expired inodes and if
-+		 * none are found, fall back to all inodes. This order helps
-+		 * reduce the number of dirty pages reaching the end of LRU lists
-+		 * and causing difficulty in page reclaim.
-+		 */
-+		if (work->for_background &&
-+		    wbc.older_than_this &&
-+		    list_empty(&wb->b_io) &&
-+		    list_empty(&wb->b_more_io)) {
-+			wbc.older_than_this = NULL;
-+			goto retry;
-+		}
-+		/*
- 		 * No more inodes for IO, bail
+-		 * Didn't write everything and we don't have more IO, bail
++		 * No more inodes for IO, bail
  		 */
  		if (!wbc.more_io)
+ 			break;
+ 		/*
+-		 * Did we write something? Try for more
+-		 */
+-		if (wbc.nr_to_write < write_chunk)
+-			continue;
+-		/*
+ 		 * Nothing written. Wait for some inode to
+ 		 * become available for writeback. Otherwise
+ 		 * we'll just busyloop.
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
