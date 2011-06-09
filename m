@@ -1,113 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-pass-writeback_control-down-to-move_expired_inodes.patch removed from -mm tree
-Date: Thu, 09 Jun 2011 12:05:20 -0700
-Message-ID: <201106091904.p59J4778025369@imap1.linux-foundation.org>
+Subject: [merged] writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 12:05:41 -0700
+Message-ID: <201106091904.p59J4ST7025475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752572Ab1FITFF (ORCPT
+	by vger.kernel.org with ESMTP id S1752963Ab1FITFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: pass writeback_control down to move_expired_inodes()
+     writeback: update dirtied_when for synced inode to prevent livelock
 has been removed from the -mm tree.  Its filename was
-     writeback-pass-writeback_control-down-to-move_expired_inodes.patch
+     writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: pass writeback_control down to move_expired_inodes()
+Subject: writeback: update dirtied_when for synced inode to prevent livelock
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-This patchset aims to reduce possible pageout() calls by making the
-flusher concentrate a bit more on old/expired dirty inodes.
+With the more aggressive "keep writeback as long as we wrote something"
+logic in wb_writeback(), the "use LONG_MAX .nr_to_write" trick in commit
+b9543dac5bbc ("writeback: avoid livelocking WB_SYNC_ALL writeback") is no
+longer enough to stop sync livelock.
 
-Rationales and benchmark numbers are provided in patches 5 and 6.
-
-
-This patch:
-
-Pass writeback_control down to move_expired_inodes().
-
-No behavior change.  This will add debug visibility to the code, for
-example, to dump the wbc contents when kprobing queue_io().
+The fix is to explicitly update .dirtied_when on synced inodes, so that
+they are no longer considered for writeback in the next round.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/fs-writeback.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-pass-writeback_control-down-to-move_expired_inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-pass-writeback_control-down-to-move_expired_inodes
+diff -puN fs/fs-writeback.c~writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-update-dirtied_when-for-synced-inode-to-prevent-livelock
 +++ a/fs/fs-writeback.c
-@@ -251,8 +251,8 @@ static bool inode_dirtied_after(struct i
-  * Move expired dirty inodes from @delaying_queue to @dispatch_queue.
-  */
- static void move_expired_inodes(struct list_head *delaying_queue,
--			       struct list_head *dispatch_queue,
--				unsigned long *older_than_this)
-+				struct list_head *dispatch_queue,
-+				struct writeback_control *wbc)
- {
- 	LIST_HEAD(tmp);
- 	struct list_head *pos, *node;
-@@ -262,8 +262,8 @@ static void move_expired_inodes(struct l
- 
- 	while (!list_empty(delaying_queue)) {
- 		inode = wb_inode(delaying_queue->prev);
--		if (older_than_this &&
--		    inode_dirtied_after(inode, *older_than_this))
-+		if (wbc->older_than_this &&
-+		    inode_dirtied_after(inode, *wbc->older_than_this))
- 			break;
- 		if (sb && sb != inode->i_sb)
- 			do_sb_sort = 1;
-@@ -299,11 +299,11 @@ static void move_expired_inodes(struct l
-  *                                           |
-  *                                           +--> dequeue for IO
-  */
--static void queue_io(struct bdi_writeback *wb, unsigned long *older_than_this)
-+static void queue_io(struct bdi_writeback *wb, struct writeback_control *wbc)
- {
- 	assert_spin_locked(&inode_wb_list_lock);
- 	list_splice_init(&wb->b_more_io, &wb->b_io);
--	move_expired_inodes(&wb->b_dirty, &wb->b_io, older_than_this);
-+	move_expired_inodes(&wb->b_dirty, &wb->b_io, wbc);
- }
- 
- static int write_inode(struct inode *inode, struct writeback_control *wbc)
-@@ -579,7 +579,7 @@ void writeback_inodes_wb(struct bdi_writ
- 		wbc->wb_start = jiffies; /* livelock avoidance */
- 	spin_lock(&inode_wb_list_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
--		queue_io(wb, wbc->older_than_this);
-+		queue_io(wb, wbc);
- 
- 	while (!list_empty(&wb->b_io)) {
- 		struct inode *inode = wb_inode(wb->b_io.prev);
-@@ -606,7 +606,7 @@ static void __writeback_inodes_sb(struct
- 
- 	spin_lock(&inode_wb_list_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
--		queue_io(wb, wbc->older_than_this);
-+		queue_io(wb, wbc);
- 	writeback_sb_inodes(sb, wb, wbc, true);
- 	spin_unlock(&inode_wb_list_lock);
- }
+@@ -431,6 +431,15 @@ writeback_single_inode(struct inode *ino
+ 				requeue_io(inode, wb);
+ 			} else {
+ 				/*
++				 * sync livelock prevention: each inode is
++				 * tagged and synced in one shot. If still
++				 * dirty, move it back to s_dirty with updated
++				 * dirty time to prevent syncing it again.
++				 */
++				if (wbc->sync_mode == WB_SYNC_ALL ||
++				    wbc->tagged_sync)
++					inode->dirtied_when = jiffies;
++				/*
+ 				 * Writeback blocked by something other than
+ 				 * congestion. Delay the inode for some time to
+ 				 * avoid spinning on the CPU (100% iowait)
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
