@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tidy-vmtruncate_range-and-related-functions.patch added to -mm tree
-Date: Thu, 09 Jun 2011 15:42:40 -0700
-Message-ID: <201106092242.p59Mge2T005061@imap1.linux-foundation.org>
+Subject: + mm-consistent-truncate-and-invalidate-loops.patch added to -mm tree
+Date: Thu, 09 Jun 2011 15:42:42 -0700
+Message-ID: <201106092242.p59MggoD005065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756904Ab1FIWnM (ORCPT
+	by vger.kernel.org with ESMTP id S1756994Ab1FIWnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 18:43:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hughd@google.com
 
 
 The patch titled
-     mm: tidy vmtruncate_range and related functions
+     mm: consistent truncate and invalidate loops
 has been added to the -mm tree.  Its filename is
-     mm-tidy-vmtruncate_range-and-related-functions.patch
+     mm-consistent-truncate-and-invalidate-loops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,303 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: tidy vmtruncate_range and related functions
+Subject: mm: consistent truncate and invalidate loops
 From: Hugh Dickins <hughd@google.com>
 
-Use consistent variable names in truncate_pagecache(), truncate_setsize(),
-vmtruncate() and vmtruncate_range().
+Make the pagevec_lookup loops in truncate_inode_pages_range(),
+invalidate_mapping_pages() and invalidate_inode_pages2_range() more
+consistent with each other.
 
-unmap_mapping_range() and vmtruncate_range() have mismatched interfaces:
-don't change either, but make the vmtruncates more precise about what they
-expect unmap_mapping_range() to do.
+They were relying upon page->index of an unlocked page, but apologizing
+for it: accept it, embrace it, add comments and WARN_ONs, and simplify the
+index handling.
 
-vmtruncate_range() is currently called only with page-aligned start and
-end+1: can handle unaligned start, but unaligned end+1 would hit BUG_ON in
-truncate_inode_pages_range() (lacks partial clearing of the end page).
+invalidate_inode_pages2_range() had special handling for a wrapped
+page->index + 1 = 0 case; but MAX_LFS_FILESIZE doesn't let us anywhere
+near there, and a corrupt page->index in the radix_tree could cause more
+trouble than that would catch.  Remove that wrapped handling.
+
+invalidate_inode_pages2_range() uses min() to limit the pagevec_lookup
+when near the end of the range: copy that into the other two, although
+it's less useful than you might think (it limits the use of the buffer,
+rather than the indices looked up).
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ mm/filemap.c  |    2 
+ mm/truncate.c |  110 ++++++++++++++++++++----------------------------
+ 2 files changed, 49 insertions(+), 63 deletions(-)
 
-diff -puN mm/truncate.c~mm-tidy-vmtruncate_range-and-related-functions mm/truncate.c
---- a/mm/truncate.c~mm-tidy-vmtruncate_range-and-related-functions
+diff -puN mm/filemap.c~mm-consistent-truncate-and-invalidate-loops mm/filemap.c
+--- a/mm/filemap.c~mm-consistent-truncate-and-invalidate-loops
++++ a/mm/filemap.c
+@@ -131,6 +131,7 @@ void __delete_from_page_cache(struct pag
+ 
+ 	radix_tree_delete(&mapping->page_tree, page->index);
+ 	page->mapping = NULL;
++	/* Leave page->index set: truncation lookup relies upon it */
+ 	mapping->nrpages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	if (PageSwapBacked(page))
+@@ -486,6 +487,7 @@ int add_to_page_cache_locked(struct page
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 		} else {
+ 			page->mapping = NULL;
++			/* Leave page->index set: truncation relies upon it */
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 			mem_cgroup_uncharge_cache_page(page);
+ 			page_cache_release(page);
+diff -puN mm/truncate.c~mm-consistent-truncate-and-invalidate-loops mm/truncate.c
+--- a/mm/truncate.c~mm-consistent-truncate-and-invalidate-loops
 +++ a/mm/truncate.c
-@@ -526,8 +526,8 @@ EXPORT_SYMBOL_GPL(invalidate_inode_pages
- /**
-  * truncate_pagecache - unmap and remove pagecache that has been truncated
-  * @inode: inode
-- * @old: old file offset
-- * @new: new file offset
-+ * @oldsize: old file size
-+ * @newsize: new file size
+@@ -199,9 +199,6 @@ int invalidate_inode_page(struct page *p
+  * The first pass will remove most pages, so the search cost of the second pass
+  * is low.
   *
-  * inode's new i_size must already be written before truncate_pagecache
-  * is called.
-@@ -539,9 +539,10 @@ EXPORT_SYMBOL_GPL(invalidate_inode_pages
-  * situations such as writepage being called for a page that has already
-  * had its underlying blocks deallocated.
-  */
--void truncate_pagecache(struct inode *inode, loff_t old, loff_t new)
-+void truncate_pagecache(struct inode *inode, loff_t oldsize, loff_t newsize)
+- * When looking at page->index outside the page lock we need to be careful to
+- * copy it into a local to avoid races (it could change at any time).
+- *
+  * We pass down the cache-hot hint to the page freeing code.  Even if the
+  * mapping is large, it is probably the case that the final pages are the most
+  * recently touched, and freeing happens in ascending file offset order.
+@@ -210,10 +207,10 @@ void truncate_inode_pages_range(struct a
+ 				loff_t lstart, loff_t lend)
  {
- 	struct address_space *mapping = inode->i_mapping;
-+	loff_t holebegin = round_up(newsize, PAGE_SIZE);
+ 	const pgoff_t start = (lstart + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+-	pgoff_t end;
+ 	const unsigned partial = lstart & (PAGE_CACHE_SIZE - 1);
+ 	struct pagevec pvec;
+-	pgoff_t next;
++	pgoff_t index;
++	pgoff_t end;
+ 	int i;
  
- 	/*
- 	 * unmap_mapping_range is called twice, first simply for
-@@ -552,9 +553,9 @@ void truncate_pagecache(struct inode *in
- 	 * truncate_inode_pages finishes, hence the second
- 	 * unmap_mapping_range call must be made for correctness.
- 	 */
--	unmap_mapping_range(mapping, new + PAGE_SIZE - 1, 0, 1);
--	truncate_inode_pages(mapping, new);
--	unmap_mapping_range(mapping, new + PAGE_SIZE - 1, 0, 1);
-+	unmap_mapping_range(mapping, holebegin, 0, 1);
-+	truncate_inode_pages(mapping, newsize);
-+	unmap_mapping_range(mapping, holebegin, 0, 1);
+ 	cleancache_flush_inode(mapping);
+@@ -224,24 +221,21 @@ void truncate_inode_pages_range(struct a
+ 	end = (lend >> PAGE_CACHE_SHIFT);
+ 
+ 	pagevec_init(&pvec, 0);
+-	next = start;
+-	while (next <= end &&
+-	       pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++	index = start;
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t page_index = page->index;
+ 
+-			if (page_index > end) {
+-				next = page_index;
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
+ 				break;
+-			}
+ 
+-			if (page_index > next)
+-				next = page_index;
+-			next++;
+ 			if (!trylock_page(page))
+ 				continue;
++			WARN_ON(page->index != index);
+ 			if (PageWriteback(page)) {
+ 				unlock_page(page);
+ 				continue;
+@@ -252,6 +246,7 @@ void truncate_inode_pages_range(struct a
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
+ 	}
+ 
+ 	if (partial) {
+@@ -264,13 +259,14 @@ void truncate_inode_pages_range(struct a
+ 		}
+ 	}
+ 
+-	next = start;
++	index = start;
+ 	for ( ; ; ) {
+ 		cond_resched();
+-		if (!pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+-			if (next == start)
++		if (!pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++			if (index == start)
+ 				break;
+-			next = start;
++			index = start;
+ 			continue;
+ 		}
+ 		if (pvec.pages[0]->index > end) {
+@@ -281,18 +277,20 @@ void truncate_inode_pages_range(struct a
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+-			if (page->index > end)
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
+ 				break;
++
+ 			lock_page(page);
++			WARN_ON(page->index != index);
+ 			wait_on_page_writeback(page);
+ 			truncate_inode_page(mapping, page);
+-			if (page->index > next)
+-				next = page->index;
+-			next++;
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
++		index++;
+ 	}
+ 	cleancache_flush_inode(mapping);
  }
- EXPORT_SYMBOL(truncate_pagecache);
- 
-@@ -584,29 +585,31 @@ EXPORT_SYMBOL(truncate_setsize);
- /**
-  * vmtruncate - unmap mappings "freed" by truncate() syscall
-  * @inode: inode of the file used
-- * @offset: file offset to start truncating
-+ * @newsize: file offset to start truncating
-  *
-  * This function is deprecated and truncate_setsize or truncate_pagecache
-  * should be used instead, together with filesystem specific block truncation.
-  */
--int vmtruncate(struct inode *inode, loff_t offset)
-+int vmtruncate(struct inode *inode, loff_t newsize)
+@@ -328,35 +326,26 @@ unsigned long invalidate_mapping_pages(s
+ 		pgoff_t start, pgoff_t end)
  {
- 	int error;
+ 	struct pagevec pvec;
+-	pgoff_t next = start;
++	pgoff_t index = start;
+ 	unsigned long ret;
+ 	unsigned long count = 0;
+ 	int i;
  
--	error = inode_newsize_ok(inode, offset);
-+	error = inode_newsize_ok(inode, newsize);
- 	if (error)
- 		return error;
+ 	pagevec_init(&pvec, 0);
+-	while (next <= end &&
+-			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t index;
+-			int lock_failed;
+-
+-			lock_failed = !trylock_page(page);
  
--	truncate_setsize(inode, offset);
-+	truncate_setsize(inode, newsize);
- 	if (inode->i_op->truncate)
- 		inode->i_op->truncate(inode);
- 	return 0;
+-			/*
+-			 * We really shouldn't be looking at the ->index of an
+-			 * unlocked page.  But we're not allowed to lock these
+-			 * pages.  So we rely upon nobody altering the ->index
+-			 * of this (pinned-by-us) page.
+-			 */
++			/* We rely upon deletion not changing page->index */
+ 			index = page->index;
+-			if (index > next)
+-				next = index;
+-			next++;
+-			if (lock_failed)
+-				continue;
++			if (index > end)
++				break;
+ 
++			if (!trylock_page(page))
++				continue;
++			WARN_ON(page->index != index);
+ 			ret = invalidate_inode_page(page);
+ 			unlock_page(page);
+ 			/*
+@@ -366,12 +355,11 @@ unsigned long invalidate_mapping_pages(s
+ 			if (!ret)
+ 				deactivate_page(page);
+ 			count += ret;
+-			if (next > end)
+-				break;
+ 		}
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
+ 	}
+ 	return count;
  }
- EXPORT_SYMBOL(vmtruncate);
- 
--int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end)
-+int vmtruncate_range(struct inode *inode, loff_t lstart, loff_t lend)
+@@ -437,37 +425,32 @@ int invalidate_inode_pages2_range(struct
+ 				  pgoff_t start, pgoff_t end)
  {
- 	struct address_space *mapping = inode->i_mapping;
-+	loff_t holebegin = round_up(lstart, PAGE_SIZE);
-+	loff_t holelen = 1 + lend - holebegin;
+ 	struct pagevec pvec;
+-	pgoff_t next;
++	pgoff_t index;
+ 	int i;
+ 	int ret = 0;
+ 	int ret2 = 0;
+ 	int did_range_unmap = 0;
+-	int wrapped = 0;
  
- 	/*
- 	 * If the underlying filesystem is not going to provide
-@@ -618,10 +621,10 @@ int vmtruncate_range(struct inode *inode
+ 	cleancache_flush_inode(mapping);
+ 	pagevec_init(&pvec, 0);
+-	next = start;
+-	while (next <= end && !wrapped &&
+-		pagevec_lookup(&pvec, mapping, next,
+-			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++	index = start;
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t page_index;
++
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
++				break;
  
- 	mutex_lock(&inode->i_mutex);
- 	down_write(&inode->i_alloc_sem);
--	unmap_mapping_range(mapping, offset, (end - offset), 1);
--	inode->i_op->truncate_range(inode, offset, end);
-+	unmap_mapping_range(mapping, holebegin, holelen, 1);
-+	inode->i_op->truncate_range(inode, lstart, lend);
- 	/* unmap again to remove racily COWed private pages */
--	unmap_mapping_range(mapping, offset, (end - offset), 1);
-+	unmap_mapping_range(mapping, holebegin, holelen, 1);
- 	up_write(&inode->i_alloc_sem);
- 	mutex_unlock(&inode->i_mutex);
- 
+ 			lock_page(page);
++			WARN_ON(page->index != index);
+ 			if (page->mapping != mapping) {
+ 				unlock_page(page);
+ 				continue;
+ 			}
+-			page_index = page->index;
+-			next = page_index + 1;
+-			if (next == 0)
+-				wrapped = 1;
+-			if (page_index > end) {
+-				unlock_page(page);
+-				break;
+-			}
+ 			wait_on_page_writeback(page);
+ 			if (page_mapped(page)) {
+ 				if (!did_range_unmap) {
+@@ -475,9 +458,9 @@ int invalidate_inode_pages2_range(struct
+ 					 * Zap the rest of the file in one hit.
+ 					 */
+ 					unmap_mapping_range(mapping,
+-					   (loff_t)page_index<<PAGE_CACHE_SHIFT,
+-					   (loff_t)(end - page_index + 1)
+-							<< PAGE_CACHE_SHIFT,
++					   (loff_t)index << PAGE_CACHE_SHIFT,
++					   (loff_t)(1 + end - index)
++							 << PAGE_CACHE_SHIFT,
+ 					    0);
+ 					did_range_unmap = 1;
+ 				} else {
+@@ -485,8 +468,8 @@ int invalidate_inode_pages2_range(struct
+ 					 * Just zap this page
+ 					 */
+ 					unmap_mapping_range(mapping,
+-					  (loff_t)page_index<<PAGE_CACHE_SHIFT,
+-					  PAGE_CACHE_SIZE, 0);
++					   (loff_t)index << PAGE_CACHE_SHIFT,
++					   PAGE_CACHE_SIZE, 0);
+ 				}
+ 			}
+ 			BUG_ON(page_mapped(page));
+@@ -502,6 +485,7 @@ int invalidate_inode_pages2_range(struct
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
+ 	}
+ 	cleancache_flush_inode(mapping);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
