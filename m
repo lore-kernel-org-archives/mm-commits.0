@@ -1,102 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-avoid-extra-sync-work-at-enqueue-time.patch removed from -mm tree
-Date: Thu, 09 Jun 2011 12:05:43 -0700
-Message-ID: <201106091904.p59J4UWG025478@imap1.linux-foundation.org>
+Subject: [merged] writeback-introduce-writeback_controlinodes_cleaned.patch removed from -mm tree
+Date: Thu, 09 Jun 2011 12:05:24 -0700
+Message-ID: <201106091904.p59J4BCT025376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753848Ab1FITFY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:24 -0400
+	by vger.kernel.org with ESMTP id S1753848Ab1FITFS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 15:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, david@fromorbit.com, jack@suse.cz, kitayama@cl.bb4u.ne.jp, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: avoid extra sync work at enqueue time
+     writeback: introduce writeback_control.inodes_cleaned
 has been removed from the -mm tree.  Its filename was
-     writeback-avoid-extra-sync-work-at-enqueue-time.patch
+     writeback-introduce-writeback_controlinodes_cleaned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: avoid extra sync work at enqueue time
+Subject: writeback: introduce writeback_control.inodes_cleaned
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-This removes writeback_control.wb_start and does more straightforward sync
-livelock prevention by setting .older_than_this to prevent extra inodes
-from being enqueued in the first place.
+The flusher works on dirty inodes in batches, and may quit prematurely if
+the batch of inodes happen to be metadata-only dirtied: in this case
+wbc->nr_to_write won't be decreased at all, which stands for "no pages
+written" but also mis-interpreted as "no progress".
+
+So introduce writeback_control.inodes_cleaned to count the number of
+inodes which get cleaned.  A non-zero value means there was some progress
+on writeback, in which case more writeback can be tried.
+
+about v1: The initial version was to count successful ->write_inode()
+calls.  However it leads to busy loops for sync() over NFS, because NFS
+ridiculously returns 0 (success) while at the same time redirties the
+inode.  The NFS case can be trivially fixed, however there may be more
+hidden bugs in other filesystems..
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
+Acked-by: Jan Kara <jack@suse.cz>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Itaru Kitayama <kitayama@cl.bb4u.ne.jp>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |   17 ++++-------------
- include/linux/writeback.h |    3 ---
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ fs/fs-writeback.c         |    4 ++++
+ include/linux/writeback.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-avoid-extra-sync-work-at-enqueue-time fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-avoid-extra-sync-work-at-enqueue-time
+diff -puN fs/fs-writeback.c~writeback-introduce-writeback_controlinodes_cleaned fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-introduce-writeback_controlinodes_cleaned
 +++ a/fs/fs-writeback.c
-@@ -544,15 +544,6 @@ static int writeback_sb_inodes(struct su
- 			continue;
+@@ -454,6 +454,7 @@ writeback_single_inode(struct inode *ino
+ 			 * No need to add it back to the LRU.
+ 			 */
+ 			list_del_init(&inode->i_wb_list);
++			wbc->inodes_cleaned++;
  		}
+ 	}
+ 	inode_sync_complete(inode);
+@@ -716,6 +717,7 @@ static long wb_writeback(struct bdi_writ
+ 		wbc.more_io = 0;
+ 		wbc.nr_to_write = write_chunk;
+ 		wbc.pages_skipped = 0;
++		wbc.inodes_cleaned = 0;
  
--		/*
--		 * Was this inode dirtied after sync_sb_inodes was called?
--		 * This keeps sync from extra jobs and livelock.
--		 */
--		if (inode_dirtied_after(inode, wbc->wb_start)) {
--			spin_unlock(&inode->i_lock);
--			return 1;
--		}
--
- 		__iget(inode);
- 
- 		pages_skipped = wbc->pages_skipped;
-@@ -585,8 +576,6 @@ static void __writeback_inodes_wb(struct
- {
- 	int ret = 0;
- 
--	if (!wbc->wb_start)
--		wbc->wb_start = jiffies; /* livelock avoidance */
- 
- 	while (!list_empty(&wb->b_io)) {
- 		struct inode *inode = wb_inode(wb->b_io.prev);
-@@ -683,10 +672,12 @@ static long wb_writeback(struct bdi_writ
- 	 *                   (quickly) tag currently dirty pages
- 	 *                   (maybe slowly) sync all tagged pages
- 	 */
--	if (wbc.sync_mode == WB_SYNC_ALL || wbc.tagged_sync)
-+	if (wbc.sync_mode == WB_SYNC_ALL || wbc.tagged_sync) {
- 		write_chunk = LONG_MAX;
-+		oldest_jif = jiffies;
-+		wbc.older_than_this = &oldest_jif;
-+	}
- 
--	wbc.wb_start = jiffies; /* livelock avoidance */
- 	for (;;) {
+ 		trace_wbc_writeback_start(&wbc, wb->bdi);
+ 		if (work->sb)
+@@ -732,6 +734,8 @@ static long wb_writeback(struct bdi_writ
+ 		 */
+ 		if (wbc.nr_to_write <= 0)
+ 			continue;
++		if (wbc.inodes_cleaned)
++			continue;
  		/*
- 		 * Stop writeback when nr_pages has been consumed
-diff -puN include/linux/writeback.h~writeback-avoid-extra-sync-work-at-enqueue-time include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-avoid-extra-sync-work-at-enqueue-time
+ 		 * Didn't write everything and we don't have more IO, bail
+ 		 */
+diff -puN include/linux/writeback.h~writeback-introduce-writeback_controlinodes_cleaned include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-introduce-writeback_controlinodes_cleaned
 +++ a/include/linux/writeback.h
-@@ -26,9 +26,6 @@ struct writeback_control {
- 	enum writeback_sync_modes sync_mode;
- 	unsigned long *older_than_this;	/* If !NULL, only write back inodes
- 					   older than this */
--	unsigned long wb_start;         /* Time writeback_inodes_wb was
--					   called. This is needed to avoid
--					   extra jobs and livelock */
+@@ -34,6 +34,7 @@ struct writeback_control {
  	long nr_to_write;		/* Write this many pages, and decrement
  					   this for each page written */
  	long pages_skipped;		/* Pages which were not written */
++	long inodes_cleaned;		/* # of inodes cleaned */
+ 
+ 	/*
+ 	 * For a_ops->writepages(): is start or end are non-zero then this is
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
