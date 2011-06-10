@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-fix-the-menuconfig-being-wrongly-displayed.patch added to -mm tree
-Date: Thu, 09 Jun 2011 16:47:41 -0700
-Message-ID: <201106092347.p59Nlfax008899@imap1.linux-foundation.org>
+Subject: + drm-i915-more-struct_mutex-locking-fix.patch added to -mm tree
+Date: Thu, 09 Jun 2011 18:06:18 -0700
+Message-ID: <201106100105.p5A154gA012597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757411Ab1FIXr5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 19:47:57 -0400
+	by vger.kernel.org with ESMTP id S1753992Ab1FJBFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2011 21:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.miao@canonical.com, Valdis.Kletnieks@vt.edu, eric.y.miao@gmail.com, randy.dunlap@oracle.com, rpurdie@rpsys.net
+Cc: hughd@google.com, chris@chris-wilson.co.uk, keithp@keithp.com
 
 
 The patch titled
-     leds: fix the incorrect display in menuconfig
+     drm-i915-more-struct_mutex-locking-fix
 has been added to the -mm tree.  Its filename is
-     leds-fix-the-menuconfig-being-wrongly-displayed.patch
+     drm-i915-more-struct_mutex-locking-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix the incorrect display in menuconfig
-From: Eric Miao <eric.miao@canonical.com>
+Subject: drm-i915-more-struct_mutex-locking-fix
+From: Hugh Dickins <hughd@google.com>
 
-Seems when a config option does not have a dependency of the menuconfig,
-it messes the display of the rest configs, even if it's a hidden one.
+Chris Wilson points out that drm_gem_object_unreference() also
+requires struct_mutex to be held for the final unreference.
 
-Signed-off-by: Eric Miao <eric.y.miao@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Keith Packard <keithp@keithp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/i915/intel_overlay.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/Kconfig~leds-fix-the-menuconfig-being-wrongly-displayed drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-fix-the-menuconfig-being-wrongly-displayed
-+++ a/drivers/leds/Kconfig
-@@ -14,15 +14,14 @@ menuconfig NEW_LEDS
- 	  This is not related to standard keyboard LEDs which are controlled
- 	  via the input system.
- 
-+if NEW_LEDS
-+
- config LEDS_CLASS
- 	bool "LED Class Support"
--	depends on NEW_LEDS
- 	help
- 	  This option enables the led sysfs class in /sys/class/leds.  You'll
- 	  need this to do anything useful with LEDs.  If unsure, say N.
- 
--if NEW_LEDS
+diff -puN drivers/gpu/drm/i915/intel_overlay.c~drm-i915-more-struct_mutex-locking-fix drivers/gpu/drm/i915/intel_overlay.c
+--- a/drivers/gpu/drm/i915/intel_overlay.c~drm-i915-more-struct_mutex-locking-fix
++++ a/drivers/gpu/drm/i915/intel_overlay.c
+@@ -1467,8 +1467,8 @@ void intel_setup_overlay(struct drm_devi
+ out_unpin_bo:
+ 	i915_gem_object_unpin(reg_bo);
+ out_free_bo:
+-	mutex_unlock(&dev->struct_mutex);
+ 	drm_gem_object_unreference(&reg_bo->base);
++	mutex_unlock(&dev->struct_mutex);
+ out_free:
+ 	kfree(overlay);
+ 	return;
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+mm-fix-wrong-kunmap_atomic-pointer.patch
+mm-migratec-dont-account-swapcache-as-shmem.patch
+mm-move-vmtruncate_range-to-truncatec.patch
+mm-move-shmem-prototypes-to-shmem_fsh.patch
+tmpfs-take-control-of-its-truncate_range.patch
+tmpfs-add-shmem_read_mapping_page_gfp.patch
+drm-ttm-use-shmem_read_mapping_page.patch
+drm-i915-use-shmem_read_mapping_page.patch
+drm-i915-use-shmem_truncate_range.patch
+drm-i915-more-struct_mutex-locking.patch
+drm-i915-more-struct_mutex-locking-fix.patch
+mm-cleanup-descriptions-of-filler-arg.patch
+mm-truncate-functions-are-in-truncatec.patch
+mm-tidy-vmtruncate_range-and-related-functions.patch
+mm-consistent-truncate-and-invalidate-loops.patch
+mm-pincer-in-truncate_inode_pages_range.patch
+tmpfs-no-need-to-use-i_lock.patch
+linux-next.patch
+ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch
+prio_tree-debugging-patch.patch
+
