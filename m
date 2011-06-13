@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-percpu-cached-charge-draining-frequency-fix.patch added to -mm tree
-Date: Mon, 13 Jun 2011 14:23:53 -0700
-Message-ID: <201106132123.p5DLNr39022737@imap1.linux-foundation.org>
+Subject: + alpha-fix-several-security-issues.patch added to -mm tree
+Date: Mon, 13 Jun 2011 16:34:07 -0700
+Message-ID: <201106132334.p5DNY7Xo028885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754522Ab1FMV0N (ORCPT
+	by vger.kernel.org with ESMTP id S1755289Ab1FMXeW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jun 2011 17:26:13 -0400
+	Mon, 13 Jun 2011 19:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp
+Cc: drosenberg@vsecurity.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     memcg-fix-percpu-cached-charge-draining-frequency-fix
+     alpha: fix several security issues
 has been added to the -mm tree.  Its filename is
-     memcg-fix-percpu-cached-charge-draining-frequency-fix.patch
+     alpha-fix-several-security-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-percpu-cached-charge-draining-frequency-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha: fix several security issues
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-make percpu_charge_mutex static, tweak comments
+Fix several security issues in Alpha-specific syscalls.  Untested, but
+mostly trivial.
 
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+1. Signedness issue in osf_getdomainname allows copying out-of-bounds
+kernel memory to userland.
+
+2. Signedness issue in osf_sysinfo allows copying large amounts of
+kernel memory to userland.
+
+3. Typo (?) in osf_getsysinfo bounds minimum instead of maximum copy
+size, allowing copying large amounts of kernel memory to userland.
+
+4. Usage of user pointer in osf_wait4 while under KERNEL_DS allows
+privilege escalation via writing return value of sys_wait4 to kernel
+memory.
+
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/alpha/kernel/osf_sys.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-percpu-cached-charge-draining-frequency-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-percpu-cached-charge-draining-frequency-fix
-+++ a/mm/memcontrol.c
-@@ -1938,7 +1938,7 @@ struct memcg_stock_pcp {
- #define FLUSHING_CACHED_CHARGE	(0)
- };
- static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
--DEFINE_MUTEX(percpu_charge_mutex);
-+static DEFINE_MUTEX(percpu_charge_mutex);
+diff -puN arch/alpha/kernel/osf_sys.c~alpha-fix-several-security-issues arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~alpha-fix-several-security-issues
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -409,7 +409,7 @@ SYSCALL_DEFINE2(osf_getdomainname, char 
+ 		return -EFAULT;
  
- /*
-  * Try to consume stocked charge on this cpu. If success, one page is consumed
-@@ -2023,10 +2023,10 @@ static void drain_all_stock_async(struct
- 	get_online_cpus();
+ 	len = namelen;
+-	if (namelen > 32)
++	if (len > 32)
+ 		len = 32;
  
- 	/*
--	 * get a hint for avoiding draining charges on the current cpu,
--	 * which must be exhausted by our charging. But this is not
--	 * required to be a precise check, We use raw_smp_processor_id()
--	 * instead of getcpu()/putcpu().
-+	 * Get a hint for avoiding draining charges on the current cpu,
-+	 * which must be exhausted by our charging.  It is not required that
-+	 * this be a precise check, so we use raw_smp_processor_id() instead of
-+	 * getcpu()/putcpu().
- 	 */
- 	curcpu = raw_smp_processor_id();
- 	for_each_online_cpu(cpu) {
+ 	down_read(&uts_sem);
+@@ -594,7 +594,7 @@ SYSCALL_DEFINE3(osf_sysinfo, int, comman
+ 	down_read(&uts_sem);
+ 	res = sysinfo_table[offset];
+ 	len = strlen(res)+1;
+-	if (len > count)
++	if ((unsigned long)len > (unsigned long)count)
+ 		len = count;
+ 	if (copy_to_user(buf, res, len))
+ 		err = -EFAULT;
+@@ -649,7 +649,7 @@ SYSCALL_DEFINE5(osf_getsysinfo, unsigned
+ 		return 1;
+ 
+ 	case GSI_GET_HWRPB:
+-		if (nbytes < sizeof(*hwrpb))
++		if (nbytes > sizeof(*hwrpb))
+ 			return -EINVAL;
+ 		if (copy_to_user(buffer, hwrpb, nbytes) != 0)
+ 			return -EFAULT;
+@@ -1008,6 +1008,7 @@ SYSCALL_DEFINE4(osf_wait4, pid_t, pid, i
+ {
+ 	struct rusage r;
+ 	long ret, err;
++	unsigned int status = 0;
+ 	mm_segment_t old_fs;
+ 
+ 	if (!ur)
+@@ -1016,13 +1017,15 @@ SYSCALL_DEFINE4(osf_wait4, pid_t, pid, i
+ 	old_fs = get_fs();
+ 		
+ 	set_fs (KERNEL_DS);
+-	ret = sys_wait4(pid, ustatus, options, (struct rusage __user *) &r);
++	ret = sys_wait4(pid, (unsigned int __user *) &status, options,
++			(struct rusage __user *) &r);
+ 	set_fs (old_fs);
+ 
+ 	if (!access_ok(VERIFY_WRITE, ur, sizeof(*ur)))
+ 		return -EFAULT;
+ 
+ 	err = 0;
++	err |= put_user(status, ustatus);
+ 	err |= __put_user(r.ru_utime.tv_sec, &ur->ru_utime.tv_sec);
+ 	err |= __put_user(r.ru_utime.tv_usec, &ur->ru_utime.tv_usec);
+ 	err |= __put_user(r.ru_stime.tv_sec, &ur->ru_stime.tv_sec);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
-origin.patch
-backlight-add-backlight-type-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
-memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch
-memcg-clear-mm-owner-when-last-possible-owner-leaves-fix.patch
-memcg-fix-percpu-cached-charge-draining-frequency-fix.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+alpha-fix-several-security-issues.patch
+drivers-scsi-pmcraid-reject-negative-request-size.patch
 
