@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-several-security-issues.patch added to -mm tree
-Date: Mon, 13 Jun 2011 16:34:07 -0700
-Message-ID: <201106132334.p5DNY7Xo028885@imap1.linux-foundation.org>
+Subject: + cris-fix-some-build-warnings-in-pinmuxc.patch added to -mm tree
+Date: Mon, 13 Jun 2011 16:42:08 -0700
+Message-ID: <201106132342.p5DNg89C029378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755289Ab1FMXeW (ORCPT
+	by vger.kernel.org with ESMTP id S1753625Ab1FMXmV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jun 2011 19:34:22 -0400
+	Mon, 13 Jun 2011 19:42:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     alpha: fix several security issues
+     cris: fix some build warnings in pinmux.c
 has been added to the -mm tree.  Its filename is
-     alpha-fix-several-security-issues.patch
+     cris-fix-some-build-warnings-in-pinmuxc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix several security issues
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: cris: fix some build warnings in pinmux.c
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Fix several security issues in Alpha-specific syscalls.  Untested, but
-mostly trivial.
+Fix some harmless warnings such as
 
-1. Signedness issue in osf_getdomainname allows copying out-of-bounds
-kernel memory to userland.
+src/arch/cris/arch-v32/mach-a3/pinmux.c:273: warning: ISO C90 forbids mixed declarations and code:
 
-2. Signedness issue in osf_sysinfo allows copying large amounts of
-kernel memory to userland.
-
-3. Typo (?) in osf_getsysinfo bounds minimum instead of maximum copy
-size, allowing copying large amounts of kernel memory to userland.
-
-4. Usage of user pointer in osf_wait4 while under KERNEL_DS allows
-privilege escalation via writing return value of sys_wait4 to kernel
-memory.
-
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/cris/arch-v32/mach-a3/pinmux.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~alpha-fix-several-security-issues arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~alpha-fix-several-security-issues
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -409,7 +409,7 @@ SYSCALL_DEFINE2(osf_getdomainname, char 
- 		return -EFAULT;
+diff -puN arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc arch/cris/arch-v32/mach-a3/pinmux.c
+--- a/arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc
++++ a/arch/cris/arch-v32/mach-a3/pinmux.c
+@@ -85,6 +85,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
+ 	int ret = -EINVAL;
+ 	char saved[sizeof pins];
+ 	unsigned long flags;
++	reg_pinmux_rw_hwprot hwprot;
++	reg_clkgen_rw_clk_ctrl clk_ctrl;
  
- 	len = namelen;
--	if (namelen > 32)
-+	if (len > 32)
- 		len = 32;
+ 	spin_lock_irqsave(&pinmux_lock, flags);
  
- 	down_read(&uts_sem);
-@@ -594,7 +594,7 @@ SYSCALL_DEFINE3(osf_sysinfo, int, comman
- 	down_read(&uts_sem);
- 	res = sysinfo_table[offset];
- 	len = strlen(res)+1;
--	if (len > count)
-+	if ((unsigned long)len > (unsigned long)count)
- 		len = count;
- 	if (copy_to_user(buf, res, len))
- 		err = -EFAULT;
-@@ -649,7 +649,7 @@ SYSCALL_DEFINE5(osf_getsysinfo, unsigned
- 		return 1;
+@@ -93,9 +95,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
  
- 	case GSI_GET_HWRPB:
--		if (nbytes < sizeof(*hwrpb))
-+		if (nbytes > sizeof(*hwrpb))
- 			return -EINVAL;
- 		if (copy_to_user(buffer, hwrpb, nbytes) != 0)
- 			return -EFAULT;
-@@ -1008,6 +1008,7 @@ SYSCALL_DEFINE4(osf_wait4, pid_t, pid, i
- {
- 	struct rusage r;
- 	long ret, err;
-+	unsigned int status = 0;
- 	mm_segment_t old_fs;
+ 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
  
- 	if (!ur)
-@@ -1016,13 +1017,15 @@ SYSCALL_DEFINE4(osf_wait4, pid_t, pid, i
- 	old_fs = get_fs();
- 		
- 	set_fs (KERNEL_DS);
--	ret = sys_wait4(pid, ustatus, options, (struct rusage __user *) &r);
-+	ret = sys_wait4(pid, (unsigned int __user *) &status, options,
-+			(struct rusage __user *) &r);
- 	set_fs (old_fs);
+-	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
+-	reg_clkgen_rw_clk_ctrl clk_ctrl = REG_RD(clkgen, regi_clkgen,
+-		rw_clk_ctrl);
++	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
++	clk_ctrl = REG_RD(clkgen, regi_clkgen, rw_clk_ctrl);
  
- 	if (!access_ok(VERIFY_WRITE, ur, sizeof(*ur)))
- 		return -EFAULT;
+ 	switch (function) {
+ 	case pinmux_eth:
+@@ -262,6 +263,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
+ 	int ret = -EINVAL;
+ 	char saved[sizeof pins];
+ 	unsigned long flags;
++	reg_pinmux_rw_hwprot hwprot;
  
- 	err = 0;
-+	err |= put_user(status, ustatus);
- 	err |= __put_user(r.ru_utime.tv_sec, &ur->ru_utime.tv_sec);
- 	err |= __put_user(r.ru_utime.tv_usec, &ur->ru_utime.tv_usec);
- 	err |= __put_user(r.ru_stime.tv_sec, &ur->ru_stime.tv_sec);
+ 	spin_lock_irqsave(&pinmux_lock, flags);
+ 
+@@ -270,7 +272,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
+ 
+ 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
+ 
+-	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
++	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
+ 
+ 	switch (function) {
+ 	case pinmux_eth:
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-alpha-fix-several-security-issues.patch
-drivers-scsi-pmcraid-reject-negative-request-size.patch
+linux-next.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+cris-fix-some-build-warnings-in-pinmuxc.patch
+kexec-remove-kmsg_dump_kexec.patch
 
