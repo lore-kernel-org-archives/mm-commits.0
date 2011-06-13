@@ -1,85 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memorynuma_stat-fix-file-permission.patch added to -mm tree
-Date: Fri, 10 Jun 2011 00:56:12 -0700
-Message-ID: <201106100754.p5A7suQM029544@imap1.linux-foundation.org>
+Subject: [merged] exec-delay-address-limit-change-until-point-of-no-return.patch removed from -mm tree
+Date: Mon, 13 Jun 2011 11:52:57 -0700
+Message-ID: <201106131852.p5DIqu2B014786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751383Ab1FJHzA (ORCPT
+	by vger.kernel.org with ESMTP id S1750899Ab1FMSxj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Jun 2011 03:55:00 -0400
+	Mon, 13 Jun 2011 14:53:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com
+To: minipli@googlemail.com, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: memory.numa_stat: fix file permission
-has been added to the -mm tree.  Its filename is
-     mm-memorynuma_stat-fix-file-permission.patch
+     exec: delay address limit change until point of no return
+has been removed from the -mm tree.  Its filename was
+     exec-delay-address-limit-change-until-point-of-no-return.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: memory.numa_stat: fix file permission
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: exec: delay address limit change until point of no return
+From: Mathias Krause <minipli@googlemail.com>
 
-Commit 406eb0c9b ("memcg: add memory.numastat api for numa statistics")
-adds memory.numa_stat file for memory cgroup.  But the file permissions
-are wrong.
+We use kernel_execve() to transfer control of the init procces from
+kernel to userland. If the program to start as init process isn't given
+on the kernel command line or fails to start we use a few hardcoded
+fallbacks. This fallback mechanism does not work when we encounter a
+file that is executable but fails to start, e.g. due to a missing
+library dependency or by having an unsupported file format.
 
-[kamezawa@bluextal linux-2.6]$ ls -l /cgroup/memory/A/memory.numa_stat
----------- 1 root root 0 Jun  9 18:36 /cgroup/memory/A/memory.numa_stat
+Unconditionally changing the address limit to USER_DS and not restoring it
+to its old value in the error path is wrong because it prevents us using
+kernel memory on repeated calls to this function.  This, in fact, breaks
+the fallback of hard coded paths to the init program from being ever
+successful if the first candidate fails to load.
 
-This patch fixes the permission as
+With this patch applied switching to USER_DS is delayed until the point of
+no return is reached which makes it possible to have a multi-arch rootfs
+with one arch specific init binary for each of the (hard coded) probed
+paths.
 
-[root@bluextal kamezawa]# ls -l /cgroup/memory/A/memory.numa_stat
--r--r--r-- 1 root root 0 Jun 10 16:49 /cgroup/memory/A/memory.numa_stat
+Since the address limit is already set to USER_DS when start_thread()
+will be invoked, this redundancy can be safely removed.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/process_32.c |    1 -
+ arch/x86/kernel/process_64.c |    1 -
+ fs/exec.c                    |    5 +----
+ 3 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memorynuma_stat-fix-file-permission mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memorynuma_stat-fix-file-permission
-+++ a/mm/memcontrol.c
-@@ -4640,6 +4640,7 @@ static struct cftype mem_cgroup_files[] 
- 	{
- 		.name = "numa_stat",
- 		.open = mem_control_numa_stat_open,
-+		.mode = S_IRUGO,
- 	},
- #endif
- };
-_
-
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
-
-vmscanmemcg-memcg-aware-swap-token.patch
-vmscanmemcg-memcg-aware-swap-token-fix.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
-memcg-add-documentation-for-the-memorynumastat-api.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-fix-wrong-kunmap_atomic-pointer.patch
-mm-memory_hotplugc-fix-building-of-node-hotplug-zonelist.patch
-mm-memorynuma_stat-fix-file-permission.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
-
+diff -puN arch/x86/kernel/process_32.c~exec-delay-address-limit-change-until-point-of-no-return arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/arch/x86/kernel/process_32.c
+@@ -245,7 +245,6 @@ start_thread(struct pt_regs *regs, unsig
+ {
+ 	set_user_gs(regs, 0);
+ 	regs->fs		= 0;
+-	set_fs(USER_DS);
+ 	regs->ds		= __USER_DS;
+ 	regs->es		= __USER_DS;
+ 	regs->ss		= __USER_DS;
+diff -puN arch/x86/kernel/process_64.c~exec-delay-address-limit-change-until-point-of-no-return arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/arch/x86/kernel/process_64.c
+@@ -338,7 +338,6 @@ start_thread_common(struct pt_regs *regs
+ 	regs->cs		= _cs;
+ 	regs->ss		= _ss;
+ 	regs->flags		= X86_EFLAGS_IF;
+-	set_fs(USER_DS);
+ 	/*
+ 	 * Free the old FP and other extended state
+ 	 */
+diff -puN fs/exec.c~exec-delay-address-limit-change-until-point-of-no-return fs/exec.c
+--- a/fs/exec.c~exec-delay-address-limit-change-until-point-of-no-return
++++ a/fs/exec.c
+@@ -1093,6 +1093,7 @@ int flush_old_exec(struct linux_binprm *
+ 
+ 	bprm->mm = NULL;		/* We're using it now */
+ 
++	set_fs(USER_DS);
+ 	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD);
+ 	flush_thread();
+ 	current->personality &= ~bprm->per_clear;
+@@ -1357,10 +1358,6 @@ int search_binary_handler(struct linux_b
+ 	if (retval)
+ 		return retval;
+ 
+-	/* kernel module loader fixup */
+-	/* so we don't try to load run modprobe in kernel space. */
+-	set_fs(USER_DS);
