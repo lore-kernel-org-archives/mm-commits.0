@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-percpu-cached-charge-draining-frequency.patch added to -mm tree
-Date: Mon, 13 Jun 2011 14:23:50 -0700
-Message-ID: <201106132123.p5DLNplj022733@imap1.linux-foundation.org>
+Subject: + memcg-clear-mm-owner-when-last-possible-owner-leaves.patch added to -mm tree
+Date: Mon, 13 Jun 2011 14:23:42 -0700
+Message-ID: <201106132123.p5DLNg3d022718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754278Ab1FMVYb (ORCPT
+	by vger.kernel.org with ESMTP id S1754345Ab1FMVYd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jun 2011 17:24:31 -0400
+	Mon, 13 Jun 2011 17:24:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, davej@redhat.com, hannes@cmpxchg.org, hughd@google.com
 
 
 The patch titled
-     memcg: fix percpu cached charge draining frequency
+     memcg: clear mm->owner when last possible owner leaves
 has been added to the -mm tree.  Its filename is
-     memcg-fix-percpu-cached-charge-draining-frequency.patch
+     memcg-clear-mm-owner-when-last-possible-owner-leaves.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,179 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix percpu cached charge draining frequency
+Subject: memcg: clear mm->owner when last possible owner leaves
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-For performance, memory cgroup caches some "charge" from res_counter into
-per cpu cache.  This works well but because it's cache, it needs to be
-flushed in some cases.  Typical cases are
+The following crash was reported:
 
-  1. when someone hit limit.
+> Call Trace:
+> [<ffffffff81139792>] mem_cgroup_from_task+0x15/0x17
+> [<ffffffff8113a75a>] __mem_cgroup_try_charge+0x148/0x4b4
+> [<ffffffff810493f3>] ? need_resched+0x23/0x2d
+> [<ffffffff814cbf43>] ? preempt_schedule+0x46/0x4f
+> [<ffffffff8113afe8>] mem_cgroup_charge_common+0x9a/0xce
+> [<ffffffff8113b6d1>] mem_cgroup_newpage_charge+0x5d/0x5f
+> [<ffffffff81134024>] khugepaged+0x5da/0xfaf
+> [<ffffffff81078ea0>] ? __init_waitqueue_head+0x4b/0x4b
+> [<ffffffff81133a4a>] ? add_mm_counter.constprop.5+0x13/0x13
+> [<ffffffff81078625>] kthread+0xa8/0xb0
+> [<ffffffff814d13e8>] ? sub_preempt_count+0xa1/0xb4
+> [<ffffffff814d5664>] kernel_thread_helper+0x4/0x10
+> [<ffffffff814ce858>] ? retint_restore_args+0x13/0x13
+> [<ffffffff8107857d>] ? __init_kthread_worker+0x5a/0x5a
 
-  2. when rmdir() is called and need to charges to be 0.
+What happens is that khugepaged tries to charge a huge page against an mm
+whose last possible owner has already exited, and the memory controller
+crashes when the stale mm->owner is used to look up the cgroup to charge.
 
-But "1" has problem.
+mm->owner has never been set to NULL with the last owner going away, but
+nobody cared until khugepaged came along.
 
-Recently, with large SMP machines, we see many kworker runs because of
-flushing memcg's cache.  Bad things in implementation are that even if a
-cpu contains a cache for memcg not related to a memcg which hits limit,
-drain code is called.
+Even then it wasn't a problem because the final mmput() on an mm was
+forced to acquire and release mmap_sem in write-mode, preventing an
+exiting owner to go away while the mmap_sem was held, and until "692e0b3
+mm: thp: optimize memcg charge in khugepaged", the memory cgroup charge
+was protected by mmap_sem in read-mode.
 
-This patch does
-	A) check percpu cache contains a useful data or not.
-	B) check other asynchronous percpu draining doesn't run.
-	C) don't call local cpu callback.
-	D) don't call at softlimit reclaim.
+Instead of going back to relying on the mmap_sem to enforce lifetime of a
+task, this patch ensures that mm->owner is properly set to NULL when the
+last possible owner is exiting, which the memory controller can handle
+just fine.
 
-(*)This patch avoid changing the calling condition with hard-limit.
-
-When I run "cat 1Gfile > /dev/null" under 300M limit memcg,
-
-[Before]
-13767 kamezawa  20   0 98.6m  424  416 D 10.0  0.0   0:00.61 cat
-   58 root      20   0     0    0    0 S  0.6  0.0   0:00.09 kworker/2:1
-   60 root      20   0     0    0    0 S  0.6  0.0   0:00.08 kworker/4:1
-    4 root      20   0     0    0    0 S  0.3  0.0   0:00.02 kworker/0:0
-   57 root      20   0     0    0    0 S  0.3  0.0   0:00.05 kworker/1:1
-   61 root      20   0     0    0    0 S  0.3  0.0   0:00.05 kworker/5:1
-   62 root      20   0     0    0    0 S  0.3  0.0   0:00.05 kworker/6:1
-   63 root      20   0     0    0    0 S  0.3  0.0   0:00.05 kworker/7:1
-
-[After]
- 2676 root      20   0 98.6m  416  416 D  9.3  0.0   0:00.87 cat
- 2626 kamezawa  20   0 15192 1312  920 R  0.3  0.0   0:00.28 top
-    1 root      20   0 19384 1496 1204 S  0.0  0.0   0:00.66 init
-    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd
-    3 root      20   0     0    0    0 S  0.0  0.0   0:00.00 ksoftirqd/0
-    4 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kworker/0:0
-
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   61 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 17 deletions(-)
+ kernel/exit.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-percpu-cached-charge-draining-frequency mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-percpu-cached-charge-draining-frequency
-+++ a/mm/memcontrol.c
-@@ -359,7 +359,7 @@ enum charge_type {
- static void mem_cgroup_get(struct mem_cgroup *mem);
- static void mem_cgroup_put(struct mem_cgroup *mem);
- static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
--static void drain_all_stock_async(void);
-+static void drain_all_stock_async(struct mem_cgroup *mem);
+diff -puN kernel/exit.c~memcg-clear-mm-owner-when-last-possible-owner-leaves kernel/exit.c
+--- a/kernel/exit.c~memcg-clear-mm-owner-when-last-possible-owner-leaves
++++ a/kernel/exit.c
+@@ -561,29 +561,28 @@ void exit_files(struct task_struct *tsk)
  
- static struct mem_cgroup_per_zone *
- mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
-@@ -1670,8 +1670,8 @@ static int mem_cgroup_hierarchical_recla
- 		victim = mem_cgroup_select_victim(root_mem);
- 		if (victim == root_mem) {
- 			loop++;
--			if (loop >= 1)
--				drain_all_stock_async();
-+			if (!check_soft && loop >= 1)
-+				drain_all_stock_async(root_mem);
- 			if (loop >= 2) {
- 				/*
- 				 * If we have not been able to reclaim
-@@ -1934,9 +1934,11 @@ struct memcg_stock_pcp {
- 	struct mem_cgroup *cached; /* this never be root cgroup */
- 	unsigned int nr_pages;
- 	struct work_struct work;
-+	unsigned long flags;
-+#define FLUSHING_CACHED_CHARGE	(0)
- };
- static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
--static atomic_t memcg_drain_count;
-+DEFINE_MUTEX(percpu_charge_mutex);
- 
+ #ifdef CONFIG_MM_OWNER
  /*
-  * Try to consume stocked charge on this cpu. If success, one page is consumed
-@@ -1984,6 +1986,7 @@ static void drain_local_stock(struct wor
- {
- 	struct memcg_stock_pcp *stock = &__get_cpu_var(memcg_stock);
- 	drain_stock(stock);
-+	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- }
- 
- /*
-@@ -2008,26 +2011,50 @@ static void refill_stock(struct mem_cgro
-  * expects some charges will be back to res_counter later but cannot wait for
-  * it.
+- * Task p is exiting and it owned mm, lets find a new owner for it
++ * A task is exiting and if it owned mm, lets find a new owner for it
   */
--static void drain_all_stock_async(void)
-+static void drain_all_stock_async(struct mem_cgroup *root_mem)
+-static inline int
+-mm_need_new_owner(struct mm_struct *mm, struct task_struct *p)
+-{
+-	/*
+-	 * If there are other users of the mm and the owner (us) is exiting
+-	 * we need to find a new owner to take on the responsibility.
+-	 */
+-	if (atomic_read(&mm->mm_users) <= 1)
+-		return 0;
+-	if (mm->owner != p)
+-		return 0;
+-	return 1;
+-}
+-
+ void mm_update_next_owner(struct mm_struct *mm)
  {
--	int cpu;
--	/* This function is for scheduling "drain" in asynchronous way.
--	 * The result of "drain" is not directly handled by callers. Then,
--	 * if someone is calling drain, we don't have to call drain more.
--	 * Anyway, WORK_STRUCT_PENDING check in queue_work_on() will catch if
--	 * there is a race. We just do loose check here.
-+	int cpu, curcpu;
+ 	struct task_struct *c, *g, *p = current;
+ 
+ retry:
+-	if (!mm_need_new_owner(mm, p))
 +	/*
-+	 * If someone calls draining, avoid adding more kworker runs.
- 	 */
--	if (atomic_read(&memcg_drain_count))
-+	if (!mutex_trylock(&percpu_charge_mutex))
- 		return;
- 	/* Notify other cpus that system-wide "drain" is running */
--	atomic_inc(&memcg_drain_count);
- 	get_online_cpus();
-+
-+	/*
-+	 * get a hint for avoiding draining charges on the current cpu,
-+	 * which must be exhausted by our charging. But this is not
-+	 * required to be a precise check, We use raw_smp_processor_id()
-+	 * instead of getcpu()/putcpu().
++	 * If the exiting or execing task is not the owner, it's
++	 * someone else's problem.
 +	 */
-+	curcpu = raw_smp_processor_id();
- 	for_each_online_cpu(cpu) {
- 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
--		schedule_work_on(cpu, &stock->work);
-+		struct mem_cgroup *mem;
-+
-+		if (cpu == curcpu)
-+			continue;
-+
-+		mem = stock->cached;
-+		if (!mem)
-+			continue;
-+		if (mem != root_mem) {
-+			if (!root_mem->use_hierarchy)
-+				continue;
-+			/* check whether "mem" is under tree of "root_mem" */
-+			rcu_read_lock();
-+			if (!css_is_ancestor(&mem->css, &root_mem->css)) {
-+				rcu_read_unlock();
-+				continue;
-+			}
-+			rcu_read_unlock();
-+		}
-+		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags))
-+			schedule_work_on(cpu, &stock->work);
- 	}
-  	put_online_cpus();
--	atomic_dec(&memcg_drain_count);
-+	mutex_unlock(&percpu_charge_mutex);
- 	/* We don't wait for flush_work */
- }
++	if (mm->owner != p)
+ 		return;
++	/*
++	 * The current owner is exiting/execing and there are no other
++	 * candidates.  Do not leave the mm pointing to a possibly
++	 * freed task structure.
++	 */
++	if (atomic_read(&mm->mm_users) <= 1) {
++		mm->owner = NULL;
++		return;
++	}
  
-@@ -2035,9 +2062,9 @@ static void drain_all_stock_async(void)
- static void drain_all_stock_sync(void)
- {
- 	/* called when force_empty is called */
--	atomic_inc(&memcg_drain_count);
-+	mutex_lock(&percpu_charge_mutex);
- 	schedule_on_each_cpu(drain_local_stock);
--	atomic_dec(&memcg_drain_count);
-+	mutex_unlock(&percpu_charge_mutex);
- }
- 
- /*
+ 	read_lock(&tasklist_lock);
+ 	/*
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
