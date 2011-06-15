@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:25 -0700
-Message-ID: <201106150124.p5F1OgA7031990@imap1.linux-foundation.org>
+Subject: + mm-remove-the-leftovers-of-noswapaccount.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:24 -0700
+Message-ID: <201106150124.p5F1Ofug031984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751624Ab1FOBgf (ORCPT
+	by vger.kernel.org with ESMTP id S1752837Ab1FOBhK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:36:35 -0400
+	Tue, 14 Jun 2011 21:37:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, lenb@kernel.org
+Cc: xiyou.wangcong@gmail.com, mhocko@suse.cz
 
 
 The patch titled
-     intel_idle: disable auto_demotion for hotplugged CPUs
+     mm: remove the leftovers of noswapaccount
 has been added to the -mm tree.  Its filename is
-     intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+     mm-remove-the-leftovers-of-noswapaccount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_idle: disable auto_demotion for hotplugged CPUs
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: mm: remove the leftovers of noswapaccount
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-auto_demotion_disable is called only for online CPUs.  For hotplugged
-CPUs, we should disable it too.
+In commit a2c8990aed5ab ("memsw: remove noswapaccount kernel parameter"),
+Michal forgot to remove some left pieces of noswapaccount in the tree,
+this patch removes them all.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <>
 ---
 
- drivers/idle/intel_idle.c |   53 ++++++++++++++++++++++--------------
- 1 file changed, 33 insertions(+), 20 deletions(-)
+ Documentation/feature-removal-schedule.txt |   16 ----------------
+ init/Kconfig                               |    4 ++--
+ mm/page_cgroup.c                           |    2 +-
+ 3 files changed, 3 insertions(+), 19 deletions(-)
 
-diff -puN drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus
-+++ a/drivers/idle/intel_idle.c
-@@ -270,33 +270,42 @@ static void __setup_broadcast_timer(void
- 	clockevents_notify(reason, &cpu);
- }
+diff -puN Documentation/feature-removal-schedule.txt~mm-remove-the-leftovers-of-noswapaccount Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-remove-the-leftovers-of-noswapaccount
++++ a/Documentation/feature-removal-schedule.txt
+@@ -509,22 +509,6 @@ Files:	net/netfilter/xt_connlimit.c
  
--static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
-+static void auto_demotion_disable(void *dummy)
-+{
-+	unsigned long long msr_bits;
-+
-+	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+	msr_bits &= ~auto_demotion_disable_flags;
-+	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+}
-+
-+static void __intel_idle_notify_handler(void *arg)
-+{
-+	if (auto_demotion_disable_flags)
-+		auto_demotion_disable(NULL);
-+
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
-+		__setup_broadcast_timer((void *)true);
-+}
-+
-+static int setup_intelidle_cpuhp_notify(struct notifier_block *n,
- 		unsigned long action, void *hcpu)
- {
- 	int hotcpu = (unsigned long)hcpu;
+ ----------------------------
  
- 	switch (action & 0xf) {
- 	case CPU_ONLINE:
--		smp_call_function_single(hotcpu, __setup_broadcast_timer,
--			(void *)true, 1);
-+		smp_call_function_single(hotcpu, __intel_idle_notify_handler,
-+			NULL, 1);
- 		break;
- 	}
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block setup_broadcast_notifier = {
--	.notifier_call = setup_broadcast_cpuhp_notify,
-+static struct notifier_block setup_intelidle_notifier = {
-+	.notifier_call = setup_intelidle_cpuhp_notify,
- };
- 
--static void auto_demotion_disable(void *dummy)
--{
--	unsigned long long msr_bits;
+-What:	noswapaccount kernel command line parameter
+-When:	2.6.40
+-Why:	The original implementation of memsw feature enabled by
+-	CONFIG_CGROUP_MEM_RES_CTLR_SWAP could be disabled by the noswapaccount
+-	kernel parameter (introduced in 2.6.29-rc1). Later on, this decision
+-	turned out to be not ideal because we cannot have the feature compiled
+-	in and disabled by default and let only interested to enable it
+-	(e.g. general distribution kernels might need it). Therefore we have
+-	added swapaccount[=0|1] parameter (introduced in 2.6.37) which provides
+-	the both possibilities. If we remove noswapaccount we will have
+-	less command line parameters with the same functionality and we
+-	can also cleanup the parameter handling a bit ().
+-Who:	Michal Hocko <mhocko@suse.cz>
 -
--	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--	msr_bits &= ~auto_demotion_disable_flags;
--	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--}
+-----------------------------
 -
- /*
-  * intel_idle_probe()
-  */
-@@ -366,10 +375,8 @@ static int intel_idle_probe(void)
+ What:	ipt_addrtype match include file
+ When:	2012
+ Why:	superseded by xt_addrtype
+diff -puN init/Kconfig~mm-remove-the-leftovers-of-noswapaccount init/Kconfig
+--- a/init/Kconfig~mm-remove-the-leftovers-of-noswapaccount
++++ a/init/Kconfig
+@@ -673,7 +673,7 @@ config CGROUP_MEM_RES_CTLR_SWAP
+ 	  be careful about enabling this. When memory resource controller
+ 	  is disabled by boot option, this will be automatically disabled and
+ 	  there will be no overhead from this. Even when you set this config=y,
+-	  if boot option "noswapaccount" is set, swap will not be accounted.
++	  if boot option "swapaccount=0" is set, swap will not be accounted.
+ 	  Now, memory usage of swap_cgroup is 2 bytes per entry. If swap page
+ 	  size is 4096bytes, 512k per 1Gbytes of swap.
+ config CGROUP_MEM_RES_CTLR_SWAP_ENABLED
+@@ -688,7 +688,7 @@ config CGROUP_MEM_RES_CTLR_SWAP_ENABLED
+ 	  parameter should have this option unselected.
+ 	  For those who want to have the feature enabled by default should
+ 	  select this option (if, for some reason, they need to disable it
+-	  then noswapaccount does the trick).
++	  then swapaccount=0 does the trick).
  
- 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
- 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
--	else {
-+	else
- 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
--		register_cpu_notifier(&setup_broadcast_notifier);
--	}
- 
- 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
- 		" model 0x%X\n", boot_cpu_data.x86_model);
-@@ -490,6 +497,10 @@ static int __init intel_idle_init(void)
- 		return retval;
- 	}
- 
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		register_cpu_notifier(&setup_intelidle_notifier);
-+
- 	return 0;
+ config CGROUP_PERF
+ 	bool "Enable perf_event per-cpu per-container group (cgroup) monitoring"
+diff -puN mm/page_cgroup.c~mm-remove-the-leftovers-of-noswapaccount mm/page_cgroup.c
+--- a/mm/page_cgroup.c~mm-remove-the-leftovers-of-noswapaccount
++++ a/mm/page_cgroup.c
+@@ -537,7 +537,7 @@ int swap_cgroup_swapon(int type, unsigne
+ nomem:
+ 	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
+ 	printk(KERN_INFO
+-		"swap_cgroup can be disabled by noswapaccount boot option\n");
++		"swap_cgroup can be disabled by swapaccount=0 boot option\n");
+ 	return -ENOMEM;
  }
  
-@@ -498,10 +509,12 @@ static void __exit intel_idle_exit(void)
- 	intel_idle_cpuidle_devices_uninit();
- 	cpuidle_unregister_driver(&intel_idle_driver);
- 
--	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
- 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
--		unregister_cpu_notifier(&setup_broadcast_notifier);
--	}
-+
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		unregister_cpu_notifier(&setup_intelidle_notifier);
- 
- 	return;
- }
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-compaction-checks-correct-fragmentation-index.patch
+gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel.patch
+documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt.patch
 linux-next.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+mm-remove-the-leftovers-of-noswapaccount.patch
+cris-fix-some-build-warnings-in-pinmuxc.patch
+kexec-remove-kmsg_dump_kexec.patch
 
