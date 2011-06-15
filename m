@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-do-not-use-page_count-without-a-page-pin.patch added to -mm tree
+Subject: + mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch added to -mm tree
 Date: Tue, 14 Jun 2011 18:27:19 -0700
-Message-ID: <201106150124.p5F1OaMV031960@imap1.linux-foundation.org>
+Message-ID: <201106150124.p5F1OadZ031965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754293Ab1FOBZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754293Ab1FOBZT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:16 -0400
+	Tue, 14 Jun 2011 21:25:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com
+Cc: mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, urykhy@gmail.com
 
 
 The patch titled
-     mm: vmscan: do not use page_count without a page pin
+     mm: compaction: abort compaction if too many pages are isolated and caller is asynchronous V2
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
+     mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: do not use page_count without a page pin
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: compaction: abort compaction if too many pages are isolated and caller is asynchronous V2
+From: Mel Gorman <mgorman@suse.de>
 
-It is unsafe to run page_count during the physical pfn scan because
-compound_head could trip on a dangling pointer when reading
-page->first_page if the compound page is being freed by another CPU.
+Asynchronous compaction is used when promoting to huge pages.  This is all
+very nice but if there are a number of processes in compacting memory, a
+large number of pages can be isolated.  An "asynchronous" process can
+stall for long periods of time as a result with a user reporting that
+firefox can stall for 10s of seconds.  This patch aborts asynchronous
+compaction if too many pages are isolated as it's better to fail a
+hugepage promotion than stall a process.
 
-[mgorman@suse.de: split out patch]
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+[minchan.kim@gmail.com: return COMPACT_PARTIAL for abort]
+Reported-and-tested-by: Ury Stankevich <urykhy@gmail.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Andrew Morton <>
 ---
 
- mm/vmscan.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ mm/compaction.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-use-page_count-without-a-page-pin mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-use-page_count-without-a-page-pin
-+++ a/mm/vmscan.c
-@@ -1124,8 +1124,20 @@ static unsigned long isolate_lru_pages(u
- 					nr_lumpy_dirty++;
- 				scan++;
- 			} else {
--				/* the page is freed already. */
--				if (!page_count(cursor_page))
-+				/*
-+				 * Check if the page is freed already.
-+				 *
-+				 * We can't use page_count() as that
-+				 * requires compound_head and we don't
-+				 * have a pin on the page here. If a
-+				 * page is tail, we may or may not
-+				 * have isolated the head, so assume
-+				 * it's not free, it'd be tricky to
-+				 * track the head status without a
-+				 * page pin.
-+				 */
-+				if (!PageTail(cursor_page) &&
-+				    !atomic_read(&cursor_page->_count))
- 					continue;
- 				break;
- 			}
+diff -puN mm/compaction.c~mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2
++++ a/mm/compaction.c
+@@ -251,11 +251,18 @@ static bool too_many_isolated(struct zon
+ 	return isolated > (inactive + active) / 2;
+ }
+ 
++/* possible outcome of isolate_migratepages */
++typedef enum {
++	ISOLATE_ABORT,		/* Abort compaction now */
++	ISOLATE_NONE,		/* No pages isolated, continue scanning */
++	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
++} isolate_migrate_t;
++
+ /*
+  * Isolate all pages that can be migrated from the block pointed to by
+  * the migrate scanner within compact_control.
+  */
+-static unsigned long isolate_migratepages(struct zone *zone,
++static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 					struct compact_control *cc)
+ {
+ 	unsigned long low_pfn, end_pfn;
+@@ -272,7 +279,7 @@ static unsigned long isolate_migratepage
+ 	/* Do not cross the free scanner or scan within a memory hole */
+ 	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+ 		cc->migrate_pfn = end_pfn;
+-		return 0;
++		return ISOLATE_NONE;
+ 	}
+ 
+ 	/*
+@@ -281,10 +288,14 @@ static unsigned long isolate_migratepage
+ 	 * delay for some time until fewer pages are isolated
+ 	 */
+ 	while (unlikely(too_many_isolated(zone))) {
++		/* async migration should just abort */
++		if (!cc->sync)
++			return ISOLATE_ABORT;
++
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		if (fatal_signal_pending(current))
+-			return 0;
++			return ISOLATE_ABORT;
+ 	}
+ 
+ 	/* Time to isolate some pages for migration */
+@@ -369,7 +380,7 @@ static unsigned long isolate_migratepage
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
+-	return cc->nr_migratepages;
++	return ISOLATE_SUCCESS;
+ }
+ 
+ /*
+@@ -535,8 +546,15 @@ static int compact_zone(struct zone *zon
+ 		unsigned long nr_migrate, nr_remaining;
+ 		int err;
+ 
+-		if (!isolate_migratepages(zone, cc))
++		switch (isolate_migratepages(zone, cc)) {
++		case ISOLATE_ABORT:
++			ret = COMPACT_PARTIAL;
++			goto out;
++		case ISOLATE_NONE:
+ 			continue;
++		case ISOLATE_SUCCESS:
++			;
++		}
+ 
+ 		nr_migrate = cc->nr_migratepages;
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+@@ -560,6 +578,7 @@ static int compact_zone(struct zone *zon
+ 
+ 	}
+ 
++out:
+ 	/* Release free pages and check accounting */
+ 	cc->nr_freepages -= release_freepages(&cc->freepages);
+ 	VM_BUG_ON(cc->nr_freepages != 0);
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-mm-remove-khugepaged-double-thp-vmstat-update-with-config_numa=n.patch
+mm-compaction-fix-special-case-1-order-checks.patch
 mm-migratec-dont-account-swapcache-as-shmem.patch
-include-asm-generic-pgtableh-fix-unbalanced-parenthesis.patch
-mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
-memcg-clear-mm-owner-when-last-possible-owner-leaves.patch
-mm-memory-failurec-fix-page-isolated-count-mismatch.patch
+mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch
 mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
-ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch
-pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
-pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
-pagewalk-add-locking-rule-comments.patch
-pagewalk-add-locking-rule-comments-fix.patch
-pagewalk-fix-code-comment-for-thp.patch
+mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch
 
