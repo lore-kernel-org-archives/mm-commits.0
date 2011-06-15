@@ -1,141 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscanmemcg-memcg-aware-swap-token-fix.patch removed from -mm tree
-Date: Wed, 15 Jun 2011 15:01:57 -0700
-Message-ID: <201106152201.p5FM1vPE022023@imap1.linux-foundation.org>
+Subject: [folded] memcg-add-documentation-for-the-memorynumastat-api-fix.patch removed from -mm tree
+Date: Wed, 15 Jun 2011 15:02:25 -0700
+Message-ID: <201106152202.p5FM2PaI022048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752483Ab1FOWCf (ORCPT
+	by vger.kernel.org with ESMTP id S1752840Ab1FOWC7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jun 2011 18:02:35 -0400
+	Wed, 15 Jun 2011 18:02:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscanmemcg-memcg-aware-swap-token-fix
+     memcg-add-documentation-for-the-memorynumastat-api-fix
 has been removed from the -mm tree.  Its filename was
-     vmscanmemcg-memcg-aware-swap-token-fix.patch
+     memcg-add-documentation-for-the-memorynumastat-api-fix.patch
 
-This patch was dropped because it was folded into vmscanmemcg-memcg-aware-swap-token.patch
+This patch was dropped because it was folded into memcg-add-documentation-for-the-memorynumastat-api.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscanmemcg-memcg-aware-swap-token-fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg-add-documentation-for-the-memorynumastat-api-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-> CONFIG_CGROUPS=n:
->
-> mm/thrash.c: In function 'grab_swap_token':
-> mm/thrash.c:73: error: implicit declaration of function 'css_put'
->
-> I don't think that adding a null stub for css_put() is the right fix
-> here...
+rework text, fit it into 80-cols
 
-My bad. Following patch fixes this issue.
-
-Thanks.
-
-From 6a824b46219cb2f11b125e9a33f65e0f01899d09 Mon Sep 17 00:00:00 2001
-Date: Mon, 30 May 2011 15:47:32 +0900
-Subject: [PATCH] swap-token: fix compilation error when CONFIG_CGROUPS=n
-
-Andrew Morton pointed out css_put() is not defined when
-CONFIG_CGROUPS=n.
-
-: CONFIG_CGROUPS=n:
-:
-: mm/thrash.c: In function 'grab_swap_token':
-: mm/thrash.c:73: error: implicit declaration of function 'css_put'
-
-Thus, this patch move the whole logic into CONFIG_CGROUP_MEM_RES_CTLR
-condtion.
-
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Rik van Riel<riel@redhat.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ Documentation/cgroups/memory.txt |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix mm/thrash.c
---- a/mm/thrash.c~vmscanmemcg-memcg-aware-swap-token-fix
-+++ a/mm/thrash.c
-@@ -28,10 +28,27 @@ struct mm_struct *swap_token_mm;
- struct mem_cgroup *swap_token_memcg;
- static unsigned int global_faults;
+diff -puN Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -467,13 +467,14 @@ value in memory.stat(see 5.2).
  
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	memcg = try_get_mem_cgroup_from_mm(mm);
-+	if (memcg)
-+		css_put(mem_cgroup_css(memcg));
-+
-+	return memcg;
-+}
-+#else
-+static struct mem_cgroup* swap_token_memcg_from_mm(struct mm_struct *mm)
-+{
-+	return NULL;
-+}
-+#endif
-+
- void grab_swap_token(struct mm_struct *mm)
- {
- 	int current_interval;
--	struct mem_cgroup *memcg;
+ 5.6 numa_stat
  
- 	global_faults++;
+-This is similar to numa_maps but per-memcg basis. This is useful to add visibility
+-of numa locality information in memcg since the pages are allowed to be allocated
+-at any physical node. One of the usecase is evaluating application performance by
+-combining this information with the cpu allocation to the application.
++This is similar to numa_maps but operates on a per-memcg basis.  This is
++useful for providing visibility into the numa locality information within
++an memcg since the pages are allowed to be allocated from any physical
++node.  One of the usecases is evaluating application performance by
++combining this information with the application's cpu allocation.
  
-@@ -68,11 +85,8 @@ out:
+-We export "total", "file", "anon" and "unevictable" pages per-node for each memcg.
+-The format ouput of the memory.numa_stat:
++We export "total", "file", "anon" and "unevictable" pages per-node for
++each memcg.  The ouput format of memory.numa_stat is:
  
- replace_token:
- 	mm->token_priority += 2;
--	memcg = try_get_mem_cgroup_from_mm(mm);
--	if (memcg)
--		css_put(mem_cgroup_css(memcg));
- 	swap_token_mm = mm;
--	swap_token_memcg = memcg;
-+	swap_token_memcg = swap_token_memcg_from_mm(mm);
- 	goto out;
- }
- 
+ total=<total pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ file=<total file pages> N0=<node 0 pages> N1=<node 1 pages> ...
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token.patch
-vmscanmemcg-memcg-aware-swap-token-fix-checkpatch-fixes.patch
-vmscan-implement-swap-token-trace.patch
-vmscan-implement-swap-token-priority-aging.patch
 memcg-add-documentation-for-the-memorynumastat-api.patch
-memcg-add-documentation-for-the-memorynumastat-api-fix.patch
-mm-increase-reclaim_distance-to-30.patch
-mm-migratec-dont-account-swapcache-as-shmem.patch
-build_bug_on_zero-fix-sparse-breakage.patch
+mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
+memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch
+memcg-clear-mm-owner-when-last-possible-owner-leaves-fix.patch
+memcg-fix-percpu-cached-charge-draining-frequency.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
 slab-use-numa_no_node.patch
-mm-swap-token-fix-dead-link.patch
-mm-swap-token-makes-global-variables-to-function-local.patch
-mm-swap-token-add-a-comment-for-priority-aging.patch
-pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
-pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
-pagewalk-add-locking-rule-comments.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
 pagewalk-add-locking-rule-comments-fix.patch
-pagewalk-fix-code-comment-for-thp.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
 kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
