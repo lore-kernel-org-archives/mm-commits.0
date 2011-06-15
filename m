@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failurec-fix-page-isolated-count-mismatch.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:15 -0700
-Message-ID: <201106150124.p5F1OWOK031950@imap1.linux-foundation.org>
+Subject: + maintainers-add-entry-for-legacy-eeprom-driver.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:24:41 -0700
+Message-ID: <201106150123.p5F1Lw7h031878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754448Ab1FOBZl (ORCPT
+	by vger.kernel.org with ESMTP id S1751624Ab1FOB0B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:41 -0400
+	Tue, 14 Jun 2011 21:26:01 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p5F1NhpG010716
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2011 18:23:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, aarcange@redhat.com, andi@firstfloor.org, mel@csn.ul.ie, stable@kernel.org
+Cc: khali@linux-fr.org
 
 
 The patch titled
-     mm/memory-failure.c: fix page isolated count mismatch
+     MAINTAINERS: add entry for legacy eeprom driver
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-fix-page-isolated-count-mismatch.patch
+     maintainers-add-entry-for-legacy-eeprom-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +38,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory-failure.c: fix page isolated count mismatch
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: MAINTAINERS: add entry for legacy eeprom driver
+From: Jean Delvare <khali@linux-fr.org>
 
-Pages isolated for migration are accounted with the vmstat counters
-NR_ISOLATE_[ANON|FILE].  Callers of migrate_pages() are expected to
-increment these counters when pages are isolated from the LRU.  Once the
-pages have been migrated, they are put back on the LRU or freed and the
-isolated count is decremented.
+I shall maintain the legacy eeprom driver, until we finally get rid of it.
 
-Memory failure is not properly accounting for pages it isolates causing
-the NR_ISOLATED counters to be negative.  On SMP builds, this goes
-unnoticed as negative counters are treated as 0 due to expected per-cpu
-drift.  On UP builds, the counter is treated by too_many_isolated() as a
-large value causing processes to enter D state during page reclaim or
-compaction.  This patch accounts for pages isolated by memory failure
-correctly.
-
-[mel@csn.ul.ie: rewrote changelog]
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@kernel.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-fix-page-isolated-count-mismatch mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-fix-page-isolated-count-mismatch
-+++ a/mm/memory-failure.c
-@@ -52,6 +52,7 @@
- #include <linux/swapops.h>
- #include <linux/hugetlb.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/mm_inline.h>
- #include "internal.h"
+diff -puN MAINTAINERS~maintainers-add-entry-for-legacy-eeprom-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-legacy-eeprom-driver
++++ a/MAINTAINERS
+@@ -3820,6 +3820,12 @@ S:	Maintained
+ F:	drivers/leds/
+ F:	include/linux/leds.h
  
- int sysctl_memory_failure_early_kill __read_mostly = 0;
-@@ -1468,7 +1469,8 @@ int soft_offline_page(struct page *page,
- 	put_page(page);
- 	if (!ret) {
- 		LIST_HEAD(pagelist);
++LEGACY EEPROM DRIVER
++M:	Jean Delvare <khali@linux-fr.org>
++S:	Maintained
++F:	Documentation/misc-devices/eeprom
++F:	drivers/misc/eeprom/eeprom.c
++
+ LEGO USB Tower driver
+ M:	Juergen Stuber <starblue@users.sourceforge.net>
+ L:	legousb-devel@lists.sourceforge.net
+_
+
+Patches currently in -mm which might be from khali@linux-fr.org are
+
+maintainers-add-entry-for-legacy-eeprom-driver.patch
+linux-next.patch
+thermal-hide-config_thermal_hwmon.patch
+thermal-split-hwmon-lookup-to-a-separate-function.patch
+thermal-make-thermal_hwmon-implementation-fully-internal.patch
+drivers-firmware-dmi_scanc-make-dmi_name_in_vendors-more-focused.patch
+
