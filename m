@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:18 -0700
-Message-ID: <201106150124.p5F1OZWW031957@imap1.linux-foundation.org>
+Subject: + compaction-checks-correct-fragmentation-index.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:17 -0700
+Message-ID: <201106150124.p5F1OYNQ031954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754416Ab1FOBZN (ORCPT
+	by vger.kernel.org with ESMTP id S1754533Ab1FOBZb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:13 -0400
+	Tue, 14 Jun 2011 21:25:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com
+Cc: shaohua.li@intel.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     mm: compaction: ensure that the compaction free scanner does not move to the next zone
+     compaction: checks correct fragmentation index
 has been added to the -mm tree.  Its filename is
-     mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch
+     compaction-checks-correct-fragmentation-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: ensure that the compaction free scanner does not move to the next zone
-From: Mel Gorman <mgorman@suse.de>
+Subject: compaction: checks correct fragmentation index
+From: Shaohua Li <shaohua.li@intel.com>
 
-Compaction works with two scanners, a migration and a free scanner.  When
-the scanners crossover, migration within the zone is complete.  The
-location of the scanner is recorded on each cycle to avoid excesive
-scanning.
+fragmentation_index() returns -1000 when the allocation might succeed
+This doesn't match the comment and code in compaction_suitable(). I
+thought compaction_suitable should return COMPACT_PARTIAL in -1000
+case, because in this case allocation could succeed depending on
+watermarks.
 
-When a zone is small and mostly reserved, it's very easy for the migration
-scanner to be close to the end of the zone.  Then the following situation
-can occurs
+The impact of this is that compaction starts and compact_finished() is
+called which rechecks the watermarks and the free lists.  It should have
+the same result in that compaction should not start but is more expensive.
 
-  o migration scanner isolates some pages near the end of the zone
-  o free scanner starts at the end of the zone but finds that the
-    migration scanner is already there
-  o free scanner gets reinitialised for the next cycle as
-    cc->migrate_pfn + pageblock_nr_pages
-    moving the free scanner into the next zone
-  o migration scanner moves into the next zone
-
-When this happens, NR_ISOLATED accounting goes haywire because some of the
-accounting happens against the wrong zone.  One zones counter remains
-positive while the other goes negative even though the overall global
-count is accurate.  This was reported on X86-32 with !SMP because !SMP
-allows the negative counters to be visible.  The fact that it is the bug
-should theoritically be possible there.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/compaction.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone mm/compaction.c
---- a/mm/compaction.c~mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone
+diff -puN mm/compaction.c~compaction-checks-correct-fragmentation-index mm/compaction.c
+--- a/mm/compaction.c~compaction-checks-correct-fragmentation-index
 +++ a/mm/compaction.c
-@@ -144,9 +144,20 @@ static void isolate_freepages(struct zon
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
+@@ -480,7 +480,8 @@ unsigned long compaction_suitable(struct
+ 	 * fragmentation index determines if allocation failures are due to
+ 	 * low memory or external fragmentation
+ 	 *
+-	 * index of -1 implies allocations might succeed dependingon watermarks
++	 * index of -1000 implies allocations might succeed depending on
++	 * watermarks
+ 	 * index towards 0 implies failure is due to lack of memory
+ 	 * index towards 1000 implies failure is due to fragmentation
+ 	 *
+@@ -490,7 +491,8 @@ unsigned long compaction_suitable(struct
+ 	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+ 		return COMPACT_SKIPPED;
  
-+	/*
-+	 * Initialise the free scanner. The starting point is where we last
-+	 * scanned from (or the end of the zone if starting). The low point
-+	 * is the end of the pageblock the migration scanner is using.
-+	 */
- 	pfn = cc->free_pfn;
- 	low_pfn = cc->migrate_pfn + pageblock_nr_pages;
--	high_pfn = low_pfn;
-+
-+	/*
-+	 * Take care that if the migration scanner is at the end of the zone
-+	 * that the free scanner does not accidentally move to the next zone
-+	 * in the next isolation cycle.
-+	 */
-+	high_pfn = min(low_pfn, pfn);
+-	if (fragindex == -1 && zone_watermark_ok(zone, order, watermark, 0, 0))
++	if (fragindex == -1000 && zone_watermark_ok(zone, order, watermark,
++	    0, 0))
+ 		return COMPACT_PARTIAL;
  
- 	/*
- 	 * Isolate free pages until enough are available to migrate the
+ 	return COMPACT_CONTINUE;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-mm-compaction-fix-special-case-1-order-checks.patch
-mm-migratec-dont-account-swapcache-as-shmem.patch
-mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch
-mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
-mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch
+compaction-checks-correct-fragmentation-index.patch
+linux-next.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
