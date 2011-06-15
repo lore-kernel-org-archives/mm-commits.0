@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:22 -0700
-Message-ID: <201106150124.p5F1OdlG031974@imap1.linux-foundation.org>
+Subject: + misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:29 -0700
+Message-ID: <201106150124.p5F1OkVX032008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752837Ab1FOBiG (ORCPT
+	by vger.kernel.org with ESMTP id S1751624Ab1FOBip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:38:06 -0400
+	Tue, 14 Jun 2011 21:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiejun.chen@windriver.com, jbarnes@virtuousgeek.org, rajesh.shah@intel.com
+Cc: agust@denx.de, grant.likely@secretlab.ca, jic23@cam.ac.uk
 
 
 The patch titled
-     pci: enumerate the PCI device only removed out PCI hierarchy of OS when re-scanning PCI
+     misc/eeprom: add eeprom access driver for digsy_mtc board
 has been added to the -mm tree.  Its filename is
-     pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch
+     misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: enumerate the PCI device only removed out PCI hierarchy of OS when re-scanning PCI
-From: Tiejun Chen <tiejun.chen@windriver.com>
+Subject: misc/eeprom: add eeprom access driver for digsy_mtc board
+From: Anatolij Gustschin <agust@denx.de>
 
-When hot-plugging a root bridge, we always prevent assigning a bus number
-that already exists.  This makes sure we don't step over an existing bus. 
-But sometimes we only remove PCI device in PCI hieratchy of OS, i,e.
+Both displays on digsy_mtc board obtain their configuration from microwire
+EEPROMs which are connected to the SoC over GPIO lines.  We need an easy
+way to access the EEPROMs to write the needed display configuration or to
+read out the currently programmed configuration.  The generic
+eeprom_93xx46 SPI driver added by previous patch allows EEPROM access over
+sysfs.  Using the simple driver added by this patch we provide used GPIO
+interface and access control description on the board for generic
+eeprom_93xx46 driver and spi_gpio driver.
 
-echo 1 > /sys/bus/pci/devices/.../remove
-
-but actually don't hotplug this device out the platform, so in this case
-we still should re-scan this bus to enumerate this device when re-scanning
-PCI again.
-
-Signed-off-by: Tiejun Chen <tiejun.chen@windriver.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: <rajesh.shah@intel.com>
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <>
 ---
 
- drivers/pci/probe.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/misc/eeprom/Kconfig            |   12 +++
+ drivers/misc/eeprom/Makefile           |    1 
+ drivers/misc/eeprom/digsy_mtc_eeprom.c |   85 +++++++++++++++++++++++
+ 3 files changed, 98 insertions(+)
 
-diff -puN drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci
-+++ a/drivers/pci/probe.c
-@@ -725,12 +725,14 @@ int __devinit pci_scan_bridge(struct pci
- 		pci_write_config_word(dev, PCI_STATUS, 0xffff);
+diff -puN drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Kconfig
+--- a/drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
++++ a/drivers/misc/eeprom/Kconfig
+@@ -83,4 +83,16 @@ config EEPROM_93XX46
  
- 		/* Prevent assigning a bus number that already exists.
--		 * This can happen when a bridge is hot-plugged */
--		if (pci_find_bus(pci_domain_nr(bus), max+1))
--			goto out;
--		child = pci_add_new_bus(bus, dev, ++max);
--		if (!child)
--			goto out;
-+		 * This can happen when a bridge is hot-plugged, so in
-+		 * this case we only re-scan this bus. */
-+		child = pci_find_bus(pci_domain_nr(bus), max+1);
-+		if (!child) {
-+			child = pci_add_new_bus(bus, dev, ++max);
-+			if (!child)
-+				goto out;
-+		}
- 		buses = (buses & 0xff000000)
- 		      | ((unsigned int)(child->primary)     <<  0)
- 		      | ((unsigned int)(child->secondary)   <<  8)
+ 	  If unsure, say N.
+ 
++config EEPROM_DIGSY_MTC_CFG
++	bool "DigsyMTC display configuration EEPROMs device"
++	depends on PPC_MPC5200_GPIO && GPIOLIB && SPI_GPIO
++	help
++	  This option enables access to display configuration EEPROMs
++	  on digsy_mtc board. You have to additionally select Microwire
++	  EEPROM 93XX46 driver. sysfs entries will be created for that
++	  EEPROM allowing to read/write the configuration data or to
++	  erase the whole EEPROM.
++
++	  If unsure, say N.
++
+ endmenu
+diff -puN drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Makefile
+--- a/drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
++++ a/drivers/misc/eeprom/Makefile
+@@ -4,3 +4,4 @@ obj-$(CONFIG_EEPROM_LEGACY)	+= eeprom.o
+ obj-$(CONFIG_EEPROM_MAX6875)	+= max6875.o
+ obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
+ obj-$(CONFIG_EEPROM_93XX46)	+= eeprom_93xx46.o
++obj-$(CONFIG_EEPROM_DIGSY_MTC_CFG) += digsy_mtc_eeprom.o
+diff -puN /dev/null drivers/misc/eeprom/digsy_mtc_eeprom.c
+--- /dev/null
++++ a/drivers/misc/eeprom/digsy_mtc_eeprom.c
+@@ -0,0 +1,85 @@
++/*
++ * EEPROMs access control driver for display configuration EEPROMs
++ * on DigsyMTC board.
++ *
++ * (C) 2011 DENX Software Engineering, Anatolij Gustschin <agust@denx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/gpio.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_gpio.h>
++#include <linux/eeprom_93xx46.h>
++
++#define GPIO_EEPROM_CLK		216
++#define GPIO_EEPROM_CS		210
++#define GPIO_EEPROM_DI		217
++#define GPIO_EEPROM_DO		249
++#define GPIO_EEPROM_OE		255
++#define EE_SPI_BUS_NUM	1
++
++static void digsy_mtc_op_prepare(void *p)
++{
++	/* enable */
++	gpio_set_value(GPIO_EEPROM_OE, 0);
++}
++
++static void digsy_mtc_op_finish(void *p)
++{
++	/* disable */
++	gpio_set_value(GPIO_EEPROM_OE, 1);
++}
++
++struct eeprom_93xx46_platform_data digsy_mtc_eeprom_data = {
++	.flags		= EE_ADDR8,
++	.prepare	= digsy_mtc_op_prepare,
++	.finish		= digsy_mtc_op_finish,
++};
++
++static struct spi_gpio_platform_data eeprom_spi_gpio_data = {
++	.sck		= GPIO_EEPROM_CLK,
++	.mosi		= GPIO_EEPROM_DI,
++	.miso		= GPIO_EEPROM_DO,
++	.num_chipselect	= 1,
++};
++
++static struct platform_device digsy_mtc_eeprom = {
++	.name	= "spi_gpio",
++	.id	= EE_SPI_BUS_NUM,
++	.dev	= {
++		.platform_data	= &eeprom_spi_gpio_data,
++	},
++};
++
++static struct spi_board_info digsy_mtc_eeprom_info[] __initdata = {
++	{
++		.modalias		= "93xx46",
++		.max_speed_hz		= 1000000,
++		.bus_num		= EE_SPI_BUS_NUM,
++		.chip_select		= 0,
++		.mode			= SPI_MODE_0,
++		.controller_data	= (void *)GPIO_EEPROM_CS,
++		.platform_data		= &digsy_mtc_eeprom_data,
++	},
++};
++
++static int __init digsy_mtc_eeprom_devices_init(void)
++{
++	int ret;
++
++	ret = gpio_request_one(GPIO_EEPROM_OE, GPIOF_OUT_INIT_HIGH,
++				"93xx46 EEPROMs OE");
++	if (ret) {
++		pr_err("can't request gpio %d\n", GPIO_EEPROM_OE);
++		return ret;
++	}
++	spi_register_board_info(digsy_mtc_eeprom_info,
++				ARRAY_SIZE(digsy_mtc_eeprom_info));
++	return platform_device_register(&digsy_mtc_eeprom);
++}
++device_initcall(digsy_mtc_eeprom_devices_init);
 _
 
-Patches currently in -mm which might be from tiejun.chen@windriver.com are
+Patches currently in -mm which might be from agust@denx.de are
 
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+linux-next.patch
+misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
+misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch
+drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200.patch
 
