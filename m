@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:28 -0700
-Message-ID: <201106150124.p5F1Ojjq031999@imap1.linux-foundation.org>
+Subject: + atomic-move-atomic_add_unless-to-generic-code.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:27 -0700
+Message-ID: <201106150124.p5F1OiIh031996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751624Ab1FOBjM (ORCPT
+	by vger.kernel.org with ESMTP id S1751624Ab1FOBlj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:39:12 -0400
+	Tue, 14 Jun 2011 21:41:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agust@denx.de, grant.likely@secretlab.ca, jic23@cam.ac.uk
+Cc: asharma@fb.com, davem@davemloft.net, eric.dumazet@gmail.com, hans-christian.egtvedt@atmel.com, mingo@elte.hu, vapier.adi@gmail.com
 
 
 The patch titled
-     misc/eeprom: add driver for microwire 93xx46 EEPROMs
+     atomic: move atomic_add_unless to generic code
 has been added to the -mm tree.  Its filename is
-     misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
+     atomic-move-atomic_add_unless-to-generic-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,496 +34,772 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc/eeprom: add driver for microwire 93xx46 EEPROMs
-From: Anatolij Gustschin <agust@denx.de>
+Subject: atomic: move atomic_add_unless to generic code
+From: Arun Sharma <asharma@fb.com>
 
-Add EEPROM driver for 93xx46 chips.  It can also be used with spi_gpio
-driver to access 93xx46 EEPROMs connected over GPIO lines.  This driver
-supports read/write/erase access to the EEPROM chips over sysfs files.
+This is in preparation for more generic atomic primitives based on
+__atomic_add_unless.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Arun Sharma <asharma@fb.com>
+Signed-off-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>
+Reviewed-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <>
 ---
 
- drivers/misc/eeprom/Kconfig         |   13 
- drivers/misc/eeprom/Makefile        |    1 
- drivers/misc/eeprom/eeprom_93xx46.c |  410 ++++++++++++++++++++++++++
- include/linux/eeprom_93xx46.h       |   18 +
- 4 files changed, 442 insertions(+)
+ arch/alpha/include/asm/atomic.h    |   10 ++--
+ arch/arm/include/asm/atomic.h      |    4 -
+ arch/avr32/include/asm/atomic.h    |   57 +++++++++++----------------
+ arch/blackfin/include/asm/atomic.h |    4 -
+ arch/cris/include/asm/atomic.h     |    4 -
+ arch/frv/include/asm/atomic.h      |    4 -
+ arch/h8300/include/asm/atomic.h    |    4 -
+ arch/ia64/include/asm/atomic.h     |    4 -
+ arch/m32r/include/asm/atomic.h     |    8 +--
+ arch/m68k/include/asm/atomic.h     |    4 -
+ arch/mips/include/asm/atomic.h     |   10 ++--
+ arch/mn10300/include/asm/atomic.h  |    4 -
+ arch/parisc/include/asm/atomic.h   |   10 ++--
+ arch/powerpc/include/asm/atomic.h  |   14 +++---
+ arch/s390/include/asm/atomic.h     |    4 -
+ arch/sh/include/asm/atomic.h       |    8 +--
+ arch/sparc/include/asm/atomic_32.h |    2 
+ arch/sparc/include/asm/atomic_64.h |    4 -
+ arch/tile/include/asm/atomic_32.h  |   10 ++--
+ arch/tile/include/asm/atomic_64.h  |    4 -
+ arch/x86/include/asm/atomic.h      |    8 +--
+ arch/x86/include/asm/atomic64_32.h |    2 
+ arch/x86/include/asm/atomic64_64.h |    2 
+ arch/xtensa/include/asm/atomic.h   |    8 +--
+ include/linux/atomic.h             |   14 ++++++
+ 25 files changed, 107 insertions(+), 100 deletions(-)
 
-diff -puN drivers/misc/eeprom/Kconfig~misc-eeprom-add-driver-for-microwire-93xx46-eeproms drivers/misc/eeprom/Kconfig
---- a/drivers/misc/eeprom/Kconfig~misc-eeprom-add-driver-for-microwire-93xx46-eeproms
-+++ a/drivers/misc/eeprom/Kconfig
-@@ -70,4 +70,17 @@ config EEPROM_93CX6
+diff -puN arch/alpha/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/alpha/include/asm/atomic.h
+--- a/arch/alpha/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/alpha/include/asm/atomic.h
+@@ -176,15 +176,15 @@ static __inline__ long atomic64_sub_retu
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
  
- 	  If unsure, say N.
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -196,7 +196,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
  
-+config EEPROM_93XX46
-+	tristate "Microwire EEPROM 93XX46 support"
-+	depends on SPI && SYSFS
-+	help
-+	  Driver for the microwire EEPROM chipsets 93xx46x. The driver
-+	  supports both read and write commands and also the command to
-+	  erase the whole EEPROM.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called eeprom_93xx46.
-+
-+	  If unsure, say N.
-+
- endmenu
-diff -puN drivers/misc/eeprom/Makefile~misc-eeprom-add-driver-for-microwire-93xx46-eeproms drivers/misc/eeprom/Makefile
---- a/drivers/misc/eeprom/Makefile~misc-eeprom-add-driver-for-microwire-93xx46-eeproms
-+++ a/drivers/misc/eeprom/Makefile
-@@ -3,3 +3,4 @@ obj-$(CONFIG_EEPROM_AT25)	+= at25.o
- obj-$(CONFIG_EEPROM_LEGACY)	+= eeprom.o
- obj-$(CONFIG_EEPROM_MAX6875)	+= max6875.o
- obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
-+obj-$(CONFIG_EEPROM_93XX46)	+= eeprom_93xx46.o
-diff -puN /dev/null drivers/misc/eeprom/eeprom_93xx46.c
---- /dev/null
-+++ a/drivers/misc/eeprom/eeprom_93xx46.c
-@@ -0,0 +1,410 @@
-+/*
-+ * Driver for 93xx46 EEPROMs
+ 
+@@ -207,7 +207,7 @@ static __inline__ int atomic_add_unless(
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+ {
+diff -puN arch/arm/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/arm/include/asm/atomic.h
+--- a/arch/arm/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/arm/include/asm/atomic.h
+@@ -208,14 +208,14 @@ static inline void atomic_clear_mask(uns
+ 
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 
+ 	c = atomic_read(v);
+ 	while (c != u && (old = atomic_cmpxchg((v), c, c + a)) != c)
+ 		c = old;
+-	return c != u;
++	return c;
+ }
+ 
+ #define atomic_inc(v)		atomic_add(1, v)
+diff -puN arch/avr32/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/avr32/include/asm/atomic.h
+--- a/arch/avr32/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/avr32/include/asm/atomic.h
+@@ -78,70 +78,63 @@ static inline int atomic_add_return(int 
+ /*
+  * atomic_sub_unless - sub unless the number is a given value
+  * @v: pointer of type atomic_t
+- * @a: the amount to add to v...
++ * @a: the amount to subtract from v...
+  * @u: ...unless v is equal to u.
+  *
+- * If the atomic value v is not equal to u, this function subtracts a
+- * from v, and returns non zero. If v is equal to u then it returns
+- * zero. This is done as an atomic operation.
++ * Atomically subtract @a from @v, so long as it was not @u.
++ * Returns the old value of @v.
+ */
+-static inline int atomic_sub_unless(atomic_t *v, int a, int u)
++static inline void atomic_sub_unless(atomic_t *v, int a, int u)
+ {
+-	int tmp, result = 0;
++	int tmp;
+ 
+ 	asm volatile(
+ 		"/* atomic_sub_unless */\n"
+ 		"1:	ssrf	5\n"
+-		"	ld.w	%0, %3\n"
+-		"	cp.w	%0, %5\n"
++		"	ld.w	%0, %2\n"
++		"	cp.w	%0, %4\n"
+ 		"	breq	1f\n"
+-		"	sub	%0, %4\n"
+-		"	stcond	%2, %0\n"
++		"	sub	%0, %3\n"
++		"	stcond	%1, %0\n"
+ 		"	brne	1b\n"
+-		"	mov	%1, 1\n"
+ 		"1:"
+-		: "=&r"(tmp), "=&r"(result), "=o"(v->counter)
+-		: "m"(v->counter), "rKs21"(a), "rKs21"(u), "1"(result)
++		: "=&r"(tmp), "=o"(v->counter)
++		: "m"(v->counter), "rKs21"(a), "rKs21"(u)
+ 		: "cc", "memory");
+-
+-	return result;
+ }
+ 
+ /*
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+- * If the atomic value v is not equal to u, this function adds a to v,
+- * and returns non zero. If v is equal to u then it returns zero. This
+- * is done as an atomic operation.
++ * Atomically adds @a to @v, so long as it was not @u.
++ * Returns the old value of @v.
+ */
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+-	int tmp, result;
++	int tmp, old = atomic_read(v);
+ 
+ 	if (__builtin_constant_p(a) && (a >= -1048575) && (a <= 1048576))
+-		result = atomic_sub_unless(v, -a, u);
++		atomic_sub_unless(v, -a, u);
+ 	else {
+-		result = 0;
+ 		asm volatile(
+-			"/* atomic_add_unless */\n"
++			"/* __atomic_add_unless */\n"
+ 			"1:	ssrf	5\n"
+-			"	ld.w	%0, %3\n"
+-			"	cp.w	%0, %5\n"
++			"	ld.w	%0, %2\n"
++			"	cp.w	%0, %4\n"
+ 			"	breq	1f\n"
+-			"	add	%0, %4\n"
+-			"	stcond	%2, %0\n"
++			"	add	%0, %3\n"
++			"	stcond	%1, %0\n"
+ 			"	brne	1b\n"
+-			"	mov	%1, 1\n"
+ 			"1:"
+-			: "=&r"(tmp), "=&r"(result), "=o"(v->counter)
+-			: "m"(v->counter), "r"(a), "ir"(u), "1"(result)
++			: "=&r"(tmp), "=o"(v->counter)
++			: "m"(v->counter), "r"(a), "ir"(u)
+ 			: "cc", "memory");
+ 	}
+ 
+-	return result;
++	return old;
+ }
+ 
+ /*
+diff -puN arch/blackfin/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/blackfin/include/asm/atomic.h
+--- a/arch/blackfin/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/blackfin/include/asm/atomic.h
+@@ -94,13 +94,13 @@ static inline int atomic_test_mask(int m
+ #define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-#define atomic_add_unless(v, a, u)				\
++#define __atomic_add_unless(v, a, u)				\
+ ({								\
+ 	int c, old;						\
+ 	c = atomic_read(v);					\
+ 	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
+ 		c = old;					\
+-	c != (u);						\
++	c;							\
+ })
+ 
+ /*
+diff -puN arch/cris/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/cris/include/asm/atomic.h
+--- a/arch/cris/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/cris/include/asm/atomic.h
+@@ -138,7 +138,7 @@ static inline int atomic_cmpxchg(atomic_
+ 
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int ret;
+ 	unsigned long flags;
+@@ -148,7 +148,7 @@ static inline int atomic_add_unless(atom
+ 	if (ret != u)
+ 		v->counter += a;
+ 	cris_atomic_restore(v, flags);
+-	return ret != u;
++	return ret;
+ }
+ 
+ /* Atomic operations are already serializing */
+diff -puN arch/frv/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/frv/include/asm/atomic.h
+--- a/arch/frv/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/frv/include/asm/atomic.h
+@@ -241,7 +241,7 @@ extern uint32_t __xchg_32(uint32_t i, vo
+ #define atomic64_cmpxchg(v, old, new)	(__cmpxchg_64(old, new, &(v)->counter))
+ #define atomic64_xchg(v, new)		(__xchg_64(new, &(v)->counter))
+ 
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -253,7 +253,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/h8300/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/h8300/include/asm/atomic.h
+--- a/arch/h8300/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/h8300/include/asm/atomic.h
+@@ -104,7 +104,7 @@ static inline int atomic_cmpxchg(atomic_
+ 
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int ret;
+ 	unsigned long flags;
+@@ -114,7 +114,7 @@ static inline int atomic_add_unless(atom
+ 	if (ret != u)
+ 		v->counter += a;
+ 	local_irq_restore(flags);
+-	return ret != u;
++	return ret;
+ }
+ 
+ static __inline__ void atomic_clear_mask(unsigned long mask, unsigned long *v)
+diff -puN arch/ia64/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/ia64/include/asm/atomic.h
+--- a/arch/ia64/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/ia64/include/asm/atomic.h
+@@ -90,7 +90,7 @@ ia64_atomic64_sub (__s64 i, atomic64_t *
+ 	(cmpxchg(&((v)->counter), old, new))
+ #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -102,7 +102,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/m32r/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/m32r/include/asm/atomic.h
+--- a/arch/m32r/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/m32r/include/asm/atomic.h
+@@ -239,15 +239,15 @@ static __inline__ int atomic_dec_return(
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -259,7 +259,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/m68k/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/m68k/include/asm/atomic.h
+--- a/arch/m68k/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/m68k/include/asm/atomic.h
+@@ -183,7 +183,7 @@ static inline void atomic_set_mask(unsig
+ 	__asm__ __volatile__("orl %1,%0" : "+m" (*v) : "id" (mask));
+ }
+ 
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -195,7 +195,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/mips/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/mips/include/asm/atomic.h
+--- a/arch/mips/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/mips/include/asm/atomic.h
+@@ -303,15 +303,15 @@ static __inline__ int atomic_sub_if_posi
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), (new)))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -323,7 +323,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ #define atomic_dec_return(v) atomic_sub_return(1, (v))
+@@ -679,7 +679,7 @@ static __inline__ long atomic64_sub_if_p
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+ {
+diff -puN arch/mn10300/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/mn10300/include/asm/atomic.h
+--- a/arch/mn10300/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/mn10300/include/asm/atomic.h
+@@ -260,13 +260,13 @@ static inline void atomic_dec(atomic_t *
+ #define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
+ #define atomic_inc_and_test(v)		(atomic_add_return(1, (v)) == 0)
+ 
+-#define atomic_add_unless(v, a, u)				\
++#define __atomic_add_unless(v, a, u)				\
+ ({								\
+ 	int c, old;						\
+ 	c = atomic_read(v);					\
+ 	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
+ 		c = old;					\
+-	c != (u);						\
++	c;							\
+ })
+ 
+ 
+diff -puN arch/parisc/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/parisc/include/asm/atomic.h
+--- a/arch/parisc/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/parisc/include/asm/atomic.h
+@@ -197,15 +197,15 @@ static __inline__ int atomic_read(const 
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -217,7 +217,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+@@ -316,7 +316,7 @@ atomic64_read(const atomic64_t *v)
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+ {
+diff -puN arch/powerpc/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/powerpc/include/asm/atomic.h
+--- a/arch/powerpc/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/powerpc/include/asm/atomic.h
+@@ -181,21 +181,21 @@ static __inline__ int atomic_dec_return(
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int t;
+ 
+ 	__asm__ __volatile__ (
+ 	PPC_RELEASE_BARRIER
+-"1:	lwarx	%0,0,%1		# atomic_add_unless\n\
++"1:	lwarx	%0,0,%1		# __atomic_add_unless\n\
+ 	cmpw	0,%0,%3 \n\
+ 	beq-	2f \n\
+ 	add	%0,%2,%0 \n"
+@@ -209,7 +209,7 @@ static __inline__ int atomic_add_unless(
+ 	: "r" (&v->counter), "r" (a), "r" (u)
+ 	: "cc", "memory");
+ 
+-	return t != u;
++	return t;
+ }
+ 
+ 
+@@ -443,7 +443,7 @@ static __inline__ long atomic64_dec_if_p
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+ {
+@@ -451,7 +451,7 @@ static __inline__ int atomic64_add_unles
+ 
+ 	__asm__ __volatile__ (
+ 	PPC_RELEASE_BARRIER
+-"1:	ldarx	%0,0,%1		# atomic_add_unless\n\
++"1:	ldarx	%0,0,%1		# __atomic_add_unless\n\
+ 	cmpd	0,%0,%3 \n\
+ 	beq-	2f \n\
+ 	add	%0,%2,%0 \n"
+diff -puN arch/s390/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/s390/include/asm/atomic.h
+--- a/arch/s390/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/s390/include/asm/atomic.h
+@@ -93,7 +93,7 @@ static inline int atomic_cmpxchg(atomic_
+ 	return old;
+ }
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -105,7 +105,7 @@ static inline int atomic_add_unless(atom
+ 			break;
+ 		c = old;
+ 	}
+-	return c != u;
++	return c;
+ }
+ 
+ 
+diff -puN arch/sh/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/sh/include/asm/atomic.h
+--- a/arch/sh/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/sh/include/asm/atomic.h
+@@ -38,15 +38,15 @@
+ #define atomic_cmpxchg(v, o, n)		(cmpxchg(&((v)->counter), (o), (n)))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -59,7 +59,7 @@ static inline int atomic_add_unless(atom
+ 		c = old;
+ 	}
+ 
+-	return c != (u);
++	return c;
+ }
+ 
+ #define smp_mb__before_atomic_dec()	smp_mb()
+diff -puN arch/sparc/include/asm/atomic_32.h~atomic-move-atomic_add_unless-to-generic-code arch/sparc/include/asm/atomic_32.h
+--- a/arch/sparc/include/asm/atomic_32.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/sparc/include/asm/atomic_32.h
+@@ -22,7 +22,7 @@
+ extern int __atomic_add_return(int, atomic_t *);
+ extern int atomic_cmpxchg(atomic_t *, int, int);
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+-extern int atomic_add_unless(atomic_t *, int, int);
++extern int __atomic_add_unless(atomic_t *, int, int);
+ extern void atomic_set(atomic_t *, int);
+ 
+ #define atomic_read(v)          (*(volatile int *)&(v)->counter)
+diff -puN arch/sparc/include/asm/atomic_64.h~atomic-move-atomic_add_unless-to-generic-code arch/sparc/include/asm/atomic_64.h
+--- a/arch/sparc/include/asm/atomic_64.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/sparc/include/asm/atomic_64.h
+@@ -70,7 +70,7 @@ extern long atomic64_sub_ret(long, atomi
+ #define atomic_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -82,7 +82,7 @@ static inline int atomic_add_unless(atom
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/tile/include/asm/atomic_32.h~atomic-move-atomic_add_unless-to-generic-code arch/tile/include/asm/atomic_32.h
+--- a/arch/tile/include/asm/atomic_32.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/tile/include/asm/atomic_32.h
+@@ -81,18 +81,18 @@ static inline int atomic_add_return(int 
+ }
+ 
+ /**
+- * atomic_add_unless - add unless the number is already a given value
++ * __atomic_add_unless - add unless the number is already a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as @v was not already @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	smp_mb();  /* barrier for proper semantics */
+-	return _atomic_xchg_add_unless(v, a, u) != u;
++	return _atomic_xchg_add_unless(v, a, u);
+ }
+ 
+ /**
+@@ -199,7 +199,7 @@ static inline u64 atomic64_add_return(u6
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as @v was not already @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static inline u64 atomic64_add_unless(atomic64_t *v, u64 a, u64 u)
+ {
+diff -puN arch/tile/include/asm/atomic_64.h~atomic-move-atomic_add_unless-to-generic-code arch/tile/include/asm/atomic_64.h
+--- a/arch/tile/include/asm/atomic_64.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/tile/include/asm/atomic_64.h
+@@ -64,7 +64,7 @@ static inline int atomic_add_return(int 
+ 	return val;
+ }
+ 
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int guess, oldval = v->counter;
+ 	do {
+@@ -73,7 +73,7 @@ static inline int atomic_add_unless(atom
+ 		guess = oldval;
+ 		oldval = atomic_cmpxchg(v, guess, guess + a);
+ 	} while (guess != oldval);
+-	return oldval != u;
++	return oldval;
+ }
+ 
+ /* Now the true 64-bit operations. */
+diff -puN arch/x86/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/x86/include/asm/atomic.h
+--- a/arch/x86/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/x86/include/asm/atomic.h
+@@ -221,15 +221,15 @@ static inline int atomic_xchg(atomic_t *
+ }
+ 
+ /**
+- * atomic_add_unless - add unless the number is already a given value
++ * __atomic_add_unless - add unless the number is already a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as @v was not already @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static inline int atomic_add_unless(atomic_t *v, int a, int u)
++static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -241,7 +241,7 @@ static inline int atomic_add_unless(atom
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN arch/x86/include/asm/atomic64_32.h~atomic-move-atomic_add_unless-to-generic-code arch/x86/include/asm/atomic64_32.h
+--- a/arch/x86/include/asm/atomic64_32.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/x86/include/asm/atomic64_32.h
+@@ -263,7 +263,7 @@ static inline int atomic64_add_negative(
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static inline int atomic64_add_unless(atomic64_t *v, long long a, long long u)
+ {
+diff -puN arch/x86/include/asm/atomic64_64.h~atomic-move-atomic_add_unless-to-generic-code arch/x86/include/asm/atomic64_64.h
+--- a/arch/x86/include/asm/atomic64_64.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/x86/include/asm/atomic64_64.h
+@@ -202,7 +202,7 @@ static inline long atomic64_xchg(atomic6
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+ static inline int atomic64_add_unless(atomic64_t *v, long a, long u)
+ {
+diff -puN arch/xtensa/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code arch/xtensa/include/asm/atomic.h
+--- a/arch/xtensa/include/asm/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/arch/xtensa/include/asm/atomic.h
+@@ -225,15 +225,15 @@ static inline int atomic_sub_return(int 
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+ /**
+- * atomic_add_unless - add unless the number is a given value
++ * __atomic_add_unless - add unless the number is a given value
+  * @v: pointer of type atomic_t
+  * @a: the amount to add to v...
+  * @u: ...unless v is equal to u.
+  *
+  * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
++ * Returns the old value of @v.
+  */
+-static __inline__ int atomic_add_unless(atomic_t *v, int a, int u)
++static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
+ 	int c, old;
+ 	c = atomic_read(v);
+@@ -245,7 +245,7 @@ static __inline__ int atomic_add_unless(
+ 			break;
+ 		c = old;
+ 	}
+-	return c != (u);
++	return c;
+ }
+ 
+ 
+diff -puN include/linux/atomic.h~atomic-move-atomic_add_unless-to-generic-code include/linux/atomic.h
+--- a/include/linux/atomic.h~atomic-move-atomic_add_unless-to-generic-code
++++ a/include/linux/atomic.h
+@@ -3,6 +3,20 @@
+ #include <asm/atomic.h>
+ 
+ /**
++ * atomic_add_unless - add unless the number is already a given value
++ * @v: pointer of type atomic_t
++ * @a: the amount to add to v...
++ * @u: ...unless v is equal to u.
 + *
-+ * (C) 2011 DENX Software Engineering, Anatolij Gustschin <agust@denx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Atomically adds @a to @v, so long as @v was not already @u.
++ * Returns non-zero if @v was not @u, and zero otherwise.
 + */
-+
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/spi/spi.h>
-+#include <linux/sysfs.h>
-+#include <linux/eeprom_93xx46.h>
-+
-+#define OP_START	0x4
-+#define OP_WRITE	(OP_START | 0x1)
-+#define OP_READ		(OP_START | 0x2)
-+#define ADDR_EWDS	0x00
-+#define ADDR_ERAL	0x20
-+#define ADDR_EWEN	0x30
-+
-+struct eeprom_93xx46_dev {
-+	struct spi_device *spi;
-+	struct eeprom_93xx46_platform_data *pdata;
-+	struct bin_attribute bin;
-+	struct mutex lock;
-+	int addrlen;
-+};
-+
-+static ssize_t
-+eeprom_93xx46_bin_read(struct file *filp, struct kobject *kobj,
-+		       struct bin_attribute *bin_attr,
-+		       char *buf, loff_t off, size_t count)
++static inline int atomic_add_unless(atomic_t *v, int a, int u)
 +{
-+	struct eeprom_93xx46_dev *edev;
-+	struct device *dev;
-+	struct spi_message m;
-+	struct spi_transfer t[2];
-+	int bits, ret;
-+	u16 cmd_addr;
-+
-+	dev = container_of(kobj, struct device, kobj);
-+	edev = dev_get_drvdata(dev);
-+
-+	if (unlikely(off >= edev->bin.size))
-+		return 0;
-+	if ((off + count) > edev->bin.size)
-+		count = edev->bin.size - off;
-+	if (unlikely(!count))
-+		return count;
-+
-+	cmd_addr = OP_READ << edev->addrlen;
-+
-+	if (edev->addrlen == 7) {
-+		cmd_addr |= off & 0x7f;
-+		bits = 10;
-+	} else {
-+		cmd_addr |= off & 0x3f;
-+		bits = 9;
-+	}
-+
-+	dev_dbg(&edev->spi->dev, "read cmd 0x%x, %d Hz\n",
-+		cmd_addr, edev->spi->max_speed_hz);
-+
-+	spi_message_init(&m);
-+	memset(t, 0, sizeof(t));
-+
-+	t[0].tx_buf = (char *)&cmd_addr;
-+	t[0].len = 2;
-+	t[0].bits_per_word = bits;
-+	spi_message_add_tail(&t[0], &m);
-+
-+	t[1].rx_buf = buf;
-+	t[1].len = count;
-+	t[1].bits_per_word = 8;
-+	spi_message_add_tail(&t[1], &m);
-+
-+	mutex_lock(&edev->lock);
-+
-+	if (edev->pdata->prepare)
-+		edev->pdata->prepare(edev);
-+
-+	ret = spi_sync(edev->spi, &m);
-+	/* have to wait at least Tcsl ns */
-+	ndelay(250);
-+	if (ret) {
-+		dev_err(&edev->spi->dev, "read %d bytes at %d: err. %d\n",
-+			count, (int)off, ret);
-+	}
-+
-+	if (edev->pdata->finish)
-+		edev->pdata->finish(edev);
-+
-+	mutex_unlock(&edev->lock);
-+	return ret ? : count;
++	return __atomic_add_unless(v, a, u) != u;
 +}
 +
-+static int eeprom_93xx46_ew(struct eeprom_93xx46_dev *edev, int is_on)
-+{
-+	struct spi_message m;
-+	struct spi_transfer t;
-+	int bits, ret;
-+	u16 cmd_addr;
-+
-+	cmd_addr = OP_START << edev->addrlen;
-+	if (edev->addrlen == 7) {
-+		cmd_addr |= (is_on ? ADDR_EWEN : ADDR_EWDS) << 1;
-+		bits = 10;
-+	} else {
-+		cmd_addr |= (is_on ? ADDR_EWEN : ADDR_EWDS);
-+		bits = 9;
-+	}
-+
-+	dev_dbg(&edev->spi->dev, "ew cmd 0x%04x\n", cmd_addr);
-+
-+	spi_message_init(&m);
-+	memset(&t, 0, sizeof(t));
-+
-+	t.tx_buf = &cmd_addr;
-+	t.len = 2;
-+	t.bits_per_word = bits;
-+	spi_message_add_tail(&t, &m);
-+
-+	mutex_lock(&edev->lock);
-+
-+	if (edev->pdata->prepare)
-+		edev->pdata->prepare(edev);
-+
-+	ret = spi_sync(edev->spi, &m);
-+	/* have to wait at least Tcsl ns */
-+	ndelay(250);
-+	if (ret)
-+		dev_err(&edev->spi->dev, "erase/write %sable error %d\n",
-+			is_on ? "en" : "dis", ret);
-+
-+	if (edev->pdata->finish)
-+		edev->pdata->finish(edev);
-+
-+	mutex_unlock(&edev->lock);
-+	return ret;
-+}
-+
-+static ssize_t
-+eeprom_93xx46_write_word(struct eeprom_93xx46_dev *edev,
-+			 const char *buf, unsigned off)
-+{
-+	struct spi_message m;
-+	struct spi_transfer t[2];
-+	int bits, data_len, ret;
-+	u16 cmd_addr;
-+
-+	cmd_addr = OP_WRITE << edev->addrlen;
-+
-+	if (edev->addrlen == 7) {
-+		cmd_addr |= off & 0x7f;
-+		bits = 10;
-+		data_len = 1;
-+	} else {
-+		cmd_addr |= off & 0x3f;
-+		bits = 9;
-+		data_len = 2;
-+	}
-+
-+	dev_dbg(&edev->spi->dev, "write cmd 0x%x\n", cmd_addr);
-+
-+	spi_message_init(&m);
-+	memset(t, 0, sizeof(t));
-+
-+	t[0].tx_buf = (char *)&cmd_addr;
-+	t[0].len = 2;
-+	t[0].bits_per_word = bits;
-+	spi_message_add_tail(&t[0], &m);
-+
-+	t[1].tx_buf = buf;
-+	t[1].len = data_len;
-+	t[1].bits_per_word = 8;
-+	spi_message_add_tail(&t[1], &m);
-+
-+	ret = spi_sync(edev->spi, &m);
-+	/* have to wait program cycle time Twc ms */
-+	mdelay(6);
-+	return ret;
-+}
-+
-+static ssize_t
-+eeprom_93xx46_bin_write(struct file *filp, struct kobject *kobj,
-+			struct bin_attribute *bin_attr,
-+			char *buf, loff_t off, size_t count)
-+{
-+	struct eeprom_93xx46_dev *edev;
-+	struct device *dev;
-+	int i, ret, step = 1;
-+
-+	dev = container_of(kobj, struct device, kobj);
-+	edev = dev_get_drvdata(dev);
-+
-+	if (unlikely(off >= edev->bin.size))
-+		return 0;
-+	if ((off + count) > edev->bin.size)
-+		count = edev->bin.size - off;
-+	if (unlikely(!count))
-+		return count;
-+
-+	/* only write even number of bytes on 16-bit devices */
-+	if (edev->addrlen == 6) {
-+		step = 2;
-+		count &= ~1;
-+	}
-+
-+	/* erase/write enable */
-+	ret = eeprom_93xx46_ew(edev, 1);
-+	if (ret)
-+		return ret;
-+
-+	mutex_lock(&edev->lock);
-+
-+	if (edev->pdata->prepare)
-+		edev->pdata->prepare(edev);
-+
-+	for (i = 0; i < count; i += step) {
-+		ret = eeprom_93xx46_write_word(edev, &buf[i], off + i);
-+		if (ret) {
-+			dev_err(&edev->spi->dev, "write failed at %d: %d\n",
-+				(int)off + i, ret);
-+			break;
-+		}
-+	}
-+
-+	if (edev->pdata->finish)
-+		edev->pdata->finish(edev);
-+
-+	mutex_unlock(&edev->lock);
-+
-+	/* erase/write disable */
-+	eeprom_93xx46_ew(edev, 0);
-+	return ret ? : count;
-+}
-+
-+static int eeprom_93xx46_eral(struct eeprom_93xx46_dev *edev)
-+{
-+	struct eeprom_93xx46_platform_data *pd = edev->pdata;
-+	struct spi_message m;
-+	struct spi_transfer t;
-+	int bits, ret;
-+	u16 cmd_addr;
-+
-+	cmd_addr = OP_START << edev->addrlen;
-+	if (edev->addrlen == 7) {
-+		cmd_addr |= ADDR_ERAL << 1;
-+		bits = 10;
-+	} else {
-+		cmd_addr |= ADDR_ERAL;
-+		bits = 9;
-+	}
-+
-+	spi_message_init(&m);
-+	memset(&t, 0, sizeof(t));
-+
-+	t.tx_buf = &cmd_addr;
-+	t.len = 2;
-+	t.bits_per_word = bits;
-+	spi_message_add_tail(&t, &m);
-+
-+	mutex_lock(&edev->lock);
-+
-+	if (edev->pdata->prepare)
-+		edev->pdata->prepare(edev);
-+
-+	ret = spi_sync(edev->spi, &m);
-+	if (ret)
-+		dev_err(&edev->spi->dev, "erase error %d\n", ret);
-+	/* have to wait erase cycle time Tec ms */
-+	mdelay(6);
-+
-+	if (pd->finish)
-+		pd->finish(edev);
-+
-+	mutex_unlock(&edev->lock);
-+	return ret;
-+}
-+
-+static ssize_t eeprom_93xx46_store_erase(struct device *dev,
-+					 struct device_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	struct eeprom_93xx46_dev *edev = dev_get_drvdata(dev);
-+	int erase = 0, ret;
-+
-+	sscanf(buf, "%d", &erase);
-+	if (erase) {
-+		ret = eeprom_93xx46_ew(edev, 1);
-+		if (ret)
-+			return ret;
-+		ret = eeprom_93xx46_eral(edev);
-+		if (ret)
-+			return ret;
-+		ret = eeprom_93xx46_ew(edev, 0);
-+		if (ret)
-+			return ret;
-+	}
-+	return count;
-+}
-+static DEVICE_ATTR(erase, S_IWUSR, NULL, eeprom_93xx46_store_erase);
-+
-+static int __devinit eeprom_93xx46_probe(struct spi_device *spi)
-+{
-+	struct eeprom_93xx46_platform_data *pd;
-+	struct eeprom_93xx46_dev *edev;
-+	int err;
-+
-+	pd = spi->dev.platform_data;
-+	if (!pd) {
-+		dev_err(&spi->dev, "missing platform data\n");
-+		return -ENODEV;
-+	}
-+
-+	edev = kzalloc(sizeof(*edev), GFP_KERNEL);
-+	if (!edev)
-+		return -ENOMEM;
-+
-+	if (pd->flags & EE_ADDR8)
-+		edev->addrlen = 7;
-+	else if (pd->flags & EE_ADDR16)
-+		edev->addrlen = 6;
-+	else {
-+		dev_err(&spi->dev, "unspecified address type\n");
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	mutex_init(&edev->lock);
-+
-+	edev->spi = spi_dev_get(spi);
-+	edev->pdata = pd;
-+
-+	sysfs_bin_attr_init(&edev->bin);
-+	edev->bin.attr.name = "eeprom";
-+	edev->bin.attr.mode = S_IRUSR;
-+	edev->bin.read = eeprom_93xx46_bin_read;
-+	edev->bin.size = 128;
-+	if (!(pd->flags & EE_READONLY)) {
-+		edev->bin.write = eeprom_93xx46_bin_write;
-+		edev->bin.attr.mode |= S_IWUSR;
-+	}
-+
-+	err = sysfs_create_bin_file(&spi->dev.kobj, &edev->bin);
-+	if (err)
-+		goto fail;
-+
-+	dev_info(&spi->dev, "%d-bit eeprom %s\n",
-+		(pd->flags & EE_ADDR8) ? 8 : 16,
-+		(pd->flags & EE_READONLY) ? "(readonly)" : "");
-+
-+	if (!(pd->flags & EE_READONLY)) {
-+		if (device_create_file(&spi->dev, &dev_attr_erase))
-+			dev_err(&spi->dev, "can't create erase interface\n");
-+	}
-+
-+	dev_set_drvdata(&spi->dev, edev);
-+	return 0;
-+fail:
-+	kfree(edev);
-+	return err;
-+}
-+
-+static int __devexit eeprom_93xx46_remove(struct spi_device *spi)
-+{
-+	struct eeprom_93xx46_dev *edev = dev_get_drvdata(&spi->dev);
-+
-+	if (!(edev->pdata->flags & EE_READONLY))
-+		device_remove_file(&spi->dev, &dev_attr_erase);
-+
-+	sysfs_remove_bin_file(&spi->dev.kobj, &edev->bin);
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(edev);
-+	return 0;
-+}
-+
-+static struct spi_driver eeprom_93xx46_driver = {
-+	.driver = {
-+		.name	= "93xx46",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= eeprom_93xx46_probe,
-+	.remove		= __devexit_p(eeprom_93xx46_remove),
-+};
-+
-+static int __init eeprom_93xx46_init(void)
-+{
-+	return spi_register_driver(&eeprom_93xx46_driver);
-+}
-+module_init(eeprom_93xx46_init);
-+
-+static void __exit eeprom_93xx46_exit(void)
-+{
-+	spi_unregister_driver(&eeprom_93xx46_driver);
-+}
-+module_exit(eeprom_93xx46_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Driver for 93xx46 EEPROMs");
-+MODULE_AUTHOR("Anatolij Gustschin <agust@denx.de>");
-+MODULE_ALIAS("spi:93xx46");
-diff -puN /dev/null include/linux/eeprom_93xx46.h
---- /dev/null
-+++ a/include/linux/eeprom_93xx46.h
-@@ -0,0 +1,18 @@
-+/*
-+ * Module: eeprom_93xx46
-+ * platform description for 93xx46 EEPROMs.
-+ */
-+
-+struct eeprom_93xx46_platform_data {
-+	unsigned char	flags;
-+#define EE_ADDR8	0x01		/*  8 bit addr. cfg */
-+#define EE_ADDR16	0x02		/* 16 bit addr. cfg */
-+#define EE_READONLY	0x08		/* forbid writing */
-+
-+	/*
-+	 * optional hooks to control additional logic
-+	 * before and after spi transfer.
-+	 */
-+	void (*prepare)(void *);
-+	void (*finish)(void *);
-+};
++/**
+  * atomic_inc_not_zero - increment unless the number is zero
+  * @v: pointer of type atomic_t
+  *
 _
 
-Patches currently in -mm which might be from agust@denx.de are
+Patches currently in -mm which might be from asharma@fb.com are
 
-linux-next.patch
-misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
-misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch
-drivers-rtc-rtc-mpc5121c-add-support-for-rtc-on-mpc5200.patch
+atomic-use-linux-atomich.patch
+atomic-move-atomic_add_unless-to-generic-code.patch
 
