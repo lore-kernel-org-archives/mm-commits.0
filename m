@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:20 -0700
-Message-ID: <201106150124.p5F1ObJR031968@imap1.linux-foundation.org>
+Subject: + gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:14 -0700
+Message-ID: <201106150124.p5F1OVUh031947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753508Ab1FOBZJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754293Ab1FOBZK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:09 -0400
+	Tue, 14 Jun 2011 21:25:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, daniel.lezcano@free.fr, serge.hallyn@canonical.com
+Cc: josh@joshtriplett.org, peter.oberparleiter@de.ibm.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Documentation/feature-removal-schedule.txt: remove ns_cgroup from feature-removal-schedule.txt
+     gcov: disable CONFIG_CONSTRUCTORS when not needed by CONFIG_GCOV_KERNEL
 has been added to the -mm tree.  Its filename is
-     documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt.patch
+     gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/feature-removal-schedule.txt: remove ns_cgroup from feature-removal-schedule.txt
+Subject: gcov: disable CONFIG_CONSTRUCTORS when not needed by CONFIG_GCOV_KERNEL
+From: Josh Triplett <josh@joshtriplett.org>
 
+CONFIG_CONSTRUCTORS controls support for running constructor functions at
+kernel init time.  According to commit b99b87f70c7785ab ("kernel:
+constructor support"), gcov (CONFIG_GCOV_KERNEL) needs this.  However,
+CONFIG_CONSTRUCTORS currently defaults to y, with no option to disable it,
+and CONFIG_GCOV_KERNEL depends on it.  Instead, default it to n and have
+CONFIG_GCOV_KERNEL select it, so that the normal case of
+CONFIG_GCOV_KERNEL=n will result in CONFIG_CONSTRUCTORS=n.
 
-Commit a77aea92010acf ("cgroup: remove the ns_cgroup") removed the
-ns_cgroup but it forgot to remove the related doc in
-feature-removal-schedule.txt.
+Observed in the short list of =y values in a minimal kernel configuration.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Serge E.  Hallyn <serge.hallyn@canonical.com>
-Signed-off-by: Andrew Morton <>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   17 -----------------
- 1 file changed, 17 deletions(-)
+ init/Kconfig        |    1 -
+ kernel/gcov/Kconfig |    3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -481,23 +481,6 @@ Who:	FUJITA Tomonori <fujita.tomonori@la
+diff -puN init/Kconfig~gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel init/Kconfig
+--- a/init/Kconfig~gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel
++++ a/init/Kconfig
+@@ -19,7 +19,6 @@ config DEFCONFIG_LIST
+ config CONSTRUCTORS
+ 	bool
+ 	depends on !UML
+-	default y
  
- ----------------------------
+ config HAVE_IRQ_WORK
+ 	bool
+diff -puN kernel/gcov/Kconfig~gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel kernel/gcov/Kconfig
+--- a/kernel/gcov/Kconfig~gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel
++++ a/kernel/gcov/Kconfig
+@@ -2,7 +2,8 @@ menu "GCOV-based kernel profiling"
  
--What:   namespace cgroup (ns_cgroup)
--When:   2.6.38
--Why:    The ns_cgroup leads to some problems:
--	* cgroup creation is out-of-control
--	* cgroup name can conflict when pids are looping
--	* it is not possible to have a single process handling
--	a lot of namespaces without falling in a exponential creation time
--	* we may want to create a namespace without creating a cgroup
--
--	The ns_cgroup is replaced by a compatibility flag 'clone_children',
--	where a newly created cgroup will copy the parent cgroup values.
--	The userspace has to manually create a cgroup and add a task to
--	the 'tasks' file.
--Who:    Daniel Lezcano <daniel.lezcano@free.fr>
--
------------------------------
+ config GCOV_KERNEL
+ 	bool "Enable gcov-based kernel profiling"
+-	depends on DEBUG_FS && CONSTRUCTORS
++	depends on DEBUG_FS
++	select CONSTRUCTORS
+ 	default n
+ 	---help---
+ 	This option enables gcov-based code profiling (e.g. for code coverage
+_
+
+Patches currently in -mm which might be from josh@joshtriplett.org are
+
+uts-make-default-hostname-configurable-rather-than-always-using-none.patch
+gcov-disable-config_constructors-when-not-needed-by-config_gcov_kernel.patch
+linux-next.patch
+
