@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-brdc-make-brd_make_request-return-error-code.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:23 -0700
-Message-ID: <201106150124.p5F1OeSd031980@imap1.linux-foundation.org>
+Subject: + mm-vmscan-do-not-use-page_count-without-a-page-pin.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:19 -0700
+Message-ID: <201106150124.p5F1OaMV031960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753709Ab1FOBZM (ORCPT
+	by vger.kernel.org with ESMTP id S1754293Ab1FOBZQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:12 -0400
+	Tue, 14 Jun 2011 21:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.miao@linaro.org, axboe@kernel.dk
+Cc: aarcange@redhat.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com
 
 
 The patch titled
-     drivers/block/brd.c: make brd_make_request() return error code
+     mm: vmscan: do not use page_count without a page pin
 has been added to the -mm tree.  Its filename is
-     drivers-block-brdc-make-brd_make_request-return-error-code.patch
+     mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/brd.c: make brd_make_request() return error code
-From: Eric Miao <eric.miao@linaro.org>
+Subject: mm: vmscan: do not use page_count without a page pin
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-brd_make_request() always returns 0, which doesn't make much sense.
+It is unsafe to run page_count during the physical pfn scan because
+compound_head could trip on a dangling pointer when reading
+page->first_page if the compound page is being freed by another CPU.
 
-Signed-off-by: Eric Miao <eric.miao@linaro.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Signed-off-by: Andrew Morton <>
+[mgorman@suse.de: split out patch]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/brd.c~drivers-block-brdc-make-brd_make_request-return-error-code drivers/block/brd.c
---- a/drivers/block/brd.c~drivers-block-brdc-make-brd_make_request-return-error-code
-+++ a/drivers/block/brd.c
-@@ -360,7 +360,7 @@ static int brd_make_request(struct reque
- out:
- 	bio_endio(bio, err);
- 
--	return 0;
-+	return err;
- }
- 
- #ifdef CONFIG_BLK_DEV_XIP
+diff -puN mm/vmscan.c~mm-vmscan-do-not-use-page_count-without-a-page-pin mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-use-page_count-without-a-page-pin
++++ a/mm/vmscan.c
+@@ -1124,8 +1124,20 @@ static unsigned long isolate_lru_pages(u
+ 					nr_lumpy_dirty++;
+ 				scan++;
+ 			} else {
+-				/* the page is freed already. */
+-				if (!page_count(cursor_page))
++				/*
++				 * Check if the page is freed already.
++				 *
++				 * We can't use page_count() as that
++				 * requires compound_head and we don't
++				 * have a pin on the page here. If a
++				 * page is tail, we may or may not
++				 * have isolated the head, so assume
++				 * it's not free, it'd be tricky to
++				 * track the head status without a
++				 * page pin.
++				 */
++				if (!PageTail(cursor_page) &&
++				    !atomic_read(&cursor_page->_count))
+ 					continue;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from eric.miao@linaro.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-drivers-block-brdc-make-brd_make_request-return-error-code.patch
+mm-remove-khugepaged-double-thp-vmstat-update-with-config_numa=n.patch
+mm-migratec-dont-account-swapcache-as-shmem.patch
+include-asm-generic-pgtableh-fix-unbalanced-parenthesis.patch
+mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
+memcg-clear-mm-owner-when-last-possible-owner-leaves.patch
+mm-memory-failurec-fix-page-isolated-count-mismatch.patch
+mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
+ksm-fix-null-pointer-dereference-in-scan_get_next_rmap_item.patch
+pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
+pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
+pagewalk-add-locking-rule-comments.patch
+pagewalk-add-locking-rule-comments-fix.patch
+pagewalk-fix-code-comment-for-thp.patch
 
