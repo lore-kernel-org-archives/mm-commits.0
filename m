@@ -1,61 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch removed from -mm tree
-Date: Wed, 15 Jun 2011 15:03:00 -0700
-Message-ID: <201106152203.p5FM3020022059@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch removed from -mm tree
+Date: Wed, 15 Jun 2011 15:03:26 -0700
+Message-ID: <201106152203.p5FM3Qoc022090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840Ab1FOWDd (ORCPT
+	by vger.kernel.org with ESMTP id S1754557Ab1FOWD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jun 2011 18:03:33 -0400
+	Wed, 15 Jun 2011 18:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@linux.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
+     memcg-fix-init_page_cgroup-nid-with-sparsemem-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
+     memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch
 
-This patch was dropped because it was folded into mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
+This patch was dropped because it was folded into memcg-fix-init_page_cgroup-nid-with-sparsemem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
+Subject: memcg-fix-init_page_cgroup-nid-with-sparsemem-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-standardize comment layout
+try to fix up comments, but I'm not sure I really understand them ;)
 
-Cc: Rafael Aquini <aquini@linux.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_cgroup.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
-+++ a/mm/hugetlb.c
-@@ -1111,11 +1111,11 @@ static void __init gather_bootmem_preall
- 		WARN_ON(page_count(page) != 1);
- 		prep_compound_huge_page(page, h->order);
- 		prep_new_huge_page(h, page, page_to_nid(page));
--
--		/* if we had gigantic hugepages allocated at boot time,
--		 * we need to reinstate the 'stolen' pages to totalram_pages,
--		 * in order to fix confusing memory reports from free(1)
--		 * and another side-effects, like CommitLimit going negative.
-+		/*
-+		 * If we had gigantic hugepages allocated at boot time, we need
-+		 * to restore the 'stolen' pages to totalram_pages in order to
-+		 * fix confusing memory reports from free(1) and another
-+		 * side-effects, like CommitLimit going negative.
+diff -puN mm/page_cgroup.c~memcg-fix-init_page_cgroup-nid-with-sparsemem-fix mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-fix-init_page_cgroup-nid-with-sparsemem-fix
++++ a/mm/page_cgroup.c
+@@ -196,8 +196,8 @@ static int __meminit init_section_page_c
+ 		init_page_cgroup(pc, nr);
+ 	}
+ 	/*
+-	 * Passed "pfn" may not be aligned to SECTION. For calculation,
+-	 * nedd to apply a mask.
++	 * The passed "pfn" may not be aligned to SECTION.  For the calculation
++	 * we need to apply a mask.
+ 	 */
+ 	pfn &= PAGE_SECTION_MASK;
+ 	section->page_cgroup = base - pfn;
+@@ -231,8 +231,8 @@ int __meminit online_page_cgroup(unsigne
+ 	if (nid == -1) {
+ 		/*
+ 		 * In this case, "nid" already exists and contains valid memory.
+-		 * "start_pfn" passed for us is a pfn which is args for online_
+-		 * _pages(), and start_pfn should exists.
++		 * "start_pfn" passed to us is a pfn which is an arg for
++		 * online__pages(), and start_pfn should exist.
  		 */
- 		if (h->order > (MAX_ORDER - 1))
- 			totalram_pages += 1 << h->order;
+ 		nid = pfn_to_nid(start_pfn);
+ 		VM_BUG_ON(!node_state(nid, N_ONLINE));
+@@ -308,9 +308,9 @@ void __init page_cgroup_init(void)
+ 		start_pfn = node_start_pfn(nid);
+ 		end_pfn = node_end_pfn(nid);
+ 		/*
+-		 * start_pfn and end_pfn may not be aligned to SECTION and
+-		 * page->flags of out of node pages are not initialized. So,
+-		 * we scan [start_pfn, the biggest section's pfn < end_pfn), here.
++		 * start_pfn and end_pfn may not be aligned to SECTION and the
++		 * page->flags of out of node pages are not initialized.  So we
++		 * scan [start_pfn, the biggest section's pfn < end_pfn) here.
+ 		 */
+ 		for (pfn = start_pfn;
+ 		     pfn < end_pfn;
+@@ -319,8 +319,8 @@ void __init page_cgroup_init(void)
+ 			if (!pfn_valid(pfn))
+ 				continue;
+ 			/*
+-			 * Nodes's pfn can be overlapped.
+-			 * We know some arch can have nodes layout as
++			 * Nodes's pfns can be overlapping.
++			 * We know some arch can have a nodes layout such as
+ 			 * -------------pfn-------------->
+ 			 * N0 | N1 | N2 | N0 | N1 | N2|....
+ 			 */
+@@ -332,8 +332,8 @@ void __init page_cgroup_init(void)
+ 	}
+ 	hotplug_memory_notifier(page_cgroup_callback, 0);
+ 	printk(KERN_INFO "allocated %ld bytes of page_cgroup\n", total_usage);
+-	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you don't"
+-	" want memory cgroups\n");
++	printk(KERN_INFO "please try 'cgroup_disable=memory' option if you "
++			 "don't want memory cgroups\n");
+ 	return;
+ oom:
+ 	printk(KERN_CRIT "try 'cgroup_disable=memory' boot option\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +104,7 @@ backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token.patch
 memcg-add-documentation-for-the-memorynumastat-api.patch
 mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
-memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch
+memcg-fix-init_page_cgroup-nid-with-sparsemem.patch
 memcg-clear-mm-owner-when-last-possible-owner-leaves-fix.patch
 memcg-fix-percpu-cached-charge-draining-frequency.patch
 linux-next.patch
