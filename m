@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:19 -0700
-Message-ID: <201106150124.p5F1OadZ031965@imap1.linux-foundation.org>
+Subject: + mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:18 -0700
+Message-ID: <201106150124.p5F1OZWW031957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754293Ab1FOBZT (ORCPT
+	by vger.kernel.org with ESMTP id S1754416Ab1FOBZN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:25:19 -0400
+	Tue, 14 Jun 2011 21:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, urykhy@gmail.com
+Cc: mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com
 
 
 The patch titled
-     mm: compaction: abort compaction if too many pages are isolated and caller is asynchronous V2
+     mm: compaction: ensure that the compaction free scanner does not move to the next zone
 has been added to the -mm tree.  Its filename is
-     mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch
+     mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: abort compaction if too many pages are isolated and caller is asynchronous V2
+Subject: mm: compaction: ensure that the compaction free scanner does not move to the next zone
 From: Mel Gorman <mgorman@suse.de>
 
-Asynchronous compaction is used when promoting to huge pages.  This is all
-very nice but if there are a number of processes in compacting memory, a
-large number of pages can be isolated.  An "asynchronous" process can
-stall for long periods of time as a result with a user reporting that
-firefox can stall for 10s of seconds.  This patch aborts asynchronous
-compaction if too many pages are isolated as it's better to fail a
-hugepage promotion than stall a process.
+Compaction works with two scanners, a migration and a free scanner.  When
+the scanners crossover, migration within the zone is complete.  The
+location of the scanner is recorded on each cycle to avoid excesive
+scanning.
 
-[minchan.kim@gmail.com: return COMPACT_PARTIAL for abort]
-Reported-and-tested-by: Ury Stankevich <urykhy@gmail.com>
+When a zone is small and mostly reserved, it's very easy for the migration
+scanner to be close to the end of the zone.  Then the following situation
+can occurs
+
+  o migration scanner isolates some pages near the end of the zone
+  o free scanner starts at the end of the zone but finds that the
+    migration scanner is already there
+  o free scanner gets reinitialised for the next cycle as
+    cc->migrate_pfn + pageblock_nr_pages
+    moving the free scanner into the next zone
+  o migration scanner moves into the next zone
+
+When this happens, NR_ISOLATED accounting goes haywire because some of the
+accounting happens against the wrong zone.  One zones counter remains
+positive while the other goes negative even though the overall global
+count is accurate.  This was reported on X86-32 with !SMP because !SMP
+allows the negative counters to be visible.  The fact that it is the bug
+should theoritically be possible there.
+
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Andrew Morton <>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ mm/compaction.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2
+diff -puN mm/compaction.c~mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone
 +++ a/mm/compaction.c
-@@ -251,11 +251,18 @@ static bool too_many_isolated(struct zon
- 	return isolated > (inactive + active) / 2;
- }
+@@ -144,9 +144,20 @@ static void isolate_freepages(struct zon
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
  
-+/* possible outcome of isolate_migratepages */
-+typedef enum {
-+	ISOLATE_ABORT,		/* Abort compaction now */
-+	ISOLATE_NONE,		/* No pages isolated, continue scanning */
-+	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
-+} isolate_migrate_t;
++	/*
++	 * Initialise the free scanner. The starting point is where we last
++	 * scanned from (or the end of the zone if starting). The low point
++	 * is the end of the pageblock the migration scanner is using.
++	 */
+ 	pfn = cc->free_pfn;
+ 	low_pfn = cc->migrate_pfn + pageblock_nr_pages;
+-	high_pfn = low_pfn;
 +
- /*
-  * Isolate all pages that can be migrated from the block pointed to by
-  * the migrate scanner within compact_control.
-  */
--static unsigned long isolate_migratepages(struct zone *zone,
-+static isolate_migrate_t isolate_migratepages(struct zone *zone,
- 					struct compact_control *cc)
- {
- 	unsigned long low_pfn, end_pfn;
-@@ -272,7 +279,7 @@ static unsigned long isolate_migratepage
- 	/* Do not cross the free scanner or scan within a memory hole */
- 	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
- 		cc->migrate_pfn = end_pfn;
--		return 0;
-+		return ISOLATE_NONE;
- 	}
++	/*
++	 * Take care that if the migration scanner is at the end of the zone
++	 * that the free scanner does not accidentally move to the next zone
++	 * in the next isolation cycle.
++	 */
++	high_pfn = min(low_pfn, pfn);
  
  	/*
-@@ -281,10 +288,14 @@ static unsigned long isolate_migratepage
- 	 * delay for some time until fewer pages are isolated
- 	 */
- 	while (unlikely(too_many_isolated(zone))) {
-+		/* async migration should just abort */
-+		if (!cc->sync)
-+			return ISOLATE_ABORT;
-+
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
- 		if (fatal_signal_pending(current))
--			return 0;
-+			return ISOLATE_ABORT;
- 	}
- 
- 	/* Time to isolate some pages for migration */
-@@ -369,7 +380,7 @@ static unsigned long isolate_migratepage
- 
- 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
- 
--	return cc->nr_migratepages;
-+	return ISOLATE_SUCCESS;
- }
- 
- /*
-@@ -535,8 +546,15 @@ static int compact_zone(struct zone *zon
- 		unsigned long nr_migrate, nr_remaining;
- 		int err;
- 
--		if (!isolate_migratepages(zone, cc))
-+		switch (isolate_migratepages(zone, cc)) {
-+		case ISOLATE_ABORT:
-+			ret = COMPACT_PARTIAL;
-+			goto out;
-+		case ISOLATE_NONE:
- 			continue;
-+		case ISOLATE_SUCCESS:
-+			;
-+		}
- 
- 		nr_migrate = cc->nr_migratepages;
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
-@@ -560,6 +578,7 @@ static int compact_zone(struct zone *zon
- 
- 	}
- 
-+out:
- 	/* Release free pages and check accounting */
- 	cc->nr_freepages -= release_freepages(&cc->freepages);
- 	VM_BUG_ON(cc->nr_freepages != 0);
+ 	 * Isolate free pages until enough are available to migrate the
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
