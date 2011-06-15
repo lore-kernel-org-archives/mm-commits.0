@@ -1,68 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-add-documentation-for-the-memorynumastat-api-fix.patch removed from -mm tree
-Date: Wed, 15 Jun 2011 15:02:25 -0700
-Message-ID: <201106152202.p5FM2PaI022048@imap1.linux-foundation.org>
+Subject: [folded] mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch removed from -mm tree
+Date: Wed, 15 Jun 2011 15:03:00 -0700
+Message-ID: <201106152203.p5FM3020022059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840Ab1FOWC7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752840Ab1FOWDd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jun 2011 18:02:59 -0400
+	Wed, 15 Jun 2011 18:03:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-add-documentation-for-the-memorynumastat-api-fix
+     mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-add-documentation-for-the-memorynumastat-api-fix.patch
+     mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
 
-This patch was dropped because it was folded into memcg-add-documentation-for-the-memorynumastat-api.patch
+This patch was dropped because it was folded into mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-documentation-for-the-memorynumastat-api-fix
+Subject: mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-rework text, fit it into 80-cols
+standardize comment layout
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
+Cc: Rafael Aquini <aquini@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-add-documentation-for-the-memorynumastat-api-fix
-+++ a/Documentation/cgroups/memory.txt
-@@ -467,13 +467,14 @@ value in memory.stat(see 5.2).
- 
- 5.6 numa_stat
- 
--This is similar to numa_maps but per-memcg basis. This is useful to add visibility
--of numa locality information in memcg since the pages are allowed to be allocated
--at any physical node. One of the usecase is evaluating application performance by
--combining this information with the cpu allocation to the application.
-+This is similar to numa_maps but operates on a per-memcg basis.  This is
-+useful for providing visibility into the numa locality information within
-+an memcg since the pages are allowed to be allocated from any physical
-+node.  One of the usecases is evaluating application performance by
-+combining this information with the application's cpu allocation.
- 
--We export "total", "file", "anon" and "unevictable" pages per-node for each memcg.
--The format ouput of the memory.numa_stat:
-+We export "total", "file", "anon" and "unevictable" pages per-node for
-+each memcg.  The ouput format of memory.numa_stat is:
- 
- total=<total pages> N0=<node 0 pages> N1=<node 1 pages> ...
- file=<total file pages> N0=<node 0 pages> N1=<node 1 pages> ...
+diff -puN mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix
++++ a/mm/hugetlb.c
+@@ -1111,11 +1111,11 @@ static void __init gather_bootmem_preall
+ 		WARN_ON(page_count(page) != 1);
+ 		prep_compound_huge_page(page, h->order);
+ 		prep_new_huge_page(h, page, page_to_nid(page));
+-
+-		/* if we had gigantic hugepages allocated at boot time,
+-		 * we need to reinstate the 'stolen' pages to totalram_pages,
+-		 * in order to fix confusing memory reports from free(1)
+-		 * and another side-effects, like CommitLimit going negative.
++		/*
++		 * If we had gigantic hugepages allocated at boot time, we need
++		 * to restore the 'stolen' pages to totalram_pages in order to
++		 * fix confusing memory reports from free(1) and another
++		 * side-effects, like CommitLimit going negative.
+ 		 */
+ 		if (h->order > (MAX_ORDER - 1))
+ 			totalram_pages += 1 << h->order;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +63,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 backlight-add-backlight-type-fix.patch
 vmscanmemcg-memcg-aware-swap-token.patch
 memcg-add-documentation-for-the-memorynumastat-api.patch
-mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated-fix.patch
+mm-fix-negative-commitlimit-when-gigantic-hugepages-are-allocated.patch
 memcg-fix-init_page_cgroup-nid-with-sparsemem-fix.patch
 memcg-clear-mm-owner-when-last-possible-owner-leaves-fix.patch
 memcg-fix-percpu-cached-charge-draining-frequency.patch
