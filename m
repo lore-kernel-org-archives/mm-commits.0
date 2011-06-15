@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-solo6x10-corec-needs-slabh.patch added to -mm tree
-Date: Wed, 15 Jun 2011 16:46:48 -0700
-Message-ID: <201106160024.p5G0O2Lb028468@imap1.linux-foundation.org>
+Subject: + drivers-staging-solo6x10-p2mc-needs-slabh.patch added to -mm tree
+Date: Wed, 15 Jun 2011 16:53:12 -0700
+Message-ID: <201106160030.p5G0URvx028797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752483Ab1FPAYf (ORCPT
+	by vger.kernel.org with ESMTP id S1753329Ab1FPAaa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Jun 2011 20:24:35 -0400
+	Wed, 15 Jun 2011 20:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/staging/solo6x10/core.c needs slab.h
+     drivers/staging/solo6x10/p2m.c needs slab.h
 has been added to the -mm tree.  Its filename is
-     drivers-staging-solo6x10-corec-needs-slabh.patch
+     drivers-staging-solo6x10-p2mc-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/solo6x10/core.c needs slab.h
+Subject: drivers/staging/solo6x10/p2m.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha allmodconfig:
 
-drivers/staging/solo6x10/core.c:140: error: implicit declaration of function 'kzalloc'
+drivers/staging/solo6x10/p2m.c:52: error: implicit declaration of function 'kzalloc'
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/solo6x10/core.c |    1 +
+ drivers/staging/solo6x10/p2m.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/solo6x10/core.c~drivers-staging-solo6x10-corec-needs-slabh drivers/staging/solo6x10/core.c
---- a/drivers/staging/solo6x10/core.c~drivers-staging-solo6x10-corec-needs-slabh
-+++ a/drivers/staging/solo6x10/core.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/interrupt.h>
+diff -puN drivers/staging/solo6x10/p2m.c~drivers-staging-solo6x10-p2mc-needs-slabh drivers/staging/solo6x10/p2m.c
+--- a/drivers/staging/solo6x10/p2m.c~drivers-staging-solo6x10-p2mc-needs-slabh
++++ a/drivers/staging/solo6x10/p2m.c
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <linux/kernel.h>
 +#include <linux/slab.h>
- #include <linux/videodev2.h>
+ #include <linux/scatterlist.h>
  #include "solo6x10.h"
- #include "tw28.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +80,9 @@ pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanni
 drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
 drivers-staging-gma500-psb_intel_displayc-fix-build.patch
 drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
 slab-use-numa_no_node.patch
 mm.patch
 mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
@@ -107,5 +110,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
 
