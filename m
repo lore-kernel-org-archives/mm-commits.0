@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-really-wake-up-processes-when-timer-is-cancelled-on-clock-change.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:21 -0700
-Message-ID: <201106150124.p5F1Ocfc031971@imap1.linux-foundation.org>
+Subject: + pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:22 -0700
+Message-ID: <201106150124.p5F1OdlG031974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752334Ab1FOBh4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752837Ab1FOBiG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:37:56 -0400
+	Tue, 14 Jun 2011 21:38:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: masbock@linux.vnet.ibm.com, john.stultz@linaro.org, tglx@linutronix.de
+Cc: tiejun.chen@windriver.com, jbarnes@virtuousgeek.org, rajesh.shah@intel.com
 
 
 The patch titled
-     timerfd: really wake up processes when timer is cancelled on clock change
+     pci: enumerate the PCI device only removed out PCI hierarchy of OS when re-scanning PCI
 has been added to the -mm tree.  Its filename is
-     timerfd-really-wake-up-processes-when-timer-is-cancelled-on-clock-change.patch
+     pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd: really wake up processes when timer is cancelled on clock change
-From: Max Asbock <masbock@linux.vnet.ibm.com>
+Subject: pci: enumerate the PCI device only removed out PCI hierarchy of OS when re-scanning PCI
+From: Tiejun Chen <tiejun.chen@windriver.com>
 
-When the system time is set the clock_was_set() function calls
-timerfd_clock_was_set() to cancel and wake up processes waiting on
-potential cancelable timerfd timers.  However the wake up currently has no
-effect because in the case of timerfd_read it is dependent on ctx->ticks
-not being 0.  timerfd_poll also requires ctx->ticks being non zero.  As a
-consequence processes waiting on cancelable timers only get woken up when
-the timers expire.  This patch fixes this by incrementing ctx->ticks
-before calling wake_up.
+When hot-plugging a root bridge, we always prevent assigning a bus number
+that already exists.  This makes sure we don't step over an existing bus. 
+But sometimes we only remove PCI device in PCI hieratchy of OS, i,e.
 
-Signed-off-by: Max Asbock <masbock@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: John Stultz <john.stultz@linaro.org>
+echo 1 > /sys/bus/pci/devices/.../remove
+
+but actually don't hotplug this device out the platform, so in this case
+we still should re-scan this bus to enumerate this device when re-scanning
+PCI again.
+
+Signed-off-by: Tiejun Chen <tiejun.chen@windriver.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: <rajesh.shah@intel.com>
 Signed-off-by: Andrew Morton <>
 ---
 
- fs/timerfd.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/pci/probe.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/timerfd.c~timerfd-really-wake-up-processes-when-timer-is-cancelled-on-clock-change fs/timerfd.c
---- a/fs/timerfd.c~timerfd-really-wake-up-processes-when-timer-is-cancelled-on-clock-change
-+++ a/fs/timerfd.c
-@@ -61,7 +61,9 @@ static enum hrtimer_restart timerfd_tmrp
+diff -puN drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci
++++ a/drivers/pci/probe.c
+@@ -725,12 +725,14 @@ int __devinit pci_scan_bridge(struct pci
+ 		pci_write_config_word(dev, PCI_STATUS, 0xffff);
  
- /*
-  * Called when the clock was set to cancel the timers in the cancel
-- * list.
-+ * list. This will wake up processes waiting on these timers. The
-+ * wake-up requires ctx->ticks to be non zero, therefore we increment
-+ * it before calling wake_up_locked().
-  */
- void timerfd_clock_was_set(void)
- {
-@@ -76,6 +78,7 @@ void timerfd_clock_was_set(void)
- 		spin_lock_irqsave(&ctx->wqh.lock, flags);
- 		if (ctx->moffs.tv64 != moffs.tv64) {
- 			ctx->moffs.tv64 = KTIME_MAX;
-+			ctx->ticks++;
- 			wake_up_locked(&ctx->wqh);
- 		}
- 		spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 		/* Prevent assigning a bus number that already exists.
+-		 * This can happen when a bridge is hot-plugged */
+-		if (pci_find_bus(pci_domain_nr(bus), max+1))
+-			goto out;
+-		child = pci_add_new_bus(bus, dev, ++max);
+-		if (!child)
+-			goto out;
++		 * This can happen when a bridge is hot-plugged, so in
++		 * this case we only re-scan this bus. */
++		child = pci_find_bus(pci_domain_nr(bus), max+1);
++		if (!child) {
++			child = pci_add_new_bus(bus, dev, ++max);
++			if (!child)
++				goto out;
++		}
+ 		buses = (buses & 0xff000000)
+ 		      | ((unsigned int)(child->primary)     <<  0)
+ 		      | ((unsigned int)(child->secondary)   <<  8)
 _
 
-Patches currently in -mm which might be from masbock@linux.vnet.ibm.com are
+Patches currently in -mm which might be from tiejun.chen@windriver.com are
 
-timerfd-really-wake-up-processes-when-timer-is-cancelled-on-clock-change.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
 
