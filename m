@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch added to -mm tree
-Date: Tue, 14 Jun 2011 18:27:29 -0700
-Message-ID: <201106150124.p5F1OkVX032008@imap1.linux-foundation.org>
+Subject: + misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:28 -0700
+Message-ID: <201106150124.p5F1Ojjq031999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751624Ab1FOBip (ORCPT
+	by vger.kernel.org with ESMTP id S1751624Ab1FOBjM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Jun 2011 21:38:45 -0400
+	Tue, 14 Jun 2011 21:39:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: agust@denx.de, grant.likely@secretlab.ca, jic23@cam.ac.uk
 
 
 The patch titled
-     misc/eeprom: add eeprom access driver for digsy_mtc board
+     misc/eeprom: add driver for microwire 93xx46 EEPROMs
 has been added to the -mm tree.  Its filename is
-     misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch
+     misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc/eeprom: add eeprom access driver for digsy_mtc board
+Subject: misc/eeprom: add driver for microwire 93xx46 EEPROMs
 From: Anatolij Gustschin <agust@denx.de>
 
-Both displays on digsy_mtc board obtain their configuration from microwire
-EEPROMs which are connected to the SoC over GPIO lines.  We need an easy
-way to access the EEPROMs to write the needed display configuration or to
-read out the currently programmed configuration.  The generic
-eeprom_93xx46 SPI driver added by previous patch allows EEPROM access over
-sysfs.  Using the simple driver added by this patch we provide used GPIO
-interface and access control description on the board for generic
-eeprom_93xx46 driver and spi_gpio driver.
+Add EEPROM driver for 93xx46 chips.  It can also be used with spi_gpio
+driver to access 93xx46 EEPROMs connected over GPIO lines.  This driver
+supports read/write/erase access to the EEPROM chips over sysfs files.
 
 Signed-off-by: Anatolij Gustschin <agust@denx.de>
 Cc: Jonathan Cameron <jic23@cam.ac.uk>
@@ -52,46 +47,47 @@ Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <>
 ---
 
- drivers/misc/eeprom/Kconfig            |   12 +++
- drivers/misc/eeprom/Makefile           |    1 
- drivers/misc/eeprom/digsy_mtc_eeprom.c |   85 +++++++++++++++++++++++
- 3 files changed, 98 insertions(+)
+ drivers/misc/eeprom/Kconfig         |   13 
+ drivers/misc/eeprom/Makefile        |    1 
+ drivers/misc/eeprom/eeprom_93xx46.c |  410 ++++++++++++++++++++++++++
+ include/linux/eeprom_93xx46.h       |   18 +
+ 4 files changed, 442 insertions(+)
 
-diff -puN drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Kconfig
---- a/drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
+diff -puN drivers/misc/eeprom/Kconfig~misc-eeprom-add-driver-for-microwire-93xx46-eeproms drivers/misc/eeprom/Kconfig
+--- a/drivers/misc/eeprom/Kconfig~misc-eeprom-add-driver-for-microwire-93xx46-eeproms
 +++ a/drivers/misc/eeprom/Kconfig
-@@ -83,4 +83,16 @@ config EEPROM_93XX46
+@@ -70,4 +70,17 @@ config EEPROM_93CX6
  
  	  If unsure, say N.
  
-+config EEPROM_DIGSY_MTC_CFG
-+	bool "DigsyMTC display configuration EEPROMs device"
-+	depends on PPC_MPC5200_GPIO && GPIOLIB && SPI_GPIO
++config EEPROM_93XX46
++	tristate "Microwire EEPROM 93XX46 support"
++	depends on SPI && SYSFS
 +	help
-+	  This option enables access to display configuration EEPROMs
-+	  on digsy_mtc board. You have to additionally select Microwire
-+	  EEPROM 93XX46 driver. sysfs entries will be created for that
-+	  EEPROM allowing to read/write the configuration data or to
++	  Driver for the microwire EEPROM chipsets 93xx46x. The driver
++	  supports both read and write commands and also the command to
 +	  erase the whole EEPROM.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called eeprom_93xx46.
 +
 +	  If unsure, say N.
 +
  endmenu
-diff -puN drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Makefile
---- a/drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
+diff -puN drivers/misc/eeprom/Makefile~misc-eeprom-add-driver-for-microwire-93xx46-eeproms drivers/misc/eeprom/Makefile
+--- a/drivers/misc/eeprom/Makefile~misc-eeprom-add-driver-for-microwire-93xx46-eeproms
 +++ a/drivers/misc/eeprom/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_EEPROM_LEGACY)	+= eeprom.o
+@@ -3,3 +3,4 @@ obj-$(CONFIG_EEPROM_AT25)	+= at25.o
+ obj-$(CONFIG_EEPROM_LEGACY)	+= eeprom.o
  obj-$(CONFIG_EEPROM_MAX6875)	+= max6875.o
  obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
- obj-$(CONFIG_EEPROM_93XX46)	+= eeprom_93xx46.o
-+obj-$(CONFIG_EEPROM_DIGSY_MTC_CFG) += digsy_mtc_eeprom.o
-diff -puN /dev/null drivers/misc/eeprom/digsy_mtc_eeprom.c
++obj-$(CONFIG_EEPROM_93XX46)	+= eeprom_93xx46.o
+diff -puN /dev/null drivers/misc/eeprom/eeprom_93xx46.c
 --- /dev/null
-+++ a/drivers/misc/eeprom/digsy_mtc_eeprom.c
-@@ -0,0 +1,85 @@
++++ a/drivers/misc/eeprom/eeprom_93xx46.c
+@@ -0,0 +1,410 @@
 +/*
-+ * EEPROMs access control driver for display configuration EEPROMs
-+ * on DigsyMTC board.
++ * Driver for 93xx46 EEPROMs
 + *
 + * (C) 2011 DENX Software Engineering, Anatolij Gustschin <agust@denx.de>
 + *
@@ -100,80 +96,428 @@ diff -puN /dev/null drivers/misc/eeprom/digsy_mtc_eeprom.c
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/gpio.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
 +#include <linux/init.h>
-+#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
 +#include <linux/spi/spi.h>
-+#include <linux/spi/spi_gpio.h>
++#include <linux/sysfs.h>
 +#include <linux/eeprom_93xx46.h>
 +
-+#define GPIO_EEPROM_CLK		216
-+#define GPIO_EEPROM_CS		210
-+#define GPIO_EEPROM_DI		217
-+#define GPIO_EEPROM_DO		249
-+#define GPIO_EEPROM_OE		255
-+#define EE_SPI_BUS_NUM	1
++#define OP_START	0x4
++#define OP_WRITE	(OP_START | 0x1)
++#define OP_READ		(OP_START | 0x2)
++#define ADDR_EWDS	0x00
++#define ADDR_ERAL	0x20
++#define ADDR_EWEN	0x30
 +
-+static void digsy_mtc_op_prepare(void *p)
++struct eeprom_93xx46_dev {
++	struct spi_device *spi;
++	struct eeprom_93xx46_platform_data *pdata;
++	struct bin_attribute bin;
++	struct mutex lock;
++	int addrlen;
++};
++
++static ssize_t
++eeprom_93xx46_bin_read(struct file *filp, struct kobject *kobj,
++		       struct bin_attribute *bin_attr,
++		       char *buf, loff_t off, size_t count)
 +{
-+	/* enable */
-+	gpio_set_value(GPIO_EEPROM_OE, 0);
-+}
++	struct eeprom_93xx46_dev *edev;
++	struct device *dev;
++	struct spi_message m;
++	struct spi_transfer t[2];
++	int bits, ret;
++	u16 cmd_addr;
 +
-+static void digsy_mtc_op_finish(void *p)
-+{
-+	/* disable */
-+	gpio_set_value(GPIO_EEPROM_OE, 1);
-+}
++	dev = container_of(kobj, struct device, kobj);
++	edev = dev_get_drvdata(dev);
 +
-+struct eeprom_93xx46_platform_data digsy_mtc_eeprom_data = {
-+	.flags		= EE_ADDR8,
-+	.prepare	= digsy_mtc_op_prepare,
-+	.finish		= digsy_mtc_op_finish,
-+};
++	if (unlikely(off >= edev->bin.size))
++		return 0;
++	if ((off + count) > edev->bin.size)
++		count = edev->bin.size - off;
++	if (unlikely(!count))
++		return count;
 +
-+static struct spi_gpio_platform_data eeprom_spi_gpio_data = {
-+	.sck		= GPIO_EEPROM_CLK,
-+	.mosi		= GPIO_EEPROM_DI,
-+	.miso		= GPIO_EEPROM_DO,
-+	.num_chipselect	= 1,
-+};
++	cmd_addr = OP_READ << edev->addrlen;
 +
-+static struct platform_device digsy_mtc_eeprom = {
-+	.name	= "spi_gpio",
-+	.id	= EE_SPI_BUS_NUM,
-+	.dev	= {
-+		.platform_data	= &eeprom_spi_gpio_data,
-+	},
-+};
-+
-+static struct spi_board_info digsy_mtc_eeprom_info[] __initdata = {
-+	{
-+		.modalias		= "93xx46",
-+		.max_speed_hz		= 1000000,
-+		.bus_num		= EE_SPI_BUS_NUM,
-+		.chip_select		= 0,
-+		.mode			= SPI_MODE_0,
-+		.controller_data	= (void *)GPIO_EEPROM_CS,
-+		.platform_data		= &digsy_mtc_eeprom_data,
-+	},
-+};
-+
-+static int __init digsy_mtc_eeprom_devices_init(void)
-+{
-+	int ret;
-+
-+	ret = gpio_request_one(GPIO_EEPROM_OE, GPIOF_OUT_INIT_HIGH,
-+				"93xx46 EEPROMs OE");
-+	if (ret) {
-+		pr_err("can't request gpio %d\n", GPIO_EEPROM_OE);
-+		return ret;
++	if (edev->addrlen == 7) {
++		cmd_addr |= off & 0x7f;
++		bits = 10;
++	} else {
++		cmd_addr |= off & 0x3f;
++		bits = 9;
 +	}
-+	spi_register_board_info(digsy_mtc_eeprom_info,
-+				ARRAY_SIZE(digsy_mtc_eeprom_info));
-+	return platform_device_register(&digsy_mtc_eeprom);
++
++	dev_dbg(&edev->spi->dev, "read cmd 0x%x, %d Hz\n",
++		cmd_addr, edev->spi->max_speed_hz);
++
++	spi_message_init(&m);
++	memset(t, 0, sizeof(t));
++
++	t[0].tx_buf = (char *)&cmd_addr;
++	t[0].len = 2;
++	t[0].bits_per_word = bits;
++	spi_message_add_tail(&t[0], &m);
++
++	t[1].rx_buf = buf;
++	t[1].len = count;
++	t[1].bits_per_word = 8;
++	spi_message_add_tail(&t[1], &m);
++
++	mutex_lock(&edev->lock);
++
++	if (edev->pdata->prepare)
++		edev->pdata->prepare(edev);
++
++	ret = spi_sync(edev->spi, &m);
++	/* have to wait at least Tcsl ns */
++	ndelay(250);
++	if (ret) {
++		dev_err(&edev->spi->dev, "read %d bytes at %d: err. %d\n",
++			count, (int)off, ret);
++	}
++
++	if (edev->pdata->finish)
++		edev->pdata->finish(edev);
++
++	mutex_unlock(&edev->lock);
++	return ret ? : count;
 +}
-+device_initcall(digsy_mtc_eeprom_devices_init);
++
++static int eeprom_93xx46_ew(struct eeprom_93xx46_dev *edev, int is_on)
++{
++	struct spi_message m;
++	struct spi_transfer t;
++	int bits, ret;
++	u16 cmd_addr;
++
++	cmd_addr = OP_START << edev->addrlen;
++	if (edev->addrlen == 7) {
++		cmd_addr |= (is_on ? ADDR_EWEN : ADDR_EWDS) << 1;
++		bits = 10;
++	} else {
++		cmd_addr |= (is_on ? ADDR_EWEN : ADDR_EWDS);
++		bits = 9;
++	}
++
++	dev_dbg(&edev->spi->dev, "ew cmd 0x%04x\n", cmd_addr);
++
++	spi_message_init(&m);
++	memset(&t, 0, sizeof(t));
++
++	t.tx_buf = &cmd_addr;
++	t.len = 2;
++	t.bits_per_word = bits;
++	spi_message_add_tail(&t, &m);
++
++	mutex_lock(&edev->lock);
++
++	if (edev->pdata->prepare)
++		edev->pdata->prepare(edev);
++
++	ret = spi_sync(edev->spi, &m);
++	/* have to wait at least Tcsl ns */
++	ndelay(250);
++	if (ret)
++		dev_err(&edev->spi->dev, "erase/write %sable error %d\n",
++			is_on ? "en" : "dis", ret);
++
++	if (edev->pdata->finish)
++		edev->pdata->finish(edev);
++
++	mutex_unlock(&edev->lock);
++	return ret;
++}
++
++static ssize_t
++eeprom_93xx46_write_word(struct eeprom_93xx46_dev *edev,
++			 const char *buf, unsigned off)
++{
++	struct spi_message m;
++	struct spi_transfer t[2];
++	int bits, data_len, ret;
++	u16 cmd_addr;
++
++	cmd_addr = OP_WRITE << edev->addrlen;
++
++	if (edev->addrlen == 7) {
++		cmd_addr |= off & 0x7f;
++		bits = 10;
++		data_len = 1;
++	} else {
++		cmd_addr |= off & 0x3f;
++		bits = 9;
++		data_len = 2;
++	}
++
++	dev_dbg(&edev->spi->dev, "write cmd 0x%x\n", cmd_addr);
++
++	spi_message_init(&m);
++	memset(t, 0, sizeof(t));
++
++	t[0].tx_buf = (char *)&cmd_addr;
++	t[0].len = 2;
++	t[0].bits_per_word = bits;
++	spi_message_add_tail(&t[0], &m);
++
++	t[1].tx_buf = buf;
++	t[1].len = data_len;
++	t[1].bits_per_word = 8;
++	spi_message_add_tail(&t[1], &m);
++
++	ret = spi_sync(edev->spi, &m);
++	/* have to wait program cycle time Twc ms */
++	mdelay(6);
++	return ret;
++}
++
++static ssize_t
++eeprom_93xx46_bin_write(struct file *filp, struct kobject *kobj,
++			struct bin_attribute *bin_attr,
++			char *buf, loff_t off, size_t count)
++{
++	struct eeprom_93xx46_dev *edev;
++	struct device *dev;
++	int i, ret, step = 1;
++
++	dev = container_of(kobj, struct device, kobj);
++	edev = dev_get_drvdata(dev);
++
++	if (unlikely(off >= edev->bin.size))
++		return 0;
++	if ((off + count) > edev->bin.size)
++		count = edev->bin.size - off;
++	if (unlikely(!count))
++		return count;
++
++	/* only write even number of bytes on 16-bit devices */
++	if (edev->addrlen == 6) {
++		step = 2;
++		count &= ~1;
++	}
++
++	/* erase/write enable */
++	ret = eeprom_93xx46_ew(edev, 1);
++	if (ret)
++		return ret;
++
++	mutex_lock(&edev->lock);
++
++	if (edev->pdata->prepare)
++		edev->pdata->prepare(edev);
++
++	for (i = 0; i < count; i += step) {
++		ret = eeprom_93xx46_write_word(edev, &buf[i], off + i);
++		if (ret) {
++			dev_err(&edev->spi->dev, "write failed at %d: %d\n",
++				(int)off + i, ret);
++			break;
++		}
++	}
++
++	if (edev->pdata->finish)
++		edev->pdata->finish(edev);
++
++	mutex_unlock(&edev->lock);
++
++	/* erase/write disable */
++	eeprom_93xx46_ew(edev, 0);
++	return ret ? : count;
++}
++
++static int eeprom_93xx46_eral(struct eeprom_93xx46_dev *edev)
++{
++	struct eeprom_93xx46_platform_data *pd = edev->pdata;
++	struct spi_message m;
++	struct spi_transfer t;
++	int bits, ret;
++	u16 cmd_addr;
++
++	cmd_addr = OP_START << edev->addrlen;
++	if (edev->addrlen == 7) {
++		cmd_addr |= ADDR_ERAL << 1;
++		bits = 10;
++	} else {
++		cmd_addr |= ADDR_ERAL;
++		bits = 9;
++	}
++
++	spi_message_init(&m);
++	memset(&t, 0, sizeof(t));
++
++	t.tx_buf = &cmd_addr;
++	t.len = 2;
++	t.bits_per_word = bits;
++	spi_message_add_tail(&t, &m);
++
++	mutex_lock(&edev->lock);
++
++	if (edev->pdata->prepare)
++		edev->pdata->prepare(edev);
++
++	ret = spi_sync(edev->spi, &m);
++	if (ret)
++		dev_err(&edev->spi->dev, "erase error %d\n", ret);
++	/* have to wait erase cycle time Tec ms */
++	mdelay(6);
++
++	if (pd->finish)
++		pd->finish(edev);
++
++	mutex_unlock(&edev->lock);
++	return ret;
++}
++
++static ssize_t eeprom_93xx46_store_erase(struct device *dev,
++					 struct device_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct eeprom_93xx46_dev *edev = dev_get_drvdata(dev);
++	int erase = 0, ret;
++
++	sscanf(buf, "%d", &erase);
++	if (erase) {
++		ret = eeprom_93xx46_ew(edev, 1);
++		if (ret)
++			return ret;
++		ret = eeprom_93xx46_eral(edev);
++		if (ret)
++			return ret;
++		ret = eeprom_93xx46_ew(edev, 0);
++		if (ret)
++			return ret;
++	}
++	return count;
++}
++static DEVICE_ATTR(erase, S_IWUSR, NULL, eeprom_93xx46_store_erase);
++
++static int __devinit eeprom_93xx46_probe(struct spi_device *spi)
++{
++	struct eeprom_93xx46_platform_data *pd;
++	struct eeprom_93xx46_dev *edev;
++	int err;
++
++	pd = spi->dev.platform_data;
++	if (!pd) {
++		dev_err(&spi->dev, "missing platform data\n");
++		return -ENODEV;
++	}
++
++	edev = kzalloc(sizeof(*edev), GFP_KERNEL);
++	if (!edev)
++		return -ENOMEM;
++
++	if (pd->flags & EE_ADDR8)
++		edev->addrlen = 7;
++	else if (pd->flags & EE_ADDR16)
++		edev->addrlen = 6;
++	else {
++		dev_err(&spi->dev, "unspecified address type\n");
++		err = -EINVAL;
++		goto fail;
++	}
++
++	mutex_init(&edev->lock);
++
++	edev->spi = spi_dev_get(spi);
++	edev->pdata = pd;
++
++	sysfs_bin_attr_init(&edev->bin);
++	edev->bin.attr.name = "eeprom";
++	edev->bin.attr.mode = S_IRUSR;
++	edev->bin.read = eeprom_93xx46_bin_read;
++	edev->bin.size = 128;
++	if (!(pd->flags & EE_READONLY)) {
++		edev->bin.write = eeprom_93xx46_bin_write;
++		edev->bin.attr.mode |= S_IWUSR;
++	}
++
++	err = sysfs_create_bin_file(&spi->dev.kobj, &edev->bin);
++	if (err)
++		goto fail;
++
++	dev_info(&spi->dev, "%d-bit eeprom %s\n",
++		(pd->flags & EE_ADDR8) ? 8 : 16,
++		(pd->flags & EE_READONLY) ? "(readonly)" : "");
++
++	if (!(pd->flags & EE_READONLY)) {
++		if (device_create_file(&spi->dev, &dev_attr_erase))
++			dev_err(&spi->dev, "can't create erase interface\n");
++	}
++
++	dev_set_drvdata(&spi->dev, edev);
++	return 0;
++fail:
++	kfree(edev);
++	return err;
++}
++
++static int __devexit eeprom_93xx46_remove(struct spi_device *spi)
++{
++	struct eeprom_93xx46_dev *edev = dev_get_drvdata(&spi->dev);
++
++	if (!(edev->pdata->flags & EE_READONLY))
++		device_remove_file(&spi->dev, &dev_attr_erase);
++
++	sysfs_remove_bin_file(&spi->dev.kobj, &edev->bin);
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(edev);
++	return 0;
++}
++
++static struct spi_driver eeprom_93xx46_driver = {
++	.driver = {
++		.name	= "93xx46",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= eeprom_93xx46_probe,
++	.remove		= __devexit_p(eeprom_93xx46_remove),
++};
++
++static int __init eeprom_93xx46_init(void)
++{
++	return spi_register_driver(&eeprom_93xx46_driver);
++}
++module_init(eeprom_93xx46_init);
++
++static void __exit eeprom_93xx46_exit(void)
++{
++	spi_unregister_driver(&eeprom_93xx46_driver);
++}
++module_exit(eeprom_93xx46_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Driver for 93xx46 EEPROMs");
++MODULE_AUTHOR("Anatolij Gustschin <agust@denx.de>");
++MODULE_ALIAS("spi:93xx46");
+diff -puN /dev/null include/linux/eeprom_93xx46.h
+--- /dev/null
++++ a/include/linux/eeprom_93xx46.h
+@@ -0,0 +1,18 @@
++/*
++ * Module: eeprom_93xx46
++ * platform description for 93xx46 EEPROMs.
++ */
++
++struct eeprom_93xx46_platform_data {
++	unsigned char	flags;
++#define EE_ADDR8	0x01		/*  8 bit addr. cfg */
++#define EE_ADDR16	0x02		/* 16 bit addr. cfg */
++#define EE_READONLY	0x08		/* forbid writing */
++
++	/*
++	 * optional hooks to control additional logic
++	 * before and after spi transfer.
++	 */
++	void (*prepare)(void *);
++	void (*finish)(void *);
++};
 _
 
 Patches currently in -mm which might be from agust@denx.de are
