@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-fix-some-build-warnings-in-pinmuxc.patch added to -mm tree
-Date: Mon, 13 Jun 2011 16:42:08 -0700
-Message-ID: <201106132342.p5DNg89C029378@imap1.linux-foundation.org>
+Subject: + documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt.patch added to -mm tree
+Date: Tue, 14 Jun 2011 18:27:20 -0700
+Message-ID: <201106150124.p5F1ObJR031968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753625Ab1FMXmV (ORCPT
+	by vger.kernel.org with ESMTP id S1753508Ab1FOBZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Jun 2011 19:42:21 -0400
+	Tue, 14 Jun 2011 21:25:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
+Cc: xiyou.wangcong@gmail.com, daniel.lezcano@free.fr, serge.hallyn@canonical.com
 
 
 The patch titled
-     cris: fix some build warnings in pinmux.c
+     Documentation/feature-removal-schedule.txt: remove ns_cgroup from feature-removal-schedule.txt
 has been added to the -mm tree.  Its filename is
-     cris-fix-some-build-warnings-in-pinmuxc.patch
+     documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: fix some build warnings in pinmux.c
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: Documentation/feature-removal-schedule.txt: remove ns_cgroup from feature-removal-schedule.txt
 
-Fix some harmless warnings such as
 
-src/arch/cris/arch-v32/mach-a3/pinmux.c:273: warning: ISO C90 forbids mixed declarations and code:
+Commit a77aea92010acf ("cgroup: remove the ns_cgroup") removed the
+ns_cgroup but it forgot to remove the related doc in
+feature-removal-schedule.txt.
 
 Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Serge E.  Hallyn <serge.hallyn@canonical.com>
+Signed-off-by: Andrew Morton <>
 ---
 
- arch/cris/arch-v32/mach-a3/pinmux.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ Documentation/feature-removal-schedule.txt |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc arch/cris/arch-v32/mach-a3/pinmux.c
---- a/arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc
-+++ a/arch/cris/arch-v32/mach-a3/pinmux.c
-@@ -85,6 +85,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
- 	int ret = -EINVAL;
- 	char saved[sizeof pins];
- 	unsigned long flags;
-+	reg_pinmux_rw_hwprot hwprot;
-+	reg_clkgen_rw_clk_ctrl clk_ctrl;
+diff -puN Documentation/feature-removal-schedule.txt~documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~documentation-feature-removal-scheduletxt-remove-ns_cgroup-from-feature-removal-scheduletxt
++++ a/Documentation/feature-removal-schedule.txt
+@@ -481,23 +481,6 @@ Who:	FUJITA Tomonori <fujita.tomonori@la
  
- 	spin_lock_irqsave(&pinmux_lock, flags);
+ ----------------------------
  
-@@ -93,9 +95,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
- 
- 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
- 
--	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
--	reg_clkgen_rw_clk_ctrl clk_ctrl = REG_RD(clkgen, regi_clkgen,
--		rw_clk_ctrl);
-+	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
-+	clk_ctrl = REG_RD(clkgen, regi_clkgen, rw_clk_ctrl);
- 
- 	switch (function) {
- 	case pinmux_eth:
-@@ -262,6 +263,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
- 	int ret = -EINVAL;
- 	char saved[sizeof pins];
- 	unsigned long flags;
-+	reg_pinmux_rw_hwprot hwprot;
- 
- 	spin_lock_irqsave(&pinmux_lock, flags);
- 
-@@ -270,7 +272,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
- 
- 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
- 
--	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
-+	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
- 
- 	switch (function) {
- 	case pinmux_eth:
-_
-
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
-
-linux-next.patch
-cris-fix-a-build-error-in-kernel-forkc.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-cris-fix-a-build-error-in-sync_serial_open.patch
-cris-fix-the-prototype-of-sync_serial_ioctl.patch
-cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
-cris-fix-some-build-warnings-in-pinmuxc.patch
-kexec-remove-kmsg_dump_kexec.patch
-
+-What:   namespace cgroup (ns_cgroup)
+-When:   2.6.38
+-Why:    The ns_cgroup leads to some problems:
+-	* cgroup creation is out-of-control
+-	* cgroup name can conflict when pids are looping
+-	* it is not possible to have a single process handling
+-	a lot of namespaces without falling in a exponential creation time
+-	* we may want to create a namespace without creating a cgroup
+-
+-	The ns_cgroup is replaced by a compatibility flag 'clone_children',
+-	where a newly created cgroup will copy the parent cgroup values.
+-	The userspace has to manually create a cgroup and add a task to
+-	the 'tasks' file.
+-Who:    Daniel Lezcano <daniel.lezcano@free.fr>
+-
+-----------------------------
