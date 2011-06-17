@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + um-clean-up-vm-flagsh.patch added to -mm tree
-Date: Fri, 17 Jun 2011 14:25:40 -0700
-Message-ID: <201106172125.p5HLPe1a001847@imap1.linux-foundation.org>
+Date: Fri, 17 Jun 2011 14:25:52 -0700
+Message-ID: <201106172125.p5HLPqac001853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751049Ab1FQV03 (ORCPT
+	by vger.kernel.org with ESMTP id S1751519Ab1FQV0j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 17:26:29 -0400
+	Fri, 17 Jun 2011 17:26:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -41,7 +41,7 @@ There is no need to define VM_{STACK,DATA}_DEFAULT_FLAGS as variable.
 It's also useless to test for TIF_IA32 as 64bit UML has no IA32 emulation.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
