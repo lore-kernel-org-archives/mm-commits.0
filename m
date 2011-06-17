@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-clone-shmem_file_splice_read.patch added to -mm tree
-Date: Fri, 17 Jun 2011 16:39:27 -0700
-Message-ID: <201106172339.p5HNdSWO008214@imap1.linux-foundation.org>
+Subject: + tmpfs-simplify-filepage-swappage.patch added to -mm tree
+Date: Fri, 17 Jun 2011 16:39:38 -0700
+Message-ID: <201106172339.p5HNdckn008229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757478Ab1FQXji (ORCPT
+	by vger.kernel.org with ESMTP id S1757478Ab1FQXjl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 19:39:38 -0400
+	Fri, 17 Jun 2011 19:39:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, jaxboe@fusionio.com
+Cc: hughd@google.com
 
 
 The patch titled
-     tmpfs: clone shmem_file_splice_read()
+     tmpfs: simplify filepage/swappage
 has been added to the -mm tree.  Its filename is
-     tmpfs-clone-shmem_file_splice_read.patch
+     tmpfs-simplify-filepage-swappage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,297 +34,376 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: clone shmem_file_splice_read()
+Subject: tmpfs: simplify filepage/swappage
 From: Hugh Dickins <hughd@google.com>
 
-Copy __generic_file_splice_read() and generic_file_splice_read() from
-fs/splice.c to shmem_file_splice_read() in mm/shmem.c.  Make
-page_cache_pipe_buf_ops and spd_release_page() accessible to it.
+We can now simplify shmem_getpage_gfp(): there is no longer a dilemma of
+filepage passed in via shmem_readpage(), then swappage found, which must
+then be copied over to it.
+
+Although at first it's tempting to replace the **pagep arg by returning
+struct page *, that makes a mess of IS_ERR_OR_NULL(page)s in all the
+callers, so leave as is.
+
+Insert BUG_ON(!PageUptodate) when we find and lock page: some of the
+complication came from uninitialized pages inserted into filecache prior
+to readpage; but now we're in control, and only release pagelock on
+filecache once it's uptodate (if an error occurs in reading back from
+swap, the page remains in swapcache, never moved to filecache).
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c            |    4 
- include/linux/splice.h |    2 
- mm/shmem.c             |  218 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 221 insertions(+), 3 deletions(-)
+ mm/shmem.c |  237 +++++++++++++++++++++++----------------------------
+ 1 file changed, 108 insertions(+), 129 deletions(-)
 
-diff -puN fs/splice.c~tmpfs-clone-shmem_file_splice_read fs/splice.c
---- a/fs/splice.c~tmpfs-clone-shmem_file_splice_read
-+++ a/fs/splice.c
-@@ -132,7 +132,7 @@ error:
- 	return err;
- }
- 
--static const struct pipe_buf_operations page_cache_pipe_buf_ops = {
-+const struct pipe_buf_operations page_cache_pipe_buf_ops = {
- 	.can_merge = 0,
- 	.map = generic_pipe_buf_map,
- 	.unmap = generic_pipe_buf_unmap,
-@@ -264,7 +264,7 @@ ssize_t splice_to_pipe(struct pipe_inode
- 	return ret;
- }
- 
--static void spd_release_page(struct splice_pipe_desc *spd, unsigned int i)
-+void spd_release_page(struct splice_pipe_desc *spd, unsigned int i)
- {
- 	page_cache_release(spd->pages[i]);
- }
-diff -puN include/linux/splice.h~tmpfs-clone-shmem_file_splice_read include/linux/splice.h
---- a/include/linux/splice.h~tmpfs-clone-shmem_file_splice_read
-+++ a/include/linux/splice.h
-@@ -88,5 +88,7 @@ extern ssize_t splice_direct_to_actor(st
- extern int splice_grow_spd(struct pipe_inode_info *, struct splice_pipe_desc *);
- extern void splice_shrink_spd(struct pipe_inode_info *,
- 				struct splice_pipe_desc *);
-+extern void spd_release_page(struct splice_pipe_desc *, unsigned int);
- 
-+extern const struct pipe_buf_operations page_cache_pipe_buf_ops;
- #endif
-diff -puN mm/shmem.c~tmpfs-clone-shmem_file_splice_read mm/shmem.c
---- a/mm/shmem.c~tmpfs-clone-shmem_file_splice_read
+diff -puN mm/shmem.c~tmpfs-simplify-filepage-swappage mm/shmem.c
+--- a/mm/shmem.c~tmpfs-simplify-filepage-swappage
 +++ a/mm/shmem.c
-@@ -51,6 +51,7 @@ static struct vfsmount *shm_mnt;
- #include <linux/shmem_fs.h>
- #include <linux/writeback.h>
- #include <linux/blkdev.h>
-+#include <linux/splice.h>
- #include <linux/security.h>
- #include <linux/swapops.h>
- #include <linux/mempolicy.h>
-@@ -1844,6 +1845,221 @@ static ssize_t shmem_file_aio_read(struc
- 	return retval;
+@@ -1246,41 +1246,47 @@ static int shmem_getpage_gfp(struct inod
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_sb_info *sbinfo;
+-	struct page *filepage;
+-	struct page *swappage;
++	struct page *page;
+ 	struct page *prealloc_page = NULL;
+ 	swp_entry_t *entry;
+ 	swp_entry_t swap;
+ 	int error;
++	int ret;
+ 
+ 	if (idx >= SHMEM_MAX_INDEX)
+ 		return -EFBIG;
+ repeat:
+-	filepage = find_lock_page(mapping, idx);
+-	if (filepage && PageUptodate(filepage))
+-		goto done;
+-	if (!filepage) {
++	page = find_lock_page(mapping, idx);
++	if (page) {
+ 		/*
+-		 * Try to preload while we can wait, to not make a habit of
+-		 * draining atomic reserves; but don't latch on to this cpu.
++		 * Once we can get the page lock, it must be uptodate:
++		 * if there were an error in reading back from swap,
++		 * the page would not be inserted into the filecache.
+ 		 */
+-		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
+-		if (error)
+-			goto failed;
+-		radix_tree_preload_end();
+-		if (sgp != SGP_READ && !prealloc_page) {
+-			prealloc_page = shmem_alloc_page(gfp, info, idx);
+-			if (prealloc_page) {
+-				SetPageSwapBacked(prealloc_page);
+-				if (mem_cgroup_cache_charge(prealloc_page,
+-						current->mm, GFP_KERNEL)) {
+-					page_cache_release(prealloc_page);
+-					prealloc_page = NULL;
+-				}
++		BUG_ON(!PageUptodate(page));
++		goto done;
++	}
++
++	/*
++	 * Try to preload while we can wait, to not make a habit of
++	 * draining atomic reserves; but don't latch on to this cpu.
++	 */
++	error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
++	if (error)
++		goto out;
++	radix_tree_preload_end();
++
++	if (sgp != SGP_READ && !prealloc_page) {
++		prealloc_page = shmem_alloc_page(gfp, info, idx);
++		if (prealloc_page) {
++			SetPageSwapBacked(prealloc_page);
++			if (mem_cgroup_cache_charge(prealloc_page,
++					current->mm, GFP_KERNEL)) {
++				page_cache_release(prealloc_page);
++				prealloc_page = NULL;
+ 			}
+ 		}
+ 	}
+-	error = 0;
+ 
+ 	spin_lock(&info->lock);
+ 	shmem_recalc_inode(inode);
+@@ -1288,21 +1294,21 @@ repeat:
+ 	if (IS_ERR(entry)) {
+ 		spin_unlock(&info->lock);
+ 		error = PTR_ERR(entry);
+-		goto failed;
++		goto out;
+ 	}
+ 	swap = *entry;
+ 
+ 	if (swap.val) {
+ 		/* Look it up and read it in.. */
+-		swappage = lookup_swap_cache(swap);
+-		if (!swappage) {
++		page = lookup_swap_cache(swap);
++		if (!page) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+ 			/* here we actually do the io */
+ 			if (fault_type)
+ 				*fault_type |= VM_FAULT_MAJOR;
+-			swappage = shmem_swapin(swap, gfp, info, idx);
+-			if (!swappage) {
++			page = shmem_swapin(swap, gfp, info, idx);
++			if (!page) {
+ 				spin_lock(&info->lock);
+ 				entry = shmem_swp_alloc(info, idx, sgp, gfp);
+ 				if (IS_ERR(entry))
+@@ -1314,62 +1320,42 @@ repeat:
+ 				}
+ 				spin_unlock(&info->lock);
+ 				if (error)
+-					goto failed;
++					goto out;
+ 				goto repeat;
+ 			}
+-			wait_on_page_locked(swappage);
+-			page_cache_release(swappage);
++			wait_on_page_locked(page);
++			page_cache_release(page);
+ 			goto repeat;
+ 		}
+ 
+ 		/* We have to do this with page locked to prevent races */
+-		if (!trylock_page(swappage)) {
++		if (!trylock_page(page)) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+-			wait_on_page_locked(swappage);
+-			page_cache_release(swappage);
++			wait_on_page_locked(page);
++			page_cache_release(page);
+ 			goto repeat;
+ 		}
+-		if (PageWriteback(swappage)) {
++		if (PageWriteback(page)) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+-			wait_on_page_writeback(swappage);
+-			unlock_page(swappage);
+-			page_cache_release(swappage);
++			wait_on_page_writeback(page);
++			unlock_page(page);
++			page_cache_release(page);
+ 			goto repeat;
+ 		}
+-		if (!PageUptodate(swappage)) {
++		if (!PageUptodate(page)) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+-			unlock_page(swappage);
+-			page_cache_release(swappage);
++			unlock_page(page);
++			page_cache_release(page);
+ 			error = -EIO;
+-			goto failed;
++			goto out;
+ 		}
+ 
+-		if (filepage) {
+-			shmem_swp_set(info, entry, 0);
+-			shmem_swp_unmap(entry);
+-			delete_from_swap_cache(swappage);
+-			spin_unlock(&info->lock);
+-			copy_highpage(filepage, swappage);
+-			unlock_page(swappage);
+-			page_cache_release(swappage);
+-			flush_dcache_page(filepage);
+-			SetPageUptodate(filepage);
+-			set_page_dirty(filepage);
+-			swap_free(swap);
+-		} else if (!(error = add_to_page_cache_locked(swappage, mapping,
+-					idx, GFP_NOWAIT))) {
+-			info->flags |= SHMEM_PAGEIN;
+-			shmem_swp_set(info, entry, 0);
+-			shmem_swp_unmap(entry);
+-			delete_from_swap_cache(swappage);
+-			spin_unlock(&info->lock);
+-			filepage = swappage;
+-			set_page_dirty(filepage);
+-			swap_free(swap);
+-		} else {
++		error = add_to_page_cache_locked(page, mapping,
++						 idx, GFP_NOWAIT);
++		if (error) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+ 			if (error == -ENOMEM) {
+@@ -1378,28 +1364,33 @@ repeat:
+ 				 * call memcg's OOM if needed.
+ 				 */
+ 				error = mem_cgroup_shmem_charge_fallback(
+-								swappage,
+-								current->mm,
+-								gfp);
++						page, current->mm, gfp);
+ 				if (error) {
+-					unlock_page(swappage);
+-					page_cache_release(swappage);
+-					goto failed;
++					unlock_page(page);
++					page_cache_release(page);
++					goto out;
+ 				}
+ 			}
+-			unlock_page(swappage);
+-			page_cache_release(swappage);
++			unlock_page(page);
++			page_cache_release(page);
+ 			goto repeat;
+ 		}
+-	} else if (sgp == SGP_READ && !filepage) {
++
++		info->flags |= SHMEM_PAGEIN;
++		shmem_swp_set(info, entry, 0);
+ 		shmem_swp_unmap(entry);
+-		filepage = find_get_page(mapping, idx);
+-		if (filepage &&
+-		    (!PageUptodate(filepage) || !trylock_page(filepage))) {
++		delete_from_swap_cache(page);
++		spin_unlock(&info->lock);
++		set_page_dirty(page);
++		swap_free(swap);
++
++	} else if (sgp == SGP_READ) {
++		shmem_swp_unmap(entry);
++		page = find_get_page(mapping, idx);
++		if (page && !trylock_page(page)) {
+ 			spin_unlock(&info->lock);
+-			wait_on_page_locked(filepage);
+-			page_cache_release(filepage);
+-			filepage = NULL;
++			wait_on_page_locked(page);
++			page_cache_release(page);
+ 			goto repeat;
+ 		}
+ 		spin_unlock(&info->lock);
+@@ -1417,56 +1408,52 @@ repeat:
+ 		} else if (shmem_acct_block(info->flags))
+ 			goto nospace;
+ 
+-		if (!filepage) {
+-			int ret;
++		page = prealloc_page;
++		prealloc_page = NULL;
+ 
+-			filepage = prealloc_page;
+-			prealloc_page = NULL;
+-
+-			entry = shmem_swp_alloc(info, idx, sgp, gfp);
+-			if (IS_ERR(entry))
+-				error = PTR_ERR(entry);
+-			else {
+-				swap = *entry;
+-				shmem_swp_unmap(entry);
+-			}
+-			ret = error || swap.val;
+-			if (ret)
+-				mem_cgroup_uncharge_cache_page(filepage);
+-			else
+-				ret = add_to_page_cache_lru(filepage, mapping,
++		entry = shmem_swp_alloc(info, idx, sgp, gfp);
++		if (IS_ERR(entry))
++			error = PTR_ERR(entry);
++		else {
++			swap = *entry;
++			shmem_swp_unmap(entry);
++		}
++		ret = error || swap.val;
++		if (ret)
++			mem_cgroup_uncharge_cache_page(page);
++		else
++			ret = add_to_page_cache_lru(page, mapping,
+ 						idx, GFP_NOWAIT);
+-			/*
+-			 * At add_to_page_cache_lru() failure, uncharge will
+-			 * be done automatically.
+-			 */
+-			if (ret) {
+-				shmem_unacct_blocks(info->flags, 1);
+-				shmem_free_blocks(inode, 1);
+-				spin_unlock(&info->lock);
+-				page_cache_release(filepage);
+-				filepage = NULL;
+-				if (error)
+-					goto failed;
+-				goto repeat;
+-			}
+-			info->flags |= SHMEM_PAGEIN;
++		/*
++		 * At add_to_page_cache_lru() failure,
++		 * uncharge will be done automatically.
++		 */
++		if (ret) {
++			shmem_unacct_blocks(info->flags, 1);
++			shmem_free_blocks(inode, 1);
++			spin_unlock(&info->lock);
++			page_cache_release(page);
++			if (error)
++				goto out;
++			goto repeat;
+ 		}
+ 
++		info->flags |= SHMEM_PAGEIN;
+ 		info->alloced++;
+ 		spin_unlock(&info->lock);
+-		clear_highpage(filepage);
+-		flush_dcache_page(filepage);
+-		SetPageUptodate(filepage);
++		clear_highpage(page);
++		flush_dcache_page(page);
++		SetPageUptodate(page);
+ 		if (sgp == SGP_DIRTY)
+-			set_page_dirty(filepage);
++			set_page_dirty(page);
++
+ 	} else {
+ 		spin_unlock(&info->lock);
+ 		error = -ENOMEM;
+ 		goto out;
+ 	}
+ done:
+-	*pagep = filepage;
++	*pagep = page;
+ 	error = 0;
+ out:
+ 	if (prealloc_page) {
+@@ -1482,21 +1469,13 @@ nospace:
+ 	 * but must also avoid reporting a spurious ENOSPC while working on a
+ 	 * full tmpfs.
+ 	 */
+-	if (!filepage) {
+-		struct page *page = find_get_page(mapping, idx);
+-		if (page) {
+-			spin_unlock(&info->lock);
+-			page_cache_release(page);
+-			goto repeat;
+-		}
+-	}
++	page = find_get_page(mapping, idx);
+ 	spin_unlock(&info->lock);
+-	error = -ENOSPC;
+-failed:
+-	if (filepage) {
+-		unlock_page(filepage);
+-		page_cache_release(filepage);
++	if (page) {
++		page_cache_release(page);
++		goto repeat;
+ 	}
++	error = -ENOSPC;
+ 	goto out;
  }
  
-+static ssize_t shmem_file_splice_read(struct file *in, loff_t *ppos,
-+				struct pipe_inode_info *pipe, size_t len,
-+				unsigned int flags)
-+{
-+	struct address_space *mapping = in->f_mapping;
-+	unsigned int loff, nr_pages, req_pages;
-+	struct page *pages[PIPE_DEF_BUFFERS];
-+	struct partial_page partial[PIPE_DEF_BUFFERS];
-+	struct page *page;
-+	pgoff_t index, end_index;
-+	loff_t isize, left;
-+	int error, page_nr;
-+	struct splice_pipe_desc spd = {
-+		.pages = pages,
-+		.partial = partial,
-+		.flags = flags,
-+		.ops = &page_cache_pipe_buf_ops,
-+		.spd_release = spd_release_page,
-+	};
-+
-+	isize = i_size_read(in->f_mapping->host);
-+	if (unlikely(*ppos >= isize))
-+		return 0;
-+
-+	left = isize - *ppos;
-+	if (unlikely(left < len))
-+		len = left;
-+
-+	if (splice_grow_spd(pipe, &spd))
-+		return -ENOMEM;
-+
-+	index = *ppos >> PAGE_CACHE_SHIFT;
-+	loff = *ppos & ~PAGE_CACHE_MASK;
-+	req_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+	nr_pages = min(req_pages, pipe->buffers);
-+
-+	/*
-+	 * Lookup the (hopefully) full range of pages we need.
-+	 */
-+	spd.nr_pages = find_get_pages_contig(mapping, index,
-+						nr_pages, spd.pages);
-+	index += spd.nr_pages;
-+
-+	/*
-+	 * If find_get_pages_contig() returned fewer pages than we needed,
-+	 * readahead/allocate the rest and fill in the holes.
-+	 */
-+	if (spd.nr_pages < nr_pages)
-+		page_cache_sync_readahead(mapping, &in->f_ra, in,
-+				index, req_pages - spd.nr_pages);
-+
-+	error = 0;
-+	while (spd.nr_pages < nr_pages) {
-+		/*
-+		 * Page could be there, find_get_pages_contig() breaks on
-+		 * the first hole.
-+		 */
-+		page = find_get_page(mapping, index);
-+		if (!page) {
-+			/*
-+			 * page didn't exist, allocate one.
-+			 */
-+			page = page_cache_alloc_cold(mapping);
-+			if (!page)
-+				break;
-+
-+			error = add_to_page_cache_lru(page, mapping, index,
-+						GFP_KERNEL);
-+			if (unlikely(error)) {
-+				page_cache_release(page);
-+				if (error == -EEXIST)
-+					continue;
-+				break;
-+			}
-+			/*
-+			 * add_to_page_cache() locks the page, unlock it
-+			 * to avoid convoluting the logic below even more.
-+			 */
-+			unlock_page(page);
-+		}
-+
-+		spd.pages[spd.nr_pages++] = page;
-+		index++;
-+	}
-+
-+	/*
-+	 * Now loop over the map and see if we need to start IO on any
-+	 * pages, fill in the partial map, etc.
-+	 */
-+	index = *ppos >> PAGE_CACHE_SHIFT;
-+	nr_pages = spd.nr_pages;
-+	spd.nr_pages = 0;
-+	for (page_nr = 0; page_nr < nr_pages; page_nr++) {
-+		unsigned int this_len;
-+
-+		if (!len)
-+			break;
-+
-+		/*
-+		 * this_len is the max we'll use from this page
-+		 */
-+		this_len = min_t(unsigned long, len, PAGE_CACHE_SIZE - loff);
-+		page = spd.pages[page_nr];
-+
-+		if (PageReadahead(page))
-+			page_cache_async_readahead(mapping, &in->f_ra, in,
-+					page, index, req_pages - page_nr);
-+
-+		/*
-+		 * If the page isn't uptodate, we may need to start io on it
-+		 */
-+		if (!PageUptodate(page)) {
-+			lock_page(page);
-+
-+			/*
-+			 * Page was truncated, or invalidated by the
-+			 * filesystem.  Redo the find/create, but this time the
-+			 * page is kept locked, so there's no chance of another
-+			 * race with truncate/invalidate.
-+			 */
-+			if (!page->mapping) {
-+				unlock_page(page);
-+				page = find_or_create_page(mapping, index,
-+						mapping_gfp_mask(mapping));
-+
-+				if (!page) {
-+					error = -ENOMEM;
-+					break;
-+				}
-+				page_cache_release(spd.pages[page_nr]);
-+				spd.pages[page_nr] = page;
-+			}
-+			/*
-+			 * page was already under io and is now done, great
-+			 */
-+			if (PageUptodate(page)) {
-+				unlock_page(page);
-+				goto fill_it;
-+			}
-+
-+			/*
-+			 * need to read in the page
-+			 */
-+			error = mapping->a_ops->readpage(in, page);
-+			if (unlikely(error)) {
-+				/*
-+				 * We really should re-lookup the page here,
-+				 * but it complicates things a lot. Instead
-+				 * lets just do what we already stored, and
-+				 * we'll get it the next time we are called.
-+				 */
-+				if (error == AOP_TRUNCATED_PAGE)
-+					error = 0;
-+
-+				break;
-+			}
-+		}
-+fill_it:
-+		/*
-+		 * i_size must be checked after PageUptodate.
-+		 */
-+		isize = i_size_read(mapping->host);
-+		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
-+		if (unlikely(!isize || index > end_index))
-+			break;
-+
-+		/*
-+		 * if this is the last page, see if we need to shrink
-+		 * the length and stop
-+		 */
-+		if (end_index == index) {
-+			unsigned int plen;
-+
-+			/*
-+			 * max good bytes in this page
-+			 */
-+			plen = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
-+			if (plen <= loff)
-+				break;
-+
-+			/*
-+			 * force quit after adding this page
-+			 */
-+			this_len = min(this_len, plen - loff);
-+			len = this_len;
-+		}
-+
-+		spd.partial[page_nr].offset = loff;
-+		spd.partial[page_nr].len = this_len;
-+		len -= this_len;
-+		loff = 0;
-+		spd.nr_pages++;
-+		index++;
-+	}
-+
-+	/*
-+	 * Release any pages at the end, if we quit early. 'page_nr' is how far
-+	 * we got, 'nr_pages' is how many pages are in the map.
-+	 */
-+	while (page_nr < nr_pages)
-+		page_cache_release(spd.pages[page_nr++]);
-+	in->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
-+
-+	if (spd.nr_pages)
-+		error = splice_to_pipe(pipe, &spd);
-+
-+	splice_shrink_spd(pipe, &spd);
-+
-+	if (error > 0) {
-+		*ppos += error;
-+		file_accessed(in);
-+	}
-+	return error;
-+}
-+
- static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
-@@ -2699,7 +2915,7 @@ static const struct file_operations shme
- 	.aio_read	= shmem_file_aio_read,
- 	.aio_write	= generic_file_aio_write,
- 	.fsync		= noop_fsync,
--	.splice_read	= generic_file_splice_read,
-+	.splice_read	= shmem_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
- #endif
- };
 _
 
 Patches currently in -mm which might be from hughd@google.com are
