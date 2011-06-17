@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-simplify-prealloc_page.patch added to -mm tree
-Date: Fri, 17 Jun 2011 16:39:36 -0700
-Message-ID: <201106172339.p5HNdacU008226@imap1.linux-foundation.org>
+Subject: + mm-let-swap-use-exceptional-entries.patch added to -mm tree
+Date: Fri, 17 Jun 2011 16:39:44 -0700
+Message-ID: <201106172339.p5HNdiU2008242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758044Ab1FQXjp (ORCPT
+	by vger.kernel.org with ESMTP id S1759576Ab1FQXju (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 19:39:45 -0400
+	Fri, 17 Jun 2011 19:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, shaohua.li@intel.com, tim.c.chen@linux.intel.com, yanmin.zhang@intel.com
+Cc: hughd@google.com, riel@redhat.com
 
 
 The patch titled
-     tmpfs: simplify prealloc_page
+     mm: let swap use exceptional entries
 has been added to the -mm tree.  Its filename is
-     tmpfs-simplify-prealloc_page.patch
+     mm-let-swap-use-exceptional-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,138 +34,219 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: simplify prealloc_page
+Subject: mm: let swap use exceptional entries
 From: Hugh Dickins <hughd@google.com>
 
-The prealloc_page handling in shmem_getpage_gfp() is unnecessarily
-complicated: first simplify that before going on to filepage/swappage.
+If swap entries are to be stored along with struct page pointers in a
+radix tree, they need to be distinguished as exceptional entries.
 
-That's right, don't report ENOMEM when the preallocation fails: we may or
-may not need the page.  But simply report ENOMEM once we find we do need
-it, instead of dropping lock, repeating allocation, unwinding on failure
-etc.  And leave the out label on the fast path, don't goto.
+Most of the handling of swap entries in radix tree will be contained in
+shmem.c, but a few functions in filemap.c's common code need to check for
+their appearance: find_get_page(), find_lock_page(), find_get_pages() and
+find_get_pages_contig().
 
-Fix something that looks like a bug but turns out not to be: set
-PageSwapBacked on prealloc_page before its mem_cgroup_cache_charge(), as
-the removed case was doing.  That's important before adding to LRU
-(determines which LRU the page goes on), and does affect which path it
-takes through memcontrol.c, but in the end MEM_CGROUP_CHANGE_TYPE_ SHMEM
-is handled no differently from CACHE.
+So as not to slow their fast paths, tuck those checks inside the existing
+checks for unlikely radix_tree_deref_slot(); except for find_lock_page(),
+where it is an added test.  And make it a BUG in find_get_pages_tag(),
+which is not applied to tmpfs files.
+
+A part of the reason for eliminating shmem_readpage() earlier, was to
+minimize the places where common code would need to allow for swap
+entries.
+
+The swp_entry_t known to swapfile.c must be massaged into a slightly
+different form when stored in the radix tree, just as it gets massaged
+into a pte_t when stored in page tables.
+
+In an i386 kernel this limits its information (type and page offset) to 30
+bits: given 32 "types" of swapfile and 4kB pagesize, that's a maximum
+swapfile size of 128GB.  Which is less than the 512GB we previously
+allowed with X86_PAE (where the swap entry can occupy the entire upper 32
+bits of a pte_t), but not a new limitation on 32-bit without PAE; and
+there's not a new limitation on 64-bit (where swap filesize is already
+limited to 16TB by a 32-bit page offset).  Thirty areas of 128GB is
+probably still enough swap for a 64GB 32-bit machine.
+
+Provide swp_to_radix_entry() and radix_to_swp_entry() conversions, and
+enforce filesize limit in read_swap_header(), just as for ptes.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
-Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   60 +++++++++++++--------------------------------------
- 1 file changed, 16 insertions(+), 44 deletions(-)
+ include/linux/swapops.h |   23 +++++++++++++++++
+ mm/filemap.c            |   49 ++++++++++++++++++++++++--------------
+ mm/swapfile.c           |   20 +++++++++------
+ 3 files changed, 66 insertions(+), 26 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-simplify-prealloc_page mm/shmem.c
---- a/mm/shmem.c~tmpfs-simplify-prealloc_page
-+++ a/mm/shmem.c
-@@ -1269,9 +1269,9 @@ repeat:
- 			goto failed;
- 		radix_tree_preload_end();
- 		if (sgp != SGP_READ && !prealloc_page) {
--			/* We don't care if this fails */
- 			prealloc_page = shmem_alloc_page(gfp, info, idx);
- 			if (prealloc_page) {
-+				SetPageSwapBacked(prealloc_page);
- 				if (mem_cgroup_cache_charge(prealloc_page,
- 						current->mm, GFP_KERNEL)) {
- 					page_cache_release(prealloc_page);
-@@ -1403,7 +1403,8 @@ repeat:
- 			goto repeat;
- 		}
- 		spin_unlock(&info->lock);
--	} else {
+diff -puN include/linux/swapops.h~mm-let-swap-use-exceptional-entries include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-let-swap-use-exceptional-entries
++++ a/include/linux/swapops.h
+@@ -1,3 +1,8 @@
++#ifndef _LINUX_SWAPOPS_H
++#define _LINUX_SWAPOPS_H
 +
-+	} else if (prealloc_page) {
- 		shmem_swp_unmap(entry);
- 		sbinfo = SHMEM_SB(inode->i_sb);
- 		if (sbinfo->max_blocks) {
-@@ -1419,41 +1420,8 @@ repeat:
- 		if (!filepage) {
- 			int ret;
- 
--			if (!prealloc_page) {
--				spin_unlock(&info->lock);
--				filepage = shmem_alloc_page(gfp, info, idx);
--				if (!filepage) {
--					spin_lock(&info->lock);
--					shmem_unacct_blocks(info->flags, 1);
--					shmem_free_blocks(inode, 1);
--					spin_unlock(&info->lock);
--					error = -ENOMEM;
--					goto failed;
--				}
--				SetPageSwapBacked(filepage);
--
--				/*
--				 * Precharge page while we can wait, compensate
--				 * after
--				 */
--				error = mem_cgroup_cache_charge(filepage,
--					current->mm, GFP_KERNEL);
--				if (error) {
--					page_cache_release(filepage);
--					spin_lock(&info->lock);
--					shmem_unacct_blocks(info->flags, 1);
--					shmem_free_blocks(inode, 1);
--					spin_unlock(&info->lock);
--					filepage = NULL;
--					goto failed;
--				}
--
--				spin_lock(&info->lock);
--			} else {
--				filepage = prealloc_page;
--				prealloc_page = NULL;
--				SetPageSwapBacked(filepage);
--			}
-+			filepage = prealloc_page;
-+			prealloc_page = NULL;
- 
- 			entry = shmem_swp_alloc(info, idx, sgp, gfp);
- 			if (IS_ERR(entry))
-@@ -1492,11 +1460,20 @@ repeat:
- 		SetPageUptodate(filepage);
- 		if (sgp == SGP_DIRTY)
- 			set_page_dirty(filepage);
-+	} else {
-+		spin_unlock(&info->lock);
-+		error = -ENOMEM;
-+		goto out;
- 	}
- done:
- 	*pagep = filepage;
- 	error = 0;
--	goto out;
-+out:
-+	if (prealloc_page) {
-+		mem_cgroup_uncharge_cache_page(prealloc_page);
-+		page_cache_release(prealloc_page);
-+	}
-+	return error;
- 
- nospace:
- 	/*
-@@ -1520,12 +1497,7 @@ failed:
- 		unlock_page(filepage);
- 		page_cache_release(filepage);
- 	}
--out:
--	if (prealloc_page) {
--		mem_cgroup_uncharge_cache_page(prealloc_page);
--		page_cache_release(prealloc_page);
--	}
--	return error;
-+	goto out;
++#include <linux/radix-tree.h>
++
+ /*
+  * swapcache pages are stored in the swapper_space radix tree.  We want to
+  * get good packing density in that tree, so the index should be dense in
+@@ -76,6 +81,22 @@ static inline pte_t swp_entry_to_pte(swp
+ 	return __swp_entry_to_pte(arch_entry);
  }
  
- static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static inline swp_entry_t radix_to_swp_entry(void *arg)
++{
++	swp_entry_t entry;
++
++	entry.val = (unsigned long)arg >> RADIX_TREE_EXCEPTIONAL_SHIFT;
++	return entry;
++}
++
++static inline void *swp_to_radix_entry(swp_entry_t entry)
++{
++	unsigned long value;
++
++	value = entry.val << RADIX_TREE_EXCEPTIONAL_SHIFT;
++	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
++}
++
+ #ifdef CONFIG_MIGRATION
+ static inline swp_entry_t make_migration_entry(struct page *page, int write)
+ {
+@@ -169,3 +190,5 @@ static inline int non_swap_entry(swp_ent
+ 	return 0;
+ }
+ #endif
++
++#endif /* _LINUX_SWAPOPS_H */
+diff -puN mm/filemap.c~mm-let-swap-use-exceptional-entries mm/filemap.c
+--- a/mm/filemap.c~mm-let-swap-use-exceptional-entries
++++ a/mm/filemap.c
+@@ -717,9 +717,12 @@ repeat:
+ 		page = radix_tree_deref_slot(pagep);
+ 		if (unlikely(!page))
+ 			goto out;
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				goto out;
++			/* radix_tree_deref_retry(page) */
+ 			goto repeat;
+-
++		}
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
+ 
+@@ -756,7 +759,7 @@ struct page *find_lock_page(struct addre
+ 
+ repeat:
+ 	page = find_get_page(mapping, offset);
+-	if (page) {
++	if (page && !radix_tree_exception(page)) {
+ 		lock_page(page);
+ 		/* Has the page been truncated? */
+ 		if (unlikely(page->mapping != mapping)) {
+@@ -852,11 +855,14 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page)) {
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				continue;
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			WARN_ON(start | i);
+ 			goto restart;
+ 		}
+@@ -915,12 +921,16 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				break;
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			goto restart;
++		}
+ 
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
+@@ -980,12 +990,15 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			BUG_ON(radix_tree_exceptional_entry(page));
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			goto restart;
++		}
+ 
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
+diff -puN mm/swapfile.c~mm-let-swap-use-exceptional-entries mm/swapfile.c
+--- a/mm/swapfile.c~mm-let-swap-use-exceptional-entries
++++ a/mm/swapfile.c
+@@ -1960,20 +1960,24 @@ static unsigned long read_swap_header(st
+ 
+ 	/*
+ 	 * Find out how many pages are allowed for a single swap
+-	 * device. There are two limiting factors: 1) the number of
+-	 * bits for the swap offset in the swp_entry_t type and
+-	 * 2) the number of bits in the a swap pte as defined by
+-	 * the different architectures. In order to find the
+-	 * largest possible bit mask a swap entry with swap type 0
++	 * device. There are three limiting factors: 1) the number
++	 * of bits for the swap offset in the swp_entry_t type, and
++	 * 2) the number of bits in the swap pte as defined by the
++	 * the different architectures, and 3) the number of free bits
++	 * in an exceptional radix_tree entry. In order to find the
++	 * largest possible bit mask, a swap entry with swap type 0
+ 	 * and swap offset ~0UL is created, encoded to a swap pte,
+-	 * decoded to a swp_entry_t again and finally the swap
++	 * decoded to a swp_entry_t again, and finally the swap
+ 	 * offset is extracted. This will mask all the bits from
+ 	 * the initial ~0UL mask that can't be encoded in either
+ 	 * the swp_entry_t or the architecture definition of a
+-	 * swap pte.
++	 * swap pte.  Then the same is done for a radix_tree entry.
+ 	 */
+ 	maxpages = swp_offset(pte_to_swp_entry(
+-			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
++			swp_entry_to_pte(swp_entry(0, ~0UL))));
++	maxpages = swp_offset(radix_to_swp_entry(
++			swp_to_radix_entry(swp_entry(0, maxpages)))) + 1;
++
+ 	if (maxpages > swap_header->info.last_page) {
+ 		maxpages = swap_header->info.last_page + 1;
+ 		/* p->max is an unsigned int: don't overflow it */
 _
 
 Patches currently in -mm which might be from hughd@google.com are
