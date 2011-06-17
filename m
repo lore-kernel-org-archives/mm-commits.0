@@ -1,70 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] mm-migratec-dont-account-swapcache-as-shmem.patch removed from -mm tree
-Date: Fri, 17 Jun 2011 12:17:22 -0700
-Message-ID: <201106171917.p5HJHDTL028164@imap1.linux-foundation.org>
+Subject: + drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch added to -mm tree
+Date: Fri, 17 Jun 2011 14:20:51 -0700
+Message-ID: <201106172120.p5HLKqxf001634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932083Ab1FQTR1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752730Ab1FQVVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 15:17:27 -0400
+	Fri, 17 Jun 2011 17:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tomoya-linux@dsn.okisemi.com, gregkh@suse.de
 
 
 The patch titled
-     mm/migrate.c: don't account swapcache as shmem
-has been removed from the -mm tree.  Its filename was
-     mm-migratec-dont-account-swapcache-as-shmem.patch
+     drivers/misc/pch_phub.c: fix register miss-setting issue
+has been added to the -mm tree.  Its filename is
+     drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/migrate.c: don't account swapcache as shmem
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: drivers/misc/pch_phub.c: fix register miss-setting issue
+From: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
 
-swapcache will reach the below code path in migrate_page_move_mapping,
-and swapcache is accounted as NR_FILE_PAGES but it's not accounted as
-NR_SHMEM.
+Register "interrupt delay value" is for GbE which is connected to Bus-m of
+PCIe.  However currently, the value is set for Bus-n.  As a result, the
+value is not set correctly.  This patch moves setting the value processing
+of Bus-n to Bus-m.
 
-This can make the NR_SHMEM counter underflow.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/pch_phub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-migratec-dont-account-swapcache-as-shmem mm/migrate.c
---- a/mm/migrate.c~mm-migratec-dont-account-swapcache-as-shmem
-+++ a/mm/migrate.c
-@@ -288,7 +288,7 @@ static int migrate_page_move_mapping(str
- 	 */
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
- 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
--	if (PageSwapBacked(page)) {
-+	if (mapping != &swapper_space && PageSwapBacked(page)) {
- 		__dec_zone_page_state(page, NR_SHMEM);
- 		__inc_zone_page_state(newpage, NR_SHMEM);
- 	}
+diff -puN drivers/misc/pch_phub.c~drivers-misc-pch_phubc-fix-register-miss-setting-issue drivers/misc/pch_phub.c
+--- a/drivers/misc/pch_phub.c~drivers-misc-pch_phubc-fix-register-miss-setting-issue
++++ a/drivers/misc/pch_phub.c
+@@ -732,6 +732,8 @@ static int __devinit pch_phub_probe(stru
+ 		 * Device8(GbE)
+ 		 */
+ 		iowrite32(0x000a0000, chip->pch_phub_base_address + 0x14);
++		/* set the interrupt delay value */
++		iowrite32(0x25, chip->pch_phub_base_address + 0x140);
+ 		chip->pch_opt_rom_start_address =\
+ 						 PCH_PHUB_ROM_START_ADDR_ML7223;
+ 		chip->pch_mac_start_address = PCH_PHUB_MAC_START_ADDR_ML7223;
+@@ -749,8 +751,6 @@ static int __devinit pch_phub_probe(stru
+ 		 * Device6(SATA 2):f
+ 		 */
+ 		iowrite32(0x0000ffa0, chip->pch_phub_base_address + 0x14);
+-		/* set the interrupt delay value */
+-		iowrite32(0x25, chip->pch_phub_base_address + 0x140);
+ 		chip->pch_opt_rom_start_address =\
+ 						 PCH_PHUB_ROM_START_ADDR_ML7223;
+ 		chip->pch_mac_start_address = PCH_PHUB_MAC_START_ADDR_ML7223;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from tomoya-linux@dsn.okisemi.com are
 
-origin.patch
-pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
-pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
-pagewalk-add-locking-rule-comments.patch
-pagewalk-add-locking-rule-comments-fix.patch
-pagewalk-fix-code-comment-for-thp.patch
+linux-next.patch
+drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch
 
