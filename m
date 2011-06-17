@@ -1,75 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [failures] fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch removed from -mm tree
-Date: Wed, 15 Jun 2011 21:53:10 -0700
-Message-ID: <201106160453.p5G4r20u007461@imap1.linux-foundation.org>
+Subject: [alternative-merged] mm-migratec-dont-account-swapcache-as-shmem.patch removed from -mm tree
+Date: Fri, 17 Jun 2011 12:17:22 -0700
+Message-ID: <201106171917.p5HJHDTL028164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750860Ab1FPExi (ORCPT
+	by vger.kernel.org with ESMTP id S932083Ab1FQTR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Jun 2011 00:53:38 -0400
+	Fri, 17 Jun 2011 15:17:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, mel@csn.ul.ie, richard@nod.at, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
+     mm/migrate.c: don't account swapcache as shmem
 has been removed from the -mm tree.  Its filename was
-     fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+     mm-migratec-dont-account-swapcache-as-shmem.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
-From: Michal Hocko <mhocko@suse.cz>
+Subject: mm/migrate.c: don't account swapcache as shmem
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-a8bef8ff ("mm: migration: avoid race between shift_arg_pages() and
-rmap_walk() during migration by not migrating temporary stacks")
-introduced a BUG_ON() to ensure that VM_STACK_FLAGS and
-VM_STACK_INCOMPLETE_SETUP do not overlap.  The check is a compile time
-one, so BUILD_BUG_ON is more appropriate.
+swapcache will reach the below code path in migrate_page_move_mapping,
+and swapcache is accounted as NR_FILE_PAGES but it's not accounted as
+NR_SHMEM.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Richard Weinberger <richard@nod.at>
+This can make the NR_SHMEM counter underflow.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
+ mm/migrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup fs/exec.c
---- a/fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup
-+++ a/fs/exec.c
-@@ -277,7 +277,7 @@ static int __bprm_mm_init(struct linux_b
- 	 * use STACK_TOP because that can depend on attributes which aren't
- 	 * configured yet.
+diff -puN mm/migrate.c~mm-migratec-dont-account-swapcache-as-shmem mm/migrate.c
+--- a/mm/migrate.c~mm-migratec-dont-account-swapcache-as-shmem
++++ a/mm/migrate.c
+@@ -288,7 +288,7 @@ static int migrate_page_move_mapping(str
  	 */
--	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
-+	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
- 	vma->vm_end = STACK_TOP_MAX;
- 	vma->vm_start = vma->vm_end - PAGE_SIZE;
- 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+-	if (PageSwapBacked(page)) {
++	if (mapping != &swapper_space && PageSwapBacked(page)) {
+ 		__dec_zone_page_state(page, NR_SHMEM);
+ 		__inc_zone_page_state(newpage, NR_SHMEM);
+ 	}
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-compaction-fix-special-case-1-order-checks.patch
-memcg-fix-wrong-check-of-noswap-with-softlimit.patch
-memcg-fix-percpu-cached-charge-draining-frequency.patch
-memcg-fix-percpu-cached-charge-draining-frequency-v6.patch
-memcg-avoid-percpu-cached-charge-draining-at-softlimit.patch
-mm-compaction-ensure-that-the-compaction-free-scanner-does-not-move-to-the-next-zone.patch
-mm-vmscan-do-not-use-page_count-without-a-page-pin.patch
-mm-compaction-abort-compaction-if-too-many-pages-are-isolated-and-caller-is-asynchronous-v2.patch
-mm-remove-the-leftovers-of-noswapaccount.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+origin.patch
+pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
+pagewalk-dont-look-up-vma-if-walk-hugetlb_entry-is-unused.patch
+pagewalk-add-locking-rule-comments.patch
+pagewalk-add-locking-rule-comments-fix.patch
+pagewalk-fix-code-comment-for-thp.patch
 
