@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-let-swap-use-exceptional-entries.patch added to -mm tree
-Date: Fri, 17 Jun 2011 16:39:44 -0700
-Message-ID: <201106172339.p5HNdiU2008242@imap1.linux-foundation.org>
+Subject: + radix_tree-exceptional-entries-and-indices.patch added to -mm tree
+Date: Fri, 17 Jun 2011 16:39:42 -0700
+Message-ID: <201106172339.p5HNdhgK008235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759576Ab1FQXju (ORCPT
+	by vger.kernel.org with ESMTP id S1756912Ab1FQXjq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 19:39:50 -0400
+	Fri, 17 Jun 2011 19:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hughd@google.com, riel@redhat.com
 
 
 The patch titled
-     mm: let swap use exceptional entries
+     radix_tree: exceptional entries and indices
 has been added to the -mm tree.  Its filename is
-     mm-let-swap-use-exceptional-entries.patch
+     radix_tree-exceptional-entries-and-indices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,219 +34,217 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: let swap use exceptional entries
+Subject: radix_tree: exceptional entries and indices
 From: Hugh Dickins <hughd@google.com>
 
-If swap entries are to be stored along with struct page pointers in a
-radix tree, they need to be distinguished as exceptional entries.
+A patchset to extend tmpfs to MAX_LFS_FILESIZE by abandoning its peculiar
+swap vector, instead keeping a file's swap entries in the same radix tree
+as its struct page pointers: thus saving memory, and simplifying its code
+and locking.
 
-Most of the handling of swap entries in radix tree will be contained in
-shmem.c, but a few functions in filemap.c's common code need to check for
-their appearance: find_get_page(), find_lock_page(), find_get_pages() and
-find_get_pages_contig().
 
-So as not to slow their fast paths, tuck those checks inside the existing
-checks for unlikely radix_tree_deref_slot(); except for find_lock_page(),
-where it is an added test.  And make it a BUG in find_get_pages_tag(),
-which is not applied to tmpfs files.
+This patch:
 
-A part of the reason for eliminating shmem_readpage() earlier, was to
-minimize the places where common code would need to allow for swap
-entries.
+The radix_tree is used by several subsystems for different purposes.  A
+major use is to store the struct page pointers of a file's pagecache for
+memory management.  But what if mm wanted to store something other than
+page pointers there too?
 
-The swp_entry_t known to swapfile.c must be massaged into a slightly
-different form when stored in the radix tree, just as it gets massaged
-into a pte_t when stored in page tables.
+The low bit of a radix_tree entry is already used to denote an indirect
+pointer, for internal use, and the unlikely radix_tree_deref_retry() case.
+ Define the next bit as denoting an exceptional entry, and supply inline
+functions radix_tree_exception() to return non-0 in either unlikely case,
+and radix_tree_exceptional_entry() to return non-0 in the second case.
 
-In an i386 kernel this limits its information (type and page offset) to 30
-bits: given 32 "types" of swapfile and 4kB pagesize, that's a maximum
-swapfile size of 128GB.  Which is less than the 512GB we previously
-allowed with X86_PAE (where the swap entry can occupy the entire upper 32
-bits of a pte_t), but not a new limitation on 32-bit without PAE; and
-there's not a new limitation on 64-bit (where swap filesize is already
-limited to 16TB by a 32-bit page offset).  Thirty areas of 128GB is
-probably still enough swap for a 64GB 32-bit machine.
+If a subsystem already uses radix_tree with that bit set, no problem: it
+does not affect internal workings at all, but is defined for the
+convenience of those storing well-aligned pointers in the radix_tree.
 
-Provide swp_to_radix_entry() and radix_to_swp_entry() conversions, and
-enforce filesize limit in read_swap_header(), just as for ptes.
+The radix_tree_gang_lookups have an implicit assumption that the caller
+can deduce the offset of each entry returned e.g.  by the page->index of a
+struct page.  But that may not be feasible for some kinds of item to be
+stored there.
+
+radix_tree_gang_lookup_slot() allow for an optional indices argument,
+output array in which to return those offsets.  The same could be added to
+other radix_tree_gang_lookups, but for now keep it to the only one for
+which we need it.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |   23 +++++++++++++++++
- mm/filemap.c            |   49 ++++++++++++++++++++++++--------------
- mm/swapfile.c           |   20 +++++++++------
- 3 files changed, 66 insertions(+), 26 deletions(-)
+ include/linux/radix-tree.h |   36 ++++++++++++++++++++++++++++++++---
+ lib/radix-tree.c           |   29 ++++++++++++++++++----------
+ mm/filemap.c               |    4 +--
+ 3 files changed, 54 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/swapops.h~mm-let-swap-use-exceptional-entries include/linux/swapops.h
---- a/include/linux/swapops.h~mm-let-swap-use-exceptional-entries
-+++ a/include/linux/swapops.h
-@@ -1,3 +1,8 @@
-+#ifndef _LINUX_SWAPOPS_H
-+#define _LINUX_SWAPOPS_H
-+
-+#include <linux/radix-tree.h>
-+
- /*
-  * swapcache pages are stored in the swapper_space radix tree.  We want to
-  * get good packing density in that tree, so the index should be dense in
-@@ -76,6 +81,22 @@ static inline pte_t swp_entry_to_pte(swp
- 	return __swp_entry_to_pte(arch_entry);
+diff -puN include/linux/radix-tree.h~radix_tree-exceptional-entries-and-indices include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix_tree-exceptional-entries-and-indices
++++ a/include/linux/radix-tree.h
+@@ -39,7 +39,15 @@
+  * when it is shrunk, before we rcu free the node. See shrink code for
+  * details.
+  */
+-#define RADIX_TREE_INDIRECT_PTR	1
++#define RADIX_TREE_INDIRECT_PTR		1
++/*
++ * A common use of the radix tree is to store pointers to struct pages;
++ * but shmem/tmpfs needs also to store swap entries in the same tree:
++ * those are marked as exceptional entries to distinguish them.
++ * EXCEPTIONAL_ENTRY tests the bit, EXCEPTIONAL_SHIFT shifts content past it.
++ */
++#define RADIX_TREE_EXCEPTIONAL_ENTRY	2
++#define RADIX_TREE_EXCEPTIONAL_SHIFT	2
+ 
+ #define radix_tree_indirect_to_ptr(ptr) \
+ 	radix_tree_indirect_to_ptr((void __force *)(ptr))
+@@ -174,6 +182,28 @@ static inline int radix_tree_deref_retry
  }
  
-+static inline swp_entry_t radix_to_swp_entry(void *arg)
+ /**
++ * radix_tree_exceptional_entry	- radix_tree_deref_slot gave exceptional entry?
++ * @arg:	value returned by radix_tree_deref_slot
++ * Returns:	0 if well-aligned pointer, non-0 if exceptional entry.
++ */
++static inline int radix_tree_exceptional_entry(void *arg)
 +{
-+	swp_entry_t entry;
-+
-+	entry.val = (unsigned long)arg >> RADIX_TREE_EXCEPTIONAL_SHIFT;
-+	return entry;
++	/* Not unlikely because radix_tree_exception often tested first */
++	return (unsigned long)arg & RADIX_TREE_EXCEPTIONAL_ENTRY;
 +}
 +
-+static inline void *swp_to_radix_entry(swp_entry_t entry)
++/**
++ * radix_tree_exception	- radix_tree_deref_slot returned either exception?
++ * @arg:	value returned by radix_tree_deref_slot
++ * Returns:	0 if well-aligned pointer, non-0 if either kind of exception.
++ */
++static inline int radix_tree_exception(void *arg)
 +{
-+	unsigned long value;
-+
-+	value = entry.val << RADIX_TREE_EXCEPTIONAL_SHIFT;
-+	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
++	return unlikely((unsigned long)arg &
++		(RADIX_TREE_INDIRECT_PTR | RADIX_TREE_EXCEPTIONAL_ENTRY));
 +}
 +
- #ifdef CONFIG_MIGRATION
- static inline swp_entry_t make_migration_entry(struct page *page, int write)
++/**
+  * radix_tree_replace_slot	- replace item in a slot
+  * @pslot:	pointer to slot, returned by radix_tree_lookup_slot
+  * @item:	new item to store in the slot.
+@@ -194,8 +224,8 @@ void *radix_tree_delete(struct radix_tre
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items);
+-unsigned int
+-radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
++unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,
++			void ***results, unsigned long *indices,
+ 			unsigned long first_index, unsigned int max_items);
+ unsigned long radix_tree_next_hole(struct radix_tree_root *root,
+ 				unsigned long index, unsigned long max_scan);
+diff -puN lib/radix-tree.c~radix_tree-exceptional-entries-and-indices lib/radix-tree.c
+--- a/lib/radix-tree.c~radix_tree-exceptional-entries-and-indices
++++ a/lib/radix-tree.c
+@@ -823,8 +823,8 @@ unsigned long radix_tree_prev_hole(struc
+ EXPORT_SYMBOL(radix_tree_prev_hole);
+ 
+ static unsigned int
+-__lookup(struct radix_tree_node *slot, void ***results, unsigned long index,
+-	unsigned int max_items, unsigned long *next_index)
++__lookup(struct radix_tree_node *slot, void ***results, unsigned long *indices,
++	unsigned long index, unsigned int max_items, unsigned long *next_index)
  {
-@@ -169,3 +190,5 @@ static inline int non_swap_entry(swp_ent
- 	return 0;
- }
- #endif
-+
-+#endif /* _LINUX_SWAPOPS_H */
-diff -puN mm/filemap.c~mm-let-swap-use-exceptional-entries mm/filemap.c
---- a/mm/filemap.c~mm-let-swap-use-exceptional-entries
-+++ a/mm/filemap.c
-@@ -717,9 +717,12 @@ repeat:
- 		page = radix_tree_deref_slot(pagep);
- 		if (unlikely(!page))
- 			goto out;
--		if (radix_tree_deref_retry(page))
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_exceptional_entry(page))
-+				goto out;
-+			/* radix_tree_deref_retry(page) */
- 			goto repeat;
--
-+		}
- 		if (!page_cache_get_speculative(page))
- 			goto repeat;
+ 	unsigned int nr_found = 0;
+ 	unsigned int shift, height;
+@@ -857,12 +857,16 @@ __lookup(struct radix_tree_node *slot, v
  
-@@ -756,7 +759,7 @@ struct page *find_lock_page(struct addre
- 
- repeat:
- 	page = find_get_page(mapping, offset);
--	if (page) {
-+	if (page && !radix_tree_exception(page)) {
- 		lock_page(page);
- 		/* Has the page been truncated? */
- 		if (unlikely(page->mapping != mapping)) {
-@@ -852,11 +855,14 @@ repeat:
- 		if (unlikely(!page))
- 			continue;
- 
--		/*
--		 * This can only trigger when the entry at index 0 moves out
--		 * of or back to the root: none yet gotten, safe to restart.
--		 */
--		if (radix_tree_deref_retry(page)) {
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_exceptional_entry(page))
-+				continue;
-+			/*
-+			 * radix_tree_deref_retry(page):
-+			 * can only trigger when entry at index 0 moves out of
-+			 * or back to root: none yet gotten, safe to restart.
-+			 */
- 			WARN_ON(start | i);
- 			goto restart;
+ 	/* Bottom level: grab some items */
+ 	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
+-		index++;
+ 		if (slot->slots[i]) {
+-			results[nr_found++] = &(slot->slots[i]);
+-			if (nr_found == max_items)
++			results[nr_found] = &(slot->slots[i]);
++			if (indices)
++				indices[nr_found] = index;
++			if (++nr_found == max_items) {
++				index++;
+ 				goto out;
++			}
  		}
-@@ -915,12 +921,16 @@ repeat:
- 		if (unlikely(!page))
- 			continue;
++		index++;
+ 	}
+ out:
+ 	*next_index = index;
+@@ -918,8 +922,8 @@ radix_tree_gang_lookup(struct radix_tree
  
--		/*
--		 * This can only trigger when the entry at index 0 moves out
--		 * of or back to the root: none yet gotten, safe to restart.
--		 */
--		if (radix_tree_deref_retry(page))
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_exceptional_entry(page))
-+				break;
-+			/*
-+			 * radix_tree_deref_retry(page):
-+			 * can only trigger when entry at index 0 moves out of
-+			 * or back to root: none yet gotten, safe to restart.
-+			 */
- 			goto restart;
-+		}
+ 		if (cur_index > max_index)
+ 			break;
+-		slots_found = __lookup(node, (void ***)results + ret, cur_index,
+-					max_items - ret, &next_index);
++		slots_found = __lookup(node, (void ***)results + ret, NULL,
++				cur_index, max_items - ret, &next_index);
+ 		nr_found = 0;
+ 		for (i = 0; i < slots_found; i++) {
+ 			struct radix_tree_node *slot;
+@@ -944,6 +948,7 @@ EXPORT_SYMBOL(radix_tree_gang_lookup);
+  *	radix_tree_gang_lookup_slot - perform multiple slot lookup on radix tree
+  *	@root:		radix tree root
+  *	@results:	where the results of the lookup are placed
++ *	@indices:	where their indices should be placed (but usually NULL)
+  *	@first_index:	start the lookup from this key
+  *	@max_items:	place up to this many items at *results
+  *
+@@ -958,7 +963,8 @@ EXPORT_SYMBOL(radix_tree_gang_lookup);
+  *	protection, radix_tree_deref_slot may fail requiring a retry.
+  */
+ unsigned int
+-radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
++radix_tree_gang_lookup_slot(struct radix_tree_root *root,
++			void ***results, unsigned long *indices,
+ 			unsigned long first_index, unsigned int max_items)
+ {
+ 	unsigned long max_index;
+@@ -974,6 +980,8 @@ radix_tree_gang_lookup_slot(struct radix
+ 		if (first_index > 0)
+ 			return 0;
+ 		results[0] = (void **)&root->rnode;
++		if (indices)
++			indices[0] = 0;
+ 		return 1;
+ 	}
+ 	node = indirect_to_ptr(node);
+@@ -987,8 +995,9 @@ radix_tree_gang_lookup_slot(struct radix
  
- 		if (!page_cache_get_speculative(page))
- 			goto repeat;
-@@ -980,12 +990,15 @@ repeat:
- 		if (unlikely(!page))
- 			continue;
- 
--		/*
--		 * This can only trigger when the entry at index 0 moves out
--		 * of or back to the root: none yet gotten, safe to restart.
--		 */
--		if (radix_tree_deref_retry(page))
-+		if (radix_tree_exception(page)) {
-+			BUG_ON(radix_tree_exceptional_entry(page));
-+			/*
-+			 * radix_tree_deref_retry(page):
-+			 * can only trigger when entry at index 0 moves out of
-+			 * or back to root: none yet gotten, safe to restart.
-+			 */
- 			goto restart;
-+		}
- 
- 		if (!page_cache_get_speculative(page))
- 			goto repeat;
-diff -puN mm/swapfile.c~mm-let-swap-use-exceptional-entries mm/swapfile.c
---- a/mm/swapfile.c~mm-let-swap-use-exceptional-entries
-+++ a/mm/swapfile.c
-@@ -1960,20 +1960,24 @@ static unsigned long read_swap_header(st
- 
- 	/*
- 	 * Find out how many pages are allowed for a single swap
--	 * device. There are two limiting factors: 1) the number of
--	 * bits for the swap offset in the swp_entry_t type and
--	 * 2) the number of bits in the a swap pte as defined by
--	 * the different architectures. In order to find the
--	 * largest possible bit mask a swap entry with swap type 0
-+	 * device. There are three limiting factors: 1) the number
-+	 * of bits for the swap offset in the swp_entry_t type, and
-+	 * 2) the number of bits in the swap pte as defined by the
-+	 * the different architectures, and 3) the number of free bits
-+	 * in an exceptional radix_tree entry. In order to find the
-+	 * largest possible bit mask, a swap entry with swap type 0
- 	 * and swap offset ~0UL is created, encoded to a swap pte,
--	 * decoded to a swp_entry_t again and finally the swap
-+	 * decoded to a swp_entry_t again, and finally the swap
- 	 * offset is extracted. This will mask all the bits from
- 	 * the initial ~0UL mask that can't be encoded in either
- 	 * the swp_entry_t or the architecture definition of a
--	 * swap pte.
-+	 * swap pte.  Then the same is done for a radix_tree entry.
- 	 */
- 	maxpages = swp_offset(pte_to_swp_entry(
--			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
-+			swp_entry_to_pte(swp_entry(0, ~0UL))));
-+	maxpages = swp_offset(radix_to_swp_entry(
-+			swp_to_radix_entry(swp_entry(0, maxpages)))) + 1;
-+
- 	if (maxpages > swap_header->info.last_page) {
- 		maxpages = swap_header->info.last_page + 1;
- 		/* p->max is an unsigned int: don't overflow it */
+ 		if (cur_index > max_index)
+ 			break;
+-		slots_found = __lookup(node, results + ret, cur_index,
+-					max_items - ret, &next_index);
++		slots_found = __lookup(node, results + ret,
++				indices ? indices + ret : NULL,
++				cur_index, max_items - ret, &next_index);
+ 		ret += slots_found;
+ 		if (next_index == 0)
+ 			break;
+diff -puN mm/filemap.c~radix_tree-exceptional-entries-and-indices mm/filemap.c
+--- a/mm/filemap.c~radix_tree-exceptional-entries-and-indices
++++ a/mm/filemap.c
+@@ -843,7 +843,7 @@ unsigned find_get_pages(struct address_s
+ 	rcu_read_lock();
+ restart:
+ 	nr_found = radix_tree_gang_lookup_slot(&mapping->page_tree,
+-				(void ***)pages, start, nr_pages);
++				(void ***)pages, NULL, start, nr_pages);
+ 	ret = 0;
+ 	for (i = 0; i < nr_found; i++) {
+ 		struct page *page;
+@@ -906,7 +906,7 @@ unsigned find_get_pages_contig(struct ad
+ 	rcu_read_lock();
+ restart:
+ 	nr_found = radix_tree_gang_lookup_slot(&mapping->page_tree,
+-				(void ***)pages, index, nr_pages);
++				(void ***)pages, NULL, index, nr_pages);
+ 	ret = 0;
+ 	for (i = 0; i < nr_found; i++) {
+ 		struct page *page;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
