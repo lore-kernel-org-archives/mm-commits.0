@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-clean-up-delay-functions.patch added to -mm tree
-Date: Fri, 17 Jun 2011 15:31:38 -0700
-Message-ID: <201106172231.p5HMVcPb004950@imap1.linux-foundation.org>
+Subject: + checkpatch-validate-signature-styles-and-to-and-cc-lines.patch added to -mm tree
+Date: Fri, 17 Jun 2011 15:41:41 -0700
+Message-ID: <201106172241.p5HMffKn005473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756614Ab1FQWiA (ORCPT
+	by vger.kernel.org with ESMTP id S1756614Ab1FQWls (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 18:38:00 -0400
+	Fri, 17 Jun 2011 18:41:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at
+Cc: joe@perches.com, anish198519851985@gmail.com, nbowler@elliptictech.com
 
 
 The patch titled
-     um: clean up delay functions
+     checkpatch: validate signature styles and To: and Cc: lines
 has been added to the -mm tree.  Its filename is
-     um-clean-up-delay-functions.patch
+     checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,185 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: clean up delay functions
-From: Richard Weinberger <richard@nod.at>
+Subject: checkpatch: validate signature styles and To: and Cc: lines
+From: Joe Perches <joe@perches.com>
 
-Both sys-i386 and sys-x86_64 support now ndelay().  The delay functions
-are based on arch/x86/lib/delay.c.
+Signatures have many forms and can sometimes cause problems if not in the
+correct format when using git send-email or quilt.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Try to verify the signature tags and email addresses to use the generally
+accepted "Signed-off-by: Full Name <email@domain.tld>" form.
+
+Original idea by Anish Kumar <anish198519851985@gmail.com>
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Anish Kumar <anish198519851985@gmail.com>
+Cc: Nick Bowler <nbowler@elliptictech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/delay.h |    8 +---
- arch/um/sys-i386/delay.c    |   63 +++++++++++++++++++++++++---------
- arch/um/sys-x86_64/delay.c  |   56 +++++++++++++++++++++++-------
- 3 files changed, 92 insertions(+), 35 deletions(-)
+ scripts/checkpatch.pl |  125 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 116 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/include/asm/delay.h~um-clean-up-delay-functions arch/um/include/asm/delay.h
---- a/arch/um/include/asm/delay.h~um-clean-up-delay-functions
-+++ a/arch/um/include/asm/delay.h
-@@ -1,8 +1,6 @@
- #ifndef __UM_DELAY_H
- #define __UM_DELAY_H
+diff -puN scripts/checkpatch.pl~checkpatch-validate-signature-styles-and-to-and-cc-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-validate-signature-styles-and-to-and-cc-lines
++++ a/scripts/checkpatch.pl
+@@ -217,6 +217,16 @@ our $logFunctions = qr{(?x:
+ 	MODULE_[A-Z_]+
+ )};
  
--#define MILLION 1000000
--
- /* Undefined on purpose */
- extern void __bad_udelay(void);
- 
-@@ -12,9 +10,7 @@ extern void __delay(unsigned long loops)
- #define udelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
- 	__bad_udelay() : __udelay(n))
- 
--/* It appears that ndelay is not used at all for UML, and has never been
-- * implemented. */
--extern void __unimplemented_ndelay(void);
--#define ndelay(n) __unimplemented_ndelay()
-+#define ndelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
-+	__bad_udelay() : __ndelay(n))
- 
- #endif
-diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions arch/um/sys-i386/delay.c
---- a/arch/um/sys-i386/delay.c~um-clean-up-delay-functions
-+++ a/arch/um/sys-i386/delay.c
-@@ -1,29 +1,60 @@
-+/*
-+ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
-+ * Mostly copied from arch/x86/lib/delay.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++our $signature_tags = qr{(?xi:
++	Signed-off-by:|
++	Acked-by:|
++	Tested-by:|
++	Reviewed-by:|
++	Reported-by:|
++	To:|
++	Cc:
++)};
 +
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/delay.h>
- #include <asm/param.h>
- 
--void __delay(unsigned long time)
-+void __delay(unsigned long loops)
- {
--	/* Stolen from the i386 __loop_delay */
--	int d0;
--	__asm__ __volatile__(
--		"\tjmp 1f\n"
--		".align 16\n"
--		"1:\tjmp 2f\n"
--		".align 16\n"
--		"2:\tdecl %0\n\tjns 2b"
--		:"=&a" (d0)
--		:"0" (time));
-+	asm volatile(
-+		" test %0,%0  \n"
-+		" jz 3f   \n"
-+		" jmp 1f    \n"
-+
-+		".align 16    \n"
-+		"1: jmp 2f    \n"
-+
-+		".align 16    \n"
-+		"2: dec %0    \n"
-+		" jnz 2b    \n"
-+		"3: dec %0    \n"
-+
-+		: /* we don't need output */
-+		:"a" (loops)
-+	);
+ our @typeList = (
+ 	qr{void},
+ 	qr{(?:unsigned\s+)?char},
+@@ -356,6 +366,76 @@ sub top_of_kernel_tree {
+ 	return 1;
  }
-+EXPORT_SYMBOL(__delay);
  
--void __udelay(unsigned long usecs)
-+inline void __const_udelay(unsigned long xloops)
- {
--	int i, n;
-+	int d0;
- 
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
-+	xloops *= 4;
-+	asm("mull %%edx"
-+		:"=d" (xloops), "=&a" (d0)
-+		:"1" (xloops), "0"
-+		(loops_per_jiffy * (HZ/4)));
++sub parse_email {
++	my ($formatted_email) = @_;
 +
-+	__delay(++xloops);
- }
-+EXPORT_SYMBOL(__const_udelay);
- 
-+void __udelay(unsigned long usecs)
-+{
-+	__const_udelay(usecs * 0x000010c7); /* 2**32 / 1000000 (rounded up) */
++	my $name = "";
++	my $address = "";
++	my $comment = "";
++
++	if ($formatted_email =~ /^(.*)<(\S+\@\S+)>(.*)$/) {
++		$name = $1;
++		$address = $2;
++		$comment = $3 if defined $3;
++	} elsif ($formatted_email =~ /^\s*<(\S+\@\S+)>(.*)$/) {
++		$address = $1;
++		$comment = $2 if defined $2;
++	} elsif ($formatted_email =~ /(\S+\@\S+)(.*)$/) {
++		$address = $1;
++		$comment = $2 if defined $2;
++		$formatted_email =~ s/$address.*$//;
++		$name = $formatted_email;
++		$name =~ s/^\s+|\s+$//g;
++		$name =~ s/^\"|\"$//g;
++		# If there's a name left after stripping spaces and
++		# leading quotes, and the address doesn't have both
++		# leading and trailing angle brackets, the address
++		# is invalid. ie:
++		#   "joe smith joe@smith.com" bad
++		#   "joe smith <joe@smith.com" bad
++		if ($name ne "" && $address !~ /^<[^>]+>$/) {
++			$name = "";
++			$address = "";
++			$comment = "";
++		}
++	}
++
++	$name =~ s/^\s+|\s+$//g;
++	$name =~ s/^\"|\"$//g;
++	$address =~ s/^\s+|\s+$//g;
++	$address =~ s/^\<|\>$//g;
++
++	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
++		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
++		$name = "\"$name\"";
++	}
++
++	return ($name, $address, $comment);
 +}
- EXPORT_SYMBOL(__udelay);
 +
-+void __ndelay(unsigned long nsecs)
-+{
-+	__const_udelay(nsecs * 0x00005); /* 2**32 / 1000000000 (rounded up) */
++sub format_email {
++	my ($name, $address) = @_;
++
++	my $formatted_email;
++
++	$name =~ s/^\s+|\s+$//g;
++	$name =~ s/^\"|\"$//g;
++	$address =~ s/^\s+|\s+$//g;
++
++	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
++		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
++		$name = "\"$name\"";
++	}
++
++	if ("$name" eq "") {
++		$formatted_email = "$address";
++	} else {
++		$formatted_email = "$name <$address>";
++	}
++
++	return $formatted_email;
 +}
-+EXPORT_SYMBOL(__ndelay);
-diff -puN arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions arch/um/sys-x86_64/delay.c
---- a/arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions
-+++ a/arch/um/sys-x86_64/delay.c
-@@ -1,30 +1,60 @@
- /*
-- * Copyright 2003 PathScale, Inc.
-- * Copied from arch/x86_64
-+ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
-+ * Mostly copied from arch/x86/lib/delay.c
-  *
-- * Licensed under the GPL
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-  */
- 
- #include <linux/module.h>
-+#include <linux/kernel.h>
- #include <linux/delay.h>
--#include <asm/processor.h>
- #include <asm/param.h>
- 
- void __delay(unsigned long loops)
- {
--	unsigned long i;
--
--        for(i = 0; i < loops; i++)
--                cpu_relax();
-+	asm volatile(
-+		" test %0,%0  \n"
-+		" jz 3f   \n"
-+		" jmp 1f    \n"
 +
-+		".align 16    \n"
-+		"1: jmp 2f    \n"
-+
-+		".align 16    \n"
-+		"2: dec %0    \n"
-+		" jnz 2b    \n"
-+		"3: dec %0    \n"
-+
-+		: /* we don't need output */
-+		:"a" (loops)
-+	);
- }
-+EXPORT_SYMBOL(__delay);
+ sub expand_tabs {
+ 	my ($str) = @_;
  
--void __udelay(unsigned long usecs)
-+inline void __const_udelay(unsigned long xloops)
- {
--	unsigned long i, n;
-+	int d0;
-+
-+	xloops *= 4;
-+	asm("mull %%edx"
-+		:"=d" (xloops), "=&a" (d0)
-+		:"1" (xloops), "0"
-+		(loops_per_jiffy * (HZ/4)));
+@@ -1380,17 +1460,44 @@ sub process {
+ 			}
+ 		}
  
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
-+	__delay(++xloops);
- }
-+EXPORT_SYMBOL(__const_udelay);
- 
-+void __udelay(unsigned long usecs)
-+{
-+	__const_udelay(usecs * 0x000010c7); /* 2**32 / 1000000 (rounded up) */
-+}
- EXPORT_SYMBOL(__udelay);
+-#check the patch for a signoff:
++# Check the patch for a signoff:
+ 		if ($line =~ /^\s*signed-off-by:/i) {
+-			# This is a signoff, if ugly, so do not double report.
+ 			$signoff++;
+-			if (!($line =~ /^\s*Signed-off-by:/)) {
+-				WARN("Signed-off-by: is the preferred form\n" .
+-					$herecurr);
+-			}
+-			if ($line =~ /^\s*signed-off-by:\S/i) {
+-				WARN("space required after Signed-off-by:\n" .
+-					$herecurr);
++		}
 +
-+void __ndelay(unsigned long nsecs)
-+{
-+	__const_udelay(nsecs * 0x00005); /* 2**32 / 1000000000 (rounded up) */
-+}
-+EXPORT_SYMBOL(__ndelay);
++# Check signature styles
++		if ($line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
++			my $space_before = $1;
++			my $sign_off = $2;
++			my $space_after = $3;
++			my $email = $4;
++			my $ucfirst_sign_off = ucfirst(lc($sign_off));
++
++			if (defined $space_before && $space_before ne "") {
++				WARN("Do not use whitespace before $ucfirst_sign_off\n" . $herecurr);
++			}
++			if ($sign_off =~ /-by:$/i && $sign_off ne $ucfirst_sign_off) {
++				WARN("'$ucfirst_sign_off' is the preferred signature form\n" . $herecurr);
++			}
++			if (!defined $space_after || $space_after ne " ") {
++				WARN("Use a single space after $ucfirst_sign_off\n" . $herecurr);
++			}
++
++			my ($email_name, $email_address, $comment) = parse_email($email);
++			my $suggested_email = format_email(($email_name, $email_address));
++			if ($suggested_email eq "") {
++				ERROR("Unrecognized email address: '$email'\n" . $herecurr);
++			} else {
++				my $dequoted = $suggested_email;
++				$dequoted =~ s/^"//;
++				$dequoted =~ s/" </ </;
++				# Don't force email to have quotes
++				# Allow just an angle bracketed address
++				if ("$dequoted$comment" ne $email &&
++				    "<$email_address>$comment" ne $email &&
++				    "$suggested_email$comment" ne $email) {
++					WARN("email address '$email' might be better as '$suggested_email$comment'\n" . $herecurr);
++				}
+ 			}
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-um-add-asm-percpuh.patch
 linux-next.patch
-um-clean-up-vm-flagsh.patch
-um-clean-up-delay-functions.patch
-fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-__rcu-as-a-sparse-modifier.patch
+checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
 
