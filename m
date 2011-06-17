@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch added to -mm tree
-Date: Fri, 17 Jun 2011 14:20:51 -0700
-Message-ID: <201106172120.p5HLKqxf001634@imap1.linux-foundation.org>
+Subject: + um-clean-up-vm-flagsh.patch added to -mm tree
+Date: Fri, 17 Jun 2011 14:25:40 -0700
+Message-ID: <201106172125.p5HLPe1a001847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730Ab1FQVVc (ORCPT
+	by vger.kernel.org with ESMTP id S1751049Ab1FQV03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 17:21:32 -0400
+	Fri, 17 Jun 2011 17:26:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomoya-linux@dsn.okisemi.com, gregkh@suse.de
+Cc: richard@nod.at, mhocko@suse.cz, randy.dunlap@oracle.com
 
 
 The patch titled
-     drivers/misc/pch_phub.c: fix register miss-setting issue
+     um: clean up vm-flags.h
 has been added to the -mm tree.  Its filename is
-     drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch
+     um-clean-up-vm-flagsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/pch_phub.c: fix register miss-setting issue
-From: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Subject: um: clean up vm-flags.h
+From: Richard Weinberger <richard@nod.at>
 
-Register "interrupt delay value" is for GbE which is connected to Bus-m of
-PCIe.  However currently, the value is set for Bus-n.  As a result, the
-value is not set correctly.  This patch moves setting the value processing
-of Bus-n to Bus-m.
+There is no need to define VM_{STACK,DATA}_DEFAULT_FLAGS as variable. 
+It's also useless to test for TIF_IA32 as 64bit UML has no IA32 emulation.
 
-Signed-off-by: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
-Cc: Greg KH <gregkh@suse.de>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/pch_phub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/um/sys-x86_64/Makefile                 |    2 -
+ arch/um/sys-x86_64/mem.c                    |   16 -----------
+ arch/um/sys-x86_64/shared/sysdep/vm-flags.h |   26 ++----------------
+ 3 files changed, 5 insertions(+), 39 deletions(-)
 
-diff -puN drivers/misc/pch_phub.c~drivers-misc-pch_phubc-fix-register-miss-setting-issue drivers/misc/pch_phub.c
---- a/drivers/misc/pch_phub.c~drivers-misc-pch_phubc-fix-register-miss-setting-issue
-+++ a/drivers/misc/pch_phub.c
-@@ -732,6 +732,8 @@ static int __devinit pch_phub_probe(stru
- 		 * Device8(GbE)
- 		 */
- 		iowrite32(0x000a0000, chip->pch_phub_base_address + 0x14);
-+		/* set the interrupt delay value */
-+		iowrite32(0x25, chip->pch_phub_base_address + 0x140);
- 		chip->pch_opt_rom_start_address =\
- 						 PCH_PHUB_ROM_START_ADDR_ML7223;
- 		chip->pch_mac_start_address = PCH_PHUB_MAC_START_ADDR_ML7223;
-@@ -749,8 +751,6 @@ static int __devinit pch_phub_probe(stru
- 		 * Device6(SATA 2):f
- 		 */
- 		iowrite32(0x0000ffa0, chip->pch_phub_base_address + 0x14);
--		/* set the interrupt delay value */
--		iowrite32(0x25, chip->pch_phub_base_address + 0x140);
- 		chip->pch_opt_rom_start_address =\
- 						 PCH_PHUB_ROM_START_ADDR_ML7223;
- 		chip->pch_mac_start_address = PCH_PHUB_MAC_START_ADDR_ML7223;
-_
-
-Patches currently in -mm which might be from tomoya-linux@dsn.okisemi.com are
-
-linux-next.patch
-drivers-misc-pch_phubc-fix-register-miss-setting-issue.patch
-
+diff -puN arch/um/sys-x86_64/Makefile~um-clean-up-vm-flagsh arch/um/sys-x86_64/Makefile
+--- a/arch/um/sys-x86_64/Makefile~um-clean-up-vm-flagsh
++++ a/arch/um/sys-x86_64/Makefile
+@@ -4,7 +4,7 @@
+ # Licensed under the GPL
+ #
+ 
+-obj-y = bug.o bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
++obj-y = bug.o bugs.o delay.o fault.o ldt.o ptrace.o ptrace_user.o \
+ 	setjmp.o signal.o stub.o stub_segv.o syscalls.o syscall_table.o \
+ 	sysrq.o ksyms.o tls.o
+ 
+diff -puN arch/um/sys-x86_64/mem.c~um-clean-up-vm-flagsh /dev/null
+--- a/arch/um/sys-x86_64/mem.c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/*
+- * Copyright 2003 PathScale, Inc.
+- *
+- * Licensed under the GPL
+- */
+-
+-#include "linux/mm.h"
+-#include "asm/page.h"
+-#include "asm/mman.h"
+-
+-unsigned long vm_stack_flags = __VM_STACK_FLAGS;
+-unsigned long vm_stack_flags32 = __VM_STACK_FLAGS;
+-unsigned long vm_data_default_flags = __VM_DATA_DEFAULT_FLAGS;
+-unsigned long vm_data_default_flags32 = __VM_DATA_DEFAULT_FLAGS;
+-unsigned long vm_force_exec32 = PROT_EXEC;
+-
+diff -puN arch/um/sys-x86_64/shared/sysdep/vm-flags.h~um-clean-up-vm-flagsh arch/um/sys-x86_64/shared/sysdep/vm-flags.h
+--- a/arch/um/sys-x86_64/shared/sysdep/vm-flags.h~um-clean-up-vm-flagsh
++++ a/arch/um/sys-x86_64/shared/sysdep/vm-flags.h
+@@ -7,27 +7,9 @@
+ #ifndef __VM_FLAGS_X86_64_H
+ #define __VM_FLAGS_X86_64_H
+ 
+-#define __VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-#define __VM_STACK_FLAGS 	(VM_GROWSDOWN | VM_READ | VM_WRITE | \
+-				 VM_EXEC | VM_MAYREAD | VM_MAYWRITE | \
+-				 VM_MAYEXEC)
+-
+-extern unsigned long vm_stack_flags, vm_stack_flags32;
+-extern unsigned long vm_data_default_flags, vm_data_default_flags32;
+-extern unsigned long vm_force_exec32;
+-
+-#ifdef TIF_IA32
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(test_thread_flag(TIF_IA32) ? vm_data_default_flags32 : \
+-	  vm_data_default_flags)
+-
+-#define VM_STACK_DEFAULT_FLAGS \
+-	(test_thread_flag(TIF_IA32) ? vm_stack_flags32 : vm_stack_flags)
+-#endif
+-
+-#define VM_DATA_DEFAULT_FLAGS vm_data_default_flags
