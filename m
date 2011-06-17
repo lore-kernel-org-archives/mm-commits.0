@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1307c-add-support-for-rtc-device-pt7c4338.patch added to -mm tree
-Date: Fri, 17 Jun 2011 15:03:16 -0700
-Message-ID: <201106172203.p5HM3G2G003752@imap1.linux-foundation.org>
+Subject: + um-add-asm-percpuh.patch added to -mm tree
+Date: Fri, 17 Jun 2011 15:30:46 -0700
+Message-ID: <201106172230.p5HMUkGZ004933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757775Ab1FQWD0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757571Ab1FQWel (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Jun 2011 18:03:26 -0400
+	Fri, 17 Jun 2011 18:34:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Priyanka.Jain@freescale.com, timur@freescale.com, w.sang@pengutronix.de
+Cc: richard@nod.at
 
 
 The patch titled
-     drivers/rtc/rtc-ds1307.c: add support for RTC device pt7c4338
+     um: add asm/percpu.h
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1307c-add-support-for-rtc-device-pt7c4338.patch
+     um-add-asm-percpuh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-ds1307.c: add support for RTC device pt7c4338
-From: Priyanka Jain <Priyanka.Jain@freescale.com>
+Subject: um: add asm/percpu.h
+From: Richard Weinberger <richard@nod.at>
 
-PT7C4338 chip is being manufactured by Pericom Technology Inc.  It is a
-serial real-time clock which provides:
+To make SLUB work on UML we need this_cpu_cmpxchg from
+asm-generic/percpu.h.
 
-1) Low-power clock/calendar.
-2) Programmable square-wave output.
-
-It has 56 bytes of nonvolatile RAM.  Its register set is same as that of
-rtc device: DS1307.
-
-Signed-off-by: Priyanka Jain <Priyanka.Jain@freescale.com>
-Acked-by: Timur Tabi <timur@freescale.com>
-Reviewed-by: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/include/asm/percpu.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-add-support-for-rtc-device-pt7c4338 drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-add-support-for-rtc-device-pt7c4338
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -149,6 +149,7 @@ static const struct i2c_device_id ds1307
- 	{ "ds1340", ds_1340 },
- 	{ "ds3231", ds_3231 },
- 	{ "m41t00", m41t00 },
-+	{ "pt7c4338", ds_1307 },
- 	{ "rx8025", rx_8025 },
- 	{ }
- };
+diff -puN /dev/null arch/um/include/asm/percpu.h
+--- /dev/null
++++ a/arch/um/include/asm/percpu.h
+@@ -0,0 +1,6 @@
++#ifndef __UM_PERCPU_H
++#define __UM_PERCPU_H
++
++#include <asm-generic/percpu.h>
++
++#endif /* __UM_PERCPU_H */
 _
 
-Patches currently in -mm which might be from Priyanka.Jain@freescale.com are
+Patches currently in -mm which might be from richard@nod.at are
 
-drivers-rtc-rtc-ds1307c-add-support-for-rtc-device-pt7c4338.patch
+origin.patch
+um-add-asm-percpuh.patch
+linux-next.patch
+um-clean-up-vm-flagsh.patch
+fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+um-clean-up-delay-functions.patch
 
