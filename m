@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:48:08 -0700
-Message-ID: <201106202148.p5KLm8I6023324@imap1.linux-foundation.org>
+Subject: + sparc-exec-remove-redundant-addr_limit-assignment.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:48:22 -0700
+Message-ID: <201106202148.p5KLmMeG023360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755460Ab1FTVsp (ORCPT
+	by vger.kernel.org with ESMTP id S1755460Ab1FTVsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:48:45 -0400
+	Mon, 20 Jun 2011 17:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minipli@googlemail.com, geert@linux-m68k.org, gerg@uclinux.org
+Cc: minipli@googlemail.com, davem@davemloft.net
 
 
 The patch titled
-     m68k, exec: remove redundant set_fs(USER_DS)
+     sparc, exec: remove redundant addr_limit assignment
 has been added to the -mm tree.  Its filename is
-     m68k-exec-remove-redundant-set_fsuser_ds.patch
+     sparc-exec-remove-redundant-addr_limit-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k, exec: remove redundant set_fs(USER_DS)
+Subject: sparc, exec: remove redundant addr_limit assignment
 From: Mathias Krause <minipli@googlemail.com>
 
-The address limit is already set in flush_old_exec() so those calls to
-set_fs(USER_DS) are redundant.
+The address limit is already set in flush_old_exec() so this assignment of
+USER_DS is redundant.
 
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/processor.h |    4 ----
- arch/m68k/kernel/process_mm.c     |    2 +-
- arch/m68k/kernel/process_no.c     |    2 +-
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/process_32.c |    3 +--
+ arch/sparc/kernel/process_64.c |    3 ---
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/m68k/include/asm/processor.h~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/include/asm/processor.h
---- a/arch/m68k/include/asm/processor.h~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/include/asm/processor.h
-@@ -105,9 +105,6 @@ struct thread_struct {
- static inline void start_thread(struct pt_regs * regs, unsigned long pc,
- 				unsigned long usp)
- {
--	/* reads from user space */
--	set_fs(USER_DS);
--
- 	regs->pc = pc;
- 	regs->sr &= ~0x2000;
- 	wrusp(usp);
-@@ -129,7 +126,6 @@ extern int handle_kernel_fault(struct pt
- 
- #define start_thread(_regs, _pc, _usp)                  \
- do {                                                    \
--	set_fs(USER_DS); /* reads from user space */    \
- 	(_regs)->pc = (_pc);                            \
- 	((struct switch_stack *)(_regs))[-1].a6 = 0;    \
- 	reformat(_regs);                                \
-diff -puN arch/m68k/kernel/process_mm.c~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/kernel/process_mm.c
---- a/arch/m68k/kernel/process_mm.c~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/kernel/process_mm.c
-@@ -185,7 +185,7 @@ EXPORT_SYMBOL(kernel_thread);
- void flush_thread(void)
- {
- 	unsigned long zero = 0;
--	set_fs(USER_DS);
-+
- 	current->thread.fs = __USER_DS;
- 	if (!FPU_IS_EMU)
- 		asm volatile (".chip 68k/68881\n\t"
-diff -puN arch/m68k/kernel/process_no.c~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/kernel/process_no.c
---- a/arch/m68k/kernel/process_no.c~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/kernel/process_no.c
-@@ -158,7 +158,7 @@ void flush_thread(void)
- #ifdef CONFIG_FPU
- 	unsigned long zero = 0;
+diff -puN arch/sparc/kernel/process_32.c~sparc-exec-remove-redundant-addr_limit-assignment arch/sparc/kernel/process_32.c
+--- a/arch/sparc/kernel/process_32.c~sparc-exec-remove-redundant-addr_limit-assignment
++++ a/arch/sparc/kernel/process_32.c
+@@ -380,8 +380,7 @@ void flush_thread(void)
  #endif
--	set_fs(USER_DS);
-+
- 	current->thread.fs = __USER_DS;
- #ifdef CONFIG_FPU
- 	if (!FPU_IS_EMU)
+ 	}
+ 
+-	/* Now, this task is no longer a kernel thread. */
+-	current->thread.current_ds = USER_DS;
++	/* This task is no longer a kernel thread. */
+ 	if (current->thread.flags & SPARC_FLAG_KTHREAD) {
+ 		current->thread.flags &= ~SPARC_FLAG_KTHREAD;
+ 
+diff -puN arch/sparc/kernel/process_64.c~sparc-exec-remove-redundant-addr_limit-assignment arch/sparc/kernel/process_64.c
+--- a/arch/sparc/kernel/process_64.c~sparc-exec-remove-redundant-addr_limit-assignment
++++ a/arch/sparc/kernel/process_64.c
+@@ -368,9 +368,6 @@ void flush_thread(void)
+ 
+ 	/* Clear FPU register state. */
+ 	t->fpsaved[0] = 0;
+-	
+-	if (get_thread_current_ds() != ASI_AIUS)
+-		set_fs(USER_DS);
+ }
+ 
+ /* It's a bit more tricky when 64-bit tasks are involved... */
 _
 
 Patches currently in -mm which might be from minipli@googlemail.com are
