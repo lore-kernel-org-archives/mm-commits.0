@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:47:59 -0700
-Message-ID: <201106202147.p5KLlxtT023294@imap1.linux-foundation.org>
+Subject: + parisc-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:48:16 -0700
+Message-ID: <201106202148.p5KLmG6X023348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755934Ab1FTVyx (ORCPT
+	by vger.kernel.org with ESMTP id S1755932Ab1FTVzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:54:53 -0400
+	Mon, 20 Jun 2011 17:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minipli@googlemail.com, dhowells@redhat.com
+Cc: minipli@googlemail.com, deller@gmx.de, kyle@mcmartin.ca
 
 
 The patch titled
-     frv, exec: remove redundant set_fs(USER_DS)
+     parisc, exec: remove redundant set_fs(USER_DS)
 has been added to the -mm tree.  Its filename is
-     frv-exec-remove-redundant-set_fsuser_ds.patch
+     parisc-exec-remove-redundant-set_fsuser_ds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv, exec: remove redundant set_fs(USER_DS)
+Subject: parisc, exec: remove redundant set_fs(USER_DS)
 From: Mathias Krause <minipli@googlemail.com>
 
 The address limit is already set in flush_old_exec() so those calls to
 set_fs(USER_DS) are redundant.
 
-Also removed the dead code in flush_thread().
-
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/processor.h |    1 -
- arch/frv/kernel/process.c        |    5 +----
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ arch/parisc/include/asm/processor.h |    2 --
+ arch/parisc/kernel/process.c        |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff -puN arch/frv/include/asm/processor.h~frv-exec-remove-redundant-set_fsuser_ds arch/frv/include/asm/processor.h
---- a/arch/frv/include/asm/processor.h~frv-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/frv/include/asm/processor.h
-@@ -97,7 +97,6 @@ extern struct task_struct *__kernel_curr
-  */
- #define start_thread(_regs, _pc, _usp)			\
- do {							\
--	set_fs(USER_DS); /* reads from user space */	\
- 	__frame = __kernel_frame0_ptr;			\
- 	__frame->pc	= (_pc);			\
- 	__frame->psr	&= ~PSR_S;			\
-diff -puN arch/frv/kernel/process.c~frv-exec-remove-redundant-set_fsuser_ds arch/frv/kernel/process.c
---- a/arch/frv/kernel/process.c~frv-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/frv/kernel/process.c
-@@ -143,10 +143,7 @@ void machine_power_off(void)
- 
- void flush_thread(void)
- {
--#if 0 //ndef NO_FPU
--	unsigned long zero = 0;
--#endif
+diff -puN arch/parisc/include/asm/processor.h~parisc-exec-remove-redundant-set_fsuser_ds arch/parisc/include/asm/processor.h
+--- a/arch/parisc/include/asm/processor.h~parisc-exec-remove-redundant-set_fsuser_ds
++++ a/arch/parisc/include/asm/processor.h
+@@ -196,7 +196,6 @@ typedef unsigned int elf_caddr_t;
+ 	/* offset pc for priv. level */			\
+ 	pc |= 3;					\
+ 							\
+-	set_fs(USER_DS);				\
+ 	regs->iasq[0] = spaceid;			\
+ 	regs->iasq[1] = spaceid;			\
+ 	regs->iaoq[0] = pc;				\
+@@ -299,7 +298,6 @@ on downward growing arches, it looks lik
+ 	elf_addr_t pc = (elf_addr_t)new_pc | 3;		\
+ 	elf_caddr_t *argv = (elf_caddr_t *)bprm->exec + 1;	\
+ 							\
+-	set_fs(USER_DS);				\
+ 	regs->iasq[0] = spaceid;			\
+ 	regs->iasq[1] = spaceid;			\
+ 	regs->iaoq[0] = pc;				\
+diff -puN arch/parisc/kernel/process.c~parisc-exec-remove-redundant-set_fsuser_ds arch/parisc/kernel/process.c
+--- a/arch/parisc/kernel/process.c~parisc-exec-remove-redundant-set_fsuser_ds
++++ a/arch/parisc/kernel/process.c
+@@ -192,7 +192,6 @@ void flush_thread(void)
+ 	/* Only needs to handle fpu stuff or perf monitors.
+ 	** REVISIT: several arches implement a "lazy fpu state".
+ 	*/
 -	set_fs(USER_DS);
-+	/* nothing */
  }
  
- inline unsigned long user_stack(const struct pt_regs *regs)
+ void release_thread(struct task_struct *dead_task)
 _
 
 Patches currently in -mm which might be from minipli@googlemail.com are
