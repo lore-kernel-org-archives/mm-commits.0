@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch added to -mm tree
-Date: Mon, 20 Jun 2011 13:02:16 -0700
-Message-ID: <201106202002.p5KK2GY3015361@imap1.linux-foundation.org>
+Subject: + proc-pid-fdinfo-add-cloexec-information.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:31:43 -0700
+Message-ID: <201106202131.p5KLVh6F021960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136Ab1FTUC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755386Ab1FTVbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 16:02:27 -0400
+	Mon, 20 Jun 2011 17:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dkiper@net-space.pl, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com
+Cc: drepper@gmail.com, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk, wilsons@start.ca
 
 
 The patch titled
-     mm/page_cgroup.c: simplify code by using SECTION_ALIGN_UP() and SECTION_ALIGN_DOWN() macros
+     /proc/pid/fdinfo: add cloexec information
 has been added to the -mm tree.  Its filename is
-     mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
+     proc-pid-fdinfo-add-cloexec-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_cgroup.c: simplify code by using SECTION_ALIGN_UP() and SECTION_ALIGN_DOWN() macros
-From: Daniel Kiper <dkiper@net-space.pl>
+Subject: /proc/pid/fdinfo: add cloexec information
+From: Ulrich Drepper <drepper@gmail.com>
 
-git commit a539f3533b78e3 ("mm: add SECTION_ALIGN_UP() and
-SECTION_ALIGN_DOWN() macro") introduced SECTION_ALIGN_UP() and
-SECTION_ALIGN_DOWN() macro.  Use those macros to increase code
-readability.
+There is one piece of information about a file descriptor which is
+currently not visible from the outside: the close-on-exec flag.  The
+/proc/PID/fdinfo/* files have the mode information but this is missing. 
 
-Signed-off-by: Daniel Kiper <dkiper@net-space.pl>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Ulrich Drepper <drepper@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Stephen Wilson <wilsons@start.ca>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/base.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_cgroup.c~mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros
-+++ a/mm/page_cgroup.c
-@@ -225,8 +225,8 @@ int __meminit online_page_cgroup(unsigne
- 	unsigned long start, end, pfn;
- 	int fail = 0;
- 
--	start = start_pfn & ~(PAGES_PER_SECTION - 1);
--	end = ALIGN(start_pfn + nr_pages, PAGES_PER_SECTION);
-+	start = SECTION_ALIGN_DOWN(start_pfn);
-+	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
- 
- 	if (nid == -1) {
- 		/*
-@@ -258,8 +258,8 @@ int __meminit offline_page_cgroup(unsign
- {
- 	unsigned long start, end, pfn;
- 
--	start = start_pfn & ~(PAGES_PER_SECTION - 1);
--	end = ALIGN(start_pfn + nr_pages, PAGES_PER_SECTION);
-+	start = SECTION_ALIGN_DOWN(start_pfn);
-+	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
- 
- 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
- 		__free_page_cgroup(pfn);
+diff -puN fs/proc/base.c~proc-pid-fdinfo-add-cloexec-information fs/proc/base.c
+--- a/fs/proc/base.c~proc-pid-fdinfo-add-cloexec-information
++++ a/fs/proc/base.c
+@@ -1924,12 +1924,23 @@ static int proc_fd_info(struct inode *in
+ 				*path = file->f_path;
+ 				path_get(&file->f_path);
+ 			}
+-			if (info)
++			if (info) {
++				int cloexec;
++				struct fdtable *fdt;
++
++				rcu_read_lock();
++				fdt = files_fdtable(files);
++				cloexec = FD_ISSET(fd, fdt->close_on_exec);
++				rcu_read_unlock();
++
+ 				snprintf(info, PROC_FDINFO_MAX,
+ 					 "pos:\t%lli\n"
+-					 "flags:\t0%o\n",
++					 "flags:\t0%o\n"
++					 "cloexec: %d\n",
+ 					 (long long) file->f_pos,
+-					 file->f_flags);
++					 file->f_flags,
++					 cloexec);
++			}
+ 			spin_unlock(&files->file_lock);
+ 			put_files_struct(files);
+ 			return 0;
 _
 
-Patches currently in -mm which might be from dkiper@net-space.pl are
+Patches currently in -mm which might be from drepper@gmail.com are
 
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-xen-balloon-memory-hotplug-support-for-xen-balloon-driver.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
 
