@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-lp5521-provide-section-tagging.patch added to -mm tree
-Date: Mon, 20 Jun 2011 15:00:52 -0700
-Message-ID: <201106202200.p5KM0qFo024366@imap1.linux-foundation.org>
+Subject: + get_maintainerspl-improve-mailmap-parsing.patch added to -mm tree
+Date: Mon, 20 Jun 2011 15:01:38 -0700
+Message-ID: <201106202201.p5KM1c53024411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755023Ab1FTWBE (ORCPT
+	by vger.kernel.org with ESMTP id S1755023Ab1FTWBp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:01:04 -0400
+	Mon, 20 Jun 2011 18:01:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linus.walleij@linaro.org, rpurdie@rpsys.net
+Cc: joe@perches.com, florian@mickler.org
 
 
 The patch titled
-     drivers/leds/leds-lp5521.c: provide section tagging
+     get_maintainers.pl: improve .mailmap parsing
 has been added to the -mm tree.  Its filename is
-     leds-lp5521-provide-section-tagging.patch
+     get_maintainerspl-improve-mailmap-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5521.c: provide section tagging
-From: Linus Walleij <linus.walleij@linaro.org>
+Subject: get_maintainers.pl: improve .mailmap parsing
+From: Joe Perches <joe@perches.com>
 
-Tag the probe() and remove() function as __devinit and __devexit
-respectively.
+Entries that used formats other than "Proper Name <commit@email.xx>"
+were not parsed properly.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Try to improve the parsing so that the entries in the forms of:
+    Proper Name <proper@email.xx> <commit@email.xx>
+and
+    Proper Name <proper@email.xx> Commit Name <commit@email.xx>
+are transformed correctly.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Florian Mickler <florian@mickler.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-provide-section-tagging drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-lp5521-provide-section-tagging
-+++ a/drivers/leds/leds-lp5521.c
-@@ -637,8 +637,8 @@ static int __init lp5521_init_led(struct
- 	return 0;
- }
+diff -puN scripts/get_maintainer.pl~get_maintainerspl-improve-mailmap-parsing scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerspl-improve-mailmap-parsing
++++ a/scripts/get_maintainer.pl
+@@ -328,7 +328,8 @@ sub read_mailmap {
+ 	# name1 <mail1> <mail2>
+ 	# name1 <mail1> name2 <mail2>
+ 	# (see man git-shortlog)
+-	if (/^(.+)<(.+)>$/) {
++
++	if (/^([^<]+)<([^>]+)>$/) {
+ 	    my $real_name = $1;
+ 	    my $address = $2;
  
--static int lp5521_probe(struct i2c_client *client,
--			const struct i2c_device_id *id)
-+static int __devinit lp5521_probe(struct i2c_client *client,
-+				  const struct i2c_device_id *id)
- {
- 	struct lp5521_chip		*chip;
- 	struct lp5521_platform_data	*pdata;
-@@ -744,7 +744,7 @@ fail1:
- 	return ret;
- }
+@@ -336,13 +337,13 @@ sub read_mailmap {
+ 	    ($real_name, $address) = parse_email("$real_name <$address>");
+ 	    $mailmap->{names}->{$address} = $real_name;
  
--static int lp5521_remove(struct i2c_client *client)
-+static int __devexit lp5521_remove(struct i2c_client *client)
- {
- 	struct lp5521_chip *chip = i2c_get_clientdata(client);
- 	int i;
-@@ -775,7 +775,7 @@ static struct i2c_driver lp5521_driver =
- 		.name	= "lp5521",
- 	},
- 	.probe		= lp5521_probe,
--	.remove		= lp5521_remove,
-+	.remove		= __devexit_p(lp5521_remove),
- 	.id_table	= lp5521_id,
- };
+-	} elsif (/^<([^\s]+)>\s*<([^\s]+)>$/) {
++	} elsif (/^<([^>]+)>\s*<([^>]+)>$/) {
+ 	    my $real_address = $1;
+ 	    my $wrong_address = $2;
  
+ 	    $mailmap->{addresses}->{$wrong_address} = $real_address;
+ 
+-	} elsif (/^(.+)<([^\s]+)>\s*<([^\s]+)>$/) {
++	} elsif (/^(.+)<([^>]+)>\s*<([^>]+)>$/) {
+ 	    my $real_name = $1;
+ 	    my $real_address = $2;
+ 	    my $wrong_address = $3;
+@@ -353,7 +354,7 @@ sub read_mailmap {
+ 	    $mailmap->{names}->{$wrong_address} = $real_name;
+ 	    $mailmap->{addresses}->{$wrong_address} = $real_address;
+ 
+-	} elsif (/^(.+)<([^\s]+)>\s*([^\s].*)<([^\s]+)>$/) {
++	} elsif (/^(.+)<([^>]+)>\s*(.+)\s*<([^>]+)>$/) {
+ 	    my $real_name = $1;
+ 	    my $real_address = $2;
+ 	    my $wrong_name = $3;
 _
 
-Patches currently in -mm which might be from linus.walleij@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-leds-lp5521-provide-section-tagging.patch
+drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
+get_maintainerspl-improve-mailmap-parsing.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-__rcu-as-a-sparse-modifier.patch
+checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
