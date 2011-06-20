@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + block-genhdc-remove-useless-cast-in-diskstats_show.patch added to -mm tree
-Date: Mon, 20 Jun 2011 15:21:18 -0700
-Message-ID: <201106202221.p5KMLI3e026126@imap1.linux-foundation.org>
+Subject: + romfs-fix-romfs_get_unmapped_area-param-check.patch added to -mm tree
+Date: Mon, 20 Jun 2011 16:09:17 -0700
+Message-ID: <201106202309.p5KN9Hwa028827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755471Ab1FTWV1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756113Ab1FTXL3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:21:27 -0400
+	Mon, 20 Jun 2011 19:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: herbert@13thfloor.at, axboe@kernel.dk
+Cc: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, lethal@linux-sh.org
 
 
 The patch titled
-     block/genhd.c: remove useless cast in diskstats_show()
+     romfs: fix romfs_get_unmapped_area() argument check
 has been added to the -mm tree.  Its filename is
-     block-genhdc-remove-useless-cast-in-diskstats_show.patch
+     romfs-fix-romfs_get_unmapped_area-param-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block/genhd.c: remove useless cast in diskstats_show()
-From: Herbert Poetzl <herbert@13thfloor.at>
+Subject: romfs: fix romfs_get_unmapped_area() argument check
+From: Bob Liu <lliubbo@gmail.com>
 
-Remove the (unsigned long long) cast in diskstats_show() and adjusts the
-seq_printf() format string to 'unsigned long'
+romfs_get_unmapped_area() checks argument `len' without considering
+PAGE_ALIGN which will cause do_mmap_pgoff() return -EINVAL error after
+commit f67d9b1576c ("nommu: add page_align to mmap").
 
-diskstats_show() uses part_stat_read() to get the stats, which either
-accesses the specified field in the struct disk_stats directly (non SMP)
-or sums up the per CPU values in a variable of the same type as the field,
-so in any case the result will have the same type and range as the
-specified field which for all disk_stats entries is unsigned long
+Fix the check by changing it in same way ramfs_nommu_get_unmapped_area()
+was changed in ramfs/file-nommu.c.
 
-Also, for unsigned long ranges the output of %lu should be identical to
-the one of %llu, so no change in the actual proc entry contents.
-
-Signed-off-by: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/romfs/mmap-nommu.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN block/genhd.c~block-genhdc-remove-useless-cast-in-diskstats_show block/genhd.c
---- a/block/genhd.c~block-genhdc-remove-useless-cast-in-diskstats_show
-+++ a/block/genhd.c
-@@ -1154,17 +1154,17 @@ static int diskstats_show(struct seq_fil
- 		cpu = part_stat_lock();
- 		part_round_stats(cpu, hd);
- 		part_stat_unlock();
--		seq_printf(seqf, "%4d %7d %s %lu %lu %llu "
--			   "%u %lu %lu %llu %u %u %u %u\n",
-+		seq_printf(seqf, "%4d %7d %s %lu %lu %lu "
-+			   "%u %lu %lu %lu %u %u %u %u\n",
- 			   MAJOR(part_devt(hd)), MINOR(part_devt(hd)),
- 			   disk_name(gp, hd->partno, buf),
- 			   part_stat_read(hd, ios[READ]),
- 			   part_stat_read(hd, merges[READ]),
--			   (unsigned long long)part_stat_read(hd, sectors[READ]),
-+			   part_stat_read(hd, sectors[READ]),
- 			   jiffies_to_msecs(part_stat_read(hd, ticks[READ])),
- 			   part_stat_read(hd, ios[WRITE]),
- 			   part_stat_read(hd, merges[WRITE]),
--			   (unsigned long long)part_stat_read(hd, sectors[WRITE]),
-+			   part_stat_read(hd, sectors[WRITE]),
- 			   jiffies_to_msecs(part_stat_read(hd, ticks[WRITE])),
- 			   part_in_flight(hd),
- 			   jiffies_to_msecs(part_stat_read(hd, io_ticks)),
+diff -puN fs/romfs/mmap-nommu.c~romfs-fix-romfs_get_unmapped_area-param-check fs/romfs/mmap-nommu.c
+--- a/fs/romfs/mmap-nommu.c~romfs-fix-romfs_get_unmapped_area-param-check
++++ a/fs/romfs/mmap-nommu.c
+@@ -27,14 +27,18 @@ static unsigned long romfs_get_unmapped_
+ {
+ 	struct inode *inode = file->f_mapping->host;
+ 	struct mtd_info *mtd = inode->i_sb->s_mtd;
+-	unsigned long isize, offset;
++	unsigned long isize, offset, maxpages, lpages;
+ 
+ 	if (!mtd)
+ 		goto cant_map_directly;
+ 
++	/* the mapping mustn't extend beyond the EOF */
++	lpages = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	isize = i_size_read(inode);
+ 	offset = pgoff << PAGE_SHIFT;
+-	if (offset > isize || len > isize || offset > isize - len)
++
++	maxpages = (isize + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	if ((pgoff >= maxpages) || (maxpages - pgoff < lpages))
+ 		return (unsigned long) -EINVAL;
+ 
+ 	/* we need to call down to the MTD layer to do the actual mapping */
 _
 
-Patches currently in -mm which might be from herbert@13thfloor.at are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
-block-genhdc-remove-useless-cast-in-diskstats_show.patch
+romfs-fix-romfs_get_unmapped_area-param-check.patch
+mm-nommuc-fix-remap_pfn_range.patch
 
