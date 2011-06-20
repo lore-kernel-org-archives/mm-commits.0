@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:47:52 -0700
-Message-ID: <201106202147.p5KLlqJ3023284@imap1.linux-foundation.org>
+Subject: + cris-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:47:57 -0700
+Message-ID: <201106202147.p5KLlvIq023291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752527Ab1FTVsg (ORCPT
+	by vger.kernel.org with ESMTP id S1755471Ab1FTVsi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:48:36 -0400
+	Mon, 20 Jun 2011 17:48:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minipli@googlemail.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: minipli@googlemail.com, jesper.nilsson@axis.com
 
 
 The patch titled
-     alpha, exec: remove redundant set_fs(USER_DS)
+     cris, exec: remove redundant set_fs(USER_DS)
 has been added to the -mm tree.  Its filename is
-     alpha-exec-remove-redundant-set_fsuser_ds.patch
+     cris-exec-remove-redundant-set_fsuser_ds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha, exec: remove redundant set_fs(USER_DS)
+Subject: cris, exec: remove redundant set_fs(USER_DS)
 From: Mathias Krause <minipli@googlemail.com>
 
-The address limit is already set in flush_old_exec() so this
-set_fs(USER_DS) is redundant.
+The address limit is already set in flush_old_exec() so those calls to
+set_fs(USER_DS) are redundant.
 
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/process.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/cris/include/arch-v10/arch/processor.h |    1 -
+ arch/cris/include/arch-v32/arch/processor.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN arch/alpha/kernel/process.c~alpha-exec-remove-redundant-set_fsuser_ds arch/alpha/kernel/process.c
---- a/arch/alpha/kernel/process.c~alpha-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/alpha/kernel/process.c
-@@ -200,7 +200,6 @@ show_regs(struct pt_regs *regs)
- void
- start_thread(struct pt_regs * regs, unsigned long pc, unsigned long sp)
- {
--	set_fs(USER_DS);
- 	regs->pc = pc;
- 	regs->ps = 8;
- 	wrusp(sp);
+diff -puN arch/cris/include/arch-v10/arch/processor.h~cris-exec-remove-redundant-set_fsuser_ds arch/cris/include/arch-v10/arch/processor.h
+--- a/arch/cris/include/arch-v10/arch/processor.h~cris-exec-remove-redundant-set_fsuser_ds
++++ a/arch/cris/include/arch-v10/arch/processor.h
+@@ -53,7 +53,6 @@ struct thread_struct {
+  */
+ 
+ #define start_thread(regs, ip, usp) do { \
+-	set_fs(USER_DS);      \
+ 	regs->irp = ip;       \
+ 	regs->dccr |= 1 << U_DCCR_BITNR; \
+ 	wrusp(usp);           \
+diff -puN arch/cris/include/arch-v32/arch/processor.h~cris-exec-remove-redundant-set_fsuser_ds arch/cris/include/arch-v32/arch/processor.h
+--- a/arch/cris/include/arch-v32/arch/processor.h~cris-exec-remove-redundant-set_fsuser_ds
++++ a/arch/cris/include/arch-v32/arch/processor.h
+@@ -47,7 +47,6 @@ struct thread_struct {
+  */
+ #define start_thread(regs, ip, usp) \
+ do { \
+-	set_fs(USER_DS); \
+ 	regs->erp = ip; \
+ 	regs->ccs |= 1 << (U_CCS_BITNR + CCS_SHIFT); \
+ 	wrusp(usp); \
 _
 
 Patches currently in -mm which might be from minipli@googlemail.com are
