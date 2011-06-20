@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:47:55 -0700
-Message-ID: <201106202147.p5KLltTg023288@imap1.linux-foundation.org>
+Subject: + microblaze-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:48:10 -0700
+Message-ID: <201106202148.p5KLmAbo023330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755245Ab1FTVsi (ORCPT
+	by vger.kernel.org with ESMTP id S1755471Ab1FTVsn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:48:38 -0400
+	Mon, 20 Jun 2011 17:48:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minipli@googlemail.com, rmk@arm.linux.org.uk
+Cc: minipli@googlemail.com, monstr@monstr.eu
 
 
 The patch titled
-     arm, exec: remove redundant set_fs(USER_DS)
+     microblaze, exec: remove redundant set_fs(USER_DS)
 has been added to the -mm tree.  Its filename is
-     arm-exec-remove-redundant-set_fsuser_ds.patch
+     microblaze-exec-remove-redundant-set_fsuser_ds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm, exec: remove redundant set_fs(USER_DS)
+Subject: microblaze, exec: remove redundant set_fs(USER_DS)
 From: Mathias Krause <minipli@googlemail.com>
 
 The address limit is already set in flush_old_exec() so this
 set_fs(USER_DS) is redundant.
 
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/processor.h |    1 -
+ arch/microblaze/kernel/process.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN arch/arm/include/asm/processor.h~arm-exec-remove-redundant-set_fsuser_ds arch/arm/include/asm/processor.h
---- a/arch/arm/include/asm/processor.h~arm-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/arm/include/asm/processor.h
-@@ -55,7 +55,6 @@ struct thread_struct {
- #define start_thread(regs,pc,sp)					\
- ({									\
- 	unsigned long *stack = (unsigned long *)sp;			\
--	set_fs(USER_DS);						\
- 	memset(regs->uregs, 0, sizeof(regs->uregs));			\
- 	if (current->personality & ADDR_LIMIT_32BIT)			\
- 		regs->ARM_cpsr = USR_MODE;				\
+diff -puN arch/microblaze/kernel/process.c~microblaze-exec-remove-redundant-set_fsuser_ds arch/microblaze/kernel/process.c
+--- a/arch/microblaze/kernel/process.c~microblaze-exec-remove-redundant-set_fsuser_ds
++++ a/arch/microblaze/kernel/process.c
+@@ -237,7 +237,6 @@ unsigned long get_wchan(struct task_stru
+ /* Set up a thread for executing a new program */
+ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long usp)
+ {
+-	set_fs(USER_DS);
+ 	regs->pc = pc;
+ 	regs->r1 = usp;
+ 	regs->pt_mode = 0;
 _
 
 Patches currently in -mm which might be from minipli@googlemail.com are
