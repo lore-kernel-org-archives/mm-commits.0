@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-fix-missing-parenthesises-in-generic-chip.patch added to -mm tree
-Date: Mon, 20 Jun 2011 12:11:29 -0700
-Message-ID: <201106201911.p5KJBUd5012760@imap1.linux-foundation.org>
+Subject: + ipc-mqueue-fix-mq_open-return-value.patch added to -mm tree
+Date: Mon, 20 Jun 2011 12:14:06 -0700
+Message-ID: <201106201914.p5KJE7df012938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755857Ab1FTTMQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751947Ab1FTTOQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:12:16 -0400
+	Mon, 20 Jun 2011 15:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, tglx@linutronix.de
+Cc: jslaby@suse.cz, manfred@colorfullife.com
 
 
 The patch titled
-     genirq: fix missing parenthesises in generic-chip
+     ipc/mqueue.c: fix mq_open() return value
 has been added to the -mm tree.  Its filename is
-     genirq-fix-missing-parenthesises-in-generic-chip.patch
+     ipc-mqueue-fix-mq_open-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq: fix missing parenthesises in generic-chip
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: ipc/mqueue.c: fix mq_open() return value
+From: Jiri Slaby <jslaby@suse.cz>
 
-Unless I'm very much missing something these tests are intended to check
-if bit zero is set, rather than checking if msk is entirely zero (in which
-case the logic would be very confusing.  I haven't actually observed any
-runtime issues so this may be a misreading of the code on my part.
+We return ENOMEM from mqueue_get_inode even when we have enough memory. 
+Namely in case the system rlimit of mqueue was reached.  This error
+propagates to mq_queue and user sees the error unexpectedly.  So fix this
+up to properly return EMFILE as described in the manpage:
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+	EMFILE The process already has the maximum number of files and
+	       message queues open.
+instead of:
+	ENOMEM Insufficient memory.
+
+With the previous patch we just switch to ERR_PTR/PTR_ERR/IS_ERR error
+handling here.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/generic-chip.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/mqueue.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN kernel/irq/generic-chip.c~genirq-fix-missing-parenthesises-in-generic-chip kernel/irq/generic-chip.c
---- a/kernel/irq/generic-chip.c~genirq-fix-missing-parenthesises-in-generic-chip
-+++ a/kernel/irq/generic-chip.c
-@@ -232,7 +232,7 @@ void irq_setup_generic_chip(struct irq_c
- 		gc->mask_cache = irq_reg_readl(gc->reg_base + ct->regs.mask);
+diff -puN ipc/mqueue.c~ipc-mqueue-fix-mq_open-return-value ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-fix-mq_open-return-value
++++ a/ipc/mqueue.c
+@@ -113,6 +113,7 @@ static struct inode *mqueue_get_inode(st
+ {
+ 	struct user_struct *u = current_user();
+ 	struct inode *inode;
++	int ret = -ENOMEM;
  
- 	for (i = gc->irq_base; msk; msk >>= 1, i++) {
--		if (!msk & 0x01)
-+		if (!(msk & 0x01))
- 			continue;
+ 	inode = new_inode(sb);
+ 	if (!inode)
+@@ -160,6 +161,7 @@ static struct inode *mqueue_get_inode(st
+ 		    u->mq_bytes + mq_bytes > task_rlimit(p, RLIMIT_MSGQUEUE)) {
+ 			spin_unlock(&mq_lock);
+ 			/* mqueue_evict_inode() releases info->messages */
++			ret = -EMFILE;
+ 			goto out_inode;
+ 		}
+ 		u->mq_bytes += mq_bytes;
+@@ -179,7 +181,7 @@ static struct inode *mqueue_get_inode(st
+ out_inode:
+ 	iput(inode);
+ err:
+-	return NULL;
++	return ERR_PTR(ret);
+ }
  
- 		if (flags & IRQ_GC_INIT_NESTED_LOCK)
-@@ -287,7 +287,7 @@ void irq_remove_generic_chip(struct irq_
- 	raw_spin_unlock(&gc_lock);
+ static int mqueue_fill_super(struct super_block *sb, void *data, int silent)
+@@ -195,8 +197,8 @@ static int mqueue_fill_super(struct supe
  
- 	for (; msk; msk >>= 1, i++) {
--		if (!msk & 0x01)
-+		if (!(msk & 0x01))
- 			continue;
+ 	inode = mqueue_get_inode(sb, ns, S_IFDIR | S_ISVTX | S_IRWXUGO,
+ 				NULL);
+-	if (!inode) {
+-		error = -ENOMEM;
++	if (IS_ERR(inode)) {
++		error = PTR_ERR(inode);
+ 		goto out;
+ 	}
  
- 		/* Remove handler first. That will mask the irq line */
+@@ -316,8 +318,8 @@ static int mqueue_create(struct inode *d
+ 	spin_unlock(&mq_lock);
+ 
+ 	inode = mqueue_get_inode(dir->i_sb, ipc_ns, mode, attr);
+-	if (!inode) {
+-		error = -ENOMEM;
++	if (IS_ERR(inode)) {
++		error = PTR_ERR(inode);
+ 		spin_lock(&mq_lock);
+ 		ipc_ns->mq_queues_count--;
+ 		goto out_unlock;
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 linux-next.patch
-genirq-fix-missing-parenthesises-in-generic-chip.patch
-frv-hook-up-gpiolib-support.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-mqueue-refactor-failure-handling.patch
+ipc-mqueue-fix-mq_open-return-value.patch
+include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
 
