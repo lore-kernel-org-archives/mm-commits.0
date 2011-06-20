@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-minor-lock-simplification-in-__khugepaged_exit.patch added to -mm tree
-Date: Mon, 20 Jun 2011 15:16:47 -0700
-Message-ID: <201106202216.p5KMGlDG025698@imap1.linux-foundation.org>
+Subject: + drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch added to -mm tree
+Date: Mon, 20 Jun 2011 15:19:53 -0700
+Message-ID: <201106202219.p5KMJrEK025996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755971Ab1FTWRC (ORCPT
+	by vger.kernel.org with ESMTP id S1756119Ab1FTWUF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:17:02 -0400
+	Mon, 20 Jun 2011 18:20:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chrisw@sous-sol.org, aarcange@redhat.com, mhocko@suse.cz
+Cc: hartleys@visionengravers.com, axboe@kernel.dk, drbd-dev@lists.linbit.com, hsweeten@visionengravers.com, philipp.reisner@linbit.com
 
 
 The patch titled
-     mm/huge_memory.c: minor lock simplification in __khugepaged_exit
+     drivers/block/drbd/drbd_nl.c: use bitmap_parse instead of __bitmap_parse
 has been added to the -mm tree.  Its filename is
-     mm-thp-minor-lock-simplification-in-__khugepaged_exit.patch
+     drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/huge_memory.c: minor lock simplification in __khugepaged_exit
-From: Chris Wright <chrisw@sous-sol.org>
+Subject: drivers/block/drbd/drbd_nl.c: use bitmap_parse instead of __bitmap_parse
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-The lock is released first thing in all three branches.  Simplify this by
-unconditionally releasing lock and remove else clause which was only there
-to be sure lock was released.
+The buffer 'sc.cpu_mask' is a kernel buffer.  If bitmap_parse is used
+instead of __bitmap_parse the extra parameter that indicates a kernel
+buffer is not needed.
 
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/block/drbd/drbd_nl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-minor-lock-simplification-in-__khugepaged_exit mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-minor-lock-simplification-in-__khugepaged_exit
-+++ a/mm/huge_memory.c
-@@ -1596,14 +1596,13 @@ void __khugepaged_exit(struct mm_struct 
- 		list_del(&mm_slot->mm_node);
- 		free = 1;
- 	}
-+	spin_unlock(&khugepaged_mm_lock);
+diff -puN drivers/block/drbd/drbd_nl.c~drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse drivers/block/drbd/drbd_nl.c
+--- a/drivers/block/drbd/drbd_nl.c~drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse
++++ a/drivers/block/drbd/drbd_nl.c
+@@ -1829,10 +1829,10 @@ static int drbd_nl_syncer_conf(struct dr
  
- 	if (free) {
--		spin_unlock(&khugepaged_mm_lock);
- 		clear_bit(MMF_VM_HUGEPAGE, &mm->flags);
- 		free_mm_slot(mm_slot);
- 		mmdrop(mm);
- 	} else if (mm_slot) {
--		spin_unlock(&khugepaged_mm_lock);
- 		/*
- 		 * This is required to serialize against
- 		 * khugepaged_test_exit() (which is guaranteed to run
-@@ -1614,8 +1613,7 @@ void __khugepaged_exit(struct mm_struct 
- 		 */
- 		down_write(&mm->mmap_sem);
- 		up_write(&mm->mmap_sem);
--	} else
--		spin_unlock(&khugepaged_mm_lock);
-+	}
- }
- 
- static void release_pte_page(struct page *page)
+ 	/* silently ignore cpu mask on UP kernel */
+ 	if (nr_cpu_ids > 1 && sc.cpu_mask[0] != 0) {
+-		err = __bitmap_parse(sc.cpu_mask, 32, 0,
++		err = bitmap_parse(sc.cpu_mask, 32,
+ 				cpumask_bits(new_cpu_mask), nr_cpu_ids);
+ 		if (err) {
+-			dev_warn(DEV, "__bitmap_parse() failed with %d\n", err);
++			dev_warn(DEV, "bitmap_parse() failed with %d\n", err);
+ 			retcode = ERR_CPU_MASK_PARSE;
+ 			goto fail;
+ 		}
 _
 
-Patches currently in -mm which might be from chrisw@sous-sol.org are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-origin.patch
-mm-thp-minor-lock-simplification-in-__khugepaged_exit.patch
+linux-next.patch
+drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch
+lib-lcmc-quiet-sparse-noise.patch
 
