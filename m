@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch added to -mm tree
-Date: Mon, 20 Jun 2011 15:19:53 -0700
-Message-ID: <201106202219.p5KMJrEK025996@imap1.linux-foundation.org>
+Subject: + block-genhdc-remove-useless-cast-in-diskstats_show.patch added to -mm tree
+Date: Mon, 20 Jun 2011 15:21:18 -0700
+Message-ID: <201106202221.p5KMLI3e026126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756119Ab1FTWUF (ORCPT
+	by vger.kernel.org with ESMTP id S1755471Ab1FTWV1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:20:05 -0400
+	Mon, 20 Jun 2011 18:21:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, axboe@kernel.dk, drbd-dev@lists.linbit.com, hsweeten@visionengravers.com, philipp.reisner@linbit.com
+Cc: herbert@13thfloor.at, axboe@kernel.dk
 
 
 The patch titled
-     drivers/block/drbd/drbd_nl.c: use bitmap_parse instead of __bitmap_parse
+     block/genhd.c: remove useless cast in diskstats_show()
 has been added to the -mm tree.  Its filename is
-     drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch
+     block-genhdc-remove-useless-cast-in-diskstats_show.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/drbd/drbd_nl.c: use bitmap_parse instead of __bitmap_parse
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: block/genhd.c: remove useless cast in diskstats_show()
+From: Herbert Poetzl <herbert@13thfloor.at>
 
-The buffer 'sc.cpu_mask' is a kernel buffer.  If bitmap_parse is used
-instead of __bitmap_parse the extra parameter that indicates a kernel
-buffer is not needed.
+Remove the (unsigned long long) cast in diskstats_show() and adjusts the
+seq_printf() format string to 'unsigned long'
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
+diskstats_show() uses part_stat_read() to get the stats, which either
+accesses the specified field in the struct disk_stats directly (non SMP)
+or sums up the per CPU values in a variable of the same type as the field,
+so in any case the result will have the same type and range as the
+specified field which for all disk_stats entries is unsigned long
+
+Also, for unsigned long ranges the output of %lu should be identical to
+the one of %llu, so no change in the actual proc entry contents.
+
+Signed-off-by: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_nl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/genhd.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_nl.c~drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse drivers/block/drbd/drbd_nl.c
---- a/drivers/block/drbd/drbd_nl.c~drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse
-+++ a/drivers/block/drbd/drbd_nl.c
-@@ -1829,10 +1829,10 @@ static int drbd_nl_syncer_conf(struct dr
- 
- 	/* silently ignore cpu mask on UP kernel */
- 	if (nr_cpu_ids > 1 && sc.cpu_mask[0] != 0) {
--		err = __bitmap_parse(sc.cpu_mask, 32, 0,
-+		err = bitmap_parse(sc.cpu_mask, 32,
- 				cpumask_bits(new_cpu_mask), nr_cpu_ids);
- 		if (err) {
--			dev_warn(DEV, "__bitmap_parse() failed with %d\n", err);
-+			dev_warn(DEV, "bitmap_parse() failed with %d\n", err);
- 			retcode = ERR_CPU_MASK_PARSE;
- 			goto fail;
- 		}
+diff -puN block/genhd.c~block-genhdc-remove-useless-cast-in-diskstats_show block/genhd.c
+--- a/block/genhd.c~block-genhdc-remove-useless-cast-in-diskstats_show
++++ a/block/genhd.c
+@@ -1154,17 +1154,17 @@ static int diskstats_show(struct seq_fil
+ 		cpu = part_stat_lock();
+ 		part_round_stats(cpu, hd);
+ 		part_stat_unlock();
+-		seq_printf(seqf, "%4d %7d %s %lu %lu %llu "
+-			   "%u %lu %lu %llu %u %u %u %u\n",
++		seq_printf(seqf, "%4d %7d %s %lu %lu %lu "
++			   "%u %lu %lu %lu %u %u %u %u\n",
+ 			   MAJOR(part_devt(hd)), MINOR(part_devt(hd)),
+ 			   disk_name(gp, hd->partno, buf),
+ 			   part_stat_read(hd, ios[READ]),
+ 			   part_stat_read(hd, merges[READ]),
+-			   (unsigned long long)part_stat_read(hd, sectors[READ]),
++			   part_stat_read(hd, sectors[READ]),
+ 			   jiffies_to_msecs(part_stat_read(hd, ticks[READ])),
+ 			   part_stat_read(hd, ios[WRITE]),
+ 			   part_stat_read(hd, merges[WRITE]),
+-			   (unsigned long long)part_stat_read(hd, sectors[WRITE]),
++			   part_stat_read(hd, sectors[WRITE]),
+ 			   jiffies_to_msecs(part_stat_read(hd, ticks[WRITE])),
+ 			   part_in_flight(hd),
+ 			   jiffies_to_msecs(part_stat_read(hd, io_ticks)),
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from herbert@13thfloor.at are
 
-linux-next.patch
-drivers-block-drbd-drbd_nlc-use-bitmap_parse-instead-of-__bitmap_parse.patch
-lib-lcmc-quiet-sparse-noise.patch
+block-genhdc-remove-useless-cast-in-diskstats_show.patch
 
