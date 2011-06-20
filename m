@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-refactor-failure-handling.patch added to -mm tree
-Date: Mon, 20 Jun 2011 12:14:03 -0700
-Message-ID: <201106201914.p5KJE3rR012935@imap1.linux-foundation.org>
+Subject: + ramoops-add-new-line-to-each-print.patch added to -mm tree
+Date: Mon, 20 Jun 2011 12:24:23 -0700
+Message-ID: <201106201924.p5KJONr6013455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751947Ab1FTTOP (ORCPT
+	by vger.kernel.org with ESMTP id S1751139Ab1FTTY7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:14:15 -0400
+	Mon, 20 Jun 2011 15:24:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, manfred@colorfullife.com
+Cc: marco.stornelli@gmail.com, joe@perches.com, kyungmin.park@samsung.com, stevie.trujillo@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     ipc/mqueue.c: refactor failure handling
+     ramoops: add new line to each print
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-refactor-failure-handling.patch
+     ramoops-add-new-line-to-each-print.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,170 +29,117 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ipc/mqueue.c: refactor failure handling
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: ramoops: add new line to each print
+=46rom: Marco Stornelli <marco.stornelli@gmail.com>
 
-If new_inode fails to allocate an inode we need only to return with NULL. 
-But now we test the opposite and have all the work in a nested block.  So
-do the opposite to save one indentation level (and remove unnecessary line
-breaks).
+Add new line to each print.
 
-This is only a preparation/cleanup for the next patch where we fix up
-return values from mqueue_get_inode.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
+Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Am=E9rico Wang <xiyou.wangcong@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |  113 ++++++++++++++++++++++++-------------------------
- 1 file changed, 57 insertions(+), 56 deletions(-)
+ drivers/char/ramoops.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-refactor-failure-handling ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-refactor-failure-handling
-+++ a/ipc/mqueue.c
-@@ -115,69 +115,70 @@ static struct inode *mqueue_get_inode(st
- 	struct inode *inode;
- 
- 	inode = new_inode(sb);
--	if (inode) {
--		inode->i_ino = get_next_ino();
--		inode->i_mode = mode;
--		inode->i_uid = current_fsuid();
--		inode->i_gid = current_fsgid();
--		inode->i_mtime = inode->i_ctime = inode->i_atime =
--				CURRENT_TIME;
-+	if (!inode)
-+		goto err;
- 
--		if (S_ISREG(mode)) {
--			struct mqueue_inode_info *info;
--			struct task_struct *p = current;
--			unsigned long mq_bytes, mq_msg_tblsz;
--
--			inode->i_fop = &mqueue_file_operations;
--			inode->i_size = FILENT_SIZE;
--			/* mqueue specific info */
--			info = MQUEUE_I(inode);
--			spin_lock_init(&info->lock);
--			init_waitqueue_head(&info->wait_q);
--			INIT_LIST_HEAD(&info->e_wait_q[0].list);
--			INIT_LIST_HEAD(&info->e_wait_q[1].list);
--			info->notify_owner = NULL;
--			info->qsize = 0;
--			info->user = NULL;	/* set when all is ok */
--			memset(&info->attr, 0, sizeof(info->attr));
--			info->attr.mq_maxmsg = ipc_ns->mq_msg_max;
--			info->attr.mq_msgsize = ipc_ns->mq_msgsize_max;
--			if (attr) {
--				info->attr.mq_maxmsg = attr->mq_maxmsg;
--				info->attr.mq_msgsize = attr->mq_msgsize;
--			}
--			mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
--			info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
--			if (!info->messages)
--				goto out_inode;
--
--			mq_bytes = (mq_msg_tblsz +
--				(info->attr.mq_maxmsg * info->attr.mq_msgsize));
--
--			spin_lock(&mq_lock);
--			if (u->mq_bytes + mq_bytes < u->mq_bytes ||
--		 	    u->mq_bytes + mq_bytes >
--			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
--				spin_unlock(&mq_lock);
--				/* mqueue_evict_inode() releases info->messages */
--				goto out_inode;
--			}
--			u->mq_bytes += mq_bytes;
--			spin_unlock(&mq_lock);
-+	inode->i_ino = get_next_ino();
-+	inode->i_mode = mode;
-+	inode->i_uid = current_fsuid();
-+	inode->i_gid = current_fsgid();
-+	inode->i_mtime = inode->i_ctime = inode->i_atime = CURRENT_TIME;
+diff -puN drivers/char/ramoops.c~ramoops-add-new-line-to-each-print dri=
+vers/char/ramoops.c
+--- a/drivers/char/ramoops.c~ramoops-add-new-line-to-each-print
++++ a/drivers/char/ramoops.c
+@@ -19,6 +19,8 @@
+  *
+  */
+=20
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+	if (S_ISREG(mode)) {
-+		struct mqueue_inode_info *info;
-+		struct task_struct *p = current;
-+		unsigned long mq_bytes, mq_msg_tblsz;
-+
-+		inode->i_fop = &mqueue_file_operations;
-+		inode->i_size = FILENT_SIZE;
-+		/* mqueue specific info */
-+		info = MQUEUE_I(inode);
-+		spin_lock_init(&info->lock);
-+		init_waitqueue_head(&info->wait_q);
-+		INIT_LIST_HEAD(&info->e_wait_q[0].list);
-+		INIT_LIST_HEAD(&info->e_wait_q[1].list);
-+		info->notify_owner = NULL;
-+		info->qsize = 0;
-+		info->user = NULL;	/* set when all is ok */
-+		memset(&info->attr, 0, sizeof(info->attr));
-+		info->attr.mq_maxmsg = ipc_ns->mq_msg_max;
-+		info->attr.mq_msgsize = ipc_ns->mq_msgsize_max;
-+		if (attr) {
-+			info->attr.mq_maxmsg = attr->mq_maxmsg;
-+			info->attr.mq_msgsize = attr->mq_msgsize;
-+		}
-+		mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
-+		info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
-+		if (!info->messages)
-+			goto out_inode;
- 
--			/* all is ok */
--			info->user = get_uid(u);
--		} else if (S_ISDIR(mode)) {
--			inc_nlink(inode);
--			/* Some things misbehave if size == 0 on a directory */
--			inode->i_size = 2 * DIRENT_SIZE;
--			inode->i_op = &mqueue_dir_inode_operations;
--			inode->i_fop = &simple_dir_operations;
-+		mq_bytes = (mq_msg_tblsz +
-+			(info->attr.mq_maxmsg * info->attr.mq_msgsize));
-+
-+		spin_lock(&mq_lock);
-+		if (u->mq_bytes + mq_bytes < u->mq_bytes ||
-+		    u->mq_bytes + mq_bytes > task_rlimit(p, RLIMIT_MSGQUEUE)) {
-+			spin_unlock(&mq_lock);
-+			/* mqueue_evict_inode() releases info->messages */
-+			goto out_inode;
- 		}
-+		u->mq_bytes += mq_bytes;
-+		spin_unlock(&mq_lock);
-+
-+		/* all is ok */
-+		info->user = get_uid(u);
-+	} else if (S_ISDIR(mode)) {
-+		inc_nlink(inode);
-+		/* Some things misbehave if size == 0 on a directory */
-+		inode->i_size = 2 * DIRENT_SIZE;
-+		inode->i_op = &mqueue_dir_inode_operations;
-+		inode->i_fop = &simple_dir_operations;
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/kmsg_dump.h>
+@@ -110,14 +112,14 @@ static int __init ramoops_probe(struct p
+ 	int err =3D -EINVAL;
+=20
+ 	if (!pdata->mem_size) {
+-		printk(KERN_ERR "ramoops: invalid size specification");
++		pr_err("invalid size specification\n");
+ 		goto fail3;
  	}
-+
- 	return inode;
- out_inode:
- 	iput(inode);
-+err:
- 	return NULL;
- }
- 
+=20
+ 	rounddown_pow_of_two(pdata->mem_size);
+=20
+ 	if (pdata->mem_size < RECORD_SIZE) {
+-		printk(KERN_ERR "ramoops: size too small");
++		pr_err("size too small\n");
+ 		goto fail3;
+ 	}
+=20
+@@ -127,21 +129,21 @@ static int __init ramoops_probe(struct p
+ 	cxt->phys_addr =3D pdata->mem_address;
+=20
+ 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
+-		printk(KERN_ERR "ramoops: request mem region failed");
++		pr_err("request mem region failed\n");
+ 		err =3D -EINVAL;
+ 		goto fail3;
+ 	}
+=20
+ 	cxt->virt_addr =3D ioremap(cxt->phys_addr,  cxt->size);
+ 	if (!cxt->virt_addr) {
+-		printk(KERN_ERR "ramoops: ioremap failed");
++		pr_err("ioremap failed\n");
+ 		goto fail2;
+ 	}
+=20
+ 	cxt->dump.dump =3D ramoops_do_dump;
+ 	err =3D kmsg_dump_register(&cxt->dump);
+ 	if (err) {
+-		printk(KERN_ERR "ramoops: registering kmsg dumper failed");
++		pr_err("registering kmsg dumper failed\n");
+ 		goto fail1;
+ 	}
+=20
+@@ -160,7 +162,7 @@ static int __exit ramoops_remove(struct=20
+ 	struct ramoops_context *cxt =3D &oops_cxt;
+=20
+ 	if (kmsg_dump_unregister(&cxt->dump) < 0)
+-		printk(KERN_WARNING "ramoops: could not unregister kmsg_dumper");
++		pr_warn("could not unregister kmsg_dumper\n");
+=20
+ 	iounmap(cxt->virt_addr);
+ 	release_mem_region(cxt->phys_addr, cxt->size);
+@@ -184,6 +186,7 @@ static int __init ramoops_init(void)
+ 		 * If we didn't find a platform device, we use module parameters
+ 		 * building platform data on the fly.
+ 		 */
++		pr_info("platform device not found, using module parameters\n");
+ 		dummy_data =3D kzalloc(sizeof(struct ramoops_platform_data),
+ 				     GFP_KERNEL);
+ 		if (!dummy_data)
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from marco.stornelli@gmail.com =
+are
 
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-mqueue-refactor-failure-handling.patch
-ipc-mqueue-fix-mq_open-return-value.patch
-include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available=
+=2Epatch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available=
+-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
