@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:48:24 -0700
-Message-ID: <201106202148.p5KLmOT7023367@imap1.linux-foundation.org>
+Subject: + s390-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:48:20 -0700
+Message-ID: <201106202148.p5KLmKdx023356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755928Ab1FTVy4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755932Ab1FTVyx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:54:56 -0400
+	Mon, 20 Jun 2011 17:54:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minipli@googlemail.com, richard@nod.at
+Cc: minipli@googlemail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     um, exec: remove redundant set_fs(USER_DS)
+     s390, exec: remove redundant set_fs(USER_DS)
 has been added to the -mm tree.  Its filename is
-     um-exec-remove-redundant-set_fsuser_ds.patch
+     s390-exec-remove-redundant-set_fsuser_ds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um, exec: remove redundant set_fs(USER_DS)
+Subject: s390, exec: remove redundant set_fs(USER_DS)
 From: Mathias Krause <minipli@googlemail.com>
 
-The address limit is already set in flush_old_exec() so this
-set_fs(USER_DS) is redundant.
+The address limit is already set in flush_old_exec() so those calls to
+set_fs(USER_DS) are redundant.
 
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Richard Weinberger <richard@nod.at>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/exec.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/s390/include/asm/processor.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/um/kernel/exec.c~um-exec-remove-redundant-set_fsuser_ds arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~um-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/um/kernel/exec.c
-@@ -38,7 +38,6 @@ void flush_thread(void)
+diff -puN arch/s390/include/asm/processor.h~s390-exec-remove-redundant-set_fsuser_ds arch/s390/include/asm/processor.h
+--- a/arch/s390/include/asm/processor.h~s390-exec-remove-redundant-set_fsuser_ds
++++ a/arch/s390/include/asm/processor.h
+@@ -118,14 +118,12 @@ struct stack_frame {
+  * Do necessary setup to start up a new thread.
+  */
+ #define start_thread(regs, new_psw, new_stackp) do {		\
+-	set_fs(USER_DS);					\
+ 	regs->psw.mask	= psw_user_bits;			\
+ 	regs->psw.addr	= new_psw | PSW_ADDR_AMODE;		\
+ 	regs->gprs[15]	= new_stackp;				\
+ } while (0)
  
- void start_thread(struct pt_regs *regs, unsigned long eip, unsigned long esp)
- {
--	set_fs(USER_DS);
- 	PT_REGS_IP(regs) = eip;
- 	PT_REGS_SP(regs) = esp;
- }
+ #define start_thread31(regs, new_psw, new_stackp) do {		\
+-	set_fs(USER_DS);					\
+ 	regs->psw.mask	= psw_user32_bits;			\
+ 	regs->psw.addr	= new_psw | PSW_ADDR_AMODE;		\
+ 	regs->gprs[15]	= new_stackp;				\
 _
 
 Patches currently in -mm which might be from minipli@googlemail.com are
