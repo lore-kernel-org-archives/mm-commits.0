@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-compath-declare-compat_sys_sendmmsg.patch added to -mm tree
-Date: Mon, 20 Jun 2011 16:31:03 -0700
-Message-ID: <201106202331.p5KNV3M8029848@imap1.linux-foundation.org>
+Subject: + maintainers-update-high-resolution-timers-patterns.patch added to -mm tree
+Date: Mon, 20 Jun 2011 16:34:27 -0700
+Message-ID: <201106202334.p5KNYRGW030014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755726Ab1FTXbK (ORCPT
+	by vger.kernel.org with ESMTP id S1756131Ab1FTXek (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 19:31:10 -0400
+	Mon, 20 Jun 2011 19:34:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmetcalf@tilera.com, arnd@arndb.de
+Cc: joe@perches.com, tglx@linutronix.de
 
 
 The patch titled
-     include/linux/compat.h: declare compat_sys_sendmmsg()
+     MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
 has been added to the -mm tree.  Its filename is
-     include-linux-compath-declare-compat_sys_sendmmsg.patch
+     maintainers-update-high-resolution-timers-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/compat.h: declare compat_sys_sendmmsg()
-From: Chris Metcalf <cmetcalf@tilera.com>
+Subject: MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
+From: Joe Perches <joe@perches.com>
 
-This is required for tilegx to be able to use the compat unistd.h header
-where compat_sys_sendmmsg() is now mentioned.
+clockchips.h was typoed as clockevents.h
 
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compat.h~include-linux-compath-declare-compat_sys_sendmmsg include/linux/compat.h
---- a/include/linux/compat.h~include-linux-compath-declare-compat_sys_sendmmsg
-+++ a/include/linux/compat.h
-@@ -467,6 +467,8 @@ asmlinkage long compat_sys_setsockopt(in
- 				      char __user *optval, unsigned int optlen);
- asmlinkage long compat_sys_sendmsg(int fd, struct compat_msghdr __user *msg,
- 				   unsigned flags);
-+asmlinkage long compat_sys_sendmmsg(int fd, struct compat_mmsghdr __user *mmsg,
-+				    unsigned vlen, unsigned int flags);
- asmlinkage long compat_sys_recvmsg(int fd, struct compat_msghdr __user *msg,
- 				   unsigned int flags);
- asmlinkage long compat_sys_recv(int fd, void __user *buf, size_t len,
+diff -puN MAINTAINERS~maintainers-update-high-resolution-timers-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-high-resolution-timers-patterns
++++ a/MAINTAINERS
+@@ -3000,7 +3000,7 @@ F:	kernel/hrtimer.c
+ F:	kernel/time/clockevents.c
+ F:	kernel/time/tick*.*
+ F:	kernel/time/timer_*.c
+-F:	include/linux/clockevents.h
++F:	include/linux/clockchips.h
+ F:	include/linux/hrtimer.h
+ 
+ HIGH-SPEED SCC DRIVER FOR AX.25
 _
 
-Patches currently in -mm which might be from cmetcalf@tilera.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-include-linux-compath-declare-compat_sys_sendmmsg.patch
+origin.patch
 linux-next.patch
-pci-make-the-struct-pci_dev-argument-of-pci_fixup_irqs-const.patch
-consolidate-config_debug_strict_user_copy_checks.patch
+drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
+get_maintainerspl-improve-mailmap-parsing.patch
+maintainers-update-high-resolution-timers-patterns.patch
+maintainers-remove-section-usb-se401-driver.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-__rcu-as-a-sparse-modifier.patch
+checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
