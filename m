@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-high-resolution-timers-patterns.patch added to -mm tree
-Date: Mon, 20 Jun 2011 16:34:27 -0700
-Message-ID: <201106202334.p5KNYRGW030014@imap1.linux-foundation.org>
+Subject: + maintainers-remove-section-usb-se401-driver.patch added to -mm tree
+Date: Mon, 20 Jun 2011 16:34:44 -0700
+Message-ID: <201106202334.p5KNYiKi030020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756131Ab1FTXek (ORCPT
+	by vger.kernel.org with ESMTP id S1756151Ab1FTXet (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 19:34:40 -0400
+	Mon, 20 Jun 2011 19:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, tglx@linutronix.de
+Cc: joe@perches.com, hverkuil@xs4all.nl, mchehab@redhat.com
 
 
 The patch titled
-     MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
+     MAINTAINERS: uemove section USB SE401 DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-update-high-resolution-timers-patterns.patch
+     maintainers-remove-section-usb-se401-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
+Subject: MAINTAINERS: uemove section USB SE401 DRIVER
 From: Joe Perches <joe@perches.com>
 
-clockchips.h was typoed as clockevents.h
+Commit b287db119edb ("[media] se401: remove last V4L1 driver")
+removed the driver, so remove the section from MAINTAINERS.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-high-resolution-timers-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-high-resolution-timers-patterns
+diff -puN MAINTAINERS~maintainers-remove-section-usb-se401-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-section-usb-se401-driver
 +++ a/MAINTAINERS
-@@ -3000,7 +3000,7 @@ F:	kernel/hrtimer.c
- F:	kernel/time/clockevents.c
- F:	kernel/time/tick*.*
- F:	kernel/time/timer_*.c
--F:	include/linux/clockevents.h
-+F:	include/linux/clockchips.h
- F:	include/linux/hrtimer.h
+@@ -6545,13 +6545,6 @@ W:	http://pegasus2.sourceforge.net/
+ S:	Maintained
+ F:	drivers/net/usb/rtl8150.c
  
- HIGH-SPEED SCC DRIVER FOR AX.25
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-linux-next.patch
-drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
-get_maintainerspl-improve-mailmap-parsing.patch
-maintainers-update-high-resolution-timers-patterns.patch
-maintainers-remove-section-usb-se401-driver.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-__rcu-as-a-sparse-modifier.patch
-checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-ramoops-add-new-line-to-each-print.patch
-
+-USB SE401 DRIVER
+-L:	linux-usb@vger.kernel.org
+-W:	http://www.chello.nl/~j.vreeken/se401/
+-S:	Orphan
+-F:	Documentation/video4linux/se401.txt
+-F:	drivers/staging/se401/
