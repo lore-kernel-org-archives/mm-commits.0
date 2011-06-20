@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch added to -mm tree
-Date: Mon, 20 Jun 2011 14:31:41 -0700
-Message-ID: <201106202131.p5KLVfgr021955@imap1.linux-foundation.org>
+Subject: + alpha-exec-remove-redundant-set_fsuser_ds.patch added to -mm tree
+Date: Mon, 20 Jun 2011 14:47:52 -0700
+Message-ID: <201106202147.p5KLlqJ3023284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755886Ab1FTVcH (ORCPT
+	by vger.kernel.org with ESMTP id S1752527Ab1FTVsg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:32:07 -0400
+	Mon, 20 Jun 2011 17:48:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chris@zankel.net, drepper@gmail.com, geert@linux-m68k.org, ysato@users.sourceforge.jp
+Cc: minipli@googlemail.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     h8300/m68k/xtensa: __FD_ISSET should return 0/1
+     alpha, exec: remove redundant set_fs(USER_DS)
 has been added to the -mm tree.  Its filename is
-     h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+     alpha-exec-remove-redundant-set_fsuser_ds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300/m68k/xtensa: __FD_ISSET should return 0/1
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha, exec: remove redundant set_fs(USER_DS)
+From: Mathias Krause <minipli@googlemail.com>
 
-Harmonise these return values with other architectures.  In some cases
-this affects all compilers and in other cases non-gcc compilers only.
+The address limit is already set in flush_old_exec() so this
+set_fs(USER_DS) is redundant.
 
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ulrich Drepper <drepper@gmail.com>
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/posix_types.h  |    2 +-
- arch/m68k/include/asm/posix_types.h   |    2 +-
- arch/xtensa/include/asm/posix_types.h |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/alpha/kernel/process.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/h8300/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1 arch/h8300/include/asm/posix_types.h
---- a/arch/h8300/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1
-+++ a/arch/h8300/include/asm/posix_types.h
-@@ -50,7 +50,7 @@ typedef struct {
- #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
- 
- #undef	__FD_ISSET
--#define	__FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
-+#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
- 
- #undef	__FD_ZERO
- #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
-diff -puN arch/m68k/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1 arch/m68k/include/asm/posix_types.h
---- a/arch/m68k/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1
-+++ a/arch/m68k/include/asm/posix_types.h
-@@ -51,7 +51,7 @@ typedef struct {
- #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
- 
- #undef	__FD_ISSET
--#define	__FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
-+#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
- 
- #undef	__FD_ZERO
- #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
-diff -puN arch/xtensa/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1 arch/xtensa/include/asm/posix_types.h
---- a/arch/xtensa/include/asm/posix_types.h~h8300-m68k-xtensa-__fd_isset-should-return-0-1
-+++ a/arch/xtensa/include/asm/posix_types.h
-@@ -58,7 +58,7 @@ typedef struct {
- 
- #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
- #define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
--#define	__FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
-+#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
- #define	__FD_ZERO(set)	\
-   ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
- 
+diff -puN arch/alpha/kernel/process.c~alpha-exec-remove-redundant-set_fsuser_ds arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~alpha-exec-remove-redundant-set_fsuser_ds
++++ a/arch/alpha/kernel/process.c
+@@ -200,7 +200,6 @@ show_regs(struct pt_regs *regs)
+ void
+ start_thread(struct pt_regs * regs, unsigned long pc, unsigned long sp)
+ {
+-	set_fs(USER_DS);
+ 	regs->pc = pc;
+ 	regs->ps = 8;
+ 	wrusp(sp);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minipli@googlemail.com are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+alpha-exec-remove-redundant-set_fsuser_ds.patch
+arm-exec-remove-redundant-set_fsuser_ds.patch
+cris-exec-remove-redundant-set_fsuser_ds.patch
+frv-exec-remove-redundant-set_fsuser_ds.patch
+h8300-exec-remove-redundant-set_fsuser_ds.patch
+ia64-exec-remove-redundant-set_fsuser_ds.patch
+m32r-exec-remove-redundant-set_fsuser_ds.patch
+m68k-exec-remove-redundant-set_fsuser_ds.patch
+microblaze-exec-remove-redundant-set_fsuser_ds.patch
+mips-exec-remove-redundant-addr_limit-assignment.patch
+mn10300-exec-remove-redundant-set_fsuser_ds.patch
+parisc-exec-remove-redundant-set_fsuser_ds.patch
+ppc-exec-remove-redundant-set_fsuser_ds.patch
+s390-exec-remove-redundant-set_fsuser_ds.patch
+sparc-exec-remove-redundant-addr_limit-assignment.patch
+um-exec-remove-redundant-set_fsuser_ds.patch
+unicore32-exec-remove-redundant-set_fsuser_ds.patch
 
