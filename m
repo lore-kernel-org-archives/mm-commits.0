@@ -1,15 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-smp-convert-to-common-asm-generic-atomich.patch added to -mm tree
-Date: Tue, 21 Jun 2011 16:06:07 -0700
-Message-ID: <201106212306.p5LN67Cb030247@imap1.linux-foundation.org>
+Subject: + asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch added to -mm tree
+Date: Tue, 21 Jun 2011 16:06:03 -0700
+Message-ID: <201106212306.p5LN634o030239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757308Ab1FUXGM (ORCPT
+	by vger.kernel.org with ESMTP id S1757012Ab1FUXGM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 21 Jun 2011 19:06:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -19,9 +16,9 @@ Cc: vapier@gentoo.org, arnd@arndb.de, asharma@fb.com
 
 
 The patch titled
-     Blackfin: SMP: convert to common asm-generic/atomic.h
+     asm-generic/atomic.h: allow SMP peeps to leverage this
 has been added to the -mm tree.  Its filename is
-     blackfin-smp-convert-to-common-asm-generic-atomich.patch
+     asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,21 +26,21 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin: SMP: convert to common asm-generic/atomic.h
-=46rom: Mike Frysinger <vapier@gentoo.org>
+Subject: asm-generic/atomic.h: allow SMP peeps to leverage this
+From: Mike Frysinger <vapier@gentoo.org>
 
-Now that common code supports SMP systems, switch our SMP atomic logic
-over to it to avoid code duplication.
+Only a few core funcs need to be implemented for SMP systems, so allow the
+arches to override them while getting the rest for free.
+
+At least, this is enough to allow the Blackfin SMP port to use things.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Arun Sharma <asharma@fb.com>
@@ -51,152 +48,99 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/atomic.h |  111 +++------------------------
- 1 file changed, 13 insertions(+), 98 deletions(-)
+ include/asm-generic/atomic.h |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN arch/blackfin/include/asm/atomic.h~blackfin-smp-convert-to-co=
-mmon-asm-generic-atomich arch/blackfin/include/asm/atomic.h
---- a/arch/blackfin/include/asm/atomic.h~blackfin-smp-convert-to-common=
--asm-generic-atomich
-+++ a/arch/blackfin/include/asm/atomic.h
-@@ -1,117 +1,32 @@
+diff -puN include/asm-generic/atomic.h~asm-generic-atomich-allow-smp-peeps-to-leverage-this include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~asm-generic-atomich-allow-smp-peeps-to-leverage-this
++++ a/include/asm-generic/atomic.h
+@@ -16,7 +16,11 @@
+ #define __ASM_GENERIC_ATOMIC_H
+ 
+ #ifdef CONFIG_SMP
+-#error not SMP safe
++/* Force people to define core atomics */
++# if !defined(atomic_add_return) || !defined(atomic_sub_return) || \
++     !defined(atomic_clear_mask) || !defined(atomic_set_mask)
++#  error "SMP requires a little arch-specific magic"
++# endif
+ #endif
+ 
  /*
--=C2=A0* Copyright 2004-2009 Analog Devices Inc.
--=C2=A0*
--=C2=A0* Licensed under the GPL-2 or later.
--=C2=A0*/
-+ * Copyright 2004-2011 Analog Devices Inc.
-+=A0*
-+=A0* Licensed under the GPL-2 or later.
-+=A0*/
-=20
- #ifndef __ARCH_BLACKFIN_ATOMIC__
- #define __ARCH_BLACKFIN_ATOMIC__
-=20
--#ifndef CONFIG_SMP
--# include <asm-generic/atomic.h>
--#else
-+#ifdef CONFIG_SMP
-=20
--#include <linux/types.h>
--#include <asm/system.h>	/* local_irq_XXX() */
--
--/*
-- * Atomic operations that C can't guarantee us.  Useful for
-- * resource counting etc..
-- */
--
--#define ATOMIC_INIT(i)	{ (i) }
--#define atomic_set(v, i)	(((v)->counter) =3D i)
--
--#define atomic_read(v)	__raw_uncached_fetch_asm(&(v)->counter)
-+#include <linux/linkage.h>
-=20
- asmlinkage int __raw_uncached_fetch_asm(const volatile int *ptr);
--
- asmlinkage int __raw_atomic_update_asm(volatile int *ptr, int value);
--
- asmlinkage int __raw_atomic_clear_asm(volatile int *ptr, int value);
--
- asmlinkage int __raw_atomic_set_asm(volatile int *ptr, int value);
--
- asmlinkage int __raw_atomic_xor_asm(volatile int *ptr, int value);
--
- asmlinkage int __raw_atomic_test_asm(const volatile int *ptr, int valu=
-e);
-=20
--static inline void atomic_add(int i, atomic_t *v)
--{
--	__raw_atomic_update_asm(&v->counter, i);
--}
--
--static inline void atomic_sub(int i, atomic_t *v)
--{
--	__raw_atomic_update_asm(&v->counter, -i);
--}
--
--static inline int atomic_add_return(int i, atomic_t *v)
--{
--	return __raw_atomic_update_asm(&v->counter, i);
--}
--
--static inline int atomic_sub_return(int i, atomic_t *v)
--{
--	return __raw_atomic_update_asm(&v->counter, -i);
--}
--
--static inline void atomic_inc(volatile atomic_t *v)
--{
--	__raw_atomic_update_asm(&v->counter, 1);
--}
--
--static inline void atomic_dec(volatile atomic_t *v)
--{
--	__raw_atomic_update_asm(&v->counter, -1);
--}
--
--static inline void atomic_clear_mask(int mask, atomic_t *v)
--{
--	__raw_atomic_clear_asm(&v->counter, mask);
--}
--
--static inline void atomic_set_mask(int mask, atomic_t *v)
--{
--	__raw_atomic_set_asm(&v->counter, mask);
--}
--
--/* Atomic operations are already serializing */
--#define smp_mb__before_atomic_dec()    barrier()
--#define smp_mb__after_atomic_dec() barrier()
--#define smp_mb__before_atomic_inc()    barrier()
--#define smp_mb__after_atomic_inc() barrier()
--
--#define atomic_add_negative(a, v)	(atomic_add_return((a), (v)) < 0)
--#define atomic_dec_return(v) atomic_sub_return(1,(v))
--#define atomic_inc_return(v) atomic_add_return(1,(v))
--
--#define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n=
-)))
--#define atomic_xchg(v, new) (xchg(&((v)->counter), new))
--
--#define __atomic_add_unless(v, a, u)				\
--({								\
--	int c, old;						\
--	c =3D atomic_read(v);					\
--	while (c !=3D (u) && (old =3D atomic_cmpxchg((v), c, c + (a))) !=3D c=
-) \
--		c =3D old;					\
--	c;							\
--})
--
--/*
-- * atomic_inc_and_test - increment and test
-- * @v: pointer of type atomic_t
-- *
-- * Atomically increments @v by 1
-- * and returns true if the result is zero, or false for all
-- * other cases.
-- */
--#define atomic_inc_and_test(v) (atomic_inc_return(v) =3D=3D 0)
--
--#define atomic_sub_and_test(i,v) (atomic_sub_return((i), (v)) =3D=3D 0=
-)
--#define atomic_dec_and_test(v) (atomic_sub_return(1, (v)) =3D=3D 0)
-+#define atomic_read(v) __raw_uncached_fetch_asm(&(v)->counter)
-=20
-+#define atomic_add_return(i, v) __raw_atomic_update_asm(&(v)->counter,=
- i)
-+#define atomic_sub_return(i, v) __raw_atomic_update_asm(&(v)->counter,=
- -(i))
-+#define atomic_clear_mask(m, v) __raw_atomic_clear_asm(&(v)->counter, =
-m)
-+#define atomic_set_mask(m, v)   __raw_atomic_set_asm(&(v)->counter, m)
-=20
- #endif
-=20
-+#include <asm-generic/atomic.h>
-+
- #endif
+@@ -34,7 +38,9 @@
+  *
+  * Atomically reads the value of @v.
+  */
++#ifndef atomic_read
+ #define atomic_read(v)	(*(volatile int *)&(v)->counter)
++#endif
+ 
+ /**
+  * atomic_set - set atomic variable
+@@ -55,6 +61,7 @@
+  *
+  * Atomically adds @i to @v and returns the result
+  */
++#ifndef atomic_add_return
+ static inline int atomic_add_return(int i, atomic_t *v)
+ {
+ 	unsigned long flags;
+@@ -68,6 +75,7 @@ static inline int atomic_add_return(int 
+ 
+ 	return temp;
+ }
++#endif
+ 
+ /**
+  * atomic_sub_return - subtract integer from atomic variable
+@@ -76,6 +84,7 @@ static inline int atomic_add_return(int 
+  *
+  * Atomically subtracts @i from @v and returns the result
+  */
++#ifndef atomic_sub_return
+ static inline int atomic_sub_return(int i, atomic_t *v)
+ {
+ 	unsigned long flags;
+@@ -89,6 +98,7 @@ static inline int atomic_sub_return(int 
+ 
+ 	return temp;
+ }
++#endif
+ 
+ static inline int atomic_add_negative(int i, atomic_t *v)
+ {
+@@ -147,6 +157,7 @@ static inline int __atomic_add_unless(at
+  *
+  * Atomically clears the bits set in @mask from @v
+  */
++#ifndef atomic_clear_mask
+ static inline void atomic_clear_mask(unsigned long mask, atomic_t *v)
+ {
+ 	unsigned long flags;
+@@ -156,6 +167,7 @@ static inline void atomic_clear_mask(uns
+ 	v->counter &= mask;
+ 	raw_local_irq_restore(flags);
+ }
++#endif
+ 
+ /**
+  * atomic_set_mask - Atomically set bits in atomic variable
+@@ -164,6 +176,7 @@ static inline void atomic_clear_mask(uns
+  *
+  * Atomically sets the bits set in @mask in @v
+  */
++#ifndef atomic_set_mask
+ static inline void atomic_set_mask(unsigned int mask, atomic_t *v)
+ {
+ 	unsigned long flags;
+@@ -172,6 +185,7 @@ static inline void atomic_set_mask(unsig
+ 	v->counter |= mask;
+ 	raw_local_irq_restore(flags);
+ }
++#endif
+ 
+ /* Assume that atomic operations are already serializing */
+ #define smp_mb__before_atomic_dec()	barrier()
 _
 
 Patches currently in -mm which might be from vapier@gentoo.org are
@@ -217,8 +161,3 @@ asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch
 blackfin-smp-punt-unused-atomic_test_mask-helper.patch
 blackfin-smp-convert-to-common-asm-generic-atomich.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
