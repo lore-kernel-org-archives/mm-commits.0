@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + taskstats-dont-allow-duplicate-entries-in-listener-mode.patch added to -mm tree
-Date: Tue, 21 Jun 2011 15:49:07 -0700
-Message-ID: <201106212249.p5LMn7Am029428@imap1.linux-foundation.org>
+Subject: + mm-hugetlb-fix-coding-style-issues.patch added to -mm tree
+Date: Tue, 21 Jun 2011 15:53:10 -0700
+Message-ID: <201106212253.p5LMrAKk029556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756257Ab1FUWuC (ORCPT
+	by vger.kernel.org with ESMTP id S1757320Ab1FUWxQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jun 2011 18:50:02 -0400
+	Tue, 21 Jun 2011 18:53:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, bsingharora@gmail.com, segooon@gmail.com, stable@kernel.org
+Cc: chrisf@ijw.co.nz, emunson@mgebm.net
 
 
 The patch titled
-     taskstats: don't allow duplicate entries in listener mode
+     mm: hugetlb: fix coding style issues
 has been added to the -mm tree.  Its filename is
-     taskstats-dont-allow-duplicate-entries-in-listener-mode.patch
+     mm-hugetlb-fix-coding-style-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: don't allow duplicate entries in listener mode
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: mm: hugetlb: fix coding style issues
+From: Chris Forbes <chrisf@ijw.co.nz>
 
-Currently a single process may register exit handlers unlimited times.  It
-may lead to a bloated listeners chain and very slow process terminations. 
-E.g.  after 10KK sent TASKSTATS_CMD_ATTR_REGISTER_CPUMASKs ~300 Mb of
-kernel memory is stolen for the handlers chain and "time id" shows 2-7
-seconds instead of normal 0.003.  It makes it possible to exhaust all
-kernel memory and to eat much of CPU time by triggerring numerous exits on
-a single CPU.
+Fix coding style issues flagged by checkpatch.pl
 
-The patch limits the number of times a single process may register itself
-on a single CPU to one.
-
-One little issue is kept unfixed - as taskstats_exit() is called before
-exit_files() in do_exit(), the orphaned listener entry (if it was not
-explicitly deregistered) is kept until the next someone's exit() and
-implicit deregistration in send_cpu_listeners().  So, if a process
-registered itself as a listener exits and the next spawned process gets
-the same pid, it would inherit taskstats attributes.
-
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Chris Forbes <chrisf@ijw.co.nz>
+Acked-by: Eric B Munson <emunson@mgebm.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN kernel/taskstats.c~taskstats-dont-allow-duplicate-entries-in-listener-mode kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-dont-allow-duplicate-entries-in-listener-mode
-+++ a/kernel/taskstats.c
-@@ -285,16 +285,18 @@ ret:
- static int add_del_listener(pid_t pid, const struct cpumask *mask, int isadd)
- {
- 	struct listener_list *listeners;
--	struct listener *s, *tmp;
-+	struct listener *s, *tmp, *s2;
- 	unsigned int cpu;
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-coding-style-issues mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-coding-style-issues
++++ a/mm/hugetlb.c
+@@ -24,7 +24,7 @@
  
- 	if (!cpumask_subset(mask, cpu_possible_mask))
- 		return -EINVAL;
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
-+	s = NULL;
- 	if (isadd == REGISTER) {
- 		for_each_cpu(cpu, mask) {
--			s = kmalloc_node(sizeof(struct listener), GFP_KERNEL,
--					 cpu_to_node(cpu));
-+			if (!s)
-+				s = kmalloc_node(sizeof(struct listener),
-+						 GFP_KERNEL, cpu_to_node(cpu));
- 			if (!s)
- 				goto cleanup;
- 			s->pid = pid;
-@@ -303,9 +305,16 @@ static int add_del_listener(pid_t pid, c
+ #include <linux/hugetlb.h>
+ #include <linux/node.h>
+@@ -62,10 +62,10 @@ static DEFINE_SPINLOCK(hugetlb_lock);
+  * must either hold the mmap_sem for write, or the mmap_sem for read and
+  * the hugetlb_instantiation mutex:
+  *
+- * 	down_write(&mm->mmap_sem);
++ *	down_write(&mm->mmap_sem);
+  * or
+- * 	down_read(&mm->mmap_sem);
+- * 	mutex_lock(&hugetlb_instantiation_mutex);
++ *	down_read(&mm->mmap_sem);
++ *	mutex_lock(&hugetlb_instantiation_mutex);
+  */
+ struct file_region {
+ 	struct list_head link;
+@@ -503,9 +503,10 @@ static void update_and_free_page(struct 
+ 	h->nr_huge_pages--;
+ 	h->nr_huge_pages_node[page_to_nid(page)]--;
+ 	for (i = 0; i < pages_per_huge_page(h); i++) {
+-		page[i].flags &= ~(1 << PG_locked | 1 << PG_error | 1 << PG_referenced |
+-				1 << PG_dirty | 1 << PG_active | 1 << PG_reserved |
+-				1 << PG_private | 1<< PG_writeback);
++		page[i].flags &= ~(1 << PG_locked | 1 << PG_error |
++				1 << PG_referenced | 1 << PG_dirty |
++				1 << PG_active | 1 << PG_reserved |
++				1 << PG_private | 1 << PG_writeback);
+ 	}
+ 	set_compound_page_dtor(page, NULL);
+ 	set_page_refcounted(page);
+@@ -591,7 +592,6 @@ int PageHuge(struct page *page)
  
- 			listeners = &per_cpu(listener_array, cpu);
- 			down_write(&listeners->sem);
-+			list_for_each_entry_safe(s2, tmp, &listeners->list, list) {
-+				if (s2->pid == pid)
-+					goto next_cpu;
-+			}
- 			list_add(&s->list, &listeners->list);
-+			s = NULL;
-+next_cpu:
- 			up_write(&listeners->sem);
- 		}
-+		kfree(s);
+ 	return dtor == free_huge_page;
+ }
+-
+ EXPORT_SYMBOL_GPL(PageHuge);
+ 
+ static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
+@@ -2124,9 +2124,8 @@ static void set_huge_ptep_writable(struc
+ 	pte_t entry;
+ 
+ 	entry = pte_mkwrite(pte_mkdirty(huge_ptep_get(ptep)));
+-	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1)) {
++	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1))
+ 		update_mmu_cache(vma, address, ptep);
+-	}
+ }
+ 
+ 
+@@ -2181,9 +2180,9 @@ static int is_hugetlb_entry_migration(pt
+ 	if (huge_pte_none(pte) || pte_present(pte))
  		return 0;
+ 	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_migration_entry(swp)) {
++	if (non_swap_entry(swp) && is_migration_entry(swp))
+ 		return 1;
+-	} else
++	else
+ 		return 0;
+ }
+ 
+@@ -2194,9 +2193,9 @@ static int is_hugetlb_entry_hwpoisoned(p
+ 	if (huge_pte_none(pte) || pte_present(pte))
+ 		return 0;
+ 	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_hwpoison_entry(swp)) {
++	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
+ 		return 1;
+-	} else
++	else
+ 		return 0;
+ }
+ 
+@@ -2559,7 +2558,7 @@ retry:
+ 		 * So we need to block hugepage fault by PG_hwpoison bit check.
+ 		 */
+ 		if (unlikely(PageHWPoison(page))) {
+-			ret = VM_FAULT_HWPOISON | 
++			ret = VM_FAULT_HWPOISON |
+ 			      VM_FAULT_SET_HINDEX(h - hstates);
+ 			goto backout_unlocked;
+ 		}
+@@ -2627,7 +2626,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 			migration_entry_wait(mm, (pmd_t *)ptep, address);
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+-			return VM_FAULT_HWPOISON_LARGE | 
++			return VM_FAULT_HWPOISON_LARGE |
+ 			       VM_FAULT_SET_HINDEX(h - hstates);
  	}
  
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from chrisf@ijw.co.nz are
 
-taskstats-dont-allow-duplicate-entries-in-listener-mode.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+mm-hugetlb-fix-coding-style-issues.patch
 
