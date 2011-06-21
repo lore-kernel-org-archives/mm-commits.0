@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] um-clean-up-delay-functions.patch removed from -mm tree
-Date: Tue, 21 Jun 2011 16:50:20 -0700
-Message-ID: <201106212350.p5LNoKg1032357@imap1.linux-foundation.org>
+Subject: + um-clean-up-delay-functions-v2.patch added to -mm tree
+Date: Tue, 21 Jun 2011 16:51:09 -0700
+Message-ID: <201106212351.p5LNp92S032370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757083Ab1FUXub (ORCPT
+	by vger.kernel.org with ESMTP id S1756933Ab1FUXvQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jun 2011 19:50:31 -0400
+	Tue, 21 Jun 2011 19:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: richard@nod.at
 
 
 The patch titled
      um: clean up delay functions
-has been removed from the -mm tree.  Its filename was
-     um-clean-up-delay-functions.patch
+has been added to the -mm tree.  Its filename is
+     um-clean-up-delay-functions-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -34,15 +44,15 @@ Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/delay.h |    8 +---
- arch/um/sys-i386/delay.c    |   63 +++++++++++++++++++++++++---------
- arch/um/sys-x86_64/delay.c  |   56 +++++++++++++++++++++++-------
- 3 files changed, 92 insertions(+), 35 deletions(-)
+ arch/um/include/asm/delay.h |   10 ++---
+ arch/um/sys-i386/delay.c    |   59 +++++++++++++++++++++++++---------
+ arch/um/sys-x86_64/delay.c  |   56 ++++++++++++++++++++++++--------
+ 3 files changed, 92 insertions(+), 33 deletions(-)
 
-diff -puN arch/um/include/asm/delay.h~um-clean-up-delay-functions arch/um/include/asm/delay.h
---- a/arch/um/include/asm/delay.h~um-clean-up-delay-functions
+diff -puN arch/um/include/asm/delay.h~um-clean-up-delay-functions-v2 arch/um/include/asm/delay.h
+--- a/arch/um/include/asm/delay.h~um-clean-up-delay-functions-v2
 +++ a/arch/um/include/asm/delay.h
-@@ -1,8 +1,6 @@
+@@ -1,20 +1,18 @@
  #ifndef __UM_DELAY_H
  #define __UM_DELAY_H
  
@@ -50,8 +60,12 @@ diff -puN arch/um/include/asm/delay.h~um-clean-up-delay-functions arch/um/includ
 -
  /* Undefined on purpose */
  extern void __bad_udelay(void);
++extern void __bad_ndelay(void);
  
-@@ -12,9 +10,7 @@ extern void __delay(unsigned long loops)
+ extern void __udelay(unsigned long usecs);
++extern void __ndelay(unsigned long usecs);
+ extern void __delay(unsigned long loops);
+ 
  #define udelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
  	__bad_udelay() : __udelay(n))
  
@@ -60,11 +74,11 @@ diff -puN arch/um/include/asm/delay.h~um-clean-up-delay-functions arch/um/includ
 -extern void __unimplemented_ndelay(void);
 -#define ndelay(n) __unimplemented_ndelay()
 +#define ndelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
-+	__bad_udelay() : __ndelay(n))
++	__bad_ndelay() : __ndelay(n))
  
  #endif
-diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions arch/um/sys-i386/delay.c
---- a/arch/um/sys-i386/delay.c~um-clean-up-delay-functions
+diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions-v2 arch/um/sys-i386/delay.c
+--- a/arch/um/sys-i386/delay.c~um-clean-up-delay-functions-v2
 +++ a/arch/um/sys-i386/delay.c
 @@ -1,29 +1,60 @@
 +/*
@@ -88,27 +102,25 @@ diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions arch/um/sys-i386/
 -	int d0;
 -	__asm__ __volatile__(
 -		"\tjmp 1f\n"
--		".align 16\n"
++	asm volatile(
++		"test %0,%0\n"
++		"jz 3f\n"
++		"jmp 1f\n"
++
+ 		".align 16\n"
 -		"1:\tjmp 2f\n"
--		".align 16\n"
++		"1: jmp 2f\n"
++
+ 		".align 16\n"
 -		"2:\tdecl %0\n\tjns 2b"
 -		:"=&a" (d0)
 -		:"0" (time));
-+	asm volatile(
-+		" test %0,%0  \n"
-+		" jz 3f   \n"
-+		" jmp 1f    \n"
-+
-+		".align 16    \n"
-+		"1: jmp 2f    \n"
-+
-+		".align 16    \n"
-+		"2: dec %0    \n"
-+		" jnz 2b    \n"
-+		"3: dec %0    \n"
++		"2: dec %0\n"
++		" jnz 2b\n"
++		"3: dec %0\n"
 +
 +		: /* we don't need output */
-+		:"a" (loops)
++		: "a" (loops)
 +	);
  }
 +EXPORT_SYMBOL(__delay);
@@ -124,8 +136,8 @@ diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions arch/um/sys-i386/
 -                cpu_relax();
 +	xloops *= 4;
 +	asm("mull %%edx"
-+		:"=d" (xloops), "=&a" (d0)
-+		:"1" (xloops), "0"
++		: "=d" (xloops), "=&a" (d0)
++		: "1" (xloops), "0"
 +		(loops_per_jiffy * (HZ/4)));
 +
 +	__delay(++xloops);
@@ -143,8 +155,8 @@ diff -puN arch/um/sys-i386/delay.c~um-clean-up-delay-functions arch/um/sys-i386/
 +	__const_udelay(nsecs * 0x00005); /* 2**32 / 1000000000 (rounded up) */
 +}
 +EXPORT_SYMBOL(__ndelay);
-diff -puN arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions arch/um/sys-x86_64/delay.c
---- a/arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions
+diff -puN arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions-v2 arch/um/sys-x86_64/delay.c
+--- a/arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions-v2
 +++ a/arch/um/sys-x86_64/delay.c
 @@ -1,30 +1,60 @@
  /*
@@ -172,20 +184,20 @@ diff -puN arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions arch/um/sys-x86
 -        for(i = 0; i < loops; i++)
 -                cpu_relax();
 +	asm volatile(
-+		" test %0,%0  \n"
-+		" jz 3f   \n"
-+		" jmp 1f    \n"
++		"test %0,%0\n"
++		"jz 3f\n"
++		"jmp 1f\n"
 +
-+		".align 16    \n"
-+		"1: jmp 2f    \n"
++		".align 16\n"
++		"1: jmp 2f\n"
 +
-+		".align 16    \n"
-+		"2: dec %0    \n"
-+		" jnz 2b    \n"
-+		"3: dec %0    \n"
++		".align 16\n"
++		"2: dec %0\n"
++		" jnz 2b\n"
++		"3: dec %0\n"
 +
 +		: /* we don't need output */
-+		:"a" (loops)
++		: "a" (loops)
 +	);
  }
 +EXPORT_SYMBOL(__delay);
@@ -198,8 +210,8 @@ diff -puN arch/um/sys-x86_64/delay.c~um-clean-up-delay-functions arch/um/sys-x86
 +
 +	xloops *= 4;
 +	asm("mull %%edx"
-+		:"=d" (xloops), "=&a" (d0)
-+		:"1" (xloops), "0"
++		: "=d" (xloops), "=&a" (d0)
++		: "1" (xloops), "0"
 +		(loops_per_jiffy * (HZ/4)));
  
 -	n = (loops_per_jiffy * HZ * usecs) / MILLION;
@@ -228,5 +240,6 @@ um-add-asm-percpuh.patch
 linux-next.patch
 um-clean-up-vm-flagsh.patch
 um-exec-remove-redundant-set_fsuser_ds.patch
+um-clean-up-delay-functions-v2.patch
 fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
 
