@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-coding-style-issues.patch added to -mm tree
-Date: Tue, 21 Jun 2011 15:53:10 -0700
-Message-ID: <201106212253.p5LMrAKk029556@imap1.linux-foundation.org>
+Subject: + asm-generic-atomich-simplify-inc-dec-test-helpers.patch added to -mm tree
+Date: Tue, 21 Jun 2011 15:57:36 -0700
+Message-ID: <201106212257.p5LMva11029776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757320Ab1FUWxQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752903Ab1FUW5l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Jun 2011 18:53:16 -0400
+	Tue, 21 Jun 2011 18:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chrisf@ijw.co.nz, emunson@mgebm.net
+Cc: vapier@gentoo.org, asharma@fb.com
 
 
 The patch titled
-     mm: hugetlb: fix coding style issues
+     asm-generic/atomic.h: simplify inc/dec test helpers
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-coding-style-issues.patch
+     asm-generic-atomich-simplify-inc-dec-test-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: hugetlb: fix coding style issues
-From: Chris Forbes <chrisf@ijw.co.nz>
+Subject: asm-generic/atomic.h: simplify inc/dec test helpers
+From: Mike Frysinger <vapier@gentoo.org>
 
-Fix coding style issues flagged by checkpatch.pl
+We already declared inc/dec helpers, so we don't need to call the
+atomic_{add,sub}_return funcs directly.
 
-Signed-off-by: Chris Forbes <chrisf@ijw.co.nz>
-Acked-by: Eric B Munson <emunson@mgebm.net>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Arun Sharma <asharma@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ include/asm-generic/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-coding-style-issues mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-coding-style-issues
-+++ a/mm/hugetlb.c
-@@ -24,7 +24,7 @@
+diff -puN include/asm-generic/atomic.h~asm-generic-atomich-simplify-inc-dec-test-helpers include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~asm-generic-atomich-simplify-inc-dec-test-helpers
++++ a/include/asm-generic/atomic.h
+@@ -119,8 +119,8 @@ static inline void atomic_dec(atomic_t *
+ #define atomic_inc_return(v)		atomic_add_return(1, (v))
  
- #include <asm/page.h>
- #include <asm/pgtable.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+ #define atomic_sub_and_test(i, v)	(atomic_sub_return((i), (v)) == 0)
+-#define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
+-#define atomic_inc_and_test(v)		(atomic_add_return(1, (v)) == 0)
++#define atomic_dec_and_test(v)		(atomic_dec_return(v) == 0)
++#define atomic_inc_and_test(v)		(atomic_inc_return(v) == 0)
  
- #include <linux/hugetlb.h>
- #include <linux/node.h>
-@@ -62,10 +62,10 @@ static DEFINE_SPINLOCK(hugetlb_lock);
-  * must either hold the mmap_sem for write, or the mmap_sem for read and
-  * the hugetlb_instantiation mutex:
-  *
-- * 	down_write(&mm->mmap_sem);
-+ *	down_write(&mm->mmap_sem);
-  * or
-- * 	down_read(&mm->mmap_sem);
-- * 	mutex_lock(&hugetlb_instantiation_mutex);
-+ *	down_read(&mm->mmap_sem);
-+ *	mutex_lock(&hugetlb_instantiation_mutex);
-  */
- struct file_region {
- 	struct list_head link;
-@@ -503,9 +503,10 @@ static void update_and_free_page(struct 
- 	h->nr_huge_pages--;
- 	h->nr_huge_pages_node[page_to_nid(page)]--;
- 	for (i = 0; i < pages_per_huge_page(h); i++) {
--		page[i].flags &= ~(1 << PG_locked | 1 << PG_error | 1 << PG_referenced |
--				1 << PG_dirty | 1 << PG_active | 1 << PG_reserved |
--				1 << PG_private | 1<< PG_writeback);
-+		page[i].flags &= ~(1 << PG_locked | 1 << PG_error |
-+				1 << PG_referenced | 1 << PG_dirty |
-+				1 << PG_active | 1 << PG_reserved |
-+				1 << PG_private | 1 << PG_writeback);
- 	}
- 	set_compound_page_dtor(page, NULL);
- 	set_page_refcounted(page);
-@@ -591,7 +592,6 @@ int PageHuge(struct page *page)
- 
- 	return dtor == free_huge_page;
- }
--
- EXPORT_SYMBOL_GPL(PageHuge);
- 
- static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
-@@ -2124,9 +2124,8 @@ static void set_huge_ptep_writable(struc
- 	pte_t entry;
- 
- 	entry = pte_mkwrite(pte_mkdirty(huge_ptep_get(ptep)));
--	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1)) {
-+	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1))
- 		update_mmu_cache(vma, address, ptep);
--	}
- }
- 
- 
-@@ -2181,9 +2180,9 @@ static int is_hugetlb_entry_migration(pt
- 	if (huge_pte_none(pte) || pte_present(pte))
- 		return 0;
- 	swp = pte_to_swp_entry(pte);
--	if (non_swap_entry(swp) && is_migration_entry(swp)) {
-+	if (non_swap_entry(swp) && is_migration_entry(swp))
- 		return 1;
--	} else
-+	else
- 		return 0;
- }
- 
-@@ -2194,9 +2193,9 @@ static int is_hugetlb_entry_hwpoisoned(p
- 	if (huge_pte_none(pte) || pte_present(pte))
- 		return 0;
- 	swp = pte_to_swp_entry(pte);
--	if (non_swap_entry(swp) && is_hwpoison_entry(swp)) {
-+	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
- 		return 1;
--	} else
-+	else
- 		return 0;
- }
- 
-@@ -2559,7 +2558,7 @@ retry:
- 		 * So we need to block hugepage fault by PG_hwpoison bit check.
- 		 */
- 		if (unlikely(PageHWPoison(page))) {
--			ret = VM_FAULT_HWPOISON | 
-+			ret = VM_FAULT_HWPOISON |
- 			      VM_FAULT_SET_HINDEX(h - hstates);
- 			goto backout_unlocked;
- 		}
-@@ -2627,7 +2626,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 			migration_entry_wait(mm, (pmd_t *)ptep, address);
- 			return 0;
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
--			return VM_FAULT_HWPOISON_LARGE | 
-+			return VM_FAULT_HWPOISON_LARGE |
- 			       VM_FAULT_SET_HINDEX(h - hstates);
- 	}
- 
+ #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
+ #define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))
 _
 
-Patches currently in -mm which might be from chrisf@ijw.co.nz are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-mm-hugetlb-fix-coding-style-issues.patch
+mm-nommuc-fix-remap_pfn_range.patch
+linux-next.patch
+asm-generic-systemh-drop-useless-__kernel__.patch
+ptrace-unify-show_regs-prototype.patch
+ptrace-unify-show_regs-prototype-fix.patch
+atomic-use-linux-atomich.patch
+atomic-move-atomic_add_unless-to-generic-code.patch
+atomic-cleanup-asm-generic-atomich-inclusion.patch
+atomic-update-comments-in-atomich.patch
+asm-generic-atomich-simplify-inc-dec-test-helpers.patch
 
