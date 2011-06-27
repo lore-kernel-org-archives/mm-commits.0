@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-use-proper-little-endian-bitops.patch added to -mm tree
-Date: Mon, 27 Jun 2011 13:38:48 -0700
-Message-ID: <201106272038.p5RKcnOl025385@imap1.linux-foundation.org>
+Subject: + dm-use-use-proper-little-endian-bitops.patch added to -mm tree
+Date: Mon, 27 Jun 2011 13:38:51 -0700
+Message-ID: <201106272038.p5RKcqFQ025388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754469Ab1F0UjN (ORCPT
+	by vger.kernel.org with ESMTP id S1754467Ab1F0UjL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:39:13 -0400
+	Mon, 27 Jun 2011 16:39:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu
+Cc: akinobu.mita@gmail.com, agk@redhat.com
 
 
 The patch titled
-     ext4: use proper little-endian bitops
+     dm: use use proper little-endian bitops
 has been added to the -mm tree.  Its filename is
-     ext4-use-proper-little-endian-bitops.patch
+     dm-use-use-proper-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: use proper little-endian bitops
+Subject: dm: use use proper little-endian bitops
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-ext4_{set,clear}_bit() is defined as __test_and_{set,clear}_bit_le() for
-ext4.  Only two ext4_{set,clear}_bit() calls check the return value.  The
-rest of calls ignore the return value and they can be replaced with
-__{set,clear}_bit_le().
+Using __test_and_{set,clear}_bit_le() with ignoring its return value can
+be replaced with __{set,clear}_bit_le().
 
-This changes ext4_{set,clear}_bit() from __test_and_{set,clear}_bit_le()
-to __{set,clear}_bit_le() and introduces ext4_test_and_{set,clear}_bit()
-for the two places where old bit needs to be returned.
-
-This ext4_{set,clear}_bit() change is considered safe, because if someone
-uses these macros without noticing the change, new ext4_{set,clear}_bit
-don't have return value and causes compiler errors where the return value
-is used.
-
-This also removes unused ext4_find_first_zero_bit().
+This also removes unnecessary casts.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Alasdair Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h   |    7 ++++---
- fs/ext4/ialloc.c |    4 ++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/md/dm-log.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops fs/ext4/ext4.h
---- a/fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops
-+++ a/fs/ext4/ext4.h
-@@ -930,12 +930,13 @@ struct ext4_inode_info {
- #define test_opt2(sb, opt)		(EXT4_SB(sb)->s_mount_opt2 & \
- 					 EXT4_MOUNT2_##opt)
+diff -puN drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops
++++ a/drivers/md/dm-log.c
+@@ -251,20 +251,20 @@ struct log_c {
+  */
+ static inline int log_test_bit(uint32_t *bs, unsigned bit)
+ {
+-	return test_bit_le(bit, (unsigned long *) bs) ? 1 : 0;
++	return test_bit_le(bit, bs) ? 1 : 0;
+ }
  
--#define ext4_set_bit			__test_and_set_bit_le
-+#define ext4_test_and_set_bit		__test_and_set_bit_le
-+#define ext4_set_bit			__set_bit_le
- #define ext4_set_bit_atomic		ext2_set_bit_atomic
--#define ext4_clear_bit			__test_and_clear_bit_le
-+#define ext4_test_and_clear_bit		__test_and_clear_bit_le
-+#define ext4_clear_bit			__clear_bit_le
- #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
- #define ext4_test_bit			test_bit_le
--#define ext4_find_first_zero_bit	find_first_zero_bit_le
- #define ext4_find_next_zero_bit		find_next_zero_bit_le
- #define ext4_find_next_bit		find_next_bit_le
+ static inline void log_set_bit(struct log_c *l,
+ 			       uint32_t *bs, unsigned bit)
+ {
+-	__test_and_set_bit_le(bit, (unsigned long *) bs);
++	__set_bit_le(bit, bs);
+ 	l->touched_cleaned = 1;
+ }
  
-diff -puN fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops
-+++ a/fs/ext4/ialloc.c
-@@ -252,7 +252,7 @@ void ext4_free_inode(handle_t *handle, s
- 		fatal = ext4_journal_get_write_access(handle, bh2);
- 	}
- 	ext4_lock_group(sb, block_group);
--	cleared = ext4_clear_bit(bit, bitmap_bh->b_data);
-+	cleared = ext4_test_and_clear_bit(bit, bitmap_bh->b_data);
- 	if (fatal || !cleared) {
- 		ext4_unlock_group(sb, block_group);
- 		goto out;
-@@ -729,7 +729,7 @@ static int ext4_claim_inode(struct super
- 	 */
- 	down_read(&grp->alloc_sem);
- 	ext4_lock_group(sb, group);
--	if (ext4_set_bit(ino, inode_bitmap_bh->b_data)) {
-+	if (ext4_test_and_set_bit(ino, inode_bitmap_bh->b_data)) {
- 		/* not a free inode */
- 		retval = 1;
- 		goto err_ret;
+ static inline void log_clear_bit(struct log_c *l,
+ 				 uint32_t *bs, unsigned bit)
+ {
+-	__test_and_clear_bit_le(bit, (unsigned long *) bs);
++	__clear_bit_le(bit, bs);
+ 	l->touched_dirtied = 1;
+ }
+ 
+@@ -739,8 +739,7 @@ static int core_get_resync_work(struct d
+ 		return 0;
+ 
+ 	do {
+-		*region = find_next_zero_bit_le(
+-					     (unsigned long *) lc->sync_bits,
++		*region = find_next_zero_bit_le(lc->sync_bits,
+ 					     lc->region_count,
+ 					     lc->sync_search);
+ 		lc->sync_search = *region + 1;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
