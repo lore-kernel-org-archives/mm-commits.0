@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix.patch added to -mm tree
-Date: Mon, 27 Jun 2011 12:53:56 -0700
-Message-ID: <201106271953.p5RJrvkO022902@imap1.linux-foundation.org>
+Subject: + memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch added to -mm tree
+Date: Mon, 27 Jun 2011 13:25:59 -0700
+Message-ID: <201106272025.p5RKPx7u024762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753978Ab1F0Tye (ORCPT
+	by vger.kernel.org with ESMTP id S1754208Ab1F0U0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 15:54:34 -0400
+	Mon, 27 Jun 2011 16:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz, jinshan.xiong@whamcloud.com, mszeredi@suse.de
+Cc: kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
+     memcg: fix direct softlimit reclaim to be called in limit path
 has been added to the -mm tree.  Its filename is
-     mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix.patch
+     memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix direct softlimit reclaim to be called in limit path
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-take tree_lock in irq-safe manner
+commit d149e3b ("memcg: add the soft_limit reclaim in global direct
+reclaim") adds a softlimit hook to shrink_zones().  By this, soft limit is
+called as
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jay <jinshan.xiong@whamcloud.com>
-Cc: Miklos Szeredi <mszeredi@suse.de>
+   try_to_free_pages()
+       do_try_to_free_pages()
+           shrink_zones()
+               mem_cgroup_soft_limit_reclaim()
+
+Then, direct reclaim is memcg softlimit hint aware, now.
+
+But, the memory cgroup's "limit" path can call softlimit shrinker.
+
+   try_to_free_mem_cgroup_pages()
+       do_try_to_free_pages()
+           shrink_zones()
+               mem_cgroup_soft_limit_reclaim()
+
+This will cause a global reclaim when a memcg hits limit.
+
+This is bug. soft_limit_reclaim() should be called when
+scanning_global_lru(sc) == true.
+
+And the commit adds a variable "total_scanned" for counting softlimit
+scanned pages....it's not "total".  This patch removes the variable and
+update sc->nr_scanned instead of it.  This will affect shrink_slab()'s
+scan condition but, global LRU is scanned by softlimit and I think this
+change makes sense.
+
+TODO: avoid too much scanning of a zone when softlimit did enough work.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Ying Han <yinghan@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN fs/inode.c~mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix fs/inode.c
---- a/fs/inode.c~mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
-+++ a/fs/inode.c
-@@ -428,9 +428,9 @@ void end_writeback(struct inode *inode)
- 	 * process of removing the last page (in __delete_from_page_cache())
- 	 * and we must not free mapping under it.
- 	 */
--	spin_lock(&inode->i_data.tree_lock);
-+	spin_lock_irq(&inode->i_data.tree_lock);
- 	BUG_ON(inode->i_data.nrpages);
--	spin_unlock(&inode->i_data.tree_lock);
-+	spin_unlock_irq(&inode->i_data.tree_lock);
- 	BUG_ON(!list_empty(&inode->i_data.private_list));
- 	BUG_ON(!(inode->i_state & I_FREEING));
- 	BUG_ON(inode->i_state & I_CLEAR);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+diff -puN mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path
++++ a/mm/vmscan.c
+@@ -1995,14 +1995,13 @@ restart:
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+  */
+-static unsigned long shrink_zones(int priority, struct zonelist *zonelist,
++static void shrink_zones(int priority, struct zonelist *zonelist,
+ 					struct scan_control *sc)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+-	unsigned long total_scanned = 0;
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+@@ -2017,19 +2016,23 @@ static unsigned long shrink_zones(int pr
+ 				continue;
+ 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
+ 				continue;	/* Let kswapd poll it */
++			/*
++			 * This steals pages from memory cgroups over softlimit
++			 * and returns the number of reclaimed pages and
++			 * scanned pages. This works for global memory pressure
++			 * and balancing, not for a memcg's limit.
++			 */
++			nr_soft_scanned = 0;
++			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
++						sc->order, sc->gfp_mask,
++						&nr_soft_scanned);
++			sc->nr_reclaimed += nr_soft_reclaimed;
++			sc->nr_scanned += nr_soft_scanned;
++			/* need some check for avoid more shrink_zone() */
+ 		}
+ 
+-		nr_soft_scanned = 0;
+-		nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
+-							sc->order, sc->gfp_mask,
+-							&nr_soft_scanned);
+-		sc->nr_reclaimed += nr_soft_reclaimed;
+-		total_scanned += nr_soft_scanned;
+-
+ 		shrink_zone(priority, zone, sc);
+ 	}
