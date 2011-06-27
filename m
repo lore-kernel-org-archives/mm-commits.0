@@ -1,102 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + dm-use-use-proper-little-endian-bitops.patch added to -mm tree
-Date: Mon, 27 Jun 2011 13:38:51 -0700
-Message-ID: <201106272038.p5RKcqFQ025388@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix.patch removed from -mm tree
+Date: Mon, 27 Jun 2011 14:41:55 -0700
+Message-ID: <201106272141.p5RLftF7028853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754467Ab1F0UjL (ORCPT
+	by vger.kernel.org with ESMTP id S1754692Ab1F0VmC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:39:11 -0400
+	Mon, 27 Jun 2011 17:42:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, agk@redhat.com
+To: akpm@linux-foundation.org, jack@suse.cz, jinshan.xiong@whamcloud.com, mszeredi@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm: use use proper little-endian bitops
-has been added to the -mm tree.  Its filename is
-     dm-use-use-proper-little-endian-bitops.patch
+     mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
+has been removed from the -mm tree.  Its filename was
+     mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm: use use proper little-endian bitops
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Using __test_and_{set,clear}_bit_le() with ignoring its return value can
-be replaced with __{set,clear}_bit_le().
+take tree_lock in irq-safe manner
 
-This also removes unnecessary casts.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jay <jinshan.xiong@whamcloud.com>
+Cc: Miklos Szeredi <mszeredi@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops
-+++ a/drivers/md/dm-log.c
-@@ -251,20 +251,20 @@ struct log_c {
-  */
- static inline int log_test_bit(uint32_t *bs, unsigned bit)
- {
--	return test_bit_le(bit, (unsigned long *) bs) ? 1 : 0;
-+	return test_bit_le(bit, bs) ? 1 : 0;
- }
- 
- static inline void log_set_bit(struct log_c *l,
- 			       uint32_t *bs, unsigned bit)
- {
--	__test_and_set_bit_le(bit, (unsigned long *) bs);
-+	__set_bit_le(bit, bs);
- 	l->touched_cleaned = 1;
- }
- 
- static inline void log_clear_bit(struct log_c *l,
- 				 uint32_t *bs, unsigned bit)
- {
--	__test_and_clear_bit_le(bit, (unsigned long *) bs);
-+	__clear_bit_le(bit, bs);
- 	l->touched_dirtied = 1;
- }
- 
-@@ -739,8 +739,7 @@ static int core_get_resync_work(struct d
- 		return 0;
- 
- 	do {
--		*region = find_next_zero_bit_le(
--					     (unsigned long *) lc->sync_bits,
-+		*region = find_next_zero_bit_le(lc->sync_bits,
- 					     lc->region_count,
- 					     lc->sync_search);
- 		lc->sync_search = *region + 1;
+diff -puN fs/inode.c~mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix fs/inode.c
+--- a/fs/inode.c~mm-fix-assertion-mapping-nrpages-==-0-in-end_writeback-fix
++++ a/fs/inode.c
+@@ -428,9 +428,9 @@ void end_writeback(struct inode *inode)
+ 	 * process of removing the last page (in __delete_from_page_cache())
+ 	 * and we must not free mapping under it.
+ 	 */
+-	spin_lock(&inode->i_data.tree_lock);
++	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+-	spin_unlock(&inode->i_data.tree_lock);
++	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+ 	BUG_ON(inode->i_state & I_CLEAR);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-asm-generic-add-another-generic-ext2-atomic-bitops.patch
-ext4-use-proper-little-endian-bitops.patch
-dm-use-use-proper-little-endian-bitops.patch
-md-use-proper-little-endian-bitops.patch
-reiserfs-use-proper-little-endian-bitops.patch
-reiserfs-use-hweight_long.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
