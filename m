@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch added to -mm tree
-Date: Mon, 27 Jun 2011 13:25:59 -0700
-Message-ID: <201106272025.p5RKPx7u024762@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-lp5521c-fix-section-mismatches.patch added to -mm tree
+Date: Mon, 27 Jun 2011 13:33:41 -0700
+Message-ID: <201106272033.p5RKXfwd025123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754208Ab1F0U0k (ORCPT
+	by vger.kernel.org with ESMTP id S1754364Ab1F0Ud7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:26:40 -0400
+	Mon, 27 Jun 2011 16:33:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: ralf@linux-mips.org, rpurdie@rpsys.net
 
 
 The patch titled
-     memcg: fix direct softlimit reclaim to be called in limit path
+     drivers/leds/leds-lp5521.c: fix section mismatches
 has been added to the -mm tree.  Its filename is
-     memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch
+     drivers-leds-leds-lp5521c-fix-section-mismatches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix direct softlimit reclaim to be called in limit path
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: drivers/leds/leds-lp5521.c: fix section mismatches
+From: Ralf Baechle <ralf@linux-mips.org>
 
-commit d149e3b ("memcg: add the soft_limit reclaim in global direct
-reclaim") adds a softlimit hook to shrink_zones().  By this, soft limit is
-called as
+WARNING: drivers/leds/leds-lp5521.o(.text+0xf2c): Section mismatch in reference from the function lp5521_probe() to the function .init.text:lp5521_init_led()
+The function lp5521_probe() references
+the function __init lp5521_init_led().
+This is often because lp5521_probe lacks a __init
+annotation or the annotation of lp5521_init_led is wrong.
 
-   try_to_free_pages()
-       do_try_to_free_pages()
-           shrink_zones()
-               mem_cgroup_soft_limit_reclaim()
+Fixing this mismatch triggers one more mismatch, fix that one as well.
 
-Then, direct reclaim is memcg softlimit hint aware, now.
-
-But, the memory cgroup's "limit" path can call softlimit shrinker.
-
-   try_to_free_mem_cgroup_pages()
-       do_try_to_free_pages()
-           shrink_zones()
-               mem_cgroup_soft_limit_reclaim()
-
-This will cause a global reclaim when a memcg hits limit.
-
-This is bug. soft_limit_reclaim() should be called when
-scanning_global_lru(sc) == true.
-
-And the commit adds a variable "total_scanned" for counting softlimit
-scanned pages....it's not "total".  This patch removes the variable and
-update sc->nr_scanned instead of it.  This will affect shrink_slab()'s
-scan condition but, global LRU is scanned by softlimit and I think this
-change makes sense.
-
-TODO: avoid too much scanning of a zone when softlimit did enough work.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Ying Han <yinghan@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/leds/leds-lp5521.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path mm/vmscan.c
---- a/mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path
-+++ a/mm/vmscan.c
-@@ -1995,14 +1995,13 @@ restart:
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-  */
--static unsigned long shrink_zones(int priority, struct zonelist *zonelist,
-+static void shrink_zones(int priority, struct zonelist *zonelist,
- 					struct scan_control *sc)
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-section-mismatches drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-section-mismatches
++++ a/drivers/leds/leds-lp5521.c
+@@ -593,7 +593,7 @@ static void lp5521_unregister_sysfs(stru
+ 				&lp5521_led_attribute_group);
+ }
+ 
+-static int __init lp5521_init_led(struct lp5521_led *led,
++static int __devinit lp5521_init_led(struct lp5521_led *led,
+ 				struct i2c_client *client,
+ 				int chan, struct lp5521_platform_data *pdata)
  {
- 	struct zoneref *z;
- 	struct zone *zone;
- 	unsigned long nr_soft_reclaimed;
- 	unsigned long nr_soft_scanned;
--	unsigned long total_scanned = 0;
+@@ -637,7 +637,7 @@ static int __init lp5521_init_led(struct
+ 	return 0;
+ }
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(sc->gfp_mask), sc->nodemask) {
-@@ -2017,19 +2016,23 @@ static unsigned long shrink_zones(int pr
- 				continue;
- 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;	/* Let kswapd poll it */
-+			/*
-+			 * This steals pages from memory cgroups over softlimit
-+			 * and returns the number of reclaimed pages and
-+			 * scanned pages. This works for global memory pressure
-+			 * and balancing, not for a memcg's limit.
-+			 */
-+			nr_soft_scanned = 0;
-+			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
-+						sc->order, sc->gfp_mask,
-+						&nr_soft_scanned);
-+			sc->nr_reclaimed += nr_soft_reclaimed;
-+			sc->nr_scanned += nr_soft_scanned;
-+			/* need some check for avoid more shrink_zone() */
- 		}
- 
--		nr_soft_scanned = 0;
--		nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
--							sc->order, sc->gfp_mask,
--							&nr_soft_scanned);
--		sc->nr_reclaimed += nr_soft_reclaimed;
--		total_scanned += nr_soft_scanned;
--
- 		shrink_zone(priority, zone, sc);
- 	}
+-static int lp5521_probe(struct i2c_client *client,
++static int __devinit lp5521_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+ 	struct lp5521_chip		*chip;
+_
+
+Patches currently in -mm which might be from ralf@linux-mips.org are
+
+drivers-leds-leds-lp5521c-fix-section-mismatches.patch
+drivers-leds-leds-lp5523c-fix-section-mismatches.patch
+drivers-misc-ioc4c-fix-section-mismatch-race-condition.patch
+linux-next.patch
+mips-exec-remove-redundant-addr_limit-assignment.patch
+pci-make-the-struct-pci_dev-argument-of-pci_fixup_irqs-const.patch
+
