@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-ioc4c-fix-section-mismatch-race-condition.patch added to -mm tree
-Date: Mon, 27 Jun 2011 13:33:45 -0700
-Message-ID: <201106272033.p5RKXjoG025129@imap1.linux-foundation.org>
+Subject: + ext4-use-proper-little-endian-bitops.patch added to -mm tree
+Date: Mon, 27 Jun 2011 13:38:48 -0700
+Message-ID: <201106272038.p5RKcnOl025385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754226Ab1F0Udz (ORCPT
+	by vger.kernel.org with ESMTP id S1754469Ab1F0UjN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:33:55 -0400
+	Mon, 27 Jun 2011 16:39:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, bcasavan@sgi.com, tj@kernel.org
+Cc: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu
 
 
 The patch titled
-     drivers/misc/ioc4.c: fix section mismatch / race condition
+     ext4: use proper little-endian bitops
 has been added to the -mm tree.  Its filename is
-     drivers-misc-ioc4c-fix-section-mismatch-race-condition.patch
+     ext4-use-proper-little-endian-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/ioc4.c: fix section mismatch / race condition
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: ext4: use proper little-endian bitops
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-WARNING: drivers/misc/ioc4.o(.data+0x144): Section mismatch in reference from the variable ioc4_load_modules_work to the function .devinit.text:ioc4_load_modules()
-The variable ioc4_load_modules_work references
-the function __devinit ioc4_load_modules()
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*driver, *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+ext4_{set,clear}_bit() is defined as __test_and_{set,clear}_bit_le() for
+ext4.  Only two ext4_{set,clear}_bit() calls check the return value.  The
+rest of calls ignore the return value and they can be replaced with
+__{set,clear}_bit_le().
 
-This one is potentially fatal; by the time ioc4_load_modules is invoked it
-may already have been freed.  For that reason ioc4_load_modules_work can't
-be turned to __devinitdata but also because it's referenced in ioc4_exit.
+This changes ext4_{set,clear}_bit() from __test_and_{set,clear}_bit_le()
+to __{set,clear}_bit_le() and introduces ext4_test_and_{set,clear}_bit()
+for the two places where old bit needs to be returned.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Brent Casavant <bcasavan@sgi.com>
-Cc: Tejun Heo <tj@kernel.org>
+This ext4_{set,clear}_bit() change is considered safe, because if someone
+uses these macros without noticing the change, new ext4_{set,clear}_bit
+don't have return value and causes compiler errors where the return value
+is used.
+
+This also removes unused ext4_find_first_zero_bit().
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ioc4.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/ext4.h   |    7 ++++---
+ fs/ext4/ialloc.c |    4 ++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/ioc4.c~drivers-misc-ioc4c-fix-section-mismatch-race-condition drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~drivers-misc-ioc4c-fix-section-mismatch-race-condition
-+++ a/drivers/misc/ioc4.c
-@@ -270,7 +270,7 @@ ioc4_variant(struct ioc4_driver_data *id
- 	return IOC4_VARIANT_PCI_RT;
- }
+diff -puN fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops
++++ a/fs/ext4/ext4.h
+@@ -930,12 +930,13 @@ struct ext4_inode_info {
+ #define test_opt2(sb, opt)		(EXT4_SB(sb)->s_mount_opt2 & \
+ 					 EXT4_MOUNT2_##opt)
  
--static void __devinit
-+static void
- ioc4_load_modules(struct work_struct *work)
- {
- 	request_module("sgiioc4");
+-#define ext4_set_bit			__test_and_set_bit_le
++#define ext4_test_and_set_bit		__test_and_set_bit_le
++#define ext4_set_bit			__set_bit_le
+ #define ext4_set_bit_atomic		ext2_set_bit_atomic
+-#define ext4_clear_bit			__test_and_clear_bit_le
++#define ext4_test_and_clear_bit		__test_and_clear_bit_le
++#define ext4_clear_bit			__clear_bit_le
+ #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
+ #define ext4_test_bit			test_bit_le
+-#define ext4_find_first_zero_bit	find_first_zero_bit_le
+ #define ext4_find_next_zero_bit		find_next_zero_bit_le
+ #define ext4_find_next_bit		find_next_bit_le
+ 
+diff -puN fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops
++++ a/fs/ext4/ialloc.c
+@@ -252,7 +252,7 @@ void ext4_free_inode(handle_t *handle, s
+ 		fatal = ext4_journal_get_write_access(handle, bh2);
+ 	}
+ 	ext4_lock_group(sb, block_group);
+-	cleared = ext4_clear_bit(bit, bitmap_bh->b_data);
++	cleared = ext4_test_and_clear_bit(bit, bitmap_bh->b_data);
+ 	if (fatal || !cleared) {
+ 		ext4_unlock_group(sb, block_group);
+ 		goto out;
+@@ -729,7 +729,7 @@ static int ext4_claim_inode(struct super
+ 	 */
+ 	down_read(&grp->alloc_sem);
+ 	ext4_lock_group(sb, group);
+-	if (ext4_set_bit(ino, inode_bitmap_bh->b_data)) {
++	if (ext4_test_and_set_bit(ino, inode_bitmap_bh->b_data)) {
+ 		/* not a free inode */
+ 		retval = 1;
+ 		goto err_ret;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-drivers-leds-leds-lp5521c-fix-section-mismatches.patch
-drivers-leds-leds-lp5523c-fix-section-mismatches.patch
-drivers-misc-ioc4c-fix-section-mismatch-race-condition.patch
 linux-next.patch
-mips-exec-remove-redundant-addr_limit-assignment.patch
-pci-make-the-struct-pci_dev-argument-of-pci_fixup_irqs-const.patch
+asm-generic-add-another-generic-ext2-atomic-bitops.patch
+ext4-use-proper-little-endian-bitops.patch
+dm-use-use-proper-little-endian-bitops.patch
+md-use-proper-little-endian-bitops.patch
+reiserfs-use-proper-little-endian-bitops.patch
+reiserfs-use-hweight_long.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
