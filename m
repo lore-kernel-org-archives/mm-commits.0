@@ -1,120 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory-failurec-fix-spinlock-vs-mutex-order.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 13:42:36 -0700
-Message-ID: <201106282042.p5SKgIHV002994@imap1.linux-foundation.org>
+Subject: [merged] romfs-fix-romfs_get_unmapped_area-param-check.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:42:28 -0700
+Message-ID: <201106282042.p5SKgAZn002977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750788Ab1F1Uma (ORCPT
+	by vger.kernel.org with ESMTP id S1750733Ab1F1Um1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 16:42:30 -0400
+	Tue, 28 Jun 2011 16:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/memory-failure.c: fix spinlock vs mutex order
+     romfs: fix romfs_get_unmapped_area() argument check
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-fix-spinlock-vs-mutex-order.patch
+     romfs-fix-romfs_get_unmapped_area-param-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory-failure.c: fix spinlock vs mutex order
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: romfs: fix romfs_get_unmapped_area() argument check
+From: Bob Liu <lliubbo@gmail.com>
 
-We cannot take a mutex while holding a spinlock, so flip the order and
-fix the locking documentation.
+romfs_get_unmapped_area() checks argument `len' without considering
+PAGE_ALIGN which will cause do_mmap_pgoff() return -EINVAL error after
+commit f67d9b1576c ("nommu: add page_align to mmap").
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Andi Kleen <ak@linux.intel.com>
+Fix the check by changing it in same way ramfs_nommu_get_unmapped_area()
+was changed in ramfs/file-nommu.c.
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   21 ++++++---------------
- mm/rmap.c           |    5 ++---
- 2 files changed, 8 insertions(+), 18 deletions(-)
+ fs/romfs/mmap-nommu.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-fix-spinlock-vs-mutex-order mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-fix-spinlock-vs-mutex-order
-+++ a/mm/memory-failure.c
-@@ -391,10 +391,11 @@ static void collect_procs_anon(struct pa
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
+diff -puN fs/romfs/mmap-nommu.c~romfs-fix-romfs_get_unmapped_area-param-check fs/romfs/mmap-nommu.c
+--- a/fs/romfs/mmap-nommu.c~romfs-fix-romfs_get_unmapped_area-param-check
++++ a/fs/romfs/mmap-nommu.c
+@@ -27,14 +27,18 @@ static unsigned long romfs_get_unmapped_
+ {
+ 	struct inode *inode = file->f_mapping->host;
+ 	struct mtd_info *mtd = inode->i_sb->s_mtd;
+-	unsigned long isize, offset;
++	unsigned long isize, offset, maxpages, lpages;
  
--	read_lock(&tasklist_lock);
- 	av = page_lock_anon_vma(page);
- 	if (av == NULL)	/* Not actually mapped anymore */
--		goto out;
-+		return;
+ 	if (!mtd)
+ 		goto cant_map_directly;
+ 
++	/* the mapping mustn't extend beyond the EOF */
++	lpages = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	isize = i_size_read(inode);
+ 	offset = pgoff << PAGE_SHIFT;
+-	if (offset > isize || len > isize || offset > isize - len)
 +
-+	read_lock(&tasklist_lock);
- 	for_each_process (tsk) {
- 		struct anon_vma_chain *vmac;
++	maxpages = (isize + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	if ((pgoff >= maxpages) || (maxpages - pgoff < lpages))
+ 		return (unsigned long) -EINVAL;
  
-@@ -408,9 +409,8 @@ static void collect_procs_anon(struct pa
- 				add_to_kill(tsk, page, vma, to_kill, tkc);
- 		}
- 	}
--	page_unlock_anon_vma(av);
--out:
- 	read_unlock(&tasklist_lock);
-+	page_unlock_anon_vma(av);
- }
- 
- /*
-@@ -424,17 +424,8 @@ static void collect_procs_file(struct pa
- 	struct prio_tree_iter iter;
- 	struct address_space *mapping = page->mapping;
- 
--	/*
--	 * A note on the locking order between the two locks.
--	 * We don't rely on this particular order.
--	 * If you have some other code that needs a different order
--	 * feel free to switch them around. Or add a reverse link
--	 * from mm_struct to task_struct, then this could be all
--	 * done without taking tasklist_lock and looping over all tasks.
--	 */
--
--	read_lock(&tasklist_lock);
- 	mutex_lock(&mapping->i_mmap_mutex);
-+	read_lock(&tasklist_lock);
- 	for_each_process(tsk) {
- 		pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
- 
-@@ -454,8 +445,8 @@ static void collect_procs_file(struct pa
- 				add_to_kill(tsk, page, vma, to_kill, tkc);
- 		}
- 	}
--	mutex_unlock(&mapping->i_mmap_mutex);
- 	read_unlock(&tasklist_lock);
-+	mutex_unlock(&mapping->i_mmap_mutex);
- }
- 
- /*
-diff -puN mm/rmap.c~mm-memory-failurec-fix-spinlock-vs-mutex-order mm/rmap.c
---- a/mm/rmap.c~mm-memory-failurec-fix-spinlock-vs-mutex-order
-+++ a/mm/rmap.c
-@@ -38,9 +38,8 @@
-  *                           in arch-dependent flush_dcache_mmap_lock,
-  *                           within inode_wb_list_lock in __sync_single_inode)
-  *
-- * (code doesn't rely on that order so it could be switched around)
-- * ->tasklist_lock
-- *   anon_vma->mutex      (memory_failure, collect_procs_anon)
-+ * anon_vma->mutex,mapping->i_mutex      (memory_failure, collect_procs_anon)
-+ *   ->tasklist_lock
-  *     pte map lock
-  */
- 
+ 	/* we need to call down to the MTD layer to do the actual mapping */
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
-linux-next.patch
-bdi_min_ratio-never-shrinks-ultimately-preventing-valid-setting-of-min_ratio.patch
+mm-nommuc-fix-remap_pfn_range.patch
 
