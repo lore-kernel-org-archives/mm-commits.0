@@ -1,104 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] taskstats-dont-allow-duplicate-entries-in-listener-mode.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 13:42:41 -0700
-Message-ID: <201106282042.p5SKgNHO003002@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:42:43 -0700
+Message-ID: <201106282042.p5SKgPBA003011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096Ab1F1Umi (ORCPT
+	by vger.kernel.org with ESMTP id S1751096Ab1F1Umj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 16:42:38 -0400
+	Tue, 28 Jun 2011 16:42:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, bsingharora@gmail.com, segooon@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: don't allow duplicate entries in listener mode
+     memcg: fix direct softlimit reclaim to be called in limit path
 has been removed from the -mm tree.  Its filename was
-     taskstats-dont-allow-duplicate-entries-in-listener-mode.patch
+     memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: don't allow duplicate entries in listener mode
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: memcg: fix direct softlimit reclaim to be called in limit path
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Currently a single process may register exit handlers unlimited times.  It
-may lead to a bloated listeners chain and very slow process terminations. 
-E.g.  after 10KK sent TASKSTATS_CMD_ATTR_REGISTER_CPUMASKs ~300 Mb of
-kernel memory is stolen for the handlers chain and "time id" shows 2-7
-seconds instead of normal 0.003.  It makes it possible to exhaust all
-kernel memory and to eat much of CPU time by triggerring numerous exits on
-a single CPU.
+commit d149e3b ("memcg: add the soft_limit reclaim in global direct
+reclaim") adds a softlimit hook to shrink_zones().  By this, soft limit is
+called as
 
-The patch limits the number of times a single process may register itself
-on a single CPU to one.
+   try_to_free_pages()
+       do_try_to_free_pages()
+           shrink_zones()
+               mem_cgroup_soft_limit_reclaim()
 
-One little issue is kept unfixed - as taskstats_exit() is called before
-exit_files() in do_exit(), the orphaned listener entry (if it was not
-explicitly deregistered) is kept until the next someone's exit() and
-implicit deregistration in send_cpu_listeners().  So, if a process
-registered itself as a listener exits and the next spawned process gets
-the same pid, it would inherit taskstats attributes.
+Then, direct reclaim is memcg softlimit hint aware, now.
 
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: <stable@kernel.org>
+But, the memory cgroup's "limit" path can call softlimit shrinker.
+
+   try_to_free_mem_cgroup_pages()
+       do_try_to_free_pages()
+           shrink_zones()
+               mem_cgroup_soft_limit_reclaim()
+
+This will cause a global reclaim when a memcg hits limit.
+
+This is bug. soft_limit_reclaim() should be called when
+scanning_global_lru(sc) == true.
+
+And the commit adds a variable "total_scanned" for counting softlimit
+scanned pages....it's not "total".  This patch removes the variable and
+update sc->nr_scanned instead of it.  This will affect shrink_slab()'s
+scan condition but, global LRU is scanned by softlimit and I think this
+change makes sense.
+
+TODO: avoid too much scanning of a zone when softlimit did enough work.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Ying Han <yinghan@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN kernel/taskstats.c~taskstats-dont-allow-duplicate-entries-in-listener-mode kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-dont-allow-duplicate-entries-in-listener-mode
-+++ a/kernel/taskstats.c
-@@ -285,16 +285,18 @@ ret:
- static int add_del_listener(pid_t pid, const struct cpumask *mask, int isadd)
+diff -puN mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-direct-softlimit-reclaim-to-be-called-in-limit-path
++++ a/mm/vmscan.c
+@@ -1995,14 +1995,13 @@ restart:
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+  */
+-static unsigned long shrink_zones(int priority, struct zonelist *zonelist,
++static void shrink_zones(int priority, struct zonelist *zonelist,
+ 					struct scan_control *sc)
  {
- 	struct listener_list *listeners;
--	struct listener *s, *tmp;
-+	struct listener *s, *tmp, *s2;
- 	unsigned int cpu;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+-	unsigned long total_scanned = 0;
  
- 	if (!cpumask_subset(mask, cpu_possible_mask))
- 		return -EINVAL;
- 
-+	s = NULL;
- 	if (isadd == REGISTER) {
- 		for_each_cpu(cpu, mask) {
--			s = kmalloc_node(sizeof(struct listener), GFP_KERNEL,
--					 cpu_to_node(cpu));
-+			if (!s)
-+				s = kmalloc_node(sizeof(struct listener),
-+						 GFP_KERNEL, cpu_to_node(cpu));
- 			if (!s)
- 				goto cleanup;
- 			s->pid = pid;
-@@ -303,9 +305,16 @@ static int add_del_listener(pid_t pid, c
- 
- 			listeners = &per_cpu(listener_array, cpu);
- 			down_write(&listeners->sem);
-+			list_for_each_entry_safe(s2, tmp, &listeners->list, list) {
-+				if (s2->pid == pid)
-+					goto next_cpu;
-+			}
- 			list_add(&s->list, &listeners->list);
-+			s = NULL;
-+next_cpu:
- 			up_write(&listeners->sem);
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+@@ -2017,19 +2016,23 @@ static unsigned long shrink_zones(int pr
+ 				continue;
+ 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
+ 				continue;	/* Let kswapd poll it */
++			/*
++			 * This steals pages from memory cgroups over softlimit
++			 * and returns the number of reclaimed pages and
++			 * scanned pages. This works for global memory pressure
++			 * and balancing, not for a memcg's limit.
++			 */
++			nr_soft_scanned = 0;
++			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
++						sc->order, sc->gfp_mask,
++						&nr_soft_scanned);
++			sc->nr_reclaimed += nr_soft_reclaimed;
++			sc->nr_scanned += nr_soft_scanned;
++			/* need some check for avoid more shrink_zone() */
  		}
-+		kfree(s);
- 		return 0;
- 	}
  
-_
-
-Patches currently in -mm which might be from segoon@openwall.com are
-
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-
+-		nr_soft_scanned = 0;
+-		nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
+-							sc->order, sc->gfp_mask,
+-							&nr_soft_scanned);
+-		sc->nr_reclaimed += nr_soft_reclaimed;
+-		total_scanned += nr_soft_scanned;
+-
+ 		shrink_zone(priority, zone, sc);
+ 	}
