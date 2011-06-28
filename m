@@ -1,103 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drm-i915-use-shmem_truncate_range.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 13:42:58 -0700
-Message-ID: <201106282042.p5SKgeKm003036@imap1.linux-foundation.org>
+Subject: [merged] staging-iio-make-iio-depend-on-generic_hardirqs.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:43:11 -0700
+Message-ID: <201106282042.p5SKgrIK003049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750708Ab1F1Umx (ORCPT
+	by vger.kernel.org with ESMTP id S1750713Ab1F1UnG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 16:42:53 -0400
+	Tue, 28 Jun 2011 16:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, airlied@redhat.com, chris@chris-wilson.co.uk, hch@infradead.org, keithp@keithp.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, gregkh@suse.de, jeffm@suse.com, jic23@cam.ac.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm/i915: use shmem_truncate_range
+     staging/iio: make IIO depend on GENERIC_HARDIRQS
 has been removed from the -mm tree.  Its filename was
-     drm-i915-use-shmem_truncate_range.patch
+     staging-iio-make-iio-depend-on-generic_hardirqs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/i915: use shmem_truncate_range
-From: Hugh Dickins <hughd@google.com>
+Subject: staging/iio: make IIO depend on GENERIC_HARDIRQS
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-The interface to ->truncate_range is changing very slightly: once "tmpfs:
-take control of its truncate_range" has been applied, this can be applied.
- For now there is only a slight inefficiency while this remains unapplied,
-but it will soon become essential for managing shmem's use of swap.
+On m68k (which doesn't support generic hardirqs yet):
 
-Change i915_gem_object_truncate() to use shmem_truncate_range() directly:
-which should also spare i915 later change if we switch from
-inode_operations->truncate_range to file_operations->fallocate.
+drivers/staging/iio/industrialio-trigger.c: In function `iio_trigger_poll':
+drivers/staging/iio/industrialio-trigger.c:180: error: implicit declaration of function `generic_handle_irq'
+drivers/staging/iio/industrialio-trigger.c: In function `iio_trigger_poll_chained':
+drivers/staging/iio/industrialio-trigger.c:200: error: implicit declaration of function `handle_nested_irq'
+drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_release':
+drivers/staging/iio/industrialio-trigger.c:379: error: implicit declaration of function `irq_modify_status'
+drivers/staging/iio/industrialio-trigger.c:382: error: implicit declaration of function `irq_set_chip'
+drivers/staging/iio/industrialio-trigger.c:384: error: implicit declaration of function `irq_set_handler'
+drivers/staging/iio/industrialio-trigger.c:388: error: implicit declaration of function `irq_free_descs'
+drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_subirqmask':
+drivers/staging/iio/industrialio-trigger.c:402: error: implicit declaration of function `irq_data_get_irq_chip'
+drivers/staging/iio/industrialio-trigger.c:402: warning: initialization makes pointer from integer without a cast
+drivers/staging/iio/industrialio-trigger.c: In function `iio_trig_subirqunmask':
+drivers/staging/iio/industrialio-trigger.c:411: warning: initialization makes pointer from integer without a cast
+drivers/staging/iio/industrialio-trigger.c: In function `iio_allocate_trigger':
+drivers/staging/iio/industrialio-trigger.c:432: error: implicit declaration of function `irq_alloc_descs'
+drivers/staging/iio/industrialio-trigger.c:455: error: `handle_simple_irq' undeclared (first use in this function)
+drivers/staging/iio/industrialio-trigger.c:455: error: (Each undeclared identifier is reported only once
+drivers/staging/iio/industrialio-trigger.c:455: error: for each function it appears in.)
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Keith Packard <keithp@keithp.com>
-Cc: Dave Airlie <airlied@redhat.com>
+Hence IIO_TRIGGER should depend on GENERIC_HARDIRQS.  But as IIO_TRIGGER
+and IIO_RING_BUFFER form a maze of dependencies and selects, just make the
+whole IIO subsystem depend on GENERIC_HARDIRQS.
+
+This dependency also covers !S390, so that one can be removed again.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/staging/iio/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-shmem_truncate_range drivers/gpu/drm/i915/i915_gem.c
---- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-shmem_truncate_range
-+++ a/drivers/gpu/drm/i915/i915_gem.c
-@@ -1696,13 +1696,10 @@ i915_gem_object_truncate(struct drm_i915
- 	/* Our goal here is to return as much of the memory as
- 	 * is possible back to the system as we are called from OOM.
- 	 * To do this we must instruct the shmfs to drop all of its
--	 * backing pages, *now*. Here we mirror the actions taken
--	 * when by shmem_delete_inode() to release the backing store.
-+	 * backing pages, *now*.
- 	 */
- 	inode = obj->base.filp->f_path.dentry->d_inode;
--	truncate_inode_pages(inode->i_mapping, 0);
--	if (inode->i_op->truncate_range)
--		inode->i_op->truncate_range(inode, 0, (loff_t)-1);
-+	shmem_truncate_range(inode, 0, (loff_t)-1);
+diff -puN drivers/staging/iio/Kconfig~staging-iio-make-iio-depend-on-generic_hardirqs drivers/staging/iio/Kconfig
+--- a/drivers/staging/iio/Kconfig~staging-iio-make-iio-depend-on-generic_hardirqs
++++ a/drivers/staging/iio/Kconfig
+@@ -4,7 +4,7 @@
  
- 	obj->madv = __I915_MADV_PURGED;
- }
+ menuconfig IIO
+ 	tristate "Industrial I/O support"
+-	depends on !S390
++	depends on GENERIC_HARDIRQS
+ 	help
+ 	  The industrial I/O subsystem provides a unified framework for
+ 	  drivers for many different types of embedded sensors using a
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-mm-cleanup-descriptions-of-filler-arg.patch
-mm-truncate-functions-are-in-truncatec.patch
-mm-tidy-vmtruncate_range-and-related-functions.patch
-mm-consistent-truncate-and-invalidate-loops.patch
-mm-pincer-in-truncate_inode_pages_range.patch
-tmpfs-no-need-to-use-i_lock.patch
+mm-nommuc-fix-remap_pfn_range.patch
 linux-next.patch
-tmpfs-clone-shmem_file_splice_read.patch
-tmpfs-refine-shmem_file_splice_read.patch
-tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
-tmpfs-remove_shmem_readpage.patch
-tmpfs-simplify-prealloc_page.patch
-tmpfs-simplify-filepage-swappage.patch
-tmpfs-simplify-unuse-and-writepage.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-mm-a-few-small-updates-for-radix-swap-fix.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-prio_tree-debugging-patch.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
+m68k-exec-remove-redundant-set_fsuser_ds.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
 
