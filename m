@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-do-not-apply-pressure-to-slab-if-we-are-not-applying-pressure-to-zone.patch added to -mm tree
-Date: Tue, 28 Jun 2011 14:53:37 -0700
-Message-ID: <201106282153.p5SLrcNE007565__17166.008699178$1309300006$gmane$org@imap1.linux-foundation.org>
+Subject: + mm-memoryc-remove-zap_block_size.patch added to -mm tree
+Date: Tue, 28 Jun 2011 15:37:24 -0700
+Message-ID: <201106282237.p5SMbOa2011558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154Ab1F1W0c (ORCPT
+	by vger.kernel.org with ESMTP id S1750885Ab1F1Wha (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 18:26:32 -0400
+	Tue, 28 Jun 2011 18:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, P@draigBrady.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, luto@mit.edu, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm: vmscan: do not apply pressure to slab if we are not applying p=
-ressure to zone
+     mm/memory.c: remove ZAP_BLOCK_SIZE
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-apply-pressure-to-slab-if-we-are-not-applying-pre=
-ssure-to-zone.patch
+     mm-memoryc-remove-zap_block_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,116 +26,100 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: do not apply pressure to slab if we are not applyi=
-ng pressure to zone
-=46rom: Mel Gorman <mgorman@suse.de>
+Subject: mm/memory.c: remove ZAP_BLOCK_SIZE
+From: Andrew Morton <akpm@linux-foundation.org>
 
-During allocator-intensive workloads, kswapd will be woken frequently
-causing free memory to oscillate between the high and min watermark.  T=
-his
-is expected behaviour.
+ZAP_BLOCK_SIZE became unused in the preemptible-mmu_gather work ("mm:
+Remove i_mmap_lock lockbreak").  So zap it.
 
-When kswapd applies pressure to zones during node balancing, it checks =
-if
-the zone is above a high+balance_gap threshold.  If it is, it does not
-apply pressure but it unconditionally shrinks slab on a global basis wh=
-ich
-is excessive.  In the event kswapd is being kept awake due to a high sm=
-all
-unreclaimable zone, it skips zone shrinking but still calls shrink_slab=
-().
-
-Once pressure has been applied, the check for zone being unreclaimable =
-is
-being made before the check is made if all_unreclaimable should be set.=
-=20
-This miss of unreclaimable can cause has_under_min_watermark_zone to be
-set due to an unreclaimable zone preventing kswapd backing off on
-congestion_wait().
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: Andrew Lutomirski <luto@mit.edu>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ mm/memory.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-apply-pressure-to-slab-if-we-are=
--not-applying-pressure-to-zone mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-apply-pressure-to-slab-if-we-are-not=
--applying-pressure-to-zone
-+++ a/mm/vmscan.c
-@@ -2510,18 +2510,18 @@ loop_again:
- 				KSWAPD_ZONE_BALANCE_GAP_RATIO);
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone) + balance_gap,
--					end_zone, 0))
-+					end_zone, 0)) {
- 				shrink_zone(priority, zone, &sc);
--			reclaim_state->reclaimed_slab =3D 0;
--			nr_slab =3D shrink_slab(&shrink, sc.nr_scanned, lru_pages);
--			sc.nr_reclaimed +=3D reclaim_state->reclaimed_slab;
--			total_scanned +=3D sc.nr_scanned;
-=20
--			if (zone->all_unreclaimable)
--				continue;
--			if (nr_slab =3D=3D 0 &&
--			    !zone_reclaimable(zone))
--				zone->all_unreclaimable =3D 1;
-+				reclaim_state->reclaimed_slab =3D 0;
-+				nr_slab =3D shrink_slab(&shrink, sc.nr_scanned, lru_pages);
-+				sc.nr_reclaimed +=3D reclaim_state->reclaimed_slab;
-+				total_scanned +=3D sc.nr_scanned;
-+
-+				if (nr_slab =3D=3D 0 && !zone_reclaimable(zone))
-+					zone->all_unreclaimable =3D 1;
-+			}
-+
- 			/*
- 			 * If we've done a decent amount of scanning and
- 			 * the reclaim ratio is low, start doing writepage
-@@ -2531,6 +2531,9 @@ loop_again:
- 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
- 				sc.may_writepage =3D 1;
-=20
-+			if (zone->all_unreclaimable)
-+				continue;
-+
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), end_zone, 0)) {
- 				all_zones_ok =3D 0;
+diff -puN mm/memory.c~mm-memoryc-remove-zap_block_size mm/memory.c
+--- a/mm/memory.c~mm-memoryc-remove-zap_block_size
++++ a/mm/memory.c
+@@ -1289,13 +1289,6 @@ static unsigned long unmap_page_range(st
+ 	return addr;
+ }
+ 
+-#ifdef CONFIG_PREEMPT
+-# define ZAP_BLOCK_SIZE	(8 * PAGE_SIZE)
+-#else
+-/* No preempt: go for improved straight-line efficiency */
+-# define ZAP_BLOCK_SIZE	(1024 * PAGE_SIZE)
+-#endif
+-
+ /**
+  * unmap_vmas - unmap a range of memory covered by a list of vma's
+  * @tlb: address of the caller's struct mmu_gather
+@@ -1309,10 +1302,6 @@ static unsigned long unmap_page_range(st
+  *
+  * Unmap all pages in the vma list.
+  *
+- * We aim to not hold locks for too long (for scheduling latency reasons).
+- * So zap pages in ZAP_BLOCK_SIZE bytecounts.  This means we need to
+- * return the ending mmu_gather to the caller.
+- *
+  * Only addresses between `start' and `end' will be unmapped.
+  *
+  * The VMA list must be sorted in ascending virtual address order.
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-correct-check-for-kswapd-sleeping-in-sleeping_prematurely.pat=
-ch
-mm-vmscan-do-not-apply-pressure-to-slab-if-we-are-not-applying-pressure=
--to-zone.patch
-mm-vmscan-evaluate-the-watermarks-against-the-correct-classzone.patch
-mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-succes=
-sfully.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
