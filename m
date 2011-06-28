@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-correct-check-for-kswapd-sleeping-in-sleeping_prematurely.patch added to -mm tree
-Date: Tue, 28 Jun 2011 14:53:35 -0700
-Message-ID: <201106282153.p5SLrZZg007559@imap1.linux-foundation.org>
+Subject: + mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-successfully.patch added to -mm tree
+Date: Tue, 28 Jun 2011 14:53:42 -0700
+Message-ID: <201106282153.p5SLrggT007579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149Ab1F1VyX (ORCPT
+	by vger.kernel.org with ESMTP id S1751328Ab1F1VyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 17:54:23 -0400
+	Tue, 28 Jun 2011 17:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,11 +19,11 @@ Cc: mgorman@suse.de, P@draigBrady.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fu
 
 
 The patch titled
-     mm: vmscan: correct check for kswapd sleeping in sleeping_prematur=
-ely
+     mm: vmscan: only read new_classzone_idx from pgdat when reclaiming=
+ successfully
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-correct-check-for-kswapd-sleeping-in-sleeping_prematurel=
-y.patch
+     mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-s=
+uccessfully.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,8 +41,8 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: correct check for kswapd sleeping in sleeping_prem=
-aturely
+Subject: mm: vmscan: only read new_classzone_idx from pgdat when reclai=
+ming successfully
 =46rom: Mel Gorman <mgorman@suse.de>
 
 During allocator-intensive workloads, kswapd will be woken frequently
@@ -51,104 +51,134 @@ his
 is expected behaviour.  Unfortunately, if the highest zone is small, a
 problem occurs.
 
-This seems to happen most with recent sandybridge laptops but it's
-probably a co-incidence as some of these laptops just happen to have a
-small Normal zone.  The reproduction case is almost always during copyi=
-ng
-large files that kswapd pegs at 100% CPU until the file is deleted or
-cache is dropped.
-
-The problem is mostly down to sleeping_prematurely() keeping kswapd awa=
-ke
-when the highest zone is small and unreclaimable and compounded by the
-fact we shrink slabs even when not shrinking zones causing a lot of tim=
-e
-to be spent in shrinkers and a lot of memory to be reclaimed.
-
-Patch 1 corrects sleeping_prematurely to check the zones matching
-	the classzone_idx instead of all zones.
-
-Patch 2 avoids shrinking slab when we are not shrinking a zone.
-
-Patch 3 notes that sleeping_prematurely is checking lower zones against
-	a high classzone which is not what allocators or balance_pgdat()
-	is doing leading to an artifical belief that kswapd should be
-	still awake.
-
-Patch 4 notes that when balance_pgdat() gives up on a high zone that th=
-e
-	decision is not communicated to sleeping_prematurely()
-
-This problem affects 2.6.38.8 for certain and is expected to affect 2.6=
-=2E39
-and 3.0-rc4 as well.  If accepted, they need to go to -stable to be pic=
-ked
-up by distros and this series is against 3.0-rc4.  I've cc'd people tha=
+When balance_pgdat() returns, it may be at a lower classzone_idx than i=
 t
-reported similar problems recently to see if they still suffer from the
-problem and if this fixes it.
+started because the highest zone was unreclaimable.  Before checking if=
+ it
+should go to sleep though, it checks pgdat->classzone_idx which when th=
+ere
+is no other activity will be MAX_NR_ZONES-1.  It interprets this as it =
+has
+been woken up while reclaiming, skips scheduling and reclaims again.  A=
+s
+there is no useful reclaim work to do, it enters into a loop of shrinki=
+ng
+slab consuming loads of CPU until the highest zone becomes reclaimable =
+for
+a long period of time.
 
+There are two problems here.  1) If the returned classzone or order is
+lower, it'll continue reclaiming without scheduling.  2) if the highest
+zone was marked unreclaimable but balance_pgdat() returns immediately a=
+t
+DEF_PRIORITY, the new lower classzone is not communicated back to kswap=
+d()
+for sleeping.
 
-
-
-This patch: correct the check for kswapd sleeping in sleeping_premature=
-ly()
-
-During allocator-intensive workloads, kswapd will be woken frequently
-causing free memory to oscillate between the high and min watermark.  T=
-his
-is expected behaviour.
-
-A problem occurs if the highest zone is small.  balance_pgdat() only
-considers unreclaimable zones when priority is DEF_PRIORITY but
-sleeping_prematurely considers all zones.  It's possible for this seque=
-nce
-to occur
-
-  1. kswapd wakes up and enters balance_pgdat()
-  2. At DEF_PRIORITY, marks highest zone unreclaimable
-  3. At DEF_PRIORITY-1, ignores highest zone setting end_zone
-  4. At DEF_PRIORITY-1, calls shrink_slab freeing memory from
-        highest zone, clearing all_unreclaimable. Highest zone
-        is still unbalanced
-  5. kswapd returns and calls sleeping_prematurely
-  6. sleeping_prematurely looks at *all* zones, not just the ones
-     being considered by balance_pgdat. The highest small zone
-     has all_unreclaimable cleared but the zone is not
-     balanced. all_zones_ok is false so kswapd stays awake
-
-This patch corrects the behaviour of sleeping_prematurely to check the
-zones balance_pgdat() checked.
+This patch does two things that are related.  If the end_zone is
+unreclaimable, this information is communicated back.  Second, if the
+classzone or order was reduced due to failing to reclaim, new informati=
+on
+is not read from pgdat and instead an attempt is made to go to sleep.  =
+Due
+to this, it is also necessary that pgdat->classzone_idx be initialised
+each time to pgdat->nr_zones - 1 to avoid re-reads being interpreted as
+wakeups.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reported-by: P=E1draig Brady <P@draigBrady.com>
 Tested-by: P=E1draig Brady <P@draigBrady.com>
 Tested-by: Andrew Lutomirski <luto@mit.edu>
 Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   34 +++++++++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-correct-check-for-kswapd-sleeping-in-sl=
-eeping_prematurely mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-correct-check-for-kswapd-sleeping-in-sleepi=
-ng_prematurely
+diff -puN mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-=
+when-reclaiming-successfully mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-when=
+-reclaiming-successfully
 +++ a/mm/vmscan.c
-@@ -2326,7 +2326,7 @@ static bool sleeping_prematurely(pg_data
- 		return true;
+@@ -2451,7 +2451,6 @@ loop_again:
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), 0, 0)) {
+ 				end_zone =3D i;
+-				*classzone_idx =3D i;
+ 				break;
+ 			}
+ 		}
+@@ -2531,8 +2530,11 @@ loop_again:
+ 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
+ 				sc.may_writepage =3D 1;
 =20
- 	/* Check the watermark levels */
--	for (i =3D 0; i < pgdat->nr_zones; i++) {
-+	for (i =3D 0; i <=3D classzone_idx; i++) {
- 		struct zone *zone =3D pgdat->node_zones + i;
+-			if (zone->all_unreclaimable)
++			if (zone->all_unreclaimable) {
++				if (end_zone && end_zone =3D=3D i)
++					end_zone--;
+ 				continue;
++			}
 =20
- 		if (!populated_zone(zone))
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), end_zone, 0)) {
+@@ -2712,8 +2714,8 @@ static void kswapd_try_to_sleep(pg_data_
+  */
+ static int kswapd(void *p)
+ {
+-	unsigned long order;
+-	int classzone_idx;
++	unsigned long order, new_order;
++	int classzone_idx, new_classzone_idx;
+ 	pg_data_t *pgdat =3D (pg_data_t*)p;
+ 	struct task_struct *tsk =3D current;
+=20
+@@ -2743,17 +2745,23 @@ static int kswapd(void *p)
+ 	tsk->flags |=3D PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
+ 	set_freezable();
+=20
+-	order =3D 0;
+-	classzone_idx =3D MAX_NR_ZONES - 1;
++	order =3D new_order =3D 0;
++	classzone_idx =3D new_classzone_idx =3D pgdat->nr_zones - 1;
+ 	for ( ; ; ) {
+-		unsigned long new_order;
+-		int new_classzone_idx;
+ 		int ret;
+=20
+-		new_order =3D pgdat->kswapd_max_order;
+-		new_classzone_idx =3D pgdat->classzone_idx;
+-		pgdat->kswapd_max_order =3D 0;
+-		pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
++		/*
++		 * If the last balance_pgdat was unsuccessful it's unlikely a
++		 * new request of a similar or harder type will succeed soon
++		 * so consider going to sleep on the basis we reclaimed at
++		 */
++		if (classzone_idx >=3D new_classzone_idx && order =3D=3D new_order) =
+{
++			new_order =3D pgdat->kswapd_max_order;
++			new_classzone_idx =3D pgdat->classzone_idx;
++			pgdat->kswapd_max_order =3D  0;
++			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
++		}
++
+ 		if (order < new_order || classzone_idx > new_classzone_idx) {
+ 			/*
+ 			 * Don't sleep if someone wants a larger 'order'
+@@ -2766,7 +2774,7 @@ static int kswapd(void *p)
+ 			order =3D pgdat->kswapd_max_order;
+ 			classzone_idx =3D pgdat->classzone_idx;
+ 			pgdat->kswapd_max_order =3D 0;
+-			pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
++			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
+ 		}
+=20
+ 		ret =3D try_to_freeze();
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
