@@ -1,92 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 12:19:31 -0700
-Message-ID: <201106281919.p5SJJDTt028393@imap1.linux-foundation.org>
+Subject: [withdrawn] init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 12:39:43 -0700
+Message-ID: <201106281939.p5SJdPF6030018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751233Ab1F1TTn (ORCPT
+	by vger.kernel.org with ESMTP id S1751643Ab1F1TkC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 15:19:43 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p5SJJEKm015560
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2011 12:19:14 -0700
+	Tue, 28 Jun 2011 15:40:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Make these messages more gramatically pleasing, more consistent and remove
+strange ellipses.
+
+Cc: Andrew Worsley <amworsley@gmail.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Sameer Nanda <snanda@chromium.org>
+Cc: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/pnfs.c |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ init/calibrate.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/nfs/pnfs.c~linux-next-git-rejects fs/nfs/pnfs.c
---- a/fs/nfs/pnfs.c~linux-next-git-rejects
-+++ a/fs/nfs/pnfs.c
-@@ -1079,38 +1079,6 @@ pnfs_generic_pg_init_read(struct nfs_pag
- }
- EXPORT_SYMBOL_GPL(pnfs_generic_pg_init_read);
+diff -puN init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages init/calibrate.c
+--- a/init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages
++++ a/init/calibrate.c
+@@ -253,24 +253,24 @@ void __cpuinit calibrate_delay(void)
  
--<<<<<<< HEAD
--	if (pgio->pg_lseg == NULL) {
--		if (pgio->pg_count != prev->wb_bytes)
--			return true;
--		/* This is first coelesce call for a series of nfs_pages */
--		pgio->pg_lseg = pnfs_update_layout(pgio->pg_inode,
--						   prev->wb_context,
--						   req_offset(prev),
--						   pgio->pg_count,
--						   access_type,
--						   gfp_flags);
--		if (pgio->pg_lseg == NULL)
--			return true;
--	}
--
--	/*
--	 * Test if a nfs_page is fully contained in the pnfs_layout_range.
--	 * Note that this test makes several assumptions:
--	 * - that the previous nfs_page in the struct nfs_pageio_descriptor
--	 *   is known to lie within the range.
--	 *   - that the nfs_page being tested is known to be contiguous with the
--	 *   previous nfs_page.
--	 *   - Layout ranges are page aligned, so we only have to test the
--	 *   start offset of the request.
--	 *
--	 * Please also note that 'end_offset' is actually the offset of the
--	 * first byte that lies outside the pnfs_layout_range. FIXME?
--	 *
--	 */
--	return req_offset(req) < end_offset(pgio->pg_lseg->pls_range.offset,
--					 pgio->pg_lseg->pls_range.length);
--=======
- void
- pnfs_generic_pg_init_write(struct nfs_pageio_descriptor *pgio, struct nfs_page *req)
- {
-@@ -1150,7 +1118,6 @@ pnfs_pageio_init_write(struct nfs_pageio
- 		return false;
- 	nfs_pageio_init(pgio, inode, ld->pg_write_ops, server->wsize, ioflags);
- 	return true;
-->>>>>>> FETCH_HEAD
- }
- 
- bool
+ 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
+ 		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
+-		pr_info("Calibrating delay loop (skipped) "
+-				"already calibrated this CPU");
++		pr_info("Calibrating delay loop.  Skipped: already calibrated "
++				"this CPU");
+ 	} else if (preset_lpj) {
+ 		loops_per_jiffy = preset_lpj;
+ 		if (!printed)
+-			pr_info("Calibrating delay loop (skipped) "
+-				"preset value.. ");
++			pr_info("Calibrating delay loop.  Skipped: "
++				"preset value");
+ 	} else if ((!printed) && lpj_fine) {
+ 		loops_per_jiffy = lpj_fine;
+-		pr_info("Calibrating delay loop (skipped), "
+-			"value calculated using timer frequency.. ");
++		pr_info("Calibrating delay loop.  Skipped: value calculated "
++				"using timer frequency");
+ 	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
+ 		if (!printed)
+-			pr_info("Calibrating delay using timer "
+-				"specific routine.. ");
++			pr_info("Calibrating delay loop using timer-specific "
++					"routine");
+ 	} else {
+ 		if (!printed)
+-			pr_info("Calibrating delay loop... ");
++			pr_info("Calibrating delay loop");
+ 		loops_per_jiffy = calibrate_delay_converge();
+ 	}
+ 	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,7 +109,6 @@ fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
 fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 init-skip-calibration-delay-if-previously-done-fix.patch
 init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
 drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
