@@ -1,252 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 13:42:13 -0700
-Message-ID: <201106282041.p5SKftvd002939@imap1.linux-foundation.org>
+Subject: [merged] tmpfs-add-shmem_read_mapping_page_gfp.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:42:22 -0700
+Message-ID: <201106282042.p5SKg4NC002965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751115Ab1F1UmL (ORCPT
+	by vger.kernel.org with ESMTP id S1751115Ab1F1UmI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 16:42:11 -0400
+	Tue, 28 Jun 2011 16:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mingo@elte.hu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix node_start/end_pfn() definition for mm/page_cgroup.c
+     tmpfs: add shmem_read_mapping_page_gfp
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc.patch
+     tmpfs-add-shmem_read_mapping_page_gfp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix node_start/end_pfn() definition for mm/page_cgroup.c
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: tmpfs: add shmem_read_mapping_page_gfp
+From: Hugh Dickins <hughd@google.com>
 
-commit 37573e8c7182 ("memcg: fix init_page_cgroup nid with sparsemem")
-uses node_start/end_pfn(nid) for detection start/end of nodes.  But, it's
-not defined in linux/mmzone.h but defined in /arch/???/include/mmzone.h
-which is included only under CONFIG_NEED_MULTIPLE_NODES=y.
+Although it is used (by i915) on nothing but tmpfs, read_cache_page_gfp()
+is unsuited to tmpfs, because it inserts a page into pagecache before
+calling the filesystem's ->readpage: tmpfs may have pages in swapcache
+which only it knows how to locate and switch to filecache.
 
-Then, we see
-mm/page_cgroup.c: In function 'page_cgroup_init':
-mm/page_cgroup.c:308: error: implicit declaration of function 'node_start_pfn'
-mm/page_cgroup.c:309: error: implicit declaration of function 'node_end_pfn'
+At present tmpfs provides a ->readpage method, and copes with this by
+copying pages; but soon we can simplify it by removing its ->readpage. 
+Provide shmem_read_mapping_page_gfp() now, ready for that transition,
 
-So, fixing page_cgroup.c is an idea...
+Export shmem_read_mapping_page_gfp() and add it to list in shmem_fs.h,
+with shmem_read_mapping_page() inline for the common mapping_gfp case.
 
-But node_start_pfn()/node_end_pfn() is a very generic macro and should be
-implemented in the same manner for all archs.  (m32r has different
-implementation...)
+(shmem_read_mapping_page_gfp or shmem_read_cache_page_gfp?  Generally the
+read_mapping_page functions use the mapping's ->readpage, and the
+read_cache_page functions use the supplied filler, so I think
+read_cache_page_gfp was slightly misnamed.)
 
-This patch removes definitions of node_start/end_pfn() in each archs and
-defines a unified one in linux/mmzone.h.  It's not under
-CONFIG_NEED_MULTIPLE_NODES, now.
-
-A result of macro expansion is here (mm/page_cgroup.c)
-
-for !NUMA
- start_pfn = ((&contig_page_data)->node_start_pfn);
-  end_pfn = ({ pg_data_t *__pgdat = (&contig_page_data); __pgdat->node_start_pfn + __pgdat->node_spanned_pages;});
-
-for NUMA (x86-64)
-  start_pfn = ((node_data[nid])->node_start_pfn);
-  end_pfn = ({ pg_data_t *__pgdat = (node_data[nid]); __pgdat->node_start_pfn + __pgdat->node_spanned_pages;});
-
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mmzone.h   |    1 -
- arch/m32r/include/asm/mmzone.h    |    8 +-------
- arch/parisc/include/asm/mmzone.h  |    7 -------
- arch/powerpc/include/asm/mmzone.h |    7 -------
- arch/sh/include/asm/mmzone.h      |    4 ----
- arch/sparc/include/asm/mmzone.h   |    2 --
- arch/tile/include/asm/mmzone.h    |   11 -----------
- arch/x86/include/asm/mmzone_32.h  |   11 -----------
- arch/x86/include/asm/mmzone_64.h  |    3 ---
- include/linux/mmzone.h            |    7 +++++++
- 10 files changed, 8 insertions(+), 53 deletions(-)
+ include/linux/shmem_fs.h |   17 ++++++++++-------
+ mm/shmem.c               |   23 +++++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 7 deletions(-)
 
-diff -puN arch/alpha/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/alpha/include/asm/mmzone.h
---- a/arch/alpha/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/alpha/include/asm/mmzone.h
-@@ -56,7 +56,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p, 
-  * Given a kernel address, find the home node of the underlying memory.
-  */
- #define kvaddr_to_nid(kaddr)	pa_to_nid(__pa(kaddr))
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
+diff -puN include/linux/shmem_fs.h~tmpfs-add-shmem_read_mapping_page_gfp include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~tmpfs-add-shmem_read_mapping_page_gfp
++++ a/include/linux/shmem_fs.h
+@@ -3,15 +3,9 @@
  
- /*
-  * Given a kaddr, LOCAL_BASE_ADDR finds the owning node of the memory
-diff -puN arch/m32r/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/m32r/include/asm/mmzone.h
---- a/arch/m32r/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/m32r/include/asm/mmzone.h
-@@ -14,12 +14,6 @@ extern struct pglist_data *node_data[];
- #define NODE_DATA(nid)		(node_data[nid])
+ #include <linux/swap.h>
+ #include <linux/mempolicy.h>
++#include <linux/pagemap.h>
+ #include <linux/percpu_counter.h>
  
- #define node_localnr(pfn, nid)	((pfn) - NODE_DATA(nid)->node_start_pfn)
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)						\
--({									\
--	pg_data_t *__pgdat = NODE_DATA(nid);				\
--	__pgdat->node_start_pfn + __pgdat->node_spanned_pages - 1;	\
--})
- 
- #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
- /*
-@@ -44,7 +38,7 @@ static __inline__ int pfn_to_nid(unsigne
- 	int node;
- 
- 	for (node = 0 ; node < MAX_NUMNODES ; node++)
--		if (pfn >= node_start_pfn(node) && pfn <= node_end_pfn(node))
-+		if (pfn >= node_start_pfn(node) && pfn < node_end_pfn(node))
- 			break;
- 
- 	return node;
-diff -puN arch/parisc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/parisc/include/asm/mmzone.h
---- a/arch/parisc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/parisc/include/asm/mmzone.h
-@@ -14,13 +14,6 @@ extern struct node_map_data node_data[];
- 
- #define NODE_DATA(nid)          (&node_data[nid].pg_data)
- 
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)						\
--({									\
--	pg_data_t *__pgdat = NODE_DATA(nid);				\
--	__pgdat->node_start_pfn + __pgdat->node_spanned_pages;		\
--})
+-struct page;
+-struct file;
+-struct inode;
+-struct super_block;
+-struct user_struct;
+-struct vm_area_struct;
 -
- /* We have these possible memory map layouts:
-  * Astro: 0-3.75, 67.75-68, 4-64
-  * zx1: 0-1, 257-260, 4-256
-diff -puN arch/powerpc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/powerpc/include/asm/mmzone.h
---- a/arch/powerpc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -38,13 +38,6 @@ u64 memory_hotplug_max(void);
- #define memory_hotplug_max() memblock_end_of_DRAM()
- #endif
+ /* inode in-kernel data */
  
--/*
-- * Following are macros that each numa implmentation must define.
-- */
--
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)	(NODE_DATA(nid)->node_end_pfn)
--
- #else
- #define memory_hotplug_max() memblock_end_of_DRAM()
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
-diff -puN arch/sh/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/sh/include/asm/mmzone.h
---- a/arch/sh/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/sh/include/asm/mmzone.h
-@@ -9,10 +9,6 @@
- extern struct pglist_data *node_data[];
- #define NODE_DATA(nid)		(node_data[nid])
+ #define SHMEM_NR_DIRECT 16
+@@ -61,9 +55,18 @@ extern struct file *shmem_file_setup(con
+ 					loff_t size, unsigned long flags);
+ extern int shmem_zero_setup(struct vm_area_struct *);
+ extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
++extern struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
++					pgoff_t index, gfp_t gfp_mask);
+ extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
+ extern int shmem_unuse(swp_entry_t entry, struct page *page);
+ extern void mem_cgroup_get_shmem_target(struct inode *inode, pgoff_t pgoff,
+ 					struct page **pagep, swp_entry_t *ent);
  
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)	(NODE_DATA(nid)->node_start_pfn + \
--				 NODE_DATA(nid)->node_spanned_pages)
--
- static inline int pfn_to_nid(unsigned long pfn)
- {
- 	int nid;
-diff -puN arch/sparc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/sparc/include/asm/mmzone.h
---- a/arch/sparc/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/sparc/include/asm/mmzone.h
-@@ -8,8 +8,6 @@
- extern struct pglist_data *node_data[];
- 
- #define NODE_DATA(nid)		(node_data[nid])
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)	(NODE_DATA(nid)->node_end_pfn)
- 
- extern int numa_cpu_lookup_table[];
- extern cpumask_t numa_cpumask_lookup_table[];
-diff -puN arch/tile/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/tile/include/asm/mmzone.h
---- a/arch/tile/include/asm/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/tile/include/asm/mmzone.h
-@@ -40,17 +40,6 @@ static inline int pfn_to_nid(unsigned lo
- 	return highbits_to_node[__pfn_to_highbits(pfn)];
- }
- 
--/*
-- * Following are macros that each numa implmentation must define.
-- */
--
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)						\
--({									\
--	pg_data_t *__pgdat = NODE_DATA(nid);				\
--	__pgdat->node_start_pfn + __pgdat->node_spanned_pages;		\
--})
--
- #define kern_addr_valid(kaddr)	virt_addr_valid((void *)kaddr)
- 
- static inline int pfn_valid(int pfn)
-diff -puN arch/x86/include/asm/mmzone_32.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/x86/include/asm/mmzone_32.h
---- a/arch/x86/include/asm/mmzone_32.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/x86/include/asm/mmzone_32.h
-@@ -48,17 +48,6 @@ static inline int pfn_to_nid(unsigned lo
- #endif
- }
- 
--/*
-- * Following are macros that each numa implmentation must define.
-- */
--
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)						\
--({									\
--	pg_data_t *__pgdat = NODE_DATA(nid);				\
--	__pgdat->node_start_pfn + __pgdat->node_spanned_pages;		\
--})
--
- static inline int pfn_valid(int pfn)
- {
- 	int nid = pfn_to_nid(pfn);
-diff -puN arch/x86/include/asm/mmzone_64.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc arch/x86/include/asm/mmzone_64.h
---- a/arch/x86/include/asm/mmzone_64.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/arch/x86/include/asm/mmzone_64.h
-@@ -13,8 +13,5 @@ extern struct pglist_data *node_data[];
- 
- #define NODE_DATA(nid)		(node_data[nid])
- 
--#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
--#define node_end_pfn(nid)       (NODE_DATA(nid)->node_start_pfn +	\
--				 NODE_DATA(nid)->node_spanned_pages)
- #endif
- #endif /* _ASM_X86_MMZONE_64_H */
-diff -puN include/linux/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc include/linux/mmzone.h
---- a/include/linux/mmzone.h~memcg-fix-node_start-end_pfn-definition-for-mm-page_cgroupc
-+++ a/include/linux/mmzone.h
-@@ -647,6 +647,13 @@ typedef struct pglist_data {
- #endif
- #define nid_page_nr(nid, pagenr) 	pgdat_page_nr(NODE_DATA(nid),(pagenr))
- 
-+#define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
++static inline struct page *shmem_read_mapping_page(
++				struct address_space *mapping, pgoff_t index)
++{
++	return shmem_read_mapping_page_gfp(mapping, index,
++					mapping_gfp_mask(mapping));
++}
 +
-+#define node_end_pfn(nid) ({\
-+	pg_data_t *__pgdat = NODE_DATA(nid);\
-+	__pgdat->node_start_pfn + __pgdat->node_spanned_pages;\
-+})
+ #endif
+diff -puN mm/shmem.c~tmpfs-add-shmem_read_mapping_page_gfp mm/shmem.c
+--- a/mm/shmem.c~tmpfs-add-shmem_read_mapping_page_gfp
++++ a/mm/shmem.c
+@@ -3035,3 +3035,26 @@ int shmem_zero_setup(struct vm_area_stru
+ 	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 	return 0;
+ }
 +
- #include <linux/memory_hotplug.h>
- 
- extern struct mutex zonelists_mutex;
++/**
++ * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
++ * @mapping:	the page's address_space
++ * @index:	the page index
++ * @gfp:	the page allocator flags to use if allocating
++ *
++ * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
++ * with any new page allocations done using the specified allocation flags.
++ * But read_cache_page_gfp() uses the ->readpage() method: which does not
++ * suit tmpfs, since it may have pages in swapcache, and needs to find those
++ * for itself; although drivers/gpu/drm i915 and ttm rely upon this support.
++ *
++ * Provide a stub for those callers to start using now, then later
++ * flesh it out to call shmem_getpage() with additional gfp mask, when
++ * shmem_file_splice_read() is added and shmem_readpage() is removed.
++ */
++struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
++					 pgoff_t index, gfp_t gfp)
++{
++	return read_cache_page_gfp(mapping, index, gfp);
++}
++EXPORT_SYMBOL_GPL(shmem_read_mapping_page_gfp);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+mm-cleanup-descriptions-of-filler-arg.patch
+mm-truncate-functions-are-in-truncatec.patch
+mm-tidy-vmtruncate_range-and-related-functions.patch
+mm-consistent-truncate-and-invalidate-loops.patch
+mm-pincer-in-truncate_inode_pages_range.patch
+tmpfs-no-need-to-use-i_lock.patch
+linux-next.patch
+tmpfs-clone-shmem_file_splice_read.patch
+tmpfs-refine-shmem_file_splice_read.patch
+tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
+tmpfs-remove_shmem_readpage.patch
+tmpfs-simplify-prealloc_page.patch
+tmpfs-simplify-filepage-swappage.patch
+tmpfs-simplify-unuse-and-writepage.patch
+radix_tree-exceptional-entries-and-indices.patch
+mm-let-swap-use-exceptional-entries.patch
+tmpfs-demolish-old-swap-vector-support.patch
+tmpfs-miscellaneous-trivial-cleanups.patch
+tmpfs-copy-truncate_inode_pages_range.patch
+tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
+tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
+tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
+tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
+tmpfs-convert-shmem_writepage-and-enable-swap.patch
+tmpfs-use-kmemdup-for-short-symlinks.patch
+mm-a-few-small-updates-for-radix-swap.patch
+mm-a-few-small-updates-for-radix-swap-fix.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+prio_tree-debugging-patch.patch
 
