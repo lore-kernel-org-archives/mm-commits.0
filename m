@@ -1,128 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 12:39:43 -0700
-Message-ID: <201106281939.p5SJdPF6030018@imap1.linux-foundation.org>
+Subject: [merged] mm-move-vmtruncate_range-to-truncatec.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:42:16 -0700
+Message-ID: <201106282041.p5SKfwg1002942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751643Ab1F1TkC (ORCPT
+	by vger.kernel.org with ESMTP id S1750774Ab1F1UmG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 15:40:02 -0400
+	Tue, 28 Jun 2011 16:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org, mm-commits@vger.kernel.org
+To: hughd@google.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
+     mm: move vmtruncate_range to truncate.c
 has been removed from the -mm tree.  Its filename was
-     init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+     mm-move-vmtruncate_range-to-truncatec.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/calibrate.c: calibrate_delay(): tidy up the pr_info messages
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: move vmtruncate_range to truncate.c
+From: Hugh Dickins <hughd@google.com>
 
-Make these messages more gramatically pleasing, more consistent and remove
-strange ellipses.
+You would expect to find vmtruncate_range() next to vmtruncate() in
+mm/truncate.c: move it there.
 
-Cc: Andrew Worsley <amworsley@gmail.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Sameer Nanda <snanda@chromium.org>
-Cc: David Daney <ddaney@caviumnetworks.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/memory.c   |   24 ------------------------
+ mm/truncate.c |   24 ++++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages init/calibrate.c
---- a/init/calibrate.c~init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages
-+++ a/init/calibrate.c
-@@ -253,24 +253,24 @@ void __cpuinit calibrate_delay(void)
+diff -puN mm/memory.c~mm-move-vmtruncate_range-to-truncatec mm/memory.c
+--- a/mm/memory.c~mm-move-vmtruncate_range-to-truncatec
++++ a/mm/memory.c
+@@ -2798,30 +2798,6 @@ void unmap_mapping_range(struct address_
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
  
- 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
- 		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
--		pr_info("Calibrating delay loop (skipped) "
--				"already calibrated this CPU");
-+		pr_info("Calibrating delay loop.  Skipped: already calibrated "
-+				"this CPU");
- 	} else if (preset_lpj) {
- 		loops_per_jiffy = preset_lpj;
- 		if (!printed)
--			pr_info("Calibrating delay loop (skipped) "
--				"preset value.. ");
-+			pr_info("Calibrating delay loop.  Skipped: "
-+				"preset value");
- 	} else if ((!printed) && lpj_fine) {
- 		loops_per_jiffy = lpj_fine;
--		pr_info("Calibrating delay loop (skipped), "
--			"value calculated using timer frequency.. ");
-+		pr_info("Calibrating delay loop.  Skipped: value calculated "
-+				"using timer frequency");
- 	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
- 		if (!printed)
--			pr_info("Calibrating delay using timer "
--				"specific routine.. ");
-+			pr_info("Calibrating delay loop using timer-specific "
-+					"routine");
- 	} else {
- 		if (!printed)
--			pr_info("Calibrating delay loop... ");
-+			pr_info("Calibrating delay loop");
- 		loops_per_jiffy = calibrate_delay_converge();
- 	}
- 	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
+-int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end)
+-{
+-	struct address_space *mapping = inode->i_mapping;
+-
+-	/*
+-	 * If the underlying filesystem is not going to provide
+-	 * a way to truncate a range of blocks (punch a hole) -
+-	 * we should return failure right now.
+-	 */
+-	if (!inode->i_op->truncate_range)
+-		return -ENOSYS;
+-
+-	mutex_lock(&inode->i_mutex);
+-	down_write(&inode->i_alloc_sem);
+-	unmap_mapping_range(mapping, offset, (end - offset), 1);
+-	truncate_inode_pages_range(mapping, offset, end);
+-	unmap_mapping_range(mapping, offset, (end - offset), 1);
+-	inode->i_op->truncate_range(inode, offset, end);
+-	up_write(&inode->i_alloc_sem);
+-	mutex_unlock(&inode->i_mutex);
+-
+-	return 0;
+-}
+-
+ /*
+  * We enter with non-exclusive mmap_sem (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+diff -puN mm/truncate.c~mm-move-vmtruncate_range-to-truncatec mm/truncate.c
+--- a/mm/truncate.c~mm-move-vmtruncate_range-to-truncatec
++++ a/mm/truncate.c
+@@ -603,3 +603,27 @@ int vmtruncate(struct inode *inode, loff
+ 	return 0;
+ }
+ EXPORT_SYMBOL(vmtruncate);
++
++int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end)
++{
++	struct address_space *mapping = inode->i_mapping;
++
++	/*
++	 * If the underlying filesystem is not going to provide
++	 * a way to truncate a range of blocks (punch a hole) -
++	 * we should return failure right now.
++	 */
++	if (!inode->i_op->truncate_range)
++		return -ENOSYS;
++
++	mutex_lock(&inode->i_mutex);
++	down_write(&inode->i_alloc_sem);
++	unmap_mapping_range(mapping, offset, (end - offset), 1);
++	truncate_inode_pages_range(mapping, offset, end);
++	unmap_mapping_range(mapping, offset, (end - offset), 1);
++	inode->i_op->truncate_range(inode, offset, end);
++	up_write(&inode->i_alloc_sem);
++	mutex_unlock(&inode->i_mutex);
++
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
+mm-cleanup-descriptions-of-filler-arg.patch
+mm-truncate-functions-are-in-truncatec.patch
+mm-tidy-vmtruncate_range-and-related-functions.patch
+mm-consistent-truncate-and-invalidate-loops.patch
+mm-pincer-in-truncate_inode_pages_range.patch
+tmpfs-no-need-to-use-i_lock.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+tmpfs-clone-shmem_file_splice_read.patch
+tmpfs-refine-shmem_file_splice_read.patch
+tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
+tmpfs-remove_shmem_readpage.patch
+tmpfs-simplify-prealloc_page.patch
+tmpfs-simplify-filepage-swappage.patch
+tmpfs-simplify-unuse-and-writepage.patch
+radix_tree-exceptional-entries-and-indices.patch
+mm-let-swap-use-exceptional-entries.patch
+tmpfs-demolish-old-swap-vector-support.patch
+tmpfs-miscellaneous-trivial-cleanups.patch
+tmpfs-copy-truncate_inode_pages_range.patch
+tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
+tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
+tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
+tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
+tmpfs-convert-shmem_writepage-and-enable-swap.patch
+tmpfs-use-kmemdup-for-short-symlinks.patch
+mm-a-few-small-updates-for-radix-swap.patch
+mm-a-few-small-updates-for-radix-swap-fix.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+prio_tree-debugging-patch.patch
 
