@@ -1,97 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drm-i915-more-struct_mutex-locking-fix.patch removed from -mm tree
-Date: Mon, 27 Jun 2011 16:16:54 -0700
-Message-ID: <201106272316.p5RNGsAd001346@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 12:19:31 -0700
+Message-ID: <201106281919.p5SJJDTt028393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755032Ab1F0XRJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751233Ab1F1TTn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Jun 2011 19:17:09 -0400
+	Tue, 28 Jun 2011 15:19:43 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p5SJJEKm015560
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2011 12:19:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, chris@chris-wilson.co.uk, keithp@keithp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm-i915-more-struct_mutex-locking-fix
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     drm-i915-more-struct_mutex-locking-fix.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into drm-i915-more-struct_mutex-locking.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-i915-more-struct_mutex-locking-fix
-From: Hugh Dickins <hughd@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Chris Wilson points out that drm_gem_object_unreference() also
-requires struct_mutex to be held for the final unreference.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Keith Packard <keithp@keithp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_overlay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/pnfs.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_overlay.c~drm-i915-more-struct_mutex-locking-fix drivers/gpu/drm/i915/intel_overlay.c
---- a/drivers/gpu/drm/i915/intel_overlay.c~drm-i915-more-struct_mutex-locking-fix
-+++ a/drivers/gpu/drm/i915/intel_overlay.c
-@@ -1467,8 +1467,8 @@ void intel_setup_overlay(struct drm_devi
- out_unpin_bo:
- 	i915_gem_object_unpin(reg_bo);
- out_free_bo:
--	mutex_unlock(&dev->struct_mutex);
- 	drm_gem_object_unreference(&reg_bo->base);
-+	mutex_unlock(&dev->struct_mutex);
- out_free:
- 	kfree(overlay);
- 	return;
+diff -puN fs/nfs/pnfs.c~linux-next-git-rejects fs/nfs/pnfs.c
+--- a/fs/nfs/pnfs.c~linux-next-git-rejects
++++ a/fs/nfs/pnfs.c
+@@ -1079,38 +1079,6 @@ pnfs_generic_pg_init_read(struct nfs_pag
+ }
+ EXPORT_SYMBOL_GPL(pnfs_generic_pg_init_read);
+ 
+-<<<<<<< HEAD
+-	if (pgio->pg_lseg == NULL) {
+-		if (pgio->pg_count != prev->wb_bytes)
+-			return true;
+-		/* This is first coelesce call for a series of nfs_pages */
+-		pgio->pg_lseg = pnfs_update_layout(pgio->pg_inode,
+-						   prev->wb_context,
+-						   req_offset(prev),
+-						   pgio->pg_count,
+-						   access_type,
+-						   gfp_flags);
+-		if (pgio->pg_lseg == NULL)
+-			return true;
+-	}
+-
+-	/*
+-	 * Test if a nfs_page is fully contained in the pnfs_layout_range.
+-	 * Note that this test makes several assumptions:
+-	 * - that the previous nfs_page in the struct nfs_pageio_descriptor
+-	 *   is known to lie within the range.
+-	 *   - that the nfs_page being tested is known to be contiguous with the
+-	 *   previous nfs_page.
+-	 *   - Layout ranges are page aligned, so we only have to test the
+-	 *   start offset of the request.
+-	 *
+-	 * Please also note that 'end_offset' is actually the offset of the
+-	 * first byte that lies outside the pnfs_layout_range. FIXME?
+-	 *
+-	 */
+-	return req_offset(req) < end_offset(pgio->pg_lseg->pls_range.offset,
+-					 pgio->pg_lseg->pls_range.length);
+-=======
+ void
+ pnfs_generic_pg_init_write(struct nfs_pageio_descriptor *pgio, struct nfs_page *req)
+ {
+@@ -1150,7 +1118,6 @@ pnfs_pageio_init_write(struct nfs_pageio
+ 		return false;
+ 	nfs_pageio_init(pgio, inode, ld->pg_write_ops, server->wsize, ioflags);
+ 	return true;
+->>>>>>> FETCH_HEAD
+ }
+ 
+ bool
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-move-vmtruncate_range-to-truncatec.patch
-mm-move-shmem-prototypes-to-shmem_fsh.patch
-tmpfs-take-control-of-its-truncate_range.patch
-tmpfs-add-shmem_read_mapping_page_gfp.patch
-drm-ttm-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_read_mapping_page.patch
-drm-i915-use-shmem_truncate_range.patch
-drm-i915-more-struct_mutex-locking.patch
-mm-cleanup-descriptions-of-filler-arg.patch
-mm-truncate-functions-are-in-truncatec.patch
-mm-tidy-vmtruncate_range-and-related-functions.patch
-mm-consistent-truncate-and-invalidate-loops.patch
-mm-pincer-in-truncate_inode_pages_range.patch
-tmpfs-no-need-to-use-i_lock.patch
+origin.patch
 linux-next.patch
-tmpfs-clone-shmem_file_splice_read.patch
-tmpfs-refine-shmem_file_splice_read.patch
-tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
-tmpfs-remove_shmem_readpage.patch
-tmpfs-simplify-prealloc_page.patch
-tmpfs-simplify-filepage-swappage.patch
-tmpfs-simplify-unuse-and-writepage.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-mm-a-few-small-updates-for-radix-swap-fix.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-prio_tree-debugging-patch.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-calibratec-calibrate_delay-tidy-up-the-pr_info-messages.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
