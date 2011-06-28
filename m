@@ -1,74 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lp5521c-fix-section-mismatches.patch removed from -mm tree
-Date: Tue, 28 Jun 2011 13:42:46 -0700
-Message-ID: <201106282042.p5SKgS93003014@imap1.linux-foundation.org>
+Subject: [merged] dm-use-use-proper-little-endian-bitops.patch removed from -mm tree
+Date: Tue, 28 Jun 2011 13:43:03 -0700
+Message-ID: <201106282042.p5SKgjeW003043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096Ab1F1Umq (ORCPT
+	by vger.kernel.org with ESMTP id S1751096Ab1F1Umr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 16:42:46 -0400
+	Tue, 28 Jun 2011 16:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/leds/leds-lp5521.c: fix section mismatches
+     dm: use use proper little-endian bitops
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lp5521c-fix-section-mismatches.patch
+     dm-use-use-proper-little-endian-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-lp5521.c: fix section mismatches
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: dm: use use proper little-endian bitops
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-WARNING: drivers/leds/leds-lp5521.o(.text+0xf2c): Section mismatch in reference from the function lp5521_probe() to the function .init.text:lp5521_init_led()
-The function lp5521_probe() references
-the function __init lp5521_init_led().
-This is often because lp5521_probe lacks a __init
-annotation or the annotation of lp5521_init_led is wrong.
+Using __test_and_{set,clear}_bit_le() with ignoring its return value can
+be replaced with __{set,clear}_bit_le().
 
-Fixing this mismatch triggers one more mismatch, fix that one as well.
+This also removes unnecessary casts.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Alasdair Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/dm-log.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-section-mismatches drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-section-mismatches
-+++ a/drivers/leds/leds-lp5521.c
-@@ -593,7 +593,7 @@ static void lp5521_unregister_sysfs(stru
- 				&lp5521_led_attribute_group);
+diff -puN drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-use-use-proper-little-endian-bitops
++++ a/drivers/md/dm-log.c
+@@ -251,20 +251,20 @@ struct log_c {
+  */
+ static inline int log_test_bit(uint32_t *bs, unsigned bit)
+ {
+-	return test_bit_le(bit, (unsigned long *) bs) ? 1 : 0;
++	return test_bit_le(bit, bs) ? 1 : 0;
  }
  
--static int __init lp5521_init_led(struct lp5521_led *led,
-+static int __devinit lp5521_init_led(struct lp5521_led *led,
- 				struct i2c_client *client,
- 				int chan, struct lp5521_platform_data *pdata)
+ static inline void log_set_bit(struct log_c *l,
+ 			       uint32_t *bs, unsigned bit)
  {
-@@ -637,7 +637,7 @@ static int __init lp5521_init_led(struct
- 	return 0;
+-	__test_and_set_bit_le(bit, (unsigned long *) bs);
++	__set_bit_le(bit, bs);
+ 	l->touched_cleaned = 1;
  }
  
--static int lp5521_probe(struct i2c_client *client,
-+static int __devinit lp5521_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
+ static inline void log_clear_bit(struct log_c *l,
+ 				 uint32_t *bs, unsigned bit)
  {
- 	struct lp5521_chip		*chip;
+-	__test_and_clear_bit_le(bit, (unsigned long *) bs);
++	__clear_bit_le(bit, bs);
+ 	l->touched_dirtied = 1;
+ }
+ 
+@@ -739,8 +739,7 @@ static int core_get_resync_work(struct d
+ 		return 0;
+ 
+ 	do {
+-		*region = find_next_zero_bit_le(
+-					     (unsigned long *) lc->sync_bits,
++		*region = find_next_zero_bit_le(lc->sync_bits,
+ 					     lc->region_count,
+ 					     lc->sync_search);
+ 		lc->sync_search = *region + 1;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-mips-exec-remove-redundant-addr_limit-assignment.patch
-pci-make-the-struct-pci_dev-argument-of-pci_fixup_irqs-const.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+md-use-proper-little-endian-bitops.patch
+reiserfs-use-proper-little-endian-bitops.patch
+reiserfs-use-hweight_long.patch
+asm-generic-add-another-generic-ext2-atomic-bitops.patch
 
