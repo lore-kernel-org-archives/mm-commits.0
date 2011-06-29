@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-export-memory-cgroups-swappiness.patch added to -mm tree
-Date: Wed, 29 Jun 2011 13:00:57 -0700
-Message-ID: <201106292000.p5TK0vi1008479@imap1.linux-foundation.org>
+Subject: + backlight-add-ams369fg06-amoled-driver.patch added to -mm tree
+Date: Wed, 29 Jun 2011 13:02:33 -0700
+Message-ID: <201106292002.p5TK2XCX008619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752500Ab1F2UBm (ORCPT
+	by vger.kernel.org with ESMTP id S1752645Ab1F2UDT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 16:01:42 -0400
+	Wed, 29 Jun 2011 16:03:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, bsingharora@gmail.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: jg1.han@samsung.com, anish198519851985@gmail.com, inki.dae@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     memcg: export memory cgroup's swappiness
+     backlight: add ams369fg06 amoled driver
 has been added to the -mm tree.  Its filename is
-     memcg-export-memory-cgroups-swappiness.patch
+     backlight-add-ams369fg06-amoled-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,235 +34,704 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: export memory cgroup's swappiness
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: backlight: add ams369fg06 amoled driver
+From: Jingoo Han <jg1.han@samsung.com>
 
-Each memory cgroup has a 'swappiness' value whcih can be accessed by
-get_swappiness(memcg).  The major user is try_to_free_mem_cgroup_pages()
-and swappiness is passed by argument.  It's propagated by scan_control.
+Add the ams369fg06 amoled panel driver.  The ams369fg06 amoled panel (480
+x 800) driver uses 3-wired SPI inteface.  The brightness can be controlled
+by gamma setting of amoled panel.
 
-get_swappiness is a static function but some planned updates will need to
-get swappiness from files other than memcontrol.c This patch exports
-get_swappiness() as mem_cgroup_swappiness().  With this we can remove the
-argument of swapiness from try_to_free...  and drop swappiness from
-scan_control.  only memcg uses it.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: anish singh <anish198519851985@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   10 +++++++---
- mm/memcontrol.c      |   13 ++++++-------
- mm/vmscan.c          |   23 ++++++++++-------------
- 3 files changed, 23 insertions(+), 23 deletions(-)
+ drivers/video/backlight/Kconfig      |    8 
+ drivers/video/backlight/Makefile     |    1 
+ drivers/video/backlight/ams369fg06.c |  642 +++++++++++++++++++++++++
+ 3 files changed, 651 insertions(+)
 
-diff -puN include/linux/swap.h~memcg-export-memory-cgroups-swappiness include/linux/swap.h
---- a/include/linux/swap.h~memcg-export-memory-cgroups-swappiness
-+++ a/include/linux/swap.h
-@@ -254,11 +254,9 @@ static inline void lru_cache_add_file(st
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
--						  gfp_t gfp_mask, bool noswap,
--						  unsigned int swappiness);
-+						  gfp_t gfp_mask, bool noswap);
- extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
--						unsigned int swappiness,
- 						struct zone *zone,
- 						unsigned long *nr_scanned);
- extern int __isolate_lru_page(struct page *page, int mode, int file);
-@@ -367,11 +365,17 @@ static inline void put_swap_token(struct
- extern void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
- extern int mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep);
-+extern unsigned int mem_cgroup_swappiness(struct mem_cgroup *mem);
- #else
- static inline void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
- {
- }
+diff -puN drivers/video/backlight/Kconfig~backlight-add-ams369fg06-amoled-driver drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-add-ams369fg06-amoled-driver
++++ a/drivers/video/backlight/Kconfig
+@@ -117,6 +117,14 @@ config LCD_LD9040
+ 	  If you have an LD9040 Panel, say Y to enable its
+ 	  control driver.
+ 
++config LCD_AMS369FG06
++	tristate "AMS369FG06 AMOLED LCD Driver"
++	depends on SPI && BACKLIGHT_CLASS_DEVICE
++	default n
++	help
++	  If you have an AMS369FG06 AMOLED Panel, say Y to enable its
++	  LCD control driver.
 +
-+static inline unsigned int mem_cgroup_swappiness(struct mem_cgroup *mem)
+ endif # LCD_CLASS_DEVICE
+ 
+ #
+diff -puN drivers/video/backlight/Makefile~backlight-add-ams369fg06-amoled-driver drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~backlight-add-ams369fg06-amoled-driver
++++ a/drivers/video/backlight/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_LCD_TDO24M)	   += tdo24m.o
+ obj-$(CONFIG_LCD_TOSA)		   += tosa_lcd.o
+ obj-$(CONFIG_LCD_S6E63M0)	+= s6e63m0.o
+ obj-$(CONFIG_LCD_LD9040)	+= ld9040.o
++obj-$(CONFIG_LCD_AMS369FG06)	+= ams369fg06.o
+ 
+ obj-$(CONFIG_BACKLIGHT_CLASS_DEVICE) += backlight.o
+ obj-$(CONFIG_BACKLIGHT_ATMEL_PWM)    += atmel-pwm-bl.o
+diff -puN /dev/null drivers/video/backlight/ams369fg06.c
+--- /dev/null
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -0,0 +1,642 @@
++/*
++ * ams369fg06 AMOLED LCD panel driver.
++ *
++ * Copyright (c) 2011 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han  <jg1.han@samsung.com>
++ *
++ * Derived from drivers/video/s6e63m0.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/wait.h>
++#include <linux/fb.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/spi/spi.h>
++#include <linux/lcd.h>
++#include <linux/backlight.h>
++
++#define SLEEPMSEC		0x1000
++#define ENDDEF			0x2000
++#define	DEFMASK			0xFF00
++#define COMMAND_ONLY		0xFE
++#define DATA_ONLY		0xFF
++
++#define MAX_GAMMA_LEVEL		5
++#define GAMMA_TABLE_COUNT	21
++
++#define MIN_BRIGHTNESS		0
++#define MAX_BRIGHTNESS		255
++#define DEFAULT_BRIGHTNESS	150
++
++struct ams369fg06 {
++	struct device			*dev;
++	struct spi_device		*spi;
++	unsigned int			power;
++	struct lcd_device		*ld;
++	struct backlight_device		*bd;
++	struct lcd_platform_data	*lcd_pd;
++};
++
++static const unsigned short seq_display_on[] = {
++	0x14, 0x03,
++	ENDDEF, 0x0000
++};
++
++static const unsigned short seq_display_off[] = {
++	0x14, 0x00,
++	ENDDEF, 0x0000
++};
++
++static const unsigned short seq_stand_by_on[] = {
++	0x1D, 0xA1,
++	SLEEPMSEC, 200,
++	ENDDEF, 0x0000
++};
++
++static const unsigned short seq_stand_by_off[] = {
++	0x1D, 0xA0,
++	SLEEPMSEC, 250,
++	ENDDEF, 0x0000
++};
++
++static const unsigned short seq_setting[] = {
++	0x31, 0x08,
++	0x32, 0x14,
++	0x30, 0x02,
++	0x27, 0x01,
++	0x12, 0x08,
++	0x13, 0x08,
++	0x15, 0x00,
++	0x16, 0x00,
++
++	0xef, 0xd0,
++	DATA_ONLY, 0xe8,
++
++	0x39, 0x44,
++	0x40, 0x00,
++	0x41, 0x3f,
++	0x42, 0x2a,
++	0x43, 0x27,
++	0x44, 0x27,
++	0x45, 0x1f,
++	0x46, 0x44,
++	0x50, 0x00,
++	0x51, 0x00,
++	0x52, 0x17,
++	0x53, 0x24,
++	0x54, 0x26,
++	0x55, 0x1f,
++	0x56, 0x43,
++	0x60, 0x00,
++	0x61, 0x3f,
++	0x62, 0x2a,
++	0x63, 0x25,
++	0x64, 0x24,
++	0x65, 0x1b,
++	0x66, 0x5c,
++
++	0x17, 0x22,
++	0x18, 0x33,
++	0x19, 0x03,
++	0x1a, 0x01,
++	0x22, 0xa4,
++	0x23, 0x00,
++	0x26, 0xa0,
++
++	0x1d, 0xa0,
++	SLEEPMSEC, 300,
++
++	0x14, 0x03,
++
++	ENDDEF, 0x0000
++};
++
++/* gamma value: 2.2 */
++static const unsigned int ams369fg06_22_250[] = {
++	0x00, 0x3f, 0x2a, 0x27, 0x27, 0x1f, 0x44,
++	0x00, 0x00, 0x17, 0x24, 0x26, 0x1f, 0x43,
++	0x00, 0x3f, 0x2a, 0x25, 0x24, 0x1b, 0x5c,
++};
++
++static const unsigned int ams369fg06_22_200[] = {
++	0x00, 0x3f, 0x28, 0x29, 0x27, 0x21, 0x3e,
++	0x00, 0x00, 0x10, 0x25, 0x27, 0x20, 0x3d,
++	0x00, 0x3f, 0x28, 0x27, 0x25, 0x1d, 0x53,
++};
++
++static const unsigned int ams369fg06_22_150[] = {
++	0x00, 0x3f, 0x2d, 0x29, 0x28, 0x23, 0x37,
++	0x00, 0x00, 0x0b, 0x25, 0x28, 0x22, 0x36,
++	0x00, 0x3f, 0x2b, 0x28, 0x26, 0x1f, 0x4a,
++};
++
++static const unsigned int ams369fg06_22_100[] = {
++	0x00, 0x3f, 0x30, 0x2a, 0x2b, 0x24, 0x2f,
++	0x00, 0x00, 0x00, 0x25, 0x29, 0x24, 0x2e,
++	0x00, 0x3f, 0x2f, 0x29, 0x29, 0x21, 0x3f,
++};
++
++static const unsigned int ams369fg06_22_50[] = {
++	0x00, 0x3f, 0x3c, 0x2c, 0x2d, 0x27, 0x24,
++	0x00, 0x00, 0x00, 0x22, 0x2a, 0x27, 0x23,
++	0x00, 0x3f, 0x3b, 0x2c, 0x2b, 0x24, 0x31,
++};
++
++struct ams369fg06_gamma {
++	unsigned int *gamma_22_table[MAX_GAMMA_LEVEL];
++};
++
++static struct ams369fg06_gamma gamma_table = {
++	.gamma_22_table[0] = (unsigned int *)&ams369fg06_22_50,
++	.gamma_22_table[1] = (unsigned int *)&ams369fg06_22_100,
++	.gamma_22_table[2] = (unsigned int *)&ams369fg06_22_150,
++	.gamma_22_table[3] = (unsigned int *)&ams369fg06_22_200,
++	.gamma_22_table[4] = (unsigned int *)&ams369fg06_22_250,
++};
++
++static int ams369fg06_spi_write_byte(struct ams369fg06 *lcd, int addr, int data)
 +{
-+	return vm_swappiness;
-+}
- #endif
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern void mem_cgroup_uncharge_swap(swp_entry_t ent);
-diff -puN mm/memcontrol.c~memcg-export-memory-cgroups-swappiness mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-export-memory-cgroups-swappiness
-+++ a/mm/memcontrol.c
-@@ -1329,7 +1329,7 @@ static unsigned long mem_cgroup_margin(s
- 	return margin >> PAGE_SHIFT;
- }
- 
--static unsigned int get_swappiness(struct mem_cgroup *memcg)
-+unsigned int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
- 	struct cgroup *cgrp = memcg->css.cgroup;
- 
-@@ -1776,12 +1776,11 @@ static int mem_cgroup_hierarchical_recla
- 		/* we use swappiness of local cgroup */
- 		if (check_soft) {
- 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
--				noswap, get_swappiness(victim), zone,
--				&nr_scanned);
-+				noswap, zone, &nr_scanned);
- 			*total_scanned += nr_scanned;
- 		} else
- 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
--						noswap, get_swappiness(victim));
-+						noswap);
- 		css_put(&victim->css);
- 		/*
- 		 * At shrinking usage, we can't check we should stop here or
-@@ -3777,7 +3776,7 @@ try_to_free:
- 			goto out;
- 		}
- 		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
--						false, get_swappiness(mem));
-+						false);
- 		if (!progress) {
- 			nr_retries--;
- 			/* maybe some writeback is necessary */
-@@ -4239,7 +4238,7 @@ static u64 mem_cgroup_swappiness_read(st
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
- 
--	return get_swappiness(memcg);
-+	return mem_cgroup_swappiness(memcg);
- }
- 
- static int mem_cgroup_swappiness_write(struct cgroup *cgrp, struct cftype *cft,
-@@ -4948,7 +4947,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	INIT_LIST_HEAD(&mem->oom_notify);
- 
- 	if (parent)
--		mem->swappiness = get_swappiness(parent);
-+		mem->swappiness = mem_cgroup_swappiness(parent);
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
-diff -puN mm/vmscan.c~memcg-export-memory-cgroups-swappiness mm/vmscan.c
---- a/mm/vmscan.c~memcg-export-memory-cgroups-swappiness
-+++ a/mm/vmscan.c
-@@ -95,8 +95,6 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	int may_swap;
- 
--	int swappiness;
--
- 	int order;
- 
- 	/*
-@@ -1729,6 +1727,13 @@ static unsigned long shrink_list(enum lr
- 	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
- }
- 
-+static int vmscan_swappiness(struct scan_control *sc)
-+{
-+	if (scanning_global_lru(sc))
-+		return vm_swappiness;
-+	return mem_cgroup_swappiness(sc->mem_cgroup);
++	u16 buf[1];
++	struct spi_message msg;
++
++	struct spi_transfer xfer = {
++		.len		= 2,
++		.tx_buf		= buf,
++	};
++
++	buf[0] = (addr << 8) | data;
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&xfer, &msg);
++
++	return spi_sync(lcd->spi, &msg);
 +}
 +
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-  * scanned.  The relative value of each set of LRU lists is determined
-@@ -1789,8 +1794,8 @@ static void get_scan_count(struct zone *
- 	 * With swappiness at 100, anonymous and file have the same priority.
- 	 * This scanning priority is essentially the inverse of IO cost.
- 	 */
--	anon_prio = sc->swappiness;
--	file_prio = 200 - sc->swappiness;
-+	anon_prio = vmscan_swappiness(sc);
-+	file_prio = 200 - vmscan_swappiness(sc);
- 
- 	/*
- 	 * OK, so we have swap space and a fair amount of page cache
-@@ -2179,7 +2184,6 @@ unsigned long try_to_free_pages(struct z
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.may_unmap = 1,
- 		.may_swap = 1,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
- 		.nodemask = nodemask,
-@@ -2203,7 +2207,6 @@ unsigned long try_to_free_pages(struct z
- 
- unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
--						unsigned int swappiness,
- 						struct zone *zone,
- 						unsigned long *nr_scanned)
- {
-@@ -2213,7 +2216,6 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
- 		.may_swap = !noswap,
--		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem,
- 	};
-@@ -2242,8 +2244,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 					   gfp_t gfp_mask,
--					   bool noswap,
--					   unsigned int swappiness)
-+					   bool noswap)
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
-@@ -2253,7 +2254,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.may_unmap = 1,
- 		.may_swap = !noswap,
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.nodemask = NULL, /* we don't care the placement */
-@@ -2403,7 +2403,6 @@ static unsigned long balance_pgdat(pg_da
- 		 * we want to put equal scanning pressure on each zone.
- 		 */
- 		.nr_to_reclaim = ULONG_MAX,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
- 	};
-@@ -2873,7 +2872,6 @@ unsigned long shrink_all_memory(unsigned
- 		.may_writepage = 1,
- 		.nr_to_reclaim = nr_to_reclaim,
- 		.hibernation_mode = 1,
--		.swappiness = vm_swappiness,
- 		.order = 0,
- 	};
- 	struct shrink_control shrink = {
-@@ -3060,7 +3058,6 @@ static int __zone_reclaim(struct zone *z
- 		.nr_to_reclaim = max_t(unsigned long, nr_pages,
- 				       SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 	};
- 	struct shrink_control shrink = {
++static int ams369fg06_spi_write(struct ams369fg06 *lcd, unsigned char address,
++	unsigned char command)
++{
++	int ret = 0;
++
++	if (address != DATA_ONLY)
++		ret = ams369fg06_spi_write_byte(lcd, 0x70, address);
++	if (command != COMMAND_ONLY)
++		ret = ams369fg06_spi_write_byte(lcd, 0x72, command);
++
++	return ret;
++}
++
++static int ams369fg06_panel_send_sequence(struct ams369fg06 *lcd,
++	const unsigned short *wbuf)
++{
++	int ret = 0, i = 0;
++
++	while ((wbuf[i] & DEFMASK) != ENDDEF) {
++		if ((wbuf[i] & DEFMASK) != SLEEPMSEC) {
++			ret = ams369fg06_spi_write(lcd, wbuf[i], wbuf[i+1]);
++			if (ret)
++				break;
++		} else
++			mdelay(wbuf[i+1]);
++		i += 2;
++	}
++
++	return ret;
++}
++
++static int _ams369fg06_gamma_ctl(struct ams369fg06 *lcd,
++	const unsigned int *gamma)
++{
++	unsigned int i = 0;
++	int ret = 0;
++
++	for (i = 0 ; i < GAMMA_TABLE_COUNT / 3; i++) {
++		ret = ams369fg06_spi_write(lcd, 0x40 + i, gamma[i]);
++		ret = ams369fg06_spi_write(lcd, 0x50 + i, gamma[i+7*1]);
++		ret = ams369fg06_spi_write(lcd, 0x60 + i, gamma[i+7*2]);
++		if (ret) {
++			dev_err(lcd->dev, "failed to set gamma table.\n");
++			goto gamma_err;
++		}
++	}
++
++gamma_err:
++	return ret;
++}
++
++static int ams369fg06_gamma_ctl(struct ams369fg06 *lcd, int brightness)
++{
++	int ret = 0;
++	int gamma = 0;
++
++	if ((brightness >= 0) && (brightness <= 50))
++		gamma = 0;
++	else if ((brightness > 50) && (brightness <= 100))
++		gamma = 1;
++	else if ((brightness > 100) && (brightness <= 150))
++		gamma = 2;
++	else if ((brightness > 150) && (brightness <= 200))
++		gamma = 3;
++	else if ((brightness > 200) && (brightness <= 255))
++		gamma = 4;
++
++	ret = _ams369fg06_gamma_ctl(lcd, gamma_table.gamma_22_table[gamma]);
++
++	return ret;
++}
++
++static int ams369fg06_ldi_init(struct ams369fg06 *lcd)
++{
++	int ret, i;
++	static const unsigned short *init_seq[] = {
++		seq_setting,
++		seq_stand_by_off,
++	};
++
++	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
++		ret = ams369fg06_panel_send_sequence(lcd, init_seq[i]);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++static int ams369fg06_ldi_enable(struct ams369fg06 *lcd)
++{
++	int ret, i;
++	static const unsigned short *init_seq[] = {
++		seq_stand_by_off,
++		seq_display_on,
++	};
++
++	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
++		ret = ams369fg06_panel_send_sequence(lcd, init_seq[i]);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++static int ams369fg06_ldi_disable(struct ams369fg06 *lcd)
++{
++	int ret, i;
++
++	static const unsigned short *init_seq[] = {
++		seq_display_off,
++		seq_stand_by_on,
++	};
++
++	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
++		ret = ams369fg06_panel_send_sequence(lcd, init_seq[i]);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++static int ams369fg06_power_is_on(int power)
++{
++	return ((power) <= FB_BLANK_NORMAL);
++}
++
++static int ams369fg06_power_on(struct ams369fg06 *lcd)
++{
++	int ret = 0;
++	struct lcd_platform_data *pd = NULL;
++	struct backlight_device *bd = NULL;
++
++	pd = lcd->lcd_pd;
++	if (!pd) {
++		dev_err(lcd->dev, "platform data is NULL.\n");
++		return -EFAULT;
++	}
++
++	bd = lcd->bd;
++	if (!bd) {
++		dev_err(lcd->dev, "backlight device is NULL.\n");
++		return -EFAULT;
++	}
++
++	if (!pd->power_on) {
++		dev_err(lcd->dev, "power_on is NULL.\n");
++		return -EFAULT;
++	} else {
++		pd->power_on(lcd->ld, 1);
++		mdelay(pd->power_on_delay);
++	}
++
++	if (!pd->reset) {
++		dev_err(lcd->dev, "reset is NULL.\n");
++		return -EFAULT;
++	} else {
++		pd->reset(lcd->ld);
++		mdelay(pd->reset_delay);
++	}
++
++	ret = ams369fg06_ldi_init(lcd);
++	if (ret) {
++		dev_err(lcd->dev, "failed to initialize ldi.\n");
++		return ret;
++	}
++
++	ret = ams369fg06_ldi_enable(lcd);
++	if (ret) {
++		dev_err(lcd->dev, "failed to enable ldi.\n");
++		return ret;
++	}
++
++	/* set brightness to current value after power on or resume. */
++	ret = ams369fg06_gamma_ctl(lcd, bd->props.brightness);
++	if (ret) {
++		dev_err(lcd->dev, "lcd gamma setting failed.\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ams369fg06_power_off(struct ams369fg06 *lcd)
++{
++	int ret = 0;
++	struct lcd_platform_data *pd = NULL;
++
++	pd = lcd->lcd_pd;
++	if (!pd) {
++		dev_err(lcd->dev, "platform data is NULL\n");
++		return -EFAULT;
++	}
++
++	ret = ams369fg06_ldi_disable(lcd);
++	if (ret) {
++		dev_err(lcd->dev, "lcd setting failed.\n");
++		return -EIO;
++	}
++
++	mdelay(pd->power_off_delay);
++
++	if (!pd->power_on) {
++		dev_err(lcd->dev, "power_on is NULL.\n");
++		return -EFAULT;
++	} else
++		pd->power_on(lcd->ld, 0);
++
++	return 0;
++}
++
++static int ams369fg06_power(struct ams369fg06 *lcd, int power)
++{
++	int ret = 0;
++
++	if (ams369fg06_power_is_on(power) &&
++		!ams369fg06_power_is_on(lcd->power))
++		ret = ams369fg06_power_on(lcd);
++	else if (!ams369fg06_power_is_on(power) &&
++		ams369fg06_power_is_on(lcd->power))
++		ret = ams369fg06_power_off(lcd);
++
++	if (!ret)
++		lcd->power = power;
++
++	return ret;
++}
++
++static int ams369fg06_get_power(struct lcd_device *ld)
++{
++	struct ams369fg06 *lcd = lcd_get_data(ld);
++
++	return lcd->power;
++}
++
++static int ams369fg06_set_power(struct lcd_device *ld, int power)
++{
++	struct ams369fg06 *lcd = lcd_get_data(ld);
++
++	if (power != FB_BLANK_UNBLANK && power != FB_BLANK_POWERDOWN &&
++		power != FB_BLANK_NORMAL) {
++		dev_err(lcd->dev, "power value should be 0, 1 or 4.\n");
++		return -EINVAL;
++	}
++
++	return ams369fg06_power(lcd, power);
++}
++
++static int ams369fg06_get_brightness(struct backlight_device *bd)
++{
++	return bd->props.brightness;
++}
++
++static int ams369fg06_set_brightness(struct backlight_device *bd)
++{
++	int ret = 0;
++	int brightness = bd->props.brightness;
++	struct ams369fg06 *lcd = dev_get_drvdata(&bd->dev);
++
++	if (brightness < MIN_BRIGHTNESS ||
++		brightness > bd->props.max_brightness) {
++		dev_err(&bd->dev, "lcd brightness should be %d to %d.\n",
++			MIN_BRIGHTNESS, MAX_BRIGHTNESS);
++		return -EINVAL;
++	}
++
++	ret = ams369fg06_gamma_ctl(lcd, bd->props.brightness);
++	if (ret) {
++		dev_err(&bd->dev, "lcd brightness setting failed.\n");
++		return -EIO;
++	}
++
++	return ret;
++}
++
++static struct lcd_ops ams369fg06_lcd_ops = {
++	.get_power = ams369fg06_get_power,
++	.set_power = ams369fg06_set_power,
++};
++
++static const struct backlight_ops ams369fg06_backlight_ops = {
++	.get_brightness = ams369fg06_get_brightness,
++	.update_status = ams369fg06_set_brightness,
++};
++
++static int __init ams369fg06_probe(struct spi_device *spi)
++{
++	int ret = 0;
++	struct ams369fg06 *lcd = NULL;
++	struct lcd_device *ld = NULL;
++	struct backlight_device *bd = NULL;
++
++	lcd = kzalloc(sizeof(struct ams369fg06), GFP_KERNEL);
++	if (!lcd)
++		return -ENOMEM;
++
++	/* ams369fg06 lcd panel uses 3-wire 16bits SPI Mode. */
++	spi->bits_per_word = 16;
++
++	ret = spi_setup(spi);
++	if (ret < 0) {
++		dev_err(&spi->dev, "spi setup failed.\n");
++		goto out_free_lcd;
++	}
++
++	lcd->spi = spi;
++	lcd->dev = &spi->dev;
++
++	lcd->lcd_pd = spi->dev.platform_data;
++	if (!lcd->lcd_pd) {
++		dev_err(&spi->dev, "platform data is NULL\n");
++		goto out_free_lcd;
++	}
++
++	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
++		&ams369fg06_lcd_ops);
++	if (IS_ERR(ld)) {
++		ret = PTR_ERR(ld);
++		goto out_free_lcd;
++	}
++
++	lcd->ld = ld;
++
++	bd = backlight_device_register("ams369fg06-bl", &spi->dev, lcd,
++		&ams369fg06_backlight_ops, NULL);
++	if (IS_ERR(bd)) {
++		ret =  PTR_ERR(bd);
++		goto out_lcd_unregister;
++	}
++
++	bd->props.max_brightness = MAX_BRIGHTNESS;
++	bd->props.brightness = DEFAULT_BRIGHTNESS;
++	bd->props.type = BACKLIGHT_RAW;
++	lcd->bd = bd;
++
++	if (!lcd->lcd_pd->lcd_enabled) {
++		/*
++		 * if lcd panel was off from bootloader then
++		 * current lcd status is powerdown and then
++		 * it enables lcd panel.
++		 */
++		lcd->power = FB_BLANK_POWERDOWN;
++
++		ams369fg06_power(lcd, FB_BLANK_UNBLANK);
++	} else
++		lcd->power = FB_BLANK_UNBLANK;
++
++	dev_set_drvdata(&spi->dev, lcd);
++
++	dev_info(&spi->dev, "ams369fg06 panel driver has been probed.\n");
++
++	return 0;
++
++out_lcd_unregister:
++	lcd_device_unregister(ld);
++out_free_lcd:
++	kfree(lcd);
++	return ret;
++}
++
++static int __devexit ams369fg06_remove(struct spi_device *spi)
++{
++	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
++
++	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
++	lcd_device_unregister(lcd->ld);
++	kfree(lcd);
++
++	return 0;
++}
++
++#if defined(CONFIG_PM)
++unsigned int before_power;
++
++static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
++{
++	int ret = 0;
++	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
++
++	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
++
++	before_power = lcd->power;
++
++	/*
++	 * when lcd panel is suspend, lcd panel becomes off
++	 * regardless of status.
++	 */
++	ret = ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
++
++	return ret;
++}
++
++static int ams369fg06_resume(struct spi_device *spi)
++{
++	int ret = 0;
++	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
++
++	/*
++	 * after suspended, if lcd panel status is FB_BLANK_UNBLANK
++	 * (at that time, before_power is FB_BLANK_UNBLANK) then
++	 * it changes that status to FB_BLANK_POWERDOWN to get lcd on.
++	 */
++	if (before_power == FB_BLANK_UNBLANK)
++		lcd->power = FB_BLANK_POWERDOWN;
++
++	dev_dbg(&spi->dev, "before_power = %d\n", before_power);
++
++	ret = ams369fg06_power(lcd, before_power);
++
++	return ret;
++}
++#else
++#define ams369fg06_suspend	NULL
++#define ams369fg06_resume	NULL
++#endif
++
++void ams369fg06_shutdown(struct spi_device *spi)
++{
++	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
++
++	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
++}
++
++static struct spi_driver ams369fg06_driver = {
++	.driver = {
++		.name	= "ams369fg06",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ams369fg06_probe,
++	.remove		= __devexit_p(ams369fg06_remove),
++	.shutdown	= ams369fg06_shutdown,
++	.suspend	= ams369fg06_suspend,
++	.resume		= ams369fg06_resume,
++};
++
++static int __init ams369fg06_init(void)
++{
++	return spi_register_driver(&ams369fg06_driver);
++}
++
++static void __exit ams369fg06_exit(void)
++{
++	spi_unregister_driver(&ams369fg06_driver);
++}
++
++module_init(ams369fg06_init);
++module_exit(ams369fg06_exit);
++
++MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
++MODULE_DESCRIPTION("ams369fg06 LCD Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-memcg-fix-reclaimable-lru-check-in-memcg.patch
-memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-memcg-export-memory-cgroups-swappiness.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+linux-next.patch
+backlight-add-ams369fg06-amoled-driver.patch
 
