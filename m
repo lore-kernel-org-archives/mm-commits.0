@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-xo-1-suspend-resume-support.patch added to -mm tree
-Date: Wed, 29 Jun 2011 14:29:17 -0700
-Message-ID: <201106292129.p5TLTIiP013092@imap1.linux-foundation.org>
+Subject: + x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch added to -mm tree
+Date: Wed, 29 Jun 2011 14:29:24 -0700
+Message-ID: <201106292129.p5TLTPtw013101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753228Ab1F2V3l (ORCPT
+	by vger.kernel.org with ESMTP id S1754148Ab1F2V3o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 17:29:41 -0400
+	Wed, 29 Jun 2011 17:29:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.co
 
 
 The patch titled
-     x86, olpc: add XO-1 suspend/resume support
+     x86, olpc-xo1-sci: add GPE handler and ebook switch functionality
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-xo-1-suspend-resume-support.patch
+     x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc: add XO-1 suspend/resume support
+Subject: x86, olpc-xo1-sci: add GPE handler and ebook switch functionality
 From: Daniel Drake <dsd@laptop.org>
 
-Add code needed for basic suspend/resume of the XO-1 laptop.  Based on
-earlier work by Jordan Crouse, Andres Salomon, and others.
-
-This patch incorporates all earlier feedback from Thomas Gleixner.  To
-clarify a certain point (now more obvious in the code itself): On resume,
-OpenFirmware returns execution to Linux in protected mode with a
-kernel-compatible GDT already set up.  The changes and simplifications
-suggested have all been included.
+The EC in the OLPC XO-1 delivers GPE events to provide various
+notifications.  Add the basic code for GPE/EC event processing and enable
+the ebook switch, which can be used as a wakeup source.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Andres Salomon <dilinger@queued.net>
@@ -55,329 +50,355 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                     |    4 
- arch/x86/include/asm/olpc.h          |   15 ++-
- arch/x86/platform/olpc/Makefile      |    2 
- arch/x86/platform/olpc/olpc-xo1-pm.c |   92 ++++++++++++++++++
- arch/x86/platform/olpc/xo1-wakeup.S  |  124 +++++++++++++++++++++++++
- include/linux/cs5535.h               |    3 
- 6 files changed, 234 insertions(+), 6 deletions(-)
+ arch/x86/Kconfig                      |    2 
+ arch/x86/include/asm/olpc.h           |    5 
+ arch/x86/platform/olpc/olpc-xo1-sci.c |  183 +++++++++++++++++++++++-
+ include/linux/cs5535.h                |   22 ++
+ 4 files changed, 209 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-olpc-add-xo-1-suspend-resume-support arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-add-xo-1-suspend-resume-support
+diff -puN arch/x86/Kconfig~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
 +++ a/arch/x86/Kconfig
-@@ -2077,10 +2077,10 @@ config OLPC
- 
- config OLPC_XO1_PM
- 	bool "OLPC XO-1 Power Management"
--	depends on OLPC && MFD_CS5535
-+	depends on OLPC && MFD_CS5535 && PM_SLEEP
+@@ -2103,7 +2103,9 @@ config OLPC_XO1_SCI
  	select MFD_CORE
  	---help---
--	  Add support for poweroff of the OLPC XO-1 laptop.
-+	  Add support for poweroff and suspend of the OLPC XO-1 laptop.
+ 	  Add support for SCI-based features of the OLPC XO-1 laptop:
++	   - EC-driven system wakeups
+ 	   - Power button
++	   - Ebook switch
  
- config ALIX
- 	bool "PCEngines ALIX System Support (LED setup)"
-diff -puN arch/x86/include/asm/olpc.h~x86-olpc-add-xo-1-suspend-resume-support arch/x86/include/asm/olpc.h
---- a/arch/x86/include/asm/olpc.h~x86-olpc-add-xo-1-suspend-resume-support
+ endif # X86_32
+ 
+diff -puN arch/x86/include/asm/olpc.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/include/asm/olpc.h
+--- a/arch/x86/include/asm/olpc.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
 +++ a/arch/x86/include/asm/olpc.h
-@@ -76,6 +76,12 @@ static inline int olpc_has_dcon(void)
+@@ -111,6 +111,7 @@ extern int olpc_ec_cmd(unsigned char cmd
+ #define EC_WRITE_SCI_MASK		0x1b
+ #define EC_WAKE_UP_WLAN			0x24
+ #define EC_WLAN_LEAVE_RESET		0x25
++#define EC_READ_EB_MODE			0x2a
+ #define EC_SET_SCI_INHIBIT		0x32
+ #define EC_SET_SCI_INHIBIT_RELEASE	0x34
+ #define EC_WLAN_ENTER_RESET		0x35
+@@ -144,7 +145,7 @@ extern int olpc_ec_cmd(unsigned char cmd
+ #define OLPC_GPIO_SMB_CLK      14
+ #define OLPC_GPIO_SMB_DATA     15
+ #define OLPC_GPIO_WORKAUX	geode_gpio(24)
+-#define OLPC_GPIO_LID		geode_gpio(26)
+-#define OLPC_GPIO_ECSCI		geode_gpio(27)
++#define OLPC_GPIO_LID		26
++#define OLPC_GPIO_ECSCI		27
  
- #endif
+ #endif /* _ASM_X86_OLPC_H */
+diff -puN arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/platform/olpc/olpc-xo1-sci.c
+--- a/arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
++++ a/arch/x86/platform/olpc/olpc-xo1-sci.c
+@@ -12,12 +12,15 @@
+  */
  
-+#ifdef CONFIG_OLPC_XO1_PM
-+extern void do_olpc_suspend_lowlevel(void);
-+extern void olpc_xo1_pm_wakeup_set(u16 value);
-+extern void olpc_xo1_pm_wakeup_clear(u16 value);
-+#endif
-+
- extern int pci_olpc_init(void);
- 
- /* EC related functions */
-@@ -88,9 +94,12 @@ extern int olpc_ec_mask_unset(uint8_t bi
- 
- /* EC commands */
- 
--#define EC_FIRMWARE_REV		0x08
--#define EC_WLAN_ENTER_RESET	0x35
--#define EC_WLAN_LEAVE_RESET	0x25
-+#define EC_FIRMWARE_REV			0x08
-+#define EC_WAKE_UP_WLAN			0x24
-+#define EC_WLAN_LEAVE_RESET		0x25
-+#define EC_SET_SCI_INHIBIT		0x32
-+#define EC_SET_SCI_INHIBIT_RELEASE	0x34
-+#define EC_WLAN_ENTER_RESET		0x35
- 
- /* SCI source values */
- 
-diff -puN arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-suspend-resume-support arch/x86/platform/olpc/Makefile
---- a/arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-suspend-resume-support
-+++ a/arch/x86/platform/olpc/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_OLPC)		+= olpc.o olpc_ofw.o olpc_dt.o
--obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o
-+obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o xo1-wakeup.o
-diff -puN arch/x86/platform/olpc/olpc-xo1-pm.c~x86-olpc-add-xo-1-suspend-resume-support arch/x86/platform/olpc/olpc-xo1-pm.c
---- a/arch/x86/platform/olpc/olpc-xo1-pm.c~x86-olpc-add-xo-1-suspend-resume-support
-+++ a/arch/x86/platform/olpc/olpc-xo1-pm.c
-@@ -16,6 +16,7 @@
+ #include <linux/cs5535.h>
++#include <linux/device.h>
++#include <linux/gpio.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
  #include <linux/platform_device.h>
  #include <linux/pm.h>
  #include <linux/mfd/core.h>
-+#include <linux/suspend.h>
+ #include <linux/suspend.h>
++#include <linux/workqueue.h>
  
  #include <asm/io.h>
- #include <asm/olpc.h>
-@@ -25,6 +26,85 @@
- static unsigned long acpi_base;
- static unsigned long pms_base;
+ #include <asm/msr.h>
+@@ -28,8 +31,60 @@
  
-+static u16 wakeup_mask = CS5536_PM_PWRBTN;
+ static unsigned long acpi_base;
+ static struct input_dev *power_button_idev;
++static struct input_dev *ebook_switch_idev;
 +
-+static struct {
-+	unsigned long address;
-+	unsigned short segment;
-+} ofw_bios_entry = { 0xF0000 + PAGE_OFFSET, __KERNEL_CS };
-+
-+/* Set bits in the wakeup mask */
-+void olpc_xo1_pm_wakeup_set(u16 value)
+ static int sci_irq;
+ 
++/* Report current ebook switch state through input layer */
++static void send_ebook_state(void)
 +{
-+	wakeup_mask |= value;
++	unsigned char state;
++
++	if (olpc_ec_cmd(EC_READ_EB_MODE, NULL, 0, &state, 1)) {
++		pr_err(PFX "failed to get ebook state\n");
++		return;
++	}
++
++	input_report_switch(ebook_switch_idev, SW_TABLET_MODE, state);
++	input_sync(ebook_switch_idev);
 +}
-+EXPORT_SYMBOL_GPL(olpc_xo1_pm_wakeup_set);
 +
-+/* Clear bits in the wakeup mask */
-+void olpc_xo1_pm_wakeup_clear(u16 value)
++/*
++ * Process all items in the EC's SCI queue.
++ *
++ * This is handled in a workqueue because olpc_ec_cmd can be slow (and
++ * can even timeout).
++ *
++ * If propagate_events is false, the queue is drained without events being
++ * generated for the interrupts.
++ */
++static void process_sci_queue(bool propagate_events)
 +{
-+	wakeup_mask &= ~value;
++	int r;
++	u16 data;
++
++	do {
++		r = olpc_ec_sci_query(&data);
++		if (r || !data)
++			break;
++
++		pr_debug(PFX "SCI 0x%x received\n", data);
++
++		if (data == EC_SCI_SRC_EBOOK && propagate_events)
++			send_ebook_state();
++	} while (data);
++
++	if (r)
++		pr_err(PFX "Failed to clear SCI queue");
 +}
-+EXPORT_SYMBOL_GPL(olpc_xo1_pm_wakeup_clear);
 +
-+static int xo1_power_state_enter(suspend_state_t pm_state)
++static void process_sci_queue_work(struct work_struct *work)
 +{
-+	unsigned long saved_sci_mask;
++	process_sci_queue(true);
++}
++
++static DECLARE_WORK(sci_work, process_sci_queue_work);
++
+ static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
+ {
+ 	struct platform_device *pdev = dev_id;
+@@ -51,6 +106,11 @@ static irqreturn_t xo1_sci_intr(int irq,
+ 		input_sync(power_button_idev);
+ 	}
+ 
++	if (gpe & CS5536_GPIOM7_PME_FLAG) { /* EC GPIO */
++		cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_NEGATIVE_EDGE_STS);
++		schedule_work(&sci_work);
++	}
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -60,6 +120,19 @@ static int xo1_sci_suspend(struct platfo
+ 		olpc_xo1_pm_wakeup_set(CS5536_PM_PWRBTN);
+ 	else
+ 		olpc_xo1_pm_wakeup_clear(CS5536_PM_PWRBTN);
++
++	if (device_may_wakeup(&ebook_switch_idev->dev))
++		olpc_ec_wakeup_set(EC_SCI_SRC_EBOOK);
++	else
++		olpc_ec_wakeup_clear(EC_SCI_SRC_EBOOK);
++
++	return 0;
++}
++
++static int xo1_sci_resume(struct platform_device *pdev)
++{
++	/* Enable all EC events */
++	olpc_ec_mask_write(EC_SCI_SRC_ALL);
+ 	return 0;
+ }
+ 
+@@ -104,6 +177,50 @@ static int __devinit setup_sci_interrupt
+ 	return r;
+ }
+ 
++static int __devinit setup_ec_sci(void)
++{
 +	int r;
 +
-+	/* Only STR is supported */
-+	if (pm_state != PM_SUSPEND_MEM)
-+		return -EINVAL;
-+
-+	r = olpc_ec_cmd(EC_SET_SCI_INHIBIT, NULL, 0, NULL, 0);
++	r = gpio_request(OLPC_GPIO_ECSCI, "OLPC-ECSCI");
 +	if (r)
 +		return r;
 +
-+	/*
-+	 * Save SCI mask (this gets lost since PM1_EN is used as a mask for
-+	 * wakeup events, which is not necessarily the same event set)
-+	 */
-+	saved_sci_mask = inl(acpi_base + CS5536_PM1_STS);
-+	saved_sci_mask &= 0xffff0000;
++	gpio_direction_input(OLPC_GPIO_ECSCI);
 +
-+	/* Save CPU state */
-+	do_olpc_suspend_lowlevel();
-+
-+	/* Resume path starts here */
-+
-+	/* Restore SCI mask (using dword access to CS5536_PM1_EN) */
-+	outl(saved_sci_mask, acpi_base + CS5536_PM1_STS);
-+
-+	/* Tell the EC to stop inhibiting SCIs */
-+	olpc_ec_cmd(EC_SET_SCI_INHIBIT_RELEASE, NULL, 0, NULL, 0);
++	/* Clear pending EC SCI events */
++	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_NEGATIVE_EDGE_STS);
++	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_POSITIVE_EDGE_STS);
 +
 +	/*
-+	 * Tell the wireless module to restart USB communication.
-+	 * Must be done twice.
++	 * Enable EC SCI events, and map them to both a PME and the SCI
++	 * interrupt.
++	 *
++	 * Ordinarily, in addition to functioning as GPIOs, Geode GPIOs can
++	 * be mapped to regular interrupts *or* Geode-specific Power
++	 * Management Events (PMEs) - events that bring the system out of
++	 * suspend. In this case, we want both of those things - the system
++	 * wakeup, *and* the ability to get an interrupt when an event occurs.
++	 *
++	 * To achieve this, we map the GPIO to a PME, and then we use one
++	 * of the many generic knobs on the CS5535 PIC to additionally map the
++	 * PME to the regular SCI interrupt line.
 +	 */
-+	olpc_ec_cmd(EC_WAKE_UP_WLAN, NULL, 0, NULL, 0);
-+	olpc_ec_cmd(EC_WAKE_UP_WLAN, NULL, 0, NULL, 0);
++	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_EVENTS_ENABLE);
++
++	/* Set the SCI to cause a PME event on group 7 */
++	cs5535_gpio_setup_event(OLPC_GPIO_ECSCI, 7, 1);
++
++	/* And have group 7 also fire the SCI interrupt */
++	cs5535_pic_unreqz_select_high(7, sci_irq);
 +
 +	return 0;
 +}
 +
-+asmlinkage int xo1_do_sleep(u8 sleep_state)
++static void free_ec_sci(void)
 +{
-+	void *pgd_addr = __va(read_cr3());
-+
-+	/* Program wakeup mask (using dword access to CS5536_PM1_EN) */
-+	outl(wakeup_mask << 16, acpi_base + CS5536_PM1_STS);
-+
-+	__asm__("movl %0,%%eax" : : "r" (pgd_addr));
-+	__asm__("call *(%%edi); cld"
-+		: : "D" (&ofw_bios_entry));
-+	__asm__("movb $0x34, %al\n\t"
-+		"outb %al, $0x70\n\t"
-+		"movb $0x30, %al\n\t"
-+		"outb %al, $0x71\n\t");
-+	return 0;
++	gpio_free(OLPC_GPIO_ECSCI);
 +}
 +
- static void xo1_power_off(void)
+ static int __devinit setup_power_button(struct platform_device *pdev)
  {
- 	printk(KERN_INFO "OLPC XO-1 power off sequence...\n");
-@@ -43,6 +123,17 @@ static void xo1_power_off(void)
- 	outl(0x00002000, acpi_base + CS5536_PM1_CNT);
+ 	int r;
+@@ -135,6 +252,37 @@ static void free_power_button(void)
+ 	input_free_device(power_button_idev);
  }
  
-+static int xo1_power_state_valid(suspend_state_t pm_state)
++static int __devinit setup_ebook_switch(struct platform_device *pdev)
 +{
-+	/* suspend-to-RAM only */
-+	return pm_state == PM_SUSPEND_MEM;
++	int r;
++
++	ebook_switch_idev = input_allocate_device();
++	if (!ebook_switch_idev)
++		return -ENOMEM;
++
++	ebook_switch_idev->name = "EBook Switch";
++	ebook_switch_idev->phys = DRV_NAME "/input1";
++	set_bit(EV_SW, ebook_switch_idev->evbit);
++	set_bit(SW_TABLET_MODE, ebook_switch_idev->swbit);
++
++	ebook_switch_idev->dev.parent = &pdev->dev;
++	device_set_wakeup_capable(&ebook_switch_idev->dev, true);
++
++	r = input_register_device(ebook_switch_idev);
++	if (r) {
++		dev_err(&pdev->dev, "failed to register ebook switch: %d\n", r);
++		input_free_device(ebook_switch_idev);
++	}
++
++	return r;
 +}
 +
-+static const struct platform_suspend_ops xo1_suspend_ops = {
-+	.valid = xo1_power_state_valid,
-+	.enter = xo1_power_state_enter,
-+};
++static void free_ebook_switch(void)
++{
++	input_unregister_device(ebook_switch_idev);
++	input_free_device(ebook_switch_idev);
++}
 +
- static int __devinit xo1_pm_probe(struct platform_device *pdev)
+ static int __devinit xo1_sci_probe(struct platform_device *pdev)
  {
  	struct resource *res;
-@@ -68,6 +159,7 @@ static int __devinit xo1_pm_probe(struct
+@@ -159,10 +307,39 @@ static int __devinit xo1_sci_probe(struc
+ 	if (r)
+ 		return r;
  
- 	/* If we have both addresses, we can override the poweroff hook */
- 	if (pms_base && acpi_base) {
-+		suspend_set_ops(&xo1_suspend_ops);
- 		pm_power_off = xo1_power_off;
- 		printk(KERN_INFO "OLPC XO-1 support registered\n");
- 	}
-diff -puN /dev/null arch/x86/platform/olpc/xo1-wakeup.S
---- /dev/null
-+++ a/arch/x86/platform/olpc/xo1-wakeup.S
-@@ -0,0 +1,124 @@
-+.text
-+#include <linux/linkage.h>
-+#include <asm/segment.h>
-+#include <asm/page.h>
-+#include <asm/pgtable_32.h>
++	r = setup_ebook_switch(pdev);
++	if (r)
++		goto err_ebook;
 +
-+	.macro writepost,value
-+		movb $0x34, %al
-+		outb %al, $0x70
-+		movb $\value, %al
-+		outb %al, $0x71
-+	.endm
++	r = setup_ec_sci();
++	if (r)
++		goto err_ecsci;
 +
-+wakeup_start:
-+	# OFW lands us here, running in protected mode, with a
-+	# kernel-compatible GDT already setup.
++	/* Enable PME generation for EC-generated events */
++	outl(CS5536_GPIOM7_PME_EN, acpi_base + CS5536_PM_GPE0_EN);
 +
-+	# Clear any dangerous flags
-+	pushl $0
-+	popfl
++	/* Clear pending events */
++	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
++	process_sci_queue(false);
 +
-+	writepost 0x31
++	/* Initial sync */
++	send_ebook_state();
 +
-+	# Set up %cr3
-+	movl $initial_page_table - __PAGE_OFFSET, %eax
-+	movl %eax, %cr3
+ 	r = setup_sci_interrupt(pdev);
+ 	if (r)
+-		free_power_button();
++		goto err_sci;
+ 
++	/* Enable all EC events */
++	olpc_ec_mask_write(EC_SCI_SRC_ALL);
 +
-+	movl saved_cr4, %eax
-+	movl %eax, %cr4
++	return r;
 +
-+	movl saved_cr0, %eax
-+	movl %eax, %cr0
-+
-+	# Control registers were modified, pipeline resync is needed
-+	jmp 1f
-+1:
-+
-+	movw    $__KERNEL_DS, %ax
-+	movw    %ax, %ss
-+	movw    %ax, %ds
-+	movw    %ax, %es
-+	movw    %ax, %fs
-+	movw    %ax, %gs
-+
-+	lgdt    saved_gdt
-+	lidt    saved_idt
-+	lldt    saved_ldt
-+	ljmp    $(__KERNEL_CS),$1f
-+1:
-+	movl    %cr3, %eax
-+	movl    %eax, %cr3
-+	wbinvd
-+
-+	# Go back to the return point
-+	jmp ret_point
-+
-+save_registers:
-+	sgdt  saved_gdt
-+	sidt  saved_idt
-+	sldt  saved_ldt
-+
-+	pushl %edx
-+	movl %cr4, %edx
-+	movl %edx, saved_cr4
-+
-+	movl %cr0, %edx
-+	movl %edx, saved_cr0
-+
-+	popl %edx
-+
-+	movl %ebx, saved_context_ebx
-+	movl %ebp, saved_context_ebp
-+	movl %esi, saved_context_esi
-+	movl %edi, saved_context_edi
-+
-+	pushfl
-+	popl saved_context_eflags
-+
-+	ret
-+
-+restore_registers:
-+	movl saved_context_ebp, %ebp
-+	movl saved_context_ebx, %ebx
-+	movl saved_context_esi, %esi
-+	movl saved_context_edi, %edi
-+
-+	pushl saved_context_eflags
-+	popfl
-+
-+	ret
-+
-+ENTRY(do_olpc_suspend_lowlevel)
-+	call	save_processor_state
-+	call	save_registers
-+
-+	# This is the stack context we want to remember
-+	movl %esp, saved_context_esp
-+
-+	pushl	$3
-+	call	xo1_do_sleep
-+
-+	jmp	wakeup_start
-+	.p2align 4,,7
-+ret_point:
-+	movl    saved_context_esp, %esp
-+
-+	writepost 0x32
-+
-+	call	restore_registers
-+	call	restore_processor_state
-+	ret
-+
-+.data
-+saved_gdt:             .long   0,0
-+saved_idt:             .long   0,0
-+saved_ldt:             .long   0
-+saved_cr4:             .long   0
-+saved_cr0:             .long   0
-+saved_context_esp:     .long   0
-+saved_context_edi:     .long   0
-+saved_context_esi:     .long   0
-+saved_context_ebx:     .long   0
-+saved_context_ebp:     .long   0
-+saved_context_eflags:  .long   0
-diff -puN include/linux/cs5535.h~x86-olpc-add-xo-1-suspend-resume-support include/linux/cs5535.h
---- a/include/linux/cs5535.h~x86-olpc-add-xo-1-suspend-resume-support
++err_sci:
++	free_ec_sci();
++err_ecsci:
++	free_ebook_switch();
++err_ebook:
++	free_power_button();
+ 	return r;
+ }
+ 
+@@ -170,6 +347,9 @@ static int __devexit xo1_sci_remove(stru
+ {
+ 	mfd_cell_disable(pdev);
+ 	free_irq(sci_irq, pdev);
++	cancel_work_sync(&sci_work);
++	free_ec_sci();
++	free_ebook_switch();
+ 	free_power_button();
+ 	acpi_base = 0;
+ 	return 0;
+@@ -182,6 +362,7 @@ static struct platform_driver xo1_sci_dr
+ 	.probe = xo1_sci_probe,
+ 	.remove = __devexit_p(xo1_sci_remove),
+ 	.suspend = xo1_sci_suspend,
++	.resume = xo1_sci_resume,
+ };
+ 
+ static int __init xo1_sci_init(void)
+diff -puN include/linux/cs5535.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality include/linux/cs5535.h
+--- a/include/linux/cs5535.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
 +++ a/include/linux/cs5535.h
-@@ -70,6 +70,9 @@
+@@ -11,6 +11,8 @@
+ #ifndef _CS5535_H
+ #define _CS5535_H
+ 
++#include <asm/msr.h>
++
+ /* MSRs */
+ #define MSR_GLIU_P2D_RO0	0x10000029
+ 
+@@ -43,6 +45,18 @@
+ #define MSR_GX_GLD_MSR_CONFIG	0xC0002001
+ #define MSR_GX_MSR_PADSEL	0xC0002011
+ 
++static inline int cs5535_pic_unreqz_select_high(unsigned int group,
++						unsigned int irq)
++{
++	uint32_t lo, hi;
++
++	rdmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
++	lo &= ~(0xF << (group * 4));
++	lo |= (irq & 0xF) << (group * 4);
++	wrmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
++	return 0;
++}
++
+ /* PIC registers */
+ #define CS5536_PIC_INT_SEL1	0x4d0
+ #define CS5536_PIC_INT_SEL2	0x4d1
+@@ -73,6 +87,7 @@
+ #define CS5536_PM1_EN		0x02
  #define CS5536_PM1_CNT		0x08
  #define CS5536_PM_GPE0_STS	0x18
++#define CS5536_PM_GPE0_EN	0x1c
  
-+/* CS5536_PM1_EN bits */
-+#define CS5536_PM_PWRBTN	(1 << 8)
+ /* CS5536_PM1_STS bits */
+ #define CS5536_WAK_FLAG		(1 << 15)
+@@ -81,6 +96,13 @@
+ /* CS5536_PM1_EN bits */
+ #define CS5536_PM_PWRBTN	(1 << 8)
+ 
++/* CS5536_PM_GPE0_STS bits */
++#define CS5536_GPIOM7_PME_FLAG	(1 << 31)
++#define CS5536_GPIOM6_PME_FLAG	(1 << 30)
++
++/* CS5536_PM_GPE0_EN bits */
++#define CS5536_GPIOM7_PME_EN	(1 << 31)
 +
  /* VSA2 magic values */
  #define VSA_VRC_INDEX		0xAC1C
