@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-reclaimable-lru-check-in-memcg-fix.patch added to -mm tree
-Date: Tue, 28 Jun 2011 17:17:07 -0700
-Message-ID: <201106290017.p5T0H7Tq016768@imap1.linux-foundation.org>
+Subject: + memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch added to -mm tree
+Date: Tue, 28 Jun 2011 17:17:15 -0700
+Message-ID: <201106290017.p5T0HFNb016794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752600Ab1F2ARL (ORCPT
+	by vger.kernel.org with ESMTP id S1752600Ab1F2ARR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 20:17:11 -0400
+	Tue, 28 Jun 2011 20:17:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     memcg-fix-reclaimable-lru-check-in-memcg-fix
+     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-reclaimable-lru-check-in-memcg-fix
+Subject: memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix kerneldoc layout
+attempt to repair code layout
 
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix
+diff -puN mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 +++ a/mm/memcontrol.c
-@@ -1550,7 +1550,8 @@ mem_cgroup_select_victim(struct mem_cgro
- 	return ret;
- }
- 
--/** test_mem_cgroup_node_reclaimable
-+/**
-+ * test_mem_cgroup_node_reclaimable
-  * @mem: the target memcg
-  * @nid: the node ID to be checked.
-  * @noswap : specify true here if the user wants flle only information.
+@@ -704,10 +704,10 @@ static void memcg_check_events(struct me
+ 		mem_cgroup_threshold(mem);
+ 		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
+ 		if (unlikely(__memcg_event_check(mem,
+-			MEM_CGROUP_TARGET_SOFTLIMIT))){
++			     MEM_CGROUP_TARGET_SOFTLIMIT))) {
+ 			mem_cgroup_update_tree(mem, page);
+ 			__mem_cgroup_target_update(mem,
+-				MEM_CGROUP_TARGET_SOFTLIMIT);
++						   MEM_CGROUP_TARGET_SOFTLIMIT);
+ 		}
+ #if MAX_NUMNODES > 1
+ 		if (unlikely(__memcg_event_check(mem,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
