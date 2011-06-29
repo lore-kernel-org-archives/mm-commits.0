@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch added to -mm tree
-Date: Tue, 28 Jun 2011 17:17:10 -0700
-Message-ID: <201106290017.p5T0HAji016771@imap1.linux-foundation.org>
+Subject: + mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch added to -mm tree
+Date: Tue, 28 Jun 2011 17:17:23 -0700
+Message-ID: <201106290017.p5T0HNQr016800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56498 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752600Ab1F2ARV (ORCPT
+	by vger.kernel.org with ESMTP id S1752600Ab1F2AR0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 20:17:21 -0400
+	Tue, 28 Jun 2011 20:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     memcg: fix numa scan information update to be triggered by memory event
+     mm-preallocate-page-before-lock_page-at-filemap-cow-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
+     mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix numa scan information update to be triggered by memory event
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-preallocate-page-before-lock_page-at-filemap-cow-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-commit 889976dbcb12 ("memcg: reclaim memory from nodes in round-robin
-order") adds an numa node round-robin for memcg.  But the information is
-updated once per 10sec.
+fix code layout
 
-This patch changes the update trigger from jiffies to memcg's event count.
- After this patch, numa scan information will be updated when we see 1024
-events of pagein/pageout under a memcg.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event
-+++ a/mm/memcontrol.c
-@@ -108,10 +108,12 @@ enum mem_cgroup_events_index {
- enum mem_cgroup_events_target {
- 	MEM_CGROUP_TARGET_THRESH,
- 	MEM_CGROUP_TARGET_SOFTLIMIT,
-+	MEM_CGROUP_TARGET_NUMAINFO,
- 	MEM_CGROUP_NTARGETS,
- };
- #define THRESHOLDS_EVENTS_TARGET (128)
- #define SOFTLIMIT_EVENTS_TARGET (1024)
-+#define NUMAINFO_EVENTS_TARGET	(1024)
+diff -puN mm/memory.c~mm-preallocate-page-before-lock_page-at-filemap-cow-fix mm/memory.c
+--- a/mm/memory.c~mm-preallocate-page-before-lock_page-at-filemap-cow-fix
++++ a/mm/memory.c
+@@ -3119,7 +3119,7 @@ static int __do_fault(struct mm_struct *
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
  
- struct mem_cgroup_stat_cpu {
- 	long count[MEM_CGROUP_STAT_NSTATS];
-@@ -237,7 +239,8 @@ struct mem_cgroup {
- 	int last_scanned_node;
- #if MAX_NUMNODES > 1
- 	nodemask_t	scan_nodes;
--	unsigned long   next_scan_node_update;
-+	atomic_t	numainfo_events;
-+	atomic_t	numainfo_updating;
- #endif
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
-@@ -680,6 +683,9 @@ static void __mem_cgroup_target_update(s
- 	case MEM_CGROUP_TARGET_SOFTLIMIT:
- 		next = val + SOFTLIMIT_EVENTS_TARGET;
- 		break;
-+	case MEM_CGROUP_TARGET_NUMAINFO:
-+		next = val + NUMAINFO_EVENTS_TARGET;
-+		break;
- 	default:
- 		return;
- 	}
-@@ -703,6 +709,14 @@ static void memcg_check_events(struct me
- 			__mem_cgroup_target_update(mem,
- 				MEM_CGROUP_TARGET_SOFTLIMIT);
- 		}
-+#if MAX_NUMNODES > 1
-+		if (unlikely(__memcg_event_check(mem,
-+			MEM_CGROUP_TARGET_NUMAINFO))) {
-+			atomic_inc(&mem->numainfo_events);
-+			__mem_cgroup_target_update(mem,
-+				MEM_CGROUP_TARGET_NUMAINFO);
-+		}
-+#endif
- 	}
- }
+ 		if (unlikely(anon_vma_prepare(vma)))
+-			return  VM_FAULT_OOM;
++			return VM_FAULT_OOM;
  
-@@ -1583,11 +1597,15 @@ static bool test_mem_cgroup_node_reclaim
- static void mem_cgroup_may_update_nodemask(struct mem_cgroup *mem)
- {
- 	int nid;
--
--	if (time_after(mem->next_scan_node_update, jiffies))
-+	/*
-+	 * numainfo_events > 0 means there was at least NUMAINFO_EVENTS_TARGET
-+	 * pagein/pageout changes since the last update.
-+	 */
-+	if (!atomic_read(&mem->numainfo_events))
-+		return;
-+	if (atomic_inc_return(&mem->numainfo_updating) > 1)
- 		return;
- 
--	mem->next_scan_node_update = jiffies + 10*HZ;
- 	/* make a nodemask where this memcg uses memory from */
- 	mem->scan_nodes = node_states[N_HIGH_MEMORY];
- 
-@@ -1596,6 +1614,9 @@ static void mem_cgroup_may_update_nodema
- 		if (!test_mem_cgroup_node_reclaimable(mem, nid, false))
- 			node_clear(nid, mem->scan_nodes);
- 	}
-+
-+	atomic_set(&mem->numainfo_events, 0);
-+	atomic_set(&mem->numainfo_updating, 0);
- }
- 
- /*
+ 		cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 		if (!cow_page)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-reclaimable-lru-check-in-memcg.patch
 memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
 memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
 memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
