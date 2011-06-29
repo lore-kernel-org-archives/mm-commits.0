@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-inodec-optimize-expensive-assertion-in-end_writeback.patch added to -mm tree
-Date: Wed, 29 Jun 2011 14:40:44 -0700
-Message-ID: <201106292140.p5TLeiIB013651@imap1.linux-foundation.org>
+Subject: + stop_machine-implement-stop_machine_from_inactive_cpu.patch added to -mm tree
+Date: Wed, 29 Jun 2011 14:41:18 -0700
+Message-ID: <201106292141.p5TLfIrx013678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753951Ab1F2VlP (ORCPT
+	by vger.kernel.org with ESMTP id S1753292Ab1F2Vl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 17:41:15 -0400
+	Wed, 29 Jun 2011 17:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz
+Cc: tj@kernel.org, a.p.zijlstra@chello.nl, mingo@elte.hu, suresh.b.siddha@intel.com
 
 
 The patch titled
-     fs/inode.c: optimize expensive assertion in end_writeback()
+     stop_machine: implement stop_machine_from_inactive_cpu()
 has been added to the -mm tree.  Its filename is
-     fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
+     stop_machine-implement-stop_machine_from_inactive_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,173 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/inode.c: optimize expensive assertion in end_writeback()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: stop_machine: implement stop_machine_from_inactive_cpu()
+From: Tejun Heo <tj@kernel.org>
 
-Taking spin_lock_irq() just to run BUG_ON() is a pretty sad use of CPU
-cycles.  Speed this up by only taking the lock if it looks like the
-BUG_ON() will be triggering.
+Currently, mtrr wants stop_machine functionality while a CPU is being
+brought up.  As stop_machine() requires the calling CPU to be active, mtrr
+implements its own stop_machine using stop_one_cpu() on each online CPU. 
+This doesn't only unnecessarily duplicate complex logic but also
+introduces a possibility of deadlock when it races against the generic
+stop_machine().
 
-Cc: Jan Kara <jack@suse.cz>
+This patch implements stop_machine_from_inactive_cpu() to serve such use
+cases.  Its functionality is basically the same as stop_machine();
+however, it should be called from a CPU which isn't active and doesn't
+depend on working scheduling on the calling CPU.
+
+This is achieved by using busy loops for synchronization and open-coding
+stop_cpus queuing and waiting with direct invocation of fn() for local CPU
+inbetween.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ include/linux/stop_machine.h |   14 ++++++-
+ kernel/stop_machine.c        |   62 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 73 insertions(+), 3 deletions(-)
 
-diff -puN fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback fs/inode.c
---- a/fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback
-+++ a/fs/inode.c
-@@ -422,14 +422,18 @@ EXPORT_SYMBOL(remove_inode_hash);
- void end_writeback(struct inode *inode)
- {
- 	might_sleep();
--	/*
--	 * We have to cycle tree_lock here because reclaim can be still in the
--	 * process of removing the last page (in __delete_from_page_cache())
--	 * and we must not free mapping under it.
--	 */
--	spin_lock_irq(&inode->i_data.tree_lock);
--	BUG_ON(inode->i_data.nrpages);
--	spin_unlock_irq(&inode->i_data.tree_lock);
+diff -puN include/linux/stop_machine.h~stop_machine-implement-stop_machine_from_inactive_cpu include/linux/stop_machine.h
+--- a/include/linux/stop_machine.h~stop_machine-implement-stop_machine_from_inactive_cpu
++++ a/include/linux/stop_machine.h
+@@ -126,15 +126,19 @@ int stop_machine(int (*fn)(void *), void
+  */
+ int __stop_machine(int (*fn)(void *), void *data, const struct cpumask *cpus);
+ 
++int stop_machine_from_inactive_cpu(int (*fn)(void *), void *data,
++				   const struct cpumask *cpus);
 +
-+	if (unlikely(inode->i_data.nrpages)) {
-+		/*
-+		 * We have to cycle tree_lock here because reclaim can be still
-+		 * in the process of removing the last page (in
-+		 * __delete_from_page_cache()) and we must not free mapping
-+		 * under it.
-+		 */
-+		spin_lock_irq(&inode->i_data.tree_lock);
-+		BUG_ON(inode->i_data.nrpages);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
-+	}
- 	BUG_ON(!list_empty(&inode->i_data.private_list));
- 	BUG_ON(!(inode->i_state & I_FREEING));
- 	BUG_ON(inode->i_state & I_CLEAR);
+ #else	 /* CONFIG_STOP_MACHINE && CONFIG_SMP */
+ 
+ static inline int __stop_machine(int (*fn)(void *), void *data,
+ 				 const struct cpumask *cpus)
+ {
++	unsigned long flags;
+ 	int ret;
+-	local_irq_disable();
++	local_irq_save(flags);
+ 	ret = fn(data);
+-	local_irq_enable();
++	local_irq_restore(flags);
+ 	return ret;
+ }
+ 
+@@ -144,5 +148,11 @@ static inline int stop_machine(int (*fn)
+ 	return __stop_machine(fn, data, cpus);
+ }
+ 
++static inline int stop_machine_from_inactive_cpu(int (*fn)(void *), void *data,
++						 const struct cpumask *cpus)
++{
++	return __stop_machine(fn, data, cpus);
++}
++
+ #endif	/* CONFIG_STOP_MACHINE && CONFIG_SMP */
+ #endif	/* _LINUX_STOP_MACHINE */
+diff -puN kernel/stop_machine.c~stop_machine-implement-stop_machine_from_inactive_cpu kernel/stop_machine.c
+--- a/kernel/stop_machine.c~stop_machine-implement-stop_machine_from_inactive_cpu
++++ a/kernel/stop_machine.c
+@@ -439,8 +439,15 @@ static int stop_machine_cpu_stop(void *d
+ 	struct stop_machine_data *smdata = data;
+ 	enum stopmachine_state curstate = STOPMACHINE_NONE;
+ 	int cpu = smp_processor_id(), err = 0;
++	unsigned long flags;
+ 	bool is_active;
+ 
++	/*
++	 * When called from stop_machine_from_inactive_cpu(), irq might
++	 * already be disabled.  Save the state and restore it on exit.
++	 */
++	local_save_flags(flags);
++
+ 	if (!smdata->active_cpus)
+ 		is_active = cpu == cpumask_first(cpu_online_mask);
+ 	else
+@@ -468,7 +475,7 @@ static int stop_machine_cpu_stop(void *d
+ 		}
+ 	} while (curstate != STOPMACHINE_EXIT);
+ 
+-	local_irq_enable();
++	local_irq_restore(flags);
+ 	return err;
+ }
+ 
+@@ -495,4 +502,57 @@ int stop_machine(int (*fn)(void *), void
+ }
+ EXPORT_SYMBOL_GPL(stop_machine);
+ 
++/**
++ * stop_machine_from_inactive_cpu - stop_machine() from inactive CPU
++ * @fn: the function to run
++ * @data: the data ptr for the @fn()
++ * @cpus: the cpus to run the @fn() on (NULL = any online cpu)
++ *
++ * This is identical to stop_machine() but can be called from a CPU which
++ * is not active.  The local CPU is in the process of hotplug (so no other
++ * CPU hotplug can start) and not marked active and doesn't have enough
++ * context to sleep.
++ *
++ * This function provides stop_machine() functionality for such state by
++ * using busy-wait for synchronization and executing @fn directly for local
++ * CPU.
++ *
++ * CONTEXT:
++ * Local CPU is inactive.  Temporarily stops all active CPUs.
++ *
++ * RETURNS:
++ * 0 if all executions of @fn returned 0, any non zero return value if any
++ * returned non zero.
++ */
++int stop_machine_from_inactive_cpu(int (*fn)(void *), void *data,
++				  const struct cpumask *cpus)
++{
++	struct stop_machine_data smdata = { .fn = fn, .data = data,
++					    .active_cpus = cpus };
++	struct cpu_stop_done done;
++	int ret;
++
++	/* Local CPU must be inactive and CPU hotplug in progress. */
++	BUG_ON(cpu_active(raw_smp_processor_id()));
++	smdata.num_threads = num_active_cpus() + 1;	/* +1 for local */
++
++	/* No proper task established and can't sleep - busy wait for lock. */
++	while (!mutex_trylock(&stop_cpus_mutex))
++		cpu_relax();
++
++	/* Schedule work on other CPUs and execute directly for local CPU */
++	set_state(&smdata, STOPMACHINE_PREPARE);
++	cpu_stop_init_done(&done, num_active_cpus());
++	queue_stop_cpus_work(cpu_active_mask, stop_machine_cpu_stop, &smdata,
++			     &done);
++	ret = stop_machine_cpu_stop(&smdata);
++
++	/* Busy wait for completion. */
++	while (!completion_done(&done.completion))
++		cpu_relax();
++
++	mutex_unlock(&stop_cpus_mutex);
++	return ret ?: done.ret;
++}
++
+ #endif	/* CONFIG_STOP_MACHINE */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
-origin.patch
-memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-mm-memoryc-remove-zap_block_size.patch
-fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
+x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch
+stop_machine-reorganize-stop_cpus-implementation.patch
+stop_machine-implement-stop_machine_from_inactive_cpu.patch
+x86-mtrr-use-stop_machine-apis-for-doing-mtrr-rendezvous.patch
+drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
+devres-fix-possible-use-after-free.patch
+ptrace-unify-show_regs-prototype.patch
+ptrace-unify-show_regs-prototype-fix.patch
 scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
 scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
