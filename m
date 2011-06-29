@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-introduce-shm_rmid_forced-sysctl-fix.patch added to -mm tree
-Date: Wed, 29 Jun 2011 15:14:58 -0700
-Message-ID: <201106292214.p5TMEwQB015375@imap1.linux-foundation.org>
+Subject: + ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:15:00 -0700
+Message-ID: <201106292215.p5TMF0OL015383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758037Ab1F2WPM (ORCPT
+	by vger.kernel.org with ESMTP id S1758060Ab1F2WPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:15:12 -0400
+	Wed, 29 Jun 2011 18:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rdunlap@xenotime.net, segoon@openwall.com
+Cc: akpm@linux-foundation.org, segoon@openwall.com
 
 
 The patch titled
-     ipc-introduce-shm_rmid_forced-sysctl-fix
+     ipc-introduce-shm_rmid_forced-sysctl-cleanup
 has been added to the -mm tree.  Its filename is
-     ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+     ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-introduce-shm_rmid_forced-sysctl-fix
+Subject: ipc-introduce-shm_rmid_forced-sysctl-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix documentation, per Randy
+readability/conventionality tweaks
 
 Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/ipc_sysctl.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl-fix Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl-fix
-+++ a/Documentation/sysctl/kernel.txt
-@@ -478,7 +478,7 @@ kernel.  This value defaults to SHMMAX.
+diff -puN ipc/ipc_sysctl.c~ipc-introduce-shm_rmid_forced-sysctl-cleanup ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~ipc-introduce-shm_rmid_forced-sysctl-cleanup
++++ a/ipc/ipc_sysctl.c
+@@ -31,6 +31,7 @@ static int proc_ipc_dointvec(ctl_table *
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table ipc_table;
++
+ 	memcpy(&ipc_table, table, sizeof(ipc_table));
+ 	ipc_table.data = get_ipc(table);
  
- shm_rmid_forced:
+@@ -41,6 +42,7 @@ static int proc_ipc_dointvec_minmax(ctl_
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table ipc_table;
++
+ 	memcpy(&ipc_table, table, sizeof(ipc_table));
+ 	ipc_table.data = get_ipc(table);
  
--Linux lets you set resource limits, including on how much memory one
-+Linux lets you set resource limits, including how much memory one
- process can consume, via setrlimit(2).  Unfortunately, shared memory
- segments are allowed to exist without association with any process, and
- thus might not be counted against any resource limits.  If enabled,
+@@ -52,6 +54,7 @@ static int proc_ipc_dointvec_minmax_orph
+ {
+ 	struct ipc_namespace *ns = current->nsproxy->ipc_ns;
+ 	int err = proc_ipc_dointvec_minmax(table, write, buffer, lenp, ppos);
++
+ 	if (err < 0)
+ 		return err;
+ 	if (ns->shm_rmid_forced)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
