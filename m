@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-reclaimable-lru-check-in-memcg.patch added to -mm tree
-Date: Tue, 28 Jun 2011 17:15:36 -0700
-Message-ID: <201106290015.p5T0FaCP016717@imap1.linux-foundation.org>
+Subject: + memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 28 Jun 2011 17:15:48 -0700
+Message-ID: <201106290015.p5T0FnTm016728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752654Ab1F2APz (ORCPT
+	by vger.kernel.org with ESMTP id S1752627Ab1F2AQC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Jun 2011 20:15:55 -0400
+	Tue, 28 Jun 2011 20:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     memcg: fix reclaimable lru check in memcg
+     memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     memcg-fix-reclaimable-lru-check-in-memcg.patch
+     memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,169 +34,177 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix reclaimable lru check in memcg
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now, in mem_cgroup_hierarchical_reclaim(), mem_cgroup_local_usage() is
-used for checking whether the memcg contains reclaimable pages or not.  If
-no pages in it, the routine skips it.
+ERROR: code indent should use tabs where possible
+#130: FILE: mm/memcontrol.c:1567:
++        if (noswap || !total_swap_pages)$
 
-But, mem_cgroup_local_usage() contains Unevictable pages and cannot handle
-"noswap" condition correctly.  This doesn't work on a swapless system.
+WARNING: please, no spaces at the start of a line
+#130: FILE: mm/memcontrol.c:1567:
++        if (noswap || !total_swap_pages)$
 
-This patch adds test_mem_cgroup_reclaimable() and replaces
-mem_cgroup_local_usage().  test_mem_cgroup_reclaimable() see LRU counter
-and returns correct answer to the caller.  And this new function has
-"noswap" argument and can see only FILE LRU if necessary.
+ERROR: code indent should use tabs where possible
+#131: FILE: mm/memcontrol.c:1568:
++                return false;$
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+WARNING: please, no spaces at the start of a line
+#131: FILE: mm/memcontrol.c:1568:
++                return false;$
+
+ERROR: code indent should use tabs where possible
+#132: FILE: mm/memcontrol.c:1569:
++        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))$
+
+WARNING: please, no spaces at the start of a line
+#132: FILE: mm/memcontrol.c:1569:
++        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))$
+
+ERROR: code indent should use tabs where possible
+#133: FILE: mm/memcontrol.c:1570:
++                return true;$
+
+WARNING: please, no spaces at the start of a line
+#133: FILE: mm/memcontrol.c:1570:
++                return true;$
+
+ERROR: code indent should use tabs where possible
+#134: FILE: mm/memcontrol.c:1571:
++        return false;$
+
+WARNING: please, no spaces at the start of a line
+#134: FILE: mm/memcontrol.c:1571:
++        return false;$
+
+ERROR: code indent should use tabs where possible
+#186: FILE: mm/memcontrol.c:1659:
++ ^I * Check rest of nodes.$
+
+WARNING: please, no space before tabs
+#186: FILE: mm/memcontrol.c:1659:
++ ^I * Check rest of nodes.$
+
+ERROR: code indent should use tabs where possible
+#187: FILE: mm/memcontrol.c:1660:
++ ^I */$
+
+WARNING: please, no space before tabs
+#187: FILE: mm/memcontrol.c:1660:
++ ^I */$
+
+ERROR: trailing whitespace
+#192: FILE: mm/memcontrol.c:1665:
++^I^I^Ireturn true;^I$
+
+total: 8 errors, 7 warnings, 118 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/memcg-fix-reclaimable-lru-check-in-memcg.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Ying Han <yinghan@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   83 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 64 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg
+diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
 +++ a/mm/memcontrol.c
-@@ -577,15 +577,6 @@ static long mem_cgroup_read_stat(struct 
- 	return val;
- }
- 
--static long mem_cgroup_local_usage(struct mem_cgroup *mem)
--{
--	long ret;
--
--	ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_RSS);
--	ret += mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_CACHE);
--	return ret;
--}
--
- static void mem_cgroup_swap_statistics(struct mem_cgroup *mem,
- 					 bool charge)
+@@ -1564,11 +1564,11 @@ static bool test_mem_cgroup_node_reclaim
  {
-@@ -1559,6 +1550,27 @@ mem_cgroup_select_victim(struct mem_cgro
- 	return ret;
- }
- 
-+/** test_mem_cgroup_node_reclaimable
-+ * @mem: the target memcg
-+ * @nid: the node ID to be checked.
-+ * @noswap : specify true here if the user wants flle only information.
-+ *
-+ * This function returns whether the specified memcg contains any
-+ * reclaimable pages on a node. Returns true if there are any reclaimable
-+ * pages in the node.
-+ */
-+static bool test_mem_cgroup_node_reclaimable(struct mem_cgroup *mem,
-+		int nid, bool noswap)
-+{
-+	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
+ 	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
+ 		return true;
+-        if (noswap || !total_swap_pages)
+-                return false;
+-        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
+-                return true;
+-        return false;
++	if (noswap || !total_swap_pages)
++		return false;
++	if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
 +		return true;
-+        if (noswap || !total_swap_pages)
-+                return false;
-+        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
-+                return true;
-+        return false;
-+
-+}
- #if MAX_NUMNODES > 1
- 
- /*
-@@ -1580,15 +1592,8 @@ static void mem_cgroup_may_update_nodema
- 
- 	for_each_node_mask(nid, node_states[N_HIGH_MEMORY]) {
- 
--		if (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_FILE) ||
--		    mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_FILE))
--			continue;
--
--		if (total_swap_pages &&
--		    (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_ANON) ||
--		     mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_ANON)))
--			continue;
--		node_clear(nid, mem->scan_nodes);
-+		if (!test_mem_cgroup_node_reclaimable(mem, nid, false))
-+			node_clear(nid, mem->scan_nodes);
- 	}
- }
- 
-@@ -1627,11 +1632,51 @@ int mem_cgroup_select_victim_node(struct
- 	return node;
- }
- 
-+/*
-+ * Check all nodes whether it contains reclaimable pages or not.
-+ * For quick scan, we make use of scan_nodes. This will allow us to skip
-+ * unused nodes. But scan_nodes is lazily updated and may not cotain
-+ * enough new information. We need to do double check.
-+ */
-+bool mem_cgroup_reclaimable(struct mem_cgroup *mem, bool noswap)
-+{
-+	int nid;
-+
-+	/*
-+	 * quick check...making use of scan_node.
-+	 * We can skip unused nodes.
-+	 */
-+	if (!nodes_empty(mem->scan_nodes)) {
-+		for (nid = first_node(mem->scan_nodes);
-+		     nid < MAX_NUMNODES;
-+		     nid = next_node(nid, mem->scan_nodes)) {
-+
-+			if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
-+				return true;
-+		}
-+	}
-+	/*
-+ 	 * Check rest of nodes.
-+ 	 */
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
-+		if (node_isset(nid, mem->scan_nodes))
-+			continue;
-+		if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
-+			return true;	
-+	}
 +	return false;
-+}
-+
- #else
- int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
- {
- 	return 0;
- }
-+
-+bool mem_cgroup_reclaimable(struct mem_cgroup *mem, bool noswap)
-+{
-+	return test_mem_cgroup_node_reclaimable(mem, 0, noswap);
-+}
- #endif
  
- /*
-@@ -1702,7 +1747,7 @@ static int mem_cgroup_hierarchical_recla
- 				}
- 			}
+ }
+ #if MAX_NUMNODES > 1
+@@ -1656,13 +1656,13 @@ bool mem_cgroup_reclaimable(struct mem_c
  		}
--		if (!mem_cgroup_local_usage(victim)) {
-+		if (!mem_cgroup_reclaimable(victim, noswap)) {
- 			/* this cgroup's local usage == 0 */
- 			css_put(&victim->css);
+ 	}
+ 	/*
+- 	 * Check rest of nodes.
+- 	 */
++	 * Check rest of nodes.
++	 */
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+ 		if (node_isset(nid, mem->scan_nodes))
  			continue;
+ 		if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
+-			return true;	
++			return true;
+ 	}
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-reclaimable-lru-check-in-memcg.patch
 memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
 memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
 memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
