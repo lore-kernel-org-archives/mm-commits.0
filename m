@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-introduce-shm_rmid_forced-sysctl.patch added to -mm tree
-Date: Wed, 29 Jun 2011 15:14:55 -0700
-Message-ID: <201106292214.p5TMEtHg015372@imap1.linux-foundation.org>
+Subject: + ipc-introduce-shm_rmid_forced-sysctl-testing.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:15:02 -0700
+Message-ID: <201106292215.p5TMF2nN015394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932133Ab1F2WPT (ORCPT
+	by vger.kernel.org with ESMTP id S1754159Ab1F2WP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:15:19 -0400
+	Wed, 29 Jun 2011 18:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, daniel.lezcano@free.fr, ebiederm@xmission.com, mingo@elte.hu, oleg@redhat.com, rdunlap@xenotime.net, serge.hallyn@canonical.com, tj@kernel.org
+Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, mingo@elte.hu, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org
 
 
 The patch titled
-     ipc: introduce shm_rmid_forced sysctl
+     ipc-introduce-shm_rmid_forced-sysctl-testing
 has been added to the -mm tree.  Its filename is
-     ipc-introduce-shm_rmid_forced-sysctl.patch
+     ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,332 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: introduce shm_rmid_forced sysctl
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: ipc-introduce-shm_rmid_forced-sysctl-testing
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for the shm_rmid_forced sysctl.  If set to 1, all
-shared memory objects in current ipc namespace will be automatically
-forced to use IPC_RMID.
-
-The POSIX way of handling shmem allows one to create shm objects and call
-shmdt(), leaving shm object associated with no process, thus consuming
-memory not counted via rlimits.
-
-With shm_rmid_forced=1 the shared memory object is counted at least for
-one process, so OOM killer may effectively kill the fat process holding
-the shared memory.
-
-It obviously breaks POSIX - some programs relying on the feature would
-stop working.  So set shm_rmid_forced=1 only if you're sure nobody uses
-"orphaned" memory.  Use shm_rmid_forced=0 by default for compatability
-reasons.
-
-The feature was previously impemented in -ow as a configure option.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "Serge E. Hallyn" <serge.hallyn@canonical.com>
 Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   22 +++++++
- include/linux/ipc_namespace.h   |    3 +
- include/linux/shm.h             |    5 +
- ipc/ipc_sysctl.c                |   33 +++++++++++
- ipc/shm.c                       |   87 ++++++++++++++++++++++++++++--
- kernel/exit.c                   |    1 
- 6 files changed, 147 insertions(+), 4 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl
-+++ a/Documentation/sysctl/kernel.txt
-@@ -62,6 +62,7 @@ show up in /proc/sys/kernel:
- - shmall
- - shmmax                      [ sysv ipc ]
- - shmmni
-+- shm_rmid_forced
- - stop-a                      [ SPARC only ]
- - sysrq                       ==> Documentation/sysrq.txt
- - tainted
-@@ -475,6 +476,27 @@ kernel.  This value defaults to SHMMAX.
- 
- ==============================================================
- 
-+shm_rmid_forced:
-+
-+Linux lets you set resource limits, including on how much memory one
-+process can consume, via setrlimit(2).  Unfortunately, shared memory
-+segments are allowed to exist without association with any process, and
-+thus might not be counted against any resource limits.  If enabled,
-+shared memory segments are automatically destroyed when their attach
-+count becomes zero after a detach or a process termination.  It will
-+also destroy segments that were created, but never attached to, on exit
-+from the process.  The only use left for IPC_RMID is to immediately
-+destroy an unattached segment.  Of course, this breaks the way things are
-+defined, so some applications might stop working.  Note that this
-+feature will do you no good unless you also configure your resource
-+limits (in particular, RLIMIT_AS and RLIMIT_NPROC).  Most systems don't
-+need this.
-+
-+Note that if you change this from 0 to 1, already created segments
-+without users and with a dead originative process will be destroyed.
-+
-+==============================================================
-+
- softlockup_thresh:
- 
- This value can be used to lower the softlockup tolerance threshold.  The
-diff -puN include/linux/ipc_namespace.h~ipc-introduce-shm_rmid_forced-sysctl include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-introduce-shm_rmid_forced-sysctl
-+++ a/include/linux/ipc_namespace.h
-@@ -44,6 +44,7 @@ struct ipc_namespace {
- 	size_t		shm_ctlall;
- 	int		shm_ctlmni;
- 	int		shm_tot;
-+	int		shm_rmid_forced;
- 
- 	struct notifier_block ipcns_nb;
- 
-@@ -72,6 +73,7 @@ extern int register_ipcns_notifier(struc
- extern int cond_register_ipcns_notifier(struct ipc_namespace *);
- extern void unregister_ipcns_notifier(struct ipc_namespace *);
- extern int ipcns_notify(unsigned long);
-+extern void shm_destroy_orphaned(struct ipc_namespace *ns);
- #else /* CONFIG_SYSVIPC */
- static inline int register_ipcns_notifier(struct ipc_namespace *ns)
- { return 0; }
-@@ -79,6 +81,7 @@ static inline int cond_register_ipcns_no
- { return 0; }
- static inline void unregister_ipcns_notifier(struct ipc_namespace *ns) { }
- static inline int ipcns_notify(unsigned long l) { return 0; }
-+static inline void shm_destroy_orphaned(struct ipc_namespace *ns) {}
- #endif /* CONFIG_SYSVIPC */
- 
- #ifdef CONFIG_POSIX_MQUEUE
-diff -puN include/linux/shm.h~ipc-introduce-shm_rmid_forced-sysctl include/linux/shm.h
---- a/include/linux/shm.h~ipc-introduce-shm_rmid_forced-sysctl
-+++ a/include/linux/shm.h
-@@ -106,6 +106,7 @@ struct shmid_kernel /* private to the ke
- #ifdef CONFIG_SYSVIPC
- long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr);
- extern int is_file_shm_hugepages(struct file *file);
-+extern void exit_shm(struct task_struct *task);
- #else
- static inline long do_shmat(int shmid, char __user *shmaddr,
- 				int shmflg, unsigned long *addr)
-@@ -116,6 +117,10 @@ static inline int is_file_shm_hugepages(
- {
- 	return 0;
- }
-+static inline void exit_shm(struct task_struct *task)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif /* __KERNEL__ */
-diff -puN ipc/ipc_sysctl.c~ipc-introduce-shm_rmid_forced-sysctl ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~ipc-introduce-shm_rmid_forced-sysctl
-+++ a/ipc/ipc_sysctl.c
-@@ -37,6 +37,28 @@ static int proc_ipc_dointvec(ctl_table *
- 	return proc_dointvec(&ipc_table, write, buffer, lenp, ppos);
- }
- 
-+static int proc_ipc_dointvec_minmax(ctl_table *table, int write,
-+	void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct ctl_table ipc_table;
-+	memcpy(&ipc_table, table, sizeof(ipc_table));
-+	ipc_table.data = get_ipc(table);
-+
-+	return proc_dointvec_minmax(&ipc_table, write, buffer, lenp, ppos);
-+}
-+
-+static int proc_ipc_dointvec_minmax_orphans(ctl_table *table, int write,
-+	void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct ipc_namespace *ns = current->nsproxy->ipc_ns;
-+	int err = proc_ipc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+	if (err < 0)
-+		return err;
-+	if (ns->shm_rmid_forced)
-+		shm_destroy_orphaned(ns);
-+	return err;
-+}
-+
- static int proc_ipc_callback_dointvec(ctl_table *table, int write,
- 	void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -125,6 +147,8 @@ static int proc_ipcauto_dointvec_minmax(
- #else
- #define proc_ipc_doulongvec_minmax NULL
- #define proc_ipc_dointvec	   NULL
-+#define proc_ipc_dointvec_minmax   NULL
-+#define proc_ipc_dointvec_minmax_orphans   NULL
- #define proc_ipc_callback_dointvec NULL
- #define proc_ipcauto_dointvec_minmax NULL
- #endif
-@@ -155,6 +179,15 @@ static struct ctl_table ipc_kern_table[]
- 		.proc_handler	= proc_ipc_dointvec,
- 	},
- 	{
-+		.procname	= "shm_rmid_forced",
-+		.data		= &init_ipc_ns.shm_rmid_forced,
-+		.maxlen		= sizeof(init_ipc_ns.shm_rmid_forced),
-+		.mode		= 0644,
-+		.proc_handler	= proc_ipc_dointvec_minmax_orphans,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+	{
- 		.procname	= "msgmax",
- 		.data		= &init_ipc_ns.msg_ctlmax,
- 		.maxlen		= sizeof (init_ipc_ns.msg_ctlmax),
-diff -puN ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl ipc/shm.c
---- a/ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl
+diff -puN ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing ipc/shm.c
+--- a/ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing
 +++ a/ipc/shm.c
-@@ -74,6 +74,7 @@ void shm_init_ns(struct ipc_namespace *n
+@@ -74,7 +74,7 @@ void shm_init_ns(struct ipc_namespace *n
  	ns->shm_ctlmax = SHMMAX;
  	ns->shm_ctlall = SHMALL;
  	ns->shm_ctlmni = SHMMNI;
-+	ns->shm_rmid_forced = 0;
+-	ns->shm_rmid_forced = 0;
++	ns->shm_rmid_forced = 1;
  	ns->shm_tot = 0;
  	ipc_init_ids(&shm_ids(ns));
  }
-@@ -186,6 +187,13 @@ static void shm_destroy(struct ipc_names
- 	ipc_rcu_putref(shp);
- }
- 
-+static bool shm_may_destroy(struct ipc_namespace *ns, struct shmid_kernel *shp)
-+{
-+	return (shp->shm_nattch == 0) &&
-+	       (ns->shm_rmid_forced ||
-+		(shp->shm_perm.mode & SHM_DEST));
-+}
-+
- /*
-  * remove the attach descriptor vma.
-  * free memory for segment if it is marked destroyed.
-@@ -206,11 +214,83 @@ static void shm_close(struct vm_area_str
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_dtim = get_seconds();
- 	shp->shm_nattch--;
--	if(shp->shm_nattch == 0 &&
--	   shp->shm_perm.mode & SHM_DEST)
-+	if (shm_may_destroy(ns, shp))
-+		shm_destroy(ns, shp);
-+	else
-+		shm_unlock(shp);
-+	up_write(&shm_ids(ns).rw_mutex);
-+}
-+
-+static int shm_try_destroy_current(int id, void *p, void *data)
-+{
-+	struct ipc_namespace *ns = data;
-+	struct shmid_kernel *shp = shm_lock(ns, id);
-+
-+	if (IS_ERR(shp))
-+		return 0;
-+
-+	if (shp->shm_cprid != task_tgid_vnr(current)) {
-+		shm_unlock(shp);
-+		return 0;
-+	}
-+
-+	if (shm_may_destroy(ns, shp))
- 		shm_destroy(ns, shp);
- 	else
- 		shm_unlock(shp);
-+	return 0;
-+}
-+
-+static int shm_try_destroy_orphaned(int id, void *p, void *data)
-+{
-+	struct ipc_namespace *ns = data;
-+	struct shmid_kernel *shp = shm_lock(ns, id);
-+	struct task_struct *task;
-+
-+	if (IS_ERR(shp))
-+		return 0;
-+
-+	/*
-+	 * We want to destroy segments without users and with already
-+	 * exit'ed originating process.
-+	 *
-+	 * XXX: the originating process may exist in another pid namespace.
-+	 */
-+	task = find_task_by_vpid(shp->shm_cprid);
-+	if (task != NULL) {
-+		shm_unlock(shp);
-+		return 0;
-+	}
-+
-+	if (shm_may_destroy(ns, shp))
-+		shm_destroy(ns, shp);
-+	else
-+		shm_unlock(shp);
-+	return 0;
-+}
-+
-+void shm_destroy_orphaned(struct ipc_namespace *ns)
-+{
-+	down_write(&shm_ids(ns).rw_mutex);
-+	idr_for_each(&shm_ids(ns).ipcs_idr, &shm_try_destroy_orphaned, ns);
-+	up_write(&shm_ids(ns).rw_mutex);
-+}
-+
-+
-+void exit_shm(struct task_struct *task)
-+{
-+	struct nsproxy *nsp = task->nsproxy;
-+	struct ipc_namespace *ns;
-+
-+	if (!nsp)
-+		return;
-+	ns = nsp->ipc_ns;
-+	if (!ns || !ns->shm_rmid_forced)
-+		return;
-+
-+	/* Destroy all already created segments, but not mapped yet */
-+	down_write(&shm_ids(ns).rw_mutex);
-+	idr_for_each(&shm_ids(ns).ipcs_idr, &shm_try_destroy_current, ns);
- 	up_write(&shm_ids(ns).rw_mutex);
- }
- 
-@@ -950,8 +1030,7 @@ out_nattch:
- 	shp = shm_lock(ns, shmid);
- 	BUG_ON(IS_ERR(shp));
- 	shp->shm_nattch--;
--	if(shp->shm_nattch == 0 &&
--	   shp->shm_perm.mode & SHM_DEST)
-+	if (shm_may_destroy(ns, shp))
- 		shm_destroy(ns, shp);
- 	else
- 		shm_unlock(shp);
-diff -puN kernel/exit.c~ipc-introduce-shm_rmid_forced-sysctl kernel/exit.c
---- a/kernel/exit.c~ipc-introduce-shm_rmid_forced-sysctl
-+++ a/kernel/exit.c
-@@ -984,6 +984,7 @@ NORET_TYPE void do_exit(long code)
- 	trace_sched_process_exit(tsk);
- 
- 	exit_sem(tsk);
-+	exit_shm(tsk);
- 	exit_files(tsk);
- 	exit_fs(tsk);
- 	check_stack_usage();
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-ipc-introduce-shm_rmid_forced-sysctl.patch
+memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
 ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
