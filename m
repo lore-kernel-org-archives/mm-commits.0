@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch added to -mm tree
-Date: Wed, 29 Jun 2011 14:41:13 -0700
-Message-ID: <201106292141.p5TLfEhs013672@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:00:31 -0700
+Message-ID: <201106292200.p5TM0VFY014660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753292Ab1F2VmC (ORCPT
+	by vger.kernel.org with ESMTP id S1754721Ab1F2WB3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 17:42:02 -0400
+	Wed, 29 Jun 2011 18:01:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, a.p.zijlstra@chello.nl, mingo@elte.hu, stable@kernel.org, tj@kernel.org, vadimuzzz@inbox.ru
+Cc: mditto@google.com, hpa@zytor.com, mingo@elte.hu, sassmann@kpanic.de, tglx@linutronix.de, yuenn@google.com
 
 
 The patch titled
-     x86, mtrr: lock stop machine during MTRR rendezvous sequence
+     arch/x86/kernel/e820.c: eliminate bubble sort from sanitize_e820_map
 has been added to the -mm tree.  Its filename is
-     x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch
+     arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, mtrr: lock stop machine during MTRR rendezvous sequence
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: arch/x86/kernel/e820.c: eliminate bubble sort from sanitize_e820_map
+From: Mike Ditto <mditto@google.com>
 
-MTRR rendezvous sequence using stop_one_cpu_nowait() can potentially
-happen in parallel with another system wide rendezvous using
-stop_machine().  This can lead to deadlock (The order in which works are
-queued can be different on different cpu's.  Some cpu's will be running
-the first rendezvous handler and others will be running the second
-rendezvous handler.  Each set waiting for the other set to join for the
-system wide rendezvous, leading to a deadlock).
+Replace the bubble sort in sanitize_e820_map() with a call to the generic
+kernel sort function to avoid pathological performance with large maps.
 
-MTRR rendezvous sequence is not implemented using stop_machine() as this
-gets called both from the process context aswell as the cpu online paths
-(where the cpu has not come online and the interrupts are disabled etc). 
-stop_machine() works with only online cpus.
+On large (thousands of entries) E820 maps, the previous code took minutes
+to run; with this change it's now milliseconds.
 
-For now, take the stop_machine mutex in the MTRR rendezvous sequence that
-gets called from an online cpu (here we are in the process context and can
-potentially sleep while taking the mutex).  And the MTRR rendezvous that
-gets triggered during cpu online doesn't need to take this stop_machine
-lock (as the stop_machine() already ensures that there is no cpu hotplug
-going on in parallel by doing get_online_cpus())
-
-    TBD: Pursue a cleaner solution of extending the stop_machine()
-         infrastructure to handle the case where the calling cpu is
-         still not online and use this for MTRR rendezvous sequence.
-
-Addresses https://bugzilla.novell.com/show_bug.cgi?id=672008
-
-Reported-by: Vadim Kotelnikov <vadimuzzz@inbox.ru>
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Mike Ditto <mditto@google.com>
+Cc: Stefan Assmann <sassmann@kpanic.de>
+Cc: Nancy Yuen <yuenn@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <stable@kernel.org>	[2.6.35+, backport a week or two after this gets more testing in mainline]
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/main.c |   23 +++++++++++++++++++++++
- include/linux/stop_machine.h    |    2 ++
- kernel/stop_machine.c           |    2 +-
- 3 files changed, 26 insertions(+), 1 deletion(-)
+ arch/x86/kernel/e820.c |   59 +++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 35 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/main.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence arch/x86/kernel/cpu/mtrr/main.c
---- a/arch/x86/kernel/cpu/mtrr/main.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
-+++ a/arch/x86/kernel/cpu/mtrr/main.c
-@@ -248,6 +248,25 @@ set_mtrr(unsigned int reg, unsigned long
- 	unsigned long flags;
- 	int cpu;
+diff -puN arch/x86/kernel/e820.c~arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map
++++ a/arch/x86/kernel/e820.c
+@@ -18,6 +18,7 @@
+ #include <linux/acpi.h>
+ #include <linux/firmware-map.h>
+ #include <linux/memblock.h>
++#include <linux/sort.h>
  
-+#ifdef CONFIG_SMP
+ #include <asm/e820.h>
+ #include <asm/proto.h>
+@@ -226,22 +227,38 @@ void __init e820_print_map(char *who)
+  *	   ____________________33__
+  *	   ______________________4_
+  */
++struct change_member {
++	struct e820entry *pbios; /* pointer to original bios entry */
++	unsigned long long addr; /* address for this change point */
++};
++
++static int __init cpcompare(const void *a, const void *b)
++{
++	struct change_member * const *app = a, * const *bpp = b;
++	const struct change_member *ap = *app, *bp = *bpp;
++
 +	/*
-+	 * If this cpu is not yet active, we are in the cpu online path. There
-+	 * can be no stop_machine() in parallel, as stop machine ensures this
-+	 * by using get_online_cpus(). We can skip taking the stop_cpus_mutex,
-+	 * as we don't need it and also we can't afford to block while waiting
-+	 * for the mutex.
-+	 *
-+	 * If this cpu is active, we need to prevent stop_machine() happening
-+	 * in parallel by taking the stop cpus mutex.
-+	 *
-+	 * Also, this is called in the context of cpu online path or in the
-+	 * context where cpu hotplug is prevented. So checking the active status
-+	 * of the raw_smp_processor_id() is safe.
++	 * Inputs are pointers to two elements of change_point[].  If their
++	 * addresses are unequal, their difference dominates.  If the addresses
++	 * are equal, then consider one that represents the end of its region
++	 * to be greater than one that does not.
 +	 */
-+	if (cpu_active(raw_smp_processor_id()))
-+		mutex_lock(&stop_cpus_mutex);
-+#endif
++	if (ap->addr != bp->addr)
++		return ap->addr > bp->addr ? 1 : -1;
 +
- 	preempt_disable();
++	return (ap->addr != ap->pbios->addr) - (bp->addr != bp->pbios->addr);
++}
  
- 	data.smp_reg = reg;
-@@ -330,6 +349,10 @@ set_mtrr(unsigned int reg, unsigned long
+ int __init sanitize_e820_map(struct e820entry *biosmap, int max_nr_map,
+ 			     u32 *pnr_map)
+ {
+-	struct change_member {
+-		struct e820entry *pbios; /* pointer to original bios entry */
+-		unsigned long long addr; /* address for this change point */
+-	};
+ 	static struct change_member change_point_list[2*E820_X_MAX] __initdata;
+ 	static struct change_member *change_point[2*E820_X_MAX] __initdata;
+ 	static struct e820entry *overlap_list[E820_X_MAX] __initdata;
+ 	static struct e820entry new_bios[E820_X_MAX] __initdata;
+-	struct change_member *change_tmp;
+ 	unsigned long current_type, last_type;
+ 	unsigned long long last_addr;
+-	int chgidx, still_changing;
++	int chgidx;
+ 	int overlap_entries;
+ 	int new_bios_entry;
+ 	int old_nr, new_nr, chg_nr;
+@@ -278,35 +295,7 @@ int __init sanitize_e820_map(struct e820
+ 	chg_nr = chgidx;
  
- 	local_irq_restore(flags);
- 	preempt_enable();
-+#ifdef CONFIG_SMP
-+	if (cpu_active(raw_smp_processor_id()))
-+		mutex_unlock(&stop_cpus_mutex);
-+#endif
- }
+ 	/* sort change-point list by memory addresses (low -> high) */
+-	still_changing = 1;
+-	while (still_changing)	{
+-		still_changing = 0;
+-		for (i = 1; i < chg_nr; i++)  {
+-			unsigned long long curaddr, lastaddr;
+-			unsigned long long curpbaddr, lastpbaddr;
+-
+-			curaddr = change_point[i]->addr;
+-			lastaddr = change_point[i - 1]->addr;
+-			curpbaddr = change_point[i]->pbios->addr;
+-			lastpbaddr = change_point[i - 1]->pbios->addr;
+-
+-			/*
+-			 * swap entries, when:
+-			 *
+-			 * curaddr > lastaddr or
+-			 * curaddr == lastaddr and curaddr == curpbaddr and
+-			 * lastaddr != lastpbaddr
+-			 */
+-			if (curaddr < lastaddr ||
+-			    (curaddr == lastaddr && curaddr == curpbaddr &&
+-			     lastaddr != lastpbaddr)) {
+-				change_tmp = change_point[i];
+-				change_point[i] = change_point[i-1];
+-				change_point[i-1] = change_tmp;
+-				still_changing = 1;
+-			}
+-		}
+-	}
++	sort(change_point, chg_nr, sizeof *change_point, cpcompare, 0);
  
- /**
-diff -puN include/linux/stop_machine.h~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence include/linux/stop_machine.h
---- a/include/linux/stop_machine.h~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
-+++ a/include/linux/stop_machine.h
-@@ -27,6 +27,8 @@ struct cpu_stop_work {
- 	struct cpu_stop_done	*done;
- };
- 
-+extern struct mutex stop_cpus_mutex;
-+
- int stop_one_cpu(unsigned int cpu, cpu_stop_fn_t fn, void *arg);
- void stop_one_cpu_nowait(unsigned int cpu, cpu_stop_fn_t fn, void *arg,
- 			 struct cpu_stop_work *work_buf);
-diff -puN kernel/stop_machine.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence kernel/stop_machine.c
---- a/kernel/stop_machine.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
-+++ a/kernel/stop_machine.c
-@@ -132,8 +132,8 @@ void stop_one_cpu_nowait(unsigned int cp
- 	cpu_stop_queue_work(&per_cpu(cpu_stopper, cpu), work_buf);
- }
- 
-+DEFINE_MUTEX(stop_cpus_mutex);
- /* static data for stop_cpus */
--static DEFINE_MUTEX(stop_cpus_mutex);
- static DEFINE_PER_CPU(struct cpu_stop_work, stop_cpus_work);
- 
- int __stop_cpus(const struct cpumask *cpumask, cpu_stop_fn_t fn, void *arg)
+ 	/* create a new bios memory map, removing overlaps */
+ 	overlap_entries = 0;	 /* number of entries in the overlap table */
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from mditto@google.com are
 
-x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch
-stop_machine-reorganize-stop_cpus-implementation.patch
-stop_machine-implement-stop_machine_from_inactive_cpu.patch
-x86-mtrr-use-stop_machine-apis-for-doing-mtrr-rendezvous.patch
+arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
 
