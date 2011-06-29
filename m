@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-xo-15-sci-driver.patch added to -mm tree
-Date: Wed, 29 Jun 2011 14:29:35 -0700
-Message-ID: <201106292129.p5TLTZhu013113@imap1.linux-foundation.org>
+Subject: + fs-inodec-optimize-expensive-assertion-in-end_writeback.patch added to -mm tree
+Date: Wed, 29 Jun 2011 14:40:44 -0700
+Message-ID: <201106292140.p5TLeiIB013651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754516Ab1F2V3w (ORCPT
+	by vger.kernel.org with ESMTP id S1753951Ab1F2VlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 17:29:52 -0400
+	Wed, 29 Jun 2011 17:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, jack@suse.cz
 
 
 The patch titled
-     x86, olpc: add XO-1.5 SCI driver
+     fs/inode.c: optimize expensive assertion in end_writeback()
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-xo-15-sci-driver.patch
+     fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,265 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc: add XO-1.5 SCI driver
-From: Daniel Drake <dsd@laptop.org>
+Subject: fs/inode.c: optimize expensive assertion in end_writeback()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a driver for the ACPI-based EC event interface found on the OLPC
-XO-1.5 laptop.  This enables notification of battery/AC power events, and
-enables various devices to be used as wakeup sources through regular ACPI
-mechanisms.
+Taking spin_lock_irq() just to run BUG_ON() is a pretty sad use of CPU
+cycles.  Speed this up by only taking the lock if it looks like the
+BUG_ON() will be triggering.
 
-This driver can't be built as a module, because some drivers need to know
-at boot-time if SCI-based functionality is available via
-olpc_ec_wakeup_available().
-
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Acked-by: Andres Salomon <dilinger@queued.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                       |    9 +
- arch/x86/platform/olpc/Makefile        |    1 
- arch/x86/platform/olpc/olpc-xo15-sci.c |  168 +++++++++++++++++++++++
- arch/x86/platform/olpc/olpc.c          |    9 +
- 4 files changed, 187 insertions(+)
+ fs/inode.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-olpc-add-xo-15-sci-driver arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-add-xo-15-sci-driver
-+++ a/arch/x86/Kconfig
-@@ -2117,6 +2117,15 @@ config OLPC_XO1_SCI
- 	   - AC adapter status updates
- 	   - Battery status updates
- 
-+config OLPC_XO15_SCI
-+	bool "OLPC XO-1.5 SCI extras"
-+	depends on OLPC && ACPI && POWER_SUPPLY
-+	---help---
-+	  Add support for SCI-based features of the OLPC XO-1.5 laptop:
-+	   - EC-driven system wakeups
-+	   - AC adapter status updates
-+	   - Battery status updates
+diff -puN fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback fs/inode.c
+--- a/fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback
++++ a/fs/inode.c
+@@ -422,14 +422,18 @@ EXPORT_SYMBOL(remove_inode_hash);
+ void end_writeback(struct inode *inode)
+ {
+ 	might_sleep();
+-	/*
+-	 * We have to cycle tree_lock here because reclaim can be still in the
+-	 * process of removing the last page (in __delete_from_page_cache())
+-	 * and we must not free mapping under it.
+-	 */
+-	spin_lock_irq(&inode->i_data.tree_lock);
+-	BUG_ON(inode->i_data.nrpages);
+-	spin_unlock_irq(&inode->i_data.tree_lock);
 +
- endif # X86_32
- 
- config AMD_NB
-diff -puN arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-15-sci-driver arch/x86/platform/olpc/Makefile
---- a/arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-15-sci-driver
-+++ a/arch/x86/platform/olpc/Makefile
-@@ -2,3 +2,4 @@ obj-$(CONFIG_OLPC)		+= olpc.o olpc_ofw.o
- obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o xo1-wakeup.o
- obj-$(CONFIG_OLPC_XO1_RTC)	+= olpc-xo1-rtc.o
- obj-$(CONFIG_OLPC_XO1_SCI)	+= olpc-xo1-sci.o
-+obj-$(CONFIG_OLPC_XO15_SCI)	+= olpc-xo15-sci.o
-diff -puN /dev/null arch/x86/platform/olpc/olpc-xo15-sci.c
---- /dev/null
-+++ a/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -0,0 +1,168 @@
-+/*
-+ * Support for OLPC XO-1.5 System Control Interrupts (SCI)
-+ *
-+ * Copyright (C) 2009-2010 One Laptop per Child
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/workqueue.h>
-+#include <linux/power_supply.h>
-+
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <asm/olpc.h>
-+
-+#define DRV_NAME			"olpc-xo15-sci"
-+#define PFX				DRV_NAME ": "
-+#define XO15_SCI_CLASS			DRV_NAME
-+#define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
-+
-+static unsigned long xo15_sci_gpe;
-+
-+static void battery_status_changed(void)
-+{
-+	struct power_supply *psy = power_supply_get_by_name("olpc-battery");
-+
-+	if (psy) {
-+		power_supply_changed(psy);
-+		put_device(psy->dev);
++	if (unlikely(inode->i_data.nrpages)) {
++		/*
++		 * We have to cycle tree_lock here because reclaim can be still
++		 * in the process of removing the last page (in
++		 * __delete_from_page_cache()) and we must not free mapping
++		 * under it.
++		 */
++		spin_lock_irq(&inode->i_data.tree_lock);
++		BUG_ON(inode->i_data.nrpages);
++		spin_unlock_irq(&inode->i_data.tree_lock);
 +	}
-+}
-+
-+static void ac_status_changed(void)
-+{
-+	struct power_supply *psy = power_supply_get_by_name("olpc-ac");
-+
-+	if (psy) {
-+		power_supply_changed(psy);
-+		put_device(psy->dev);
-+	}
-+}
-+
-+static void process_sci_queue(void)
-+{
-+	u16 data;
-+	int r;
-+
-+	do {
-+		r = olpc_ec_sci_query(&data);
-+		if (r || !data)
-+			break;
-+
-+		pr_debug(PFX "SCI 0x%x received\n", data);
-+
-+		switch (data) {
-+		case EC_SCI_SRC_BATERR:
-+		case EC_SCI_SRC_BATSOC:
-+		case EC_SCI_SRC_BATTERY:
-+		case EC_SCI_SRC_BATCRIT:
-+			battery_status_changed();
-+			break;
-+		case EC_SCI_SRC_ACPWR:
-+			ac_status_changed();
-+			break;
-+		}
-+	} while (data);
-+
-+	if (r)
-+		pr_err(PFX "Failed to clear SCI queue");
-+}
-+
-+static void process_sci_queue_work(struct work_struct *work)
-+{
-+	process_sci_queue();
-+}
-+
-+static DECLARE_WORK(sci_work, process_sci_queue_work);
-+
-+static u32 xo15_sci_gpe_handler(acpi_handle gpe_device, u32 gpe, void *context)
-+{
-+	schedule_work(&sci_work);
-+	return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
-+}
-+
-+static int xo15_sci_add(struct acpi_device *device)
-+{
-+	unsigned long long tmp;
-+	acpi_status status;
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	strcpy(acpi_device_name(device), XO15_SCI_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), XO15_SCI_CLASS);
-+
-+	/* Get GPE bit assignment (EC events). */
-+	status = acpi_evaluate_integer(device->handle, "_GPE", NULL, &tmp);
-+	if (ACPI_FAILURE(status))
-+		return -EINVAL;
-+
-+	xo15_sci_gpe = tmp;
-+	status = acpi_install_gpe_handler(NULL, xo15_sci_gpe,
-+					  ACPI_GPE_EDGE_TRIGGERED,
-+					  xo15_sci_gpe_handler, device);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
-+
-+	/* Flush queue, and enable all SCI events */
-+	process_sci_queue();
-+	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-+
-+	acpi_enable_gpe(NULL, xo15_sci_gpe);
-+
-+	/* Enable wake-on-EC */
-+	if (device->wakeup.flags.valid)
-+		device_set_wakeup_enable(&device->dev, true);
-+
-+	return 0;
-+}
-+
-+static int xo15_sci_remove(struct acpi_device *device, int type)
-+{
-+	acpi_disable_gpe(NULL, xo15_sci_gpe);
-+	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
-+	cancel_work_sync(&sci_work);
-+	return 0;
-+}
-+
-+static int xo15_sci_resume(struct acpi_device *device)
-+{
-+	/* Enable all EC events */
-+	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-+
-+	/* Power/battery status might have changed */
-+	battery_status_changed();
-+	ac_status_changed();
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id xo15_sci_device_ids[] = {
-+	{"XO15EC", 0},
-+	{"", 0},
-+};
-+
-+static struct acpi_driver xo15_sci_drv = {
-+	.name = DRV_NAME,
-+	.class = XO15_SCI_CLASS,
-+	.ids = xo15_sci_device_ids,
-+	.ops = {
-+		.add = xo15_sci_add,
-+		.remove = xo15_sci_remove,
-+		.resume = xo15_sci_resume,
-+	},
-+};
-+
-+static int __init xo15_sci_init(void)
-+{
-+	return acpi_bus_register_driver(&xo15_sci_drv);
-+}
-+device_initcall(xo15_sci_init);
-diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-add-xo-15-sci-driver arch/x86/platform/olpc/olpc.c
---- a/arch/x86/platform/olpc/olpc.c~x86-olpc-add-xo-15-sci-driver
-+++ a/arch/x86/platform/olpc/olpc.c
-@@ -222,6 +222,15 @@ bool olpc_ec_wakeup_available(void)
- 		return true;
- #endif
- 
-+	/*
-+	 * XO-1.5 EC wakeups are available when olpc-xo15-sci driver is
-+	 * compiled in
-+	 */
-+#ifdef CONFIG_OLPC_XO15_SCI
-+	if (olpc_platform_info.boardrev >= olpc_board_pre(0xd0)) /* XO-1.5 */
-+		return true;
-+#endif
-+
- 	return false;
- }
- EXPORT_SYMBOL_GPL(olpc_ec_wakeup_available);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+ 	BUG_ON(inode->i_state & I_CLEAR);
 _
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
-x86-olpc-add-missing-elements-to-device-tree.patch
-x86-olpc-move-cs5536-related-constants-to-cs5535h.patch
-x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm.patch
-x86-olpc-add-xo-1-suspend-resume-support.patch
-x86-olpc-add-xo-1-sci-driver-and-power-button-control.patch
-x86-olpc-ec-sci-wakeup-mask-functionality.patch
-x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch
-x86-olpc-xo1-sci-add-lid-switch-functionality.patch
-x86-olpc-xo1-sci-propagate-power-supply-battery-events.patch
-x86-olpc-add-xo-1-rtc-driver.patch
-x86-olpc-add-xo-15-sci-driver.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
