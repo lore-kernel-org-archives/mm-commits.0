@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch added to -mm tree
-Date: Wed, 29 Jun 2011 15:00:31 -0700
-Message-ID: <201106292200.p5TM0VFY014660@imap1.linux-foundation.org>
+Subject: + ipc-introduce-shm_rmid_forced-sysctl-fix.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:14:58 -0700
+Message-ID: <201106292214.p5TMEwQB015375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754721Ab1F2WB3 (ORCPT
+	by vger.kernel.org with ESMTP id S1758037Ab1F2WPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:01:29 -0400
+	Wed, 29 Jun 2011 18:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mditto@google.com, hpa@zytor.com, mingo@elte.hu, sassmann@kpanic.de, tglx@linutronix.de, yuenn@google.com
+Cc: akpm@linux-foundation.org, rdunlap@xenotime.net, segoon@openwall.com
 
 
 The patch titled
-     arch/x86/kernel/e820.c: eliminate bubble sort from sanitize_e820_map
+     ipc-introduce-shm_rmid_forced-sysctl-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
+     ipc-introduce-shm_rmid_forced-sysctl-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/e820.c: eliminate bubble sort from sanitize_e820_map
-From: Mike Ditto <mditto@google.com>
+Subject: ipc-introduce-shm_rmid_forced-sysctl-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Replace the bubble sort in sanitize_e820_map() with a call to the generic
-kernel sort function to avoid pathological performance with large maps.
+fix documentation, per Randy
 
-On large (thousands of entries) E820 maps, the previous code took minutes
-to run; with this change it's now milliseconds.
-
-Signed-off-by: Mike Ditto <mditto@google.com>
-Cc: Stefan Assmann <sassmann@kpanic.de>
-Cc: Nancy Yuen <yuenn@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |   59 +++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 35 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/e820.c~arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map
-+++ a/arch/x86/kernel/e820.c
-@@ -18,6 +18,7 @@
- #include <linux/acpi.h>
- #include <linux/firmware-map.h>
- #include <linux/memblock.h>
-+#include <linux/sort.h>
+diff -puN Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~ipc-introduce-shm_rmid_forced-sysctl-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -478,7 +478,7 @@ kernel.  This value defaults to SHMMAX.
  
- #include <asm/e820.h>
- #include <asm/proto.h>
-@@ -226,22 +227,38 @@ void __init e820_print_map(char *who)
-  *	   ____________________33__
-  *	   ______________________4_
-  */
-+struct change_member {
-+	struct e820entry *pbios; /* pointer to original bios entry */
-+	unsigned long long addr; /* address for this change point */
-+};
-+
-+static int __init cpcompare(const void *a, const void *b)
-+{
-+	struct change_member * const *app = a, * const *bpp = b;
-+	const struct change_member *ap = *app, *bp = *bpp;
-+
-+	/*
-+	 * Inputs are pointers to two elements of change_point[].  If their
-+	 * addresses are unequal, their difference dominates.  If the addresses
-+	 * are equal, then consider one that represents the end of its region
-+	 * to be greater than one that does not.
-+	 */
-+	if (ap->addr != bp->addr)
-+		return ap->addr > bp->addr ? 1 : -1;
-+
-+	return (ap->addr != ap->pbios->addr) - (bp->addr != bp->pbios->addr);
-+}
+ shm_rmid_forced:
  
- int __init sanitize_e820_map(struct e820entry *biosmap, int max_nr_map,
- 			     u32 *pnr_map)
- {
--	struct change_member {
--		struct e820entry *pbios; /* pointer to original bios entry */
--		unsigned long long addr; /* address for this change point */
--	};
- 	static struct change_member change_point_list[2*E820_X_MAX] __initdata;
- 	static struct change_member *change_point[2*E820_X_MAX] __initdata;
- 	static struct e820entry *overlap_list[E820_X_MAX] __initdata;
- 	static struct e820entry new_bios[E820_X_MAX] __initdata;
--	struct change_member *change_tmp;
- 	unsigned long current_type, last_type;
- 	unsigned long long last_addr;
--	int chgidx, still_changing;
-+	int chgidx;
- 	int overlap_entries;
- 	int new_bios_entry;
- 	int old_nr, new_nr, chg_nr;
-@@ -278,35 +295,7 @@ int __init sanitize_e820_map(struct e820
- 	chg_nr = chgidx;
- 
- 	/* sort change-point list by memory addresses (low -> high) */
--	still_changing = 1;
--	while (still_changing)	{
--		still_changing = 0;
--		for (i = 1; i < chg_nr; i++)  {
--			unsigned long long curaddr, lastaddr;
--			unsigned long long curpbaddr, lastpbaddr;
--
--			curaddr = change_point[i]->addr;
--			lastaddr = change_point[i - 1]->addr;
--			curpbaddr = change_point[i]->pbios->addr;
--			lastpbaddr = change_point[i - 1]->pbios->addr;
--
--			/*
--			 * swap entries, when:
--			 *
--			 * curaddr > lastaddr or
--			 * curaddr == lastaddr and curaddr == curpbaddr and
--			 * lastaddr != lastpbaddr
--			 */
--			if (curaddr < lastaddr ||
--			    (curaddr == lastaddr && curaddr == curpbaddr &&
--			     lastaddr != lastpbaddr)) {
--				change_tmp = change_point[i];
--				change_point[i] = change_point[i-1];
--				change_point[i-1] = change_tmp;
--				still_changing = 1;
--			}
--		}
--	}
-+	sort(change_point, chg_nr, sizeof *change_point, cpcompare, 0);
- 
- 	/* create a new bios memory map, removing overlaps */
- 	overlap_entries = 0;	 /* number of entries in the overlap table */
+-Linux lets you set resource limits, including on how much memory one
++Linux lets you set resource limits, including how much memory one
+ process can consume, via setrlimit(2).  Unfortunately, shared memory
+ segments are allowed to exist without association with any process, and
+ thus might not be counted against any resource limits.  If enabled,
 _
 
-Patches currently in -mm which might be from mditto@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
+origin.patch
+memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
