@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mach-ux500-add-lm3530-als-platform-data-for-u5500.patch added to -mm tree
-Date: Wed, 29 Jun 2011 15:46:29 -0700
-Message-ID: <201106292246.p5TMkTcd016852@imap1.linux-foundation.org>
+Subject: + kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:48:45 -0700
+Message-ID: <201106292248.p5TMmjKZ017002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753340Ab1F2WrZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753340Ab1F2Wsr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:47:25 -0400
+	Wed, 29 Jun 2011 18:48:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linus.walleij@stericsson.com, lee.jones@linaro.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com
+Cc: bebarino@gmail.com, rdunlap@xenotime.net, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     mach-ux500: add lm3530 ALS platform data for U5500
+     kernel/configs.c: include MODULE_*() when CONFIG_IKCONFIG_PROC=n
 has been added to the -mm tree.  Its filename is
-     mach-ux500-add-lm3530-als-platform-data-for-u5500.patch
+     kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mach-ux500: add lm3530 ALS platform data for U5500
-From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: kernel/configs.c: include MODULE_*() when CONFIG_IKCONFIG_PROC=n
+From: Stephen Boyd <bebarino@gmail.com>
 
+If CONFIG_IKCONFIG=m but CONFIG_IKCONFIG_PROC=n we get a module that has
+no MODULE_LICENSE definition.  Move the MODULE_*() definitions outside the
+CONFIG_IKCONFIG_PROC #ifdef to prevent this configuration from tainting
+the kernel.
 
-platform data for simple backlight driver for LM3530
-in the u5500 platform
-
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Stephen Boyd <bebarino@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-ux500/board-u5500.c |   84 +++++++++++++++++++++++++++-
- 1 file changed, 83 insertions(+), 1 deletion(-)
+ kernel/configs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-ux500/board-u5500.c~mach-ux500-add-lm3530-als-platform-data-for-u5500 arch/arm/mach-ux500/board-u5500.c
---- a/arch/arm/mach-ux500/board-u5500.c~mach-ux500-add-lm3530-als-platform-data-for-u5500
-+++ a/arch/arm/mach-ux500/board-u5500.c
-@@ -10,16 +10,97 @@
- #include <linux/amba/bus.h>
- #include <linux/gpio.h>
- #include <linux/irq.h>
-+#include <linux/i2c.h>
+diff -puN kernel/configs.c~kernel-configsc-include-module_-when-config_ikconfig_proc=n kernel/configs.c
+--- a/kernel/configs.c~kernel-configsc-include-module_-when-config_ikconfig_proc=n
++++ a/kernel/configs.c
+@@ -92,8 +92,8 @@ static void __exit ikconfig_cleanup(void
+ module_init(ikconfig_init);
+ module_exit(ikconfig_cleanup);
  
- #include <asm/mach/arch.h>
- #include <asm/mach-types.h>
- 
-+#include <plat/pincfg.h>
-+#include <plat/i2c.h>
++#endif /* CONFIG_IKCONFIG_PROC */
 +
- #include <mach/hardware.h>
- #include <mach/devices.h>
- #include <mach/setup.h>
- 
-+#include "pins-db5500.h"
- #include "devices-db5500.h"
-+#include <linux/led-lm3530.h>
-+
-+/*
-+ * GPIO
-+ */
-+
-+static pin_cfg_t u5500_pins[] = {
-+	/* I2C */
-+	GPIO218_I2C2_SCL        | PIN_INPUT_PULLUP,
-+	GPIO219_I2C2_SDA        | PIN_INPUT_PULLUP,
-+
-+	/* DISPLAY_ENABLE */
-+	GPIO226_GPIO        | PIN_OUTPUT_LOW,
-+
-+	/* Backlight Enbale */
-+	GPIO224_GPIO        | PIN_OUTPUT_HIGH,
-+};
-+/*
-+ * I2C
-+ */
-+
-+#define U5500_I2C_CONTROLLER(id, _slsu, _tft, _rft, clk, _sm) \
-+static struct nmk_i2c_controller u5500_i2c##id##_data = { \
-+	/*				\
-+	 * slave data setup time, which is	\
-+	 * 250 ns,100ns,10ns which is 14,6,2	\
-+	 * respectively for a 48 Mhz	\
-+	 * i2c clock			\
-+	 */				\
-+	.slsu		= _slsu,	\
-+	/* Tx FIFO threshold */		\
-+	.tft		= _tft,		\
-+	/* Rx FIFO threshold */		\
-+	.rft		= _rft,		\
-+	/* std. mode operation */	\
-+	.clk_freq	= clk,		\
-+	.sm		= _sm,		\
-+}
-+/*
-+ * The board uses TODO <3> i2c controllers, initialize all of
-+ * them with slave data setup time of 250 ns,
-+ * Tx & Rx FIFO threshold values as 1 and standard
-+ * mode of operation
-+ */
-+
-+U5500_I2C_CONTROLLER(2,	0xe, 1, 1, 400000, I2C_FREQ_MODE_FAST);
-+
-+static struct lm3530_platform_data u5500_als_platform_data = {
-+	.mode = LM3530_BL_MODE_MANUAL,
-+	.als_input_mode = LM3530_INPUT_ALS1,
-+	.max_current = LM3530_FS_CURR_26mA,
-+	.pwm_pol_hi = true,
-+	.als_avrg_time = LM3530_ALS_AVRG_TIME_512ms,
-+	.brt_ramp_law = 1,      /* Linear */
-+	.brt_ramp_fall = LM3530_RAMP_TIME_8s,
-+	.brt_ramp_rise = LM3530_RAMP_TIME_8s,
-+	.als1_resistor_sel = LM3530_ALS_IMPD_13_53kOhm,
-+	.als2_resistor_sel = LM3530_ALS_IMPD_Z,
-+	.als_vmin = 730,	/* mV */
-+	.als_vmax = 1020,	/* mV */
-+	.brt_val = 0x7F,	/* Max brightness */
-+};
-+
-+
-+static struct i2c_board_info __initdata u5500_i2c2_devices[] = {
-+	{
-+		/* Backlight */
-+		I2C_BOARD_INFO("lm3530-led", 0x36),
-+		.platform_data = &u5500_als_platform_data,
-+	},
-+};
- 
-+static void __init u5500_i2c_init(void)
-+{
-+	db5500_add_i2c2(&u5500_i2c2_data);
-+	i2c_register_board_info(2, ARRAY_AND_SIZE(u5500_i2c2_devices));
-+}
- static void __init u5500_uart_init(void)
- {
- 	db5500_add_uart0(NULL);
-@@ -30,7 +111,8 @@ static void __init u5500_uart_init(void)
- static void __init u5500_init_machine(void)
- {
- 	u5500_init_devices();
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Randy Dunlap");
+ MODULE_DESCRIPTION("Echo the kernel .config file used to build the kernel");
