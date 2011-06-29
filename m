@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-use-task-comm-instead-of-unknown.patch added to -mm tree
-Date: Wed, 29 Jun 2011 13:24:27 -0700
-Message-ID: <201106292024.p5TKORkl009731@imap1.linux-foundation.org>
+Subject: + do_coredump-fix-the-ispipe-error-check.patch added to -mm tree
+Date: Wed, 29 Jun 2011 13:24:31 -0700
+Message-ID: <201106292024.p5TKOVij009740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755942Ab1F2UYs (ORCPT
+	by vger.kernel.org with ESMTP id S1752849Ab1F2UYw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 16:24:48 -0400
+	Wed, 29 Jun 2011 16:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, oleg@redhat.com, viro@zeniv.linux.org.uk
+Cc: oleg@redhat.com, jslaby@suse.cz, nhorman@tuxdriver.com
 
 
 The patch titled
-     coredump: use task comm instead of (unknown)
+     do_coredump: fix the "ispipe" error check
 has been added to the -mm tree.  Its filename is
-     coredump-use-task-comm-instead-of-unknown.patch
+     do_coredump-fix-the-ispipe-error-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: use task comm instead of (unknown)
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: do_coredump: fix the "ispipe" error check
+From: Oleg Nesterov <oleg@redhat.com>
 
-If we don't know the file corresponding to the binary (i.e.  exe_file is
-unknown), use "task->comm (path unknown)" instead of simple "(unknown)" as
-suggested by ak.
+do_coredump() assumes that if format_corename() fails it should return
+-ENOMEM.  This is not true, for example cn_print_exe_file() can propagate
+the error from d_path.  Even if it was true, this is too fragile.  Change
+the code to check "ispipe < 0".
 
-The fallback is the same as %e except it will append "(path unknown)".
-
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~coredump-use-task-comm-instead-of-unknown fs/exec.c
---- a/fs/exec.c~coredump-use-task-comm-instead-of-unknown
+diff -puN fs/exec.c~do_coredump-fix-the-ispipe-error-check fs/exec.c
+--- a/fs/exec.c~do_coredump-fix-the-ispipe-error-check
 +++ a/fs/exec.c
-@@ -1642,7 +1642,7 @@ static int cn_print_exe_file(struct core
+@@ -2118,16 +2118,16 @@ void do_coredump(long signr, int exit_co
  
- 	exe_file = get_mm_exe_file(current->mm);
- 	if (!exe_file)
--		return cn_printf(cn, "(unknown)");
-+		return cn_printf(cn, "%s (path unknown)", current->comm);
+ 	ispipe = format_corename(&cn, signr);
  
- 	pathbuf = kmalloc(PATH_MAX, GFP_TEMPORARY);
- 	if (!pathbuf) {
-_
-
-Patches currently in -mm which might be from jslaby@suse.cz are
-
-origin.patch
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-coredump-use-task-comm-instead-of-unknown.patch
-coredump-escape-in-hostname-and-comm.patch
-do_coredump-fix-the-ispipe-error-check.patch
-ipc-mqueue-refactor-failure-handling.patch
-ipc-mqueue-fix-mq_open-return-value.patch
-include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
-
+-	if (ispipe == -ENOMEM) {
+-		printk(KERN_WARNING "format_corename failed\n");
+-		printk(KERN_WARNING "Aborting core\n");
+-		goto fail_corename;
+-	}
