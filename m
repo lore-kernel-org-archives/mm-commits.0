@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-remove-references-to-old-badness-function.patch added to -mm tree
-Date: Wed, 29 Jun 2011 15:24:06 -0700
-Message-ID: <201106292224.p5TMO6Ri015851@imap1.linux-foundation.org>
+Subject: + acpi-remove-nid_inval.patch added to -mm tree
+Date: Wed, 29 Jun 2011 15:24:46 -0700
+Message-ID: <201106292224.p5TMOkTL015868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752657Ab1F2WYJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752657Ab1F2WYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:24:09 -0400
+	Wed, 29 Jun 2011 18:24:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com
+Cc: rientjes@google.com, lenb@kernel.org
 
 
 The patch titled
-     oom: remove references to old badness() function
+     acpi: remove NID_INVAL
 has been added to the -mm tree.  Its filename is
-     oom-remove-references-to-old-badness-function.patch
+     acpi-remove-nid_inval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: remove references to old badness() function
+Subject: acpi: remove NID_INVAL
 From: David Rientjes <rientjes@google.com>
 
-The badness() function in the oom killer was renamed to oom_badness() in
-a63d83f427fb ("oom: badness heuristic rewrite") since it is a globally
-exported function for clarity.
-
-The prototype for the old function still existed in linux/oom.h, so remove
-it.  There are no existing users.
-
-Also fixes documentation and comment references to badness() and adjusts
-them accordingly.
+b552a8c56db8 ("ACPI: remove NID_INVAL") removed the left over uses of
+NID_INVAL, but didn't actually remove the definition.  Remove it.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/obsolete/proc-pid-oom_adj |    2 +-
- Documentation/feature-removal-schedule.txt  |    2 +-
- include/linux/oom.h                         |    4 ----
- mm/oom_kill.c                               |    2 +-
- 4 files changed, 3 insertions(+), 7 deletions(-)
+ include/linux/acpi.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/ABI/obsolete/proc-pid-oom_adj~oom-remove-references-to-old-badness-function Documentation/ABI/obsolete/proc-pid-oom_adj
---- a/Documentation/ABI/obsolete/proc-pid-oom_adj~oom-remove-references-to-old-badness-function
-+++ a/Documentation/ABI/obsolete/proc-pid-oom_adj
-@@ -14,7 +14,7 @@ Why:	/proc/<pid>/oom_adj allows userspac
+diff -puN include/linux/acpi.h~acpi-remove-nid_inval include/linux/acpi.h
+--- a/include/linux/acpi.h~acpi-remove-nid_inval
++++ a/include/linux/acpi.h
+@@ -238,7 +238,6 @@ extern int acpi_paddr_to_node(u64 start_
+ extern int pnpacpi_disabled;
  
- 	A much more powerful interface, /proc/<pid>/oom_score_adj, was
- 	introduced with the oom killer rewrite that allows users to increase or
--	decrease the badness() score linearly.  This interface will replace
-+	decrease the badness score linearly.  This interface will replace
- 	/proc/<pid>/oom_adj.
+ #define PXM_INVAL	(-1)
+-#define NID_INVAL	(-1)
  
- 	A warning will be emitted to the kernel log if an application uses this
-diff -puN Documentation/feature-removal-schedule.txt~oom-remove-references-to-old-badness-function Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~oom-remove-references-to-old-badness-function
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -184,7 +184,7 @@ Why:	/proc/<pid>/oom_adj allows userspac
+ int acpi_check_resource_conflict(const struct resource *res);
  
- 	A much more powerful interface, /proc/<pid>/oom_score_adj, was
- 	introduced with the oom killer rewrite that allows users to increase or
--	decrease the badness() score linearly.  This interface will replace
-+	decrease the badness score linearly.  This interface will replace
- 	/proc/<pid>/oom_adj.
- 
- 	A warning will be emitted to the kernel log if an application uses this
-diff -puN include/linux/oom.h~oom-remove-references-to-old-badness-function include/linux/oom.h
---- a/include/linux/oom.h~oom-remove-references-to-old-badness-function
-+++ a/include/linux/oom.h
-@@ -64,10 +64,6 @@ static inline void oom_killer_enable(voi
- 	oom_killer_disabled = false;
- }
- 
--/* The badness from the OOM killer */
--extern unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
--		      const nodemask_t *nodemask, unsigned long uptime);
--
- extern struct task_struct *find_lock_task_mm(struct task_struct *p);
- 
- /* sysctls */
-diff -puN mm/oom_kill.c~oom-remove-references-to-old-badness-function mm/oom_kill.c
---- a/mm/oom_kill.c~oom-remove-references-to-old-badness-function
-+++ a/mm/oom_kill.c
-@@ -487,7 +487,7 @@ static int oom_kill_process(struct task_
- 
- 	/*
- 	 * If any of p's children has a different mm and is eligible for kill,
--	 * the one with the highest badness() score is sacrificed for its
-+	 * the one with the highest oom_badness() score is sacrificed for its
- 	 * parent.  This attempts to lose the minimal amount of work done while
- 	 * still freeing memory.
- 	 */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
+acpi-remove-nid_inval.patch
 mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
 oom-remove-references-to-old-badness-function.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
