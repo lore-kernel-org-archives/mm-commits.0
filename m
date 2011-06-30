@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-makefile-cs5535_gpio-went-away.patch added to -mm tree
-Date: Thu, 30 Jun 2011 11:23:19 -0700
-Message-ID: <201106301900.p5UJ0sfa006952@imap1.linux-foundation.org>
+Subject: + ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch added to -mm tree
+Date: Thu, 30 Jun 2011 12:10:56 -0700
+Message-ID: <201106301948.p5UJmYr8009302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752024Ab1F3TBC (ORCPT
+	by vger.kernel.org with ESMTP id S1752926Ab1F3Tty (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jun 2011 15:01:02 -0400
+	Thu, 30 Jun 2011 15:49:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bgardner@wabtec.com, dilinger@queued.net, dsd@laptop.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, mingo@elte.hu, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org
 
 
 The patch titled
-     drivers/staging/Makefile: cs5535_gpio went away
+     ipc-introduce-shm_rmid_forced-sysctl-fix-2
 has been added to the -mm tree.  Its filename is
-     drivers-staging-makefile-cs5535_gpio-went-away.patch
+     ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/Makefile: cs5535_gpio went away
+Subject: ipc-introduce-shm_rmid_forced-sysctl-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-akpm2:/usr/src/25> make mrproper
-scripts/Makefile.clean:17: /usr/src/devel/drivers/staging/cs5535_gpio/Makefile: No such file or directory
-make[3]: *** No rule to make target `/usr/src/devel/drivers/staging/cs5535_gpio/Makefile'.  Stop.
+include/linux/shm.h: In function 'exit_shm':
+include/linux/shm.h:122: warning: 'return' with a value, in function returning void
 
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Daniel Drake <dsd@laptop.org>
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: Greg KH <greg@kroah.com>
+Testing?
+
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge.hallyn@canonical.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/Makefile |    1 -
+ include/linux/shm.h |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/staging/Makefile~drivers-staging-makefile-cs5535_gpio-went-away drivers/staging/Makefile
---- a/drivers/staging/Makefile~drivers-staging-makefile-cs5535_gpio-went-away
-+++ a/drivers/staging/Makefile
-@@ -41,7 +41,6 @@ obj-$(CONFIG_HYPERV)		+= hv/
- obj-$(CONFIG_VME_BUS)		+= vme/
- obj-$(CONFIG_DX_SEP)            += sep/
- obj-$(CONFIG_IIO)		+= iio/
--obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio/
- obj-$(CONFIG_ZRAM)		+= zram/
- obj-$(CONFIG_XVMALLOC)		+= zram/
- obj-$(CONFIG_ZCACHE)		+= zcache/
+diff -puN include/linux/shm.h~ipc-introduce-shm_rmid_forced-sysctl-fix-2 include/linux/shm.h
+--- a/include/linux/shm.h~ipc-introduce-shm_rmid_forced-sysctl-fix-2
++++ a/include/linux/shm.h
+@@ -119,7 +119,6 @@ static inline int is_file_shm_hugepages(
+ }
+ static inline void exit_shm(struct task_struct *task)
+ {
+-	return 0;
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +114,7 @@ cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-s
 h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
 proc-pid-fdinfo-add-cloexec-information-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
 ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
 ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-testing.patch
