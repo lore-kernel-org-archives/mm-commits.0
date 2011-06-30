@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-docbook-media-makefile-unbork.patch added to -mm tree
-Date: Thu, 30 Jun 2011 11:15:45 -0700
-Message-ID: <201106301853.p5UIrLUp006567@imap1.linux-foundation.org>
+Subject: + drivers-staging-makefile-cs5535_gpio-went-away.patch added to -mm tree
+Date: Thu, 30 Jun 2011 11:23:19 -0700
+Message-ID: <201106301900.p5UJ0sfa006952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752926Ab1F3Sxh (ORCPT
+	by vger.kernel.org with ESMTP id S1752024Ab1F3TBC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jun 2011 14:53:37 -0400
+	Thu, 30 Jun 2011 15:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org, mmarek@suse.cz
+Cc: akpm@linux-foundation.org, bgardner@wabtec.com, dilinger@queued.net, dsd@laptop.org, greg@kroah.com
 
 
 The patch titled
-     Documentation/DocBook/media/Makefile: unbork
+     drivers/staging/Makefile: cs5535_gpio went away
 has been added to the -mm tree.  Its filename is
-     documentation-docbook-media-makefile-unbork.patch
+     drivers-staging-makefile-cs5535_gpio-went-away.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/DocBook/media/Makefile: unbork
+Subject: drivers/staging/Makefile: cs5535_gpio went away
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hm, why isn't this fixed yet?
+akpm2:/usr/src/25> make mrproper
+scripts/Makefile.clean:17: /usr/src/devel/drivers/staging/cs5535_gpio/Makefile: No such file or directory
+make[3]: *** No rule to make target `/usr/src/devel/drivers/staging/cs5535_gpio/Makefile'.  Stop.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: Ben Gardner <bgardner@wabtec.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/media/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork Documentation/DocBook/media/Makefile
---- a/Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork
-+++ a/Documentation/DocBook/media/Makefile
-@@ -13,7 +13,7 @@ MEDIA_TEMP =  media-entities.tmpl \
- 	      v4l2.xml \
- 	      frontend.h.xml
- 
--IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
-+IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png 2>/dev/null)))
- GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
- 
- PHONY += cleanmediadocs mediaindexdocs
+diff -puN drivers/staging/Makefile~drivers-staging-makefile-cs5535_gpio-went-away drivers/staging/Makefile
+--- a/drivers/staging/Makefile~drivers-staging-makefile-cs5535_gpio-went-away
++++ a/drivers/staging/Makefile
+@@ -41,7 +41,6 @@ obj-$(CONFIG_HYPERV)		+= hv/
+ obj-$(CONFIG_VME_BUS)		+= vme/
+ obj-$(CONFIG_DX_SEP)            += sep/
+ obj-$(CONFIG_IIO)		+= iio/
+-obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio/
+ obj-$(CONFIG_ZRAM)		+= zram/
+ obj-$(CONFIG_XVMALLOC)		+= zram/
+ obj-$(CONFIG_ZCACHE)		+= zcache/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +73,7 @@ memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
 documentation-docbook-media-makefile-unbork.patch
+drivers-staging-makefile-cs5535_gpio-went-away.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
