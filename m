@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch added to -mm tree
-Date: Thu, 30 Jun 2011 11:15:34 -0700
-Message-ID: <201106301815.p5UIFYIb004786@imap1.linux-foundation.org>
+Subject: + documentation-docbook-media-makefile-unbork.patch added to -mm tree
+Date: Thu, 30 Jun 2011 11:15:45 -0700
+Message-ID: <201106301853.p5UIrLUp006567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753613Ab1F3SPs (ORCPT
+	by vger.kernel.org with ESMTP id S1752926Ab1F3Sxh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jun 2011 14:15:48 -0400
+	Thu, 30 Jun 2011 14:53:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, segoon@openwall.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org, mmarek@suse.cz
 
 
 The patch titled
-     ipc-introduce-shm_rmid_forced-sysctl-comments-fix
+     Documentation/DocBook/media/Makefile: unbork
 has been added to the -mm tree.  Its filename is
-     ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+     documentation-docbook-media-makefile-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-introduce-shm_rmid_forced-sysctl-comments-fix
+Subject: Documentation/DocBook/media/Makefile: unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix shm_rmid_forced/shm_forced_rmid confusion
+hm, why isn't this fixed yet?
 
-- use standard comment layout
-
-Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    6 ++++--
- ipc/shm.c                     |    2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ Documentation/DocBook/media/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-introduce-shm_rmid_forced-sysctl-comments-fix include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-introduce-shm_rmid_forced-sysctl-comments-fix
-+++ a/include/linux/ipc_namespace.h
-@@ -44,8 +44,10 @@ struct ipc_namespace {
- 	size_t		shm_ctlall;
- 	int		shm_ctlmni;
- 	int		shm_tot;
--	/* Defines whether IPC_RMID is forced for _all_ shm segments
--	 * regardless of shmctl() */
-+	/*
-+	 * Defines whether IPC_RMID is forced for _all_ shm segments regardless
-+	 * of shmctl()
-+	 */
- 	int		shm_rmid_forced;
+diff -puN Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork Documentation/DocBook/media/Makefile
+--- a/Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork
++++ a/Documentation/DocBook/media/Makefile
+@@ -13,7 +13,7 @@ MEDIA_TEMP =  media-entities.tmpl \
+ 	      v4l2.xml \
+ 	      frontend.h.xml
  
- 	struct notifier_block ipcns_nb;
-diff -puN ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-comments-fix ipc/shm.c
---- a/ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-comments-fix
-+++ a/ipc/shm.c
-@@ -195,7 +195,7 @@ static void shm_destroy(struct ipc_names
-  *
-  * 1) shmctl(id, IPC_RMID, NULL) was called for this shp
-  *
-- * 2) sysctl kernel.shm_forced_rmid is set to 1.
-+ * 2) sysctl kernel.shm_rmid_forced is set to 1.
-  */
- static bool shm_may_destroy(struct ipc_namespace *ns, struct shmid_kernel *shp)
- {
+-IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
++IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png 2>/dev/null)))
+ GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
+ 
+ PHONY += cleanmediadocs mediaindexdocs
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +69,7 @@ memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
 memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
+documentation-docbook-media-makefile-unbork.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
