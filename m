@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-skip-calibration-delay-if-previously-done-4.patch added to -mm tree
-Date: Thu, 30 Jun 2011 12:44:34 -0700
-Message-ID: <201106302022.p5UKMAGi011043@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch added to -mm tree
+Date: Thu, 30 Jun 2011 13:23:06 -0700
+Message-ID: <201106302100.p5UL0fF6012922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750725Ab1F3UWS (ORCPT
+	by vger.kernel.org with ESMTP id S1751913Ab1F3VB2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jun 2011 16:22:18 -0400
+	Thu, 30 Jun 2011 17:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org
+Cc: akpm@linux-foundation.org, Larry.Finger@lwfinger.net, chaoming_li@realsil.com.cn, linville@tuxdriver.com
 
 
 The patch titled
-     init-skip-calibration-delay-if-previously-done-4
+     drivers/net/wireless/rtlwifi/rtl8192de/phy.c: fix udelay() usage
 has been added to the -mm tree.  Its filename is
-     init-skip-calibration-delay-if-previously-done-4.patch
+     drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init-skip-calibration-delay-if-previously-done-4
+Subject: drivers/net/wireless/rtlwifi/rtl8192de/phy.c: fix udelay() usage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix things up after upstream rmk changes
+ERROR: "__bad_udelay" [drivers/net/wireless/rtlwifi/rtl8192de/rtl8192de.ko] undefined!
 
-Cc: Andrew Worsley <amworsley@gmail.com>
-Cc: David Daney <ddaney@caviumnetworks.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Sameer Nanda <snanda@chromium.org>
+Cc: Chaoming_Li <chaoming_li@realsil.com.cn>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/calibrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/rtlwifi/rtl8192de/phy.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done-4 init/calibrate.c
---- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done-4
-+++ a/init/calibrate.c
-@@ -253,7 +253,7 @@ void __cpuinit calibrate_delay(void)
- 	int this_cpu = smp_processor_id();
+diff -puN drivers/net/wireless/rtlwifi/rtl8192de/phy.c~drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+--- a/drivers/net/wireless/rtlwifi/rtl8192de/phy.c~drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage
++++ a/drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+@@ -1684,7 +1684,7 @@ static u8 _rtl92d_phy_patha_iqk(struct i
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 		("Delay %d ms for One shot, path A LOK & IQK.\n",
+ 		IQK_DELAY_TIME));
+-	udelay(IQK_DELAY_TIME * 1000);
++	mdelay(IQK_DELAY_TIME);
+ 	/* Check failed */
+ 	regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1755,7 +1755,7 @@ static u8 _rtl92d_phy_patha_iqk_5g_norma
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 			("Delay %d ms for One shot, path A LOK & IQK.\n",
+ 			IQK_DELAY_TIME));
+-		udelay(IQK_DELAY_TIME * 1000 * 10);
++		mdelay(IQK_DELAY_TIME * 10);
+ 		/* Check failed */
+ 		regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1808,7 +1808,7 @@ static u8 _rtl92d_phy_pathb_iqk(struct i
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 		("Delay %d ms for One shot, path B LOK & IQK.\n",
+ 		IQK_DELAY_TIME));
+-	udelay(IQK_DELAY_TIME * 1000);
++	mdelay(IQK_DELAY_TIME);
+ 	/* Check failed */
+ 	regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1875,7 +1875,7 @@ static u8 _rtl92d_phy_pathb_iqk_5g_norma
+ 		/* delay x ms */
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 			("Delay %d ms for One shot, path B LOK & IQK.\n", 10));
+-		udelay(IQK_DELAY_TIME * 1000 * 10);
++		mdelay(IQK_DELAY_TIME * 10);
  
- 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
--		loops_per_jiffy = per_cpu(cpu_loops_per_jiffy, this_cpu);
-+		lpj = per_cpu(cpu_loops_per_jiffy, this_cpu);
- 		pr_info("Calibrating delay loop (skipped) "
- 				"already calibrated this CPU");
- 	} else if (preset_lpj) {
-@@ -274,7 +274,7 @@ void __cpuinit calibrate_delay(void)
- 			pr_info("Calibrating delay loop... ");
- 		lpj = calibrate_delay_converge();
- 	}
--	per_cpu(cpu_loops_per_jiffy, this_cpu) = loops_per_jiffy;
-+	per_cpu(cpu_loops_per_jiffy, this_cpu) = lpj;
- 	if (!printed)
- 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
- 			lpj/(500000/HZ),
+ 		/* Check failed */
+ 		regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+@@ -2206,7 +2206,7 @@ static void _rtl92d_phy_iq_calibrate_5g_
+ 	 * PHY_REG.txt , and radio_a, radio_b.txt */
+ 
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("IQK for 5G NORMAL:Start!!!\n"));
+-	udelay(IQK_DELAY_TIME * 1000 * 20);
++	mdelay(IQK_DELAY_TIME * 20);
+ 	if (t == 0) {
+ 		bbvalue = rtl_get_bbreg(hw, RFPGA0_RFMOD, BMASKDWORD);
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK, ("==>0x%08x\n", bbvalue));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,4 +157,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
 
