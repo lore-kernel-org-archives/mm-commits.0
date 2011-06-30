@@ -1,127 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] fs-inodec-optimize-expensive-assertion-in-end_writeback.patch removed from -mm tree
-Date: Thu, 30 Jun 2011 08:47:39 -0700
-Message-ID: <201106301547.p5UFlK5e029565@imap1.linux-foundation.org>
+Subject: [merged] lpfc-silence-debug_strict_user_copy_checks=y-warning.patch removed from -mm tree
+Date: Thu, 30 Jun 2011 10:56:15 -0700
+Message-ID: <201106301755.p5UHttac003741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698Ab1F3Prw (ORCPT
+	by vger.kernel.org with ESMTP id S1751027Ab1F3Rz7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Jun 2011 11:47:52 -0400
+	Thu, 30 Jun 2011 13:55:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, james.smart@emulex.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/inode.c: optimize expensive assertion in end_writeback()
+     lpfc: Silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
 has been removed from the -mm tree.  Its filename was
-     fs-inodec-optimize-expensive-assertion-in-end_writeback.patch
+     lpfc-silence-debug_strict_user_copy_checks=y-warning.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/inode.c: optimize expensive assertion in end_writeback()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lpfc: Silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
+From: Stephen Boyd <sboyd@codeaurora.org>
 
-Taking spin_lock_irq() just to run BUG_ON() is a pretty sad use of CPU
-cycles.  Speed this up by only taking the lock if it looks like the
-BUG_ON() will be triggering.
+Enabling DEBUG_STRICT_USER_COPY_CHECKS causes the following warning:
 
-Cc: Jan Kara <jack@suse.cz>
+In file included from arch/x86/include/asm/uaccess.h:573,
+                 from include/linux/uaccess.h:5,
+                 from include/linux/highmem.h:7,
+                 from include/linux/pagemap.h:10,
+                 from include/linux/blkdev.h:12,
+                 from drivers/scsi/lpfc/lpfc_debugfs.c:21:
+In function 'copy_from_user':
+arch/x86/include/asm/uaccess_64.h:65:
+warning: call to 'copy_from_user_overflow' declared with
+attribute warning: copy_from_user() buffer size is not provably
+correct
+
+presumably due to buf_size being signed causing GCC to fail to see that
+buf_size can't become negative.
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Acked-by: James Smart <james.smart@emulex.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/scsi/lpfc/lpfc_debugfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback fs/inode.c
---- a/fs/inode.c~fs-inodec-optimize-expensive-assertion-in-end_writeback
-+++ a/fs/inode.c
-@@ -422,14 +422,18 @@ EXPORT_SYMBOL(remove_inode_hash);
- void end_writeback(struct inode *inode)
+diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~lpfc-silence-debug_strict_user_copy_checks=y-warning drivers/scsi/lpfc/lpfc_debugfs.c
+--- a/drivers/scsi/lpfc/lpfc_debugfs.c~lpfc-silence-debug_strict_user_copy_checks=y-warning
++++ a/drivers/scsi/lpfc/lpfc_debugfs.c
+@@ -1147,7 +1147,8 @@ static int lpfc_idiag_cmd_get(const char
  {
- 	might_sleep();
--	/*
--	 * We have to cycle tree_lock here because reclaim can be still in the
--	 * process of removing the last page (in __delete_from_page_cache())
--	 * and we must not free mapping under it.
--	 */
--	spin_lock_irq(&inode->i_data.tree_lock);
--	BUG_ON(inode->i_data.nrpages);
--	spin_unlock_irq(&inode->i_data.tree_lock);
-+
-+	if (unlikely(inode->i_data.nrpages)) {
-+		/*
-+		 * We have to cycle tree_lock here because reclaim can be still
-+		 * in the process of removing the last page (in
-+		 * __delete_from_page_cache()) and we must not free mapping
-+		 * under it.
-+		 */
-+		spin_lock_irq(&inode->i_data.tree_lock);
-+		BUG_ON(inode->i_data.nrpages);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
-+	}
- 	BUG_ON(!list_empty(&inode->i_data.private_list));
- 	BUG_ON(!(inode->i_state & I_FREEING));
- 	BUG_ON(inode->i_state & I_CLEAR);
+ 	char mybuf[64];
+ 	char *pbuf, *step_str;
+-	int bsize, i;
++	int i;
++	size_t bsize;
+ 
+ 	/* Protect copy from user */
+ 	if (!access_ok(VERIFY_READ, buf, nbytes))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-origin.patch
-memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-mm-memoryc-remove-zap_block_size.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
+kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
+x86-implement-strict-user-copy-checks-for-x86_64.patch
+consolidate-config_debug_strict_user_copy_checks.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch
 drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
