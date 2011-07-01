@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-reclaimable-lru-check-in-memcg-fix-2.patch added to -mm tree
-Date: Fri, 01 Jul 2011 12:36:20 -0700
-Message-ID: <201107011936.p61JaKZE010589@imap1.linux-foundation.org>
+Subject: + backlight-add-ams369fg06-amoled-driver-fix.patch added to -mm tree
+Date: Fri, 01 Jul 2011 12:50:59 -0700
+Message-ID: <201107011950.p61JoxRm011389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756134Ab1GATg2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2011 15:36:28 -0400
+	by vger.kernel.org with ESMTP id S1751884Ab1GATvp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2011 15:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, randy.dunlap@oracle.com
+Cc: sfr@canb.auug.org.au, anish198519851985@gmail.com, inki.dae@samsung.com, jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     memcg-fix-reclaimable-lru-check-in-memcg-fix-2
+     backlight-add-ams369fg06-amoled-driver-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-reclaimable-lru-check-in-memcg-fix-2.patch
+     backlight-add-ams369fg06-amoled-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-reclaimable-lru-check-in-memcg-fix-2
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: backlight-add-ams369fg06-amoled-driver-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 1 Jul 2011 15:34:22 +1000
+Subject: [PATCH] backlight: make some varibales static
 
- memcg-fix-reclaimable-lru-check-in-memcg.patch
- causes following error with !CONFIG_NUMA.
+fixes this build error:
 
-> mmotm-2011-0630-1559/mm/memcontrol.c:1579: error: implicit declaration of function 'mem_cgroup_node_nr_file_lru_pages'
-> mmotm-2011-0630-1559/mm/memcontrol.c:1583: error: implicit declaration of function 'mem_cgroup_node_nr_anon_lru_pages'
->
+drivers/video/backlight/ams369fg06.o:(.bss+0x510): multiple definition of `before_power'
+drivers/video/backlight/s6e63m0.o:(.bss+0x5e0): first defined here
 
-This patch fixes it by moving functions out of #ifdef.
-
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-cked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: anish singh <anish198519851985@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/video/backlight/ams369fg06.c |    2 +-
+ drivers/video/backlight/s6e63m0.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix-2
-+++ a/mm/memcontrol.c
-@@ -1120,7 +1120,6 @@ unsigned long mem_cgroup_zone_nr_lru_pag
- 	return MEM_CGROUP_ZSTAT(mz, lru);
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-add-ams369fg06-amoled-driver-fix drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-add-ams369fg06-amoled-driver-fix
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -560,7 +560,7 @@ static int __devexit ams369fg06_remove(s
  }
  
--#ifdef CONFIG_NUMA
- static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
- 							int nid)
+ #if defined(CONFIG_PM)
+-unsigned int before_power;
++static unsigned int before_power;
+ 
+ static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
  {
-@@ -1132,6 +1131,17 @@ static unsigned long mem_cgroup_node_nr_
- 	return ret;
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-add-ams369fg06-amoled-driver-fix drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-add-ams369fg06-amoled-driver-fix
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -840,7 +840,7 @@ static int __devexit s6e63m0_remove(stru
  }
  
-+static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
-+							int nid)
-+{
-+	unsigned long ret;
-+
-+	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
-+		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
-+	return ret;
-+}
-+
-+#if MAX_NUMNODES > 1
- static unsigned long mem_cgroup_nr_file_lru_pages(struct mem_cgroup *memcg)
+ #if defined(CONFIG_PM)
+-unsigned int before_power;
++static unsigned int before_power;
+ 
+ static int s6e63m0_suspend(struct spi_device *spi, pm_message_t mesg)
  {
- 	u64 total = 0;
-@@ -1143,17 +1153,6 @@ static unsigned long mem_cgroup_nr_file_
- 	return total;
- }
- 
--static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
--							int nid)
--{
--	unsigned long ret;
--
--	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
--		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
--
--	return ret;
--}
+_
+
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
+
+origin.patch
+linux-next.patch
+backlight-add-ams369fg06-amoled-driver-fix.patch
+consolidate-config_debug_strict_user_copy_checks.patch
+
