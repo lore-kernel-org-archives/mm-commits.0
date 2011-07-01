@@ -1,70 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfsplus-add-missing-call-to-bio_put.patch removed from -mm tree
-Date: Fri, 01 Jul 2011 12:17:13 -0700
-Message-ID: <201107011916.p61JGrkY009594@imap1.linux-foundation.org>
+Subject: + memcg-fix-reclaimable-lru-check-in-memcg-fix-2.patch added to -mm tree
+Date: Fri, 01 Jul 2011 12:36:20 -0700
+Message-ID: <201107011936.p61JaKZE010589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755316Ab1GATRA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2011 15:17:00 -0400
+	by vger.kernel.org with ESMTP id S1756134Ab1GATg2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2011 15:36:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: seth.forshee@canonical.com, hch@lst.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     hfsplus: add missing call to bio_put()
-has been removed from the -mm tree.  Its filename was
-     hfsplus-add-missing-call-to-bio_put.patch
+     memcg-fix-reclaimable-lru-check-in-memcg-fix-2
+has been added to the -mm tree.  Its filename is
+     memcg-fix-reclaimable-lru-check-in-memcg-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: add missing call to bio_put()
-From: Seth Forshee <seth.forshee@canonical.com>
+Subject: memcg-fix-reclaimable-lru-check-in-memcg-fix-2
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-hfsplus leaks bio objects by failing to call bio_put() on the bios it
-allocates.  Add the missing call to fix the leak.
+ memcg-fix-reclaimable-lru-check-in-memcg.patch
+ causes following error with !CONFIG_NUMA.
 
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@kernel.org>		[2.6.38+]
+> mmotm-2011-0630-1559/mm/memcontrol.c:1579: error: implicit declaration of function 'mem_cgroup_node_nr_file_lru_pages'
+> mmotm-2011-0630-1559/mm/memcontrol.c:1583: error: implicit declaration of function 'mem_cgroup_node_nr_anon_lru_pages'
+>
+
+This patch fixes it by moving functions out of #ifdef.
+
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+cked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/wrapper.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN fs/hfsplus/wrapper.c~hfsplus-add-missing-call-to-bio_put fs/hfsplus/wrapper.c
---- a/fs/hfsplus/wrapper.c~hfsplus-add-missing-call-to-bio_put
-+++ a/fs/hfsplus/wrapper.c
-@@ -36,6 +36,7 @@ int hfsplus_submit_bio(struct block_devi
- {
- 	DECLARE_COMPLETION_ONSTACK(wait);
- 	struct bio *bio;
-+	int ret = 0;
- 
- 	bio = bio_alloc(GFP_NOIO, 1);
- 	bio->bi_sector = sector;
-@@ -54,8 +55,10 @@ int hfsplus_submit_bio(struct block_devi
- 	wait_for_completion(&wait);
- 
- 	if (!bio_flagged(bio, BIO_UPTODATE))
--		return -EIO;
--	return 0;
-+		ret = -EIO;
-+
-+	bio_put(bio);
-+	return ret;
+diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-fix-2
++++ a/mm/memcontrol.c
+@@ -1120,7 +1120,6 @@ unsigned long mem_cgroup_zone_nr_lru_pag
+ 	return MEM_CGROUP_ZSTAT(mz, lru);
  }
  
- static int hfsplus_read_mdb(void *bufptr, struct hfsplus_wd *wd)
-_
-
-Patches currently in -mm which might be from seth.forshee@canonical.com are
-
-linux-next.patch
-
+-#ifdef CONFIG_NUMA
+ static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
+ 							int nid)
+ {
+@@ -1132,6 +1131,17 @@ static unsigned long mem_cgroup_node_nr_
+ 	return ret;
+ }
+ 
++static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
++							int nid)
++{
++	unsigned long ret;
++
++	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
++		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
++	return ret;
++}
++
++#if MAX_NUMNODES > 1
+ static unsigned long mem_cgroup_nr_file_lru_pages(struct mem_cgroup *memcg)
+ {
+ 	u64 total = 0;
+@@ -1143,17 +1153,6 @@ static unsigned long mem_cgroup_nr_file_
+ 	return total;
+ }
+ 
+-static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
+-							int nid)
+-{
+-	unsigned long ret;
+-
+-	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
+-		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
+-
+-	return ret;
+-}
