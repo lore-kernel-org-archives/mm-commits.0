@@ -1,112 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] documentation-docbook-media-makefile-unbork.patch removed from -mm tree
-Date: Tue, 05 Jul 2011 12:30:00 -0700
-Message-ID: <201107051929.p65JTbrc019039@imap1.linux-foundation.org>
+Subject: [obsolete] x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch removed from -mm tree
+Date: Tue, 05 Jul 2011 12:35:42 -0700
+Message-ID: <201107051935.p65JZIJq019320__49563.4368424819$1309894603$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751682Ab1GET3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 15:29:54 -0400
+	by vger.kernel.org with ESMTP id S1752029Ab1GETgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 15:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, a.p.zijlstra@chello.nl, mingo@elte.hu, stable@kernel.org, tj@kernel.org, vadimuzzz@inbox.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/DocBook/media/Makefile: unbork
+     x86, mtrr: lock stop machine during MTRR rendezvous sequence
 has been removed from the -mm tree.  Its filename was
-     documentation-docbook-media-makefile-unbork.patch
+     x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/DocBook/media/Makefile: unbork
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86, mtrr: lock stop machine during MTRR rendezvous sequence
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-hm, why isn't this fixed yet?
+MTRR rendezvous sequence using stop_one_cpu_nowait() can potentially
+happen in parallel with another system wide rendezvous using
+stop_machine().  This can lead to deadlock (The order in which works are
+queued can be different on different cpu's.  Some cpu's will be running
+the first rendezvous handler and others will be running the second
+rendezvous handler.  Each set waiting for the other set to join for the
+system wide rendezvous, leading to a deadlock).
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michal Marek <mmarek@suse.cz>
+MTRR rendezvous sequence is not implemented using stop_machine() as this
+gets called both from the process context aswell as the cpu online paths
+(where the cpu has not come online and the interrupts are disabled etc). 
+stop_machine() works with only online cpus.
+
+For now, take the stop_machine mutex in the MTRR rendezvous sequence that
+gets called from an online cpu (here we are in the process context and can
+potentially sleep while taking the mutex).  And the MTRR rendezvous that
+gets triggered during cpu online doesn't need to take this stop_machine
+lock (as the stop_machine() already ensures that there is no cpu hotplug
+going on in parallel by doing get_online_cpus())
+
+    TBD: Pursue a cleaner solution of extending the stop_machine()
+         infrastructure to handle the case where the calling cpu is
+         still not online and use this for MTRR rendezvous sequence.
+
+Addresses https://bugzilla.novell.com/show_bug.cgi?id=672008
+
+Reported-by: Vadim Kotelnikov <vadimuzzz@inbox.ru>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: <stable@kernel.org>	[2.6.35+, backport a week or two after this gets more testing in mainline]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/media/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/mtrr/main.c |   23 +++++++++++++++++++++++
+ include/linux/stop_machine.h    |    2 ++
+ kernel/stop_machine.c           |    2 +-
+ 3 files changed, 26 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork Documentation/DocBook/media/Makefile
---- a/Documentation/DocBook/media/Makefile~documentation-docbook-media-makefile-unbork
-+++ a/Documentation/DocBook/media/Makefile
-@@ -13,7 +13,7 @@ MEDIA_TEMP =  media-entities.tmpl \
- 	      v4l2.xml \
- 	      frontend.h.xml
+diff -puN arch/x86/kernel/cpu/mtrr/main.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence arch/x86/kernel/cpu/mtrr/main.c
+--- a/arch/x86/kernel/cpu/mtrr/main.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
++++ a/arch/x86/kernel/cpu/mtrr/main.c
+@@ -248,6 +248,25 @@ set_mtrr(unsigned int reg, unsigned long
+ 	unsigned long flags;
+ 	int cpu;
  
--IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
-+IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png 2>/dev/null)))
- GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
++#ifdef CONFIG_SMP
++	/*
++	 * If this cpu is not yet active, we are in the cpu online path. There
++	 * can be no stop_machine() in parallel, as stop machine ensures this
++	 * by using get_online_cpus(). We can skip taking the stop_cpus_mutex,
++	 * as we don't need it and also we can't afford to block while waiting
++	 * for the mutex.
++	 *
++	 * If this cpu is active, we need to prevent stop_machine() happening
++	 * in parallel by taking the stop cpus mutex.
++	 *
++	 * Also, this is called in the context of cpu online path or in the
++	 * context where cpu hotplug is prevented. So checking the active status
++	 * of the raw_smp_processor_id() is safe.
++	 */
++	if (cpu_active(raw_smp_processor_id()))
++		mutex_lock(&stop_cpus_mutex);
++#endif
++
+ 	preempt_disable();
  
- PHONY += cleanmediadocs mediaindexdocs
+ 	data.smp_reg = reg;
+@@ -330,6 +349,10 @@ set_mtrr(unsigned int reg, unsigned long
+ 
+ 	local_irq_restore(flags);
+ 	preempt_enable();
++#ifdef CONFIG_SMP
++	if (cpu_active(raw_smp_processor_id()))
++		mutex_unlock(&stop_cpus_mutex);
++#endif
+ }
+ 
+ /**
+diff -puN include/linux/stop_machine.h~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence include/linux/stop_machine.h
+--- a/include/linux/stop_machine.h~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
++++ a/include/linux/stop_machine.h
+@@ -27,6 +27,8 @@ struct cpu_stop_work {
+ 	struct cpu_stop_done	*done;
+ };
+ 
++extern struct mutex stop_cpus_mutex;
++
+ int stop_one_cpu(unsigned int cpu, cpu_stop_fn_t fn, void *arg);
+ void stop_one_cpu_nowait(unsigned int cpu, cpu_stop_fn_t fn, void *arg,
+ 			 struct cpu_stop_work *work_buf);
+diff -puN kernel/stop_machine.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence kernel/stop_machine.c
+--- a/kernel/stop_machine.c~x86-mtrr-lock-stop-machine-during-mtrr-rendezvous-sequence
++++ a/kernel/stop_machine.c
+@@ -132,8 +132,8 @@ void stop_one_cpu_nowait(unsigned int cp
+ 	cpu_stop_queue_work(&per_cpu(cpu_stopper, cpu), work_buf);
+ }
+ 
++DEFINE_MUTEX(stop_cpus_mutex);
+ /* static data for stop_cpus */
+-static DEFINE_MUTEX(stop_cpus_mutex);
+ static DEFINE_PER_CPU(struct cpu_stop_work, stop_cpus_work);
+ 
+ int __stop_cpus(const struct cpumask *cpumask, cpu_stop_fn_t fn, void *arg)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-origin.patch
-memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 linux-next.patch
-drivers-staging-makefile-cs5535_gpio-went-away.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-mm-memoryc-remove-zap_block_size.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-4.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
-ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+stop_machine-reorganize-stop_cpus-implementation.patch
+stop_machine-implement-stop_machine_from_inactive_cpu.patch
+x86-mtrr-use-stop_machine-apis-for-doing-mtrr-rendezvous.patch
 
