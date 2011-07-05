@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-add-missing-_osi-strings-resend.patch added to -mm tree
-Date: Tue, 05 Jul 2011 15:08:58 -0700
-Message-ID: <201107052208.p65M8wTm027182@imap1.linux-foundation.org>
+Subject: + drivers-leds-leds-pca9532c-change-driver-name-to-be-unique.patch added to -mm tree
+Date: Tue, 05 Jul 2011 15:27:08 -0700
+Message-ID: <201107052227.p65MR8PD028114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752609Ab1GEWJB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 18:09:01 -0400
+	by vger.kernel.org with ESMTP id S1754227Ab1GEW1b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 18:27:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, lenb@kernel.org, mjg@redhat.com, sebastian.jarosz@intel.com
+Cc: w.sang@pengutronix.de, khali@linux-fr.org, richard.purdie@linuxfoundation.org
 
 
 The patch titled
-     acpi: add missing _OSI strings
+     drivers/leds/leds-pca9532.c: change driver name to be unique
 has been added to the -mm tree.  Its filename is
-     acpi-add-missing-_osi-strings-resend.patch
+     drivers-leds-leds-pca9532c-change-driver-name-to-be-unique.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: add missing _OSI strings
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: drivers/leds/leds-pca9532.c: change driver name to be unique
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-Linux supports some optional features, but it should notify the BIOS about
-them via the _OSI method.  Currently Linux doesn't notify any, which might
-make such features not work because the BIOS doesn't know about them.
+This driver handles the variants pca9530-pca9533, so it chose the name
+"pca953x".  However, there is a gpio driver which decided on the same
+name.  As a result, those two can't be loaded at the same time.  Add a
+subsystem prefix to make the driver name unique.  Device matching will not
+suffer, because both are I2C drivers which match using a
+i2c_device_id-table which is not altered.
 
-Reported-by: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/leds/leds-pca9532.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~acpi-add-missing-_osi-strings-resend drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~acpi-add-missing-_osi-strings-resend
-+++ a/drivers/acpi/osl.c
-@@ -1083,7 +1083,13 @@ struct osi_setup_entry {
- 	bool enable;
- };
+diff -puN drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-change-driver-name-to-be-unique drivers/leds/leds-pca9532.c
+--- a/drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-change-driver-name-to-be-unique
++++ a/drivers/leds/leds-pca9532.c
+@@ -88,7 +88,7 @@ static const struct pca9532_chip_info pc
  
--static struct osi_setup_entry __initdata osi_setup_entries[OSI_STRING_ENTRIES_MAX];
-+static struct osi_setup_entry __initdata
-+		osi_setup_entries[OSI_STRING_ENTRIES_MAX] = {
-+	{"Module Device", true},
-+	{"Processor Device", true},
-+	{"3.0 _SCP Extensions", true},
-+	{"Processor Aggregator Device", true},
-+};
- 
- void __init acpi_osi_setup(char *str)
- {
+ static struct i2c_driver pca9532_driver = {
+ 	.driver = {
+-		.name = "pca953x",
++		.name = "leds-pca953x",
+ 	},
+ 	.probe = pca9532_probe,
+ 	.remove = pca9532_remove,
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
-mm-__tlb_remove_page-checks-correct-batch.patch
+drivers-leds-leds-pca9532c-change-driver-name-to-be-unique.patch
 linux-next.patch
-acpi-add-missing-_osi-strings-resend.patch
-tmpfs-simplify-prealloc_page.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
