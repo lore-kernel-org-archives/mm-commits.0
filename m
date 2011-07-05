@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + fail_make_request-cleanup-should_fail_request.patch added to -mm tree
-Date: Tue, 05 Jul 2011 14:24:49 -0700
-Message-ID: <201107052124.p65LOnFg024980@imap1.linux-foundation.org>
+Subject: + w1-ds1wm-add-a-reset-recovery-parameter.patch added to -mm tree
+Date: Tue, 05 Jul 2011 14:46:22 -0700
+Message-ID: <201107052146.p65LkM2x026006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab1GEVZW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:25:22 -0400
+	by vger.kernel.org with ESMTP id S1752179Ab1GEVrE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, axboe@kernel.dk
+Cc: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, lost.distance@yahoo.com
 
 
 The patch titled
-     fail_make_request: cleanup should_fail_request
+     w1: ds1wm: add a reset recovery parameter
 has been added to the -mm tree.  Its filename is
-     fail_make_request-cleanup-should_fail_request.patch
+     w1-ds1wm-add-a-reset-recovery-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,111 +28,147 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fail_make_request: cleanup should_fail_request
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: w1: ds1wm: add a reset recovery parameter
+=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
 
-This changes should_fail_request() to more usable wrapper function of
-should_fail().  It can avoid putting #ifdef CONFIG_FAIL_MAKE_REQUEST in
-the middle of a function.
+This fixes a regression in 3.0 reported by Paul Parsons regarding the
+removal of the msleep(1) in the ds1wm_reset() function:
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+: The linux-3.0-rc4 DS1WM 1-wire driver is logging "bus error, retrying=
+"
+: error messages on an HP iPAQ hx4700 PDA (XScale-PXA270):
+:=20
+: <snip>
+: Driver for 1-wire Dallas network protocol.
+: DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko
+: 1-Wire driver for the DS2760 battery monitor  chip  - (c) 2004-2005, =
+Szabolcs Gyurko
+: ds1wm ds1wm: pass: 1 bus error, retrying
+: ds1wm ds1wm: pass: 2 bus error, retrying
+: ds1wm ds1wm: pass: 3 bus error, retrying
+: ds1wm ds1wm: pass: 4 bus error, retrying
+: ds1wm ds1wm: pass: 5 bus error, retrying
+: ...
+:=20
+: The visible result is that the battery charging LED is erratic; somet=
+imes
+: it works, mostly it doesn't.
+:=20
+: The linux-2.6.39 DS1WM 1-wire driver worked OK.  I haven't tried 3.0-=
+rc1,
+: 3.0-rc2, or 3.0-rc3.
+
+This sleep should not be required on normal circuitry provided the
+pull-ups on the bus are correctly adapted to the slaves.  Unfortunately=
+,
+this is not always the case.  The sleep is restored but as a parameter =
+to
+the probe function in the pdata.
+
+Reported-by: Paul Parsons <lost.distance@yahoo.com>
+Tested-by: Paul Parsons <lost.distance@yahoo.com>
+Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ drivers/mfd/asic3.c        |    1 +
+ drivers/mfd/htc-pasic3.c   |    1 +
+ drivers/w1/masters/ds1wm.c |    5 +++++
+ include/linux/mfd/ds1wm.h  |    7 +++++++
+ 4 files changed, 14 insertions(+)
 
-diff -puN block/blk-core.c~fail_make_request-cleanup-should_fail_request block/blk-core.c
---- a/block/blk-core.c~fail_make_request-cleanup-should_fail_request
-+++ a/block/blk-core.c
-@@ -1357,14 +1357,9 @@ static int __init setup_fail_make_reques
+diff -puN drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter d=
+rivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/drivers/mfd/asic3.c
+@@ -619,6 +619,7 @@ static void asic3_clk_disable(struct asi
+ /* MFD cells (SPI, PWM, LED, DS1WM, MMC) */
+ static struct ds1wm_driver_data ds1wm_pdata =3D {
+ 	.active_high =3D 1,
++	.reset_recover_delay =3D 1,
+ };
+=20
+ static struct resource ds1wm_resources[] =3D {
+diff -puN drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parame=
+ter drivers/mfd/htc-pasic3.c
+--- a/drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/drivers/mfd/htc-pasic3.c
+@@ -99,6 +99,7 @@ static int ds1wm_disable(struct platform
+=20
+ static struct ds1wm_driver_data ds1wm_pdata =3D {
+ 	.active_high =3D 0,
++	.reset_recover_delay =3D 1,
+ };
+=20
+ static struct resource ds1wm_resources[] __initdata =3D {
+diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-para=
+meter drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-paramete=
+r
++++ a/drivers/w1/masters/ds1wm.c
+@@ -109,6 +109,7 @@ struct ds1wm_data {
+ 	/* byte to write that makes all intr disabled, */
+ 	/* considering active_state (IAS) (optimization) */
+ 	u8       int_en_reg_none;
++	unsigned int reset_recover_delay; /* see ds1wm.h */
+ };
+=20
+ static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data,=
+ u32 reg,
+@@ -187,6 +188,9 @@ static int ds1wm_reset(struct ds1wm_data
+ 		return 1;
+ 	}
+=20
++	if(ds1wm_data->reset_recover_delay)
++		msleep(ds1wm_data->reset_recover_delay);
++
+ 	return 0;
  }
- __setup("fail_make_request=", setup_fail_make_request);
- 
--static int should_fail_request(struct bio *bio)
-+static bool should_fail_request(struct hd_struct *part, unsigned int bytes)
- {
--	struct hd_struct *part = bio->bi_bdev->bd_part;
--
--	if (part_to_disk(part)->part0.make_it_fail || part->make_it_fail)
--		return should_fail(&fail_make_request, bio->bi_size);
--
--	return 0;
-+	return part->make_it_fail && should_fail(&fail_make_request, bytes);
- }
- 
- static int __init fail_make_request_debugfs(void)
-@@ -1377,9 +1372,10 @@ late_initcall(fail_make_request_debugfs)
- 
- #else /* CONFIG_FAIL_MAKE_REQUEST */
- 
--static inline int should_fail_request(struct bio *bio)
-+static inline bool should_fail_request(struct hd_struct *part,
-+					unsigned int bytes)
- {
--	return 0;
-+	return false;
- }
- 
- #endif /* CONFIG_FAIL_MAKE_REQUEST */
-@@ -1462,6 +1458,7 @@ static inline void __generic_make_reques
- 	old_dev = 0;
- 	do {
- 		char b[BDEVNAME_SIZE];
-+		struct hd_struct *part;
- 
- 		q = bdev_get_queue(bio->bi_bdev);
- 		if (unlikely(!q)) {
-@@ -1485,7 +1482,10 @@ static inline void __generic_make_reques
- 		if (unlikely(test_bit(QUEUE_FLAG_DEAD, &q->queue_flags)))
- 			goto end_io;
- 
--		if (should_fail_request(bio))
-+		part = bio->bi_bdev->bd_part;
-+		if (should_fail_request(part, bio->bi_size) ||
-+		    should_fail_request(&part_to_disk(part)->part0,
-+					bio->bi_size))
- 			goto end_io;
- 
- 		/*
-@@ -1700,11 +1700,9 @@ int blk_insert_cloned_request(struct req
- 	if (blk_rq_check_limits(q, rq))
- 		return -EIO;
- 
--#ifdef CONFIG_FAIL_MAKE_REQUEST
--	if (rq->rq_disk && rq->rq_disk->part0.make_it_fail &&
--	    should_fail(&fail_make_request, blk_rq_bytes(rq)))
-+	if (rq->rq_disk &&
-+	    should_fail_request(&rq->rq_disk->part0, blk_rq_bytes(rq)))
- 		return -EIO;
--#endif
- 
- 	spin_lock_irqsave(q->queue_lock, flags);
- 
+=20
+@@ -490,6 +494,7 @@ static int ds1wm_probe(struct platform_d
+ 	}
+ 	ds1wm_data->irq =3D res->start;
+ 	ds1wm_data->int_en_reg_none =3D (plat->active_high ? DS1WM_INTEN_IAS =
+: 0);
++	ds1wm_data->reset_recover_delay =3D plat->reset_recover_delay;
+=20
+ 	if (res->flags & IORESOURCE_IRQ_HIGHEDGE)
+ 		irq_set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
+diff -puN include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-param=
+eter include/linux/mfd/ds1wm.h
+--- a/include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/include/linux/mfd/ds1wm.h
+@@ -3,4 +3,11 @@
+ struct ds1wm_driver_data {
+ 	int active_high;
+ 	int clock_rate;
++	/* in milliseconds, the amount of time to */
++	/* sleep following a reset pulse. Zero    */
++	/* should work if your bus devices recover*/
++	/* time respects the 1-wire spec since the*/
++	/* ds1wm implements the precise timings of*/
++	/* a reset pulse/presence detect sequence.*/
++	unsigned int reset_recover_delay;
+ };
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dagenaisj@sonatest.com are
 
-linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
-reiserfs-use-proper-little-endian-bitops.patch
-reiserfs-use-hweight_long.patch
-fault-injection-do-not-include-unneeded-header.patch
-fault-injection-remove-nonexistent-function-extern.patch
-fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
-fault-injection-use-debugfs_remove_recursive.patch
-failslab-simplify-debugfs-initialization.patch
-fail_page_alloc-simplify-debugfs-initialization.patch
-fail_make_request-cleanup-should_fail_request.patch
-asm-generic-add-another-generic-ext2-atomic-bitops.patch
+w1-ds1wm-add-a-reset-recovery-parameter.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
