@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-fix-a-race-in-do_io_accounting.patch added to -mm tree
-Date: Tue, 05 Jul 2011 14:13:13 -0700
-Message-ID: <201107052113.p65LDDlO024429__35608.1480080777$1309900423$gmane$org@imap1.linux-foundation.org>
+Subject: + fault-injection-do-not-include-unneeded-header.patch added to -mm tree
+Date: Tue, 05 Jul 2011 14:24:36 -0700
+Message-ID: <201107052124.p65LOaCE024959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752625Ab1GEVN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:13:28 -0400
+	by vger.kernel.org with ESMTP id S1751608Ab1GEVYi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     proc: fix a race in do_io_accounting()
+     fault-injection: do not include unneeded header
 has been added to the -mm tree.  Its filename is
-     proc-fix-a-race-in-do_io_accounting.patch
+     fault-injection-do-not-include-unneeded-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: fix a race in do_io_accounting()
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: fault-injection: do not include unneeded header
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-There is a ptrace_may_access() check in do_io_accounting() to prevent
-gathering information of setuid'ed and similar binaries.  However, there
-is a race against execve().  Holding task->signal->cred_guard_mutex while
-gathering the information should protect against the race.
+No need to include linux/kallsyms.h.
 
-The order of locking is similar to the one inside of ptrace_attach():
-first goes cred_guard_mutex, then lock_task_sighand().
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ lib/fault-inject.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-fix-a-race-in-do_io_accounting fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-a-race-in-do_io_accounting
-+++ a/fs/proc/base.c
-@@ -2718,9 +2718,16 @@ static int do_io_accounting(struct task_
- {
- 	struct task_io_accounting acct = task->ioac;
- 	unsigned long flags;
-+	int result;
+diff -puN lib/fault-inject.c~fault-injection-do-not-include-unneeded-header lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-do-not-include-unneeded-header
++++ a/lib/fault-inject.c
+@@ -8,7 +8,6 @@
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+ #include <linux/stacktrace.h>
+-#include <linux/kallsyms.h>
+ #include <linux/fault-inject.h>
  
--	if (!ptrace_may_access(task, PTRACE_MODE_READ))
--		return -EACCES;
-+	result = mutex_lock_killable(&task->signal->cred_guard_mutex);
-+	if (result)
-+		return result;
-+
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
-+		result = -EACCES;
-+		goto out_unlock;
-+	}
- 
- 	if (whole && lock_task_sighand(task, &flags)) {
- 		struct task_struct *t = task;
-@@ -2731,7 +2738,7 @@ static int do_io_accounting(struct task_
- 
- 		unlock_task_sighand(task, &flags);
- 	}
--	return sprintf(buffer,
-+	result = sprintf(buffer,
- 			"rchar: %llu\n"
- 			"wchar: %llu\n"
- 			"syscr: %llu\n"
-@@ -2746,6 +2753,9 @@ static int do_io_accounting(struct task_
- 			(unsigned long long)acct.read_bytes,
- 			(unsigned long long)acct.write_bytes,
- 			(unsigned long long)acct.cancelled_write_bytes);
-+out_unlock:
-+	mutex_unlock(&task->signal->cred_guard_mutex);
-+	return result;
- }
- 
- static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
+ /*
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-proc-fix-a-race-in-do_io_accounting.patch
-ipc-introduce-shm_rmid_forced-sysctl.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
-ipc-introduce-shm_rmid_forced-sysctl-comments.patch
-ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+linux-next.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+reiserfs-use-proper-little-endian-bitops.patch
+reiserfs-use-hweight_long.patch
+fault-injection-do-not-include-unneeded-header.patch
+fault-injection-remove-nonexistent-function-extern.patch
+fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
+fault-injection-use-debugfs_remove_recursive.patch
+failslab-simplify-debugfs-initialization.patch
+fail_page_alloc-simplify-debugfs-initialization.patch
+fail_make_request-cleanup-should_fail_request.patch
+asm-generic-add-another-generic-ext2-atomic-bitops.patch
 
