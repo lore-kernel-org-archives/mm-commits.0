@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds1wm-add-a-reset-recovery-parameter.patch added to -mm tree
-Date: Tue, 05 Jul 2011 14:46:22 -0700
-Message-ID: <201107052146.p65LkM2x026006@imap1.linux-foundation.org>
+Subject: + w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 05 Jul 2011 14:49:19 -0700
+Message-ID: <201107052149.p65LnJY9026154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752179Ab1GEVrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:47:04 -0400
+	by vger.kernel.org with ESMTP id S1751911Ab1GEVt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2011 17:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, lost.distance@yahoo.com
+Cc: akpm@linux-foundation.org, dagenaisj@sonatest.com
 
 
 The patch titled
-     w1: ds1wm: add a reset recovery parameter
+     w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     w1-ds1wm-add-a-reset-recovery-parameter.patch
+     w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,134 +38,124 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: w1: ds1wm: add a reset recovery parameter
-=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Subject: w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes a regression in 3.0 reported by Paul Parsons regarding the
-removal of the msleep(1) in the ds1wm_reset() function:
+ERROR: Invalid UTF-8, patch and commit message should be encoded in UTF=
+-8
+#1:=20
+               ^
 
-: The linux-3.0-rc4 DS1WM 1-wire driver is logging "bus error, retrying=
-"
-: error messages on an HP iPAQ hx4700 PDA (XScale-PXA270):
-:=20
-: <snip>
-: Driver for 1-wire Dallas network protocol.
-: DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko
-: 1-Wire driver for the DS2760 battery monitor  chip  - (c) 2004-2005, =
-Szabolcs Gyurko
-: ds1wm ds1wm: pass: 1 bus error, retrying
-: ds1wm ds1wm: pass: 2 bus error, retrying
-: ds1wm ds1wm: pass: 3 bus error, retrying
-: ds1wm ds1wm: pass: 4 bus error, retrying
-: ds1wm ds1wm: pass: 5 bus error, retrying
-: ...
-:=20
-: The visible result is that the battery charging LED is erratic; somet=
-imes
-: it works, mostly it doesn't.
-:=20
-: The linux-2.6.39 DS1WM 1-wire driver worked OK.  I haven't tried 3.0-=
-rc1,
-: 3.0-rc2, or 3.0-rc3.
-
-This sleep should not be required on normal circuitry provided the
-pull-ups on the bus are correctly adapted to the slaves.  Unfortunately=
-,
-this is not always the case.  The sleep is restored but as a parameter =
-to
-the probe function in the pdata.
-
-Reported-by: Paul Parsons <lost.distance@yahoo.com>
-Tested-by: Paul Parsons <lost.distance@yahoo.com>
+ERROR: Invalid UTF-8, patch and commit message should be encoded in UTF=
+-8
+#33:=20
 Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+                        ^
+
+ERROR: space required before the open parenthesis '('
+#81: FILE: drivers/w1/masters/ds1wm.c:191:
++	if(ds1wm_data->reset_recover_delay)
+
+total: 3 errors, 0 warnings, 48 lines checked
+
+=2E/patches/w1-ds1wm-add-a-reset-recovery-parameter.patch has style pro=
+blems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c        |    1 +
- drivers/mfd/htc-pasic3.c   |    1 +
- drivers/w1/masters/ds1wm.c |    5 +++++
- include/linux/mfd/ds1wm.h  |    7 +++++++
- 4 files changed, 14 insertions(+)
+ drivers/w1/masters/ds1wm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter d=
-rivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/drivers/mfd/asic3.c
-@@ -619,6 +619,7 @@ static void asic3_clk_disable(struct asi
- /* MFD cells (SPI, PWM, LED, DS1WM, MMC) */
- static struct ds1wm_driver_data ds1wm_pdata =3D {
- 	.active_high =3D 1,
-+	.reset_recover_delay =3D 1,
- };
-=20
- static struct resource ds1wm_resources[] =3D {
-diff -puN drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parame=
-ter drivers/mfd/htc-pasic3.c
---- a/drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/drivers/mfd/htc-pasic3.c
-@@ -99,6 +99,7 @@ static int ds1wm_disable(struct platform
-=20
- static struct ds1wm_driver_data ds1wm_pdata =3D {
- 	.active_high =3D 0,
-+	.reset_recover_delay =3D 1,
- };
-=20
- static struct resource ds1wm_resources[] __initdata =3D {
 diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-para=
-meter drivers/w1/masters/ds1wm.c
+meter-checkpatch-fixes drivers/w1/masters/ds1wm.c
 --- a/drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-paramete=
-r
+r-checkpatch-fixes
 +++ a/drivers/w1/masters/ds1wm.c
-@@ -109,6 +109,7 @@ struct ds1wm_data {
- 	/* byte to write that makes all intr disabled, */
- 	/* considering active_state (IAS) (optimization) */
- 	u8       int_en_reg_none;
-+	unsigned int reset_recover_delay; /* see ds1wm.h */
- };
-=20
- static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data,=
- u32 reg,
-@@ -187,6 +188,9 @@ static int ds1wm_reset(struct ds1wm_data
+@@ -188,7 +188,7 @@ static int ds1wm_reset(struct ds1wm_data
  		return 1;
  	}
 =20
-+	if(ds1wm_data->reset_recover_delay)
-+		msleep(ds1wm_data->reset_recover_delay);
-+
+-	if(ds1wm_data->reset_recover_delay)
++	if (ds1wm_data->reset_recover_delay)
+ 		msleep(ds1wm_data->reset_recover_delay);
+=20
  	return 0;
- }
-=20
-@@ -490,6 +494,7 @@ static int ds1wm_probe(struct platform_d
- 	}
- 	ds1wm_data->irq =3D res->start;
- 	ds1wm_data->int_en_reg_none =3D (plat->active_high ? DS1WM_INTEN_IAS =
-: 0);
-+	ds1wm_data->reset_recover_delay =3D plat->reset_recover_delay;
-=20
- 	if (res->flags & IORESOURCE_IRQ_HIGHEDGE)
- 		irq_set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
-diff -puN include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-param=
-eter include/linux/mfd/ds1wm.h
---- a/include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/include/linux/mfd/ds1wm.h
-@@ -3,4 +3,11 @@
- struct ds1wm_driver_data {
- 	int active_high;
- 	int clock_rate;
-+	/* in milliseconds, the amount of time to */
-+	/* sleep following a reset pulse. Zero    */
-+	/* should work if your bus devices recover*/
-+	/* time respects the 1-wire spec since the*/
-+	/* ds1wm implements the precise timings of*/
-+	/* a reset pulse/presence detect sequence.*/
-+	unsigned int reset_recover_delay;
- };
 _
 
-Patches currently in -mm which might be from dagenaisj@sonatest.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
-w1-ds1wm-add-a-reset-recovery-parameter.patch
+memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-=
+fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
+w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch
+linux-next.patch
+drivers-staging-makefile-cs5535_gpio-went-away.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-=
+driver-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-=
+re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-corre=
+ct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machine=
+s-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-4.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-ini=
+tialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available=
+-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
