@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:27:48 -0700
-Message-ID: <201107062227.p66MRmOf003537@imap1.linux-foundation.org>
+Subject: + compat_ioctl-fix-warning-caused-by-qemu.patch added to -mm tree
+Date: Wed, 06 Jul 2011 15:28:48 -0700
+Message-ID: <201107062228.p66MSmPf003566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751568Ab1GFW2b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:28:31 -0400
+	by vger.kernel.org with ESMTP id S1752025Ab1GFW3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: christian.glindkamp@taskit.de, johnpol@2ka.mipt.ru
+Cc: js@sig21.net, arnd@arndb.de, kwolf@redhat.com
 
 
 The patch titled
-     drivers/w1/slaves/w1_therm.c: add support for DS28EA00
+     compat_ioctl: fix warning caused by qemu
 has been added to the -mm tree.  Its filename is
-     drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch
+     compat_ioctl-fix-warning-caused-by-qemu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/w1/slaves/w1_therm.c: add support for DS28EA00
-From: Christian Glindkamp <christian.glindkamp@taskit.de>
+Subject: compat_ioctl: fix warning caused by qemu
+From: Johannes Stezenbach <js@sig21.net>
 
-Signed-off-by: Christian Glindkamp <christian.glindkamp@taskit.de>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+On Linux x86_64 host with 32bit userspace, running qemu or even just
+"qemu-img create -f qcow2 some.img 1G" causes a kernel warning:
+
+ioctl32(qemu-img:5296): Unknown cmd fd(3) cmd(00005326){t:'S';sz:0} arg(7fffffff) on some.img
+ioctl32(qemu-img:5296): Unknown cmd fd(3) cmd(801c0204){t:02;sz:28} arg(fff77350) on some.img
+
+ioctl 00005326 is CDROM_DRIVE_STATUS,
+ioctl 801c0204 is FDGETPRM.
+
+The warning appears because the Linux compat-ioctl handler for these
+ioctls only applies to block devices, while qemu also uses the ioctls on
+plain files.
+
+Discussed in http://lkml.kernel.org/r/20110617090424.GA19345@sig21.net
+
+Signed-off-by: Johannes Stezenbach <js@sig21.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kevin Wolf <kwolf@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    9 +++++++++
- drivers/w1/w1_family.h       |    1 +
- 2 files changed, 10 insertions(+)
+ block/compat_ioctl.c |   14 --------------
+ fs/compat_ioctl.c    |    5 +++++
+ include/linux/fd.h   |   18 ++++++++++++++++++
+ 3 files changed, 23 insertions(+), 14 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -86,6 +86,11 @@ static struct w1_family w1_therm_family_
- 	.fops = &w1_therm_fops,
- };
+diff -puN block/compat_ioctl.c~compat_ioctl-fix-warning-caused-by-qemu block/compat_ioctl.c
+--- a/block/compat_ioctl.c~compat_ioctl-fix-warning-caused-by-qemu
++++ a/block/compat_ioctl.c
+@@ -208,19 +208,6 @@ static int compat_blkpg_ioctl(struct blo
+ #define BLKBSZSET_32		_IOW(0x12, 113, int)
+ #define BLKGETSIZE64_32		_IOR(0x12, 114, int)
  
-+static struct w1_family w1_therm_family_DS28EA00 = {
-+	.fid = W1_THERM_DS28EA00,
-+	.fops = &w1_therm_fops,
+-struct compat_floppy_struct {
+-	compat_uint_t	size;
+-	compat_uint_t	sect;
+-	compat_uint_t	head;
+-	compat_uint_t	track;
+-	compat_uint_t	stretch;
+-	unsigned char	gap;
+-	unsigned char	rate;
+-	unsigned char	spec1;
+-	unsigned char	fmt_gap;
+-	const compat_caddr_t name;
+-};
+-
+ struct compat_floppy_drive_params {
+ 	char		cmos;
+ 	compat_ulong_t	max_dtr;
+@@ -288,7 +275,6 @@ struct compat_floppy_write_errors {
+ 
+ #define FDSETPRM32 _IOW(2, 0x42, struct compat_floppy_struct)
+ #define FDDEFPRM32 _IOW(2, 0x43, struct compat_floppy_struct)
+-#define FDGETPRM32 _IOR(2, 0x04, struct compat_floppy_struct)
+ #define FDSETDRVPRM32 _IOW(2, 0x90, struct compat_floppy_drive_params)
+ #define FDGETDRVPRM32 _IOR(2, 0x11, struct compat_floppy_drive_params)
+ #define FDGETDRVSTAT32 _IOR(2, 0x12, struct compat_floppy_drive_struct)
+diff -puN fs/compat_ioctl.c~compat_ioctl-fix-warning-caused-by-qemu fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~compat_ioctl-fix-warning-caused-by-qemu
++++ a/fs/compat_ioctl.c
+@@ -68,6 +68,8 @@
+ 
+ #ifdef CONFIG_BLOCK
+ #include <linux/loop.h>
++#include <linux/cdrom.h>
++#include <linux/fd.h>
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_ioctl.h>
+ #include <scsi/sg.h>
+@@ -944,6 +946,9 @@ COMPATIBLE_IOCTL(FIOQSIZE)
+ IGNORE_IOCTL(LOOP_CLR_FD)
+ /* md calls this on random blockdevs */
+ IGNORE_IOCTL(RAID_VERSION)
++/* qemu/qemu-img might call these two on plain files for probing */
++IGNORE_IOCTL(CDROM_DRIVE_STATUS)
++IGNORE_IOCTL(FDGETPRM32)
+ /* SG stuff */
+ COMPATIBLE_IOCTL(SG_SET_TIMEOUT)
+ COMPATIBLE_IOCTL(SG_GET_TIMEOUT)
+diff -puN include/linux/fd.h~compat_ioctl-fix-warning-caused-by-qemu include/linux/fd.h
+--- a/include/linux/fd.h~compat_ioctl-fix-warning-caused-by-qemu
++++ a/include/linux/fd.h
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/ioctl.h>
+ #include <linux/compiler.h>
++#include <linux/compat.h>
+ 
+ /* New file layout: Now the ioctl definitions immediately follow the
+  * definitions of the structures that they use */
+@@ -377,4 +378,21 @@ struct floppy_raw_cmd {
+ #define FDEJECT _IO(2, 0x5a)
+ /* eject the disk */
+ 
++#ifdef CONFIG_COMPAT
++struct compat_floppy_struct {
++	compat_uint_t	size;
++	compat_uint_t	sect;
++	compat_uint_t	head;
++	compat_uint_t	track;
++	compat_uint_t	stretch;
++	unsigned char	gap;
++	unsigned char	rate;
++	unsigned char	spec1;
++	unsigned char	fmt_gap;
++	const compat_caddr_t name;
 +};
 +
- struct w1_therm_family_converter
- {
- 	u8			broken;
-@@ -111,6 +116,10 @@ static struct w1_therm_family_converter 
- 		.f		= &w1_therm_family_DS18B20,
- 		.convert 	= w1_DS18B20_convert_temp
- 	},
-+	{
-+		.f		= &w1_therm_family_DS28EA00,
-+		.convert	= w1_DS18B20_convert_temp
-+	},
- };
- 
- static inline int w1_DS18B20_convert_temp(u8 rom[9])
-diff -puN drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/w1_family.h
---- a/drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
-+++ a/drivers/w1/w1_family.h
-@@ -38,6 +38,7 @@
- #define W1_EEPROM_DS2431	0x2D
- #define W1_FAMILY_DS2760	0x30
- #define W1_FAMILY_DS2780	0x32
-+#define W1_THERM_DS28EA00	0x42
- 
- #define MAXNAMELEN		32
- 
++#define FDGETPRM32 _IOR(2, 0x04, struct compat_floppy_struct)
++#endif
++
+ #endif
 _
 
-Patches currently in -mm which might be from christian.glindkamp@taskit.de are
+Patches currently in -mm which might be from js@sig21.net are
 
-drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch
+linux-next.patch
+compat_ioctl-fix-warning-caused-by-qemu.patch
 
