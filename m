@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-loopc-emit-uevent-on-auto-release.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:46:07 -0700
-Message-ID: <201107062246.p66Mk7R8004459@imap1.linux-foundation.org>
+Subject: + drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch.patch added to -mm tree
+Date: Wed, 06 Jul 2011 15:50:30 -0700
+Message-ID: <201107062250.p66MoULQ004739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752959Ab1GFWqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:46:14 -0400
+	by vger.kernel.org with ESMTP id S1751928Ab1GFWui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:50:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: psusi@cfl.rr.com, axboe@kernel.dk
+Cc: kengyu@canonical.com, abogani@texware.it, mjg@redhat.com, stable@kernel.org
 
 
 The patch titled
-     drivers/block/loop.c: emit uevent on auto release
+     drivers/platform/x86/dell-laptop.c: revert "dell-laptop: Toggle the unsupported hardware killswitch"
 has been added to the -mm tree.  Its filename is
-     drivers-block-loopc-emit-uevent-on-auto-release.patch
+     drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/loop.c: emit uevent on auto release
-From: Phillip Susi <psusi@cfl.rr.com>
+Subject: drivers/platform/x86/dell-laptop.c: revert "dell-laptop: Toggle the unsupported hardware killswitch"
+From: Keng-Yu Lin <kengyu@canonical.com>
 
-Fix the loopback device to emit a uevent on auto release.  The loopback
-driver failed to emit the change uevent when auto releasing the device. 
-Fix lo_release() to pass the bdev to loop_clr_fd() so it can emit the
-event.
+This reverts my commit a3d77411e8b2ad ("dell-laptop: Toggle the
+unsupported hardware killswitch").
 
-Cc: Jens Axboe <axboe@kernel.dk>
+It caused a mess in the wireless rfkill status on some models.  It is
+probably a bad idea to toggle the rfkill for all dell models without the
+respect to the claim that it is hardware-controlled.
+
+Signed-off-by: Keng-Yu Lin <kengyu@canonical.com>
+Cc: Alessio Igor Bogani <abogani@texware.it>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: <stable@kernel.org>		[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/dell-laptop.c |   24 ++----------------------
+ 1 file changed, 2 insertions(+), 22 deletions(-)
 
-diff -puN drivers/block/loop.c~drivers-block-loopc-emit-uevent-on-auto-release drivers/block/loop.c
---- a/drivers/block/loop.c~drivers-block-loopc-emit-uevent-on-auto-release
-+++ a/drivers/block/loop.c
-@@ -1509,7 +1509,7 @@ static int lo_release(struct gendisk *di
- 		 * In autoclear mode, stop the loop thread
- 		 * and remove configuration after last close.
- 		 */
--		err = loop_clr_fd(lo, NULL);
-+		err = loop_clr_fd(lo, lo->lo_device);
- 		if (!err)
- 			goto out_unlocked;
- 	} else {
-_
-
-Patches currently in -mm which might be from psusi@cfl.rr.com are
-
-drivers-block-loopc-emit-uevent-on-auto-release.patch
-
+diff -puN drivers/platform/x86/dell-laptop.c~drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch drivers/platform/x86/dell-laptop.c
+--- a/drivers/platform/x86/dell-laptop.c~drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch
++++ a/drivers/platform/x86/dell-laptop.c
+@@ -292,12 +292,9 @@ static int dell_rfkill_set(void *data, b
+ 	dell_send_request(buffer, 17, 11);
+ 
+ 	/* If the hardware switch controls this radio, and the hardware
+-	   switch is disabled, don't allow changing the software state.
+-	   If the hardware switch is reported as not supported, always
+-	   fire the SMI to toggle the killswitch. */
++	   switch is disabled, don't allow changing the software state */
+ 	if ((hwswitch_state & BIT(hwswitch_bit)) &&
+-	    !(buffer->output[1] & BIT(16)) &&
+-	    (buffer->output[1] & BIT(0))) {
++	    !(buffer->output[1] & BIT(16))) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -403,23 +400,6 @@ static const struct file_operations dell
+ 
+ static void dell_update_rfkill(struct work_struct *ignored)
+ {
+-	int status;
+-
+-	get_buffer();
+-	dell_send_request(buffer, 17, 11);
+-	status = buffer->output[1];
+-	release_buffer();
+-
+-	/* if hardware rfkill is not supported, set it explicitly */
+-	if (!(status & BIT(0))) {
+-		if (wifi_rfkill)
+-			dell_rfkill_set((void *)1, !((status & BIT(17)) >> 17));
+-		if (bluetooth_rfkill)
+-			dell_rfkill_set((void *)2, !((status & BIT(18)) >> 18));
+-		if (wwan_rfkill)
+-			dell_rfkill_set((void *)3, !((status & BIT(19)) >> 19));
+-	}
