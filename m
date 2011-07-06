@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:18:02 -0700
-Message-ID: <201107062218.p66MI2kD003072@imap1.linux-foundation.org>
+Subject: + notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch added to -mm tree
+Date: Wed, 06 Jul 2011 15:20:16 -0700
+Message-ID: <201107062220.p66MKGt5003256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752831Ab1GFWSN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:18:13 -0400
+	by vger.kernel.org with ESMTP id S1752967Ab1GFWUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:20:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, jinyoungp@nvidia.com, rpurdie@rpsys.net, sameo@linux.intel.com
+Cc: amwang@redhat.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     drivers/video/backlight/aat2870_bl.c: fix setting max_current
+     notifiers-sys-move-reboot-notifiers-into-rebooth-fix
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
+     notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/aat2870_bl.c: fix setting max_current
-From: Axel Lin <axel.lin@gmail.com>
+Subject: notifiers-sys-move-reboot-notifiers-into-rebooth-fix
+From: Cong Wang <amwang@redhat.com>
 
-1. current implementation tests wrong value for setting aat2870_bl->max_current.
-2. In current implementation, we cannot differentiate below 2 cases:
-       a) if pdata->max_current is not set , or
-       b) pdata->max_current is set to AAT2870_CURRENT_0_45 ( which is also 0 ).
-   fix it by setting AAT2870_CURRENT_0_45 to be 1 and adjust the equation
-   in aat2870_brightness() accordingly.
+With this patch applied, make allyesconfig succeeds on ppc64.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Tested-by: Jin Park <jinyoungp@nvidia.com>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/aat2870_bl.c |    4 ++--
- include/linux/mfd/aat2870.h          |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/powerpc/kernel/rtas.c       |    1 +
+ arch/powerpc/kernel/rtas_flash.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-setting-max_current drivers/video/backlight/aat2870_bl.c
---- a/drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-setting-max_current
-+++ a/drivers/video/backlight/aat2870_bl.c
-@@ -44,7 +44,7 @@ static inline int aat2870_brightness(str
- 	struct backlight_device *bd = aat2870_bl->bd;
- 	int val;
+diff -puN arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas.c
+--- a/arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
++++ a/arch/powerpc/kernel/rtas.c
+@@ -24,6 +24,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/memblock.h>
+ #include <linux/slab.h>
++#include <linux/reboot.h>
  
--	val = brightness * aat2870_bl->max_current;
-+	val = brightness * (aat2870_bl->max_current - 1);
- 	val /= bd->props.max_brightness;
- 
- 	return val;
-@@ -175,7 +175,7 @@ static int aat2870_bl_probe(struct platf
- 	else
- 		aat2870_bl->channels = AAT2870_BL_CH_ALL;
- 
--	if (pdata->max_brightness > 0)
-+	if (pdata->max_current > 0)
- 		aat2870_bl->max_current = pdata->max_current;
- 	else
- 		aat2870_bl->max_current = AAT2870_CURRENT_27_9;
-diff -puN include/linux/mfd/aat2870.h~drivers-video-backlight-aat2870_blc-fix-setting-max_current include/linux/mfd/aat2870.h
---- a/include/linux/mfd/aat2870.h~drivers-video-backlight-aat2870_blc-fix-setting-max_current
-+++ a/include/linux/mfd/aat2870.h
-@@ -89,7 +89,7 @@ enum aat2870_id {
- 
- /* Backlight current magnitude (mA) */
- enum aat2870_current {
--	AAT2870_CURRENT_0_45,
-+	AAT2870_CURRENT_0_45 = 1,
- 	AAT2870_CURRENT_0_90,
- 	AAT2870_CURRENT_1_80,
- 	AAT2870_CURRENT_2_70,
+ #include <asm/prom.h>
+ #include <asm/rtas.h>
+diff -puN arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas_flash.c
+--- a/arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
++++ a/arch/powerpc/kernel/rtas_flash.c
+@@ -17,6 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/proc_fs.h>
++#include <linux/reboot.h>
+ #include <asm/delay.h>
+ #include <asm/uaccess.h>
+ #include <asm/rtas.h>
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
-origin.patch
-drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
 linux-next.patch
-drivers-video-backlight-ld9040c-small-fixes.patch
-backlight-add-ams369fg06-amoled-driver-unregister-backlight-device-when-unload-the-module.patch
-backlight-ams369fg06-staticize-ams369fg06_shutdown.patch
-backlight-set-backlight-type-and-max_brightness-before-backlights-are-registered.patch
-drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
-drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
+notifiers-cpu-move-cpu-notifiers-into-cpuh.patch
+notifiers-net-move-netdevice-notifiers-into-netdeviceh.patch
+notifiers-sys-move-reboot-notifiers-into-rebooth.patch
+notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
+notifiers-pm-move-pm-notifiers-into-suspendh.patch
+notifiers-pm-move-pm-notifiers-into-suspendh-update.patch
+notifiers-vt-move-vt-notifiers-into-vth.patch
 
