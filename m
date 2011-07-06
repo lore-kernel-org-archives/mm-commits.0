@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:50:30 -0700
-Message-ID: <201107062250.p66MoULQ004739@imap1.linux-foundation.org>
+Subject: + mm-memblockc-avoid-abuse-of-red_inactive.patch added to -mm tree
+Date: Wed, 06 Jul 2011 16:08:21 -0700
+Message-ID: <201107062308.p66N8L4t006441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751928Ab1GFWui (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:50:38 -0400
+	by vger.kernel.org with ESMTP id S1753645Ab1GFXI0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 19:08:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kengyu@canonical.com, abogani@texware.it, mjg@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, hartleys@visionengravers.com, penberg@kernel.org
 
 
 The patch titled
-     drivers/platform/x86/dell-laptop.c: revert "dell-laptop: Toggle the unsupported hardware killswitch"
+     mm/memblock.c: avoid abuse of RED_INACTIVE
 has been added to the -mm tree.  Its filename is
-     drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch.patch
+     mm-memblockc-avoid-abuse-of-red_inactive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/platform/x86/dell-laptop.c: revert "dell-laptop: Toggle the unsupported hardware killswitch"
-From: Keng-Yu Lin <kengyu@canonical.com>
+Subject: mm/memblock.c: avoid abuse of RED_INACTIVE
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This reverts my commit a3d77411e8b2ad ("dell-laptop: Toggle the
-unsupported hardware killswitch").
+RED_INACTIVE is a slab thing, and reusing it for memblock was
+inappropriate, because memblock is dealing with phys_addr_t's which have a
+Kconfigurable sizeof().
 
-It caused a mess in the wireless rfkill status on some models.  It is
-probably a bad idea to toggle the rfkill for all dell models without the
-respect to the claim that it is hardware-controlled.
+Create a new poison type for this application.  Fixes the sparse warning
 
-Signed-off-by: Keng-Yu Lin <kengyu@canonical.com>
-Cc: Alessio Igor Bogani <abogani@texware.it>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: <stable@kernel.org>		[2.6.38+]
+	warning: cast truncates bits from constant value (9f911029d74e35b becomes 9d74e35b)
+	
+
+Reported-by: H Hartley Sweeten <hartleys@visionengravers.com>
+Tested-by: H Hartley Sweeten <hartleys@visionengravers.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/dell-laptop.c |   24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ include/linux/poison.h |    6 ++++++
+ mm/memblock.c          |    8 ++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/platform/x86/dell-laptop.c~drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch drivers/platform/x86/dell-laptop.c
---- a/drivers/platform/x86/dell-laptop.c~drivers-platform-x86-dell-laptopc-revert-dell-laptop-toggle-the-unsupported-hardware-killswitch
-+++ a/drivers/platform/x86/dell-laptop.c
-@@ -292,12 +292,9 @@ static int dell_rfkill_set(void *data, b
- 	dell_send_request(buffer, 17, 11);
+diff -puN include/linux/poison.h~mm-memblockc-avoid-abuse-of-red_inactive include/linux/poison.h
+--- a/include/linux/poison.h~mm-memblockc-avoid-abuse-of-red_inactive
++++ a/include/linux/poison.h
+@@ -40,6 +40,12 @@
+ #define	RED_INACTIVE	0x09F911029D74E35BULL	/* when obj is inactive */
+ #define	RED_ACTIVE	0xD84156C5635688C0ULL	/* when obj is active */
  
- 	/* If the hardware switch controls this radio, and the hardware
--	   switch is disabled, don't allow changing the software state.
--	   If the hardware switch is reported as not supported, always
--	   fire the SMI to toggle the killswitch. */
-+	   switch is disabled, don't allow changing the software state */
- 	if ((hwswitch_state & BIT(hwswitch_bit)) &&
--	    !(buffer->output[1] & BIT(16)) &&
--	    (buffer->output[1] & BIT(0))) {
-+	    !(buffer->output[1] & BIT(16))) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-@@ -403,23 +400,6 @@ static const struct file_operations dell
++#ifdef CONFIG_PHYS_ADDR_T_64BIT
++#define MEMBLOCK_INACTIVE	0x3a84fb0144c9e71bULL
++#else
++#define MEMBLOCK_INACTIVE	0x44c9e71bUL
++#endif
++
+ #define SLUB_RED_INACTIVE	0xbb
+ #define SLUB_RED_ACTIVE		0xcc
  
- static void dell_update_rfkill(struct work_struct *ignored)
- {
--	int status;
--
--	get_buffer();
--	dell_send_request(buffer, 17, 11);
--	status = buffer->output[1];
--	release_buffer();
--
--	/* if hardware rfkill is not supported, set it explicitly */
--	if (!(status & BIT(0))) {
--		if (wifi_rfkill)
--			dell_rfkill_set((void *)1, !((status & BIT(17)) >> 17));
--		if (bluetooth_rfkill)
--			dell_rfkill_set((void *)2, !((status & BIT(18)) >> 18));
--		if (wwan_rfkill)
--			dell_rfkill_set((void *)3, !((status & BIT(19)) >> 19));
--	}
+diff -puN mm/memblock.c~mm-memblockc-avoid-abuse-of-red_inactive mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-avoid-abuse-of-red_inactive
++++ a/mm/memblock.c
+@@ -758,9 +758,9 @@ void __init memblock_analyze(void)
+ 
+ 	/* Check marker in the unused last array entry */
+ 	WARN_ON(memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS].base
+-		!= (phys_addr_t)RED_INACTIVE);
++		!= MEMBLOCK_INACTIVE);
+ 	WARN_ON(memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS].base
+-		!= (phys_addr_t)RED_INACTIVE);
++		!= MEMBLOCK_INACTIVE);
+ 
+ 	memblock.memory_size = 0;
+ 
+@@ -786,8 +786,8 @@ void __init memblock_init(void)
+ 	memblock.reserved.max	= INIT_MEMBLOCK_REGIONS;
+ 
+ 	/* Write a marker in the unused last array entry */
+-	memblock.memory.regions[INIT_MEMBLOCK_REGIONS].base = (phys_addr_t)RED_INACTIVE;
+-	memblock.reserved.regions[INIT_MEMBLOCK_REGIONS].base = (phys_addr_t)RED_INACTIVE;
++	memblock.memory.regions[INIT_MEMBLOCK_REGIONS].base = MEMBLOCK_INACTIVE;
++	memblock.reserved.regions[INIT_MEMBLOCK_REGIONS].base = MEMBLOCK_INACTIVE;
+ 
+ 	/* Create a dummy zero size MEMBLOCK which will get coalesced away later.
+ 	 * This simplifies the memblock_add() code below...
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
+w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-staging-makefile-cs5535_gpio-went-away.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-net-skgec-support-dlink-dge-530t-rev-c1.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+mm-memblockc-avoid-abuse-of-red_inactive.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-4.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
