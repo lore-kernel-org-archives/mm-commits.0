@@ -1,65 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 06 Jul 2011 12:20:56 -0700
-Message-ID: <201107061920.p66JKVDZ023094@imap1.linux-foundation.org>
+Subject: [merged] drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch removed from -mm tree
+Date: Wed, 06 Jul 2011 12:21:16 -0700
+Message-ID: <201107061920.p66JKqYO023115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755418Ab1GFTXV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 15:23:21 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p66JLsMJ002248
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Jul 2011 12:22:50 -0700
+	by vger.kernel.org with ESMTP id S1755464Ab1GFTYv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 15:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, Larry.Finger@lwfinger.net, chaoming_li@realsil.com.cn, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers/net/wireless/rtlwifi/rtl8192de/phy.c: fix udelay() usage
+has been removed from the -mm tree.  Its filename was
+     drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/net/wireless/rtlwifi/rtl8192de/phy.c: fix udelay() usage
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: "__bad_udelay" [drivers/net/wireless/rtlwifi/rtl8192de/rtl8192de.ko] undefined!
+
+Cc: Chaoming_Li <chaoming_li@realsil.com.cn>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/Makefile |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/net/wireless/rtlwifi/rtl8192de/phy.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/Makefile~linux-next-git-rejects drivers/mfd/Makefile
---- a/drivers/mfd/Makefile~linux-next-git-rejects
-+++ a/drivers/mfd/Makefile
-@@ -99,10 +99,7 @@ obj-$(CONFIG_MFD_CS5535)	+= cs5535-mfd.o
- obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o
- obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o
- obj-$(CONFIG_MFD_PM8XXX_IRQ) 	+= pm8xxx-irq.o
--<<<<<<< HEAD
- obj-$(CONFIG_MFD_TPS65910)	+= tps65910.o tps65910-irq.o
- obj-$(CONFIG_TPS65911_COMPARATOR)	+= tps65911-comparator.o
--=======
- obj-$(CONFIG_TPS65911_COMPARATOR)	+= tps65911-comparator.o
- obj-$(CONFIG_MFD_AAT2870_CORE)	+= aat2870-core.o
-->>>>>>> linux-next/akpm-end
+diff -puN drivers/net/wireless/rtlwifi/rtl8192de/phy.c~drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+--- a/drivers/net/wireless/rtlwifi/rtl8192de/phy.c~drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage
++++ a/drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+@@ -1684,7 +1684,7 @@ static u8 _rtl92d_phy_patha_iqk(struct i
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 		("Delay %d ms for One shot, path A LOK & IQK.\n",
+ 		IQK_DELAY_TIME));
+-	udelay(IQK_DELAY_TIME * 1000);
++	mdelay(IQK_DELAY_TIME);
+ 	/* Check failed */
+ 	regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1755,7 +1755,7 @@ static u8 _rtl92d_phy_patha_iqk_5g_norma
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 			("Delay %d ms for One shot, path A LOK & IQK.\n",
+ 			IQK_DELAY_TIME));
+-		udelay(IQK_DELAY_TIME * 1000 * 10);
++		mdelay(IQK_DELAY_TIME * 10);
+ 		/* Check failed */
+ 		regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1808,7 +1808,7 @@ static u8 _rtl92d_phy_pathb_iqk(struct i
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 		("Delay %d ms for One shot, path B LOK & IQK.\n",
+ 		IQK_DELAY_TIME));
+-	udelay(IQK_DELAY_TIME * 1000);
++	mdelay(IQK_DELAY_TIME);
+ 	/* Check failed */
+ 	regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("0xeac = 0x%x\n", regeac));
+@@ -1875,7 +1875,7 @@ static u8 _rtl92d_phy_pathb_iqk_5g_norma
+ 		/* delay x ms */
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK,
+ 			("Delay %d ms for One shot, path B LOK & IQK.\n", 10));
+-		udelay(IQK_DELAY_TIME * 1000 * 10);
++		mdelay(IQK_DELAY_TIME * 10);
+ 
+ 		/* Check failed */
+ 		regeac = rtl_get_bbreg(hw, 0xeac, BMASKDWORD);
+@@ -2206,7 +2206,7 @@ static void _rtl92d_phy_iq_calibrate_5g_
+ 	 * PHY_REG.txt , and radio_a, radio_b.txt */
+ 
+ 	RTPRINT(rtlpriv, FINIT, INIT_IQK, ("IQK for 5G NORMAL:Start!!!\n"));
+-	udelay(IQK_DELAY_TIME * 1000 * 20);
++	mdelay(IQK_DELAY_TIME * 20);
+ 	if (t == 0) {
+ 		bbvalue = rtl_get_bbreg(hw, RFPGA0_RFMOD, BMASKDWORD);
+ 		RTPRINT(rtlpriv, FINIT, INIT_IQK, ("==>0x%08x\n", bbvalue));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +100,6 @@ drivers-staging-makefile-cs5535_gpio-went-away.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-drivers-net-wireless-rtlwifi-rtl8192de-phyc-fix-udelay-usage.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
