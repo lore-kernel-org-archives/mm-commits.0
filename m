@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:15:57 -0700
-Message-ID: <201107062215.p66MFvoM002991@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch added to -mm tree
+Date: Wed, 06 Jul 2011 15:16:57 -0700
+Message-ID: <201107062216.p66MGvAE003025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807Ab1GFWQQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:16:16 -0400
+	by vger.kernel.org with ESMTP id S1752113Ab1GFWRI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, bsingharora@gmail.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, shaohua.li@intel.com, yinghan@google.com
+Cc: axel.lin@gmail.com, jinyoungp@nvidia.com, rpurdie@rpsys.net, sameo@linux.intel.com
 
 
 The patch titled
-     memcg: export memory cgroup's swappiness with mem_cgroup_swappiness()
+     drivers/video/backlight/aat2870_bl.c: fix error checking for backlight_device_register
 has been added to the -mm tree.  Its filename is
-     memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
+     drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,246 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: export memory cgroup's swappiness with mem_cgroup_swappiness()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: drivers/video/backlight/aat2870_bl.c: fix error checking for backlight_device_register
+From: Axel Lin <axel.lin@gmail.com>
 
-Each memory cgroup has a 'swappiness' value which can be accessed by
-get_swappiness(memcg).  The major user is try_to_free_mem_cgroup_pages()
-and swappiness is passed by argument.  It's propagated by scan_control.
+backlight_device_register() returns ERR_PTR() on error.
 
-get_swappiness() is a static function but some planned updates will need
-to get swappiness from files other than memcontrol.c This patch exports
-get_swappiness() as mem_cgroup_swappiness().  With this, we can remove the
-argument of swapiness from try_to_free...  and drop swappiness from
-scan_control.  only memcg uses it.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Jin Park <jinyoungp@nvidia.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   13 +++++++++----
- mm/memcontrol.c      |   15 +++++++--------
- mm/vmscan.c          |   23 ++++++++++-------------
- 3 files changed, 26 insertions(+), 25 deletions(-)
+ drivers/video/backlight/aat2870_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness include/linux/swap.h
---- a/include/linux/swap.h~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness
-+++ a/include/linux/swap.h
-@@ -254,11 +254,9 @@ static inline void lru_cache_add_file(st
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
--						  gfp_t gfp_mask, bool noswap,
--						  unsigned int swappiness);
-+						  gfp_t gfp_mask, bool noswap);
- extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
--						unsigned int swappiness,
- 						struct zone *zone,
- 						unsigned long *nr_scanned);
- extern int __isolate_lru_page(struct page *page, int mode, int file);
-@@ -301,7 +299,14 @@ static inline void scan_unevictable_unre
+diff -puN drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register drivers/video/backlight/aat2870_bl.c
+--- a/drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register
++++ a/drivers/video/backlight/aat2870_bl.c
+@@ -158,10 +158,10 @@ static int aat2870_bl_probe(struct platf
+ 	props.type = BACKLIGHT_RAW;
+ 	bd = backlight_device_register("aat2870-backlight", &pdev->dev,
+ 				       aat2870_bl, &aat2870_bl_ops, &props);
+-	if (!bd) {
++	if (IS_ERR(bd)) {
+ 		dev_err(&pdev->dev,
+ 			"Failed allocate memory for backlight device\n");
+-		ret = -ENOMEM;
++		ret = PTR_ERR(bd);
+ 		goto out_kfree;
+ 	}
  
- extern int kswapd_run(int nid);
- extern void kswapd_stop(int nid);
--
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+extern int mem_cgroup_swappiness(struct mem_cgroup *mem);
-+#else
-+static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
-+{
-+	return vm_swappiness;
-+}
-+#endif
- #ifdef CONFIG_SWAP
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
-diff -puN mm/memcontrol.c~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness
-+++ a/mm/memcontrol.c
-@@ -248,7 +248,7 @@ struct mem_cgroup {
- 	atomic_t	oom_lock;
- 	atomic_t	refcnt;
- 
--	unsigned int	swappiness;
-+	int	swappiness;
- 	/* OOM-Killer disable */
- 	int		oom_kill_disable;
- 
-@@ -1328,7 +1328,7 @@ static unsigned long mem_cgroup_margin(s
- 	return margin >> PAGE_SHIFT;
- }
- 
--static unsigned int get_swappiness(struct mem_cgroup *memcg)
-+int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
- 	struct cgroup *cgrp = memcg->css.cgroup;
- 
-@@ -1775,12 +1775,11 @@ static int mem_cgroup_hierarchical_recla
- 		/* we use swappiness of local cgroup */
- 		if (check_soft) {
- 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
--				noswap, get_swappiness(victim), zone,
--				&nr_scanned);
-+				noswap, zone, &nr_scanned);
- 			*total_scanned += nr_scanned;
- 		} else
- 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
--						noswap, get_swappiness(victim));
-+						noswap);
- 		css_put(&victim->css);
- 		/*
- 		 * At shrinking usage, we can't check we should stop here or
-@@ -3776,7 +3775,7 @@ try_to_free:
- 			goto out;
- 		}
- 		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
--						false, get_swappiness(mem));
-+						false);
- 		if (!progress) {
- 			nr_retries--;
- 			/* maybe some writeback is necessary */
-@@ -4238,7 +4237,7 @@ static u64 mem_cgroup_swappiness_read(st
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
- 
--	return get_swappiness(memcg);
-+	return mem_cgroup_swappiness(memcg);
- }
- 
- static int mem_cgroup_swappiness_write(struct cgroup *cgrp, struct cftype *cft,
-@@ -4947,7 +4946,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	INIT_LIST_HEAD(&mem->oom_notify);
- 
- 	if (parent)
--		mem->swappiness = get_swappiness(parent);
-+		mem->swappiness = mem_cgroup_swappiness(parent);
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
-diff -puN mm/vmscan.c~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness mm/vmscan.c
---- a/mm/vmscan.c~memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness
-+++ a/mm/vmscan.c
-@@ -95,8 +95,6 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	int may_swap;
- 
--	int swappiness;
--
- 	int order;
- 
- 	/*
-@@ -1729,6 +1727,13 @@ static unsigned long shrink_list(enum lr
- 	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
- }
- 
-+static int vmscan_swappiness(struct scan_control *sc)
-+{
-+	if (scanning_global_lru(sc))
-+		return vm_swappiness;
-+	return mem_cgroup_swappiness(sc->mem_cgroup);
-+}
-+
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-  * scanned.  The relative value of each set of LRU lists is determined
-@@ -1789,8 +1794,8 @@ static void get_scan_count(struct zone *
- 	 * With swappiness at 100, anonymous and file have the same priority.
- 	 * This scanning priority is essentially the inverse of IO cost.
- 	 */
--	anon_prio = sc->swappiness;
--	file_prio = 200 - sc->swappiness;
-+	anon_prio = vmscan_swappiness(sc);
-+	file_prio = 200 - vmscan_swappiness(sc);
- 
- 	/*
- 	 * OK, so we have swap space and a fair amount of page cache
-@@ -2179,7 +2184,6 @@ unsigned long try_to_free_pages(struct z
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.may_unmap = 1,
- 		.may_swap = 1,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
- 		.nodemask = nodemask,
-@@ -2203,7 +2207,6 @@ unsigned long try_to_free_pages(struct z
- 
- unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
--						unsigned int swappiness,
- 						struct zone *zone,
- 						unsigned long *nr_scanned)
- {
-@@ -2213,7 +2216,6 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
- 		.may_swap = !noswap,
--		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem,
- 	};
-@@ -2242,8 +2244,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 					   gfp_t gfp_mask,
--					   bool noswap,
--					   unsigned int swappiness)
-+					   bool noswap)
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
-@@ -2253,7 +2254,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.may_unmap = 1,
- 		.may_swap = !noswap,
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
- 		.nodemask = NULL, /* we don't care the placement */
-@@ -2403,7 +2403,6 @@ static unsigned long balance_pgdat(pg_da
- 		 * we want to put equal scanning pressure on each zone.
- 		 */
- 		.nr_to_reclaim = ULONG_MAX,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
- 	};
-@@ -2873,7 +2872,6 @@ unsigned long shrink_all_memory(unsigned
- 		.may_writepage = 1,
- 		.nr_to_reclaim = nr_to_reclaim,
- 		.hibernation_mode = 1,
--		.swappiness = vm_swappiness,
- 		.order = 0,
- 	};
- 	struct shrink_control shrink = {
-@@ -3060,7 +3058,6 @@ static int __zone_reclaim(struct zone *z
- 		.nr_to_reclaim = max_t(unsigned long, nr_pages,
- 				       SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
--		.swappiness = vm_swappiness,
- 		.order = order,
- 	};
- 	struct shrink_control shrink = {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-memcg-fix-reclaimable-lru-check-in-memcg.patch
-memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix-2.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
-mm-mempolicyc-make-copy_from_user-provably-correct.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+origin.patch
+linux-next.patch
+drivers-video-backlight-ld9040c-small-fixes.patch
+backlight-add-ams369fg06-amoled-driver-unregister-backlight-device-when-unload-the-module.patch
+backlight-ams369fg06-staticize-ams369fg06_shutdown.patch
+backlight-set-backlight-type-and-max_brightness-before-backlights-are-registered.patch
+drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
+drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
 
