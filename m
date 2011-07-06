@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch added to -mm tree
-Date: Wed, 06 Jul 2011 15:20:16 -0700
-Message-ID: <201107062220.p66MKGt5003256@imap1.linux-foundation.org>
+Subject: + drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch added to -mm tree
+Date: Wed, 06 Jul 2011 15:27:48 -0700
+Message-ID: <201107062227.p66MRmOf003537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752967Ab1GFWUX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:20:23 -0400
+	by vger.kernel.org with ESMTP id S1751568Ab1GFW2b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 18:28:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, sfr@canb.auug.org.au
+Cc: christian.glindkamp@taskit.de, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     notifiers-sys-move-reboot-notifiers-into-rebooth-fix
+     drivers/w1/slaves/w1_therm.c: add support for DS28EA00
 has been added to the -mm tree.  Its filename is
-     notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
+     drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: notifiers-sys-move-reboot-notifiers-into-rebooth-fix
-From: Cong Wang <amwang@redhat.com>
+Subject: drivers/w1/slaves/w1_therm.c: add support for DS28EA00
+From: Christian Glindkamp <christian.glindkamp@taskit.de>
 
-With this patch applied, make allyesconfig succeeds on ppc64.
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Christian Glindkamp <christian.glindkamp@taskit.de>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/rtas.c       |    1 +
- arch/powerpc/kernel/rtas_flash.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/w1/slaves/w1_therm.c |    9 +++++++++
+ drivers/w1/w1_family.h       |    1 +
+ 2 files changed, 10 insertions(+)
 
-diff -puN arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas.c
---- a/arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
-+++ a/arch/powerpc/kernel/rtas.c
-@@ -24,6 +24,7 @@
- #include <linux/cpumask.h>
- #include <linux/memblock.h>
- #include <linux/slab.h>
-+#include <linux/reboot.h>
+diff -puN drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -86,6 +86,11 @@ static struct w1_family w1_therm_family_
+ 	.fops = &w1_therm_fops,
+ };
  
- #include <asm/prom.h>
- #include <asm/rtas.h>
-diff -puN arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas_flash.c
---- a/arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
-+++ a/arch/powerpc/kernel/rtas_flash.c
-@@ -17,6 +17,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/proc_fs.h>
-+#include <linux/reboot.h>
- #include <asm/delay.h>
- #include <asm/uaccess.h>
- #include <asm/rtas.h>
++static struct w1_family w1_therm_family_DS28EA00 = {
++	.fid = W1_THERM_DS28EA00,
++	.fops = &w1_therm_fops,
++};
++
+ struct w1_therm_family_converter
+ {
+ 	u8			broken;
+@@ -111,6 +116,10 @@ static struct w1_therm_family_converter 
+ 		.f		= &w1_therm_family_DS18B20,
+ 		.convert 	= w1_DS18B20_convert_temp
+ 	},
++	{
++		.f		= &w1_therm_family_DS28EA00,
++		.convert	= w1_DS18B20_convert_temp
++	},
+ };
+ 
+ static inline int w1_DS18B20_convert_temp(u8 rom[9])
+diff -puN drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/w1_family.h
+--- a/drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
++++ a/drivers/w1/w1_family.h
+@@ -38,6 +38,7 @@
+ #define W1_EEPROM_DS2431	0x2D
+ #define W1_FAMILY_DS2760	0x30
+ #define W1_FAMILY_DS2780	0x32
++#define W1_THERM_DS28EA00	0x42
+ 
+ #define MAXNAMELEN		32
+ 
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from christian.glindkamp@taskit.de are
 
-linux-next.patch
-notifiers-cpu-move-cpu-notifiers-into-cpuh.patch
-notifiers-net-move-netdevice-notifiers-into-netdeviceh.patch
-notifiers-sys-move-reboot-notifiers-into-rebooth.patch
-notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
-notifiers-pm-move-pm-notifiers-into-suspendh.patch
-notifiers-pm-move-pm-notifiers-into-suspendh-update.patch
-notifiers-vt-move-vt-notifiers-into-vth.patch
+drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch
 
