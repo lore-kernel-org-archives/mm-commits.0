@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_elf_fdpicc-fix-memory-leak.patch added to -mm tree
-Date: Wed, 06 Jul 2011 14:16:10 -0700
-Message-ID: <201107062116.p66LGA5h032260@imap1.linux-foundation.org>
+Subject: + maintainers-update-bjorn-helgaass-email-address.patch added to -mm tree
+Date: Wed, 06 Jul 2011 14:29:42 -0700
+Message-ID: <201107062129.p66LTgdV000642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37064 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756189Ab1GFVQu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 17:16:50 -0400
+	by vger.kernel.org with ESMTP id S1756295Ab1GFVaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2011 17:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@gnu.org, dhowells@redhat.com, stable@kernel.org
+Cc: bhelgaas@google.com
 
 
 The patch titled
-     fs/binfmt_elf_fdpic.c: fix memory leak
+     MAINTAINERS: update Bjorn Helgaas's email address
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elf_fdpicc-fix-memory-leak.patch
+     maintainers-update-bjorn-helgaass-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_elf_fdpic.c: fix memory leak
-From: Davidlohr Bueso <dave@gnu.org>
+Subject: MAINTAINERS: update Bjorn Helgaas's email address
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-The shdr4extnum variable isn't being freed in the cleanup process of
-elf_fdpic_core_dump().
-
-Signed-off-by: Davidlohr Bueso <dave@gnu.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fs-binfmt_elf_fdpicc-fix-memory-leak fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fs-binfmt_elf_fdpicc-fix-memory-leak
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1863,6 +1863,7 @@ cleanup:
- 	kfree(psinfo);
- 	kfree(notes);
- 	kfree(fpu);
-+	kfree(shdr4extnum);
- #ifdef ELF_CORE_COPY_XFPREGS
- 	kfree(xfpu);
- #endif
+diff -puN MAINTAINERS~maintainers-update-bjorn-helgaass-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-bjorn-helgaass-email-address
++++ a/MAINTAINERS
+@@ -4982,7 +4982,7 @@ F:	drivers/power/power_supply*
+ 
+ PNP SUPPORT
+ M:	Adam Belay <abelay@mit.edu>
+-M:	Bjorn Helgaas <bjorn.helgaas@hp.com>
++M:	Bjorn Helgaas <bhelgaas@google.com>
+ S:	Maintained
+ F:	drivers/pnp/
+ 
 _
 
-Patches currently in -mm which might be from dave@gnu.org are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
-fs-binfmt_elf_fdpicc-fix-memory-leak.patch
+maintainers-update-bjorn-helgaass-email-address.patch
+pnpacpi-register-disabled-resources.patch
 
