@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch added to -mm tree
-Date: Thu, 07 Jul 2011 13:51:45 -0700
-Message-ID: <201107072129.p67LTVYZ014992@imap1.linux-foundation.org>
+Subject: + kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch added to -mm tree
+Date: Thu, 07 Jul 2011 13:53:11 -0700
+Message-ID: <201107072130.p67LUv63015078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752628Ab1GGV3u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2011 17:29:50 -0400
+	by vger.kernel.org with ESMTP id S1750918Ab1GGVbL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2011 17:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: akpm@linux-foundation.org, john.stultz@linaro.org, pyu@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     memcg-consolidates-memory-cgroup-lru-stat-functions-fix
+     kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
 has been added to the -mm tree.  Its filename is
-     memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+     kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-consolidates-memory-cgroup-lru-stat-functions-fix
+Subject: kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.c: In function 'zone_nr_lru_pages':
-mm/vmscan.c:175: warning: passing argument 2 of 'mem_cgroup_zone_nr_lru_pages' makes pointer from integer without a cast
-include/linux/memcontrol.h:307: note: expected 'struct zone *' but argument is of type 'int'
-mm/vmscan.c:175: error: too many arguments to function 'mem_cgroup_zone_nr_lru_pages'
+kernel/time.c:578: error: conflicting types for 'jiffies_to_clock_t'
+include/linux/jiffies.h:306: note: previous declaration of 'jiffies_to_clock_t' was here
 
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: hank <pyu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/jiffies.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions-fix
-+++ a/include/linux/memcontrol.h
-@@ -304,8 +304,8 @@ mem_cgroup_inactive_file_is_low(struct m
- }
- 
- static inline unsigned long
--mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, struct zone *zone,
--			     enum lru_list lru)
-+mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
-+				unsigned int lru_mask)
- {
- 	return 0;
- }
+diff -puN include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix include/linux/jiffies.h
+--- a/include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
++++ a/include/linux/jiffies.h
+@@ -303,7 +303,7 @@ extern void jiffies_to_timespec(const un
+ extern unsigned long timeval_to_jiffies(const struct timeval *value);
+ extern void jiffies_to_timeval(const unsigned long jiffies,
+ 			       struct timeval *value);
+-extern clock_t jiffies_to_clock_t(long x);
++extern clock_t jiffies_to_clock_t(unsigned long x);
+ extern unsigned long clock_t_to_jiffies(unsigned long x);
+ extern u64 jiffies_64_to_clock_t(u64 x);
+ extern u64 nsec_to_clock_t(u64 x);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +73,7 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-net-skgec-support-dlink-dge-530t-rev-c1.patch
