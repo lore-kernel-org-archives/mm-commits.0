@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch added to -mm tree
-Date: Thu, 07 Jul 2011 13:53:11 -0700
-Message-ID: <201107072130.p67LUv63015078@imap1.linux-foundation.org>
+Subject: + headers_check-is-broken.patch added to -mm tree
+Date: Thu, 07 Jul 2011 16:43:42 -0700
+Message-ID: <201107080021.p680LSS6022845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750918Ab1GGVbL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2011 17:31:11 -0400
+	by vger.kernel.org with ESMTP id S1751175Ab1GHAWE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2011 20:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, john.stultz@linaro.org, pyu@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mmarek@suse.cz
 
 
 The patch titled
-     kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
+     headers_check is broken
 has been added to the -mm tree.  Its filename is
-     kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
+     headers_check-is-broken.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
+Subject: headers_check is broken
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/time.c:578: error: conflicting types for 'jiffies_to_clock_t'
-include/linux/jiffies.h:306: note: previous declaration of 'jiffies_to_clock_t' was here
+/usr/src/25/usr/include/linux/kernel.h:65: userspace cannot reference function or variable defined in the kernel
+/usr/src/25/usr/include/linux/quota.h:175: userspace cannot reference function or variable defined in the kernel
+/usr/src/25/usr/include/linux/sdla.h:116: userspace cannot reference function or variable defined in the kernel
+/usr/src/25/usr/include/linux/soundcard.h:1054: userspace cannot reference function or variable defined in the kernel
 
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: hank <pyu@redhat.com>
+No idea what caused this.
+
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix include/linux/jiffies.h
---- a/include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix
-+++ a/include/linux/jiffies.h
-@@ -303,7 +303,7 @@ extern void jiffies_to_timespec(const un
- extern unsigned long timeval_to_jiffies(const struct timeval *value);
- extern void jiffies_to_timeval(const unsigned long jiffies,
- 			       struct timeval *value);
--extern clock_t jiffies_to_clock_t(long x);
-+extern clock_t jiffies_to_clock_t(unsigned long x);
- extern unsigned long clock_t_to_jiffies(unsigned long x);
- extern u64 jiffies_64_to_clock_t(u64 x);
- extern u64 nsec_to_clock_t(u64 x);
+diff -puN lib/Kconfig.debug~headers_check-is-broken lib/Kconfig.debug
+--- a/lib/Kconfig.debug~headers_check-is-broken
++++ a/lib/Kconfig.debug
+@@ -101,6 +101,7 @@ config DEBUG_FS
+ config HEADERS_CHECK
+ 	bool "Run 'make headers_check' when building vmlinux"
+ 	depends on !UML
++	depends on BROKEN
+ 	help
+ 	  This option will extract the user-visible kernel headers whenever
+ 	  building the kernel, and will run basic sanity checks on them to
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+headers_check-is-broken.patch
 memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
 memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
 memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
