@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-prevent-arbitrary-read-in-ptrace-fix.patch added to -mm tree
-Date: Fri, 08 Jul 2011 11:28:16 -0700
-Message-ID: <201107081828.p68ISGqj006307@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch added to -mm tree
+Date: Fri, 08 Jul 2011 12:43:20 -0700
+Message-ID: <201107082021.p68KL8wd012686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363Ab1GHS2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 14:28:21 -0400
+	by vger.kernel.org with ESMTP id S1753407Ab1GHUVY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 16:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chris@zankel.net, drosenberg@vsecurity.com, oleg@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, axel.lin@gmail.com, jinyoungp@nvidia.com, rpurdie@rpsys.net, sameo@linux.intel.com
 
 
 The patch titled
-     xtensa-prevent-arbitrary-read-in-ptrace-fix
+     drivers/video/backlight/aat2870_bl.c: make it buildable as a module
 has been added to the -mm tree.  Its filename is
-     xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
+     drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa-prevent-arbitrary-read-in-ptrace-fix
+Subject: drivers/video/backlight/aat2870_bl.c: make it buildable as a module
 From: Andrew Morton <akpm@linux-foundation.org>
 
-s/EIO/EFAULT/
+i386 allmodconfig:
 
-Cc: <stable@kernel.org>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+drivers/built-in.o: In function `aat2870_bl_remove':
+aat2870_bl.c:(.text+0x414f9): undefined reference to `backlight_device_unregister'
+drivers/built-in.o: In function `aat2870_bl_probe':
+aat2870_bl.c:(.text+0x418fc): undefined reference to `backlight_device_register'
+aat2870_bl.c:(.text+0x41a31): undefined reference to `backlight_device_unregiste
+
+Cc: Jin Park <jinyoungp@nvidia.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/ptrace.c |    2 +-
+ drivers/video/backlight/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace-fix arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace-fix
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -148,7 +148,7 @@ int ptrace_setxregs(struct task_struct *
- 	int ret = 0;
+diff -puN drivers/video/backlight/Kconfig~drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module
++++ a/drivers/video/backlight/Kconfig
+@@ -336,7 +336,7 @@ config BACKLIGHT_PCF50633
+ 	  enable its driver.
  
- 	if (!access_ok(VERIFY_READ, uregs, sizeof(elf_xtregs_t)))
--		return -EIO;
-+		return -EFAULT;
- 
- #if XTENSA_HAVE_COPROCESSORS
- 	/* Flush all coprocessors before we overwrite them. */
+ config BACKLIGHT_AAT2870
+-	bool "AnalogicTech AAT2870 Backlight"
++	tristate "AnalogicTech AAT2870 Backlight"
+ 	depends on BACKLIGHT_CLASS_DEVICE && MFD_AAT2870_CORE
+ 	help
+ 	  If you have a AnalogicTech AAT2870 say Y to enable the
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +87,7 @@ kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fi
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
 arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
 drivers-net-skgec-support-dlink-dge-530t-rev-c1.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
 pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
 drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
 drivers-staging-gma500-psb_intel_displayc-fix-build.patch
