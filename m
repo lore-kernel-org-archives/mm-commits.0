@@ -1,56 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch removed from -mm tree
-Date: Fri, 08 Jul 2011 15:30:00 -0700
-Message-ID: <201107082230.p68MU0Lr019063@imap1.linux-foundation.org>
+Subject: [folded] mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch removed from -mm tree
+Date: Fri, 08 Jul 2011 15:30:29 -0700
+Message-ID: <201107082230.p68MUTEx019086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751928Ab1GHWac (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 18:30:32 -0400
+	by vger.kernel.org with ESMTP id S1751089Ab1GHWbA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 18:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
+     mm-preallocate-page-before-lock_page-at-filemap-cow-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+     mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
+This patch was dropped because it was folded into mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
+Subject: mm-preallocate-page-before-lock_page-at-filemap-cow-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-attempt to repair code layout
+fix code layout
 
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
-+++ a/mm/memcontrol.c
-@@ -704,10 +704,10 @@ static void memcg_check_events(struct me
- 		mem_cgroup_threshold(mem);
- 		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
- 		if (unlikely(__memcg_event_check(mem,
--			MEM_CGROUP_TARGET_SOFTLIMIT))){
-+			     MEM_CGROUP_TARGET_SOFTLIMIT))) {
- 			mem_cgroup_update_tree(mem, page);
- 			__mem_cgroup_target_update(mem,
--				MEM_CGROUP_TARGET_SOFTLIMIT);
-+						   MEM_CGROUP_TARGET_SOFTLIMIT);
- 		}
- #if MAX_NUMNODES > 1
- 		if (unlikely(__memcg_event_check(mem,
+diff -puN mm/memory.c~mm-preallocate-page-before-lock_page-at-filemap-cow-fix mm/memory.c
+--- a/mm/memory.c~mm-preallocate-page-before-lock_page-at-filemap-cow-fix
++++ a/mm/memory.c
+@@ -3119,7 +3119,7 @@ static int __do_fault(struct mm_struct *
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 
+ 		if (unlikely(anon_vma_prepare(vma)))
+-			return  VM_FAULT_OOM;
++			return VM_FAULT_OOM;
+ 
+ 		cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 		if (!cow_page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +56,7 @@ headers_check-is-broken.patch
 samples-hidraw-is-busted.patch
 memcg-fix-reclaimable-lru-check-in-memcg.patch
 memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
