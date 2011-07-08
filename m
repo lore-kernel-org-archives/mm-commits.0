@@ -1,150 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 08 Jul 2011 15:28:52 -0700
-Message-ID: <201107082228.p68MSq3R019009@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch removed from -mm tree
+Date: Fri, 08 Jul 2011 15:30:00 -0700
+Message-ID: <201107082230.p68MU0Lr019063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751064Ab1GHW3p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 18:29:45 -0400
+	by vger.kernel.org with ESMTP id S1751928Ab1GHWac (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2011 18:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
+     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes.patch
+     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-reclaimable-lru-check-in-memcg.patch
+This patch was dropped because it was folded into memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
+Subject: memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#130: FILE: mm/memcontrol.c:1567:
-+        if (noswap || !total_swap_pages)$
+attempt to repair code layout
 
-WARNING: please, no spaces at the start of a line
-#130: FILE: mm/memcontrol.c:1567:
-+        if (noswap || !total_swap_pages)$
-
-ERROR: code indent should use tabs where possible
-#131: FILE: mm/memcontrol.c:1568:
-+                return false;$
-
-WARNING: please, no spaces at the start of a line
-#131: FILE: mm/memcontrol.c:1568:
-+                return false;$
-
-ERROR: code indent should use tabs where possible
-#132: FILE: mm/memcontrol.c:1569:
-+        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))$
-
-WARNING: please, no spaces at the start of a line
-#132: FILE: mm/memcontrol.c:1569:
-+        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))$
-
-ERROR: code indent should use tabs where possible
-#133: FILE: mm/memcontrol.c:1570:
-+                return true;$
-
-WARNING: please, no spaces at the start of a line
-#133: FILE: mm/memcontrol.c:1570:
-+                return true;$
-
-ERROR: code indent should use tabs where possible
-#134: FILE: mm/memcontrol.c:1571:
-+        return false;$
-
-WARNING: please, no spaces at the start of a line
-#134: FILE: mm/memcontrol.c:1571:
-+        return false;$
-
-ERROR: code indent should use tabs where possible
-#186: FILE: mm/memcontrol.c:1659:
-+ ^I * Check rest of nodes.$
-
-WARNING: please, no space before tabs
-#186: FILE: mm/memcontrol.c:1659:
-+ ^I * Check rest of nodes.$
-
-ERROR: code indent should use tabs where possible
-#187: FILE: mm/memcontrol.c:1660:
-+ ^I */$
-
-WARNING: please, no space before tabs
-#187: FILE: mm/memcontrol.c:1660:
-+ ^I */$
-
-ERROR: trailing whitespace
-#192: FILE: mm/memcontrol.c:1665:
-+^I^I^Ireturn true;^I$
-
-total: 8 errors, 7 warnings, 118 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/memcg-fix-reclaimable-lru-check-in-memcg.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg-checkpatch-fixes
+diff -puN mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix
 +++ a/mm/memcontrol.c
-@@ -1564,11 +1564,11 @@ static bool test_mem_cgroup_node_reclaim
- {
- 	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
- 		return true;
--        if (noswap || !total_swap_pages)
--                return false;
--        if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
--                return true;
--        return false;
-+	if (noswap || !total_swap_pages)
-+		return false;
-+	if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
-+		return true;
-+	return false;
- 
- }
- #if MAX_NUMNODES > 1
-@@ -1656,13 +1656,13 @@ bool mem_cgroup_reclaimable(struct mem_c
+@@ -704,10 +704,10 @@ static void memcg_check_events(struct me
+ 		mem_cgroup_threshold(mem);
+ 		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
+ 		if (unlikely(__memcg_event_check(mem,
+-			MEM_CGROUP_TARGET_SOFTLIMIT))){
++			     MEM_CGROUP_TARGET_SOFTLIMIT))) {
+ 			mem_cgroup_update_tree(mem, page);
+ 			__mem_cgroup_target_update(mem,
+-				MEM_CGROUP_TARGET_SOFTLIMIT);
++						   MEM_CGROUP_TARGET_SOFTLIMIT);
  		}
- 	}
- 	/*
-- 	 * Check rest of nodes.
-- 	 */
-+	 * Check rest of nodes.
-+	 */
- 	for_each_node_state(nid, N_HIGH_MEMORY) {
- 		if (node_isset(nid, mem->scan_nodes))
- 			continue;
- 		if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
--			return true;	
-+			return true;
- 	}
- 	return false;
- }
+ #if MAX_NUMNODES > 1
+ 		if (unlikely(__memcg_event_check(mem,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,8 +59,7 @@ origin.patch
 headers_check-is-broken.patch
 samples-hidraw-is-busted.patch
 memcg-fix-reclaimable-lru-check-in-memcg.patch
-memcg-fix-reclaimable-lru-check-in-memcg-fix.patch
-memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event-fix.patch
+memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow-fix.patch
 w1-ds1wm-add-a-reset-recovery-parameter-checkpatch-fixes.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
