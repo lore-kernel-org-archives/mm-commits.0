@@ -1,28 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - slab-fix-debug_slab-build.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 12:29:20 -0700
-Message-ID: <201107111929.p6BJTKxV030457@imap1.linux-foundation.org>
+Subject: + slab-fix-debug_slab-build.patch added to -mm tree
+Date: Mon, 11 Jul 2011 12:20:18 -0700
+Message-ID: <201107111920.p6BJKIq0029471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755803Ab1GKT35 (ORCPT
+	by vger.kernel.org with ESMTP id S1758538Ab1GKTj7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:29:57 -0400
+	Mon, 11 Jul 2011 15:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi
 
 
 The patch titled
      slab: fix DEBUG_SLAB build
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      slab-fix-debug_slab-build.patch
 
-This patch was dropped because of mime mess
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
@@ -87,6 +98,7 @@ mm-pincer-in-truncate_inode_pages_range.patch
 tmpfs-no-need-to-use-i_lock.patch
 linux-next.patch
 slub-partly-fix-freeze-in-__slab_free.patch
+slab-fix-debug_slab-build.patch
 tmpfs-clone-shmem_file_splice_read.patch
 tmpfs-refine-shmem_file_splice_read.patch
 tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
