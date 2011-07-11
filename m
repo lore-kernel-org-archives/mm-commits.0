@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + slub-partly-fix-freeze-in-__slab_free.patch added to -mm tree
-Date: Mon, 11 Jul 2011 12:13:31 -0700
-Message-ID: <201107111913.p6BJDXaw028858@imap1.linux-foundation.org>
+Subject: - slab-fix-debug_slab-build.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 12:29:20 -0700
+Message-ID: <201107111929.p6BJTKxV030457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753165Ab1GKTOO (ORCPT
+	by vger.kernel.org with ESMTP id S1755803Ab1GKT35 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:14:14 -0400
+	Mon, 11 Jul 2011 15:29:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi
+To: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: partly fix freeze in __slab_free
-has been added to the -mm tree.  Its filename is
-     slub-partly-fix-freeze-in-__slab_free.patch
+     slab: fix DEBUG_SLAB build
+has been removed from the -mm tree.  Its filename was
+     slab-fix-debug_slab-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because of mime mess
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: slub: partly fix freeze in __slab_free
-From: Hugh Dickins <hughd@google.com>
+Subject: slab: fix DEBUG_SLAB build
+=46rom: Hugh Dickins <hughd@google.com>
 
-My load tests on PowerPC freeze within minutes in __slab_free().  I
-happened to try PPC first, didn't try without this fix on x86.
+Now that ARCH_SLAB_MINALIGN defaults to __alignof__(unsigned long long)=
+,
+it is always defined (when slab.h included), but cannot be used in #if:
+mm/slab.c: In function =A1cache_alloc_debugcheck_after=A2:
+mm/slab.c:3156:5: warning: "__alignof__" is not defined
+mm/slab.c:3156:5: error: missing binary operator before token "("
+make[1]: *** [mm/slab.o] Error 1
 
-It looks as if the author was interrupted while devising the new
-cmpxchg_double_slab() version of __slab_free(): its decision to
-spin_lock_irqsave() depends on several uninitialized fields, and fixing
-that (by copying page to new) mostly fixes it.
-
-But I didn't think about it very much, and this may well not be what the
-author intends; and I have seen a couple of much rarer freezes in
-__slab_free() on PPC (not yet on x86) even after applying this.
+So just remove the #if and #endif lines, but then 64-bit build warns:
+mm/slab.c: In function =A1cache_alloc_debugcheck_after=A2:
+mm/slab.c:3156:6: warning: cast from pointer to integer of different si=
+ze
+mm/slab.c:3158:10: warning: format =A1%d=A2 expects type =A1int=A2, but=
+ argument
+                            3 has type =A1long unsigned int=A2
+=46ix those with casts, whatever the actual type of ARCH_SLAB_MINALIGN.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
@@ -55,20 +54,27 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-partly-fix-freeze-in-__slab_free mm/slub.c
---- a/mm/slub.c~slub-partly-fix-freeze-in-__slab_free
-+++ a/mm/slub.c
-@@ -2217,6 +2217,7 @@ static void __slab_free(struct kmem_cach
- 		return;
- 
- 	do {
-+		new = *page;
- 		prior = page->freelist;
- 		counters = page->counters;
- 		set_freepointer(s, object, prior);
+diff -puN mm/slab.c~slab-fix-debug_slab-build mm/slab.c
+--- a/mm/slab.c~slab-fix-debug_slab-build
++++ a/mm/slab.c
+@@ -3153,12 +3153,10 @@ static void *cache_alloc_debugcheck_afte
+ 	objp +=3D obj_offset(cachep);
+ 	if (cachep->ctor && cachep->flags & SLAB_POISON)
+ 		cachep->ctor(objp);
+-#if ARCH_SLAB_MINALIGN
+-	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
++	if ((unsigned long)objp & (ARCH_SLAB_MINALIGN-1)) {
+ 		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=3D%d\n",
+-		       objp, ARCH_SLAB_MINALIGN);
++		       objp, (int)ARCH_SLAB_MINALIGN);
+ 	}
+-#endif
+ 	return objp;
+ }
+ #else
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -105,3 +111,8 @@ tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
 tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
 prio_tree-debugging-patch.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
