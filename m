@@ -1,88 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-evaluate-the-watermarks-against-the-correct-classzone.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 11:42:52 -0700
-Message-ID: <201107111842.p6BIgNnM025470@imap1.linux-foundation.org>
+Subject: + slub-partly-fix-freeze-in-__slab_free.patch added to -mm tree
+Date: Mon, 11 Jul 2011 12:13:31 -0700
+Message-ID: <201107111913.p6BJDXaw028858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758047Ab1GKSnK (ORCPT
+	by vger.kernel.org with ESMTP id S1753165Ab1GKTOO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 14:43:10 -0400
+	Mon, 11 Jul 2011 15:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, P@draigBrady.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, luto@mit.edu, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     mm: vmscan: evaluate the watermarks against the correct classzone
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-evaluate-the-watermarks-against-the-correct-classzone.pa=
-tch
+     slub: partly fix freeze in __slab_free
+has been added to the -mm tree.  Its filename is
+     slub-partly-fix-freeze-in-__slab_free.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: evaluate the watermarks against the correct classz=
-one
-=46rom: Mel Gorman <mgorman@suse.de>
+Subject: slub: partly fix freeze in __slab_free
+From: Hugh Dickins <hughd@google.com>
 
-When deciding if kswapd is sleeping prematurely, the classzone is taken
-into account but this is different to what balance_pgdat() and the
-allocator are doing.  Specifically, the DMA zone will be checked based =
-on
-the classzone used when waking kswapd which could be for a GFP_KERNEL o=
-r
-GFP_HIGHMEM request.  The lowmem reserve limit kicks in, the watermark =
-is
-not met and kswapd thinks it's sleeping prematurely keeping kswapd awak=
-e in
-error.
+My load tests on PowerPC freeze within minutes in __slab_free().  I
+happened to try PPC first, didn't try without this fix on x86.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: Andrew Lutomirski <luto@mit.edu>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@kernel.org>
+It looks as if the author was interrupted while devising the new
+cmpxchg_double_slab() version of __slab_free(): its decision to
+spin_lock_irqsave() depends on several uninitialized fields, and fixing
+that (by copying page to new) mostly fixes it.
+
+But I didn't think about it very much, and this may well not be what the
+author intends; and I have seen a couple of much rarer freezes in
+__slab_free() on PPC (not yet on x86) even after applying this.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-evaluate-the-watermarks-against-the-cor=
-rect-classzone mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-evaluate-the-watermarks-against-the-correct=
--classzone
-+++ a/mm/vmscan.c
-@@ -2344,7 +2344,7 @@ static bool sleeping_prematurely(pg_data
- 		}
-=20
- 		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
--							classzone_idx, 0))
-+							i, 0))
- 			all_zones_ok =3D false;
- 		else
- 			balanced +=3D zone->present_pages;
+diff -puN mm/slub.c~slub-partly-fix-freeze-in-__slab_free mm/slub.c
+--- a/mm/slub.c~slub-partly-fix-freeze-in-__slab_free
++++ a/mm/slub.c
+@@ -2217,6 +2217,7 @@ static void __slab_free(struct kmem_cach
+ 		return;
+ 
+ 	do {
++		new = *page;
+ 		prior = page->freelist;
+ 		counters = page->counters;
+ 		set_freepointer(s, object, prior);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
+mm-cleanup-descriptions-of-filler-arg.patch
+mm-truncate-functions-are-in-truncatec.patch
+mm-tidy-vmtruncate_range-and-related-functions.patch
+mm-consistent-truncate-and-invalidate-loops.patch
+mm-pincer-in-truncate_inode_pages_range.patch
+tmpfs-no-need-to-use-i_lock.patch
+linux-next.patch
+slub-partly-fix-freeze-in-__slab_free.patch
+tmpfs-clone-shmem_file_splice_read.patch
+tmpfs-refine-shmem_file_splice_read.patch
+tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
+tmpfs-remove_shmem_readpage.patch
+tmpfs-simplify-prealloc_page.patch
+tmpfs-simplify-filepage-swappage.patch
+tmpfs-simplify-unuse-and-writepage.patch
+radix_tree-exceptional-entries-and-indices.patch
+mm-let-swap-use-exceptional-entries.patch
+tmpfs-demolish-old-swap-vector-support.patch
+tmpfs-miscellaneous-trivial-cleanups.patch
+tmpfs-copy-truncate_inode_pages_range.patch
+tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
+tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
+tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
+tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
+tmpfs-convert-shmem_writepage-and-enable-swap.patch
+tmpfs-use-kmemdup-for-short-symlinks.patch
+mm-a-few-small-updates-for-radix-swap.patch
+mm-a-few-small-updates-for-radix-swap-fix.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+prio_tree-debugging-patch.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
