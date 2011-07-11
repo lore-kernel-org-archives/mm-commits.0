@@ -1,63 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-__tlb_remove_page-checks-correct-batch.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 11:42:56 -0700
-Message-ID: <201107111842.p6BIgRcQ025483@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-pca9532c-change-driver-name-to-be-unique.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 11:43:09 -0700
+Message-ID: <201107111842.p6BIgega025519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755766Ab1GKTmL (ORCPT
+	by vger.kernel.org with ESMTP id S1754535Ab1GKTmY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:42:11 -0400
+	Mon, 11 Jul 2011 15:42:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, khali@linux-fr.org, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: __tlb_remove_page() check the correct batch
+     drivers/leds/leds-pca9532.c: change driver name to be unique
 has been removed from the -mm tree.  Its filename was
-     mm-__tlb_remove_page-checks-correct-batch.patch
+     drivers-leds-leds-pca9532c-change-driver-name-to-be-unique.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: __tlb_remove_page() check the correct batch
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: drivers/leds/leds-pca9532.c: change driver name to be unique
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-__tlb_remove_page() switches to a new batch page, but still checks space
-in the old batch.  This check always fails, and causes a forced tlb flush.
+This driver handles the variants pca9530-pca9533, so it chose the name
+"pca953x".  However, there is a gpio driver which decided on the same
+name.  As a result, those two can't be loaded at the same time.  Add a
+subsystem prefix to make the driver name unique.  Device matching will not
+suffer, because both are I2C drivers which match using a
+i2c_device_id-table which is not altered.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/leds-pca9532.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-__tlb_remove_page-checks-correct-batch mm/memory.c
---- a/mm/memory.c~mm-__tlb_remove_page-checks-correct-batch
-+++ a/mm/memory.c
-@@ -305,6 +305,7 @@ int __tlb_remove_page(struct mmu_gather 
- 	if (batch->nr == batch->max) {
- 		if (!tlb_next_batch(tlb))
- 			return 0;
-+		batch = tlb->active;
- 	}
- 	VM_BUG_ON(batch->nr > batch->max);
+diff -puN drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-change-driver-name-to-be-unique drivers/leds/leds-pca9532.c
+--- a/drivers/leds/leds-pca9532.c~drivers-leds-leds-pca9532c-change-driver-name-to-be-unique
++++ a/drivers/leds/leds-pca9532.c
+@@ -88,7 +88,7 @@ static const struct pca9532_chip_info pc
  
+ static struct i2c_driver pca9532_driver = {
+ 	.driver = {
+-		.name = "pca953x",
++		.name = "leds-pca953x",
+ 	},
+ 	.probe = pca9532_probe,
+ 	.remove = pca9532_remove,
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
 linux-next.patch
-acpi-add-missing-_osi-strings-resend.patch
-tmpfs-simplify-prealloc_page.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
 
