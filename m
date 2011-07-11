@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-do-not-retry-load_binary-method-if-config_modules=n.patch added to -mm tree
-Date: Mon, 11 Jul 2011 13:14:09 -0700
-Message-ID: <201107112014.p6BKE9BF000731@imap1.linux-foundation.org>
+Subject: + hpsa-do-not-attempt-to-read-from-a-write-only-register.patch added to -mm tree
+Date: Mon, 11 Jul 2011 13:19:16 -0700
+Message-ID: <201107112019.p6BKJGau000992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753165Ab1GKUOy (ORCPT
+	by vger.kernel.org with ESMTP id S1754166Ab1GKUTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 16:14:54 -0400
+	Mon, 11 Jul 2011 16:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penguin-kernel@i-love.sakura.ne.jppenguin-kernel@i-love.sakura.ne.jp, richard@nod.at, viro@zeniv.linux.org.uk
+Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     exec: do not retry load_binary method if CONFIG_MODULES=n
+     hpsa: do not attempt to read from a write-only register
 has been added to the -mm tree.  Its filename is
-     exec-do-not-retry-load_binary-method-if-config_modules=n.patch
+     hpsa-do-not-attempt-to-read-from-a-write-only-register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: do not retry load_binary method if CONFIG_MODULES=n
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: hpsa: do not attempt to read from a write-only register
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 
-If CONFIG_MODULES=n, it makes no sense to retry the list of binary formats
-handler because the list will not be modified by request_module().
+Most smartarrays tolerate it, but a few new ones don't.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/scsi/hpsa.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-do-not-retry-load_binary-method-if-config_modules=n fs/exec.c
---- a/fs/exec.c~exec-do-not-retry-load_binary-method-if-config_modules=n
-+++ a/fs/exec.c
-@@ -1422,9 +1422,9 @@ int search_binary_handler(struct linux_b
- 			}
- 		}
- 		read_unlock(&binfmt_lock);
-+#ifdef CONFIG_MODULES
- 		if (retval != -ENOEXEC || bprm->mm == NULL) {
- 			break;
--#ifdef CONFIG_MODULES
- 		} else {
- #define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
- 			if (printable(bprm->buf[0]) &&
-@@ -1435,8 +1435,10 @@ int search_binary_handler(struct linux_b
- 			if (try)
- 				break; /* -ENOEXEC */
- 			request_module("binfmt-%04x", *(unsigned short *)(&bprm->buf[2]));
--#endif
- 		}
-+#else
-+		break;
-+#endif
- 	}
- 	return retval;
- }
+diff -puN drivers/scsi/hpsa.h~hpsa-do-not-attempt-to-read-from-a-write-only-register drivers/scsi/hpsa.h
+--- a/drivers/scsi/hpsa.h~hpsa-do-not-attempt-to-read-from-a-write-only-register
++++ a/drivers/scsi/hpsa.h
+@@ -214,7 +214,7 @@ static void SA5_submit_command(struct ct
+ 	dev_dbg(&h->pdev->dev, "Sending %x, tag = %x\n", c->busaddr,
+ 		c->Header.Tag.lower);
+ 	writel(c->busaddr, h->vaddr + SA5_REQUEST_PORT_OFFSET);
+-	(void) readl(h->vaddr + SA5_REQUEST_PORT_OFFSET);
++	(void) readl(h->vaddr + SA5_SCRATCHPAD_OFFSET);
+ 	h->commands_outstanding++;
+ 	if (h->commands_outstanding > h->max_outstanding)
+ 		h->max_outstanding = h->commands_outstanding;
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
-exec-do-not-retry-load_binary-method-if-config_modules=n.patch
+hpsa-do-not-attempt-to-read-from-a-write-only-register.patch
 
