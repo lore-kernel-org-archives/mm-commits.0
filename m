@@ -1,182 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-successfully.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 11:42:54 -0700
-Message-ID: <201107111842.p6BIgPdD025477@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 11:43:01 -0700
+Message-ID: <201107111842.p6BIgWgh025497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754535Ab1GKTm2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757125Ab1GKTm3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:42:28 -0400
+	Mon, 11 Jul 2011 15:42:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, P@draigBrady.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, luto@mit.edu, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: vmscan: only read new_classzone_idx from pgdat when reclaiming=
- successfully
+     memcg: fix numa scan information update to be triggered by memory event
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-s=
-uccessfully.patch
+     memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: only read new_classzone_idx from pgdat when reclai=
-ming successfully
-=46rom: Mel Gorman <mgorman@suse.de>
+Subject: memcg: fix numa scan information update to be triggered by memory event
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-During allocator-intensive workloads, kswapd will be woken frequently
-causing free memory to oscillate between the high and min watermark.  T=
-his
-is expected behaviour.  Unfortunately, if the highest zone is small, a
-problem occurs.
+commit 889976dbcb12 ("memcg: reclaim memory from nodes in round-robin
+order") adds an numa node round-robin for memcg.  But the information is
+updated once per 10sec.
 
-When balance_pgdat() returns, it may be at a lower classzone_idx than i=
-t
-started because the highest zone was unreclaimable.  Before checking if=
- it
-should go to sleep though, it checks pgdat->classzone_idx which when th=
-ere
-is no other activity will be MAX_NR_ZONES-1.  It interprets this as it =
-has
-been woken up while reclaiming, skips scheduling and reclaims again.  A=
-s
-there is no useful reclaim work to do, it enters into a loop of shrinki=
-ng
-slab consuming loads of CPU until the highest zone becomes reclaimable =
-for
-a long period of time.
+This patch changes the update trigger from jiffies to memcg's event count.
+ After this patch, numa scan information will be updated when we see 1024
+events of pagein/pageout under a memcg.
 
-There are two problems here.  1) If the returned classzone or order is
-lower, it'll continue reclaiming without scheduling.  2) if the highest
-zone was marked unreclaimable but balance_pgdat() returns immediately a=
-t
-DEF_PRIORITY, the new lower classzone is not communicated back to kswap=
-d()
-for sleeping.
-
-This patch does two things that are related.  If the end_zone is
-unreclaimable, this information is communicated back.  Second, if the
-classzone or order was reduced due to failing to reclaim, new informati=
-on
-is not read from pgdat and instead an attempt is made to go to sleep.  =
-Due
-to this, it is also necessary that pgdat->classzone_idx be initialised
-each time to pgdat->nr_zones - 1 to avoid re-reads being interpreted as
-wakeups.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: P=E1draig Brady <P@draigBrady.com>
-Tested-by: Andrew Lutomirski <luto@mit.edu>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+[akpm@linux-foundation.org: attempt to repair code layout]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@kernel.org>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   34 +++++++++++++++++++++-------------
- 1 file changed, 21 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-=
-when-reclaiming-successfully mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-when=
--reclaiming-successfully
-+++ a/mm/vmscan.c
-@@ -2451,7 +2451,6 @@ loop_again:
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone =3D i;
--				*classzone_idx =3D i;
- 				break;
- 			}
- 		}
-@@ -2531,8 +2530,11 @@ loop_again:
- 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
- 				sc.may_writepage =3D 1;
-=20
--			if (zone->all_unreclaimable)
-+			if (zone->all_unreclaimable) {
-+				if (end_zone && end_zone =3D=3D i)
-+					end_zone--;
- 				continue;
-+			}
-=20
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), end_zone, 0)) {
-@@ -2712,8 +2714,8 @@ static void kswapd_try_to_sleep(pg_data_
-  */
- static int kswapd(void *p)
- {
--	unsigned long order;
--	int classzone_idx;
-+	unsigned long order, new_order;
-+	int classzone_idx, new_classzone_idx;
- 	pg_data_t *pgdat =3D (pg_data_t*)p;
- 	struct task_struct *tsk =3D current;
-=20
-@@ -2743,17 +2745,23 @@ static int kswapd(void *p)
- 	tsk->flags |=3D PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
- 	set_freezable();
-=20
--	order =3D 0;
--	classzone_idx =3D MAX_NR_ZONES - 1;
-+	order =3D new_order =3D 0;
-+	classzone_idx =3D new_classzone_idx =3D pgdat->nr_zones - 1;
- 	for ( ; ; ) {
--		unsigned long new_order;
--		int new_classzone_idx;
- 		int ret;
-=20
--		new_order =3D pgdat->kswapd_max_order;
--		new_classzone_idx =3D pgdat->classzone_idx;
--		pgdat->kswapd_max_order =3D 0;
--		pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
-+		/*
-+		 * If the last balance_pgdat was unsuccessful it's unlikely a
-+		 * new request of a similar or harder type will succeed soon
-+		 * so consider going to sleep on the basis we reclaimed at
-+		 */
-+		if (classzone_idx >=3D new_classzone_idx && order =3D=3D new_order) =
-{
-+			new_order =3D pgdat->kswapd_max_order;
-+			new_classzone_idx =3D pgdat->classzone_idx;
-+			pgdat->kswapd_max_order =3D  0;
-+			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
+diff -puN mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-numa-scan-information-update-to-be-triggered-by-memory-event
++++ a/mm/memcontrol.c
+@@ -108,10 +108,12 @@ enum mem_cgroup_events_index {
+ enum mem_cgroup_events_target {
+ 	MEM_CGROUP_TARGET_THRESH,
+ 	MEM_CGROUP_TARGET_SOFTLIMIT,
++	MEM_CGROUP_TARGET_NUMAINFO,
+ 	MEM_CGROUP_NTARGETS,
+ };
+ #define THRESHOLDS_EVENTS_TARGET (128)
+ #define SOFTLIMIT_EVENTS_TARGET (1024)
++#define NUMAINFO_EVENTS_TARGET	(1024)
+ 
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+@@ -237,7 +239,8 @@ struct mem_cgroup {
+ 	int last_scanned_node;
+ #if MAX_NUMNODES > 1
+ 	nodemask_t	scan_nodes;
+-	unsigned long   next_scan_node_update;
++	atomic_t	numainfo_events;
++	atomic_t	numainfo_updating;
+ #endif
+ 	/*
+ 	 * Should the accounting and control be hierarchical, per subtree?
+@@ -680,6 +683,9 @@ static void __mem_cgroup_target_update(s
+ 	case MEM_CGROUP_TARGET_SOFTLIMIT:
+ 		next = val + SOFTLIMIT_EVENTS_TARGET;
+ 		break;
++	case MEM_CGROUP_TARGET_NUMAINFO:
++		next = val + NUMAINFO_EVENTS_TARGET;
++		break;
+ 	default:
+ 		return;
+ 	}
+@@ -698,11 +704,19 @@ static void memcg_check_events(struct me
+ 		mem_cgroup_threshold(mem);
+ 		__mem_cgroup_target_update(mem, MEM_CGROUP_TARGET_THRESH);
+ 		if (unlikely(__memcg_event_check(mem,
+-			MEM_CGROUP_TARGET_SOFTLIMIT))){
++			     MEM_CGROUP_TARGET_SOFTLIMIT))) {
+ 			mem_cgroup_update_tree(mem, page);
+ 			__mem_cgroup_target_update(mem,
+-				MEM_CGROUP_TARGET_SOFTLIMIT);
++						   MEM_CGROUP_TARGET_SOFTLIMIT);
 +		}
-+
- 		if (order < new_order || classzone_idx > new_classzone_idx) {
- 			/*
- 			 * Don't sleep if someone wants a larger 'order'
-@@ -2766,7 +2774,7 @@ static int kswapd(void *p)
- 			order =3D pgdat->kswapd_max_order;
- 			classzone_idx =3D pgdat->classzone_idx;
- 			pgdat->kswapd_max_order =3D 0;
--			pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
-+			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
++#if MAX_NUMNODES > 1
++		if (unlikely(__memcg_event_check(mem,
++			MEM_CGROUP_TARGET_NUMAINFO))) {
++			atomic_inc(&mem->numainfo_events);
++			__mem_cgroup_target_update(mem,
++				MEM_CGROUP_TARGET_NUMAINFO);
  		}
-=20
- 		ret =3D try_to_freeze();
++#endif
+ 	}
+ }
+ 
+@@ -1582,11 +1596,15 @@ static bool test_mem_cgroup_node_reclaim
+ static void mem_cgroup_may_update_nodemask(struct mem_cgroup *mem)
+ {
+ 	int nid;
+-
+-	if (time_after(mem->next_scan_node_update, jiffies))
++	/*
++	 * numainfo_events > 0 means there was at least NUMAINFO_EVENTS_TARGET
++	 * pagein/pageout changes since the last update.
++	 */
++	if (!atomic_read(&mem->numainfo_events))
++		return;
++	if (atomic_inc_return(&mem->numainfo_updating) > 1)
+ 		return;
+ 
+-	mem->next_scan_node_update = jiffies + 10*HZ;
+ 	/* make a nodemask where this memcg uses memory from */
+ 	mem->scan_nodes = node_states[N_HIGH_MEMORY];
+ 
+@@ -1595,6 +1613,9 @@ static void mem_cgroup_may_update_nodema
+ 		if (!test_mem_cgroup_node_reclaimable(mem, nid, false))
+ 			node_clear(nid, mem->scan_nodes);
+ 	}
++
++	atomic_set(&mem->numainfo_events, 0);
++	atomic_set(&mem->numainfo_updating, 0);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow.patch
+mm-mempolicyc-make-copy_from_user-provably-correct.patch
+mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
+oom-make-deprecated-use-of-oom_adj-more-verbose.patch
+memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
