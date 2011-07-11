@@ -1,130 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-debug_slab-build.patch added to -mm tree
-Date: Mon, 11 Jul 2011 12:20:18 -0700
-Message-ID: <201107111920.p6BJKIq0029471@imap1.linux-foundation.org>
+Subject: [merged] mm-__tlb_remove_page-checks-correct-batch.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 11:42:56 -0700
+Message-ID: <201107111842.p6BIgRcQ025483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758538Ab1GKTj7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755766Ab1GKTmL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:39:59 -0400
+	Mon, 11 Jul 2011 15:42:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, cl@linux.com, penberg@cs.helsinki.fi
+To: shaohua.li@intel.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: fix DEBUG_SLAB build
-has been added to the -mm tree.  Its filename is
-     slab-fix-debug_slab-build.patch
+     mm: __tlb_remove_page() check the correct batch
+has been removed from the -mm tree.  Its filename was
+     mm-__tlb_remove_page-checks-correct-batch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: fix DEBUG_SLAB build
-=46rom: Hugh Dickins <hughd@google.com>
+Subject: mm: __tlb_remove_page() check the correct batch
+From: Shaohua Li <shaohua.li@intel.com>
 
-Now that ARCH_SLAB_MINALIGN defaults to __alignof__(unsigned long long)=
-,
-it is always defined (when slab.h included), but cannot be used in #if:
-mm/slab.c: In function =A1cache_alloc_debugcheck_after=A2:
-mm/slab.c:3156:5: warning: "__alignof__" is not defined
-mm/slab.c:3156:5: error: missing binary operator before token "("
-make[1]: *** [mm/slab.o] Error 1
+__tlb_remove_page() switches to a new batch page, but still checks space
+in the old batch.  This check always fails, and causes a forced tlb flush.
 
-So just remove the #if and #endif lines, but then 64-bit build warns:
-mm/slab.c: In function =A1cache_alloc_debugcheck_after=A2:
-mm/slab.c:3156:6: warning: cast from pointer to integer of different si=
-ze
-mm/slab.c:3158:10: warning: format =A1%d=A2 expects type =A1int=A2, but=
- argument
-                            3 has type =A1long unsigned int=A2
-=46ix those with casts, whatever the actual type of ARCH_SLAB_MINALIGN.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slab.c~slab-fix-debug_slab-build mm/slab.c
---- a/mm/slab.c~slab-fix-debug_slab-build
-+++ a/mm/slab.c
-@@ -3153,12 +3153,10 @@ static void *cache_alloc_debugcheck_afte
- 	objp +=3D obj_offset(cachep);
- 	if (cachep->ctor && cachep->flags & SLAB_POISON)
- 		cachep->ctor(objp);
--#if ARCH_SLAB_MINALIGN
--	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
-+	if ((unsigned long)objp & (ARCH_SLAB_MINALIGN-1)) {
- 		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=3D%d\n",
--		       objp, ARCH_SLAB_MINALIGN);
-+		       objp, (int)ARCH_SLAB_MINALIGN);
+diff -puN mm/memory.c~mm-__tlb_remove_page-checks-correct-batch mm/memory.c
+--- a/mm/memory.c~mm-__tlb_remove_page-checks-correct-batch
++++ a/mm/memory.c
+@@ -305,6 +305,7 @@ int __tlb_remove_page(struct mmu_gather 
+ 	if (batch->nr == batch->max) {
+ 		if (!tlb_next_batch(tlb))
+ 			return 0;
++		batch = tlb->active;
  	}
--#endif
- 	return objp;
- }
- #else
+ 	VM_BUG_ON(batch->nr > batch->max);
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-mm-cleanup-descriptions-of-filler-arg.patch
-mm-truncate-functions-are-in-truncatec.patch
-mm-tidy-vmtruncate_range-and-related-functions.patch
-mm-consistent-truncate-and-invalidate-loops.patch
-mm-pincer-in-truncate_inode_pages_range.patch
-tmpfs-no-need-to-use-i_lock.patch
+origin.patch
 linux-next.patch
-slub-partly-fix-freeze-in-__slab_free.patch
-slab-fix-debug_slab-build.patch
-tmpfs-clone-shmem_file_splice_read.patch
-tmpfs-refine-shmem_file_splice_read.patch
-tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
-tmpfs-remove_shmem_readpage.patch
+acpi-add-missing-_osi-strings-resend.patch
 tmpfs-simplify-prealloc_page.patch
-tmpfs-simplify-filepage-swappage.patch
-tmpfs-simplify-unuse-and-writepage.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-mm-a-few-small-updates-for-radix-swap-fix.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-prio_tree-debugging-patch.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
