@@ -1,26 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [merged] w1-ds1wm-add-a-reset-recovery-parameter.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 11:43:03 -0700
-Message-ID: <201107111842.p6BIgY94025503@imap1.linux-foundation.org>
+Subject: [merged] mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-successfully.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 11:42:54 -0700
+Message-ID: <201107111842.p6BIgPdD025477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756388Ab1GKTmY (ORCPT
+	by vger.kernel.org with ESMTP id S1754535Ab1GKTm2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:42:24 -0400
+	Mon, 11 Jul 2011 15:42:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, lost.distance@yahoo.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, P@draigBrady.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, luto@mit.edu, minchan.kim@gmail.com, riel@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: ds1wm: add a reset recovery parameter
+     mm: vmscan: only read new_classzone_idx from pgdat when reclaiming=
+ successfully
 has been removed from the -mm tree.  Its filename was
-     w1-ds1wm-add-a-reset-recovery-parameter.patch
+     mm-vmscan-only-read-new_classzone_idx-from-pgdat-when-reclaiming-s=
+uccessfully.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
@@ -29,133 +31,147 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: w1: ds1wm: add a reset recovery parameter
-=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Subject: mm: vmscan: only read new_classzone_idx from pgdat when reclai=
+ming successfully
+=46rom: Mel Gorman <mgorman@suse.de>
 
-This fixes a regression in 3.0 reported by Paul Parsons regarding the
-removal of the msleep(1) in the ds1wm_reset() function:
+During allocator-intensive workloads, kswapd will be woken frequently
+causing free memory to oscillate between the high and min watermark.  T=
+his
+is expected behaviour.  Unfortunately, if the highest zone is small, a
+problem occurs.
 
-: The linux-3.0-rc4 DS1WM 1-wire driver is logging "bus error, retrying=
-"
-: error messages on an HP iPAQ hx4700 PDA (XScale-PXA270):
-:=20
-: <snip>
-: Driver for 1-wire Dallas network protocol.
-: DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko
-: 1-Wire driver for the DS2760 battery monitor  chip  - (c) 2004-2005, =
-Szabolcs Gyurko
-: ds1wm ds1wm: pass: 1 bus error, retrying
-: ds1wm ds1wm: pass: 2 bus error, retrying
-: ds1wm ds1wm: pass: 3 bus error, retrying
-: ds1wm ds1wm: pass: 4 bus error, retrying
-: ds1wm ds1wm: pass: 5 bus error, retrying
-: ...
-:=20
-: The visible result is that the battery charging LED is erratic; somet=
-imes
-: it works, mostly it doesn't.
-:=20
-: The linux-2.6.39 DS1WM 1-wire driver worked OK.  I haven't tried 3.0-=
-rc1,
-: 3.0-rc2, or 3.0-rc3.
+When balance_pgdat() returns, it may be at a lower classzone_idx than i=
+t
+started because the highest zone was unreclaimable.  Before checking if=
+ it
+should go to sleep though, it checks pgdat->classzone_idx which when th=
+ere
+is no other activity will be MAX_NR_ZONES-1.  It interprets this as it =
+has
+been woken up while reclaiming, skips scheduling and reclaims again.  A=
+s
+there is no useful reclaim work to do, it enters into a loop of shrinki=
+ng
+slab consuming loads of CPU until the highest zone becomes reclaimable =
+for
+a long period of time.
 
-This sleep should not be required on normal circuitry provided the
-pull-ups on the bus are correctly adapted to the slaves.  Unfortunately=
-,
-this is not always the case.  The sleep is restored but as a parameter =
-to
-the probe function in the pdata.
+There are two problems here.  1) If the returned classzone or order is
+lower, it'll continue reclaiming without scheduling.  2) if the highest
+zone was marked unreclaimable but balance_pgdat() returns immediately a=
+t
+DEF_PRIORITY, the new lower classzone is not communicated back to kswap=
+d()
+for sleeping.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Reported-by: Paul Parsons <lost.distance@yahoo.com>
-Tested-by: Paul Parsons <lost.distance@yahoo.com>
-Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+This patch does two things that are related.  If the end_zone is
+unreclaimable, this information is communicated back.  Second, if the
+classzone or order was reduced due to failing to reclaim, new informati=
+on
+is not read from pgdat and instead an attempt is made to go to sleep.  =
+Due
+to this, it is also necessary that pgdat->classzone_idx be initialised
+each time to pgdat->nr_zones - 1 to avoid re-reads being interpreted as
+wakeups.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: P=E1draig Brady <P@draigBrady.com>
+Tested-by: P=E1draig Brady <P@draigBrady.com>
+Tested-by: Andrew Lutomirski <luto@mit.edu>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c        |    1 +
- drivers/mfd/htc-pasic3.c   |    1 +
- drivers/w1/masters/ds1wm.c |    5 +++++
- include/linux/mfd/ds1wm.h  |    7 +++++++
- 4 files changed, 14 insertions(+)
+ mm/vmscan.c |   34 +++++++++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-diff -puN drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter d=
-rivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/drivers/mfd/asic3.c
-@@ -619,6 +619,7 @@ static void asic3_clk_disable(struct asi
- /* MFD cells (SPI, PWM, LED, DS1WM, MMC) */
- static struct ds1wm_driver_data ds1wm_pdata =3D {
- 	.active_high =3D 1,
-+	.reset_recover_delay =3D 1,
- };
+diff -puN mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-=
+when-reclaiming-successfully mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-read-new_classzone_idx-from-pgdat-when=
+-reclaiming-successfully
++++ a/mm/vmscan.c
+@@ -2451,7 +2451,6 @@ loop_again:
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), 0, 0)) {
+ 				end_zone =3D i;
+-				*classzone_idx =3D i;
+ 				break;
+ 			}
+ 		}
+@@ -2531,8 +2530,11 @@ loop_again:
+ 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
+ 				sc.may_writepage =3D 1;
 =20
- static struct resource ds1wm_resources[] =3D {
-diff -puN drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parame=
-ter drivers/mfd/htc-pasic3.c
---- a/drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/drivers/mfd/htc-pasic3.c
-@@ -99,6 +99,7 @@ static int ds1wm_disable(struct platform
+-			if (zone->all_unreclaimable)
++			if (zone->all_unreclaimable) {
++				if (end_zone && end_zone =3D=3D i)
++					end_zone--;
+ 				continue;
++			}
 =20
- static struct ds1wm_driver_data ds1wm_pdata =3D {
- 	.active_high =3D 0,
-+	.reset_recover_delay =3D 1,
- };
+ 			if (!zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone), end_zone, 0)) {
+@@ -2712,8 +2714,8 @@ static void kswapd_try_to_sleep(pg_data_
+  */
+ static int kswapd(void *p)
+ {
+-	unsigned long order;
+-	int classzone_idx;
++	unsigned long order, new_order;
++	int classzone_idx, new_classzone_idx;
+ 	pg_data_t *pgdat =3D (pg_data_t*)p;
+ 	struct task_struct *tsk =3D current;
 =20
- static struct resource ds1wm_resources[] __initdata =3D {
-diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-para=
-meter drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-paramete=
-r
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -109,6 +109,7 @@ struct ds1wm_data {
- 	/* byte to write that makes all intr disabled, */
- 	/* considering active_state (IAS) (optimization) */
- 	u8       int_en_reg_none;
-+	unsigned int reset_recover_delay; /* see ds1wm.h */
- };
+@@ -2743,17 +2745,23 @@ static int kswapd(void *p)
+ 	tsk->flags |=3D PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
+ 	set_freezable();
 =20
- static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data,=
- u32 reg,
-@@ -187,6 +188,9 @@ static int ds1wm_reset(struct ds1wm_data
- 		return 1;
- 	}
+-	order =3D 0;
+-	classzone_idx =3D MAX_NR_ZONES - 1;
++	order =3D new_order =3D 0;
++	classzone_idx =3D new_classzone_idx =3D pgdat->nr_zones - 1;
+ 	for ( ; ; ) {
+-		unsigned long new_order;
+-		int new_classzone_idx;
+ 		int ret;
 =20
-+	if (ds1wm_data->reset_recover_delay)
-+		msleep(ds1wm_data->reset_recover_delay);
+-		new_order =3D pgdat->kswapd_max_order;
+-		new_classzone_idx =3D pgdat->classzone_idx;
+-		pgdat->kswapd_max_order =3D 0;
+-		pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
++		/*
++		 * If the last balance_pgdat was unsuccessful it's unlikely a
++		 * new request of a similar or harder type will succeed soon
++		 * so consider going to sleep on the basis we reclaimed at
++		 */
++		if (classzone_idx >=3D new_classzone_idx && order =3D=3D new_order) =
+{
++			new_order =3D pgdat->kswapd_max_order;
++			new_classzone_idx =3D pgdat->classzone_idx;
++			pgdat->kswapd_max_order =3D  0;
++			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
++		}
 +
- 	return 0;
- }
+ 		if (order < new_order || classzone_idx > new_classzone_idx) {
+ 			/*
+ 			 * Don't sleep if someone wants a larger 'order'
+@@ -2766,7 +2774,7 @@ static int kswapd(void *p)
+ 			order =3D pgdat->kswapd_max_order;
+ 			classzone_idx =3D pgdat->classzone_idx;
+ 			pgdat->kswapd_max_order =3D 0;
+-			pgdat->classzone_idx =3D MAX_NR_ZONES - 1;
++			pgdat->classzone_idx =3D pgdat->nr_zones - 1;
+ 		}
 =20
-@@ -490,6 +494,7 @@ static int ds1wm_probe(struct platform_d
- 	}
- 	ds1wm_data->irq =3D res->start;
- 	ds1wm_data->int_en_reg_none =3D (plat->active_high ? DS1WM_INTEN_IAS =
-: 0);
-+	ds1wm_data->reset_recover_delay =3D plat->reset_recover_delay;
-=20
- 	if (res->flags & IORESOURCE_IRQ_HIGHEDGE)
- 		irq_set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
-diff -puN include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-param=
-eter include/linux/mfd/ds1wm.h
---- a/include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-parameter
-+++ a/include/linux/mfd/ds1wm.h
-@@ -3,4 +3,11 @@
- struct ds1wm_driver_data {
- 	int active_high;
- 	int clock_rate;
-+	/* in milliseconds, the amount of time to */
-+	/* sleep following a reset pulse. Zero    */
-+	/* should work if your bus devices recover*/
-+	/* time respects the 1-wire spec since the*/
-+	/* ds1wm implements the precise timings of*/
-+	/* a reset pulse/presence detect sequence.*/
-+	unsigned int reset_recover_delay;
- };
+ 		ret =3D try_to_freeze();
 _
 
-Patches currently in -mm which might be from dagenaisj@sonatest.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
 
