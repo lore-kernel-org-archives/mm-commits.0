@@ -1,239 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-reclaimable-lru-check-in-memcg.patch removed from -mm tree
-Date: Mon, 11 Jul 2011 11:42:58 -0700
-Message-ID: <201107111842.p6BIgTHR025489@imap1.linux-foundation.org>
+Subject: [merged] w1-ds1wm-add-a-reset-recovery-parameter.patch removed from -mm tree
+Date: Mon, 11 Jul 2011 11:43:03 -0700
+Message-ID: <201107111842.p6BIgY94025503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754535Ab1GKTmZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756388Ab1GKTmY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jul 2011 15:42:25 -0400
+	Mon, 11 Jul 2011 15:42:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
+To: dagenaisj@sonatest.com, johnpol@2ka.mipt.ru, lost.distance@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix reclaimable lru check in memcg
+     w1: ds1wm: add a reset recovery parameter
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-reclaimable-lru-check-in-memcg.patch
+     w1-ds1wm-add-a-reset-recovery-parameter.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: memcg: fix reclaimable lru check in memcg
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: w1: ds1wm: add a reset recovery parameter
+=46rom: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
 
-Now, in mem_cgroup_hierarchical_reclaim(), mem_cgroup_local_usage() is
-used for checking whether the memcg contains reclaimable pages or not.  If
-no pages in it, the routine skips it.
+This fixes a regression in 3.0 reported by Paul Parsons regarding the
+removal of the msleep(1) in the ds1wm_reset() function:
 
-But, mem_cgroup_local_usage() contains Unevictable pages and cannot handle
-"noswap" condition correctly.  This doesn't work on a swapless system.
+: The linux-3.0-rc4 DS1WM 1-wire driver is logging "bus error, retrying=
+"
+: error messages on an HP iPAQ hx4700 PDA (XScale-PXA270):
+:=20
+: <snip>
+: Driver for 1-wire Dallas network protocol.
+: DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko
+: 1-Wire driver for the DS2760 battery monitor  chip  - (c) 2004-2005, =
+Szabolcs Gyurko
+: ds1wm ds1wm: pass: 1 bus error, retrying
+: ds1wm ds1wm: pass: 2 bus error, retrying
+: ds1wm ds1wm: pass: 3 bus error, retrying
+: ds1wm ds1wm: pass: 4 bus error, retrying
+: ds1wm ds1wm: pass: 5 bus error, retrying
+: ...
+:=20
+: The visible result is that the battery charging LED is erratic; somet=
+imes
+: it works, mostly it doesn't.
+:=20
+: The linux-2.6.39 DS1WM 1-wire driver worked OK.  I haven't tried 3.0-=
+rc1,
+: 3.0-rc2, or 3.0-rc3.
 
-This patch adds test_mem_cgroup_reclaimable() and replaces
-mem_cgroup_local_usage().  test_mem_cgroup_reclaimable() see LRU counter
-and returns correct answer to the caller.  And this new function has
-"noswap" argument and can see only FILE LRU if necessary.
+This sleep should not be required on normal circuitry provided the
+pull-ups on the bus are correctly adapted to the slaves.  Unfortunately=
+,
+this is not always the case.  The sleep is restored but as a parameter =
+to
+the probe function in the pdata.
 
 [akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: fix kerneldoc layout]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reported-by: Paul Parsons <lost.distance@yahoo.com>
+Tested-by: Paul Parsons <lost.distance@yahoo.com>
+Signed-off-by: Jean-Fran=E7ois Dagenais <dagenaisj@sonatest.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  107 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 76 insertions(+), 31 deletions(-)
+ drivers/mfd/asic3.c        |    1 +
+ drivers/mfd/htc-pasic3.c   |    1 +
+ drivers/w1/masters/ds1wm.c |    5 +++++
+ include/linux/mfd/ds1wm.h  |    7 +++++++
+ 4 files changed, 14 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-reclaimable-lru-check-in-memcg
-+++ a/mm/memcontrol.c
-@@ -577,15 +577,6 @@ static long mem_cgroup_read_stat(struct 
- 	return val;
- }
- 
--static long mem_cgroup_local_usage(struct mem_cgroup *mem)
--{
--	long ret;
--
--	ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_RSS);
--	ret += mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_CACHE);
--	return ret;
--}
--
- static void mem_cgroup_swap_statistics(struct mem_cgroup *mem,
- 					 bool charge)
- {
-@@ -1129,7 +1120,6 @@ unsigned long mem_cgroup_zone_nr_lru_pag
- 	return MEM_CGROUP_ZSTAT(mz, lru);
- }
- 
--#ifdef CONFIG_NUMA
- static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
- 							int nid)
- {
-@@ -1141,6 +1131,17 @@ static unsigned long mem_cgroup_node_nr_
- 	return ret;
- }
- 
-+static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
-+							int nid)
-+{
-+	unsigned long ret;
-+
-+	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
-+		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
-+	return ret;
-+}
-+
-+#if MAX_NUMNODES > 1
- static unsigned long mem_cgroup_nr_file_lru_pages(struct mem_cgroup *memcg)
- {
- 	u64 total = 0;
-@@ -1152,17 +1153,6 @@ static unsigned long mem_cgroup_nr_file_
- 	return total;
- }
- 
--static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
--							int nid)
--{
--	unsigned long ret;
--
--	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
--		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
--
--	return ret;
--}
--
- static unsigned long mem_cgroup_nr_anon_lru_pages(struct mem_cgroup *memcg)
- {
- 	u64 total = 0;
-@@ -1559,6 +1549,28 @@ mem_cgroup_select_victim(struct mem_cgro
- 	return ret;
- }
- 
-+/**
-+ * test_mem_cgroup_node_reclaimable
-+ * @mem: the target memcg
-+ * @nid: the node ID to be checked.
-+ * @noswap : specify true here if the user wants flle only information.
-+ *
-+ * This function returns whether the specified memcg contains any
-+ * reclaimable pages on a node. Returns true if there are any reclaimable
-+ * pages in the node.
-+ */
-+static bool test_mem_cgroup_node_reclaimable(struct mem_cgroup *mem,
-+		int nid, bool noswap)
-+{
-+	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
-+		return true;
-+	if (noswap || !total_swap_pages)
-+		return false;
-+	if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
-+		return true;
-+	return false;
-+
-+}
- #if MAX_NUMNODES > 1
- 
- /*
-@@ -1580,15 +1592,8 @@ static void mem_cgroup_may_update_nodema
- 
- 	for_each_node_mask(nid, node_states[N_HIGH_MEMORY]) {
- 
--		if (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_FILE) ||
--		    mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_FILE))
--			continue;
--
--		if (total_swap_pages &&
--		    (mem_cgroup_get_zonestat_node(mem, nid, LRU_INACTIVE_ANON) ||
--		     mem_cgroup_get_zonestat_node(mem, nid, LRU_ACTIVE_ANON)))
--			continue;
--		node_clear(nid, mem->scan_nodes);
-+		if (!test_mem_cgroup_node_reclaimable(mem, nid, false))
-+			node_clear(nid, mem->scan_nodes);
+diff -puN drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter d=
+rivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/drivers/mfd/asic3.c
+@@ -619,6 +619,7 @@ static void asic3_clk_disable(struct asi
+ /* MFD cells (SPI, PWM, LED, DS1WM, MMC) */
+ static struct ds1wm_driver_data ds1wm_pdata =3D {
+ 	.active_high =3D 1,
++	.reset_recover_delay =3D 1,
+ };
+=20
+ static struct resource ds1wm_resources[] =3D {
+diff -puN drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parame=
+ter drivers/mfd/htc-pasic3.c
+--- a/drivers/mfd/htc-pasic3.c~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/drivers/mfd/htc-pasic3.c
+@@ -99,6 +99,7 @@ static int ds1wm_disable(struct platform
+=20
+ static struct ds1wm_driver_data ds1wm_pdata =3D {
+ 	.active_high =3D 0,
++	.reset_recover_delay =3D 1,
+ };
+=20
+ static struct resource ds1wm_resources[] __initdata =3D {
+diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-para=
+meter drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~w1-ds1wm-add-a-reset-recovery-paramete=
+r
++++ a/drivers/w1/masters/ds1wm.c
+@@ -109,6 +109,7 @@ struct ds1wm_data {
+ 	/* byte to write that makes all intr disabled, */
+ 	/* considering active_state (IAS) (optimization) */
+ 	u8       int_en_reg_none;
++	unsigned int reset_recover_delay; /* see ds1wm.h */
+ };
+=20
+ static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data,=
+ u32 reg,
+@@ -187,6 +188,9 @@ static int ds1wm_reset(struct ds1wm_data
+ 		return 1;
  	}
- }
- 
-@@ -1627,11 +1632,51 @@ int mem_cgroup_select_victim_node(struct
- 	return node;
- }
- 
-+/*
-+ * Check all nodes whether it contains reclaimable pages or not.
-+ * For quick scan, we make use of scan_nodes. This will allow us to skip
-+ * unused nodes. But scan_nodes is lazily updated and may not cotain
-+ * enough new information. We need to do double check.
-+ */
-+bool mem_cgroup_reclaimable(struct mem_cgroup *mem, bool noswap)
-+{
-+	int nid;
+=20
++	if (ds1wm_data->reset_recover_delay)
++		msleep(ds1wm_data->reset_recover_delay);
 +
-+	/*
-+	 * quick check...making use of scan_node.
-+	 * We can skip unused nodes.
-+	 */
-+	if (!nodes_empty(mem->scan_nodes)) {
-+		for (nid = first_node(mem->scan_nodes);
-+		     nid < MAX_NUMNODES;
-+		     nid = next_node(nid, mem->scan_nodes)) {
-+
-+			if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
-+				return true;
-+		}
-+	}
-+	/*
-+	 * Check rest of nodes.
-+	 */
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
-+		if (node_isset(nid, mem->scan_nodes))
-+			continue;
-+		if (test_mem_cgroup_node_reclaimable(mem, nid, noswap))
-+			return true;
-+	}
-+	return false;
-+}
-+
- #else
- int mem_cgroup_select_victim_node(struct mem_cgroup *mem)
- {
  	return 0;
  }
-+
-+bool mem_cgroup_reclaimable(struct mem_cgroup *mem, bool noswap)
-+{
-+	return test_mem_cgroup_node_reclaimable(mem, 0, noswap);
-+}
- #endif
- 
- /*
-@@ -1702,7 +1747,7 @@ static int mem_cgroup_hierarchical_recla
- 				}
- 			}
- 		}
--		if (!mem_cgroup_local_usage(victim)) {
-+		if (!mem_cgroup_reclaimable(victim, noswap)) {
- 			/* this cgroup's local usage == 0 */
- 			css_put(&victim->css);
- 			continue;
+=20
+@@ -490,6 +494,7 @@ static int ds1wm_probe(struct platform_d
+ 	}
+ 	ds1wm_data->irq =3D res->start;
+ 	ds1wm_data->int_en_reg_none =3D (plat->active_high ? DS1WM_INTEN_IAS =
+: 0);
++	ds1wm_data->reset_recover_delay =3D plat->reset_recover_delay;
+=20
+ 	if (res->flags & IORESOURCE_IRQ_HIGHEDGE)
+ 		irq_set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
+diff -puN include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-param=
+eter include/linux/mfd/ds1wm.h
+--- a/include/linux/mfd/ds1wm.h~w1-ds1wm-add-a-reset-recovery-parameter
++++ a/include/linux/mfd/ds1wm.h
+@@ -3,4 +3,11 @@
+ struct ds1wm_driver_data {
+ 	int active_high;
+ 	int clock_rate;
++	/* in milliseconds, the amount of time to */
++	/* sleep following a reset pulse. Zero    */
++	/* should work if your bus devices recover*/
++	/* time respects the 1-wire spec since the*/
++	/* ds1wm implements the precise timings of*/
++	/* a reset pulse/presence detect sequence.*/
++	unsigned int reset_recover_delay;
+ };
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from dagenaisj@sonatest.com are
 
 origin.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-mempolicyc-make-copy_from_user-provably-correct.patch
-mm-page_cgroupc-simplify-code-by-using-section_align_up-and-section_align_down-macros.patch
-oom-make-deprecated-use-of-oom_adj-more-verbose.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
