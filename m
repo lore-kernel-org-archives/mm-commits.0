@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + debugfs-fix-documentation.patch added to -mm tree
-Date: Tue, 12 Jul 2011 15:25:25 -0700
-Message-ID: <201107122225.p6CMPPI1007389@imap1.linux-foundation.org>
+Subject: + drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch added to -mm tree
+Date: Tue, 12 Jul 2011 15:54:46 -0700
+Message-ID: <201107122254.p6CMskw8008861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932120Ab1GLWZ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755623Ab1GLWzk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jul 2011 18:25:28 -0400
+	Tue, 12 Jul 2011 18:55:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, gregkh@suse.de
+Cc: akpm@linux-foundation.org, ale.goujon@gmail.com, axboe@kernel.dk
 
 
 The patch titled
-     debugfs: fix documentation
+     drivers/cdrom/cdrom.c: relax check on dvd manufacturer value
 has been added to the -mm tree.  Its filename is
-     debugfs-fix-documentation.patch
+     drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugfs: fix documentation
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: drivers/cdrom/cdrom.c: relax check on dvd manufacturer value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-debugfs_create_x64() exists.
+The report has an ISO which has a very long manufacturer ID.  It seems
+that Linux is wrong, not the ISO maker.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Relax the check for the length of this field: emit a warning and truncate
+the incoming data to 2048 bytes rather than rejecting the entire thing.
+
+dvd_manufact.value isn't null-terminated.  I'm not even sure if it's a
+string.  The kernel doesn't apepar to use it anyway.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=39062
+
+Reported-by: <ale.goujon@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/debugfs.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/cdrom/cdrom.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/debugfs.txt~debugfs-fix-documentation Documentation/filesystems/debugfs.txt
---- a/Documentation/filesystems/debugfs.txt~debugfs-fix-documentation
-+++ a/Documentation/filesystems/debugfs.txt
-@@ -73,8 +73,8 @@ the following functions can be used inst
- 				      struct dentry *parent, u16 *value);
-     struct dentry *debugfs_create_x32(const char *name, mode_t mode,
- 				      struct dentry *parent, u32 *value);
--
--Note that there is no debugfs_create_x64().
-+    struct dentry *debugfs_create_x64(const char *name, mode_t mode,
-+				      struct dentry *parent, u64 *value);
+diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value
++++ a/drivers/cdrom/cdrom.c
+@@ -1929,11 +1929,17 @@ static int dvd_read_manufact(struct cdro
+ 		goto out;
  
- These functions are useful as long as the developer knows the size of the
- value to be exported.  Some types can have different widths on different
+ 	s->manufact.len = buf[0] << 8 | buf[1];
+-	if (s->manufact.len < 0 || s->manufact.len > 2048) {
++	if (s->manufact.len < 0) {
+ 		cdinfo(CD_WARNING, "Received invalid manufacture info length"
+ 				   " (%d)\n", s->manufact.len);
+ 		ret = -EIO;
+ 	} else {
++		if (s->manufact.len > 2048) {
++			cdinfo(CD_WARNING, "Received invalid manufacture info "
++					"length (%d): truncating to 2048\n",
++					s->manufact.len);
++			s->manufact.len = 2048;
++		}
+ 		memcpy(s->manufact.value, &buf[4], s->manufact.len);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
-debugfs-fix-documentation.patch
-reiserfs-use-proper-little-endian-bitops.patch
-reiserfs-use-hweight_long.patch
-fault-injection-do-not-include-unneeded-header.patch
-fault-injection-remove-nonexistent-function-extern.patch
-fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
-fault-injection-use-debugfs_remove_recursive.patch
-failslab-simplify-debugfs-initialization.patch
-fail_page_alloc-simplify-debugfs-initialization.patch
-fail_make_request-cleanup-should_fail_request.patch
-asm-generic-add-another-generic-ext2-atomic-bitops.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+drivers-net-skgec-support-dlink-dge-530t-rev-c1.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-gma500-psb_intel_displayc-fix-build.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+mm-memblockc-avoid-abuse-of-red_inactive.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-4.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue-fix.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
