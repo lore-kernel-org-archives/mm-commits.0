@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch added to -mm tree
-Date: Tue, 12 Jul 2011 15:24:58 -0700
-Message-ID: <201107122224.p6CMOwoe007343@imap1.linux-foundation.org>
+Subject: + debugfs-fix-documentation.patch added to -mm tree
+Date: Tue, 12 Jul 2011 15:25:25 -0700
+Message-ID: <201107122225.p6CMPPI1007389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab1GLWZF (ORCPT
+	by vger.kernel.org with ESMTP id S932120Ab1GLWZ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jul 2011 18:25:05 -0400
+	Tue, 12 Jul 2011 18:25:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akinobu.mita@gmail.com, gregkh@suse.de
 
 
 The patch titled
-     fs/libfs.c: fix simple_attr_write() on 32bit machines
+     debugfs: fix documentation
 has been added to the -mm tree.  Its filename is
-     fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch
+     debugfs-fix-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/libfs.c: fix simple_attr_write() on 32bit machines
+Subject: debugfs: fix documentation
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Assume that /sys/kernel/debug/dummy64 is debugfs file created by
-debugfs_create_x64().
-
-	# cd /sys/kernel/debug
-	# echo 0x1234567812345678 > dummy64
-	# cat dummy64
-	0x0000000012345678
-
-	# echo 0x80000000 > dummy64
-	# cat dummy64
-	0xffffffff80000000
-
-A value larger than INT_MAX cannot be written to the debugfs file created
-by debugfs_create_u64 or debugfs_create_x64 on 32bit machine.  Because
-simple_attr_write() uses simple_strtol() for the conversion.
-
-To fix this, use simple_strtoll() instead.
+debugfs_create_x64() exists.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/debugfs.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/libfs.c~fs-libfsc-fix-simple_attr_write-on-32bit-machines fs/libfs.c
---- a/fs/libfs.c~fs-libfsc-fix-simple_attr_write-on-32bit-machines
-+++ a/fs/libfs.c
-@@ -822,7 +822,7 @@ ssize_t simple_attr_write(struct file *f
- 		goto out;
+diff -puN Documentation/filesystems/debugfs.txt~debugfs-fix-documentation Documentation/filesystems/debugfs.txt
+--- a/Documentation/filesystems/debugfs.txt~debugfs-fix-documentation
++++ a/Documentation/filesystems/debugfs.txt
+@@ -73,8 +73,8 @@ the following functions can be used inst
+ 				      struct dentry *parent, u16 *value);
+     struct dentry *debugfs_create_x32(const char *name, mode_t mode,
+ 				      struct dentry *parent, u32 *value);
+-
+-Note that there is no debugfs_create_x64().
++    struct dentry *debugfs_create_x64(const char *name, mode_t mode,
++				      struct dentry *parent, u64 *value);
  
- 	attr->set_buf[size] = '\0';
--	val = simple_strtol(attr->set_buf, NULL, 0);
-+	val = simple_strtoll(attr->set_buf, NULL, 0);
- 	ret = attr->set(attr->data, val);
- 	if (ret == 0)
- 		ret = len; /* on success, claim we got the whole input */
+ These functions are useful as long as the developer knows the size of the
+ value to be exported.  Some types can have different widths on different
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -83,6 +69,7 @@ fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch
 linux-next.patch
 ext4-use-proper-little-endian-bitops.patch
 ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+debugfs-fix-documentation.patch
 reiserfs-use-proper-little-endian-bitops.patch
 reiserfs-use-hweight_long.patch
 fault-injection-do-not-include-unneeded-header.patch
