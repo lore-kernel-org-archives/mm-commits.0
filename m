@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatchpl-update-logfunctions.patch added to -mm tree
-Date: Wed, 13 Jul 2011 16:17:04 -0700
-Message-ID: <201107132317.p6DNH4lg009621@imap1.linux-foundation.org>
+Subject: + fs-execc-acct_arg_size-ptl-is-no-longer-needed-for-add_mm_counter.patch added to -mm tree
+Date: Wed, 13 Jul 2011 16:23:26 -0700
+Message-ID: <201107132323.p6DNNQav009912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859Ab1GMXRI (ORCPT
+	by vger.kernel.org with ESMTP id S1752530Ab1GMXYQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jul 2011 19:17:08 -0400
+	Wed, 13 Jul 2011 19:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com, kvalo@qca.qualcomm.com
+Cc: oleg@redhat.com, dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, matt.fleming@linux.intel.com
 
 
 The patch titled
-     checkpatch.pl: update $logFunctions
+     fs/exec.c:acct_arg_size(): ptl is no longer needed for add_mm_counter()
 has been added to the -mm tree.  Its filename is
-     checkpatchpl-update-logfunctions.patch
+     fs-execc-acct_arg_size-ptl-is-no-longer-needed-for-add_mm_counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: update $logFunctions
-From: Joe Perches <joe@perches.com>
+Subject: fs/exec.c:acct_arg_size(): ptl is no longer needed for add_mm_counter()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Allow numbers in leading prefix.
-Add logging functions with _once and _ratelimit.
-Add <prefix>_printk.
+acct_arg_size() takes ->page_table_lock around add_mm_counter() if
+!SPLIT_RSS_COUNTING.  This is not needed after 172703b0 ("mm: delete
+non-atomic mm counter implementation").
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Kalle Valo <kvalo@qca.qualcomm.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Matt Fleming <matt.fleming@linux.intel.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/exec.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-update-logfunctions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-update-logfunctions
-+++ a/scripts/checkpatch.pl
-@@ -257,9 +257,9 @@ our $typeTypedefs = qr{(?x:
- )};
+diff -puN fs/exec.c~fs-execc-acct_arg_size-ptl-is-no-longer-needed-for-add_mm_counter fs/exec.c
+--- a/fs/exec.c~fs-execc-acct_arg_size-ptl-is-no-longer-needed-for-add_mm_counter
++++ a/fs/exec.c
+@@ -181,14 +181,7 @@ static void acct_arg_size(struct linux_b
+ 		return;
  
- our $logFunctions = qr{(?x:
--	printk|
--	[a-z]+_(emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)|
--	WARN|
-+	printk(?:_ratelimited|_once|)|
-+	[a-z0-9]+_(?:printk|emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)(?:_ratelimited|_once|)|
-+	WARN(?:_RATELIMIT|_ONCE|)|
- 	panic|
- 	MODULE_[A-Z_]+
- )};
+ 	bprm->vma_pages = pages;
+-
+-#ifdef SPLIT_RSS_COUNTING
+-	add_mm_counter(mm, MM_ANONPAGES, diff);
+-#else
+-	spin_lock(&mm->page_table_lock);
+ 	add_mm_counter(mm, MM_ANONPAGES, diff);
+-	spin_unlock(&mm->page_table_lock);
+-#endif
+ }
+ 
+ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+xtensa-prevent-arbitrary-read-in-ptrace.patch
+xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
-maintainers-orphan-framerelay-dlci.patch
-drivers-use-kzalloc-kcalloc-instead-of-kmallocmemset-where-possible.patch
-get_maintainerspl-improve-mailmap-parsing.patch
-maintainers-update-high-resolution-timers-patterns.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-__rcu-as-a-sparse-modifier.patch
-checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-checkpatchpl-add-ability-to-ignore-various-messages.patch
-checkpatch-make-utf-8-test-strict.patch
-checkpatchpl-update-logfunctions.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-ramoops-add-new-line-to-each-print.patch
+x86-do_signal-simplify-the-ts_restore_sigmask-logic.patch
+ptrace-unify-show_regs-prototype.patch
+ptrace-unify-show_regs-prototype-fix.patch
+signals-convert-the-ia32_emulation-code-to-use-set_current_blocked.patch
+signals-convert-the-x86_32-code-to-use-set_current_blocked.patch
+signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch
+coredump-use-task-comm-instead-of-unknown.patch
+do_coredump-fix-the-ispipe-error-check.patch
+fs-execc-acct_arg_size-ptl-is-no-longer-needed-for-add_mm_counter.patch
+ipc-introduce-shm_rmid_forced-sysctl.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
