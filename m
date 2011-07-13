@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch added to -mm tree
-Date: Tue, 12 Jul 2011 17:03:27 -0700
-Message-ID: <201107130003.p6D03RWS012415@imap1.linux-foundation.org>
+Subject: + signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch added to -mm tree
+Date: Wed, 13 Jul 2011 12:09:49 -0700
+Message-ID: <201107131909.p6DJ9nqp029362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751203Ab1GMAD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1749667Ab1GMTKE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jul 2011 20:03:29 -0400
+	Wed, 13 Jul 2011 15:10:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, vapier@gentoo.org
+Cc: oleg@redhat.com, matt.fleming@linux.intel.com, tj@kernel.org
 
 
 The patch titled
-     drivers/video/backlight/adp8860_bl.c: remove a redundant assignment for max_brightness
+     signals: sys_ssetmask/sys_rt_sigsuspend should use set_current_blocked()
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch
+     signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/adp8860_bl.c: remove a redundant assignment for max_brightness
-From: Axel Lin <axel.lin@gmail.com>
+Subject: signals: sys_ssetmask/sys_rt_sigsuspend should use set_current_blocked()
+From: Oleg Nesterov <oleg@redhat.com>
 
-We have set props.max_brightness before registering backlight device.
+sys_ssetmask(), sys_rt_sigsuspend() and compat_sys_rt_sigsuspend()
+change ->blocked directly. This is not correct, see the changelog in
+e6fa16ab "signal: sigprocmask() should do retarget_shared_pending()"
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
+Change them to use set_current_blocked().
+
+Another change is that now we are doing ->saved_sigmask = ->blocked
+lockless, it doesn't make any sense to do this under ->siglock.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Matt Fleming <matt.fleming@linux.intel.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8860_bl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/compat.c |    5 +----
+ kernel/signal.c |   17 +++++------------
+ 2 files changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness drivers/video/backlight/adp8860_bl.c
---- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness
-+++ a/drivers/video/backlight/adp8860_bl.c
-@@ -721,8 +721,7 @@ static int __devinit adp8860_probe(struc
- 		goto out2;
- 	}
+diff -puN kernel/compat.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked kernel/compat.c
+--- a/kernel/compat.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked
++++ a/kernel/compat.c
+@@ -993,11 +993,8 @@ asmlinkage long compat_sys_rt_sigsuspend
+ 	sigset_from_compat(&newset, &newset32);
+ 	sigdelsetmask(&newset, sigmask(SIGKILL)|sigmask(SIGSTOP));
  
--	bl->props.max_brightness =
--		bl->props.brightness = ADP8860_MAX_BRIGHTNESS;
-+	bl->props.brightness = ADP8860_MAX_BRIGHTNESS;
+-	spin_lock_irq(&current->sighand->siglock);
+ 	current->saved_sigmask = current->blocked;
+-	current->blocked = newset;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&newset);
  
- 	data->bl = bl;
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
+diff -puN kernel/signal.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked kernel/signal.c
+--- a/kernel/signal.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked
++++ a/kernel/signal.c
+@@ -3090,15 +3090,11 @@ SYSCALL_DEFINE0(sgetmask)
  
+ SYSCALL_DEFINE1(ssetmask, int, newmask)
+ {
+-	int old;
+-
+-	spin_lock_irq(&current->sighand->siglock);
+-	old = current->blocked.sig[0];
++	int old = current->blocked.sig[0];
++	sigset_t newset;
+ 
+-	siginitset(&current->blocked, newmask & ~(sigmask(SIGKILL)|
+-						  sigmask(SIGSTOP)));
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	siginitset(&newset, newmask & ~(sigmask(SIGKILL) | sigmask(SIGSTOP)));
++	set_current_blocked(&newset);
+ 
+ 	return old;
+ }
+@@ -3155,11 +3151,8 @@ SYSCALL_DEFINE2(rt_sigsuspend, sigset_t 
+ 		return -EFAULT;
+ 	sigdelsetmask(&newset, sigmask(SIGKILL)|sigmask(SIGSTOP));
+ 
+-	spin_lock_irq(&current->sighand->siglock);
+ 	current->saved_sigmask = current->blocked;
+-	current->blocked = newset;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&newset);
+ 
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+xtensa-prevent-arbitrary-read-in-ptrace.patch
+xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
-drivers-video-backlight-ld9040c-small-fixes.patch
-drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch
-backlight-add-ams369fg06-amoled-driver-unregister-backlight-device-when-unload-the-module.patch
-backlight-ams369fg06-staticize-ams369fg06_shutdown.patch
-backlight-set-backlight-type-and-max_brightness-before-backlights-are-registered.patch
-drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
-drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
-drivers-leds-leds-netxbig-make-leds_netxbig-depend-on-leds_class.patch
+ptrace-unify-show_regs-prototype.patch
+ptrace-unify-show_regs-prototype-fix.patch
+signals-convert-the-ia32_emulation-code-to-use-set_current_blocked.patch
+signals-convert-the-x86_32-code-to-use-set_current_blocked.patch
+signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch
+coredump-use-task-comm-instead-of-unknown.patch
+do_coredump-fix-the-ispipe-error-check.patch
+ipc-introduce-shm_rmid_forced-sysctl.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
