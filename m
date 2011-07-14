@@ -1,24 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch added to -mm tree
-Date: Thu, 14 Jul 2011 14:50:48 -0700
-Message-ID: <201107142150.p6ELomlb003931@imap1.linux-foundation.org>
+Subject: + include-linux-ioporth-new-helper-to-define-common-struct-resource-constructs.patch added to -mm tree
+Date: Thu, 14 Jul 2011 14:52:27 -0700
+Message-ID: <201107142152.p6ELqRsB003983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932320Ab1GNVvZ (ORCPT
+	by vger.kernel.org with ESMTP id S932311Ab1GNVxM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:51:25 -0400
+	Thu, 14 Jul 2011 17:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Kai.Jiang@freescale.com, Shaohui.Xie@freescale.com, avorontsov@mvista.com, davem@davemloft.net, galak@kernel.crashing.org, grant.likely@secretlab.ca
+Cc: u.kleine-koenig@pengutronix.de, arnd@arndb.de
 
 
 The patch titled
-     drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
+     include/linux/ioport.h: new helper to define common struct resourc=
+e constructs
 has been added to the -mm tree.  Its filename is
-     drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch
+     include-linux-ioporth-new-helper-to-define-common-struct-resource-=
+constructs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,54 +31,88 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
-From: Kai.Jiang <Kai.Jiang@freescale.com>
+Subject: include/linux/ioport.h: new helper to define common struct res=
+ource constructs
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Parameter offset_in_page in edac_mc_handle_ce() should mask the higher
-bits above the page size, not the lower bits.  The original input
-sometimes causes a crash.
+Resource definitions that just define start, end and flags =3D
+IORESOURCE_MEM or IORESOURCE_IRQ (with start=3Dend) are quite common.  =
+So
+introduce a shortcut for them.  For completeness add macros for
+IORESOURCE_DMA and IORESOURCE_IO, too and also make available a set of
+macros to specify named resources of all types which are less common.
 
-Signed-off-by: Kai.Jiang <Kai.Jiang@freescale.com>
-Signed-off-by: Shaohui Xie <Shaohui.Xie@freescale.com>
-Cc: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/ioport.h |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -854,11 +854,11 @@ static void mpc85xx_mc_check(struct mem_
- 		mpc85xx_mc_printk(mci, KERN_ERR, "PFN out of range!\n");
- 
- 	if (err_detect & DDR_EDE_SBE)
--		edac_mc_handle_ce(mci, pfn, err_addr & PAGE_MASK,
-+		edac_mc_handle_ce(mci, pfn, err_addr & ~PAGE_MASK,
- 				  syndrome, row_index, 0, mci->ctl_name);
- 
- 	if (err_detect & DDR_EDE_MBE)
--		edac_mc_handle_ue(mci, pfn, err_addr & PAGE_MASK,
-+		edac_mc_handle_ue(mci, pfn, err_addr & ~PAGE_MASK,
- 				  row_index, mci->ctl_name);
- 
- 	out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DETECT, err_detect);
+diff -puN include/linux/ioport.h~include-linux-ioporth-new-helper-to-de=
+fine-common-struct-resource-constructs include/linux/ioport.h
+--- a/include/linux/ioport.h~include-linux-ioporth-new-helper-to-define=
+-common-struct-resource-constructs
++++ a/include/linux/ioport.h
+@@ -109,6 +109,36 @@ struct resource_list {
+ /* PCI control bits.  Shares IORESOURCE_BITS with above PCI ROM.  */
+ #define IORESOURCE_PCI_FIXED		(1<<4)	/* Do not move resource */
+=20
++
++/* helpers to define resources */
++#define DEFINE_RES_NAMED(_start, _size, _name, _flags)			\
++	{								\
++		.start =3D (_start),					\
++		.end =3D (_start) + (_size) - 1,				\
++		.name =3D (_name),					\
++		.flags =3D (_flags),					\
++	}
++
++#define DEFINE_RES_IO_NAMED(_start, _size, _name)			\
++	DEFINE_RES_NAMED((_start), (_size), (_name), IORESOURCE_IO)
++#define DEFINE_RES_IO(_start, _size)					\
++	DEFINE_RES_IO_NAMED((_start), (_size), NULL)
++
++#define DEFINE_RES_MEM_NAMED(_start, _size, _name)			\
++	DEFINE_RES_NAMED((_start), (_size), (_name), IORESOURCE_MEM)
++#define DEFINE_RES_MEM(_start, _size)					\
++	DEFINE_RES_MEM_NAMED((_start), (_size), NULL)
++
++#define DEFINE_RES_IRQ_NAMED(_irq, _name)				\
++	DEFINE_RES_NAMED((_irq), 1, (_name), IORESOURCE_IRQ)
++#define DEFINE_RES_IRQ(_irq)						\
++	DEFINE_RES_IRQ_NAMED((_irq), NULL)
++
++#define DEFINE_RES_DMA_NAMED(_dma, _name)				\
++	DEFINE_RES_NAMED((_dma), 1, (_name), IORESOURCE_DMA)
++#define DEFINE_RES_DMA(_dma)						\
++	DEFINE_RES_DMA_NAMED((_dma), NULL)
++
+ /* PC/ISA/whatever - the normal PC address spaces: IO and memory */
+ extern struct resource ioport_resource;
+ extern struct resource iomem_resource;
 _
 
-Patches currently in -mm which might be from Kai.Jiang@freescale.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 linux-next.patch
-drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch
+include-linux-ioporth-new-helper-to-define-common-struct-resource-const=
+ructs.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
