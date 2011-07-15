@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch added to -mm tree
-Date: Fri, 15 Jul 2011 12:57:24 -0700
-Message-ID: <201107151957.p6FJvO14030553@imap1.linux-foundation.org>
+Subject: + watchdog-fix-hpwdt-kconfig-regression-in-30-rc.patch added to -mm tree
+Date: Fri, 15 Jul 2011 14:34:51 -0700
+Message-ID: <201107152134.p6FLYpVF002927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754148Ab1GOT6F (ORCPT
+	by vger.kernel.org with ESMTP id S1752897Ab1GOVfa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jul 2011 15:58:05 -0400
+	Fri, 15 Jul 2011 17:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, cl@linux.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
+Cc: olaf@aepfle.de, tcamuso@redhat.com, wim@iguana.be
 
 
 The patch titled
-     mm: page allocator: reconsider zones for allocation after direct reclaim
+     watchdog: fix hpwdt Kconfig regression in 3.0-rc
 has been added to the -mm tree.  Its filename is
-     mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch
+     watchdog-fix-hpwdt-kconfig-regression-in-30-rc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page allocator: reconsider zones for allocation after direct reclaim
-From: Mel Gorman <mgorman@suse.de>
+Subject: watchdog: fix hpwdt Kconfig regression in 3.0-rc
+From: Olaf Hering <olaf@aepfle.de>
 
-With zone_reclaim_mode enabled, it's possible for zones to be considered
-full in the zonelist_cache so they are skipped in the future.  If the
-process enters direct reclaim, the ZLC may still consider zones to be full
-even after reclaiming pages.  Reconsider all zones for allocation if
-direct reclaim returns successfully.
+Remove Kconfig regression caused by commit
+a4616153deae053b29a2b7dd9ec4b2a225accfc5 ("watchdog: hpwdt: build hpwdt as
+module by default with NMI_DECODING enabled").
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux.com>
+With the above change applied, hpwdt will be enabled unconditionally by
+just entering the Watchdog subscreen in menuconfig.  Since this driver is
+not essential to boot any box it should remain disabled until it gets
+manually enabled, just like all other drivers.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Tony Camuso <tcamuso@redhat.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/watchdog/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim
-+++ a/mm/page_alloc.c
-@@ -1616,6 +1616,21 @@ static void zlc_mark_zone_full(struct zo
- 	set_bit(i, zlc->fullzones);
- }
- 
-+/*
-+ * clear all zones full, called after direct reclaim makes progress so that
-+ * a zone that was recently full is not skipped over for up to a second
-+ */
-+static void zlc_clear_zones_full(struct zonelist *zonelist)
-+{
-+	struct zonelist_cache *zlc;	/* cached zonelist speedup info */
-+
-+	zlc = zonelist->zlcache_ptr;
-+	if (!zlc)
-+		return;
-+
-+	bitmap_zero(zlc->fullzones, MAX_ZONES_PER_ZONELIST);
-+}
-+
- #else	/* CONFIG_NUMA */
- 
- static nodemask_t *zlc_setup(struct zonelist *zonelist, int alloc_flags)
-@@ -1963,6 +1978,10 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 	if (unlikely(!(*did_some_progress)))
- 		return NULL;
- 
-+	/* After successful reclaim, reconsider all zones for allocation */
-+	if (NUMA_BUILD)
-+		zlc_clear_zones_full(zonelist);
-+
- retry:
- 	page = get_page_from_freelist(gfp_mask, nodemask, order,
- 					zonelist, high_zoneidx,
+diff -puN drivers/watchdog/Kconfig~watchdog-fix-hpwdt-kconfig-regression-in-30-rc drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-fix-hpwdt-kconfig-regression-in-30-rc
++++ a/drivers/watchdog/Kconfig
+@@ -609,7 +609,6 @@ config IT87_WDT
+ config HP_WATCHDOG
+ 	tristate "HP ProLiant iLO2+ Hardware Watchdog Timer"
+ 	depends on X86
+-	default m
+ 	help
+ 	  A software monitoring watchdog and NMI sourcing driver. This driver
+ 	  will detect lockups and provide a stack trace. This is a driver that
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim.patch
-mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch
+watchdog-fix-hpwdt-kconfig-regression-in-30-rc.patch
 
