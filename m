@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim.patch added to -mm tree
-Date: Fri, 15 Jul 2011 12:57:21 -0700
-Message-ID: <201107151957.p6FJvMpU030549@imap1.linux-foundation.org>
+Subject: + mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch added to -mm tree
+Date: Fri, 15 Jul 2011 12:57:24 -0700
+Message-ID: <201107151957.p6FJvO14030553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60338 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754372Ab1GOT57 (ORCPT
+	by vger.kernel.org with ESMTP id S1754148Ab1GOT6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jul 2011 15:57:59 -0400
+	Fri, 15 Jul 2011 15:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mgorman@suse.de, cl@linux.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@g
 
 
 The patch titled
-     mm: page allocator: initialise ZLC for first zone eligible for zone_reclaim
+     mm: page allocator: reconsider zones for allocation after direct reclaim
 has been added to the -mm tree.  Its filename is
-     mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim.patch
+     mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,179 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page allocator: initialise ZLC for first zone eligible for zone_reclaim
+Subject: mm: page allocator: reconsider zones for allocation after direct reclaim
 From: Mel Gorman <mgorman@suse.de>
 
-There have been a small number of complaints about significant stalls
-while copying large amounts of data on NUMA machines reported on a
-distribution bugzilla.  In these cases, zone_reclaim was enabled by
-default due to large NUMA distances.  In general, the complaints have not
-been about the workload itself unless it was a file server (in which case
-the recommendation was disable zone_reclaim).
-
-The stalls are mostly due to significant amounts of time spent scanning
-the preferred zone for pages to free.  After a failure, it might fallback
-to another node (as zonelists are often node-ordered rather than
-zone-ordered) but stall quickly again when the next allocation attempt
-occurs.  In bad cases, each page allocated results in a full scan of the
-preferred zone.
-
-Patch 1 checks the preferred zone for recent allocation failure
-        which is particularly important if zone_reclaim has failed
-        recently.  This avoids rescanning the zone in the near future and
-        instead falling back to another node.  This may hurt node locality
-        in some cases but a failure to zone_reclaim is more expensive than
-        a remote access.
-
-Patch 2 clears the zlc information after direct reclaim. 
-        Otherwise, zone_reclaim can mark zones full, direct reclaim can
-        reclaim enough pages but the zone is still not considered for
-        allocation.
-
-This was tested on a 24-thread 2-node x86_64 machine.  The tests were
-focused on large amounts of IO.  All tests were bound to the CPUs on
-node-0 to avoid disturbances due to processes being scheduled on different
-nodes.  The kernels tested are
-
-3.0-rc6-vanilla		Vanilla 3.0-rc6
-zlcfirst		Patch 1 applied
-zlcreconsider		Patches 1+2 applied
-
-FS-Mark
-./fs_mark  -d  /tmp/fsmark-10813  -D  100  -N  5000  -n  208  -L  35  -t  24  -S0  -s  524288
-                fsmark-3.0-rc6       3.0-rc6       		3.0-rc6
-                   vanilla			 zlcfirs 	zlcreconsider
-Files/s  min          54.90 ( 0.00%)       49.80 (-10.24%)       49.10 (-11.81%)
-Files/s  mean        100.11 ( 0.00%)      135.17 (25.94%)      146.93 (31.87%)
-Files/s  stddev       57.51 ( 0.00%)      138.97 (58.62%)      158.69 (63.76%)
-Files/s  max         361.10 ( 0.00%)      834.40 (56.72%)      802.40 (55.00%)
-Overhead min       76704.00 ( 0.00%)    76501.00 ( 0.27%)    77784.00 (-1.39%)
-Overhead mean    1485356.51 ( 0.00%)  1035797.83 (43.40%)  1594680.26 (-6.86%)
-Overhead stddev  1848122.53 ( 0.00%)   881489.88 (109.66%)  1772354.90 ( 4.27%)
-Overhead max     7989060.00 ( 0.00%)  3369118.00 (137.13%) 10135324.00 (-21.18%)
-MMTests Statistics: duration
-User/Sys Time Running Test (seconds)        501.49    493.91    499.93
-Total Elapsed Time (seconds)               2451.57   2257.48   2215.92
-
-MMTests Statistics: vmstat
-Page Ins                                       46268       63840       66008
-Page Outs                                   90821596    90671128    88043732
-Swap Ins                                           0           0           0
-Swap Outs                                          0           0           0
-Direct pages scanned                        13091697     8966863     8971790
-Kswapd pages scanned                               0     1830011     1831116
-Kswapd pages reclaimed                             0     1829068     1829930
-Direct pages reclaimed                      13037777     8956828     8648314
-Kswapd efficiency                               100%         99%         99%
-Kswapd velocity                                0.000     810.643     826.346
-Direct efficiency                                99%         99%         96%
-Direct velocity                             5340.128    3972.068    4048.788
-Percentage direct scans                         100%         83%         83%
-Page writes by reclaim                             0           3           0
-Slabs scanned                                 796672      720640      720256
-Direct inode steals                          7422667     7160012     7088638
-Kswapd inode steals                                0     1736840     2021238
-
-Test completes far faster with a large increase in the number of files
-created per second.  Standard deviation is high as a small number of
-iterations were much higher than the mean.  The number of pages scanned by
-zone_reclaim is reduced and kswapd is used for more work.
-
-LARGE DD
-               		3.0-rc6       3.0-rc6       3.0-rc6
-                   	vanilla     zlcfirst     zlcreconsider
-download tar           59 ( 0.00%)   59 ( 0.00%)   55 ( 7.27%)
-dd source files       527 ( 0.00%)  296 (78.04%)  320 (64.69%)
-delete source          36 ( 0.00%)   19 (89.47%)   20 (80.00%)
-MMTests Statistics: duration
-User/Sys Time Running Test (seconds)        125.03    118.98    122.01
-Total Elapsed Time (seconds)                624.56    375.02    398.06
-
-MMTests Statistics: vmstat
-Page Ins                                     3594216      439368      407032
-Page Outs                                   23380832    23380488    23377444
-Swap Ins                                           0           0           0
-Swap Outs                                          0         436         287
-Direct pages scanned                        17482342    69315973    82864918
-Kswapd pages scanned                               0      519123      575425
-Kswapd pages reclaimed                             0      466501      522487
-Direct pages reclaimed                       5858054     2732949     2712547
-Kswapd efficiency                               100%         89%         90%
-Kswapd velocity                                0.000    1384.254    1445.574
-Direct efficiency                                33%          3%          3%
-Direct velocity                            27991.453  184832.737  208171.929
-Percentage direct scans                         100%         99%         99%
-Page writes by reclaim                             0        5082       13917
-Slabs scanned                                  17280       29952       35328
-Direct inode steals                           115257     1431122      332201
-Kswapd inode steals                                0           0      979532
-
-This test downloads a large tarfile and copies it with dd a number of
-times - similar to the most recent bug report I've dealt with.  Time to
-completion is reduced.  The number of pages scanned directly is still
-disturbingly high with a low efficiency but this is likely due to the
-number of dirty pages encountered.  The figures could probably be improved
-with more work around how kswapd is used and how dirty pages are handled
-but that is separate work and this result is significant on its own.
-
-Streaming Mapped Writer
-MMTests Statistics: duration
-User/Sys Time Running Test (seconds)        124.47    111.67    112.64
-Total Elapsed Time (seconds)               2138.14   1816.30   1867.56
-
-MMTests Statistics: vmstat
-Page Ins                                       90760       89124       89516
-Page Outs                                  121028340   120199524   120736696
-Swap Ins                                           0          86          55
-Swap Outs                                          0           0           0
-Direct pages scanned                       114989363    96461439    96330619
-Kswapd pages scanned                        56430948    56965763    57075875
-Kswapd pages reclaimed                      27743219    27752044    27766606
-Direct pages reclaimed                         49777       46884       36655
-Kswapd efficiency                                49%         48%         48%
-Kswapd velocity                            26392.541   31363.631   30561.736
-Direct efficiency                                 0%          0%          0%
-Direct velocity                            53780.091   53108.759   51581.004
-Percentage direct scans                          67%         62%         62%
-Page writes by reclaim                           385         122        1513
-Slabs scanned                                  43008       39040       42112
-Direct inode steals                                0          10           8
-Kswapd inode steals                              733         534         477
-
-This test just creates a large file mapping and writes to it linearly. 
-Time to completion is again reduced.
-
-The gains are mostly down to two things.  In many cases, there is less
-scanning as zone_reclaim simply gives up faster due to recent failures. 
-The second reason is that memory is used more efficiently.  Instead of
-scanning the preferred zone every time, the allocator falls back to
-another zone and uses it instead improving overall memory utilisation.
-
-
-
-
-This patch: initialise ZLC for first zone eligible for zone_reclaim.
-
-The zonelist cache (ZLC) is used among other things to record if
-zone_reclaim() failed for a particular zone recently.  The intention is to
-avoid a high cost scanning extremely long zonelists or scanning within the
-zone uselessly.
-
-Currently the zonelist cache is setup only after the first zone has been
-considered and zone_reclaim() has been called.  The objective was to avoid
-a costly setup but zone_reclaim is itself quite expensive.  If it is
-failing regularly such as the first eligible zone having mostly mapped
-pages, the cost in scanning and allocation stalls is far higher than the
-ZLC initialisation step.
-
-This patch initialises ZLC before the first eligible zone calls
-zone_reclaim().  Once initialised, it is checked whether the zone failed
-zone_reclaim recently.  If it has, the zone is skipped.  As the first zone
-is now being checked, additional care has to be taken about zones marked
-full.  A zone can be marked "full" because it should not have enough
-unmapped pages for zone_reclaim but this is excessive as direct reclaim or
-kswapd may succeed where zone_reclaim fails.  Only mark zones "full" after
-zone_reclaim fails if it failed to reclaim enough pages after scanning.
+With zone_reclaim_mode enabled, it's possible for zones to be considered
+full in the zonelist_cache so they are skipped in the future.  If the
+process enters direct reclaim, the ZLC may still consider zones to be full
+even after reclaiming pages.  Reconsider all zones for allocation if
+direct reclaim returns successfully.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Minchan Kim <minchan.kim@gmail.com>
@@ -215,77 +50,45 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim
+diff -puN mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim
 +++ a/mm/page_alloc.c
-@@ -1664,7 +1664,7 @@ zonelist_scan:
- 				continue;
- 		if ((alloc_flags & ALLOC_CPUSET) &&
- 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
--				goto try_next_zone;
-+				continue;
+@@ -1616,6 +1616,21 @@ static void zlc_mark_zone_full(struct zo
+ 	set_bit(i, zlc->fullzones);
+ }
  
- 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
- 		if (!(alloc_flags & ALLOC_NO_WATERMARKS)) {
-@@ -1676,17 +1676,36 @@ zonelist_scan:
- 				    classzone_idx, alloc_flags))
- 				goto try_this_zone;
- 
-+			if (NUMA_BUILD && !did_zlc_setup && nr_online_nodes > 1) {
-+				/*
-+				 * we do zlc_setup if there are multiple nodes
-+				 * and before considering the first zone allowed
-+				 * by the cpuset.
-+				 */
-+				allowednodes = zlc_setup(zonelist, alloc_flags);
-+				zlc_active = 1;
-+				did_zlc_setup = 1;
-+			}
++/*
++ * clear all zones full, called after direct reclaim makes progress so that
++ * a zone that was recently full is not skipped over for up to a second
++ */
++static void zlc_clear_zones_full(struct zonelist *zonelist)
++{
++	struct zonelist_cache *zlc;	/* cached zonelist speedup info */
 +
- 			if (zone_reclaim_mode == 0)
- 				goto this_zone_full;
- 
-+			/*
-+			 * As we may have just activated ZLC, check if the first
-+			 * eligible zone has failed zone_reclaim recently.
-+			 */
-+			if (NUMA_BUILD && zlc_active &&
-+				!zlc_zone_worth_trying(zonelist, z, allowednodes))
-+				continue;
++	zlc = zonelist->zlcache_ptr;
++	if (!zlc)
++		return;
 +
- 			ret = zone_reclaim(zone, gfp_mask, order);
- 			switch (ret) {
- 			case ZONE_RECLAIM_NOSCAN:
- 				/* did not scan */
--				goto try_next_zone;
-+				continue;
- 			case ZONE_RECLAIM_FULL:
- 				/* scanned but unreclaimable */
--				goto this_zone_full;
-+				continue;
- 			default:
- 				/* did we reclaim enough */
- 				if (!zone_watermark_ok(zone, order, mark,
-@@ -1703,16 +1722,6 @@ try_this_zone:
- this_zone_full:
- 		if (NUMA_BUILD)
- 			zlc_mark_zone_full(zonelist, z);
--try_next_zone:
--		if (NUMA_BUILD && !did_zlc_setup && nr_online_nodes > 1) {
--			/*
--			 * we do zlc_setup after the first zone is tried but only
--			 * if there are multiple nodes make it worthwhile
--			 */
--			allowednodes = zlc_setup(zonelist, alloc_flags);
--			zlc_active = 1;
--			did_zlc_setup = 1;
--		}
- 	}
++	bitmap_zero(zlc->fullzones, MAX_ZONES_PER_ZONELIST);
++}
++
+ #else	/* CONFIG_NUMA */
  
- 	if (unlikely(NUMA_BUILD && page == NULL && zlc_active)) {
+ static nodemask_t *zlc_setup(struct zonelist *zonelist, int alloc_flags)
+@@ -1963,6 +1978,10 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ 	if (unlikely(!(*did_some_progress)))
+ 		return NULL;
+ 
++	/* After successful reclaim, reconsider all zones for allocation */
++	if (NUMA_BUILD)
++		zlc_clear_zones_full(zonelist);
++
+ retry:
+ 	page = get_page_from_freelist(gfp_mask, nodemask, order,
+ 					zonelist, high_zoneidx,
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
