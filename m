@@ -1,65 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] watchdog-fix-hpwdt-kconfig-regression-in-30-rc.patch removed from -mm tree
-Date: Mon, 18 Jul 2011 12:15:53 -0700
-Message-ID: <201107181915.p6IJFJEp022156@imap1.linux-foundation.org>
+Subject: + asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch added to -mm tree
+Date: Mon, 18 Jul 2011 12:21:16 -0700
+Message-ID: <201107181921.p6IJLHiu022438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750894Ab1GRTPe (ORCPT
+	by vger.kernel.org with ESMTP id S1750892Ab1GRTV4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Jul 2011 15:15:34 -0400
+	Mon, 18 Jul 2011 15:21:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, tcamuso@redhat.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rdunlap@xenotime.net, arnd@arndb.de, jonas@southpole.se
 
 
 The patch titled
-     watchdog: fix hpwdt Kconfig regression in 3.0-rc
-has been removed from the -mm tree.  Its filename was
-     watchdog-fix-hpwdt-kconfig-regression-in-30-rc.patch
+     asm-generic/iomap.h: add stubs for pci iomap/iounmap
+has been added to the -mm tree.  Its filename is
+     asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix hpwdt Kconfig regression in 3.0-rc
-From: Olaf Hering <olaf@aepfle.de>
+Subject: asm-generic/iomap.h: add stubs for pci iomap/iounmap
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Remove Kconfig regression caused by commit
-a4616153deae053b29a2b7dd9ec4b2a225accfc5 ("watchdog: hpwdt: build hpwdt as
-module by default with NMI_DECODING enabled").
+When CONFIG_PCI is not enabled, CONFIG_EISA=y, and CONFIG_GENERIC_IOMAP=y,
+drivers/net/3c59x.c build fails due to a recent small change to
+<asm-generic/iomap.h> that surrounds pci_iomap() and pci_iounmap() with
+#ifdef CONFIG_PCI/#endif.  Since that patch to iomap.h looks correct, add
+stubs for pci_iomap() and pci_iounmap() with CONFIG_PCI is not enabled to
+fix the build errors.
 
-With the above change applied, hpwdt will be enabled unconditionally by
-just entering the Watchdog subscreen in menuconfig.  Since this driver is
-not essential to boot any box it should remain disabled until it gets
-manually enabled, just like all other drivers.
+drivers/net/3c59x.c:1026: error: implicit declaration of function 'pci_iomap'
+drivers/net/3c59x.c:1038: error: implicit declaration of function 'pci_iounmap'
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: Tony Camuso <tcamuso@redhat.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ include/asm-generic/iomap.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/watchdog/Kconfig~watchdog-fix-hpwdt-kconfig-regression-in-30-rc drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~watchdog-fix-hpwdt-kconfig-regression-in-30-rc
-+++ a/drivers/watchdog/Kconfig
-@@ -609,7 +609,6 @@ config IT87_WDT
- config HP_WATCHDOG
- 	tristate "HP ProLiant iLO2+ Hardware Watchdog Timer"
- 	depends on X86
--	default m
- 	help
- 	  A software monitoring watchdog and NMI sourcing driver. This driver
- 	  will detect lockups and provide a stack trace. This is a driver that
+diff -puN include/asm-generic/iomap.h~asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap include/asm-generic/iomap.h
+--- a/include/asm-generic/iomap.h~asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap
++++ a/include/asm-generic/iomap.h
+@@ -71,6 +71,14 @@ extern void ioport_unmap(void __iomem *)
+ struct pci_dev;
+ extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
+ extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
++#else
++struct pci_dev;
++static inline void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max)
++{
++	return NULL;
++}
++static inline void pci_iounmap(struct pci_dev *dev, void __iomem *addr)
++{ }
+ #endif
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
+kernel-makefile-prevent-unnecessary-rebuilding-due-to-config_datagz.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+um-clean-up-vm-flagsh.patch
+asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
+kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
