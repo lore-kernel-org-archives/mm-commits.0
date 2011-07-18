@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-use-err_cast-for-err-ptr-tossing-in-lookup_instantiate_filp.patch added to -mm tree
-Date: Mon, 18 Jul 2011 13:23:45 -0700
-Message-ID: <201107182023.p6IKNj0q025681@imap1.linux-foundation.org>
+Subject: + xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh.patch added to -mm tree
+Date: Mon, 18 Jul 2011 13:36:47 -0700
+Message-ID: <201107182036.p6IKalj9026406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239Ab1GRUXr (ORCPT
+	by vger.kernel.org with ESMTP id S1750752Ab1GRUgt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Jul 2011 16:23:47 -0400
+	Mon, 18 Jul 2011 16:36:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, viro@zeniv.linux.org.uk
+Cc: xiyou.wangcong@gmail.com, chris@zankel.net
 
 
 The patch titled
-     vfs: use ERR_CAST for err-ptr tossing in lookup_instantiate_filp
+     xtensa: fix a build error in arch/xtensa/include/asm/uaccess.h
 has been added to the -mm tree.  Its filename is
-     vfs-use-err_cast-for-err-ptr-tossing-in-lookup_instantiate_filp.patch
+     xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: use ERR_CAST for err-ptr tossing in lookup_instantiate_filp
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: xtensa: fix a build error in arch/xtensa/include/asm/uaccess.h
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Replace unclear (struct dentry *) to (struct file *) typecast with
-ERR_CAST() macro.
+Fix the following build error:
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+src/arch/xtensa/include/asm/uaccess.h:403: error: implicit declaration
+of function 'prefetch': 1 errors in 1 logs
+        v3.0-rc6/xtensa/xtensa-defconfig
+src/arch/xtensa/include/asm/uaccess.h:412: error: implicit declaration
+of function 'prefetchw': 1 errors in 1 logs
+        v3.0-rc6/xtensa/xtensa-defconfig
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/include/asm/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/open.c~vfs-use-err_cast-for-err-ptr-tossing-in-lookup_instantiate_filp fs/open.c
---- a/fs/open.c~vfs-use-err_cast-for-err-ptr-tossing-in-lookup_instantiate_filp
-+++ a/fs/open.c
-@@ -793,7 +793,7 @@ out:
- 	return nd->intent.open.file;
- out_err:
- 	release_open_intent(nd);
--	nd->intent.open.file = (struct file *)dentry;
-+	nd->intent.open.file = ERR_CAST(dentry);
- 	goto out;
- }
- EXPORT_SYMBOL_GPL(lookup_instantiate_filp);
+diff -puN arch/xtensa/include/asm/uaccess.h~xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh arch/xtensa/include/asm/uaccess.h
+--- a/arch/xtensa/include/asm/uaccess.h~xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh
++++ a/arch/xtensa/include/asm/uaccess.h
+@@ -17,6 +17,7 @@
+ #define _XTENSA_UACCESS_H
+ 
+ #include <linux/errno.h>
++#include <linux/prefetch.h>
+ 
+ #define VERIFY_READ    0
+ #define VERIFY_WRITE   1
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-mm-remove-useless-rcu-lock-unlock-from-mapping_tagged.patch
-vfs-use-err_cast-for-err-ptr-tossing-in-lookup_instantiate_filp.patch
+xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh.patch
+linux-next.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+mm-remove-the-leftovers-of-noswapaccount.patch
+cris-fix-some-build-warnings-in-pinmuxc.patch
+kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
+gcov-disable-constructors-for-uml.patch
+include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
