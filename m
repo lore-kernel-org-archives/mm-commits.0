@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + panic-panic=-1-for-immediate-reboot.patch added to -mm tree
-Date: Mon, 18 Jul 2011 15:40:23 -0700
-Message-ID: <201107182240.p6IMeORR032501@imap1.linux-foundation.org>
+Subject: + vmscan-fix-a-livelock-in-kswapd.patch added to -mm tree
+Date: Tue, 19 Jul 2011 08:47:42 -0700
+Message-ID: <201107191544.p6JFiiC9008902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750933Ab1GRWlS (ORCPT
+	by vger.kernel.org with ESMTP id S1751853Ab1GSPpc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Jul 2011 18:41:18 -0400
+	Tue, 19 Jul 2011 11:45:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@chromium.org, airlied@gmail.com, ak@linux.intel.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hughd@google.com, jbarnes@virtuousgeek.org, msb@chromium.org, olaf@aepfle.de, ying.huang@intel.com
+Cc: shaohua.li@intel.com, mgorman@suse.de, minchan.kim@gmail.com, stable@kernel.org
 
 
 The patch titled
-     panic: panic=-1 for immediate reboot
+     vmscan: fix a livelock in kswapd
 has been added to the -mm tree.  Its filename is
-     panic-panic=-1-for-immediate-reboot.patch
+     vmscan-fix-a-livelock-in-kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: panic: panic=-1 for immediate reboot
-From: Hugh Dickins <hughd@chromium.org>
+Subject: vmscan: fix a livelock in kswapd
+From: Shaohua Li <shaohua.li@intel.com>
 
-When kernel BUG or oops occurs, ChromeOS intends to panic and immediately
-reboot, with stacktrace and other messages preserved in RAM across reboot.
- But the longer we delay, the more likely the user is to poweroff and lose
-the info.
+I'm running a workload which triggers a lot of swap in a machine with 4 nodes.
+After I kill the workload, I found a kswapd livelock. Sometimes kswapd3 or
+kswapd2 are keeping running and I can't access filesystem, but most memory is
+free.
 
-panic_timeout (seconds before rebooting) is set by panic= boot option or
-sysctl or /proc/sys/kernel/panic; but 0 means wait forever, so at present
-we have to delay at least 1 second.
+This looks like a regression since commit 08951e545918c159 ("mm: vmscan:
+correct check for kswapd sleeping in sleeping_prematurely").
 
-Let a negative number mean reboot immediately (with the small cosmetic
-benefit of suppressing that newline-less "Rebooting in %d seconds.."
-message).
+Node 2 and 3 have only ZONE_NORMAL, but balance_pgdat() will return 0 for
+classzone_idx.  The reason is end_zone in balance_pgdat() is 0 by default,
+if all zones have watermark ok, end_zone will keep 0.
 
-Signed-off-by: Hugh Dickins <hughd@chromium.org>
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Later sleeping_prematurely() always returns true.  Because this is an
+order 3 wakeup, and if classzone_idx is 0, both balanced_pages and
+present_pages in pgdat_balanced() are 0.  We add a special case here.  If
+a zone has no page, we think it's balanced.  This fixes the livelock.
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 +++-
- kernel/panic.c                      |    2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~panic-panic=-1-for-immediate-reboot Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~panic-panic=-1-for-immediate-reboot
-+++ a/Documentation/kernel-parameters.txt
-@@ -1851,7 +1851,9 @@ bytes respectively. Such letter suffixes
- 			See Documentation/sound/oss/oss-parameters.txt
+diff -puN mm/vmscan.c~vmscan-fix-a-livelock-in-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-a-livelock-in-kswapd
++++ a/mm/vmscan.c
+@@ -2310,7 +2310,8 @@ static bool pgdat_balanced(pg_data_t *pg
+ 	for (i = 0; i <= classzone_idx; i++)
+ 		present_pages += pgdat->node_zones[i].present_pages;
  
- 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
--			seconds before rebooting
-+			timeout > 0: seconds before rebooting
-+			timeout = 0: wait forever
-+			timeout < 0: reboot immediately
- 			Format: <timeout>
+-	return balanced_pages > (present_pages >> 2);
++	/* A special case here: if zone has no page, we think it's balanced */
++	return balanced_pages >= (present_pages >> 2);
+ }
  
- 	parkbd.port=	[HW] Parallel port number the keyboard adapter is
-diff -puN kernel/panic.c~panic-panic=-1-for-immediate-reboot kernel/panic.c
---- a/kernel/panic.c~panic-panic=-1-for-immediate-reboot
-+++ a/kernel/panic.c
-@@ -119,6 +119,8 @@ NORET_TYPE void panic(const char * fmt, 
- 			}
- 			mdelay(PANIC_TIMER_STEP);
- 		}
-+	}
-+	if (panic_timeout != 0) {
- 		/*
- 		 * This will not be a clean reboot, with everything
- 		 * shutting down.  But if there is a chance of
+ /* is kswapd sleeping prematurely? */
 _
 
-Patches currently in -mm which might be from hughd@chromium.org are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-panic-panic=-1-for-immediate-reboot.patch
+vmscan-fix-a-livelock-in-kswapd.patch
+linux-next.patch
+acpi-add-missing-_osi-strings-resend.patch
+tmpfs-simplify-prealloc_page.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
 
