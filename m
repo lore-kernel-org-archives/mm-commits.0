@@ -1,86 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch removed from -mm tree
-Date: Thu, 21 Jul 2011 12:12:20 -0700
-Message-ID: <201107211912.p6LJCDfr032233@imap1.linux-foundation.org>
+Subject: [merged] vmscan-fix-a-livelock-in-kswapd.patch removed from -mm tree
+Date: Thu, 21 Jul 2011 12:12:22 -0700
+Message-ID: <201107211912.p6LJCFmB032236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189Ab1GUTMS (ORCPT
+	by vger.kernel.org with ESMTP id S1753189Ab1GUTMV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jul 2011 15:12:18 -0400
+	Thu, 21 Jul 2011 15:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, mgorman@suse.de, minchan.kim@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/libfs.c: fix simple_attr_write() on 32bit machines
+     vmscan: fix a livelock in kswapd
 has been removed from the -mm tree.  Its filename was
-     fs-libfsc-fix-simple_attr_write-on-32bit-machines.patch
+     vmscan-fix-a-livelock-in-kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/libfs.c: fix simple_attr_write() on 32bit machines
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: vmscan: fix a livelock in kswapd
+From: Shaohua Li <shaohua.li@intel.com>
 
-Assume that /sys/kernel/debug/dummy64 is debugfs file created by
-debugfs_create_x64().
+I'm running a workload which triggers a lot of swap in a machine with 4 nodes.
+After I kill the workload, I found a kswapd livelock. Sometimes kswapd3 or
+kswapd2 are keeping running and I can't access filesystem, but most memory is
+free.
 
-	# cd /sys/kernel/debug
-	# echo 0x1234567812345678 > dummy64
-	# cat dummy64
-	0x0000000012345678
+This looks like a regression since commit 08951e545918c159 ("mm: vmscan:
+correct check for kswapd sleeping in sleeping_prematurely").
 
-	# echo 0x80000000 > dummy64
-	# cat dummy64
-	0xffffffff80000000
+Node 2 and 3 have only ZONE_NORMAL, but balance_pgdat() will return 0 for
+classzone_idx.  The reason is end_zone in balance_pgdat() is 0 by default,
+if all zones have watermark ok, end_zone will keep 0.
 
-A value larger than INT_MAX cannot be written to the debugfs file created
-by debugfs_create_u64 or debugfs_create_x64 on 32bit machine.  Because
-simple_attr_write() uses simple_strtol() for the conversion.
+Later sleeping_prematurely() always returns true.  Because this is an
+order 3 wakeup, and if classzone_idx is 0, both balanced_pages and
+present_pages in pgdat_balanced() are 0.  We add a special case here.  If
+a zone has no page, we think it's balanced.  This fixes the livelock.
 
-To fix this, use simple_strtoll() instead.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/libfs.c~fs-libfsc-fix-simple_attr_write-on-32bit-machines fs/libfs.c
---- a/fs/libfs.c~fs-libfsc-fix-simple_attr_write-on-32bit-machines
-+++ a/fs/libfs.c
-@@ -822,7 +822,7 @@ ssize_t simple_attr_write(struct file *f
- 		goto out;
+diff -puN mm/vmscan.c~vmscan-fix-a-livelock-in-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-a-livelock-in-kswapd
++++ a/mm/vmscan.c
+@@ -2310,7 +2310,8 @@ static bool pgdat_balanced(pg_data_t *pg
+ 	for (i = 0; i <= classzone_idx; i++)
+ 		present_pages += pgdat->node_zones[i].present_pages;
  
- 	attr->set_buf[size] = '\0';
--	val = simple_strtol(attr->set_buf, NULL, 0);
-+	val = simple_strtoll(attr->set_buf, NULL, 0);
- 	ret = attr->set(attr->data, val);
- 	if (ret == 0)
- 		ret = len; /* on success, claim we got the whole input */
+-	return balanced_pages > (present_pages >> 2);
++	/* A special case here: if zone has no page, we think it's balanced */
++	return balanced_pages >= (present_pages >> 2);
+ }
+ 
+ /* is kswapd sleeping prematurely? */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
-reiserfs-use-proper-little-endian-bitops.patch
-reiserfs-use-hweight_long.patch
-fault-injection-do-not-include-unneeded-header.patch
-fault-injection-remove-nonexistent-function-extern.patch
-fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
-fault-injection-use-debugfs_remove_recursive.patch
-failslab-simplify-debugfs-initialization.patch
-fail_page_alloc-simplify-debugfs-initialization.patch
-fail_make_request-cleanup-should_fail_request.patch
-asm-generic-add-another-generic-ext2-atomic-bitops.patch
+acpi-add-missing-_osi-strings-resend.patch
+tmpfs-simplify-prealloc_page.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
 
