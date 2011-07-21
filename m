@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-make-_tolower-public-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Jul 2011 15:50:12 -0700
-Message-ID: <201107212250.p6LMoCNY014130@imap1.linux-foundation.org>
+Subject: + mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 21 Jul 2011 15:36:45 -0700
+Message-ID: <201107212236.p6LMajkv013360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751720Ab1GUWuP (ORCPT
+	by vger.kernel.org with ESMTP id S1751505Ab1GUWyV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jul 2011 18:50:15 -0400
+	Thu, 21 Jul 2011 18:54:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, andriy.shevchenko@linux.intel.com
+Cc: akpm@linux-foundation.org, David.Laight@ACULAB.COM, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, darren.hart@intel.com, haishan.bai@gmail.com
 
 
 The patch titled
-     lib-make-_tolower-public-checkpatch-fixes
+     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lib-make-_tolower-public-checkpatch-fixes.patch
+     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-make-_tolower-public-checkpatch-fixes
+Subject: mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: please, no spaces at the start of a line
-#31: FILE: include/linux/ctype.h:61:
-+       return c | 0x20;$
+WARNING: email address '"David Laight" <David.Laight@ACULAB.COM>' might be better as 'David Laight <David.Laight@ACULAB.COM>'
+#23: 
+Cc: "David Laight" <David.Laight@ACULAB.COM>
 
-total: 0 errors, 1 warnings, 97 lines checked
+ERROR: trailing whitespace
+#105: FILE: mm/memory.c:1845:
++^I$
 
-./patches/lib-make-_tolower-public.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+total: 1 errors, 1 warnings, 83 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "David Laight" <David.Laight@ACULAB.COM>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Darren Hart <darren.hart@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Shan Hai <haishan.bai@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ctype.h |    2 +-
+ mm/memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ctype.h~lib-make-_tolower-public-checkpatch-fixes include/linux/ctype.h
---- a/include/linux/ctype.h~lib-make-_tolower-public-checkpatch-fixes
-+++ a/include/linux/ctype.h
-@@ -58,7 +58,7 @@ static inline unsigned char __toupper(un
-  */
- static inline char _tolower(const char c)
- {
--       return c | 0x20;
-+	return c | 0x20;
- }
- 
- #endif
+diff -puN include/linux/mm.h~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes include/linux/mm.h
+diff -puN kernel/futex.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes kernel/futex.c
+diff -puN mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1842,7 +1842,7 @@ int fixup_user_fault(struct task_struct 
+ 	vma = find_extend_vma(mm, address);
+ 	if (!vma || address < vma->vm_start)
+ 		return -EFAULT;
+-	
++
+ 	ret = handle_mm_fault(mm, vma, address, fault_flags);
+ 	if (ret & VM_FAULT_ERROR) {
+ 		if (ret & VM_FAULT_OOM)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +89,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 headers_check-is-broken.patch
 samples-hidraw-is-busted.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
 linux-next-rejects.patch
@@ -106,7 +118,6 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-make-_tolower-public-checkpatch-fixes.patch
 checkpatch-suggest-using-min_t-or-max_t-v2.patch
 checkpatch-add-a-prefer-__aligned-check.patch
 lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
