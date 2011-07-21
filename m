@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-truncatec-fix-build-for-config_block-not-enabled.patch added to -mm tree
-Date: Thu, 21 Jul 2011 14:01:17 -0700
-Message-ID: <201107212101.p6LL1H1f007298@imap1.linux-foundation.org>
+Subject: + cpu-cpu-notifier-error-injection.patch added to -mm tree
+Date: Thu, 21 Jul 2011 14:42:11 -0700
+Message-ID: <201107212142.p6LLgBKo010048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753912Ab1GUVBS (ORCPT
+	by vger.kernel.org with ESMTP id S1750868Ab1GUVmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jul 2011 17:01:18 -0400
+	Thu, 21 Jul 2011 17:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net
+Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     mm/truncate.c: fix build for CONFIG_BLOCK not enabled
+     cpu: CPU notifier error injection
 has been added to the -mm tree.  Its filename is
-     mm-truncatec-fix-build-for-config_block-not-enabled.patch
+     cpu-cpu-notifier-error-injection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/truncate.c: fix build for CONFIG_BLOCK not enabled
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: cpu: CPU notifier error injection
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Fix build error when CONFIG_BLOCK is not enabled by providing a stub
-inode_dio_wait() function.
+This provides the ability to inject artifical errors to CPU notifier chain
+callbacks.  It is controlled through debugfs interface under
+/sys/kernel/debug/cpu-notifier-error-inject/
 
-mm/truncate.c:612: error: implicit declaration of function 'inode_dio_wait'
+Each of the files in the directory represents an event which can be failed
+and contains the error code.  If the notifier call chain should be failed
+with some events notified, write the error code to the files.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Example1: inject CPU offline error (-1 == -EPERM)
+
+	# echo -1 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_UP_PREPARE
+	# echo 0 > /sys/devices/system/cpu/cpu1/online
+	bash: echo: write error: Operation not permitted
+
+Example2: inject CPU online error (-2 == -ENOENT)
+
+	# echo -2 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_DOWN_PREPARE
+	# echo 1 > /sys/devices/system/cpu/cpu1/online
+	bash: echo: write error: No such file or directory
+
+This also schedules cpu-notifier-error-inject.ko module for removal in
+favor of more generic interface.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/feature-removal-schedule.txt |    8 ++++
+ kernel/cpu.c                               |   31 +++++++++++++++++++
+ lib/Kconfig.debug                          |   20 ++++++++++++
+ 3 files changed, 59 insertions(+)
 
-diff -puN include/linux/fs.h~mm-truncatec-fix-build-for-config_block-not-enabled include/linux/fs.h
---- a/include/linux/fs.h~mm-truncatec-fix-build-for-config_block-not-enabled
-+++ a/include/linux/fs.h
-@@ -2418,6 +2418,10 @@ static inline ssize_t blockdev_direct_IO
- 				    offset, nr_segs, get_block, NULL, NULL,
- 				    DIO_LOCKING | DIO_SKIP_HOLES);
- }
-+#else
-+static inline void inode_dio_wait(struct inode *inode)
-+{
-+}
- #endif
+diff -puN Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection
++++ a/Documentation/feature-removal-schedule.txt
+@@ -616,3 +616,11 @@ Why:	This driver has been superseded by 
+ Who:	Alan Stern <stern@rowland.harvard.edu>
  
- extern const struct file_operations generic_ro_fops;
+ ----------------------------
++
++What:	Support for CPU_NOTIFIER_ERROR_INJECT (cpu-notifier-error-inject.ko)
++When:	3.3
++Why:	Replaced with more generic debugfs interface in
++	/sys/kernel/debug/cpu-notifier-error-inject/
++Who:	Akinobu Mita <akinobu.mita@gmail.com>
++
++----------------------------
+diff -puN kernel/cpu.c~cpu-cpu-notifier-error-injection kernel/cpu.c
+--- a/kernel/cpu.c~cpu-cpu-notifier-error-injection
++++ a/kernel/cpu.c
+@@ -170,6 +170,37 @@ void __ref unregister_cpu_notifier(struc
+ }
+ EXPORT_SYMBOL(unregister_cpu_notifier);
+ 
++#ifdef CONFIG_CPU_NOTIFIER_ERROR_INJECTION
++
++static struct err_inject_notifier_block err_inject_cpu_notifier = {
++	.actions = {
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE_FROZEN) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE_FROZEN) },
++		{}
++	}
++};
++
++static int __init err_inject_cpu_notifier_init(void)
++{
++	int err;
++
++	err = err_inject_notifier_block_init(&err_inject_cpu_notifier,
++				"cpu-notifier-error-inject", -1);
++	if (err)
++		return err;
++
++	err = register_hotcpu_notifier(&err_inject_cpu_notifier.nb);
++	if (err)
++		err_inject_notifier_block_cleanup(&err_inject_cpu_notifier);
++
++	return err;
++}
++late_initcall(err_inject_cpu_notifier_init);
++
++#endif /* CONFIG_CPU_NOTIFIER_ERROR_INJECTION */
++
+ static inline void check_for_tasks(int cpu)
+ {
+ 	struct task_struct *p;
+diff -puN lib/Kconfig.debug~cpu-cpu-notifier-error-injection lib/Kconfig.debug
+--- a/lib/Kconfig.debug~cpu-cpu-notifier-error-injection
++++ a/lib/Kconfig.debug
+@@ -1033,6 +1033,26 @@ config NOTIFIER_ERROR_INJECTION
+ 
+ 	  Say N if unsure.
+ 
++config CPU_NOTIFIER_ERROR_INJECTION
++	bool "CPU notifier error injection"
++	depends on HOTPLUG_CPU && NOTIFIER_ERROR_INJECTION
++	help
++	  This option provides the ability to inject artifical errors to
++	  CPU notifier chain callbacks.  It is controlled through debugfs
++	  interface under /sys/kernel/debug/cpu-notifier-error-inject/
++
++	  Each of the files in the directory represents an event which can be
++	  failed and contains the error code.  If the notifier call chain
++	  should be failed with some events notified, write the error code to
++	  the files.
++
++	  Example: Inject CPU offline error (-1 == -EPERM)
++
++	  # cd /sys/kernel/debug/cpu-notifier-error-inject
++	  # echo -1 > CPU_UP_PREPARE
++	  # echo 0 > /sys/devices/system/cpu/cpu1/online
++	  bash: echo: write error: Operation not permitted
++
+ config CPU_NOTIFIER_ERROR_INJECT
+ 	tristate "CPU notifier error injection module"
+ 	depends on HOTPLUG_CPU && DEBUG_KERNEL
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-truncatec-fix-build-for-config_block-not-enabled.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-um-clean-up-vm-flagsh.patch
-asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
-kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+reiserfs-use-proper-little-endian-bitops.patch
+reiserfs-use-hweight_long.patch
+fault-injection-do-not-include-unneeded-header.patch
+fault-injection-remove-nonexistent-function-extern.patch
+fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
+fault-injection-use-debugfs_remove_recursive.patch
+failslab-simplify-debugfs-initialization.patch
+fail_page_alloc-simplify-debugfs-initialization.patch
+fail_make_request-cleanup-should_fail_request.patch
+fault-injection-notifier-error-injection.patch
+cpu-cpu-notifier-error-injection.patch
+pm-pm-notifier-error-injection.patch
+memory-memory-notifier-error-injection.patch
+powerpc-pseries-reconfig-notifier-error-injection.patch
+asm-generic-add-another-generic-ext2-atomic-bitops.patch
 
