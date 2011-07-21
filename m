@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-memory-notifier-error-injection.patch added to -mm tree
-Date: Thu, 21 Jul 2011 14:42:15 -0700
-Message-ID: <201107212142.p6LLgGC5010054@imap1.linux-foundation.org>
+Subject: + powerpc-pseries-reconfig-notifier-error-injection.patch added to -mm tree
+Date: Thu, 21 Jul 2011 14:42:17 -0700
+Message-ID: <201107212142.p6LLgHUk010057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753085Ab1GUVmz (ORCPT
+	by vger.kernel.org with ESMTP id S1750799Ab1GUVm5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jul 2011 17:42:55 -0400
+	Thu, 21 Jul 2011 17:42:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, greg@kroah.com, paulus@sam
 
 
 The patch titled
-     memory: memory notifier error injection
+     powerpc: pSeries reconfig notifier error injection
 has been added to the -mm tree.  Its filename is
-     memory-memory-notifier-error-injection.patch
+     powerpc-pseries-reconfig-notifier-error-injection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory: memory notifier error injection
+Subject: powerpc: pSeries reconfig notifier error injection
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This provides the ability to inject artifical errors to memory hotplug
+This provides the ability to inject artifical errors to pSeries reconfig
 notifier chain callbacks.  It is controlled through debugfs interface
-under /sys/kernel/debug/memory-notifier-error-inject/
+under /sys/kernel/debug/pSeries-reconfig-notifier-error-inject/
 
 Each of the files in the directory represents an event which can be failed
 and contains the error code.  If the notifier call chain should be failed
 with some events notified, write the error code to the files.
-
-Example: Inject memory hotplug offline error (-12 == -ENOMEM)
-
-	# cd /sys/kernel/debug/memory-notifier-error-inject
-	# echo -12 > MEM_GOING_OFFLINE
-	# echo offline > /sys/devices/system/memory/memoryXXX/state
-	bash: echo: write error: Cannot allocate memory
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -61,70 +54,66 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   29 +++++++++++++++++++++++++++++
- lib/Kconfig.debug     |   15 +++++++++++++++
- 2 files changed, 44 insertions(+)
+ arch/powerpc/platforms/pseries/reconfig.c |   31 ++++++++++++++++++++
+ lib/Kconfig.debug                         |    9 +++++
+ 2 files changed, 40 insertions(+)
 
-diff -puN drivers/base/memory.c~memory-memory-notifier-error-injection drivers/base/memory.c
---- a/drivers/base/memory.c~memory-memory-notifier-error-injection
-+++ a/drivers/base/memory.c
-@@ -88,6 +88,35 @@ void unregister_memory_isolate_notifier(
+diff -puN arch/powerpc/platforms/pseries/reconfig.c~powerpc-pseries-reconfig-notifier-error-injection arch/powerpc/platforms/pseries/reconfig.c
+--- a/arch/powerpc/platforms/pseries/reconfig.c~powerpc-pseries-reconfig-notifier-error-injection
++++ a/arch/powerpc/platforms/pseries/reconfig.c
+@@ -117,6 +117,37 @@ int pSeries_reconfig_notify(unsigned lon
+ 	return notifier_to_errno(err);
  }
- EXPORT_SYMBOL(unregister_memory_isolate_notifier);
  
-+#ifdef CONFIG_MEMORY_NOTIFIER_ERROR_INJECTION
++#ifdef CONFIG_PSERIES_RECONFIG_NOTIFIER_ERROR_INJECTION
 +
-+static struct err_inject_notifier_block err_inject_memory_notifier = {
++static struct err_inject_notifier_block err_inject_reconfig_nb = {
 +	.actions = {
-+		{ ERR_INJECT_NOTIFIER_ACTION(MEM_GOING_ONLINE) },
-+		{ ERR_INJECT_NOTIFIER_ACTION(MEM_GOING_OFFLINE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PSERIES_RECONFIG_ADD) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PSERIES_RECONFIG_REMOVE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PSERIES_DRCONF_MEM_ADD) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PSERIES_DRCONF_MEM_REMOVE) },
 +		{}
 +	}
 +};
 +
-+static int __init err_inject_memory_notifier_init(void)
++static int __init err_inject_reconfig_notifier_init(void)
 +{
 +	int err;
 +
-+	err = err_inject_notifier_block_init(&err_inject_memory_notifier,
-+				"memory-notifier-error-inject", -1);
++	err = err_inject_notifier_block_init(&err_inject_reconfig_nb,
++			"pSeries-reconfig-notifier-error-inject", -1);
 +	if (err)
 +		return err;
 +
-+	err = register_memory_notifier(&err_inject_memory_notifier.nb);
++	err = pSeries_reconfig_notifier_register(&err_inject_reconfig_nb.nb);
 +	if (err)
-+		err_inject_notifier_block_cleanup(&err_inject_memory_notifier);
++		err_inject_notifier_block_cleanup(&err_inject_reconfig_nb);
 +
 +	return err;
 +}
-+late_initcall(err_inject_memory_notifier_init);
++late_initcall(err_inject_reconfig_notifier_init);
 +
-+#endif /* CONFIG_MEMORY_NOTIFIER_ERROR_INJECTION */
++#endif /* CONFIG_PSERIES_RECONFIG_NOTIFIER_ERROR_INJECTION */
 +
- /*
-  * register_memory - Setup a sysfs device for a memory block
-  */
-diff -puN lib/Kconfig.debug~memory-memory-notifier-error-injection lib/Kconfig.debug
---- a/lib/Kconfig.debug~memory-memory-notifier-error-injection
+ static int pSeries_reconfig_add_node(const char *path, struct property *proplist)
+ {
+ 	struct device_node *np;
+diff -puN lib/Kconfig.debug~powerpc-pseries-reconfig-notifier-error-injection lib/Kconfig.debug
+--- a/lib/Kconfig.debug~powerpc-pseries-reconfig-notifier-error-injection
 +++ a/lib/Kconfig.debug
-@@ -1069,6 +1069,21 @@ config PM_NOTIFIER_ERROR_INJECTION
- 	  # echo mem > /sys/power/state
+@@ -1084,6 +1084,15 @@ config MEMORY_NOTIFIER_ERROR_INJECTION
+ 	  # echo offline > /sys/devices/system/memory/memoryXXX/state
  	  bash: echo: write error: Cannot allocate memory
  
-+config MEMORY_NOTIFIER_ERROR_INJECTION
-+	bool "Memory hotplug notifier error injection"
-+	depends on MEMORY_HOTPLUG_SPARSE && NOTIFIER_ERROR_INJECTION
++config PSERIES_RECONFIG_NOTIFIER_ERROR_INJECTION
++	bool "pSeries reconfig notifier error injection"
++	depends on PPC_PSERIES && NOTIFIER_ERROR_INJECTION
 +	help
 +	  This option provides the ability to inject artifical errors to
-+	  memory hotplug notifier chain callbacks.  It is controlled through
-+	  debugfs interface.
-+
-+	  Example: Inject memory hotplug offline error (-12 == -ENOMEM)
-+
-+	  # cd /sys/kernel/debug/memory-notifier-error-inject
-+	  # echo -12 > MEM_GOING_OFFLINE
-+	  # echo offline > /sys/devices/system/memory/memoryXXX/state
-+	  bash: echo: write error: Cannot allocate memory
++	  pSeries reconfig notifier chain callbacks.  It is controlled
++	  through debugfs interface under
++	  /sys/kernel/debug/pSeries-reconfig-notifier-error-inject/
 +
  config CPU_NOTIFIER_ERROR_INJECT
  	tristate "CPU notifier error injection module"
