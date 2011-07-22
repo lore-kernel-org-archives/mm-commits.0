@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 22 Jul 2011 14:08:31 -0700
-Message-ID: <201107222108.p6ML8Vpg012392@imap1.linux-foundation.org>
+Subject: + memcg-do-not-try-to-drain-per-cpu-caches-without-pages.patch added to -mm tree
+Date: Fri, 22 Jul 2011 14:35:49 -0700
+Message-ID: <201107222135.p6MLZnO6013726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932158Ab1GVVIe (ORCPT
+	by vger.kernel.org with ESMTP id S932306Ab1GVVgC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 17:08:34 -0400
+	Fri, 22 Jul 2011 17:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ian.campbell@citrix.com
+Cc: mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes
+     memcg: do not try to drain per-cpu caches without pages
 has been added to the -mm tree.  Its filename is
-     mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch
+     memcg-do-not-try-to-drain-per-cpu-caches-without-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: do not try to drain per-cpu caches without pages
+From: Michal Hocko <mhocko@suse.cz>
 
-WARNING: please, no space before tabs
-#24: FILE: include/linux/page-flags.h:138:
-+static inline int Page##uname(const struct page *page) ^I^I^I\$
+drain_all_stock_async tries to optimize a work to be done on the work
+queue by excluding any work for the current CPU because it assumes that
+the context we are called from already tried to charge from that cache and
+it's failed so it must be empty already.
 
-WARNING: please, no space before tabs
-#33: FILE: include/linux/page-flags.h:176:
-+static inline int Page##uname(const struct page *page) ^I^I^I\$
+While the assumption is correct we can optimize it even more by checking
+the current number of pages in the cache.  This will also reduce a work on
+other CPUs with an empty stock.
 
-total: 0 errors, 2 warnings, 16 lines checked
+For the current CPU we can simply call drain_local_stock rather than
+deferring it to the work queue.
 
-./patches/mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ian Campbell <ian.campbell@citrix.com>
+[kamezawa.hiroyu@jp.fujitsu.com: use drain_local_stock for current CPU optimization]
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes
-+++ a/include/linux/page-flags.h
-@@ -135,7 +135,7 @@ enum pageflags {
-  * Macros to create function definitions for page flags
-  */
- #define TESTPAGEFLAG(uname, lname)					\
--static inline int Page##uname(const struct page *page) 			\
-+static inline int Page##uname(const struct page *page)			\
- 			{ return test_bit(PG_##lname, &page->flags); }
+diff -puN mm/memcontrol.c~memcg-do-not-try-to-drain-per-cpu-caches-without-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-try-to-drain-per-cpu-caches-without-pages
++++ a/mm/memcontrol.c
+@@ -2077,11 +2077,8 @@ static void drain_all_stock_async(struct
+ 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
+ 		struct mem_cgroup *mem;
  
- #define SETPAGEFLAG(uname, lname)					\
-@@ -173,7 +173,7 @@ static inline int __TestClearPage##uname
- 	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
- 
- #define PAGEFLAG_FALSE(uname) 						\
--static inline int Page##uname(const struct page *page) 			\
-+static inline int Page##uname(const struct page *page)			\
- 			{ return 0; }
- 
- #define TESTSCFLAG(uname, lname)					\
+-		if (cpu == curcpu)
+-			continue;
+-
+ 		mem = stock->cached;
+-		if (!mem)
++		if (!mem || !stock->nr_pages)
+ 			continue;
+ 		if (mem != root_mem) {
+ 			if (!root_mem->use_hierarchy)
+@@ -2090,8 +2087,12 @@ static void drain_all_stock_async(struct
+ 			if (!css_is_ancestor(&mem->css, &root_mem->css))
+ 				continue;
+ 		}
+-		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags))
+-			schedule_work_on(cpu, &stock->work);
++		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags)) {
++			if (cpu == curcpu)
++				drain_local_stock(&stock->work);
++			else
++				schedule_work_on(cpu, &stock->work);
++		}
+ 	}
+  	put_online_cpus();
+ 	mutex_unlock(&percpu_charge_mutex);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
-mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch
-xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
-arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-gma500-psb_intel_displayc-fix-build.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-mm-memoryc-remove-zap_block_size.patch
-mm-memblockc-avoid-abuse-of-red_inactive.patch
+mm-remove-the-leftovers-of-noswapaccount.patch
+mm-thp-minor-lock-simplification-in-__khugepaged_exit.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-make-_tolower-public-checkpatch-fixes.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-4.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+um-clean-up-vm-flagsh.patch
+memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions.patch
 memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+memcg-make-oom_lock-0-and-1-based-rather-than-counter.patch
+memcg-change-memcg_oom_mutex-to-spinlock.patch
+memcg-do-not-try-to-drain-per-cpu-caches-without-pages.patch
+memcg-unify-sync-and-async-per-cpu-charge-cache-draining.patch
+memcg-add-mem_cgroup_same_or_subtree-helper.patch
+memcg-get-rid-of-percpu_charge_mutex-lock.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
-ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue-fix.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
 
