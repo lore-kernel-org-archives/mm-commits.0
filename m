@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] um-set-__have_arch_gate_area-for-x86_64.patch removed from -mm tree
-Date: Fri, 22 Jul 2011 15:57:54 -0700
-Message-ID: <201107222257.p6MMvsKZ020184@imap1.linux-foundation.org>
+Subject: + um-set-__have_arch_gate_area-for-x86_64.patch added to -mm tree
+Date: Fri, 22 Jul 2011 16:00:18 -0700
+Message-ID: <201107222300.p6MN0IH1020303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752117Ab1GVW63 (ORCPT
+	by vger.kernel.org with ESMTP id S1752582Ab1GVXAv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:58:29 -0400
+	Fri, 22 Jul 2011 19:00:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: richard@nod.at
 
 
 The patch titled
      um: set __HAVE_ARCH_GATE_AREA for x86_64
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      um-set-__have_arch_gate_area-for-x86_64.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -37,9 +47,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/um/sys-x86_64/Makefile  |    2 +-
- arch/um/sys-x86_64/asm/elf.h |    1 +
+ arch/um/sys-x86_64/asm/elf.h |   10 ++++++++++
  arch/um/sys-x86_64/mem.c     |   26 ++++++++++++++++++++++++++
- 3 files changed, 28 insertions(+), 1 deletion(-)
+ 3 files changed, 37 insertions(+), 1 deletion(-)
 
 diff -puN arch/um/sys-x86_64/Makefile~um-set-__have_arch_gate_area-for-x86_64 arch/um/sys-x86_64/Makefile
 --- a/arch/um/sys-x86_64/Makefile~um-set-__have_arch_gate_area-for-x86_64
@@ -56,11 +66,20 @@ diff -puN arch/um/sys-x86_64/Makefile~um-set-__have_arch_gate_area-for-x86_64 ar
 diff -puN arch/um/sys-x86_64/asm/elf.h~um-set-__have_arch_gate_area-for-x86_64 arch/um/sys-x86_64/asm/elf.h
 --- a/arch/um/sys-x86_64/asm/elf.h~um-set-__have_arch_gate_area-for-x86_64
 +++ a/arch/um/sys-x86_64/asm/elf.h
-@@ -119,4 +119,5 @@ extern long elf_aux_hwcap;
+@@ -119,4 +119,14 @@ extern long elf_aux_hwcap;
  
  #define SET_PERSONALITY(ex) do ; while(0)
  
 +#define __HAVE_ARCH_GATE_AREA 1
++#define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
++struct linux_binprm;
++extern int arch_setup_additional_pages(struct linux_binprm *bprm,
++	int uses_interp);
++
++extern unsigned long um_vdso_addr;
++#define AT_SYSINFO_EHDR 33
++#define ARCH_DLINFO	NEW_AUX_ENT(AT_SYSINFO_EHDR, um_vdso_addr)
++
  #endif
 diff -puN /dev/null arch/um/sys-x86_64/mem.c
 --- /dev/null
@@ -110,6 +129,7 @@ uml-drivers-slip_userc-memory-leak-fix.patch
 uml-free-resources.patch
 um-disable-scan_elf_aux-on-x86_64.patch
 um-set-__have_arch_gate_area-for-i386.patch
+um-set-__have_arch_gate_area-for-x86_64.patch
 um-implement-a-x86_64-vdso.patch
 um-ajdust-size-of-pid_buf.patch
 um-remove-dead-code.patch
