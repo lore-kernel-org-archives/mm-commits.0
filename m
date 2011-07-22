@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-remove-dead-code.patch added to -mm tree
-Date: Fri, 22 Jul 2011 15:55:26 -0700
-Message-ID: <201107222255.p6MMtQix020055@imap1.linux-foundation.org>
+Subject: + um-ajdust-size-of-pid_buf.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:55:23 -0700
+Message-ID: <201107222255.p6MMtNYA020052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752421Ab1GVWzd (ORCPT
+	by vger.kernel.org with ESMTP id S1752421Ab1GVWzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:55:33 -0400
+	Fri, 22 Jul 2011 18:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at
+Cc: richard@nod.at, geert@linux-m68k.org
 
 
 The patch titled
-     um: remove dead code
+     um: adjust size of pid_buf
 has been added to the -mm tree.  Its filename is
-     um-remove-dead-code.patch
+     um-ajdust-size-of-pid_buf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: remove dead code
+Subject: um: adjust size of pid_buf
 From: Richard Weinberger <richard@nod.at>
 
-GCC 4.6's -Wunused-but-set-variable found some dead code.
+Linux can have pids up to 4*1024*1024.  To handle such huge numbers
+pid_buf needs to be larger.
 
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |    3 +--
- arch/um/drivers/line.c      |    3 +--
- arch/um/kernel/reboot.c     |    3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ arch/um/drivers/harddog_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/drivers/chan_kern.c~um-remove-dead-code arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~um-remove-dead-code
-+++ a/arch/um/drivers/chan_kern.c
-@@ -543,11 +543,10 @@ int parse_chan_pair(char *str, struct li
- 		    const struct chan_opts *opts, char **error_out)
+diff -puN arch/um/drivers/harddog_user.c~um-ajdust-size-of-pid_buf arch/um/drivers/harddog_user.c
+--- a/arch/um/drivers/harddog_user.c~um-ajdust-size-of-pid_buf
++++ a/arch/um/drivers/harddog_user.c
+@@ -32,7 +32,7 @@ int start_watchdog(int *in_fd_ret, int *
  {
- 	struct list_head *chans = &line->chan_list;
--	struct chan *new, *chan;
-+	struct chan *new;
- 	char *in, *out;
- 
- 	if (!list_empty(chans)) {
--		chan = list_entry(chans->next, struct chan, list);
- 		free_chan(chans, 0);
- 		INIT_LIST_HEAD(chans);
- 	}
-diff -puN arch/um/drivers/line.c~um-remove-dead-code arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~um-remove-dead-code
-+++ a/arch/um/drivers/line.c
-@@ -176,10 +176,9 @@ void line_flush_buffer(struct tty_struct
- {
- 	struct line *line = tty->driver_data;
- 	unsigned long flags;
--	int err;
- 
- 	spin_lock_irqsave(&line->lock, flags);
--	err = flush_buffer(line);
-+	flush_buffer(line);
- 	spin_unlock_irqrestore(&line->lock, flags);
- }
- 
-diff -puN arch/um/kernel/reboot.c~um-remove-dead-code arch/um/kernel/reboot.c
---- a/arch/um/kernel/reboot.c~um-remove-dead-code
-+++ a/arch/um/kernel/reboot.c
-@@ -20,9 +20,8 @@ static void kill_off_processes(void)
- 		os_kill_ptraced_process(userspace_pid[0], 1);
- 	else {
- 		struct task_struct *p;
--		int pid, me;
-+		int pid;
- 
--		me = os_getpid();
- 		for_each_process(p) {
- 			if (p->mm == NULL)
- 				continue;
+ 	struct dog_data data;
+ 	int in_fds[2], out_fds[2], pid, n, err;
+-	char pid_buf[sizeof("nnnnn\0")], c;
++	char pid_buf[sizeof("nnnnnnn\0")], c;
+ 	char *pid_args[] = { "/usr/bin/uml_watchdog", "-pid", pid_buf, NULL };
+ 	char *mconsole_args[] = { "/usr/bin/uml_watchdog", "-mconsole", NULL,
+ 				  NULL };
 _
 
 Patches currently in -mm which might be from richard@nod.at are
