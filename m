@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-firmware-sigmac-needs-module_license.patch added to -mm tree
-Date: Fri, 22 Jul 2011 15:33:57 -0700
-Message-ID: <201107222233.p6MMXvch019065@imap1.linux-foundation.org>
+Subject: + uml-drivers-net_userc-memory-leak-fix.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:34:35 -0700
+Message-ID: <201107222234.p6MMYZ0U019082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59119 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772Ab1GVWeA (ORCPT
+	by vger.kernel.org with ESMTP id S1752232Ab1GVWeo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:34:00 -0400
+	Fri, 22 Jul 2011 18:34:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, stable@kernel.org, vapier@gentoo.org
+Cc: vitalivanov@gmail.com, richard@nod.at
 
 
 The patch titled
-     drivers/firmware/sigma.c needs MODULE_LICENSE
+     uml: drivers/net_user.c memory leak fix
 has been added to the -mm tree.  Its filename is
-     drivers-firmware-sigmac-needs-module_license.patch
+     uml-drivers-net_userc-memory-leak-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/firmware/sigma.c needs MODULE_LICENSE
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: uml: drivers/net_user.c memory leak fix
+From: Vitaliy Ivanov <vitalivanov@gmail.com>
 
-Fix module tainting message:
-sigma: module license 'unspecified' taints kernel.
+Perform memory cleanup on exit.  On receiving invalid 'pid' we still
+should clean 'output' variable.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Vitaliy Ivanov <vitalivanov@gmail.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/sigma.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/um/drivers/net_user.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license drivers/firmware/sigma.c
---- a/drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license
-+++ a/drivers/firmware/sigma.c
-@@ -11,6 +11,7 @@
- #include <linux/firmware.h>
- #include <linux/kernel.h>
- #include <linux/i2c.h>
-+#include <linux/module.h>
- #include <linux/sigma.h>
+diff -puN arch/um/drivers/net_user.c~uml-drivers-net_userc-memory-leak-fix arch/um/drivers/net_user.c
+--- a/arch/um/drivers/net_user.c~uml-drivers-net_userc-memory-leak-fix
++++ a/arch/um/drivers/net_user.c
+@@ -228,7 +228,10 @@ static void change(char *dev, char *what
+ 		       "buffer\n");
  
- /* Return: 0==OK, <0==error, =1 ==no more actions */
-@@ -113,3 +114,5 @@ int process_sigma_firmware(struct i2c_cl
- 	return ret;
- }
- EXPORT_SYMBOL(process_sigma_firmware);
-+
-+MODULE_LICENSE("GPL");
+ 	pid = change_tramp(argv, output, output_len);
+-	if (pid < 0) return;
++	if (pid < 0) {
++		kfree(output);
++		return;
++	}
+ 
+ 	if (output != NULL) {
+ 		printk("%s", output);
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from vitalivanov@gmail.com are
 
 linux-next.patch
-mm-truncatec-fix-build-for-config_block-not-enabled.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-um-clean-up-vm-flagsh.patch
-asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
-kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-firmware-sigmac-needs-module_license.patch
-misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+um-fix-_fortify_source=2-support-for-kernel-modules.patch
+uml-drivers-net_userc-memory-leak-fix.patch
+gcov-disable-constructors-for-uml.patch
 
