@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-handle-errors-correctly-in-rtc_irq_set_state.patch added to -mm tree
-Date: Fri, 22 Jul 2011 15:11:42 -0700
-Message-ID: <201107222211.p6MMBgFJ018066@imap1.linux-foundation.org>
+Subject: + rtc-limit-frequency.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:11:44 -0700
+Message-ID: <201107222211.p6MMBixa018070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750916Ab1GVWMB (ORCPT
+	by vger.kernel.org with ESMTP id S1750956Ab1GVWME (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:12:01 -0400
+	Fri, 22 Jul 2011 18:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, greearb@candelatech.com, john.stultz@linaro.org, mingo@e
 
 
 The patch titled
-     rtc: handle errors correctly in rtc_irq_set_state()
+     rtc: limit frequency
 has been added to the -mm tree.  Its filename is
-     rtc-handle-errors-correctly-in-rtc_irq_set_state.patch
+     rtc-limit-frequency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: handle errors correctly in rtc_irq_set_state()
+Subject: rtc: limit frequency
 From: Thomas Gleixner <tglx@linutronix.de>
 
-The code checks the correctness of the parameters, but unconditionally
-arms/disarms the hrtimer.
+The RTC hrtimer is self rearming.  We really need to limit the frequency
+to something sensible.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: John Stultz <john.stultz@linaro.org>
@@ -48,29 +48,21 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/interface.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/interface.c~rtc-handle-errors-correctly-in-rtc_irq_set_state drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-handle-errors-correctly-in-rtc_irq_set_state
+diff -puN drivers/rtc/interface.c~rtc-limit-frequency drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-limit-frequency
 +++ a/drivers/rtc/interface.c
-@@ -656,6 +656,8 @@ int rtc_irq_set_state(struct rtc_device 
- 		err = -EBUSY;
- 	if (rtc->irq_task != task)
- 		err = -EACCES;
-+	if (err)
-+		goto out;
+@@ -688,7 +688,7 @@ int rtc_irq_set_freq(struct rtc_device *
+ 	int err = 0;
+ 	unsigned long flags;
  
- 	if (enabled) {
- 		ktime_t period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
-@@ -664,6 +666,7 @@ int rtc_irq_set_state(struct rtc_device 
- 		hrtimer_cancel(&rtc->pie_timer);
- 	}
- 	rtc->pie_enabled = enabled;
-+out:
- 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
+-	if (freq <= 0)
++	if (freq <= 0 || freq > 5000)
+ 		return -EINVAL;
  
- 	return err;
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
