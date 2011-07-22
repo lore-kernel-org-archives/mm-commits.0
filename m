@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-cow_userc-warning-corrections.patch added to -mm tree
-Date: Fri, 22 Jul 2011 15:55:07 -0700
-Message-ID: <201107222255.p6MMt7Sg020022@imap1.linux-foundation.org>
+Subject: + uml-helperc-warning-corrections.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:55:09 -0700
+Message-ID: <201107222255.p6MMt91Z020025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752421Ab1GVWzP (ORCPT
+	by vger.kernel.org with ESMTP id S1752421Ab1GVWzQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:55:15 -0400
+	Fri, 22 Jul 2011 18:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vitalivanov@gmail.com, richard@nod.at
 
 
 The patch titled
-     uml: cow_user.c warning corrections
+     uml: helper.c warning corrections
 has been added to the -mm tree.  Its filename is
-     uml-cow_userc-warning-corrections.patch
+     uml-helperc-warning-corrections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: cow_user.c warning corrections
+Subject: uml: helper.c warning corrections
 From: Vitaliy Ivanov <vitalivanov@gmail.com>
 
-arch/um/drivers/cow_user.c: In function `absolutize':
-arch/um/drivers/cow_user.c:189:7: warning: ignoring return value of `chdir', declared with attribute warn_unused_result
+arch/um/os-Linux/helper.c: In function `helper_child':
+arch/um/os-Linux/helper.c:38:7: warning: ignoring return value of `write', declared with attribute warn_unused_result
 
 [richard@nod.at: happens only with -D_FORTIFY_SOURCE=2]
 Signed-off-by: Vitaliy Ivanov <vitalivanov@gmail.com>
@@ -46,25 +46,29 @@ Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/cow_user.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/um/os-Linux/helper.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/drivers/cow_user.c~uml-cow_userc-warning-corrections arch/um/drivers/cow_user.c
---- a/arch/um/drivers/cow_user.c~uml-cow_userc-warning-corrections
-+++ a/arch/um/drivers/cow_user.c
-@@ -186,7 +186,11 @@ static int absolutize(char *to, int size
- 		strcat(to, "/");
- 		strcat(to, from);
- 	}
--	chdir(save_cwd);
-+	if (chdir(save_cwd)) {
-+		cow_printf("absolutize : Can't cd to '%s' - "
-+			   "errno = %d\n", save_cwd, errno);
-+		return -1;
-+	}
+diff -puN arch/um/os-Linux/helper.c~uml-helperc-warning-corrections arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-helperc-warning-corrections
++++ a/arch/um/os-Linux/helper.c
+@@ -28,14 +28,14 @@ static int helper_child(void *arg)
+ {
+ 	struct helper_data *data = arg;
+ 	char **argv = data->argv;
+-	int err;
++	int err, ret;
+ 
+ 	if (data->pre_exec != NULL)
+ 		(*data->pre_exec)(data->pre_data);
+ 	err = execvp_noalloc(data->buf, argv[0], argv);
+ 
+ 	/* If the exec succeeds, we don't get here */
+-	write(data->fd, &err, sizeof(err));
++	CATCH_EINTR(ret = write(data->fd, &err, sizeof(err)));
+ 
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from vitalivanov@gmail.com are
