@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-behavior-of-mem_cgroup_resize_limit.patch added to -mm tree
-Date: Fri, 22 Jul 2011 15:32:48 -0700
-Message-ID: <201107222232.p6MMWmaC019003@imap1.linux-foundation.org>
+Subject: + drivers-firmware-sigmac-needs-module_license.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:33:57 -0700
+Message-ID: <201107222233.p6MMXvch019065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030Ab1GVWdD (ORCPT
+	by vger.kernel.org with ESMTP id S1751772Ab1GVWeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:33:03 -0400
+	Fri, 22 Jul 2011 18:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@kernel.org, yinghan@google.com
+Cc: rdunlap@xenotime.net, stable@kernel.org, vapier@gentoo.org
 
 
 The patch titled
-     memcg: fix behavior of mem_cgroup_resize_limit()
+     drivers/firmware/sigma.c needs MODULE_LICENSE
 has been added to the -mm tree.  Its filename is
-     memcg-fix-behavior-of-mem_cgroup_resize_limit.patch
+     drivers-firmware-sigmac-needs-module_license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix behavior of mem_cgroup_resize_limit()
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: drivers/firmware/sigma.c needs MODULE_LICENSE
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-22a668d7 ("memcg: fix behavior under memory.limit equals to memsw.limit")
-introduced "memsw_is_minimum" flag, which becomes true when mem_limit ==
-memsw_limit.  The flag is checked at the beginning of reclaim, and
-"noswap" is set if the flag is true, because using swap is meaningless in
-this case.
+Fix module tainting message:
+sigma: module license 'unspecified' taints kernel.
 
-This works well in most cases, but when we try to shrink mem_limit, which
-is the same as memsw_limit now, we might fail to shrink mem_limit because
-swap doesn't used.
-
-This patch fixes this behavior by:
-- check MEM_CGROUP_RECLAIM_SHRINK at the begining of reclaim
-- If it is set, don't set "noswap" flag even if memsw_is_minimum is true.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/sigma.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-behavior-of-mem_cgroup_resize_limit mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-behavior-of-mem_cgroup_resize_limit
-+++ a/mm/memcontrol.c
-@@ -1652,7 +1652,7 @@ static int mem_cgroup_hierarchical_recla
- 	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
+diff -puN drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license drivers/firmware/sigma.c
+--- a/drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license
++++ a/drivers/firmware/sigma.c
+@@ -11,6 +11,7 @@
+ #include <linux/firmware.h>
+ #include <linux/kernel.h>
+ #include <linux/i2c.h>
++#include <linux/module.h>
+ #include <linux/sigma.h>
  
- 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
--	if (!check_soft && root_mem->memsw_is_minimum)
-+	if (!check_soft && !shrink && root_mem->memsw_is_minimum)
- 		noswap = true;
- 
- 	while (1) {
+ /* Return: 0==OK, <0==error, =1 ==no more actions */
+@@ -113,3 +114,5 @@ int process_sigma_firmware(struct i2c_cl
+ 	return ret;
+ }
+ EXPORT_SYMBOL(process_sigma_firmware);
++
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
-memcg-fix-vmscan-count-in-small-memcgs.patch
-memcg-fix-behavior-of-mem_cgroup_resize_limit.patch
-memcg-add-memoryvmscan_stat.patch
+linux-next.patch
+mm-truncatec-fix-build-for-config_block-not-enabled.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+um-clean-up-vm-flagsh.patch
+asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
+kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-firmware-sigmac-needs-module_license.patch
+misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
