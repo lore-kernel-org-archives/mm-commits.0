@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_same_or_subtree-helper.patch added to -mm tree
-Date: Fri, 22 Jul 2011 14:35:53 -0700
-Message-ID: <201107222135.p6MLZr7H013737@imap1.linux-foundation.org>
+Subject: + rtc-fix-hrtimer-deadlock.patch added to -mm tree
+Date: Fri, 22 Jul 2011 15:11:46 -0700
+Message-ID: <201107222211.p6MMBk5M018076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932269Ab1GVVgA (ORCPT
+	by vger.kernel.org with ESMTP id S1750956Ab1GVWMC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jul 2011 17:36:00 -0400
+	Fri, 22 Jul 2011 18:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: tglx@linutronix.de, greearb@candelatech.com, john.stultz@linaro.org, mingo@elte.hu, stable@kernel.org
 
 
 The patch titled
-     memcg: add mem_cgroup_same_or_subtree() helper
+     rtc: fix hrtimer deadlock
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_same_or_subtree-helper.patch
+     rtc-fix-hrtimer-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,142 +34,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_same_or_subtree() helper
-From: Michal Hocko <mhocko@suse.cz>
+Subject: rtc: fix hrtimer deadlock
+From: Thomas Gleixner <tglx@linutronix.de>
 
-We are checking whether a given two groups are same or at least in the
-same subtree of a hierarchy at several places.  Let's make a helper for it
-to make code easier to read.
+Ben reported a lockup related to rtc. The lockup happens due to:
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+CPU0                                        CPU1
+
+rtc_irq_set_state()			    __run_hrtimer()
+  spin_lock_irqsave(&rtc->irq_task_lock)    rtc_handle_legacy_irq();
+					      spin_lock(&rtc->irq_task_lock);
+  hrtimer_cancel()
+    while (callback_running);
+
+So the running callback never finishes as it's blocked on
+rtc->irq_task_lock.
+
+Use hrtimer_try_to_cancel() instead and drop rtc->irq_task_lock while
+waiting for the callback.  Fix this for both rtc_irq_set_state() and
+rtc_irq_set_freq().
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Ben Greear <greearb@candelatech.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   51 +++++++++++++++++++++++-----------------------
- 1 file changed, 26 insertions(+), 25 deletions(-)
+ drivers/rtc/interface.c |   56 +++++++++++++++++++++++++-------------
+ 1 file changed, 37 insertions(+), 19 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_same_or_subtree-helper mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_same_or_subtree-helper
-+++ a/mm/memcontrol.c
-@@ -1062,6 +1062,21 @@ void mem_cgroup_move_lists(struct page *
- 	mem_cgroup_add_lru_list(page, to);
+diff -puN drivers/rtc/interface.c~rtc-fix-hrtimer-deadlock drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-fix-hrtimer-deadlock
++++ a/drivers/rtc/interface.c
+@@ -636,6 +636,29 @@ void rtc_irq_unregister(struct rtc_devic
  }
+ EXPORT_SYMBOL_GPL(rtc_irq_unregister);
  
-+/*
-+ * Checks whether given mem is same or in the root_mem's
-+ * hierarchy subtree
-+ */
-+static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_mem,
-+		struct mem_cgroup *mem)
++static int rtc_update_hrtimer(struct rtc_device *rtc, int enabled)
 +{
-+	if (root_mem != mem) {
-+		return (root_mem->use_hierarchy &&
-+			css_is_ancestor(&mem->css, &root_mem->css));
-+	}
++	/*
++	 * We unconditionally cancel the timer here, because otherwise
++	 * we could run into BUG_ON(timer->state != HRTIMER_STATE_CALLBACK);
++	 * when we manage to start the timer before the callback
++	 * returns HRTIMER_RESTART.
++	 *
++	 * We cannot use hrtimer_cancel() here as a running callback
++	 * could be blocked on rtc->irq_task_lock and hrtimer_cancel()
++	 * would spin forever.
++	 */
++	if (hrtimer_try_to_cancel(&rtc->pie_timer) < 0)
++		return -1;
 +
-+	return true;
++	if (enabled) {
++		ktime_t period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
++
++		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
++	}
++	return 0;
 +}
 +
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
- {
- 	int ret;
-@@ -1081,10 +1096,7 @@ int task_in_mem_cgroup(struct task_struc
- 	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
- 	 * hierarchy(even if use_hierarchy is disabled in "mem").
- 	 */
--	if (mem->use_hierarchy)
--		ret = css_is_ancestor(&curr->css, &mem->css);
--	else
--		ret = (curr == mem);
-+	ret = mem_cgroup_same_or_subtree(mem, curr);
- 	css_put(&curr->css);
- 	return ret;
- }
-@@ -1323,10 +1335,9 @@ static bool mem_cgroup_under_move(struct
- 	to = mc.to;
- 	if (!from)
- 		goto unlock;
--	if (from == mem || to == mem
--	    || (mem->use_hierarchy && css_is_ancestor(&from->css, &mem->css))
--	    || (mem->use_hierarchy && css_is_ancestor(&to->css,	&mem->css)))
--		ret = true;
-+
-+	ret = mem_cgroup_same_or_subtree(mem, from)
-+		|| mem_cgroup_same_or_subtree(mem, to);
- unlock:
- 	spin_unlock(&mc.lock);
- 	return ret;
-@@ -1812,25 +1823,20 @@ struct oom_wait_info {
- static int memcg_oom_wake_function(wait_queue_t *wait,
- 	unsigned mode, int sync, void *arg)
- {
--	struct mem_cgroup *wake_mem = (struct mem_cgroup *)arg;
-+	struct mem_cgroup *wake_mem = (struct mem_cgroup *)arg,
-+			  *oom_wait_mem;
- 	struct oom_wait_info *oom_wait_info;
+ /**
+  * rtc_irq_set_state - enable/disable 2^N Hz periodic IRQs
+  * @rtc: the rtc device
+@@ -651,24 +674,21 @@ int rtc_irq_set_state(struct rtc_device 
+ 	int err = 0;
+ 	unsigned long flags;
  
- 	oom_wait_info = container_of(wait, struct oom_wait_info, wait);
-+	oom_wait_mem = oom_wait_info->mem;
- 
--	if (oom_wait_info->mem == wake_mem)
--		goto wakeup;
--	/* if no hierarchy, no match */
--	if (!oom_wait_info->mem->use_hierarchy || !wake_mem->use_hierarchy)
--		return 0;
- 	/*
- 	 * Both of oom_wait_info->mem and wake_mem are stable under us.
- 	 * Then we can use css_is_ancestor without taking care of RCU.
- 	 */
--	if (!css_is_ancestor(&oom_wait_info->mem->css, &wake_mem->css) &&
--	    !css_is_ancestor(&wake_mem->css, &oom_wait_info->mem->css))
-+	if (!mem_cgroup_same_or_subtree(oom_wait_mem, wake_mem)
-+			&& !mem_cgroup_same_or_subtree(wake_mem, oom_wait_mem))
- 		return 0;
++retry:
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+ 	if (rtc->irq_task != NULL && task == NULL)
+ 		err = -EBUSY;
+ 	if (rtc->irq_task != task)
+ 		err = -EACCES;
+-	if (err)
+-		goto out;
 -
--wakeup:
- 	return autoremove_wake_function(wait, mode, sync, arg);
+-	if (enabled) {
+-		ktime_t period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
+-		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
+-	} else {
+-		hrtimer_cancel(&rtc->pie_timer);
++	if (!err) {
++		if (rtc_update_hrtimer(rtc, enabled) < 0) {
++			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
++			cpu_relax();
++			goto retry;
++		}
++		rtc->pie_enabled = enabled;
+ 	}
+-	rtc->pie_enabled = enabled;
+-out:
+ 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
+-
+ 	return err;
  }
+ EXPORT_SYMBOL_GPL(rtc_irq_set_state);
+@@ -690,20 +710,18 @@ int rtc_irq_set_freq(struct rtc_device *
  
-@@ -2075,13 +2081,8 @@ static void drain_all_stock(struct mem_c
- 		mem = stock->cached;
- 		if (!mem || !stock->nr_pages)
- 			continue;
--		if (mem != root_mem) {
--			if (!root_mem->use_hierarchy)
--				continue;
--			/* check whether "mem" is under tree of "root_mem" */
--			if (!css_is_ancestor(&mem->css, &root_mem->css))
--				continue;
--		}
-+		if (!mem_cgroup_same_or_subtree(root_mem, mem))
-+			continue;
- 		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_stock(&stock->work);
+ 	if (freq <= 0 || freq > 5000)
+ 		return -EINVAL;
+-
++retry:
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+ 	if (rtc->irq_task != NULL && task == NULL)
+ 		err = -EBUSY;
+ 	if (rtc->irq_task != task)
+ 		err = -EACCES;
+-	if (err == 0) {
++	if (!err) {
+ 		rtc->irq_freq = freq;
+-		if (rtc->pie_enabled) {
+-			ktime_t period;
+-			hrtimer_cancel(&rtc->pie_timer);
+-			period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
+-			hrtimer_start(&rtc->pie_timer, period,
+-					HRTIMER_MODE_REL);
++		if (rtc->pie_enabled && rtc_update_hrtimer(rtc, 1) < 0) {
++			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
++			cpu_relax();
++			goto retry;
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 linux-next.patch
-mm-remove-the-leftovers-of-noswapaccount.patch
-mm-thp-minor-lock-simplification-in-__khugepaged_exit.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-um-clean-up-vm-flagsh.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
-memcg-make-oom_lock-0-and-1-based-rather-than-counter.patch
-memcg-change-memcg_oom_mutex-to-spinlock.patch
-memcg-do-not-try-to-drain-per-cpu-caches-without-pages.patch
-memcg-unify-sync-and-async-per-cpu-charge-cache-draining.patch
-memcg-add-mem_cgroup_same_or_subtree-helper.patch
-memcg-get-rid-of-percpu_charge_mutex-lock.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
+arch-x86-include-asm-delayh-fix-udelay-and-ndelay-for-8-bit-args.patch
+x86-fix-mmap-random-address-range.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
+arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
+x86-olpc-add-missing-elements-to-device-tree.patch
+x86-olpc-move-cs5536-related-constants-to-cs5535h.patch
+x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm.patch
+x86-olpc-add-xo-1-suspend-resume-support.patch
+x86-olpc-add-xo-1-sci-driver-and-power-button-control.patch
+x86-olpc-ec-sci-wakeup-mask-functionality.patch
+x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch
+x86-olpc-xo1-sci-add-lid-switch-functionality.patch
+x86-olpc-xo1-sci-propagate-power-supply-battery-events.patch
+x86-olpc-add-xo-1-rtc-driver.patch
+x86-olpc-add-xo-15-sci-driver.patch
+genirq-fix-missing-parenthesises-in-generic-chip.patch
+pci-make-the-struct-pci_dev-argument-of-pci_fixup_irqs-const.patch
+cross-memory-attach-v3.patch
+hpet-factor-timer-allocate-from-open.patch
+maintainers-update-high-resolution-timers-patterns.patch
+rtc-handle-errors-correctly-in-rtc_irq_set_state.patch
+rtc-limit-frequency.patch
+rtc-fix-hrtimer-deadlock.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
