@@ -1,54 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpu-cpu-notifier-error-injection.patch removed from -mm tree
-Date: Sat, 23 Jul 2011 09:40:25 -0700
-Message-ID: <201107231639.p6NGdvrg028847@imap1.linux-foundation.org>
+Subject: [to-be-updated] pm-pm-notifier-error-injection.patch removed from -mm tree
+Date: Sat, 23 Jul 2011 09:40:28 -0700
+Message-ID: <201107231640.p6NGe03M028865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753087Ab1GWQk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753071Ab1GWQk1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jul 2011 12:40:26 -0400
+	Sat, 23 Jul 2011 12:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu: CPU notifier error injection
+     PM: PM notifier error injection
 has been removed from the -mm tree.  Its filename was
-     cpu-cpu-notifier-error-injection.patch
+     pm-pm-notifier-error-injection.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: CPU notifier error injection
+Subject: PM: PM notifier error injection
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This provides the ability to inject artifical errors to CPU notifier chain
+This provides the ability to inject artifical errors to PM notifier chain
 callbacks.  It is controlled through debugfs interface under
-/sys/kernel/debug/cpu-notifier-error-inject/
+/sys/kernel/debug/pm-notifier-error-inject/
 
-Each of the files in the directory represents an event which can be failed
-and contains the error code.  If the notifier call chain should be failed
-with some events notified, write the error code to the files.
+Each of the files in the directory represents an event which can be
+failed and contains the error code.  If the notifier call chain should
+be failed with some events notified, write the error code to the files.
 
-Example1: inject CPU offline error (-1 == -EPERM)
+Example: Inject PM suspend error (-12 = -ENOMEM)
 
-	# echo -1 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_UP_PREPARE
-	# echo 0 > /sys/devices/system/cpu/cpu1/online
-	bash: echo: write error: Operation not permitted
-
-Example2: inject CPU online error (-2 == -ENOENT)
-
-	# echo -2 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_DOWN_PREPARE
-	# echo 1 > /sys/devices/system/cpu/cpu1/online
-	bash: echo: write error: No such file or directory
-
-This also schedules cpu-notifier-error-inject.ko module for removal in
-favor of more generic interface.
+	# cd /sys/kernel/debug/pm-notifier-error-inject
+	# echo -12 > PM_SUSPEND_PREPARE
+	# echo mem > /sys/power/state
+	bash: echo: write error: Cannot allocate memory
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -59,93 +51,72 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 ++++
- kernel/cpu.c                               |   31 +++++++++++++++++++
- lib/Kconfig.debug                          |   20 ++++++++++++
- 3 files changed, 59 insertions(+)
+ kernel/power/main.c |   30 ++++++++++++++++++++++++++++++
+ lib/Kconfig.debug   |   16 ++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -616,3 +616,11 @@ Why:	This driver has been superseded by 
- Who:	Alan Stern <stern@rowland.harvard.edu>
- 
- ----------------------------
-+
-+What:	Support for CPU_NOTIFIER_ERROR_INJECT (cpu-notifier-error-inject.ko)
-+When:	3.3
-+Why:	Replaced with more generic debugfs interface in
-+	/sys/kernel/debug/cpu-notifier-error-inject/
-+Who:	Akinobu Mita <akinobu.mita@gmail.com>
-+
-+----------------------------
-diff -puN kernel/cpu.c~cpu-cpu-notifier-error-injection kernel/cpu.c
---- a/kernel/cpu.c~cpu-cpu-notifier-error-injection
-+++ a/kernel/cpu.c
-@@ -170,6 +170,37 @@ void __ref unregister_cpu_notifier(struc
+diff -puN kernel/power/main.c~pm-pm-notifier-error-injection kernel/power/main.c
+--- a/kernel/power/main.c~pm-pm-notifier-error-injection
++++ a/kernel/power/main.c
+@@ -42,6 +42,36 @@ int pm_notifier_call_chain(unsigned long
+ 	return notifier_to_errno(ret);
  }
- EXPORT_SYMBOL(unregister_cpu_notifier);
  
-+#ifdef CONFIG_CPU_NOTIFIER_ERROR_INJECTION
++#ifdef CONFIG_PM_NOTIFIER_ERROR_INJECTION
 +
-+static struct err_inject_notifier_block err_inject_cpu_notifier = {
++static struct err_inject_notifier_block err_inject_pm_notifier = {
 +	.actions = {
-+		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE) },
-+		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE_FROZEN) },
-+		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE) },
-+		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE_FROZEN) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PM_HIBERNATION_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PM_SUSPEND_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(PM_RESTORE_PREPARE) },
 +		{}
 +	}
 +};
 +
-+static int __init err_inject_cpu_notifier_init(void)
++static int __init err_inject_pm_notifier_init(void)
 +{
 +	int err;
 +
-+	err = err_inject_notifier_block_init(&err_inject_cpu_notifier,
-+				"cpu-notifier-error-inject", -1);
++	err = err_inject_notifier_block_init(&err_inject_pm_notifier,
++				"pm-notifier-error-inject", -1);
 +	if (err)
 +		return err;
 +
-+	err = register_hotcpu_notifier(&err_inject_cpu_notifier.nb);
++	err = register_pm_notifier(&err_inject_pm_notifier.nb);
 +	if (err)
-+		err_inject_notifier_block_cleanup(&err_inject_cpu_notifier);
++		err_inject_notifier_block_cleanup(&err_inject_pm_notifier);
 +
 +	return err;
 +}
-+late_initcall(err_inject_cpu_notifier_init);
++late_initcall(err_inject_pm_notifier_init);
 +
-+#endif /* CONFIG_CPU_NOTIFIER_ERROR_INJECTION */
++#endif /* CONFIG_PM_NOTIFIER_ERROR_INJECTION */
 +
- static inline void check_for_tasks(int cpu)
- {
- 	struct task_struct *p;
-diff -puN lib/Kconfig.debug~cpu-cpu-notifier-error-injection lib/Kconfig.debug
---- a/lib/Kconfig.debug~cpu-cpu-notifier-error-injection
+ /* If set, devices may be suspended and resumed asynchronously. */
+ int pm_async_enabled = 1;
+ 
+diff -puN lib/Kconfig.debug~pm-pm-notifier-error-injection lib/Kconfig.debug
+--- a/lib/Kconfig.debug~pm-pm-notifier-error-injection
 +++ a/lib/Kconfig.debug
-@@ -1033,6 +1033,26 @@ config NOTIFIER_ERROR_INJECTION
+@@ -1053,6 +1053,22 @@ config CPU_NOTIFIER_ERROR_INJECTION
+ 	  # echo 0 > /sys/devices/system/cpu/cpu1/online
+ 	  bash: echo: write error: Operation not permitted
  
- 	  Say N if unsure.
- 
-+config CPU_NOTIFIER_ERROR_INJECTION
-+	bool "CPU notifier error injection"
-+	depends on HOTPLUG_CPU && NOTIFIER_ERROR_INJECTION
++config PM_NOTIFIER_ERROR_INJECTION
++	bool "PM notifier error injection"
++	depends on PM && NOTIFIER_ERROR_INJECTION
++	default PM_DEBUG
 +	help
 +	  This option provides the ability to inject artifical errors to
-+	  CPU notifier chain callbacks.  It is controlled through debugfs
-+	  interface under /sys/kernel/debug/cpu-notifier-error-inject/
++	  PM notifier chain callbacks.  It is controlled through debugfs
++	  interface.
 +
-+	  Each of the files in the directory represents an event which can be
-+	  failed and contains the error code.  If the notifier call chain
-+	  should be failed with some events notified, write the error code to
-+	  the files.
++	  Example: Inject PM suspend error (-12 = -ENOMEM)
 +
-+	  Example: Inject CPU offline error (-1 == -EPERM)
-+
-+	  # cd /sys/kernel/debug/cpu-notifier-error-inject
-+	  # echo -1 > CPU_UP_PREPARE
-+	  # echo 0 > /sys/devices/system/cpu/cpu1/online
-+	  bash: echo: write error: Operation not permitted
++	  # cd /sys/kernel/debug/pm-notifier-error-inject
++	  # echo -12 > PM_SUSPEND_PREPARE
++	  # echo mem > /sys/power/state
++	  bash: echo: write error: Cannot allocate memory
 +
  config CPU_NOTIFIER_ERROR_INJECT
  	tristate "CPU notifier error injection module"
@@ -166,7 +137,6 @@ fault-injection-use-debugfs_remove_recursive.patch
 failslab-simplify-debugfs-initialization.patch
 fail_page_alloc-simplify-debugfs-initialization.patch
 fail_make_request-cleanup-should_fail_request.patch
-pm-pm-notifier-error-injection.patch
 memory-memory-notifier-error-injection.patch
 powerpc-pseries-reconfig-notifier-error-injection.patch
 asm-generic-add-another-generic-ext2-atomic-bitops.patch
