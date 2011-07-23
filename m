@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fault-injection-notifier-error-injection.patch removed from -mm tree
-Date: Sat, 23 Jul 2011 09:40:21 -0700
-Message-ID: <201107231639.p6NGdrTc028844@imap1.linux-foundation.org>
+Subject: [to-be-updated] cpu-cpu-notifier-error-injection.patch removed from -mm tree
+Date: Sat, 23 Jul 2011 09:40:25 -0700
+Message-ID: <201107231639.p6NGdvrg028847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753071Ab1GWQk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753087Ab1GWQk0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Jul 2011 12:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,52 +15,40 @@ To: akinobu.mita@gmail.com, benh@kernel.crashing.org, greg@kroah.com, paulus@sam
 
 
 The patch titled
-     fault-injection: notifier error injection
+     cpu: CPU notifier error injection
 has been removed from the -mm tree.  Its filename was
-     fault-injection-notifier-error-injection.patch
+     cpu-cpu-notifier-error-injection.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fault-injection: notifier error injection
+Subject: cpu: CPU notifier error injection
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This patchset provides the ability to inject artifical errors to the
-following notifier chain callbacks.  It is useful to test the error
-handling of notifier call chain failures.
-
- * CPU notifier
- * PM notifier
- * memory hotplug notifier
- * powerpc pSeries reconfig notifier
-
-We already have cpu-notifier-error-inject.ko module providing such
-functionality for the CPU notifier.  However, this patch set adds common
-basic functions and consistent debugfs interface for them.
+This provides the ability to inject artifical errors to CPU notifier chain
+callbacks.  It is controlled through debugfs interface under
+/sys/kernel/debug/cpu-notifier-error-inject/
 
 Each of the files in the directory represents an event which can be failed
 and contains the error code.  If the notifier call chain should be failed
 with some events notified, write the error code to the files.
 
-Example: Inject CPU offline error (-1 == -EPERM)
+Example1: inject CPU offline error (-1 == -EPERM)
 
-	# cd /sys/kernel/debug/cpu-notifier-error-inject
-	# echo -1 > CPU_UP_PREPARE
+	# echo -1 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_UP_PREPARE
 	# echo 0 > /sys/devices/system/cpu/cpu1/online
 	bash: echo: write error: Operation not permitted
-				
 
-This patch:
+Example2: inject CPU online error (-2 == -ENOENT)
 
-The notifier error injection provides the ability to inject artifical
-errors to specified notifier chain callbacks.  It is useful to test the
-error handling of notifier call chain failures.
+	# echo -2 > /sys/kernel/debug/cpu-notifier-error-inject/CPU_DOWN_PREPARE
+	# echo 1 > /sys/devices/system/cpu/cpu1/online
+	bash: echo: write error: No such file or directory
 
-This adds common basic functions to define which type of events can be
-fail and to initialize the debugfs interface to control what error code
-should be returned and which event should be failed.
+This also schedules cpu-notifier-error-inject.ko module for removal in
+favor of more generic interface.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -71,157 +59,93 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/notifier.h |   25 +++++++++++
- kernel/notifier.c        |   81 +++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug        |   11 +++++
- 3 files changed, 117 insertions(+)
+ Documentation/feature-removal-schedule.txt |    8 ++++
+ kernel/cpu.c                               |   31 +++++++++++++++++++
+ lib/Kconfig.debug                          |   20 ++++++++++++
+ 3 files changed, 59 insertions(+)
 
-diff -puN include/linux/notifier.h~fault-injection-notifier-error-injection include/linux/notifier.h
---- a/include/linux/notifier.h~fault-injection-notifier-error-injection
-+++ a/include/linux/notifier.h
-@@ -208,5 +208,30 @@ static inline int notifier_to_errno(int 
+diff -puN Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~cpu-cpu-notifier-error-injection
++++ a/Documentation/feature-removal-schedule.txt
+@@ -616,3 +616,11 @@ Why:	This driver has been superseded by 
+ Who:	Alan Stern <stern@rowland.harvard.edu>
  
- extern struct blocking_notifier_head reboot_notifier_list;
- 
-+#ifdef CONFIG_NOTIFIER_ERROR_INJECTION
+ ----------------------------
 +
-+struct err_inject_notifier_action {
-+	unsigned long val;
-+	int error;
-+	const char *name;
-+};
++What:	Support for CPU_NOTIFIER_ERROR_INJECT (cpu-notifier-error-inject.ko)
++When:	3.3
++Why:	Replaced with more generic debugfs interface in
++	/sys/kernel/debug/cpu-notifier-error-inject/
++Who:	Akinobu Mita <akinobu.mita@gmail.com>
 +
-+#define ERR_INJECT_NOTIFIER_ACTION(action)	\
-+	.name = #action, .val = (action),
-+
-+struct err_inject_notifier_block {
-+	struct notifier_block nb;
-+	struct dentry *dir;
-+	struct err_inject_notifier_action actions[];
-+	/* The last slot must be terminated with zero sentinel */
-+};
-+
-+extern int err_inject_notifier_block_init(struct err_inject_notifier_block *enb,
-+				const char *name, int priority);
-+extern void err_inject_notifier_block_cleanup(
-+				struct err_inject_notifier_block *enb);
-+
-+#endif /* CONFIG_NOTIFIER_ERROR_INJECTION */
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_NOTIFIER_H */
-diff -puN kernel/notifier.c~fault-injection-notifier-error-injection kernel/notifier.c
---- a/kernel/notifier.c~fault-injection-notifier-error-injection
-+++ a/kernel/notifier.c
-@@ -5,6 +5,7 @@
- #include <linux/rcupdate.h>
- #include <linux/vmalloc.h>
- #include <linux/reboot.h>
-+#include <linux/debugfs.h>
- 
- /*
-  *	Notifier list for kernel code which wants to be called
-@@ -553,3 +554,83 @@ int unregister_die_notifier(struct notif
- 	return atomic_notifier_chain_unregister(&die_chain, nb);
++----------------------------
+diff -puN kernel/cpu.c~cpu-cpu-notifier-error-injection kernel/cpu.c
+--- a/kernel/cpu.c~cpu-cpu-notifier-error-injection
++++ a/kernel/cpu.c
+@@ -170,6 +170,37 @@ void __ref unregister_cpu_notifier(struc
  }
- EXPORT_SYMBOL_GPL(unregister_die_notifier);
-+
-+#ifdef CONFIG_NOTIFIER_ERROR_INJECTION
-+
-+static int debugfs_errno_set(void *data, u64 val)
-+{
-+	*(int *)data = clamp_t(int, val, -MAX_ERRNO, 0);
-+	return 0;
-+}
-+
-+static int debugfs_errno_get(void *data, u64 *val)
-+{
-+	*val = *(int *)data;
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(fops_errno, debugfs_errno_get, debugfs_errno_set,
-+			"%lld\n");
-+
-+static struct dentry *debugfs_create_errno(const char *name, mode_t mode,
-+				struct dentry *parent, int *value)
-+{
-+	return debugfs_create_file(name, mode, parent, value, &fops_errno);
-+}
-+
-+static int err_inject_notifier_callback(struct notifier_block *nb,
-+				unsigned long val, void *p)
-+{
-+	int err = 0;
-+	struct err_inject_notifier_block *enb =
-+		container_of(nb, struct err_inject_notifier_block, nb);
-+	struct err_inject_notifier_action *action;
-+
-+	for (action = enb->actions; action->name; action++) {
-+		if (action->val == val) {
-+			err = action->error;
-+			break;
-+		}
-+	}
-+	if (err) {
-+		printk(KERN_INFO "Injecting error (%d) to %s\n",
-+			err, action->name);
-+	}
-+
-+	return notifier_from_errno(err);
-+}
-+
-+int err_inject_notifier_block_init(struct err_inject_notifier_block *enb,
-+				const char *name, int priority)
-+{
-+	struct err_inject_notifier_action *action;
-+	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
-+
-+	enb->nb.notifier_call = err_inject_notifier_callback;
-+	enb->nb.priority = priority;
-+
-+	enb->dir = debugfs_create_dir(name, NULL);
-+	if (!enb->dir)
-+		return -ENOMEM;
-+
-+	for (action = enb->actions; action->name; action++) {
-+		/*
-+		 * Create debugfs r/w file containing action->error. If
-+		 * notifier call chain is called with action->val, it will
-+		 * fail with the error code
-+		 */
-+		if (!debugfs_create_errno(action->name, mode, enb->dir,
-+					&action->error)) {
-+			debugfs_remove_recursive(enb->dir);
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
-+}
-+
-+void err_inject_notifier_block_cleanup(struct err_inject_notifier_block *enb)
-+{
-+	debugfs_remove_recursive(enb->dir);
-+}
-+
-+#endif /* CONFIG_NOTIFIER_ERROR_INJECTION */
-diff -puN lib/Kconfig.debug~fault-injection-notifier-error-injection lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-notifier-error-injection
-+++ a/lib/Kconfig.debug
-@@ -1022,6 +1022,17 @@ config LKDTM
- 	Documentation on how to use the module can be found in
- 	Documentation/fault-injection/provoke-crashes.txt
+ EXPORT_SYMBOL(unregister_cpu_notifier);
  
-+config NOTIFIER_ERROR_INJECTION
-+	bool "Notifier error injection"
-+	depends on DEBUG_KERNEL
-+	select DEBUG_FS
++#ifdef CONFIG_CPU_NOTIFIER_ERROR_INJECTION
++
++static struct err_inject_notifier_block err_inject_cpu_notifier = {
++	.actions = {
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_UP_PREPARE_FROZEN) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE) },
++		{ ERR_INJECT_NOTIFIER_ACTION(CPU_DOWN_PREPARE_FROZEN) },
++		{}
++	}
++};
++
++static int __init err_inject_cpu_notifier_init(void)
++{
++	int err;
++
++	err = err_inject_notifier_block_init(&err_inject_cpu_notifier,
++				"cpu-notifier-error-inject", -1);
++	if (err)
++		return err;
++
++	err = register_hotcpu_notifier(&err_inject_cpu_notifier.nb);
++	if (err)
++		err_inject_notifier_block_cleanup(&err_inject_cpu_notifier);
++
++	return err;
++}
++late_initcall(err_inject_cpu_notifier_init);
++
++#endif /* CONFIG_CPU_NOTIFIER_ERROR_INJECTION */
++
+ static inline void check_for_tasks(int cpu)
+ {
+ 	struct task_struct *p;
+diff -puN lib/Kconfig.debug~cpu-cpu-notifier-error-injection lib/Kconfig.debug
+--- a/lib/Kconfig.debug~cpu-cpu-notifier-error-injection
++++ a/lib/Kconfig.debug
+@@ -1033,6 +1033,26 @@ config NOTIFIER_ERROR_INJECTION
+ 
+ 	  Say N if unsure.
+ 
++config CPU_NOTIFIER_ERROR_INJECTION
++	bool "CPU notifier error injection"
++	depends on HOTPLUG_CPU && NOTIFIER_ERROR_INJECTION
 +	help
 +	  This option provides the ability to inject artifical errors to
-+	  specified notifier chain callbacks. It is useful to test the error
-+	  handling of notifier call chain failures.
++	  CPU notifier chain callbacks.  It is controlled through debugfs
++	  interface under /sys/kernel/debug/cpu-notifier-error-inject/
 +
-+	  Say N if unsure.
++	  Each of the files in the directory represents an event which can be
++	  failed and contains the error code.  If the notifier call chain
++	  should be failed with some events notified, write the error code to
++	  the files.
++
++	  Example: Inject CPU offline error (-1 == -EPERM)
++
++	  # cd /sys/kernel/debug/cpu-notifier-error-inject
++	  # echo -1 > CPU_UP_PREPARE
++	  # echo 0 > /sys/devices/system/cpu/cpu1/online
++	  bash: echo: write error: Operation not permitted
 +
  config CPU_NOTIFIER_ERROR_INJECT
  	tristate "CPU notifier error injection module"
@@ -242,7 +166,6 @@ fault-injection-use-debugfs_remove_recursive.patch
 failslab-simplify-debugfs-initialization.patch
 fail_page_alloc-simplify-debugfs-initialization.patch
 fail_make_request-cleanup-should_fail_request.patch
-cpu-cpu-notifier-error-injection.patch
 pm-pm-notifier-error-injection.patch
 memory-memory-notifier-error-injection.patch
 powerpc-pseries-reconfig-notifier-error-injection.patch
