@@ -1,66 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-ams369fg06-staticize-ams369fg06_shutdown.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 16:55:13 -0700
-Message-ID: <201107252355.p6PNtD1G006152@imap1.linux-foundation.org>
+Subject: [folded] mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:56:58 -0700
+Message-ID: <201107252356.p6PNuwA4006208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751960Ab1GYX4A (ORCPT
+	by vger.kernel.org with ESMTP id S1752169Ab1GYX5N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 19:56:00 -0400
+	Mon, 25 Jul 2011 19:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, anish198519851985@gmail.com, inki.dae@samsung.com, jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dkiper@net-space.pl, ian.campbell@citrix.com, jeremy@goop.org, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: ams369fg06: Staticize ams369fg06_shutdown
+     mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-ams369fg06-staticize-ams369fg06_shutdown.patch
+     mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
 
-This patch was dropped because it was folded into backlight-add-ams369fg06-amoled-driver.patch
+This patch was dropped because it was folded into mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: ams369fg06: Staticize ams369fg06_shutdown
-From: Axel Lin <axel.lin@gmail.com>
+Subject: mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It's only used in ams369fg06.c, no need for it to be in the global namespace.
+use explicit indirect-call syntax
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: anish singh <anish198519851985@gmail.com>
+Cc: Daniel Kiper <dkiper@net-space.pl>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org> 
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    2 +-
+ mm/memory_hotplug.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-staticize-ams369fg06_shutdown drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-staticize-ams369fg06_shutdown
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -605,7 +605,7 @@ static int ams369fg06_resume(struct spi_
- #define ams369fg06_resume	NULL
- #endif
- 
--void ams369fg06_shutdown(struct spi_device *spi)
-+static void ams369fg06_shutdown(struct spi_device *spi)
- {
- 	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
- 
+diff -puN mm/memory_hotplug.c~mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix
++++ a/mm/memory_hotplug.c
+@@ -450,7 +450,7 @@ static int online_pages_range(unsigned l
+ 	if (PageReserved(pfn_to_page(start_pfn)))
+ 		for (i = 0; i < nr_pages; i++) {
+ 			page = pfn_to_page(start_pfn + i);
+-			online_page_callback(page);
++			(*online_page_callback)(page);
+ 			onlined_pages++;
+ 		}
+ 	*(unsigned long *)arg = onlined_pages;
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-video-backlight-ld9040c-small-fixes.patch
-drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch
-backlight-add-ams369fg06-amoled-driver.patch
-backlight-set-backlight-type-and-max_brightness-before-backlights-are-registered.patch
-drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
-drivers-leds-leds-netxbig-make-leds_netxbig-depend-on-leds_class.patch
+hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
+mm-make-some-struct-pages-const.patch
+mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch
+xtensa-prevent-arbitrary-read-in-ptrace.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
+pagewalk-add-locking-rule-comments-fix.patch
+mm-memoryc-remove-zap_block_size.patch
+mm-memblockc-avoid-abuse-of-red_inactive.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow.patch
+mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
+mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
+drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
+lib-make-_tolower-public-checkpatch-fixes.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+init-skip-calibration-delay-if-previously-done-fix.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-4.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+drivers-connector-cn_procc-remove-unused-local.patch
+drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
 
