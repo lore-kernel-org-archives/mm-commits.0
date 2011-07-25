@@ -1,69 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch added to -mm tree
-Date: Mon, 25 Jul 2011 15:17:20 -0700
-Message-ID: <201107252255.p6PMtWHS001890@imap1.linux-foundation.org>
+Subject: [folded] hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:52:53 -0700
+Message-ID: <201107252352.p6PNqrcK005998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752014Ab1GYW4E (ORCPT
+	by vger.kernel.org with ESMTP id S1752847Ab1GYXxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 18:56:04 -0400
+	Mon, 25 Jul 2011 19:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+To: akpm@linux-foundation.org, beckyb@kernel.crashing.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/gma500/psb_intel_display.c: fix bad udelay()
-has been added to the -mm tree.  Its filename is
-     drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
+     hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
+has been removed from the -mm tree.  Its filename was
+     hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/gma500/psb_intel_display.c: fix bad udelay()
+Subject: hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "__bad_udelay" [drivers/staging/gma500/psb_gfx.ko] undefined!
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Becky Bruce <beckyb@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/gma500/psb_intel_display.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay drivers/staging/gma500/psb_intel_display.c
---- a/drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay
-+++ a/drivers/staging/gma500/psb_intel_display.c
-@@ -331,7 +331,7 @@ static bool psb_intel_find_best_PLL(stru
- void psb_intel_wait_for_vblank(struct drm_device *dev)
- {
- 	/* Wait for 20ms, i.e. one cycle at 50hz. */
--	udelay(20000);
-+	mdelay(20);
- }
+diff -puN mm/hugetlb.c~hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
++++ a/mm/hugetlb.c
+@@ -1106,12 +1106,14 @@ static void __init gather_bootmem_preall
  
- int psb_intel_pipe_set_base(struct drm_crtc *crtc,
+ 	list_for_each_entry(m, &huge_boot_pages, list) {
+ 		struct hstate *h = m->hstate;
++		struct page *page;
++
+ #ifdef CONFIG_HIGHMEM
+-		struct page *page = pfn_to_page(m->phys >> PAGE_SHIFT);
++		page = pfn_to_page(m->phys >> PAGE_SHIFT);
+ 		free_bootmem_late((unsigned long)m,
+ 				  sizeof(struct huge_bootmem_page));
+ #else
+-		struct page *page = virt_to_page(m);
++		page = virt_to_page(m);
+ #endif
+ 		__ClearPageReserved(page);
+ 		WARN_ON(page_count(page) != 1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
+hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
 mm-make-some-struct-pages-const-fix.patch
 mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
