@@ -1,67 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 25 Jul 2011 12:14:59 -0700
-Message-ID: <201107251914.p6PJE8AT023294@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-gma500-psb_intel_displayc-fix-build.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 12:04:56 -0700
+Message-ID: <201107251904.p6PJ45jF022527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751780Ab1GYTO5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752133Ab1GYTSp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 15:14:57 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p6PJE8ZD021521
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2011 12:14:08 -0700
+	Mon, 25 Jul 2011 15:18:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers/staging/gma500/psb_intel_display.c: fix build
+has been removed from the -mm tree.  Its filename was
+     drivers-staging-gma500-psb_intel_displayc-fix-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/staging/gma500/psb_intel_display.c: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
+x86_64 allmodconfig:
+
+ERROR: "__bad_udelay" [drivers/staging/gma500/psb_gfx.ko] undefined!
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lguest/i386_head.S |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/staging/gma500/psb_intel_display.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/lguest/i386_head.S~linux-next-git-rejects arch/x86/lguest/i386_head.S
---- a/arch/x86/lguest/i386_head.S~linux-next-git-rejects
-+++ a/arch/x86/lguest/i386_head.S
-@@ -21,11 +21,7 @@
-  * assigned number), then it calls us here.
-  *
-  * WARNING: be very careful here!  We're running at addresses equal to physical
--<<<<<<< HEAD
-  * addresses (around 0), not above PAGE_OFFSET as most code expects
--=======
-- * addesses (around 0), not above PAGE_OFFSET as most code expects
-->>>>>>> quilt/rr
-  * (eg. 0xC0000000).  Jumps are relative, so they're OK, but we can't touch any
-  * data without remembering to subtract __PAGE_OFFSET!
-  *
+diff -puN drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-build drivers/staging/gma500/psb_intel_display.c
+--- a/drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-build
++++ a/drivers/staging/gma500/psb_intel_display.c
+@@ -332,7 +332,7 @@ static bool psb_intel_find_best_PLL(stru
+ void psb_intel_wait_for_vblank(struct drm_device *dev)
+ {
+ 	/* Wait for 20ms, i.e. one cycle at 50hz. */
+-	udelay(20000);
++	mdelay(20);
+ }
+ 
+ int psb_intel_pipe_set_base(struct drm_crtc *crtc,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +62,6 @@ hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
 mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
 linux-next-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
