@@ -1,82 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pagewalk-add-locking-rule-comments-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 16:57:28 -0700
-Message-ID: <201107252357.p6PNvTMe006300@imap1.linux-foundation.org>
+Subject: [folded] mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:58:10 -0700
+Message-ID: <201107252358.p6PNwAWl006327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752118Ab1GYX5n (ORCPT
+	by vger.kernel.org with ESMTP id S1751960Ab1GYX6O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 19:57:43 -0400
+	Mon, 25 Jul 2011 19:58:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kamezawa.hiroyuki@gmail.com, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagewalk-add-locking-rule-comments-fix
+     mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix
 has been removed from the -mm tree.  Its filename was
-     pagewalk-add-locking-rule-comments-fix.patch
+     mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix.patch
 
-This patch was dropped because it was folded into pagewalk-add-locking-rule-comments.patch
+This patch was dropped because it was folded into mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagewalk-add-locking-rule-comments-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix
+From: Mel Gorman <mgorman@suse.de>
 
-clarify comment
+mm/page_alloc.c: In function `__alloc_pages_direct_reclaim':
+mm/page_alloc.c:1983:3: error: implicit declaration of function `zlc_clear_zones_full'
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+This patch is a build fix for !CONFIG_NUMA that should be merged with
+mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch .
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/mm.h~pagewalk-add-locking-rule-comments-fix include/linux/mm.h
---- a/include/linux/mm.h~pagewalk-add-locking-rule-comments-fix
-+++ a/include/linux/mm.h
-@@ -910,7 +910,8 @@ unsigned long unmap_vmas(struct mmu_gath
-  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
-  * @pte_hole: if set, called for each hole at all levels
-  * @hugetlb_entry: if set, called for each hugetlb entry
-- *                 *Caution*: The caller must hold mmap_sem() if it's used.
-+ *		   *Caution*: The caller must hold mmap_sem() if @hugetlb_entry
-+ * 			      is used.
-  *
-  * (see walk_page_range for more details)
-  */
+diff -puN mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim-fix
++++ a/mm/page_alloc.c
+@@ -1647,6 +1647,10 @@ static int zlc_zone_worth_trying(struct 
+ static void zlc_mark_zone_full(struct zonelist *zonelist, struct zoneref *z)
+ {
+ }
++
++static void zlc_clear_zones_full(struct zonelist *zonelist)
++{
++}
+ #endif	/* CONFIG_NUMA */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-origin.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
-mm-make-some-struct-pages-const.patch
-mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch
-xtensa-prevent-arbitrary-read-in-ptrace.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
-pagewalk-add-locking-rule-comments.patch
-mm-memoryc-remove-zap_block_size.patch
-mm-memblockc-avoid-abuse-of-red_inactive.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-lib-make-_tolower-public-checkpatch-fixes.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-4.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-drivers-connector-cn_procc-remove-unused-local.patch
-drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
+mm-page-allocator-initialise-zlc-for-first-zone-eligible-for-zone_reclaim.patch
+mm-page-allocator-reconsider-zones-for-allocation-after-direct-reclaim.patch
+include-linux-kernelh-hide-internal-macros-from-userspace.patch
 
