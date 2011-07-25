@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-some-struct-pages-const-fix.patch added to -mm tree
-Date: Mon, 25 Jul 2011 14:45:10 -0700
-Message-ID: <201107252223.p6PMNOAj000478@imap1.linux-foundation.org>
+Subject: + drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch added to -mm tree
+Date: Mon, 25 Jul 2011 15:17:20 -0700
+Message-ID: <201107252255.p6PMtWHS001890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751385Ab1GYWY2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752014Ab1GYW4E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 18:24:28 -0400
+	Mon, 25 Jul 2011 18:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, ian.campbell@citrix.com, mel@csn.ul.ie, riel@redhat.com, walken@google.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     mm-make-some-struct-pages-const-fix
+     drivers/staging/gma500/psb_intel_display.c: fix bad udelay()
 has been added to the -mm tree.  Its filename is
-     mm-make-some-struct-pages-const-fix.patch
+     drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-some-struct-pages-const-fix
+Subject: drivers/staging/gma500/psb_intel_display.c: fix bad udelay()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/suspend.h:8,
-                 from arch/x86/kernel/asm-offsets.c:12:
-include/linux/mm.h: In function 'lowmem_page_address':
-include/linux/mm.h:723: warning: initialization discards qualifiers from pointer target type
-In file included from include/linux/ring_buffer.h:5,
-                 from include/linux/ftrace_event.h:4,
-                 from include/trace/syscall.h:6,
-                 from include/linux/syscalls.h:77,
-                 from fs/aio.c:17:
-include/linux/mm.h: In function 'lowmem_page_address':
-include/linux/mm.h:723: warning: initialization discards qualifiers from pointer target type
+ERROR: "__bad_udelay" [drivers/staging/gma500/psb_gfx.ko] undefined!
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ian Campbell <ian.campbell@citrix.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ drivers/staging/gma500/psb_intel_display.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-make-some-struct-pages-const-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-make-some-struct-pages-const-fix
-+++ a/include/linux/mm.h
-@@ -720,7 +720,7 @@ static inline void set_page_links(struct
- 
- static __always_inline void *lowmem_page_address(const struct page *page)
+diff -puN drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay drivers/staging/gma500/psb_intel_display.c
+--- a/drivers/staging/gma500/psb_intel_display.c~drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay
++++ a/drivers/staging/gma500/psb_intel_display.c
+@@ -331,7 +331,7 @@ static bool psb_intel_find_best_PLL(stru
+ void psb_intel_wait_for_vblank(struct drm_device *dev)
  {
--	return __va(PFN_PHYS(page_to_pfn(page)));
-+	return __va(PFN_PHYS(page_to_pfn((struct page *)page)));
+ 	/* Wait for 20ms, i.e. one cycle at 50hz. */
+-	udelay(20000);
++	mdelay(20);
  }
  
- #if defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL)
+ int psb_intel_pipe_set_base(struct drm_crtc *crtc,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,4 +83,5 @@ init-skip-calibration-delay-if-previously-done-fix-fix.patch
 init-skip-calibration-delay-if-previously-done-4.patch
 drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
 drivers-connector-cn_procc-remove-unused-local.patch
+drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
 
