@@ -1,67 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 16:52:53 -0700
-Message-ID: <201107252352.p6PNqrcK005998@imap1.linux-foundation.org>
+Subject: [folded] mm-make-some-struct-pages-const-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:53:28 -0700
+Message-ID: <201107252353.p6PNrSpS006040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752847Ab1GYXxX (ORCPT
+	by vger.kernel.org with ESMTP id S1752169Ab1GYXyb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 19:53:23 -0400
+	Mon, 25 Jul 2011 19:54:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, beckyb@kernel.crashing.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, ian.campbell@citrix.com, mel@csn.ul.ie, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
+     mm-make-some-struct-pages-const-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix.patch
+     mm-make-some-struct-pages-const-fix.patch
 
-This patch was dropped because it was folded into hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
+This patch was dropped because it was folded into mm-make-some-struct-pages-const.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
+Subject: mm-make-some-struct-pages-const-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Becky Bruce <beckyb@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+In file included from include/linux/suspend.h:8,
+                 from arch/x86/kernel/asm-offsets.c:12:
+include/linux/mm.h: In function 'lowmem_page_address':
+include/linux/mm.h:723: warning: initialization discards qualifiers from pointer target type
+In file included from include/linux/ring_buffer.h:5,
+                 from include/linux/ftrace_event.h:4,
+                 from include/trace/syscall.h:6,
+                 from include/linux/syscalls.h:77,
+                 from fs/aio.c:17:
+include/linux/mm.h: In function 'lowmem_page_address':
+include/linux/mm.h:723: warning: initialization discards qualifiers from pointer target type
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-phys-addr-to-struct-huge_bootmem_page-fix
-+++ a/mm/hugetlb.c
-@@ -1106,12 +1106,14 @@ static void __init gather_bootmem_preall
+diff -puN include/linux/mm.h~mm-make-some-struct-pages-const-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-make-some-struct-pages-const-fix
++++ a/include/linux/mm.h
+@@ -720,7 +720,7 @@ static inline void set_page_links(struct
  
- 	list_for_each_entry(m, &huge_boot_pages, list) {
- 		struct hstate *h = m->hstate;
-+		struct page *page;
-+
- #ifdef CONFIG_HIGHMEM
--		struct page *page = pfn_to_page(m->phys >> PAGE_SHIFT);
-+		page = pfn_to_page(m->phys >> PAGE_SHIFT);
- 		free_bootmem_late((unsigned long)m,
- 				  sizeof(struct huge_bootmem_page));
- #else
--		struct page *page = virt_to_page(m);
-+		page = virt_to_page(m);
- #endif
- 		__ClearPageReserved(page);
- 		WARN_ON(page_count(page) != 1);
+ static __always_inline void *lowmem_page_address(const struct page *page)
+ {
+-	return __va(PFN_PHYS(page_to_pfn(page)));
++	return __va(PFN_PHYS(page_to_pfn((struct page *)page)));
+ }
+ 
+ #if defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
-mm-make-some-struct-pages-const-fix.patch
+mm-make-some-struct-pages-const.patch
 mm-use-const-struct-page-for-r-o-page-flag-accessor-methods-checkpatch-fixes.patch
 xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
 mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
