@@ -1,77 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 16:58:26 -0700
-Message-ID: <201107252358.p6PNwQcA006342@imap1.linux-foundation.org>
+Subject: [folded] mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:58:46 -0700
+Message-ID: <201107252358.p6PNwkGG006359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752547Ab1GYX6n (ORCPT
+	by vger.kernel.org with ESMTP id S1752847Ab1GYX6u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 19:58:43 -0400
+	Mon, 25 Jul 2011 19:58:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, David.Laight@ACULAB.COM, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, darren.hart@intel.com, haishan.bai@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, darren.hart@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
+     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix
 has been removed from the -mm tree.  Its filename was
-     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
+     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
 
 This patch was dropped because it was folded into mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
+Subject: mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: email address '"David Laight" <David.Laight@ACULAB.COM>' might be better as 'David Laight <David.Laight@ACULAB.COM>'
-#23: 
-Cc: "David Laight" <David.Laight@ACULAB.COM>
+fix some nits Darren saw, fiddle comment layout
 
-ERROR: trailing whitespace
-#105: FILE: mm/memory.c:1845:
-+^I$
-
-total: 1 errors, 1 warnings, 83 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Laight <David.Laight@ACULAB.COM>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Darren Hart <darren.hart@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Shan Hai <haishan.bai@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/mm.h~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes include/linux/mm.h
-diff -puN kernel/futex.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes kernel/futex.c
-diff -puN mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes
+diff -puN include/linux/mm.h~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix include/linux/mm.h
+diff -puN kernel/futex.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix kernel/futex.c
+diff -puN mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix mm/memory.c
+--- a/mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix
 +++ a/mm/memory.c
-@@ -1842,7 +1842,7 @@ int fixup_user_fault(struct task_struct 
- 	vma = find_extend_vma(mm, address);
- 	if (!vma || address < vma->vm_start)
- 		return -EFAULT;
--	
-+
- 	ret = handle_mm_fault(mm, vma, address, fault_flags);
- 	if (ret & VM_FAULT_ERROR) {
- 		if (ret & VM_FAULT_OOM)
+@@ -1806,30 +1806,29 @@ next_page:
+ EXPORT_SYMBOL(__get_user_pages);
+ 
+ /*
+- * fixup_user_fault() - manually resolve a user page  fault
++ * fixup_user_fault() - manually resolve a user page fault
+  * @tsk:	the task_struct to use for page fault accounting, or
+  *		NULL if faults are not to be recorded.
+  * @mm:		mm_struct of target mm
+  * @address:	user address
+  * @fault_flags:flags to pass down to handle_mm_fault()
+  *
+- * This is meant to be called in the specific scenario where for
+- * locking reasons we try to access user memory in atomic context
+- * (within a pagefault_disable() section), this returns -EFAULT,
+- * and we want to resolve the user fault before trying again.
++ * This is meant to be called in the specific scenario where for locking reasons
++ * we try to access user memory in atomic context (within a pagefault_disable()
++ * section), this returns -EFAULT, and we want to resolve the user fault before
++ * trying again.
+  *
+  * Typically this is meant to be used by the futex code.
+  *
+- * The main difference with get_user_pages() is that this function
+- * will unconditionally call handle_mm_fault() which will in turn
+- * perform all the necessary SW fixup of the dirty and young bits
+- * in the PTE, while handle_mm_fault() only guarantees to update
+- * these in the struct page.
+- *
+- * This is important for some architectures where those bits also
+- * gate the access permission to the page because their are
+- * maintained in software. On such architecture, gup() will not
+- * be enough to make a subsequent access succeed.
++ * The main difference with get_user_pages() is that this function will
++ * unconditionally call handle_mm_fault() which will in turn perform all the
++ * necessary SW fixup of the dirty and young bits in the PTE, while
++ * handle_mm_fault() only guarantees to update these in the struct page.
++ *
++ * This is important for some architectures where those bits also gate the
++ * access permission to the page because they are maintained in software.  On
++ * such architectures, gup() will not be enough to make a subsequent access
++ * succeed.
+  *
+  * This should be called with the mm_sem held for read.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +102,6 @@ mm-memoryc-remove-zap_block_size.patch
 mm-memblockc-avoid-abuse-of-red_inactive.patch
 mm-preallocate-page-before-lock_page-at-filemap-cow.patch
 mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
 drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
 lib-make-_tolower-public-checkpatch-fixes.patch
 checkpatch-suggest-using-min_t-or-max_t-v2.patch
