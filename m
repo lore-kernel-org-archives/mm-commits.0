@@ -1,80 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded] xtensa-prevent-arbitrary-read-in-ptrace-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 16:54:25 -0700
-Message-ID: <201107252354.p6PNsP2G006085@imap1.linux-foundation.org>
+Subject: [folded] backlight-add-ams369fg06-amoled-driver-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 16:55:04 -0700
+Message-ID: <201107252355.p6PNt4B3006137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752169Ab1GYXy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751960Ab1GYXzv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 19:54:58 -0400
+	Mon, 25 Jul 2011 19:55:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@zankel.net, drosenberg@vsecurity.com, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, anish198519851985@gmail.com, inki.dae@samsung.com, jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa-prevent-arbitrary-read-in-ptrace-fix
+     backlight-add-ams369fg06-amoled-driver-fix
 has been removed from the -mm tree.  Its filename was
-     xtensa-prevent-arbitrary-read-in-ptrace-fix.patch
+     backlight-add-ams369fg06-amoled-driver-fix.patch
 
-This patch was dropped because it was folded into xtensa-prevent-arbitrary-read-in-ptrace.patch
+This patch was dropped because it was folded into backlight-add-ams369fg06-amoled-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa-prevent-arbitrary-read-in-ptrace-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight-add-ams369fg06-amoled-driver-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 1 Jul 2011 15:34:22 +1000
+Subject: [PATCH] backlight: make some varibales static
 
-s/EIO/EFAULT/
+fixes this build error:
 
-Cc: <stable@kernel.org>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+drivers/video/backlight/ams369fg06.o:(.bss+0x510): multiple definition of `before_power'
+drivers/video/backlight/s6e63m0.o:(.bss+0x5e0): first defined here
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: anish singh <anish198519851985@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/ams369fg06.c |    2 +-
+ drivers/video/backlight/s6e63m0.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace-fix arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace-fix
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -148,7 +148,7 @@ int ptrace_setxregs(struct task_struct *
- 	int ret = 0;
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-add-ams369fg06-amoled-driver-fix drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-add-ams369fg06-amoled-driver-fix
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -560,7 +560,7 @@ static int __devexit ams369fg06_remove(s
+ }
  
- 	if (!access_ok(VERIFY_READ, uregs, sizeof(elf_xtregs_t)))
--		return -EIO;
-+		return -EFAULT;
+ #if defined(CONFIG_PM)
+-unsigned int before_power;
++static unsigned int before_power;
  
- #if XTENSA_HAVE_COPROCESSORS
- 	/* Flush all coprocessors before we overwrite them. */
+ static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
+ {
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-add-ams369fg06-amoled-driver-fix drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-add-ams369fg06-amoled-driver-fix
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -840,7 +840,7 @@ static int __devexit s6e63m0_remove(stru
+ }
+ 
+ #if defined(CONFIG_PM)
+-unsigned int before_power;
++static unsigned int before_power;
+ 
+ static int s6e63m0_suspend(struct spi_device *spi, pm_message_t mesg)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
-mm-make-some-struct-pages-const.patch
-mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch
-xtensa-prevent-arbitrary-read-in-ptrace.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines-fix.patch
-pagewalk-add-locking-rule-comments-fix.patch
-mm-memoryc-remove-zap_block_size.patch
-mm-memblockc-avoid-abuse-of-red_inactive.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-checkpatch-fixes.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young-fix.patch
-drivers-misc-add-support-the-fsa9480-usb-switch-fix.patch
-lib-make-_tolower-public-checkpatch-fixes.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-init-skip-calibration-delay-if-previously-done-fix.patch
-init-skip-calibration-delay-if-previously-done-fix-fix.patch
-init-skip-calibration-delay-if-previously-done-4.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
-drivers-connector-cn_procc-remove-unused-local.patch
-drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
+backlight-add-ams369fg06-amoled-driver.patch
+notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
+gma500-udelay20000-it-too-long-again.patch
 
