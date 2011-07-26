@@ -1,99 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] notifiers-pm-move-pm-notifiers-into-suspendh.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:30 -0700
-Message-ID: <201107260754.p6Q7sXQ4003362@imap1.linux-foundation.org>
+Subject: [merged] leds-lp5521-provide-section-tagging.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:42 -0700
+Message-ID: <201107260754.p6Q7sjl3003380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752518Ab1GZHzg (ORCPT
+	by vger.kernel.org with ESMTP id S1753237Ab1GZHzp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:36 -0400
+	Tue, 26 Jul 2011 03:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, davem@davemloft.net, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: linus.walleij@linaro.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     notifiers: pm: move pm notifiers into suspend.h
+     drivers/leds/leds-lp5521.c: provide section tagging
 has been removed from the -mm tree.  Its filename was
-     notifiers-pm-move-pm-notifiers-into-suspendh.patch
+     leds-lp5521-provide-section-tagging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: notifiers: pm: move pm notifiers into suspend.h
-From: Amerigo Wang <amwang@redhat.com>
+Subject: drivers/leds/leds-lp5521.c: provide section tagging
+From: Linus Walleij <linus.walleij@linaro.org>
 
-It is not necessary to share the same notifier.h.
+Tag the and remove() function as __devexit respectively.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |    1 +
- include/linux/notifier.h |   10 ++--------
- include/linux/suspend.h  |    8 ++++++++
- 3 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/leds/leds-lp5521.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh
-+++ a/drivers/mmc/core/core.c
-@@ -23,6 +23,7 @@
- #include <linux/log2.h>
- #include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
-+#include <linux/suspend.h>
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-provide-section-tagging drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-provide-section-tagging
++++ a/drivers/leds/leds-lp5521.c
+@@ -744,7 +744,7 @@ fail1:
+ 	return ret;
+ }
  
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
-diff -puN include/linux/notifier.h~notifiers-pm-move-pm-notifiers-into-suspendh include/linux/notifier.h
---- a/include/linux/notifier.h~notifiers-pm-move-pm-notifiers-into-suspendh
-+++ a/include/linux/notifier.h
-@@ -191,15 +191,9 @@ static inline int notifier_to_errno(int 
+-static int lp5521_remove(struct i2c_client *client)
++static int __devexit lp5521_remove(struct i2c_client *client)
+ {
+ 	struct lp5521_chip *chip = i2c_get_clientdata(client);
+ 	int i;
+@@ -775,7 +775,7 @@ static struct i2c_driver lp5521_driver =
+ 		.name	= "lp5521",
+ 	},
+ 	.probe		= lp5521_probe,
+-	.remove		= lp5521_remove,
++	.remove		= __devexit_p(lp5521_remove),
+ 	.id_table	= lp5521_id,
+ };
  
- /* reboot notifiers are defined in include/linux/reboot.h. */
- 
--#define NETLINK_URELEASE	0x0001	/* Unicast netlink socket released */
-+/* Hibernation and suspend events are defined in include/linux/suspend.h. */
- 
--/* Hibernation and suspend events */
--#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
--#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
--#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
--#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
--#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
--#define PM_POST_RESTORE		0x0006 /* Restore failed */
-+#define NETLINK_URELEASE	0x0001	/* Unicast netlink socket released */
- 
- /* Console keyboard events.
-  * Note: KBD_KEYCODE is always sent before KBD_UNBOUND_KEYCODE, KBD_UNICODE and
-diff -puN include/linux/suspend.h~notifiers-pm-move-pm-notifiers-into-suspendh include/linux/suspend.h
---- a/include/linux/suspend.h~notifiers-pm-move-pm-notifiers-into-suspendh
-+++ a/include/linux/suspend.h
-@@ -268,6 +268,14 @@ static inline int hibernate(void) { retu
- static inline bool system_entering_hibernation(void) { return false; }
- #endif /* CONFIG_HIBERNATION */
- 
-+/* Hibernation and suspend events */
-+#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
-+#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
-+#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
-+#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
-+#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
-+#define PM_POST_RESTORE		0x0006 /* Restore failed */
-+
- #ifdef CONFIG_PM_SLEEP
- void save_processor_state(void);
- void restore_processor_state(void);
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from linus.walleij@linaro.org are
 
 origin.patch
 linux-next.patch
