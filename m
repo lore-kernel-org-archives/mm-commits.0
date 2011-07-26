@@ -1,35 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 13:33:58 -0700
-Message-ID: <201107262032.p6QKWtnr007292@imap1.linux-foundation.org>
+Subject: [merged] x86-olpc-xo1-sci-add-lid-switch-functionality.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 13:34:00 -0700
+Message-ID: <201107262032.p6QKWvv2007296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643Ab1GZUdN (ORCPT
+	by vger.kernel.org with ESMTP id S1753860Ab1GZUdP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 16:33:13 -0400
+	Tue, 26 Jul 2011 16:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86, olpc-xo1-sci: add GPE handler and ebook switch functionality
+     x86, olpc-xo1-sci: add lid switch functionality
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality.patch
+     x86-olpc-xo1-sci-add-lid-switch-functionality.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc-xo1-sci: add GPE handler and ebook switch functionality
+Subject: x86, olpc-xo1-sci: add lid switch functionality
 From: Daniel Drake <dsd@laptop.org>
 
-The EC in the OLPC XO-1 delivers GPE events to provide various
-notifications.  Add the basic code for GPE/EC event processing and enable
-the ebook switch, which can be used as a wakeup source.
+Configure the XO-1's lid switch GPIO to trigger an SCI interrupt, and
+correctly expose this input device which can be used as a wakeup source.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Andres Salomon <dilinger@queued.net>
@@ -40,359 +39,326 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                      |    2 
- arch/x86/include/asm/olpc.h           |    5 
- arch/x86/platform/olpc/olpc-xo1-sci.c |  183 +++++++++++++++++++++++-
- include/linux/cs5535.h                |   22 ++
- 4 files changed, 209 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig                      |    1 
+ arch/x86/platform/olpc/olpc-xo1-sci.c |  207 +++++++++++++++++++++++-
+ include/linux/cs5535.h                |    1 
+ 3 files changed, 208 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
+diff -puN arch/x86/Kconfig~x86-olpc-xo1-sci-add-lid-switch-functionality arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-olpc-xo1-sci-add-lid-switch-functionality
 +++ a/arch/x86/Kconfig
-@@ -2053,7 +2053,9 @@ config OLPC_XO1_SCI
- 	select MFD_CORE
- 	---help---
- 	  Add support for SCI-based features of the OLPC XO-1 laptop:
-+	   - EC-driven system wakeups
+@@ -2056,6 +2056,7 @@ config OLPC_XO1_SCI
+ 	   - EC-driven system wakeups
  	   - Power button
-+	   - Ebook switch
+ 	   - Ebook switch
++	   - Lid switch
  
  endif # X86_32
  
-diff -puN arch/x86/include/asm/olpc.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/include/asm/olpc.h
---- a/arch/x86/include/asm/olpc.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
-+++ a/arch/x86/include/asm/olpc.h
-@@ -111,6 +111,7 @@ extern int olpc_ec_cmd(unsigned char cmd
- #define EC_WRITE_SCI_MASK		0x1b
- #define EC_WAKE_UP_WLAN			0x24
- #define EC_WLAN_LEAVE_RESET		0x25
-+#define EC_READ_EB_MODE			0x2a
- #define EC_SET_SCI_INHIBIT		0x32
- #define EC_SET_SCI_INHIBIT_RELEASE	0x34
- #define EC_WLAN_ENTER_RESET		0x35
-@@ -144,7 +145,7 @@ extern int olpc_ec_cmd(unsigned char cmd
- #define OLPC_GPIO_SMB_CLK      14
- #define OLPC_GPIO_SMB_DATA     15
- #define OLPC_GPIO_WORKAUX	geode_gpio(24)
--#define OLPC_GPIO_LID		geode_gpio(26)
--#define OLPC_GPIO_ECSCI		geode_gpio(27)
-+#define OLPC_GPIO_LID		26
-+#define OLPC_GPIO_ECSCI		27
- 
- #endif /* _ASM_X86_OLPC_H */
-diff -puN arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality arch/x86/platform/olpc/olpc-xo1-sci.c
---- a/arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
+diff -puN arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-lid-switch-functionality arch/x86/platform/olpc/olpc-xo1-sci.c
+--- a/arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-add-lid-switch-functionality
 +++ a/arch/x86/platform/olpc/olpc-xo1-sci.c
-@@ -12,12 +12,15 @@
-  */
- 
- #include <linux/cs5535.h>
-+#include <linux/device.h>
-+#include <linux/gpio.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/pm.h>
- #include <linux/mfd/core.h>
- #include <linux/suspend.h>
-+#include <linux/workqueue.h>
- 
- #include <asm/io.h>
- #include <asm/msr.h>
-@@ -28,8 +31,60 @@
- 
+@@ -32,9 +32,26 @@
  static unsigned long acpi_base;
  static struct input_dev *power_button_idev;
-+static struct input_dev *ebook_switch_idev;
-+
+ static struct input_dev *ebook_switch_idev;
++static struct input_dev *lid_switch_idev;
+ 
  static int sci_irq;
  
-+/* Report current ebook switch state through input layer */
-+static void send_ebook_state(void)
-+{
-+	unsigned char state;
++static bool lid_open;
++static bool lid_inverted;
++static int lid_wake_mode;
 +
-+	if (olpc_ec_cmd(EC_READ_EB_MODE, NULL, 0, &state, 1)) {
-+		pr_err(PFX "failed to get ebook state\n");
-+		return;
-+	}
++enum lid_wake_modes {
++	LID_WAKE_ALWAYS,
++	LID_WAKE_OPEN,
++	LID_WAKE_CLOSE,
++};
 +
-+	input_report_switch(ebook_switch_idev, SW_TABLET_MODE, state);
-+	input_sync(ebook_switch_idev);
-+}
++static const char * const lid_wake_mode_names[] = {
++	[LID_WAKE_ALWAYS] = "always",
++	[LID_WAKE_OPEN] = "open",
++	[LID_WAKE_CLOSE] = "close",
++};
 +
-+/*
-+ * Process all items in the EC's SCI queue.
-+ *
-+ * This is handled in a workqueue because olpc_ec_cmd can be slow (and
-+ * can even timeout).
-+ *
-+ * If propagate_events is false, the queue is drained without events being
-+ * generated for the interrupts.
-+ */
-+static void process_sci_queue(bool propagate_events)
-+{
-+	int r;
-+	u16 data;
-+
-+	do {
-+		r = olpc_ec_sci_query(&data);
-+		if (r || !data)
-+			break;
-+
-+		pr_debug(PFX "SCI 0x%x received\n", data);
-+
-+		if (data == EC_SCI_SRC_EBOOK && propagate_events)
-+			send_ebook_state();
-+	} while (data);
-+
-+	if (r)
-+		pr_err(PFX "Failed to clear SCI queue");
-+}
-+
-+static void process_sci_queue_work(struct work_struct *work)
-+{
-+	process_sci_queue(true);
-+}
-+
-+static DECLARE_WORK(sci_work, process_sci_queue_work);
-+
- static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
+ /* Report current ebook switch state through input layer */
+ static void send_ebook_state(void)
  {
- 	struct platform_device *pdev = dev_id;
-@@ -51,6 +106,11 @@ static irqreturn_t xo1_sci_intr(int irq,
- 		input_sync(power_button_idev);
+@@ -49,6 +66,70 @@ static void send_ebook_state(void)
+ 	input_sync(ebook_switch_idev);
+ }
+ 
++static void flip_lid_inverter(void)
++{
++	/* gpio is high; invert so we'll get l->h event interrupt */
++	if (lid_inverted)
++		cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_INPUT_INVERT);
++	else
++		cs5535_gpio_set(OLPC_GPIO_LID, GPIO_INPUT_INVERT);
++	lid_inverted = !lid_inverted;
++}
++
++static void detect_lid_state(void)
++{
++	/*
++	 * the edge detector hookup on the gpio inputs on the geode is
++	 * odd, to say the least.  See http://dev.laptop.org/ticket/5703
++	 * for details, but in a nutshell:  we don't use the edge
++	 * detectors.  instead, we make use of an anomoly:  with the both
++	 * edge detectors turned off, we still get an edge event on a
++	 * positive edge transition.  to take advantage of this, we use the
++	 * front-end inverter to ensure that that's the edge we're always
++	 * going to see next.
++	 */
++
++	int state;
++
++	state = cs5535_gpio_isset(OLPC_GPIO_LID, GPIO_READ_BACK);
++	lid_open = !state ^ !lid_inverted; /* x ^^ y */
++	if (!state)
++		return;
++
++	flip_lid_inverter();
++}
++
++/* Report current lid switch state through input layer */
++static void send_lid_state(void)
++{
++	input_report_switch(lid_switch_idev, SW_LID, !lid_open);
++	input_sync(lid_switch_idev);
++}
++
++static ssize_t lid_wake_mode_show(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	const char *mode = lid_wake_mode_names[lid_wake_mode];
++	return sprintf(buf, "%s\n", mode);
++}
++static ssize_t lid_wake_mode_set(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t count)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(lid_wake_mode_names); i++) {
++		const char *mode = lid_wake_mode_names[i];
++		if (strlen(mode) != count || strncasecmp(mode, buf, count))
++			continue;
++
++		lid_wake_mode = i;
++		return count;
++	}
++	return -EINVAL;
++}
++static DEVICE_ATTR(lid_wake_mode, S_IWUSR | S_IRUGO, lid_wake_mode_show,
++		   lid_wake_mode_set);
++
+ /*
+  * Process all items in the EC's SCI queue.
+  *
+@@ -111,6 +192,11 @@ static irqreturn_t xo1_sci_intr(int irq,
+ 		schedule_work(&sci_work);
  	}
  
-+	if (gpe & CS5536_GPIOM7_PME_FLAG) { /* EC GPIO */
-+		cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_NEGATIVE_EDGE_STS);
-+		schedule_work(&sci_work);
-+	}
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_NEGATIVE_EDGE_STS);
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_POSITIVE_EDGE_STS);
++	detect_lid_state();
++	send_lid_state();
 +
  	return IRQ_HANDLED;
  }
  
-@@ -60,6 +120,19 @@ static int xo1_sci_suspend(struct platfo
- 		olpc_xo1_pm_wakeup_set(CS5536_PM_PWRBTN);
+@@ -126,11 +212,32 @@ static int xo1_sci_suspend(struct platfo
  	else
- 		olpc_xo1_pm_wakeup_clear(CS5536_PM_PWRBTN);
+ 		olpc_ec_wakeup_clear(EC_SCI_SRC_EBOOK);
+ 
++	if (!device_may_wakeup(&lid_switch_idev->dev)) {
++		cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
++	} else if ((lid_open && lid_wake_mode == LID_WAKE_OPEN) ||
++		   (!lid_open && lid_wake_mode == LID_WAKE_CLOSE)) {
++		flip_lid_inverter();
 +
-+	if (device_may_wakeup(&ebook_switch_idev->dev))
-+		olpc_ec_wakeup_set(EC_SCI_SRC_EBOOK);
-+	else
-+		olpc_ec_wakeup_clear(EC_SCI_SRC_EBOOK);
++		/* we may have just caused an event */
++		cs5535_gpio_set(OLPC_GPIO_LID, GPIO_NEGATIVE_EDGE_STS);
++		cs5535_gpio_set(OLPC_GPIO_LID, GPIO_POSITIVE_EDGE_STS);
 +
-+	return 0;
-+}
++		cs5535_gpio_set(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
++	}
 +
-+static int xo1_sci_resume(struct platform_device *pdev)
-+{
-+	/* Enable all EC events */
-+	olpc_ec_mask_write(EC_SCI_SRC_ALL);
  	return 0;
  }
  
-@@ -104,6 +177,50 @@ static int __devinit setup_sci_interrupt
- 	return r;
+ static int xo1_sci_resume(struct platform_device *pdev)
+ {
++	/*
++	 * We don't know what may have happened while we were asleep.
++	 * Reestablish our lid setup so we're sure to catch all transitions.
++	 */
++	detect_lid_state();
++	send_lid_state();
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
++
+ 	/* Enable all EC events */
+ 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
+ 	return 0;
+@@ -221,6 +328,43 @@ static void free_ec_sci(void)
+ 	gpio_free(OLPC_GPIO_ECSCI);
  }
  
-+static int __devinit setup_ec_sci(void)
++static int __devinit setup_lid_events(void)
 +{
 +	int r;
 +
-+	r = gpio_request(OLPC_GPIO_ECSCI, "OLPC-ECSCI");
++	r = gpio_request(OLPC_GPIO_LID, "OLPC-LID");
 +	if (r)
 +		return r;
 +
-+	gpio_direction_input(OLPC_GPIO_ECSCI);
++	gpio_direction_input(OLPC_GPIO_LID);
 +
-+	/* Clear pending EC SCI events */
-+	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_NEGATIVE_EDGE_STS);
-+	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_POSITIVE_EDGE_STS);
++	cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_INPUT_INVERT);
++	lid_inverted = 0;
 +
-+	/*
-+	 * Enable EC SCI events, and map them to both a PME and the SCI
-+	 * interrupt.
-+	 *
-+	 * Ordinarily, in addition to functioning as GPIOs, Geode GPIOs can
-+	 * be mapped to regular interrupts *or* Geode-specific Power
-+	 * Management Events (PMEs) - events that bring the system out of
-+	 * suspend. In this case, we want both of those things - the system
-+	 * wakeup, *and* the ability to get an interrupt when an event occurs.
-+	 *
-+	 * To achieve this, we map the GPIO to a PME, and then we use one
-+	 * of the many generic knobs on the CS5535 PIC to additionally map the
-+	 * PME to the regular SCI interrupt line.
-+	 */
-+	cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_EVENTS_ENABLE);
++	/* Clear edge detection and event enable for now */
++	cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
++	cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_NEGATIVE_EDGE_EN);
++	cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_POSITIVE_EDGE_EN);
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_NEGATIVE_EDGE_STS);
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_POSITIVE_EDGE_STS);
 +
-+	/* Set the SCI to cause a PME event on group 7 */
-+	cs5535_gpio_setup_event(OLPC_GPIO_ECSCI, 7, 1);
++	/* Set the LID to cause an PME event on group 6 */
++	cs5535_gpio_setup_event(OLPC_GPIO_LID, 6, 1);
 +
-+	/* And have group 7 also fire the SCI interrupt */
-+	cs5535_pic_unreqz_select_high(7, sci_irq);
++	/* Set PME group 6 to fire the SCI interrupt */
++	cs5535_gpio_set_irq(6, sci_irq);
++
++	/* Enable the event */
++	cs5535_gpio_set(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
 +
 +	return 0;
 +}
 +
-+static void free_ec_sci(void)
++static void free_lid_events(void)
 +{
-+	gpio_free(OLPC_GPIO_ECSCI);
++	gpio_free(OLPC_GPIO_LID);
 +}
 +
  static int __devinit setup_power_button(struct platform_device *pdev)
  {
  	int r;
-@@ -135,6 +252,37 @@ static void free_power_button(void)
- 	input_free_device(power_button_idev);
+@@ -283,6 +427,50 @@ static void free_ebook_switch(void)
+ 	input_free_device(ebook_switch_idev);
  }
  
-+static int __devinit setup_ebook_switch(struct platform_device *pdev)
++static int __devinit setup_lid_switch(struct platform_device *pdev)
 +{
 +	int r;
 +
-+	ebook_switch_idev = input_allocate_device();
-+	if (!ebook_switch_idev)
++	lid_switch_idev = input_allocate_device();
++	if (!lid_switch_idev)
 +		return -ENOMEM;
 +
-+	ebook_switch_idev->name = "EBook Switch";
-+	ebook_switch_idev->phys = DRV_NAME "/input1";
-+	set_bit(EV_SW, ebook_switch_idev->evbit);
-+	set_bit(SW_TABLET_MODE, ebook_switch_idev->swbit);
++	lid_switch_idev->name = "Lid Switch";
++	lid_switch_idev->phys = DRV_NAME "/input2";
++	set_bit(EV_SW, lid_switch_idev->evbit);
++	set_bit(SW_LID, lid_switch_idev->swbit);
 +
-+	ebook_switch_idev->dev.parent = &pdev->dev;
-+	device_set_wakeup_capable(&ebook_switch_idev->dev, true);
++	lid_switch_idev->dev.parent = &pdev->dev;
++	device_set_wakeup_capable(&lid_switch_idev->dev, true);
 +
-+	r = input_register_device(ebook_switch_idev);
++	r = input_register_device(lid_switch_idev);
 +	if (r) {
-+		dev_err(&pdev->dev, "failed to register ebook switch: %d\n", r);
-+		input_free_device(ebook_switch_idev);
++		dev_err(&pdev->dev, "failed to register lid switch: %d\n", r);
++		goto err_register;
 +	}
 +
++	r = device_create_file(&lid_switch_idev->dev, &dev_attr_lid_wake_mode);
++	if (r) {
++		dev_err(&pdev->dev, "failed to create wake mode attr: %d\n", r);
++		goto err_create_attr;
++	}
++
++	return 0;
++
++err_create_attr:
++	input_unregister_device(lid_switch_idev);
++err_register:
++	input_free_device(lid_switch_idev);
 +	return r;
 +}
 +
-+static void free_ebook_switch(void)
++static void free_lid_switch(void)
 +{
-+	input_unregister_device(ebook_switch_idev);
-+	input_free_device(ebook_switch_idev);
++	device_remove_file(&lid_switch_idev->dev, &dev_attr_lid_wake_mode);
++	input_unregister_device(lid_switch_idev);
++	input_free_device(lid_switch_idev);
 +}
 +
  static int __devinit xo1_sci_probe(struct platform_device *pdev)
  {
  	struct resource *res;
-@@ -159,10 +307,39 @@ static int __devinit xo1_sci_probe(struc
+@@ -311,12 +499,21 @@ static int __devinit xo1_sci_probe(struc
  	if (r)
- 		return r;
+ 		goto err_ebook;
  
-+	r = setup_ebook_switch(pdev);
++	r = setup_lid_switch(pdev);
 +	if (r)
-+		goto err_ebook;
++		goto err_lid;
 +
-+	r = setup_ec_sci();
++	r = setup_lid_events();
 +	if (r)
-+		goto err_ecsci;
++		goto err_lidevt;
 +
-+	/* Enable PME generation for EC-generated events */
-+	outl(CS5536_GPIOM7_PME_EN, acpi_base + CS5536_PM_GPE0_EN);
-+
-+	/* Clear pending events */
-+	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
-+	process_sci_queue(false);
-+
-+	/* Initial sync */
-+	send_ebook_state();
-+
+ 	r = setup_ec_sci();
+ 	if (r)
+ 		goto err_ecsci;
+ 
+ 	/* Enable PME generation for EC-generated events */
+-	outl(CS5536_GPIOM7_PME_EN, acpi_base + CS5536_PM_GPE0_EN);
++	outl(CS5536_GPIOM6_PME_EN | CS5536_GPIOM7_PME_EN,
++		acpi_base + CS5536_PM_GPE0_EN);
+ 
+ 	/* Clear pending events */
+ 	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
+@@ -324,6 +521,8 @@ static int __devinit xo1_sci_probe(struc
+ 
+ 	/* Initial sync */
+ 	send_ebook_state();
++	detect_lid_state();
++	send_lid_state();
+ 
  	r = setup_sci_interrupt(pdev);
  	if (r)
--		free_power_button();
-+		goto err_sci;
- 
-+	/* Enable all EC events */
-+	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-+
-+	return r;
-+
-+err_sci:
-+	free_ec_sci();
-+err_ecsci:
-+	free_ebook_switch();
-+err_ebook:
-+	free_power_button();
- 	return r;
- }
- 
-@@ -170,6 +347,9 @@ static int __devexit xo1_sci_remove(stru
- {
- 	mfd_cell_disable(pdev);
+@@ -337,6 +536,10 @@ static int __devinit xo1_sci_probe(struc
+ err_sci:
+ 	free_ec_sci();
+ err_ecsci:
++	free_lid_events();
++err_lidevt:
++	free_lid_switch();
++err_lid:
+ 	free_ebook_switch();
+ err_ebook:
+ 	free_power_button();
+@@ -349,6 +552,8 @@ static int __devexit xo1_sci_remove(stru
  	free_irq(sci_irq, pdev);
-+	cancel_work_sync(&sci_work);
-+	free_ec_sci();
-+	free_ebook_switch();
+ 	cancel_work_sync(&sci_work);
+ 	free_ec_sci();
++	free_lid_events();
++	free_lid_switch();
+ 	free_ebook_switch();
  	free_power_button();
  	acpi_base = 0;
- 	return 0;
-@@ -182,6 +362,7 @@ static struct platform_driver xo1_sci_dr
- 	.probe = xo1_sci_probe,
- 	.remove = __devexit_p(xo1_sci_remove),
- 	.suspend = xo1_sci_suspend,
-+	.resume = xo1_sci_resume,
- };
- 
- static int __init xo1_sci_init(void)
-diff -puN include/linux/cs5535.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality include/linux/cs5535.h
---- a/include/linux/cs5535.h~x86-olpc-xo1-sci-add-gpe-handler-and-ebook-switch-functionality
+diff -puN include/linux/cs5535.h~x86-olpc-xo1-sci-add-lid-switch-functionality include/linux/cs5535.h
+--- a/include/linux/cs5535.h~x86-olpc-xo1-sci-add-lid-switch-functionality
 +++ a/include/linux/cs5535.h
-@@ -11,6 +11,8 @@
- #ifndef _CS5535_H
- #define _CS5535_H
+@@ -102,6 +102,7 @@ static inline int cs5535_pic_unreqz_sele
  
-+#include <asm/msr.h>
-+
- /* MSRs */
- #define MSR_GLIU_P2D_RO0	0x10000029
+ /* CS5536_PM_GPE0_EN bits */
+ #define CS5536_GPIOM7_PME_EN	(1 << 31)
++#define CS5536_GPIOM6_PME_EN	(1 << 30)
  
-@@ -43,6 +45,18 @@
- #define MSR_GX_GLD_MSR_CONFIG	0xC0002001
- #define MSR_GX_MSR_PADSEL	0xC0002011
- 
-+static inline int cs5535_pic_unreqz_select_high(unsigned int group,
-+						unsigned int irq)
-+{
-+	uint32_t lo, hi;
-+
-+	rdmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
-+	lo &= ~(0xF << (group * 4));
-+	lo |= (irq & 0xF) << (group * 4);
-+	wrmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
-+	return 0;
-+}
-+
- /* PIC registers */
- #define CS5536_PIC_INT_SEL1	0x4d0
- #define CS5536_PIC_INT_SEL2	0x4d1
-@@ -73,6 +87,7 @@
- #define CS5536_PM1_EN		0x02
- #define CS5536_PM1_CNT		0x08
- #define CS5536_PM_GPE0_STS	0x18
-+#define CS5536_PM_GPE0_EN	0x1c
- 
- /* CS5536_PM1_STS bits */
- #define CS5536_WAK_FLAG		(1 << 15)
-@@ -81,6 +96,13 @@
- /* CS5536_PM1_EN bits */
- #define CS5536_PM_PWRBTN	(1 << 8)
- 
-+/* CS5536_PM_GPE0_STS bits */
-+#define CS5536_GPIOM7_PME_FLAG	(1 << 31)
-+#define CS5536_GPIOM6_PME_FLAG	(1 << 30)
-+
-+/* CS5536_PM_GPE0_EN bits */
-+#define CS5536_GPIOM7_PME_EN	(1 << 31)
-+
  /* VSA2 magic values */
  #define VSA_VRC_INDEX		0xAC1C
- #define VSA_VRC_DATA		0xAC1E
 _
 
 Patches currently in -mm which might be from dsd@laptop.org are
