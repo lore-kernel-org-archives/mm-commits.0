@@ -1,103 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-exec-remove-redundant-set_fsuser_ds.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:54:07 -0700
-Message-ID: <201107260753.p6Q7rAM3003210@imap1.linux-foundation.org>
+Subject: [merged] cris-fix-some-build-warnings-in-pinmuxc.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:54:11 -0700
+Message-ID: <201107260753.p6Q7rEXt003213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753126Ab1GZHx7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752861Ab1GZHxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:53:59 -0400
+	Tue, 26 Jul 2011 03:53:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minipli@googlemail.com, geert@linux-m68k.org, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k, exec: remove redundant set_fs(USER_DS)
+     cris: fix some build warnings in pinmux.c
 has been removed from the -mm tree.  Its filename was
-     m68k-exec-remove-redundant-set_fsuser_ds.patch
+     cris-fix-some-build-warnings-in-pinmuxc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k, exec: remove redundant set_fs(USER_DS)
-From: Mathias Krause <minipli@googlemail.com>
+Subject: cris: fix some build warnings in pinmux.c
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-The address limit is already set in flush_old_exec() so those calls to
-set_fs(USER_DS) are redundant.
+Fix some harmless warnings such as
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+src/arch/cris/arch-v32/mach-a3/pinmux.c:273: warning: ISO C90 forbids mixed declarations and code:
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/processor.h |    4 ----
- arch/m68k/kernel/process_mm.c     |    2 +-
- arch/m68k/kernel/process_no.c     |    2 +-
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ arch/cris/arch-v32/mach-a3/pinmux.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/m68k/include/asm/processor.h~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/include/asm/processor.h
---- a/arch/m68k/include/asm/processor.h~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/include/asm/processor.h
-@@ -105,9 +105,6 @@ struct thread_struct {
- static inline void start_thread(struct pt_regs * regs, unsigned long pc,
- 				unsigned long usp)
- {
--	/* reads from user space */
--	set_fs(USER_DS);
--
- 	regs->pc = pc;
- 	regs->sr &= ~0x2000;
- 	wrusp(usp);
-@@ -129,7 +126,6 @@ extern int handle_kernel_fault(struct pt
+diff -puN arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc arch/cris/arch-v32/mach-a3/pinmux.c
+--- a/arch/cris/arch-v32/mach-a3/pinmux.c~cris-fix-some-build-warnings-in-pinmuxc
++++ a/arch/cris/arch-v32/mach-a3/pinmux.c
+@@ -85,6 +85,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
+ 	int ret = -EINVAL;
+ 	char saved[sizeof pins];
+ 	unsigned long flags;
++	reg_pinmux_rw_hwprot hwprot;
++	reg_clkgen_rw_clk_ctrl clk_ctrl;
  
- #define start_thread(_regs, _pc, _usp)                  \
- do {                                                    \
--	set_fs(USER_DS); /* reads from user space */    \
- 	(_regs)->pc = (_pc);                            \
- 	((struct switch_stack *)(_regs))[-1].a6 = 0;    \
- 	reformat(_regs);                                \
-diff -puN arch/m68k/kernel/process_mm.c~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/kernel/process_mm.c
---- a/arch/m68k/kernel/process_mm.c~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/kernel/process_mm.c
-@@ -185,7 +185,7 @@ EXPORT_SYMBOL(kernel_thread);
- void flush_thread(void)
- {
- 	unsigned long zero = 0;
--	set_fs(USER_DS);
-+
- 	current->thread.fs = __USER_DS;
- 	if (!FPU_IS_EMU)
- 		asm volatile (".chip 68k/68881\n\t"
-diff -puN arch/m68k/kernel/process_no.c~m68k-exec-remove-redundant-set_fsuser_ds arch/m68k/kernel/process_no.c
---- a/arch/m68k/kernel/process_no.c~m68k-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/m68k/kernel/process_no.c
-@@ -158,7 +158,7 @@ void flush_thread(void)
- #ifdef CONFIG_FPU
- 	unsigned long zero = 0;
- #endif
--	set_fs(USER_DS);
-+
- 	current->thread.fs = __USER_DS;
- #ifdef CONFIG_FPU
- 	if (!FPU_IS_EMU)
+ 	spin_lock_irqsave(&pinmux_lock, flags);
+ 
+@@ -93,9 +95,8 @@ crisv32_pinmux_alloc_fixed(enum fixed_fu
+ 
+ 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
+ 
+-	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
+-	reg_clkgen_rw_clk_ctrl clk_ctrl = REG_RD(clkgen, regi_clkgen,
+-		rw_clk_ctrl);
++	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
++	clk_ctrl = REG_RD(clkgen, regi_clkgen, rw_clk_ctrl);
+ 
+ 	switch (function) {
+ 	case pinmux_eth:
+@@ -262,6 +263,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
+ 	int ret = -EINVAL;
+ 	char saved[sizeof pins];
+ 	unsigned long flags;
++	reg_pinmux_rw_hwprot hwprot;
+ 
+ 	spin_lock_irqsave(&pinmux_lock, flags);
+ 
+@@ -270,7 +272,7 @@ crisv32_pinmux_dealloc_fixed(enum fixed_
+ 
+ 	crisv32_pinmux_init(); /* must be done before we read rw_hwprot */
+ 
+-	reg_pinmux_rw_hwprot hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
++	hwprot = REG_RD(pinmux, regi_pinmux, rw_hwprot);
+ 
+ 	switch (function) {
+ 	case pinmux_eth:
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
 linux-next.patch
-arm-exec-remove-redundant-set_fsuser_ds.patch
-ia64-exec-remove-redundant-set_fsuser_ds.patch
-unicore32-exec-remove-redundant-set_fsuser_ds.patch
-parisc-exec-remove-redundant-set_fsuser_ds.patch
-s390-exec-remove-redundant-set_fsuser_ds.patch
-sparc-exec-remove-redundant-addr_limit-assignment.patch
-frv-exec-remove-redundant-set_fsuser_ds.patch
-mn10300-exec-remove-redundant-set_fsuser_ds.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+gcov-disable-constructors-for-uml.patch
+include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
