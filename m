@@ -1,65 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 17:00:05 -0700
-Message-ID: <201107260000.p6Q005bL006438@imap1.linux-foundation.org>
+Subject: [folded] notifiers-pm-move-pm-notifiers-into-suspendh-update.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 17:00:39 -0700
+Message-ID: <201107260000.p6Q00dtO006504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752884Ab1GZAAL (ORCPT
+	by vger.kernel.org with ESMTP id S1752676Ab1GZAAr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 20:00:11 -0400
+	Mon, 25 Jul 2011 20:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: amwang@redhat.com, davem@davemloft.net, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     notifiers-sys-move-reboot-notifiers-into-rebooth-fix
+     notifiers-pm-move-pm-notifiers-into-suspendh-update
 has been removed from the -mm tree.  Its filename was
-     notifiers-sys-move-reboot-notifiers-into-rebooth-fix.patch
+     notifiers-pm-move-pm-notifiers-into-suspendh-update.patch
 
-This patch was dropped because it was folded into notifiers-sys-move-reboot-notifiers-into-rebooth.patch
+This patch was dropped because it was folded into notifiers-pm-move-pm-notifiers-into-suspendh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: notifiers-sys-move-reboot-notifiers-into-rebooth-fix
+Subject: notifiers-pm-move-pm-notifiers-into-suspendh-update
 From: Cong Wang <amwang@redhat.com>
 
-With this patch applied, make allyesconfig succeeds on ppc64.
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Miller <davem@davemloft.net>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/rtas.c       |    1 +
- arch/powerpc/kernel/rtas_flash.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/mmc/core/core.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas.c
---- a/arch/powerpc/kernel/rtas.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
-+++ a/arch/powerpc/kernel/rtas.c
-@@ -24,6 +24,7 @@
- #include <linux/cpumask.h>
- #include <linux/memblock.h>
- #include <linux/slab.h>
-+#include <linux/reboot.h>
+diff -puN drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh-update drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh-update
++++ a/drivers/mmc/core/core.c
+@@ -23,9 +23,7 @@
+ #include <linux/log2.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+-#ifdef CONFIG_PM
+ #include <linux/suspend.h>
+-#endif
  
- #include <asm/prom.h>
- #include <asm/rtas.h>
-diff -puN arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix arch/powerpc/kernel/rtas_flash.c
---- a/arch/powerpc/kernel/rtas_flash.c~notifiers-sys-move-reboot-notifiers-into-rebooth-fix
-+++ a/arch/powerpc/kernel/rtas_flash.c
-@@ -17,6 +17,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/proc_fs.h>
-+#include <linux/reboot.h>
- #include <asm/delay.h>
- #include <asm/uaccess.h>
- #include <asm/rtas.h>
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
 _
 
 Patches currently in -mm which might be from amwang@redhat.com are
@@ -69,6 +58,5 @@ notifiers-cpu-move-cpu-notifiers-into-cpuh.patch
 notifiers-net-move-netdevice-notifiers-into-netdeviceh.patch
 notifiers-sys-move-reboot-notifiers-into-rebooth.patch
 notifiers-pm-move-pm-notifiers-into-suspendh.patch
-notifiers-pm-move-pm-notifiers-into-suspendh-update.patch
 notifiers-vt-move-vt-notifiers-into-vth.patch
 
