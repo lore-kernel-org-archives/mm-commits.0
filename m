@@ -1,206 +1,349 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc64-kill-page-table-quicklists.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:09 -0700
-Message-ID: <201107260752.p6Q7qCcw003100@imap1.linux-foundation.org>
+Subject: [merged] mm-consistent-truncate-and-invalidate-loops.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:23 -0700
+Message-ID: <201107260752.p6Q7qQQS003127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752788Ab1GZHwu (ORCPT
+	by vger.kernel.org with ESMTP id S1752788Ab1GZHwz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:52:50 -0400
+	Tue, 26 Jul 2011 03:52:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc64: kill page table quicklists
+     mm: consistent truncate and invalidate loops
 has been removed from the -mm tree.  Its filename was
-     sparc64-kill-page-table-quicklists.patch
+     mm-consistent-truncate-and-invalidate-loops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64: kill page table quicklists
-From: David S. Miller <davem@davemloft.net>
+Subject: mm: consistent truncate and invalidate loops
+From: Hugh Dickins <hughd@google.com>
 
-With the recent mmu_gather changes that included generic RCU freeing of
-page-tables, it is now quite straight forward to implement gup_fast() on
-sparc64.
+Make the pagevec_lookup loops in truncate_inode_pages_range(),
+invalidate_mapping_pages() and invalidate_inode_pages2_range() more
+consistent with each other.
 
-This patch:
+They were relying upon page->index of an unlocked page, but apologizing
+for it: accept it, embrace it, add comments and WARN_ONs, and simplify the
+index handling.
 
-Remove the page table quicklists.  They are pointless and make it harder
-to use RCU page table freeing and share code with other architectures.
+invalidate_inode_pages2_range() had special handling for a wrapped
+page->index + 1 = 0 case; but MAX_LFS_FILESIZE doesn't let us anywhere
+near there, and a corrupt page->index in the radix_tree could cause more
+trouble than that would catch.  Remove that wrapped handling.
 
-BTW, this is the second time this has happened, see commit
-3c936465249f863f322154ff1aaa628b84ee5750 ("[SPARC64]: Kill pgtable
-quicklists and use SLAB.")
+invalidate_inode_pages2_range() uses min() to limit the pagevec_lookup
+when near the end of the range: copy that into the other two, although
+it's less useful than you might think (it limits the use of the buffer,
+rather than the indices looked up).
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig                  |    4 ---
- arch/sparc/include/asm/pgalloc_64.h |   32 ++++++++++++--------------
- arch/sparc/mm/tsb.c                 |   11 ++++++++
- 3 files changed, 26 insertions(+), 21 deletions(-)
+ mm/filemap.c  |    2 
+ mm/truncate.c |  110 ++++++++++++++++++++----------------------------
+ 2 files changed, 49 insertions(+), 63 deletions(-)
 
-diff -puN arch/sparc/Kconfig~sparc64-kill-page-table-quicklists arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~sparc64-kill-page-table-quicklists
-+++ a/arch/sparc/Kconfig
-@@ -81,10 +81,6 @@ config IOMMU_HELPER
- 	bool
- 	default y if SPARC64
+diff -puN mm/filemap.c~mm-consistent-truncate-and-invalidate-loops mm/filemap.c
+--- a/mm/filemap.c~mm-consistent-truncate-and-invalidate-loops
++++ a/mm/filemap.c
+@@ -128,6 +128,7 @@ void __delete_from_page_cache(struct pag
  
--config QUICKLIST
--	bool
--	default y if SPARC64
--
- config STACKTRACE_SUPPORT
- 	bool
- 	default y if SPARC64
-diff -puN arch/sparc/include/asm/pgalloc_64.h~sparc64-kill-page-table-quicklists arch/sparc/include/asm/pgalloc_64.h
---- a/arch/sparc/include/asm/pgalloc_64.h~sparc64-kill-page-table-quicklists
-+++ a/arch/sparc/include/asm/pgalloc_64.h
-@@ -5,7 +5,6 @@
- #include <linux/sched.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
--#include <linux/quicklist.h>
- 
- #include <asm/spitfire.h>
- #include <asm/cpudata.h>
-@@ -14,69 +13,68 @@
- 
- /* Page table allocation/freeing. */
- 
-+extern struct kmem_cache *pgtable_cache;
-+
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+ 	radix_tree_delete(&mapping->page_tree, page->index);
+ 	page->mapping = NULL;
++	/* Leave page->index set: truncation lookup relies upon it */
+ 	mapping->nrpages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	if (PageSwapBacked(page))
+@@ -483,6 +484,7 @@ int add_to_page_cache_locked(struct page
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 		} else {
+ 			page->mapping = NULL;
++			/* Leave page->index set: truncation relies upon it */
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 			mem_cgroup_uncharge_cache_page(page);
+ 			page_cache_release(page);
+diff -puN mm/truncate.c~mm-consistent-truncate-and-invalidate-loops mm/truncate.c
+--- a/mm/truncate.c~mm-consistent-truncate-and-invalidate-loops
++++ a/mm/truncate.c
+@@ -199,9 +199,6 @@ int invalidate_inode_page(struct page *p
+  * The first pass will remove most pages, so the search cost of the second pass
+  * is low.
+  *
+- * When looking at page->index outside the page lock we need to be careful to
+- * copy it into a local to avoid races (it could change at any time).
+- *
+  * We pass down the cache-hot hint to the page freeing code.  Even if the
+  * mapping is large, it is probably the case that the final pages are the most
+  * recently touched, and freeing happens in ascending file offset order.
+@@ -210,10 +207,10 @@ void truncate_inode_pages_range(struct a
+ 				loff_t lstart, loff_t lend)
  {
--	return quicklist_alloc(0, GFP_KERNEL, NULL);
-+	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL);
- }
+ 	const pgoff_t start = (lstart + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+-	pgoff_t end;
+ 	const unsigned partial = lstart & (PAGE_CACHE_SIZE - 1);
+ 	struct pagevec pvec;
+-	pgoff_t next;
++	pgoff_t index;
++	pgoff_t end;
+ 	int i;
  
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- {
--	quicklist_free(0, NULL, pgd);
-+	kmem_cache_free(pgtable_cache, pgd);
- }
+ 	cleancache_flush_inode(mapping);
+@@ -224,24 +221,21 @@ void truncate_inode_pages_range(struct a
+ 	end = (lend >> PAGE_CACHE_SHIFT);
  
- #define pud_populate(MM, PUD, PMD)	pud_set(PUD, PMD)
+ 	pagevec_init(&pvec, 0);
+-	next = start;
+-	while (next <= end &&
+-	       pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++	index = start;
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t page_index = page->index;
  
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return quicklist_alloc(0, GFP_KERNEL, NULL);
-+	return kmem_cache_alloc(pgtable_cache,
-+				GFP_KERNEL|__GFP_REPEAT);
- }
+-			if (page_index > end) {
+-				next = page_index;
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
+ 				break;
+-			}
  
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
--	quicklist_free(0, NULL, pmd);
-+	kmem_cache_free(pgtable_cache, pmd);
- }
- 
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
- 					  unsigned long address)
- {
--	return quicklist_alloc(0, GFP_KERNEL, NULL);
-+	return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
- }
- 
- static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
- 					unsigned long address)
- {
- 	struct page *page;
--	void *pg;
-+	pte_t *pte;
- 
--	pg = quicklist_alloc(0, GFP_KERNEL, NULL);
--	if (!pg)
-+	pte = pte_alloc_one_kernel(mm, address);
-+	if (!pte)
- 		return NULL;
--	page = virt_to_page(pg);
-+	page = virt_to_page(pte);
- 	pgtable_page_ctor(page);
- 	return page;
- }
- 
- static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
- {
--	quicklist_free(0, NULL, pte);
-+	free_page((unsigned long)pte);
- }
- 
- static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
- {
- 	pgtable_page_dtor(ptepage);
--	quicklist_free_page(0, NULL, ptepage);
-+	__free_page(ptepage);
- }
- 
--
- #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(PMD, PTE)
- #define pmd_populate(MM,PMD,PTE_PAGE)		\
- 	pmd_populate_kernel(MM,PMD,page_address(PTE_PAGE))
- #define pmd_pgtable(pmd) pmd_page(pmd)
- 
--static inline void check_pgt_cache(void)
--{
--	quicklist_trim(0, NULL, 25, 16);
--}
-+#define check_pgt_cache()	do { } while (0)
- 
- #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
- #define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
-diff -puN arch/sparc/mm/tsb.c~sparc64-kill-page-table-quicklists arch/sparc/mm/tsb.c
---- a/arch/sparc/mm/tsb.c~sparc64-kill-page-table-quicklists
-+++ a/arch/sparc/mm/tsb.c
-@@ -236,6 +236,8 @@ static void setup_tsb_params(struct mm_s
+-			if (page_index > next)
+-				next = page_index;
+-			next++;
+ 			if (!trylock_page(page))
+ 				continue;
++			WARN_ON(page->index != index);
+ 			if (PageWriteback(page)) {
+ 				unlock_page(page);
+ 				continue;
+@@ -252,6 +246,7 @@ void truncate_inode_pages_range(struct a
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
  	}
+ 
+ 	if (partial) {
+@@ -264,13 +259,14 @@ void truncate_inode_pages_range(struct a
+ 		}
+ 	}
+ 
+-	next = start;
++	index = start;
+ 	for ( ; ; ) {
+ 		cond_resched();
+-		if (!pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+-			if (next == start)
++		if (!pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++			if (index == start)
+ 				break;
+-			next = start;
++			index = start;
+ 			continue;
+ 		}
+ 		if (pvec.pages[0]->index > end) {
+@@ -281,18 +277,20 @@ void truncate_inode_pages_range(struct a
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+-			if (page->index > end)
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
+ 				break;
++
+ 			lock_page(page);
++			WARN_ON(page->index != index);
+ 			wait_on_page_writeback(page);
+ 			truncate_inode_page(mapping, page);
+-			if (page->index > next)
+-				next = page->index;
+-			next++;
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
++		index++;
+ 	}
+ 	cleancache_flush_inode(mapping);
  }
- 
-+struct kmem_cache *pgtable_cache __read_mostly;
-+
- static struct kmem_cache *tsb_caches[8] __read_mostly;
- 
- static const char *tsb_cache_names[8] = {
-@@ -253,6 +255,15 @@ void __init pgtable_cache_init(void)
+@@ -333,35 +331,26 @@ unsigned long invalidate_mapping_pages(s
+ 		pgoff_t start, pgoff_t end)
  {
- 	unsigned long i;
+ 	struct pagevec pvec;
+-	pgoff_t next = start;
++	pgoff_t index = start;
+ 	unsigned long ret;
+ 	unsigned long count = 0;
+ 	int i;
  
-+	pgtable_cache = kmem_cache_create("pgtable_cache",
-+					  PAGE_SIZE, PAGE_SIZE,
-+					  0,
-+					  _clear_page);
-+	if (!pgtable_cache) {
-+		prom_printf("pgtable_cache_init(): Could not create!\n");
-+		prom_halt();
-+	}
+ 	pagevec_init(&pvec, 0);
+-	while (next <= end &&
+-			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t index;
+-			int lock_failed;
+-
+-			lock_failed = !trylock_page(page);
+ 
+-			/*
+-			 * We really shouldn't be looking at the ->index of an
+-			 * unlocked page.  But we're not allowed to lock these
+-			 * pages.  So we rely upon nobody altering the ->index
+-			 * of this (pinned-by-us) page.
+-			 */
++			/* We rely upon deletion not changing page->index */
+ 			index = page->index;
+-			if (index > next)
+-				next = index;
+-			next++;
+-			if (lock_failed)
+-				continue;
++			if (index > end)
++				break;
+ 
++			if (!trylock_page(page))
++				continue;
++			WARN_ON(page->index != index);
+ 			ret = invalidate_inode_page(page);
+ 			unlock_page(page);
+ 			/*
+@@ -371,12 +360,11 @@ unsigned long invalidate_mapping_pages(s
+ 			if (!ret)
+ 				deactivate_page(page);
+ 			count += ret;
+-			if (next > end)
+-				break;
+ 		}
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
+ 	}
+ 	return count;
+ }
+@@ -442,37 +430,32 @@ int invalidate_inode_pages2_range(struct
+ 				  pgoff_t start, pgoff_t end)
+ {
+ 	struct pagevec pvec;
+-	pgoff_t next;
++	pgoff_t index;
+ 	int i;
+ 	int ret = 0;
+ 	int ret2 = 0;
+ 	int did_range_unmap = 0;
+-	int wrapped = 0;
+ 
+ 	cleancache_flush_inode(mapping);
+ 	pagevec_init(&pvec, 0);
+-	next = start;
+-	while (next <= end && !wrapped &&
+-		pagevec_lookup(&pvec, mapping, next,
+-			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++	index = start;
++	while (index <= end && pagevec_lookup(&pvec, mapping, index,
++			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			pgoff_t page_index;
 +
- 	for (i = 0; i < 8; i++) {
- 		unsigned long size = 8192 << i;
- 		const char *name = tsb_cache_names[i];
++			/* We rely upon deletion not changing page->index */
++			index = page->index;
++			if (index > end)
++				break;
+ 
+ 			lock_page(page);
++			WARN_ON(page->index != index);
+ 			if (page->mapping != mapping) {
+ 				unlock_page(page);
+ 				continue;
+ 			}
+-			page_index = page->index;
+-			next = page_index + 1;
+-			if (next == 0)
+-				wrapped = 1;
+-			if (page_index > end) {
+-				unlock_page(page);
+-				break;
+-			}
+ 			wait_on_page_writeback(page);
+ 			if (page_mapped(page)) {
+ 				if (!did_range_unmap) {
+@@ -480,9 +463,9 @@ int invalidate_inode_pages2_range(struct
+ 					 * Zap the rest of the file in one hit.
+ 					 */
+ 					unmap_mapping_range(mapping,
+-					   (loff_t)page_index<<PAGE_CACHE_SHIFT,
+-					   (loff_t)(end - page_index + 1)
+-							<< PAGE_CACHE_SHIFT,
++					   (loff_t)index << PAGE_CACHE_SHIFT,
++					   (loff_t)(1 + end - index)
++							 << PAGE_CACHE_SHIFT,
+ 					    0);
+ 					did_range_unmap = 1;
+ 				} else {
+@@ -490,8 +473,8 @@ int invalidate_inode_pages2_range(struct
+ 					 * Just zap this page
+ 					 */
+ 					unmap_mapping_range(mapping,
+-					  (loff_t)page_index<<PAGE_CACHE_SHIFT,
+-					  PAGE_CACHE_SIZE, 0);
++					   (loff_t)index << PAGE_CACHE_SHIFT,
++					   PAGE_CACHE_SIZE, 0);
+ 				}
+ 			}
+ 			BUG_ON(page_mapped(page));
+@@ -507,6 +490,7 @@ int invalidate_inode_pages2_range(struct
+ 		pagevec_release(&pvec);
+ 		mem_cgroup_uncharge_end();
+ 		cond_resched();
++		index++;
+ 	}
+ 	cleancache_flush_inode(mapping);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 linux-next.patch
-maintainers-orphan-framerelay-dlci.patch
-proc_fork_connector-a-lockless-real_parent-usage-is-not-safe.patch
-sparc-exec-remove-redundant-addr_limit-assignment.patch
-kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
-drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch
-atomic-use-linux-atomich.patch
-atomic-move-atomic_add_unless-to-generic-code.patch
-atomic-cleanup-asm-generic-atomich-inclusion.patch
-atomic-update-comments-in-atomich.patch
+slub-partly-fix-freeze-in-__slab_free.patch
+radix_tree-exceptional-entries-and-indices.patch
+mm-let-swap-use-exceptional-entries.patch
+tmpfs-demolish-old-swap-vector-support.patch
+tmpfs-miscellaneous-trivial-cleanups.patch
+tmpfs-copy-truncate_inode_pages_range.patch
+tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
+tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
+tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
+tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
+tmpfs-convert-shmem_writepage-and-enable-swap.patch
+tmpfs-use-kmemdup-for-short-symlinks.patch
+mm-a-few-small-updates-for-radix-swap.patch
+mm-a-few-small-updates-for-radix-swap-fix.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+panic-panic=-1-for-immediate-reboot.patch
+panic-vt-do-not-force-oops-output-when-panic_timeout-0.patch
+prio_tree-debugging-patch.patch
 
