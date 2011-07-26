@@ -1,85 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:05 -0700
-Message-ID: <201107260754.p6Q7s87l003325@imap1.linux-foundation.org>
+Subject: [merged] eisa-pci_eisac-fix-section-mismatch.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:13 -0700
+Message-ID: <201107260754.p6Q7sHdF003338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752412Ab1GZHzF (ORCPT
+	by vger.kernel.org with ESMTP id S1752412Ab1GZHzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:05 -0400
+	Tue, 26 Jul 2011 03:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, arnd@arndb.de, jonas@southpole.se, mm-commits@vger.kernel.org
+To: lacombar@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic/iomap.h: add stubs for pci iomap/iounmap
+     eisa/pci_eisa.c: fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
+     eisa-pci_eisac-fix-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/iomap.h: add stubs for pci iomap/iounmap
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: eisa/pci_eisa.c: fix section mismatch
+From: Arnaud Lacombe <lacombar@gmail.com>
 
-When CONFIG_PCI is not enabled, CONFIG_EISA=y, and CONFIG_GENERIC_IOMAP=y,
-drivers/net/3c59x.c build fails due to a recent small change to
-<asm-generic/iomap.h> that surrounds pci_iomap() and pci_iounmap() with
-#ifdef CONFIG_PCI/#endif.  Since that patch to iomap.h looks correct, add
-stubs for pci_iomap() and pci_iounmap() with CONFIG_PCI is not enabled to
-fix the build errors.
+WARNING: vmlinux.o(.data+0x15d3ac): Section mismatch in reference from the variable pci_eisa_driver to the function .init.text:pci_eisa_init()
+The variable pci_eisa_driver references the function __init pci_eisa_init()
+If the reference is valid then annotate the variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
 
-drivers/net/3c59x.c:1026: error: implicit declaration of function 'pci_iomap'
-drivers/net/3c59x.c:1038: error: implicit declaration of function 'pci_iounmap'
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/iomap.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/eisa/pci_eisa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/iomap.h~asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap include/asm-generic/iomap.h
---- a/include/asm-generic/iomap.h~asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap
-+++ a/include/asm-generic/iomap.h
-@@ -71,6 +71,14 @@ extern void ioport_unmap(void __iomem *)
- struct pci_dev;
- extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
-+#else
-+struct pci_dev;
-+static inline void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max)
-+{
-+	return NULL;
-+}
-+static inline void pci_iounmap(struct pci_dev *dev, void __iomem *addr)
-+{ }
- #endif
+diff -puN drivers/eisa/pci_eisa.c~eisa-pci_eisac-fix-section-mismatch drivers/eisa/pci_eisa.c
+--- a/drivers/eisa/pci_eisa.c~eisa-pci_eisac-fix-section-mismatch
++++ a/drivers/eisa/pci_eisa.c
+@@ -45,13 +45,13 @@ static int __init pci_eisa_init(struct p
+ 	return 0;
+ }
  
- #endif
+-static struct pci_device_id pci_eisa_pci_tbl[] = {
++static struct pci_device_id __initdata pci_eisa_pci_tbl[] = {
+ 	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+ 	  PCI_CLASS_BRIDGE_EISA << 8, 0xffff00, 0 },
+ 	{ 0, }
+ };
+ 
+-static struct pci_driver pci_eisa_driver = {
++static struct pci_driver __initdata pci_eisa_driver = {
+ 	.name		= "pci_eisa",
+ 	.id_table	= pci_eisa_pci_tbl,
+ 	.probe		= pci_eisa_init,
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from lacombar@gmail.com are
 
 origin.patch
 linux-next.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-introduce-shm_rmid_forced-sysctl.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
 
